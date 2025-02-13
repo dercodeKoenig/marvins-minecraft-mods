@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FAF",
+    "FCF",
+    "   "
+  ],
+  "key": {
+    "A": {
+      "item": "age_of_steam:wooden_axle"
+    },
+    "C": {
+      "item": "age_of_steam:casing"
+    },
+    "F": {
+      "tag": "c:fences"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:millstone",
+    "count": 1
+  }
+}

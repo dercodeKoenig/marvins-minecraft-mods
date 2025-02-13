@@ -1,0 +1,20 @@
+{
+    "multipart": [
+        {
+            "when": { "facing": "north" },
+            "apply": { "model": "aos_basic_fluid:block/pump", "y": 90 }
+        },
+        {
+            "when": { "facing": "south" },
+            "apply": { "model": "aos_basic_fluid:block/pump", "y": 270 }
+        },
+        {
+            "when": { "facing": "west" },
+            "apply": { "model": "aos_basic_fluid:block/pump", "y": 0 }
+        },
+        {
+            "when": { "facing": "east" },
+            "apply": { "model": "aos_basic_fluid:block/pump", "y": 180 }
+        }
+    ]
+}

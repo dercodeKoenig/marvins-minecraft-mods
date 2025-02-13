@@ -1,0 +1,21 @@
+{
+  "block.aos_workshop_expansion.sieve": "Sieve",
+  "item.aos_workshop_expansion.sieve": "Sieve",
+
+  "item.aos_workshop_expansion.string_mesh": "String Mesh",
+  "item.aos_workshop_expansion.sieve_hopper_upgrade": "Sieve Hopper Upgrade",
+
+
+  "block.aos_workshop_expansion.woodmill": "Wood Mill",
+  "item.aos_workshop_expansion.woodmill": "Wood Mill",
+
+  "block.aos_workshop_expansion.millstone": "Millstone",
+  "item.aos_workshop_expansion.millstone": "Millstone",
+  "item.aos_workshop_expansion.flour": "Flour",
+
+
+  "block.aos_workshop_expansion.spinning_wheel": "Manual Spinning Wheel",
+  "item.aos_workshop_expansion.spinning_wheel": "Manual Spinning Wheel"
+
+}
+
