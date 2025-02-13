@@ -78,7 +78,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if (side == myState.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()) {
+        if (side == myState.getValue(BlockStateProperties.HORIZONTAL_FACING)) {
             BlockEntity t = level.getBlockEntity(getBlockPos().relative(side));
             if (t instanceof EntityCrankShaftBase cs && cs.myType == CrankShaftType.LARGE) {
                 if (cs.getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis()) {
