@@ -1,6 +1,9 @@
 package AOSBasicFluid;
 
 import AOSBasicFluid.Pump.RenderPump;
+import AOSBasicFluid.Tank.RenderTank;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -20,6 +23,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
+import static AOSBasicFluid.Registry.*;
 import static AgeOfSteam.Registry.AOS_CREATIVETAB;
 
 
@@ -47,6 +51,7 @@ public class Main {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
+        ItemBlockRenderTypes.setRenderLayer(TANK.get(), RenderType.cutout());
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
@@ -55,7 +60,8 @@ public class Main {
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(Registry.ENTITY_PUMP.get(), RenderPump::new);
+        event.registerBlockEntityRenderer(ENTITY_PUMP.get(), RenderPump::new);
+        event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -64,7 +70,8 @@ public class Main {
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(AOS_CREATIVETAB.get())) {
-            e.accept(Registry.PUMP.get());
+            e.accept(PUMP.get());
+            e.accept(TANK.get());
         }
     }
 
@@ -72,9 +79,15 @@ public class Main {
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_PUMP.get(),
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_PUMP.get(),
                 (pump, side) -> {
                     return pump.myTank;
+                }
+        );
+
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_TANK.get(),
+                (tank, side) -> {
+                    return tank.myTank;
                 }
         );
     }

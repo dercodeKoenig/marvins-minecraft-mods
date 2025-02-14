@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "connected_down=false,connected_up=false": {
+      "model": "aos_basic_fluid:block/tank"
+    },
+    "connected_down=true,connected_up=false": {
+      "model": "aos_basic_fluid:block/tank_joined_below"
+    },
+    "connected_down=false,connected_up=true": {
+      "model": "aos_basic_fluid:block/tank_joined_above"
+    },
+    "connected_down=true,connected_up=true": {
+      "model": "aos_basic_fluid:block/tank_joined_all"
+    }
+  }
+}
