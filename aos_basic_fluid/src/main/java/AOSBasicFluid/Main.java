@@ -7,6 +7,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -71,6 +72,11 @@ public class Main {
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_PUMP.get(),
+                (pump, side) -> {
+                    return pump.myTank;
+                }
+        );
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

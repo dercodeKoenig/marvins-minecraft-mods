@@ -25,7 +25,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.util.*;
 
@@ -36,8 +40,12 @@ import static AOSBasicFluid.Registry.PUMP_EXT;
 
 public class EntityPump extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
-    public double progress = 0;
+
     public int maxRadius = 32;
+
+    public FluidTank myTank = new FluidTank(10000);
+
+    public double progress = 0;
     FluidType fluidToPump = Fluids.EMPTY.getFluidType();
     List<BlockPos> nextBlocksToScan = new LinkedList<>();
     HashSet<BlockPos> workedPositions = new HashSet<>();
@@ -217,11 +225,33 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             }
             if(nextBlocksToScan.isEmpty()){
                 if(!waterSourceBlocks.isEmpty()){
-                    BlockPos target = waterSourceBlocks.last();
-                    level.setBlock(target, Blocks.AIR.defaultBlockState(), 3);
+                    if(myTank.getFluidAmount() + 1000 <= myTank.getCapacity()) {
+                        BlockPos target = waterSourceBlocks.last();
+                        level.setBlock(target, Blocks.AIR.defaultBlockState(), 3);
+                        myTank.getFluid().grow(1000);
+                    }
                     waterSourceBlocks.clear();
                 }
             }
+
+
+                for (Direction d : new Direction[]{getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getClockWise(), getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getCounterClockWise()}) {
+                    if (!myTank.getFluid().isEmpty()) {
+                        IFluidHandler fluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(d), d.getOpposite());
+                        if (fluidHandler != null) {
+                            double relativeFill = (double) myTank.getFluidAmount() / myTank.getCapacity();
+                            int toExtract = (int) (100 * relativeFill);
+                            toExtract = Math.max(1,toExtract);
+
+                            int canFill = fluidHandler.fill(myTank.drain(toExtract, IFluidHandler.FluidAction.SIMULATE), IFluidHandler.FluidAction.SIMULATE);
+                            if(canFill > 0){
+                                fluidHandler.fill(myTank.drain(canFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+                            }
+                        }
+                    }else{
+                        break;
+                    }
+                }
         }
     }
 
@@ -229,12 +259,14 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
+        myTank.readFromNBT(registries,tag);
     }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+        myTank.writeToNBT(registries,tag);
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
