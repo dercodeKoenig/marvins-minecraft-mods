@@ -158,6 +158,53 @@
         {
             "when": { "north": "none" , "main_isextraction":  "true", "main_isextractionactive":  "false"},
             "apply": { "model": "betterpipes:block/pipe_extraction_off" , "x": 90,"y": 0}
+        },
+
+
+
+
+
+
+
+
+
+
+        {
+            "when": { "c_north": true, "north": "connection"},
+            "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 0}
+        },
+        {
+            "when": { "c_south": true, "south": "connection"},
+            "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 180}
+        },
+        {
+            "when": { "c_east": true, "east": "connection"},
+            "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 90}
+        },
+        {
+            "when": { "c_west": true, "west": "connection"},
+            "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 270}
+        },
+
+
+
+
+        {
+            "when": { "c_north": true, "north": "extraction"},
+            "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 0}
+        },
+        {
+            "when": { "c_south": true, "south": "extraction"},
+            "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 180}
+        },
+        {
+            "when": { "c_east": true, "east": "extraction"},
+            "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 90}
+        },
+        {
+            "when": { "c_west": true, "west": "extraction"},
+            "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 270}
         }
+
     ]
 }

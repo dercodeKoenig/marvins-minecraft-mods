@@ -25,6 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -61,6 +62,16 @@ public class BlockPipe extends Block implements EntityBlock {
     public static BooleanProperty pipe_is_extraction = BooleanProperty.create("main_isextraction");
     public static BooleanProperty pipe_is_extraction_active = BooleanProperty.create("main_isextractionactive");
 
+    public static Map<Direction, BooleanProperty> otherConnections = new HashMap<>();
+    static{
+
+        otherConnections.put(Direction.EAST,BooleanProperty.create("c_east"));
+        otherConnections.put(Direction.WEST,BooleanProperty.create("c_west"));
+        otherConnections.put(Direction.NORTH,BooleanProperty.create("c_north"));
+        otherConnections.put(Direction.SOUTH,BooleanProperty.create("c_south"));
+
+    }
+
     static {
         for (Direction i : Direction.values()) {
             connections.put(i, EnumProperty.create(i.getName(), ConnectionState.class));
@@ -74,6 +85,9 @@ public class BlockPipe extends Block implements EntityBlock {
         for (Direction i : Direction.values()) {
             state = state.setValue(connections.get(i), ConnectionState.NONE);
         }
+        for (Direction i : otherConnections.keySet()){
+            state =        state.setValue(otherConnections.get(i), false);
+        }
         state = state.setValue(pipe_is_extraction, false);
         state = state.setValue(pipe_is_extraction_active, false);
         this.registerDefaultState(state);
@@ -86,6 +100,9 @@ public class BlockPipe extends Block implements EntityBlock {
         }
         builder.add(pipe_is_extraction);
         builder.add(pipe_is_extraction_active);
+        for (Direction i : otherConnections.keySet()) {
+            builder.add(otherConnections.get(i));
+        }
     }
 
     @Override
@@ -130,6 +147,14 @@ public class BlockPipe extends Block implements EntityBlock {
         BlockEntity tile = level.getBlockEntity(pos);
         if (!(tile instanceof EntityPipe pipe)) return state;
 
+
+if(otherConnections.containsKey(direction)) {
+    if (neighborState.getBlock() instanceof BlockTank) {
+        state = state.setValue(otherConnections.get(direction), true);
+    } else {
+        state = state.setValue(otherConnections.get(direction), false);
+    }
+}
 
         IFluidHandler fluidHandler = pipe.connections.get(direction).neighborFluidHandler();
 

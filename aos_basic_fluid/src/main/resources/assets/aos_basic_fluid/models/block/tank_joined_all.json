@@ -1,9 +1,0 @@
-{
-  "parent": "aos_basic_fluid:block/tank",
-  "textures": {
-    "particle": "aos_basic_fluid:block/joined_all",
-    "side": "aos_basic_fluid:block/joined_all",
-    "up": "aos_basic_fluid:block/transparent",
-    "down": "aos_basic_fluid:block/transparent"
-  }
-}

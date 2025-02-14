@@ -18,6 +18,9 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
 base {
@@ -112,6 +115,11 @@ configurations {
 }
 
 dependencies {
+
+    //implementation "curse.maven:library-for-ar-reworked-1038780:5942649"
+    implementation fileTree(dir: '../libs', include: ['*.jar'])
+    implementation "curse.maven:jei-238222:5846880"
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -186,4 +194,27 @@ idea {
         downloadSources = true
         downloadJavadoc = true
     }
+}
+
+
+
+tasks.register('deobfJar', Jar) {
+    group = 'build'
+    description = 'Generates a deobfuscated jar'
+
+    // Define the output jar name
+    archiveClassifier.set('deobf')
+
+    // Include only the compiled classes and resources from the main source set
+    from sourceSets.main.output
+
+    // Handle duplicate entries
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // Enable ZIP64 in case the limit is still hit
+    zip64 = true
+}
+
+tasks.named('build') {
+    dependsOn tasks.named('deobfJar')
 }

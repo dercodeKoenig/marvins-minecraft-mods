@@ -8,6 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.api.distmarker.Dist;
@@ -75,7 +76,7 @@ public class PacketBlockEntity implements CustomPacketPayload {
         Level world = DimensionUtils.getDimensionLevelServer(data.dim);
         BlockEntity tile = world.getBlockEntity(new BlockPos(data.x(),data.y(),data.z()));
         if (tile instanceof INetworkTagReceiver){
-            ((INetworkTagReceiver) tile).readServer(data.getTag());
+            ((INetworkTagReceiver) tile).readServer(data.getTag(), (ServerPlayer) context.player());
         }
     }
 

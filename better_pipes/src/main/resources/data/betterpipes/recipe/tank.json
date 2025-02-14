@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "I I",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:glass_blocks"
+    }
+  },
+  "result": {
+    "id": "betterpipes:tank",
+    "count": 1
+  }
+}

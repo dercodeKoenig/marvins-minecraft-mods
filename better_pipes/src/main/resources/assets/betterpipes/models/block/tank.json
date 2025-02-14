@@ -81,10 +81,10 @@
 
   ],
   "textures": {
-    "particle": "aos_basic_fluid:block/side",
-    "up": "aos_basic_fluid:block/end",
-    "down": "aos_basic_fluid:block/end",
-    "side": "aos_basic_fluid:block/side"
+    "particle": "betterpipes:block/side",
+    "up": "betterpipes:block/end",
+    "down": "betterpipes:block/end",
+    "side": "betterpipes:block/side"
   },
   "display": {
     "thirdperson_righthand": {

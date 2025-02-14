@@ -1,0 +1,8 @@
+{
+  "parent": "betterpipes:block/tank",
+  "textures": {
+    "particle": "betterpipes:block/side_joined_below",
+    "side": "betterpipes:block/side_joined_below",
+    "down": "betterpipes:block/transparent"
+  }
+}

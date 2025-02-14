@@ -3,8 +3,6 @@ package AOSBasicFluid;
 import AOSBasicFluid.Pump.BlockPump;
 import AOSBasicFluid.Pump.BlockPumpExtension;
 import AOSBasicFluid.Pump.EntityPump;
-import AOSBasicFluid.Tank.BlockTank;
-import AOSBasicFluid.Tank.EntityTank;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -43,19 +41,10 @@ public class Registry {
     );
 
 
-    public static final Supplier<Block> TANK = BLOCKS.register(
-            "tank",
-            () -> new BlockTank()
-    );
-    public static final Supplier<BlockEntityType<EntityTank>> ENTITY_TANK = BLOCK_ENTITIES.register(
-            "entity_tank",
-            () -> BlockEntityType.Builder.of(EntityTank::new, TANK.get()).build(null)
-    );
 
     static {
         registerBlockItem("pump", PUMP);
         registerBlockItem("pump_ext", PUMP_EXT);
-        registerBlockItem("tank", TANK);
     }
 
     public static void register(IEventBus modBus) {

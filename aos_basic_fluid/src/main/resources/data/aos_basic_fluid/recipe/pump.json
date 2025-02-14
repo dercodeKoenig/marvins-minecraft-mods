@@ -1,23 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "FAF",
-    "FCF",
-    "   "
+    " A ",
+    " F ",
+    " B "
   ],
   "key": {
     "A": {
-      "item": "age_of_steam:wooden_axle"
+      "tag": "c:axles"
     },
     "C": {
-      "item": "age_of_steam:casing"
+      "item": "c:barrels"
     },
     "F": {
       "tag": "c:fences"
     }
   },
   "result": {
-    "id": "aos_workshop_expansion:millstone",
+    "id": "aos_basic_fluid:pump",
     "count": 1
   }
 }

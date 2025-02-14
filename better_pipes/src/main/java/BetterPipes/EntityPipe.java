@@ -36,13 +36,13 @@ import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
 public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
 
-    public static int MAX_OUTPUT_RATE = 40;
-    public static int REQUIRED_FILL_FOR_MAX_OUTPUT = 200;
-    public static int MAIN_CAPACITY = 400;
+    public static int MAX_OUTPUT_RATE = Config.INSTANCE.maxOutputRate;
+    public static int REQUIRED_FILL_FOR_MAX_OUTPUT = Config.INSTANCE.mainRequiredFillForMaxOutput;
+    public static int MAIN_CAPACITY = Config.INSTANCE.main_capacity;
 
-    public static int CONNECTION_MAX_OUTPUT_RATE = 40;
-    public static int CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT = 100;
-    public static int CONNECTION_CAPACITY = 200;
+    public static int CONNECTION_MAX_OUTPUT_RATE = Config.INSTANCE.maxOutputRate;
+    public static int CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT = Config.INSTANCE.connectionRequiredFillForMaxOutput;
+    public static int CONNECTION_CAPACITY = Config.INSTANCE.connection_capacity;
 
     public static int STATE_UPDATE_TICKS = 40;
     public static int FORCE_OUTPUT_AFTER_TICKS = 20;
@@ -85,7 +85,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
         if (level.isClientSide) {
             UUID from = Minecraft.getInstance().player.getUUID();
             CompoundTag tag = new CompoundTag();
-            tag.putUUID("client_onload", from);
+            tag.put("client_onload", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, tag));
             setRequiresMeshUpdate();
         }
@@ -330,22 +330,21 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
+    public void readServer(CompoundTag compoundTag, ServerPlayer player) {
         if (compoundTag.contains("client_onload")) {
-            UUID from = compoundTag.getUUID("client_onload");
-            ServerPlayer playerFrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+
             CompoundTag updateTag = new CompoundTag();
             for (Direction direction : Direction.values()) {
                 PipeConnection conn = connections.get(direction);
                 CompoundTag tag = conn.getUpdateTag(level.registryAccess());
                 updateTag.put(direction.getName(), tag);
-                conn.sendInitialTankUpdates(playerFrom);
+                conn.sendInitialTankUpdates(player);
             }
             updateTag.putLong("time", System.currentTimeMillis());
-            PacketDistributor.sendToPlayer(playerFrom, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
+            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
             if (!tank.getFluid().isEmpty()) {
-                PacketDistributor.sendToPlayer(playerFrom, PacketFluidUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluid().getFluid()));
-                PacketDistributor.sendToPlayer(playerFrom, PacketFluidAmountUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluidAmount()));
+                PacketDistributor.sendToPlayer(player, PacketFluidUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluid().getFluid()));
+                PacketDistributor.sendToPlayer(player, PacketFluidAmountUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluidAmount()));
             }
 
         }

@@ -1,9 +1,6 @@
 package AOSBasicFluid;
 
 import AOSBasicFluid.Pump.RenderPump;
-import AOSBasicFluid.Tank.RenderTank;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -51,7 +48,6 @@ public class Main {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(TANK.get(), RenderType.cutout());
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
@@ -61,7 +57,6 @@ public class Main {
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_PUMP.get(), RenderPump::new);
-        event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -71,7 +66,6 @@ public class Main {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(AOS_CREATIVETAB.get())) {
             e.accept(PUMP.get());
-            e.accept(TANK.get());
         }
     }
 
@@ -82,12 +76,6 @@ public class Main {
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_PUMP.get(),
                 (pump, side) -> {
                     return pump.myTank;
-                }
-        );
-
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_TANK.get(),
-                (tank, side) -> {
-                    return tank.myTank;
                 }
         );
     }

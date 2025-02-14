@@ -1,14 +1,5 @@
-package AOSBasicFluid.Tank;
+package BetterPipes;
 
-import AOSBasicFluid.Pump.PumpFluidTank;
-import ARLib.network.INetworkTagReceiver;
-import ARLib.network.PacketBlockEntity;
-import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
-import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
-import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
-import AgeOfSteam.Core.AbstractMechanicalBlock;
-import AgeOfSteam.Core.IMechanicalBlockProvider;
-import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -43,7 +34,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
-import static AOSBasicFluid.Registry.*;
+import static BetterPipes.Registry.ENTITY_TANK;
 import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
 // the pump will take the water block that is most away on the highest connected y level

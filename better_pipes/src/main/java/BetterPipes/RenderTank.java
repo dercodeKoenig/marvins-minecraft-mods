@@ -1,10 +1,5 @@
-package AOSBasicFluid.Tank;
+package BetterPipes;
 
-import AOSBasicFluid.Main;
-import ARLib.obj.Face;
-import ARLib.obj.ModelFormatException;
-import ARLib.obj.WavefrontObject;
-import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -22,7 +17,6 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import static AgeOfSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderTank implements BlockEntityRenderer<EntityTank> {

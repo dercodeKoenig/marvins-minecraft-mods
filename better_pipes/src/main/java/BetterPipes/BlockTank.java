@@ -1,5 +1,6 @@
-package AOSBasicFluid.Tank;
+package BetterPipes;
 
+import BetterPipes.BlockPipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,12 +19,18 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import static AOSBasicFluid.Registry.ENTITY_PUMP;
-import static AOSBasicFluid.Registry.ENTITY_TANK;
+import java.util.HashMap;
+import java.util.Map;
+
+import static BetterPipes.Registry.ENTITY_TANK;
+
 
 public class BlockTank extends Block implements EntityBlock {
 
@@ -32,8 +39,11 @@ public class BlockTank extends Block implements EntityBlock {
 
     public BlockTank() {
         super(Properties.of().noOcclusion());
-        this.registerDefaultState(this.stateDefinition.any().setValue(connectedBelow, false));
-        this.registerDefaultState(this.stateDefinition.any().setValue(connectedAbove, true));
+        BlockState defaultState = this.stateDefinition.any();
+        defaultState =        defaultState.setValue(connectedBelow, false);
+        defaultState =        defaultState.setValue(connectedAbove, false);
+
+        this.registerDefaultState(defaultState);
     }
 
     @Override
@@ -44,6 +54,8 @@ public class BlockTank extends Block implements EntityBlock {
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+
+
 
         if (direction == Direction.DOWN) {
             if (neighborState.getBlock() instanceof BlockTank) {

@@ -1,0 +1,40 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "connected_down": false,
+        "connected_up": false
+      },
+      "apply": {
+        "model": "betterpipes:block/tank"
+      }
+    },
+    {
+      "when": {
+        "connected_down": true,
+        "connected_up": false
+      },
+      "apply": {
+        "model": "betterpipes:block/tank_joined_below"
+      }
+    },
+    {
+      "when": {
+        "connected_down": false,
+        "connected_up": true
+      },
+      "apply": {
+        "model": "betterpipes:block/tank_joined_above"
+      }
+    },
+    {
+      "when": {
+        "connected_down": true,
+        "connected_up": true
+      },
+      "apply": {
+        "model": "betterpipes:block/tank_joined_all"
+      }
+    }
+  ]
+}
