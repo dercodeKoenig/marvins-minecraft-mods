@@ -43,7 +43,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
     public int maxRadius = 32;
 
-    public FluidTank myTank = new FluidTank(10000);
+    public PumpFluidTank myTank = new PumpFluidTank(10000);
 
     public double progress = 0;
     FluidType fluidToPump = Fluids.EMPTY.getFluidType();
@@ -225,10 +225,11 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             }
             if(nextBlocksToScan.isEmpty()){
                 if(!waterSourceBlocks.isEmpty()){
-                    if(myTank.getFluidAmount() + 1000 <= myTank.getCapacity()) {
-                        BlockPos target = waterSourceBlocks.last();
+                    BlockPos target = waterSourceBlocks.last();
+                    BlockState targetState = level.getBlockState(target);
+                    if(myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
+                        myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.EXECUTE);
                         level.setBlock(target, Blocks.AIR.defaultBlockState(), 3);
-                        myTank.getFluid().grow(1000);
                     }
                     waterSourceBlocks.clear();
                 }
