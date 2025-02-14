@@ -1,6 +1,7 @@
 package AOSBasicFluid;
 
 import AOSBasicFluid.Pump.BlockPump;
+import AOSBasicFluid.Pump.BlockPumpExtension;
 import AOSBasicFluid.Pump.EntityPump;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -33,9 +35,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityPump::new, PUMP.get()).build(null)
     );
 
+    public static final Supplier<Block> PUMP_EXT = BLOCKS.register(
+            "pump_ext",
+            () -> new BlockPumpExtension()
+    );
+
 
     static {
         registerBlockItem("pump", PUMP);
+        registerBlockItem("pump_ext", PUMP_EXT);
     }
 
     public static void register(IEventBus modBus) {

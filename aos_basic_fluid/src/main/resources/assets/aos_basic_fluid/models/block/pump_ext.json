@@ -1,0 +1,31 @@
+{
+    "loader": "neoforge:obj",
+    "model": "aos_basic_fluid:models/block/pump_ext.obj",
+    "mtl_override": "aos_basic_fluid:models/block/pump_ext.mtl",
+    "automatic_culling": false,
+    "flip_v": true,
+    "emissive_ambient": false,
+    "textures": {
+        "particle": "aos_basic_fluid:block/pump"
+    },
+
+    "display": {
+        "gui": {
+            "rotation": [
+                20,
+                10,
+                10
+            ],
+            "translation": [
+                0,
+                0,
+                0
+            ],
+            "scale": [
+                0.5,
+                0.5,
+                0.5
+            ]
+        }
+    }
+}
