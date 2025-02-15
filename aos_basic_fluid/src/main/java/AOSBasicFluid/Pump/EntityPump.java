@@ -41,7 +41,7 @@ import static AOSBasicFluid.Registry.PUMP_EXT;
 public class EntityPump extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
-    public int maxRadius = 64;
+    public int maxRadius = 96;
 
     public PumpFluidTank myTank = new PumpFluidTank(10000){
         @Override
