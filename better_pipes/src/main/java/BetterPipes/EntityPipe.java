@@ -230,7 +230,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
                         }
                     }
 
-                    if (state.getValue(BlockPipe.pipe_is_extraction_active) && state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
+                    if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
                         // extract from a neighbor fluid handler
                         // this runs every tick
                         try {
@@ -282,54 +282,13 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
         }
     }
 
-    public BlockState setExtractionMode(BlockState state, boolean mode) {
-        if (state.getValue(BlockPipe.pipe_is_extraction) != mode) {
-            state = state.setValue(BlockPipe.pipe_is_extraction_active, false);
+    public void toggleExtractionMode(Direction hitFace) {
+        BlockState state = getBlockState();
+        if (state.getValue(BlockPipe.connections.get(hitFace))== BlockPipe.ConnectionState.CONNECTED) {
+            state = state.setValue(BlockPipe.connections.get(hitFace), BlockPipe.ConnectionState.EXTRACTION);
         }
-        state = state.setValue(BlockPipe.pipe_is_extraction, mode);
-
-        for (Direction i : Direction.values()) {
-            if((state.getValue(BlockPipe.connections.get(i)) == BlockPipe.ConnectionState.CONNECTED || state.getValue(BlockPipe.connections.get(i)) == BlockPipe.ConnectionState.EXTRACTION)) {
-                boolean shouldBeExtraction = mode && !(connections.get(i).neighborFluidHandler() instanceof PipeConnection);
-                if (shouldBeExtraction)
-                    state = state.setValue(BlockPipe.connections.get(i), BlockPipe.ConnectionState.EXTRACTION);
-                else
-                    state = state.setValue(BlockPipe.connections.get(i), BlockPipe.ConnectionState.CONNECTED);
-            }
-        }
-        return state;
-    }
-
-    public BlockState setExtractionActive(BlockState state, boolean mode) {
-        state = state.setValue(BlockPipe.pipe_is_extraction_active, mode);
-        return state;
-    }
-
-    public void toggleExtractionActive() {
-        BlockState state = level.getBlockState(getBlockPos());
-        state = setExtractionActive(state, !state.getValue(BlockPipe.pipe_is_extraction_active));
-        level.setBlock(getBlockPos(), state, 3);
-    }
-
-    public void toggleExtractionMode() {
-        BlockState state = level.getBlockState(getBlockPos());
-
-        boolean hasAnyConnectionsInExtractionMode = false;
-        for (Direction i : Direction.values()) {
-            if (state.getValue(BlockPipe.connections.get(i)) == BlockPipe.ConnectionState.EXTRACTION)
-                hasAnyConnectionsInExtractionMode = true;
-        }
-        if (hasAnyConnectionsInExtractionMode) {
-            state = setExtractionMode(state, false);
-        } else {
-            boolean hasAnyValidConnections = false;
-            for (Direction i : Direction.values()) {
-                if ((state.getValue(BlockPipe.connections.get(i)) == BlockPipe.ConnectionState.CONNECTED || state.getValue(BlockPipe.connections.get(i)) == BlockPipe.ConnectionState.EXTRACTION) && !(connections.get(i).neighborFluidHandler() instanceof PipeConnection))
-                    hasAnyValidConnections = true;
-            }
-            if (hasAnyValidConnections) {
-                state = setExtractionMode(state, !state.getValue(BlockPipe.pipe_is_extraction));
-            }
+        else if (state.getValue(BlockPipe.connections.get(hitFace))== BlockPipe.ConnectionState.EXTRACTION) {
+            state = state.setValue(BlockPipe.connections.get(hitFace), BlockPipe.ConnectionState.CONNECTED);
         }
         level.setBlock(getBlockPos(), state, 3);
     }

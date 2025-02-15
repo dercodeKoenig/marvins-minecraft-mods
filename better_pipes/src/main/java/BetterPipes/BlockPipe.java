@@ -59,11 +59,6 @@ public class BlockPipe extends Block implements EntityBlock {
 
     public static Map<Direction, EnumProperty<ConnectionState>> connections = new HashMap<>();
 
-    public static BooleanProperty pipe_is_extraction = BooleanProperty.create("main_isextraction");
-    public static BooleanProperty pipe_is_extraction_active = BooleanProperty.create("main_isextractionactive");
-
-
-
     static {
         for (Direction i : Direction.values()) {
             connections.put(i, EnumProperty.create(i.getName(), ConnectionState.class));
@@ -77,8 +72,6 @@ public class BlockPipe extends Block implements EntityBlock {
         for (Direction i : Direction.values()) {
             state = state.setValue(connections.get(i), ConnectionState.NONE);
         }
-        state = state.setValue(pipe_is_extraction, false);
-        state = state.setValue(pipe_is_extraction_active, false);
         this.registerDefaultState(state);
     }
 
@@ -87,8 +80,6 @@ public class BlockPipe extends Block implements EntityBlock {
         for (Direction i : Direction.values()) {
             builder.add(connections.get(i));
         }
-        builder.add(pipe_is_extraction);
-        builder.add(pipe_is_extraction_active);
     }
 
     @Override
@@ -107,9 +98,7 @@ public class BlockPipe extends Block implements EntityBlock {
             BlockEntity tile = level.getBlockEntity(pos);
             if (tile instanceof EntityPipe pipe) {
                 if (player.isShiftKeyDown()) {
-                    pipe.toggleExtractionMode();
-                } else {
-                    pipe.toggleExtractionActive();
+                    pipe.toggleExtractionMode(hitResult.getDirection());
                 }
                 return InteractionResult.PASS;
             }
@@ -168,14 +157,6 @@ pipe.setChanged();
             pipe.connections.get(direction).update();
             pipe.connections.get(direction).syncTanks();
 
-            boolean hasAnyExtraction = false;
-            for (Direction i : Direction.values()) {
-                if ((state.getValue(connections.get(i)) == ConnectionState.CONNECTED || state.getValue(connections.get(i)) == ConnectionState.EXTRACTION) && !(pipe.connections.get(i).neighborFluidHandler() instanceof PipeConnection))
-                    hasAnyExtraction = true;
-            }
-            if (!hasAnyExtraction) {
-                state = pipe.setExtractionMode(state, false);
-            }
         }
 
         return state;
