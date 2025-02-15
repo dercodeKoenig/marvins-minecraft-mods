@@ -1,4 +1,4 @@
-package BetterPipes;
+package BetterPipes.Network;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;

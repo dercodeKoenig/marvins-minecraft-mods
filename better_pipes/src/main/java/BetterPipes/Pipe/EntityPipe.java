@@ -1,33 +1,36 @@
-package BetterPipes;
+package BetterPipes.Pipe;
 
+import BetterPipes.Config;
+import BetterPipes.Network.INetworkTagReceiver;
+import BetterPipes.Network.PacketBlockEntity;
+import BetterPipes.Network.PacketFluidUpdate;
+import BetterPipes.Network.PacketFluidAmountUpdate;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.sun.tools.jconsole.JConsoleContext;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -58,7 +61,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     int lastFill;
     int ticksWithFluidInTank = 0;
 
-    public fluidRenderData renderData = new fluidRenderData();
+    public FluidRenderData renderData = new FluidRenderData();
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
     public boolean requiresMeshUpdate = false;
@@ -399,5 +402,28 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
         tag.putBoolean("tankEast", tankEast);
         tag.putBoolean("tankSouth", tankSouth);
         tag.putBoolean("tankWest", tankWest);
+    }
+
+    public static class FluidRenderData {
+
+        TextureAtlasSprite spriteFLowing;
+        TextureAtlasSprite spriteStill;
+        int color;
+
+        public FluidRenderData() {
+            if(FMLEnvironment.dist == Dist.CLIENT) {
+                updateSprites(Fluids.WATER);
+            }
+        }
+
+        public void updateSprites(Fluid f) {
+            if (f == Fluids.EMPTY) f = Fluids.WATER;
+            IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(f);
+            color = extensions.getTintColor();
+            ResourceLocation fluidtextureStill = extensions.getStillTexture();
+            spriteStill = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidtextureStill);
+            ResourceLocation fluidtextureFlowing = extensions.getFlowingTexture();
+            spriteFLowing = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidtextureFlowing);
+        }
     }
 }

@@ -1,17 +1,16 @@
 package BetterPipes;
 
-import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.resources.model.Material;
+import BetterPipes.Pipe.BlockPipe;
+import BetterPipes.Pipe.EntityPipe;
+import BetterPipes.Tank.BlockTank;
+import BetterPipes.Tank.EntityTank;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.function.Supplier;
 

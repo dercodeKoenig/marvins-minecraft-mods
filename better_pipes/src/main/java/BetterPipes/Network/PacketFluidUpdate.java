@@ -1,5 +1,6 @@
-package BetterPipes;
+package BetterPipes.Network;
 
+import BetterPipes.Pipe.EntityPipe;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -10,34 +11,36 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import javax.annotation.Nullable;
 
-public class PacketFluidAmountUpdate implements CustomPacketPayload {
+public class PacketFluidUpdate implements CustomPacketPayload {
 
 
 
-    public static final Type<PacketFluidAmountUpdate> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath("betterpipes", "connection_sync_fluid_amount_to_client"));
+    public static final Type<PacketFluidUpdate> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath("betterpipes", "connection_sync_fluid_to_client"));
 
-    public static PacketFluidAmountUpdate getPacketFluidUpdate(BlockPos pos, @Nullable Direction d, int amount){
+    public static PacketFluidUpdate getPacketFluidUpdate(BlockPos pos, @Nullable Direction d, Fluid fluid){
         int direction;
         if(d==null)direction = -1;
         else direction = d.ordinal();
-        return new PacketFluidAmountUpdate(pos.getX(),pos.getY(),pos.getZ(),direction,amount, System.currentTimeMillis());
+        return new PacketFluidUpdate(pos.getX(),pos.getY(),pos.getZ(),direction,new FluidStack(fluid,1), System.currentTimeMillis());
     }
 
-    public PacketFluidAmountUpdate(int x, int y, int z, int direction, int amount, long time) {
+    public PacketFluidUpdate(int x, int y, int z, int direction, FluidStack fluidInTank, long time) {
         this.side = direction;
         this.x=x;
         this.y=y;
         this.z=z;
-        this.amount = amount;
+        this.fluid = fluidInTank;
         this.time = time;
     }
     int x;int x(){return x;}
@@ -46,48 +49,48 @@ public class PacketFluidAmountUpdate implements CustomPacketPayload {
     long time;long time(){return time;}
 
     int  side;
-    int amount;
+    FluidStack fluid;
     public int side() {
         return side;
     }
-    public int amount(){return amount;}
+    public FluidStack fluid(){return fluid;}
 
 
-    public static final StreamCodec<ByteBuf, PacketFluidAmountUpdate> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<ByteBuf, PacketFluidUpdate> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.INT,
-            PacketFluidAmountUpdate::x,
+            PacketFluidUpdate::x,
             ByteBufCodecs.INT,
-            PacketFluidAmountUpdate::y,
+            PacketFluidUpdate::y,
             ByteBufCodecs.INT,
-            PacketFluidAmountUpdate::z,
+            PacketFluidUpdate::z,
             ByteBufCodecs.INT,
-            PacketFluidAmountUpdate::side,
-            ByteBufCodecs.INT,
-            PacketFluidAmountUpdate::amount,
+            PacketFluidUpdate::side,
+            ByteBufCodecs.fromCodec(FluidStack.CODEC),
+            PacketFluidUpdate::fluid,
             ByteBufCodecs.VAR_LONG,
-            PacketFluidAmountUpdate::time,
-            PacketFluidAmountUpdate::new
+            PacketFluidUpdate::time,
+            PacketFluidUpdate::new
     );
 
     @OnlyIn(Dist.CLIENT)     // <- this is bc the server shits itself on this: Minecraft.getInstance().level;
-    public static void readClient_onlyonclient(final PacketFluidAmountUpdate data, final IPayloadContext context) {
+    public static void readClient_onlyonclient(final PacketFluidUpdate data, final IPayloadContext context) {
         // use the current Dimension, the client does not need to find the dimension by String
         Level world = Minecraft.getInstance().level;
         BlockEntity tile = world.getBlockEntity(new BlockPos(data.x(),data.y(),data.z()));
         if (tile instanceof EntityPipe pipe){
             if(data.side==-1){
-                pipe.setFluidAmountInTank(data.amount(), data.time());
+                pipe.setFluidInTank(data.fluid.getFluid(), data.time());
             }else {
-                pipe.connections.get(Direction.values()[data.side()]).setFluidAmountInTank(data.amount(), data.time());
+                pipe.connections.get(Direction.values()[data.side()]).setFluidInTank(data.fluid.getFluid(), data.time());
             }
         }
 
     }
     //  this can not be dist.client because it is used in register method
-    public static void readClient(final PacketFluidAmountUpdate data, final IPayloadContext context) {
+    public static void readClient(final PacketFluidUpdate data, final IPayloadContext context) {
         readClient_onlyonclient(data,context);
     }
-    public static void readServer(final PacketFluidAmountUpdate data, final IPayloadContext context) {
+    public static void readServer(final PacketFluidUpdate data, final IPayloadContext context) {
         //nothing to do
     }
 
@@ -98,11 +101,11 @@ public class PacketFluidAmountUpdate implements CustomPacketPayload {
 
     public static void register(PayloadRegistrar registrar) {
         registrar.playBidirectional(
-                PacketFluidAmountUpdate.TYPE,
-                PacketFluidAmountUpdate.STREAM_CODEC,
+                PacketFluidUpdate.TYPE,
+                PacketFluidUpdate.STREAM_CODEC,
                 new DirectionalPayloadHandler<>(
-                        PacketFluidAmountUpdate::readClient,
-                        PacketFluidAmountUpdate::readServer
+                        PacketFluidUpdate::readClient,
+                        PacketFluidUpdate::readServer
                 )
         );
     }

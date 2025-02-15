@@ -1,5 +1,7 @@
-package BetterPipes;
+package BetterPipes.Pipe;
 
+import BetterPipes.Network.PacketFluidAmountUpdate;
+import BetterPipes.Network.PacketFluidUpdate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -10,15 +12,13 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import static BetterPipes.EntityPipe.*;
+import static BetterPipes.Pipe.EntityPipe.*;
 
 public class PipeConnection implements IFluidHandler {
     Direction myDirection;
@@ -38,7 +38,7 @@ public class PipeConnection implements IFluidHandler {
     FluidTank tank;
     int lastFill;
 
-    fluidRenderData renderData;
+    FluidRenderData renderData;
     EntityPipe parent;
 
     boolean isEnabled(BlockState parent) {
@@ -59,7 +59,7 @@ public class PipeConnection implements IFluidHandler {
             }
         };
         this.parent = parent;
-        renderData = new fluidRenderData();
+        renderData = new FluidRenderData();
     }
 
     boolean last_getsInputFromInside;
