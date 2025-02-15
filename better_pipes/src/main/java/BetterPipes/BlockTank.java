@@ -40,10 +40,10 @@ public class BlockTank extends Block implements EntityBlock {
     public static Map<Direction, IntegerProperty> otherConnections = new HashMap<>();
     static {
 
-        otherConnections.put(Direction.EAST, IntegerProperty.create("c_east", 0, 2));
-        otherConnections.put(Direction.WEST, IntegerProperty.create("c_west", 0, 2));
-        otherConnections.put(Direction.NORTH, IntegerProperty.create("c_north", 0, 2));
-        otherConnections.put(Direction.SOUTH, IntegerProperty.create("c_south", 0, 2));
+        otherConnections.put(Direction.EAST, IntegerProperty.create("c_east", 0, 1));
+        otherConnections.put(Direction.WEST, IntegerProperty.create("c_west", 0, 1));
+        otherConnections.put(Direction.NORTH, IntegerProperty.create("c_north", 0, 1));
+        otherConnections.put(Direction.SOUTH, IntegerProperty.create("c_south", 0, 1));
 
     }
     public BlockTank() {
@@ -69,10 +69,8 @@ public class BlockTank extends Block implements EntityBlock {
 
         if (otherConnections.containsKey(direction)) {
             if (neighborState.getBlock() instanceof BlockPipe) {
-                if (neighborState.getValue(BlockPipe.connections.get(direction.getOpposite())) == BlockPipe.ConnectionState.CONNECTED)
+                if (neighborState.getValue(BlockPipe.connections.get(direction.getOpposite())) == BlockPipe.ConnectionState.CONNECTED || neighborState.getValue(BlockPipe.connections.get(direction.getOpposite())) == BlockPipe.ConnectionState.EXTRACTION)
                     state = state.setValue(otherConnections.get(direction), 1);
-                if (neighborState.getValue(BlockPipe.connections.get(direction.getOpposite())) == BlockPipe.ConnectionState.EXTRACTION)
-                    state = state.setValue(otherConnections.get(direction), 2);
             } else {
                 state = state.setValue(otherConnections.get(direction), 0);
             }

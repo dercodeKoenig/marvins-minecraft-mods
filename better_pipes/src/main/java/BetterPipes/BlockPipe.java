@@ -127,26 +127,28 @@ public class BlockPipe extends Block implements EntityBlock {
         return 2;
     }
 
+    public void updateTankCons(EntityPipe pipe, BlockState neighborState, Direction direction){
+        if (neighborState.getBlock() instanceof BlockTank) {
+            if(direction == Direction.EAST)pipe.tankEast = true;
+            if(direction == Direction.WEST)pipe.tankWest = true;
+            if(direction == Direction.NORTH)pipe.tankNorth = true;
+            if(direction == Direction.SOUTH)pipe.tankSouth = true;
+        } else {
+            if(direction == Direction.EAST)pipe.tankEast = false;
+            if(direction == Direction.WEST)pipe.tankWest = false;
+            if(direction == Direction.NORTH)pipe.tankNorth = false;
+            if(direction == Direction.SOUTH)pipe.tankSouth = false;
+        }
+pipe.setChanged();
+    }
+
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
 
         BlockEntity tile = level.getBlockEntity(pos);
         if (!(tile instanceof EntityPipe pipe)) return state;
 
-
-
-    if (neighborState.getBlock() instanceof BlockTank) {
-        if(direction == Direction.EAST)pipe.tankEast = true;
-        if(direction == Direction.WEST)pipe.tankWest = true;
-        if(direction == Direction.NORTH)pipe.tankNorth = true;
-        if(direction == Direction.SOUTH)pipe.tankSouth = true;
-    } else {
-        if(direction == Direction.EAST)pipe.tankEast = false;
-        if(direction == Direction.WEST)pipe.tankWest = false;
-        if(direction == Direction.NORTH)pipe.tankNorth = false;
-        if(direction == Direction.SOUTH)pipe.tankSouth = false;
-    }
-
+        updateTankCons(pipe, neighborState, direction);
 
         IFluidHandler fluidHandler = pipe.connections.get(direction).neighborFluidHandler();
 

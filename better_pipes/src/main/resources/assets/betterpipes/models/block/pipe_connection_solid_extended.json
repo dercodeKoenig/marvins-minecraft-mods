@@ -1,6 +1,6 @@
 {
   "textures": {
-    "pipe": "betterpipes:block/fluid_pipe1_connections"
+    "pipe": "betterpipes:block/pipe_conn_red"
   },
 
   "elements": [

@@ -411,6 +411,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
             conn.loadAdditional(registries, tag);
         }
 
+
+        tankEast = tag.getBoolean("tankEast");
+        tankSouth = tag.getBoolean("tankSouth");
+        tankNorth = tag.getBoolean("tankNorth");
+        tankWest = tag.getBoolean("tankWest");
     }
 
     @Override
@@ -425,5 +430,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
             PipeConnection conn = connections.get(direction);
             conn.saveAdditional(registries, tag);
         }
+
+        tag.putBoolean("tankNorth", tankNorth);
+        tag.putBoolean("tankEast", tankEast);
+        tag.putBoolean("tankSouth", tankSouth);
+        tag.putBoolean("tankWest", tankWest);
     }
 }

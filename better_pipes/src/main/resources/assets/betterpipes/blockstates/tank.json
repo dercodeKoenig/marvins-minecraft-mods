@@ -36,41 +36,22 @@
         "model": "betterpipes:block/tank_joined_all"
       }
     },
-
-
-
+    
 
     {
       "when": { "c_north": 1},
-      "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 0}
-    },
-    {
-      "when": { "c_south": 1},
-      "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 180}
-    },
-    {
-      "when": { "c_east": 1},
-      "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 90}
-    },
-    {
-      "when": { "c_west": 1},
-      "apply": { "model": "betterpipes:block/pipe_connection_transparent_extended" , "x": 90,"y": 270}
-    },
-
-    {
-      "when": { "c_north": 2},
       "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 0}
     },
     {
-      "when": { "c_south": 2},
+      "when": { "c_south": 1},
       "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 180}
     },
     {
-      "when": { "c_east": 2},
+      "when": { "c_east": 1},
       "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 90}
     },
     {
-      "when": { "c_west": 2},
+      "when": { "c_west": 1},
       "apply": { "model": "betterpipes:block/pipe_connection_solid_extended" , "x": 90,"y": 270}
     }
   ]
