@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -36,13 +37,24 @@ public class BlockTank extends Block implements EntityBlock {
 
     public static BooleanProperty connectedBelow = BooleanProperty.create("connected_down");
     public static BooleanProperty connectedAbove = BooleanProperty.create("connected_up");
+    public static Map<Direction, IntegerProperty> otherConnections = new HashMap<>();
+    static {
 
+        otherConnections.put(Direction.EAST, IntegerProperty.create("c_east", 0, 2));
+        otherConnections.put(Direction.WEST, IntegerProperty.create("c_west", 0, 2));
+        otherConnections.put(Direction.NORTH, IntegerProperty.create("c_north", 0, 2));
+        otherConnections.put(Direction.SOUTH, IntegerProperty.create("c_south", 0, 2));
+
+    }
     public BlockTank() {
         super(Properties.of().noOcclusion());
         BlockState defaultState = this.stateDefinition.any();
         defaultState =        defaultState.setValue(connectedBelow, false);
         defaultState =        defaultState.setValue(connectedAbove, false);
 
+        for (Direction i : otherConnections.keySet()){
+            defaultState =        defaultState.setValue(otherConnections.get(i), 0);
+        }
         this.registerDefaultState(defaultState);
     }
 
@@ -55,12 +67,21 @@ public class BlockTank extends Block implements EntityBlock {
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
 
-
+        if (otherConnections.containsKey(direction)) {
+            if (neighborState.getBlock() instanceof BlockPipe) {
+                if (neighborState.getValue(BlockPipe.connections.get(direction.getOpposite())) == BlockPipe.ConnectionState.CONNECTED)
+                    state = state.setValue(otherConnections.get(direction), 1);
+                if (neighborState.getValue(BlockPipe.connections.get(direction.getOpposite())) == BlockPipe.ConnectionState.EXTRACTION)
+                    state = state.setValue(otherConnections.get(direction), 2);
+            } else {
+                state = state.setValue(otherConnections.get(direction), 0);
+            }
+        }
 
         if (direction == Direction.DOWN) {
             if (neighborState.getBlock() instanceof BlockTank) {
                 state = state.setValue(connectedBelow, true);
-            }else{
+            } else {
                 state = state.setValue(connectedBelow, false);
             }
         }
@@ -68,7 +89,7 @@ public class BlockTank extends Block implements EntityBlock {
         if (direction == Direction.UP) {
             if (neighborState.getBlock() instanceof BlockTank) {
                 state = state.setValue(connectedAbove, true);
-            }else{
+            } else {
                 state = state.setValue(connectedAbove, false);
             }
         }
@@ -78,6 +99,9 @@ public class BlockTank extends Block implements EntityBlock {
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(connectedBelow);
         builder.add(connectedAbove);
+        for (Direction i : otherConnections.keySet()) {
+            builder.add(otherConnections.get(i));
+        }
         super.createBlockStateDefinition(builder);
     }
 

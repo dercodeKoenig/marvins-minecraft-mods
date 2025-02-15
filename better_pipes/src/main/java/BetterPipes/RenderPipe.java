@@ -1543,7 +1543,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                 if (!shouldRenderCentered(conn.tank.getFluid().getFluid())) {
                     float x0 = -0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.WEST)))
+                    if(tile.tankWest)
                         x0 -=0.125f;
                     float x1 = -0.25f + e;
                     float z0 = -0.25f + e;
@@ -1582,7 +1582,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float y0 = -actualW;
                     float y1 = actualW;
                     float x0 = -0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.WEST)))
+                    if(tile.tankWest)
                         x0 -=0.125f;
                     float x1 = -0.25f + e;
                     float z0 = -actualW;
@@ -1654,7 +1654,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                 if (!shouldRenderCentered(conn.tank.getFluid().getFluid())) {
                     float x0 = 0.25f - e;
                     float x1 = 0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.EAST)))
+                    if(tile.tankEast)
                         x1 +=0.125f;
                     float z0 = -0.25f + e;
                     float z1 = 0.25f - e;
@@ -1693,7 +1693,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float y1 = actualW;
                     float x0 = 0.25f - e;
                     float x1 = 0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.EAST)))
+                    if(tile.tankEast)
                         x1 +=0.125f;
                     float z0 = -actualW;
                     float z1 = actualW;
@@ -1768,7 +1768,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x1 = 0.25f - e;
                     float z0 = 0.25f - e;
                     float z1 = 0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.SOUTH)))
+                    if(tile.tankSouth)
                         z1 +=0.125f;
                     float y0 = -0.25f + e;
                     float y1 = -0.25f - e + 0.5f * relativeFill;
@@ -1808,7 +1808,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x1 = actualW;
                     float z0 = 0.25f - e;
                     float z1 = 0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.SOUTH)))
+                    if(tile.tankSouth)
                         z1 +=0.125f;
 
                     if (conn.getsInputFromOutside && !conn.getsInputFromInside) {
@@ -1878,7 +1878,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x0 = -0.25f + e;
                     float x1 = 0.25f - e;
                     float z0 = -0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.NORTH)))
+                    if(tile.tankNorth)
                         z0 -=0.125f;
                     float z1 = -0.25f + e;
                     float y0 = -0.25f + e;
@@ -1919,7 +1919,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x0 = -actualW;
                     float x1 = actualW;
                     float z0 = -0.5f;
-                    if(tile.getBlockState().getValue(BlockPipe.otherConnections.get(Direction.NORTH)))
+                    if(tile.tankNorth)
                         z0 -=0.125f;
                     float z1 = -0.25f + e;
 

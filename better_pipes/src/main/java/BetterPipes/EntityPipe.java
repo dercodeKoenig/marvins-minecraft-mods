@@ -61,6 +61,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     public ByteBufferBuilder myByteBuffer;
     public int lastLight;
 
+    boolean tankNorth = false;
+    boolean tankEast = false;
+    boolean tankWest = false;
+    boolean tankSouth = false;
+
     public EntityPipe(BlockPos pos, BlockState blockState) {
         super(ENTITY_PIPE.get(), pos, blockState);
         for (Direction i : Direction.values()) {

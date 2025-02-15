@@ -62,15 +62,7 @@ public class BlockPipe extends Block implements EntityBlock {
     public static BooleanProperty pipe_is_extraction = BooleanProperty.create("main_isextraction");
     public static BooleanProperty pipe_is_extraction_active = BooleanProperty.create("main_isextractionactive");
 
-    public static Map<Direction, BooleanProperty> otherConnections = new HashMap<>();
-    static{
 
-        otherConnections.put(Direction.EAST,BooleanProperty.create("c_east"));
-        otherConnections.put(Direction.WEST,BooleanProperty.create("c_west"));
-        otherConnections.put(Direction.NORTH,BooleanProperty.create("c_north"));
-        otherConnections.put(Direction.SOUTH,BooleanProperty.create("c_south"));
-
-    }
 
     static {
         for (Direction i : Direction.values()) {
@@ -85,9 +77,6 @@ public class BlockPipe extends Block implements EntityBlock {
         for (Direction i : Direction.values()) {
             state = state.setValue(connections.get(i), ConnectionState.NONE);
         }
-        for (Direction i : otherConnections.keySet()){
-            state =        state.setValue(otherConnections.get(i), false);
-        }
         state = state.setValue(pipe_is_extraction, false);
         state = state.setValue(pipe_is_extraction_active, false);
         this.registerDefaultState(state);
@@ -100,9 +89,6 @@ public class BlockPipe extends Block implements EntityBlock {
         }
         builder.add(pipe_is_extraction);
         builder.add(pipe_is_extraction_active);
-        for (Direction i : otherConnections.keySet()) {
-            builder.add(otherConnections.get(i));
-        }
     }
 
     @Override
@@ -148,18 +134,26 @@ public class BlockPipe extends Block implements EntityBlock {
         if (!(tile instanceof EntityPipe pipe)) return state;
 
 
-if(otherConnections.containsKey(direction)) {
+
     if (neighborState.getBlock() instanceof BlockTank) {
-        state = state.setValue(otherConnections.get(direction), true);
+        if(direction == Direction.EAST)pipe.tankEast = true;
+        if(direction == Direction.WEST)pipe.tankWest = true;
+        if(direction == Direction.NORTH)pipe.tankNorth = true;
+        if(direction == Direction.SOUTH)pipe.tankSouth = true;
     } else {
-        state = state.setValue(otherConnections.get(direction), false);
+        if(direction == Direction.EAST)pipe.tankEast = false;
+        if(direction == Direction.WEST)pipe.tankWest = false;
+        if(direction == Direction.NORTH)pipe.tankNorth = false;
+        if(direction == Direction.SOUTH)pipe.tankSouth = false;
     }
-}
+
 
         IFluidHandler fluidHandler = pipe.connections.get(direction).neighborFluidHandler();
 
         if (fluidHandler != null) {
-            state = state.setValue(connections.get(direction), ConnectionState.CONNECTED);
+            ConnectionState current = state.getValue(connections.get(direction));
+            if(current != ConnectionState.CONNECTED && current != ConnectionState.EXTRACTION)
+                state = state.setValue(connections.get(direction), ConnectionState.CONNECTED);
         } else {
 
             if (neighborState.isSolidRender(tile.getLevel(), neighborPos)) {
