@@ -9,8 +9,8 @@
     "A": {
       "tag": "c:axles"
     },
-    "C": {
-      "item": "c:barrels"
+    "B": {
+      "tag": "c:barrels"
     },
     "F": {
       "tag": "c:fences"
