@@ -17,6 +17,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BrewingStandBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -58,7 +59,28 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
                 syncTank(null);
             }
         }
+
+        @Override
+        public int fill(FluidStack resource, IFluidHandler.FluidAction action) {
+            int toFill = resource.getAmount();
+            int filled = super.fill(resource, action);
+            int remaining = toFill - filled;
+            int filledAbove = 0;
+            if (remaining > 0) {
+                filledAbove = forwardFillToAbove(resource.copyWithAmount(remaining), action);
+            }
+            int totalFilled = filled + filledAbove;
+            return totalFilled;
+        }
     };
+
+    public int forwardFillToAbove(FluidStack resource, IFluidHandler.FluidAction action){
+        BlockEntity entityAbove = level.getBlockEntity(getBlockPos().above());
+        if(entityAbove instanceof EntityTank tankAbove){
+            return tankAbove.myTank.fill(resource,action);
+        }
+        else return 0;
+    }
 
     public EntityTank(BlockPos p_155229_, BlockState p_155230_) {
         super(ENTITY_TANK.get(), p_155229_, p_155230_);
@@ -108,9 +130,9 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
                 BlockEntity other = level.getBlockEntity(getBlockPos().below());
                 if (other instanceof EntityTank otherTank) {
                     int maxfill = 100;
-                    int canfill = otherTank.myTank.fill(myTank.drain(maxfill, IFluidHandler.FluidAction.SIMULATE), IFluidHandler.FluidAction.SIMULATE);
-                    if (canfill > 0) {
-                        otherTank.myTank.fill(myTank.drain(canfill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+                    if (FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), myTank.getFluid()) && otherTank.myTank.getFluidAmount() < otherTank.myTank.getCapacity()) {
+                        int toFill = Math.min(maxfill, otherTank.myTank.getCapacity() - otherTank.myTank.getFluidAmount());
+                        otherTank.myTank.fill(myTank.drain(toFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
                     }
                 }
             }

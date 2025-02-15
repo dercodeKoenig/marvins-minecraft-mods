@@ -9,9 +9,11 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -41,21 +43,26 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
             float x0, float x1, float z0, float z1, float y0, float y1,
             float u0, float u1, float v0, float v1,
             int color,
-            VertexConsumer v, int light, int overlay
+            VertexConsumer v, int light, int overlay,
+            boolean renderTop, boolean renderBottom
     ) {
 
 
         //render up face
-        v.addVertex((float) x0, (float) y1, (float) z0).setColor(color).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        v.addVertex((float) x0, (float) y1, (float) z1).setColor(color).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        v.addVertex((float) x1, (float) y1, (float) z1).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        v.addVertex((float) x1, (float) y1, (float) z0).setColor(color).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        if(renderTop) {
+            v.addVertex((float) x0, (float) y1, (float) z0).setColor(color).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+            v.addVertex((float) x0, (float) y1, (float) z1).setColor(color).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+            v.addVertex((float) x1, (float) y1, (float) z1).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+            v.addVertex((float) x1, (float) y1, (float) z0).setColor(color).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        }
 
         //render bottom face
-        v.addVertex((float) x1, (float) y0, (float) z0).setColor(color).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
-        v.addVertex((float) x1, (float) y0, (float) z1).setColor(color).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
-        v.addVertex((float) x0, (float) y0, (float) z1).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
-        v.addVertex((float) x0, (float) y0, (float) z0).setColor(color).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        if(renderBottom) {
+            v.addVertex((float) x1, (float) y0, (float) z0).setColor(color).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+            v.addVertex((float) x1, (float) y0, (float) z1).setColor(color).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+            v.addVertex((float) x0, (float) y0, (float) z1).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+            v.addVertex((float) x0, (float) y0, (float) z0).setColor(color).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
+        }
 
         // Render east face (x+ side)
         v.addVertex((float) x1, (float) y0, (float) z0).setColor(color).setUv(u0, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
@@ -103,8 +110,29 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
             tile.lastLight = packedLight;
             if (!tile.myTank.isEmpty()) {
                 float relativeFill = (float) tile.myTank.getFluidAmount() / tile.myTank.getCapacity();
-                float y0 = e;
-                float y1 = y0 + relativeFill * (1 - 2 * e);
+
+
+                boolean renderTop = true;
+                boolean renderBottom = true;
+                if(tile.getBlockState().getValue(BlockTank.connectedBelow)){
+                    BlockEntity other = tile.getLevel().getBlockEntity(tile.getBlockPos().below());
+                    if (other instanceof EntityTank otherTank) {
+                        if(FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), tile.myTank.getFluid())){
+                            renderBottom = false;
+                        }
+                    }
+                }
+                if(tile.getBlockState().getValue(BlockTank.connectedAbove)){
+                    BlockEntity other = tile.getLevel().getBlockEntity(tile.getBlockPos().above());
+                    if (other instanceof EntityTank otherTank) {
+                        if(FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), tile.myTank.getFluid())){
+                            renderTop = false;
+                        }
+                    }
+                }
+
+                float y0 = renderBottom ? e : 0;
+                float y1 = renderTop ? relativeFill - e : relativeFill;
                 float x0 = e + 2f / 16;
                 float x1 = 1 - (e + 2f / 16);
                 float z0 = e + 2f / 16;
@@ -113,7 +141,7 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
                 BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
                 renderFluidCubeStill(x0, x1, z0, z1, y0, y1,
                         tile.spriteStill.getU0(), tile.spriteStill.getU1(), tile.spriteStill.getV0(), tile.spriteStill.getV1(),
-                        tile.color, bufferBuilder, packedLight, packedOverlay);
+                        tile.color, bufferBuilder, packedLight, packedOverlay,renderTop, renderBottom);
 
                 tile.mesh = bufferBuilder.build();
                 if (tile.mesh != null) {

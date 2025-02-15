@@ -15,6 +15,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static BetterPipes.EntityPipe.*;
@@ -34,7 +35,7 @@ public class PipeConnection implements IFluidHandler {
 
     public int ticksWithFluidInTank = 0;
 
-    simpleBlockEntityTank tank;
+    FluidTank tank;
     int lastFill;
 
     fluidRenderData renderData;
@@ -51,7 +52,12 @@ public class PipeConnection implements IFluidHandler {
 
     public PipeConnection(EntityPipe parent, Direction myDirection) {
         this.myDirection = myDirection;
-        tank = new simpleBlockEntityTank(CONNECTION_CAPACITY, parent);
+        tank = new FluidTank(CONNECTION_CAPACITY){
+            @Override
+            protected void onContentsChanged() {
+                parent.setChanged();
+            }
+        };
         this.parent = parent;
         renderData = new fluidRenderData();
     }

@@ -48,7 +48,12 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     public static int FORCE_OUTPUT_AFTER_TICKS = 20;
 
     public Map<Direction, PipeConnection> connections = new HashMap<>();
-    public FluidTank tank = new simpleBlockEntityTank(MAIN_CAPACITY, this);
+    public FluidTank tank = new FluidTank(MAIN_CAPACITY){
+        @Override
+        protected void onContentsChanged() {
+            setChanged();
+        }
+    };
     FluidStack last_tankFluid = FluidStack.EMPTY;
     int lastFill;
     int ticksWithFluidInTank = 0;
