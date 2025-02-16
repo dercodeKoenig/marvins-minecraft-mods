@@ -129,7 +129,7 @@ public class RenderPump implements BlockEntityRenderer<EntityPump> {
             ShaderInstance shader = RenderSystem.getShader();
             RenderSystem.setShaderTexture(0, tex);
 
-double rotation = (tile.myMechanicalBlock.currentRotation + Static.rad_to_degree(tile.myMechanicalBlock.internalVelocity)/Static.TPS * partialTick ) * directionMultiplier;
+            double rotation = (tile.myMechanicalBlock.currentRotation + Static.rad_to_degree(tile.myMechanicalBlock.internalVelocity)/Static.TPS * partialTick ) * directionMultiplier;
 
             double crankLen = 0.112;
             double crankAngle = rotation / 180 * Math.PI;

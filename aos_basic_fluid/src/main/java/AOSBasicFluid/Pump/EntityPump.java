@@ -88,7 +88,8 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         super(ENTITY_PUMP.get(), p_155229_, p_155230_);
     }
 
-
+    double resistance = 0;
+    double force = 0;
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -97,17 +98,17 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
         @Override
         public double getInertia(Direction face) {
-            return 10;
+            return 5;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return 50;
+            return resistance;
         }
 
         @Override
         public double getTorqueProduced(Direction face) {
-            return 0;
+            return force;
         }
 
         @Override
@@ -182,8 +183,13 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
-        //System.out.println(myMechanicalBlock.internalVelocity+":"+myMechanicalBlock.currentRotation);
         if (!level.isClientSide) {
+
+            double trig_res_force_multiplier = Math.sin(myMechanicalBlock.currentRotation / 180 * Math.PI);
+            force = - 30 * trig_res_force_multiplier;
+            resistance = 60;
+            //System.out.println(resistance+":"+force);
+
             progress += Math.abs(Static.rad_to_degree(myMechanicalBlock.internalVelocity) / (double) Static.TPS);
             progress = Math.min(progress, 3600);
             if (progress > 360) {

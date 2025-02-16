@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -21,8 +22,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import static AOSBasicFluid.Registry.ENTITY_PUMP;
-import static AOSBasicFluid.Registry.PUMP;
+import static AOSBasicFluid.Registry.*;
 
 public class BlockPump extends Block implements EntityBlock {
     public BlockPump() {
@@ -56,5 +56,16 @@ public class BlockPump extends Block implements EntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityPump::tick;
+    }
+
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        super.onRemove(state, level, pos, newState, movedByPiston);
+        BlockPos firstPumpExtension = pos.relative(state.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()).below();
+
+        if(level.getBlockState(firstPumpExtension).getBlock().equals(PUMP_EXT.get())){
+            level.setBlock(firstPumpExtension, Blocks.AIR.defaultBlockState(), 3);
+        }
     }
 }
