@@ -1,6 +1,5 @@
 package FiniteWater;
 
-import ResearchSystem.Config.RecipeConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.neoforged.fml.loading.FMLPaths;
@@ -20,7 +19,7 @@ public class Config {
 
     public static Config INSTANCE = loadConfig();
 
-    public String _comment = "when isBlackList is set to false, only biomes in the list are allowed to from water sources. If isBlackList is set to true, only biomes in the list are prevented from forming water sources.";
+    public String _comment = "when isBlackList is set to false, only biomes in the list are allowed to form water sources. If isBlackList is set to true, only biomes in the list are prevented from forming water sources.";
     public boolean isBlackList = false;
     public Set<String> biomes = new HashSet<>();
 

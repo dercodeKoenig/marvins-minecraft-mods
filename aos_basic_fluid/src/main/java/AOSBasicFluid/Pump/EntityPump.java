@@ -1,9 +1,5 @@
 package AOSBasicFluid.Pump;
 
-import AOSWorkshopExpansion.MillStone.EntityMillStone;
-import AOSWorkshopExpansion.WoodMill.BlockWoodMill;
-import ARLib.multiblockCore.BlockMultiblockMaster;
-import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.INetworkTagReceiver;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
@@ -11,39 +7,40 @@ import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
+import FiniteWater.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.util.*;
 
 import static AOSBasicFluid.Registry.ENTITY_PUMP;
 import static AOSBasicFluid.Registry.PUMP_EXT;
 
-// the pump will take the water block that is most away on the highest connected y level
 
 public class EntityPump extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
-    public int maxRadius = 96;
+    public int maxRadiusSqr = PumpConfig.INSTANCE.maxRadius * PumpConfig.INSTANCE.maxRadius;
 
-    public PumpFluidTank myTank = new PumpFluidTank(10000){
+    public PumpFluidTank myTank = new PumpFluidTank(PumpConfig.INSTANCE.tankCapacity){
         @Override
         public void onContentsChanged(){
             setChanged();
@@ -88,12 +85,11 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         super(ENTITY_PUMP.get(), p_155229_, p_155230_);
     }
 
-    double resistance = 0;
     double force = 0;
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return 600;
+            return 99999999;
         }
 
         @Override
@@ -103,7 +99,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return resistance;
+            return PumpConfig.INSTANCE.resistance;
         }
 
         @Override
@@ -181,14 +177,37 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         }
     }
 
+    public boolean isInfiniteWater(BlockPos p) {
+        Holder<Biome> h = level.getBiome(p);
+        ResourceLocation id = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
+        String idString = id.toString();
+
+        if (Config.INSTANCE.biomes.contains(idString)) {
+            if (Config.INSTANCE.isBlackList) {
+                return false;
+            }
+        } else {
+            if (!Config.INSTANCE.isBlackList) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void tryPumpBlock(BlockPos pos){
+        BlockState targetState = level.getBlockState(pos);
+        if(myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
+            myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.EXECUTE);
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        }
+    }
+
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+        
         if (!level.isClientSide) {
-
             double trig_res_force_multiplier = Math.sin(myMechanicalBlock.currentRotation / 180 * Math.PI);
-            force = - 30 * trig_res_force_multiplier;
-            resistance = 60;
-            //System.out.println(resistance+":"+force);
+            force = -PumpConfig.INSTANCE.unevenForceMultiplier * trig_res_force_multiplier;
 
             progress += Math.abs(Static.rad_to_degree(myMechanicalBlock.internalVelocity) / (double) Static.TPS);
             progress = Math.min(progress, 3600);
@@ -198,10 +217,17 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                     workedPositions.clear();
                     waterSourceBlocks.clear();
                     findStartPos();
+
+                    if(!PumpConfig.INSTANCE.consumeWater && fluidToPump.equals(Fluids.WATER.getFluidType()) && !nextBlocksToScan.isEmpty()){
+                        // no actual pickup of water
+                        myTank._fill(new FluidStack(Fluids.WATER,1000), IFluidHandler.FluidAction.EXECUTE);
+                        nextBlocksToScan.clear();
+                    }
+
                 }
             }
 
-            int maxSteps = 1000;
+            int maxSteps = PumpConfig.INSTANCE.scanPerTick;
             int n = 0;
             while (!nextBlocksToScan.isEmpty()) {
                 n++;
@@ -214,9 +240,19 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                     double dz = next.getZ() - getBlockPos().getZ();
                     double d = dx*dx+dz*dz;
                     BlockState s = level.getBlockState(next);
-                    if (s.getFluidState().getType().getFluidType().equals(fluidToPump) && d < maxRadius*maxRadius) {
+                    if (s.getFluidState().getType().getFluidType().equals(fluidToPump) && d < maxRadiusSqr) {
                         if (s.getFluidState().isSource()) {
                             waterSourceBlocks.add(next);
+
+                            if(ModList.get().isLoaded("finite_water") && fluidToPump.equals(Fluids.WATER.getFluidType())) {
+                                if (isInfiniteWater(next)) {
+                                    // if my finite water mod is loaded and the current scan target is in a infinite water biome, use this block as target and break scanning
+                                    nextBlocksToScan.clear();
+                                    waterSourceBlocks.clear();
+                                    waterSourceBlocks.add(next);
+                                    break;
+                                }
+                            }
                         }
 
                         nextBlocksToScan.add(next.relative(Direction.SOUTH));
@@ -238,11 +274,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             if(nextBlocksToScan.isEmpty()){
                 if(!waterSourceBlocks.isEmpty()){
                     BlockPos target = waterSourceBlocks.last();
-                    BlockState targetState = level.getBlockState(target);
-                    if(myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
-                        myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.EXECUTE);
-                        level.setBlock(target, Blocks.AIR.defaultBlockState(), 3);
-                    }
+                    tryPumpBlock(target);
                     waterSourceBlocks.clear();
                 }
             }
