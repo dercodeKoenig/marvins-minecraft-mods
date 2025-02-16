@@ -171,7 +171,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
                     }
                 }
                 if (needsSendUpdate) {
-                    updateTag.putLong("time", System.currentTimeMillis());
+                    updateTag.putLong("time", System.nanoTime());
                     PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, updateTag));
                 }
             }
@@ -312,7 +312,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
                 updateTag.put(direction.getName(), tag);
                 conn.sendInitialTankUpdates(player);
             }
-            updateTag.putLong("time", System.currentTimeMillis());
+            updateTag.putLong("time", System.nanoTime());
             PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
             if (!tank.getFluid().isEmpty()) {
                 PacketDistributor.sendToPlayer(player, PacketFluidUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluid().getFluid()));
@@ -337,6 +337,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
                 }
                 setRequiresMeshUpdate();
             }
+            // Detect a server reset by checking for an abnormally large time drop
+            if (updateTime < lastUpdate - 1_000_000_000L) { // 1 second in nanoseconds
+                lastUpdate = Long.MIN_VALUE; // Reset so we start accepting new updates again
+            }
         }
     }
 
@@ -344,7 +348,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
         requiresMeshUpdate2 = true;
     }
 
-    long lastFluidInTankUpdate;
+    long lastFluidInTankUpdate = Long.MIN_VALUE;
 
     public void setFluidInTank(Fluid f, long time) {
         if (time > lastFluidInTankUpdate) {
@@ -352,9 +356,13 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
             tank.setFluid(new FluidStack(f, Math.max(1,tank.getFluidAmount())));
             setRequiresMeshUpdate();
         }
+        // Detect a server reset by checking for an abnormally large time drop
+        if (time < lastFluidInTankUpdate - 1_000_000_000L) { // 1 second in nanoseconds
+            lastFluidInTankUpdate = Long.MIN_VALUE; // Reset so we start accepting new updates again
+        }
     }
 
-    long lastFluidAmountUpdate;
+    long lastFluidAmountUpdate = Long.MIN_VALUE;
 
     public void setFluidAmountInTank(int amount, long time) {
         if (time > lastFluidAmountUpdate) {
@@ -364,6 +372,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
             if (amount <= 0) myFluid = Fluids.EMPTY;
             tank.setFluid(new FluidStack(myFluid, amount));
             setRequiresMeshUpdate();
+        }
+        // Detect a server reset by checking for an abnormally large time drop
+        if (time < lastFluidAmountUpdate - 1_000_000_000L) { // 1 second in nanoseconds
+            lastFluidAmountUpdate = Long.MIN_VALUE; // Reset so we start accepting new updates again
         }
     }
 

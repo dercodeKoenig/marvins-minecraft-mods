@@ -124,7 +124,7 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
                 BlockEntity other = level.getBlockEntity(getBlockPos().below());
                 if (other instanceof EntityTank otherTank) {
                     int maxfill = 100;
-                    if (FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), myTank.getFluid()) && otherTank.myTank.getFluidAmount() < otherTank.myTank.getCapacity()) {
+                    if ((FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), myTank.getFluid()) && otherTank.myTank.getFluidAmount() < otherTank.myTank.getCapacity())|| otherTank.myTank.isEmpty()) {
                         int toFill = Math.min(maxfill, otherTank.myTank.getCapacity() - otherTank.myTank.getFluidAmount());
                         otherTank.myTank.fill(myTank.drain(toFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
                     }
@@ -142,7 +142,7 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
         CompoundTag tankTag = new CompoundTag();
         myTank.writeToNBT(level.registryAccess(), tankTag);
         info.put("tankTag", tankTag);
-        info.putLong("time", System.currentTimeMillis());
+        info.putLong("time", System.nanoTime());
         if (target == null)
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
         else
@@ -165,15 +165,38 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
         spriteStill = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidtextureStill);
     }
 
-    long lastTankSync = 0; // this should avoid rare cases of new packets arrive before old ones and messing up data (maybe this can happen on slow ping)
+    long lastTankSync = Long.MIN_VALUE; // this should avoid rare cases of new packets arrive before old ones and messing up data (maybe this can happen on slow ping)
     @Override
     public void readClient(CompoundTag compoundTag) {
-        if (compoundTag.contains("tankTag") && compoundTag.contains("time") && compoundTag.getLong("time") > lastTankSync){
-            lastTankSync = compoundTag.getLong("time");
-            CompoundTag tankTag = compoundTag.getCompound("tankTag");
-            myTank.readFromNBT(level.registryAccess(), tankTag);
-            updateSprites(myTank.getFluid().getFluid());
-            requiresMeshUpdate = true;
+        if (compoundTag.contains("tankTag") && compoundTag.contains("time")) {
+            long newTime = compoundTag.getLong("time");
+
+            // Detect a server reset by checking for an abnormally large time drop
+            if (newTime < lastTankSync - 1_000_000_000L) { // 1 second in nanoseconds
+                lastTankSync = Long.MIN_VALUE; // Reset so we start accepting new updates again
+            }
+
+            if (newTime > lastTankSync) {
+                lastTankSync = newTime;
+                CompoundTag tankTag = compoundTag.getCompound("tankTag");
+                myTank.readFromNBT(level.registryAccess(), tankTag);
+                updateSprites(myTank.getFluid().getFluid());
+                requiresMeshUpdate = true;
+
+                // Update connected tanks
+                if (getBlockState().getValue(BlockTank.connectedBelow)) {
+                    BlockEntity other = level.getBlockEntity(getBlockPos().below());
+                    if (other instanceof EntityTank otherTank) {
+                        otherTank.requiresMeshUpdate = true;
+                    }
+                }
+                if (getBlockState().getValue(BlockTank.connectedAbove)) {
+                    BlockEntity other = level.getBlockEntity(getBlockPos().above());
+                    if (other instanceof EntityTank otherTank) {
+                        otherTank.requiresMeshUpdate = true;
+                    }
+                }
+            }
         }
     }
 }

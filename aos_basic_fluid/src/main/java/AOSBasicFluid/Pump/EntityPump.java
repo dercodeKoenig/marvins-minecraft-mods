@@ -182,6 +182,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+        //System.out.println(myMechanicalBlock.internalVelocity+":"+myMechanicalBlock.currentRotation);
         if (!level.isClientSide) {
             progress += Math.abs(Static.rad_to_degree(myMechanicalBlock.internalVelocity) / (double) Static.TPS);
             progress = Math.min(progress, 3600);

@@ -30,7 +30,7 @@ public class PacketFluidAmountUpdate implements CustomPacketPayload {
         int direction;
         if(d==null)direction = -1;
         else direction = d.ordinal();
-        return new PacketFluidAmountUpdate(pos.getX(),pos.getY(),pos.getZ(),direction,amount, System.currentTimeMillis());
+        return new PacketFluidAmountUpdate(pos.getX(),pos.getY(),pos.getZ(),direction,amount, System.nanoTime());
     }
 
     public PacketFluidAmountUpdate(int x, int y, int z, int direction, int amount, long time) {

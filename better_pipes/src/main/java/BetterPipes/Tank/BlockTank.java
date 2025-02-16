@@ -86,6 +86,11 @@ public class BlockTank extends Block implements EntityBlock {
                 state = state.setValue(connectedAbove, false);
             }
         }
+
+        BlockEntity tank = level.getBlockEntity(pos);
+        if(tank instanceof EntityTank t){
+            t.requiresMeshUpdate = true;
+        }
         return state;
     }
     @Override
