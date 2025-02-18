@@ -24,10 +24,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -50,8 +47,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public int slowNavigationStepPerTick = 512;
     public SlowMobNavigation slowMobNavigation;
 
-    public int regenerateOneAfterTicks = 20 * 30;
-    public double hunger = 1;
+    public int regenerateOneAfterTicks = 20 * 10;
+    public double hunger = 5;
     public double maxHunger = 20;
     public BlockPos homePosition;
     public BlockPos townHall;
@@ -486,11 +483,16 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-if(source.getDirectEntity() != null) {
+
+if(!source.isDirect()) {
     List<CombatNPC> fighters = level().getEntitiesOfClass(CombatNPC.class, new AABB(blockPosition()).inflate(64), (e) -> true);
     for (CombatNPC fighter : fighters) {
         if (fighter.runForHelpProgram != null) {
-            fighter.runForHelpProgram.requestHelp(this, source.getDirectEntity());
+            if(source.getDirectEntity() instanceof LivingEntity) {
+                fighter.runForHelpProgram.requestHelp(this, source.getDirectEntity());
+            }else{
+                fighter.runForHelpProgram.requestHelp(this, this);
+            }
         }
     }
 }

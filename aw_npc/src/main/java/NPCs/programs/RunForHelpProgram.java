@@ -47,7 +47,7 @@ public class RunForHelpProgram extends Goal {
             if (!e.isAlive())
                 npcNeedHelp.remove(e);
         }
-        
+
         if (npcNeedHelp.isEmpty()) return;
 
         List<BlockPos> allPositionsToHelp = new ArrayList<>();
