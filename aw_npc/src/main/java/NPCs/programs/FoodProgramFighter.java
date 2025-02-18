@@ -91,10 +91,12 @@ public class FoodProgramFighter extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.hunger >= worker.maxHunger&& countFoodItems() >= minStock)
+        if (worker.hunger >= worker.maxHunger && countFoodItems() >= minStock)
             return false;
 
-        if(hasAnyFood()) return true;
+        if(worker.hunger < worker.maxHunger) {
+            if (hasAnyFood()) return true;
+        }
 
         ItemStack foodOrderStack = worker.foodOrderStackHandler.getStackInSlot(0);
         if(foodOrderStack.getItem() instanceof ItemFoodOrder){

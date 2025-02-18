@@ -84,11 +84,13 @@ public class WorkerNPC extends NPCBase {
 
         int priority = 0;
 
+        goalSelector.addGoal(priority++, new FloatGoal(this));
+
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
 
         goalSelector.addGoal(priority++, new SleepProgram(this));
 
-        this.goalSelector.addGoal(priority++, new FoodProgramWorker(this));
+        goalSelector.addGoal(priority++, new FoodProgramWorker(this));
 
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
