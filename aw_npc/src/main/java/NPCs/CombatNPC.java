@@ -2,12 +2,9 @@ package NPCs;
 
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import NPCs.Items.ItemFoodOrder;
+import NPCs.programs.*;
 import NPCs.programs.CropFarming.MainFarmingProgram;
-import NPCs.programs.FollowOwnerProgram;
-import NPCs.programs.FoodProgramWorker;
 import NPCs.programs.Mining.MainMiningProgram;
-import NPCs.programs.RunForHelpProgram;
-import NPCs.programs.SleepProgram;
 import NPCs.programs.TreeFarming.MainLumberjackProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -95,10 +92,10 @@ public class CombatNPC extends NPCBase {
 
         int priority = 0;
 
-        Goal attackGoal0 = new MeleeAttackGoal(this, 1.5, true);
+        Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.5, true);
         goalSelector.addGoal(priority++, attackGoal0);
 
-        Goal attackGoal1 = new NearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
+        Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
         goalSelector.addGoal(priority++, attackGoal1);
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
@@ -106,7 +103,7 @@ public class CombatNPC extends NPCBase {
         runForHelpProgram = new RunForHelpProgram(this);
         goalSelector.addGoal(priority++, runForHelpProgram);
 
-        goalSelector.addGoal(priority++, new FoodProgramWorker(this));
+        goalSelector.addGoal(priority++, new FoodProgramFighter(this));
 
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 

@@ -35,11 +35,19 @@ public class RunForHelpProgram extends Goal {
 
     @Override
     public boolean canUse() {
-        return !npcNeedHelp.isEmpty();
+        return !npcNeedHelp.isEmpty() && worker.hunger > worker.maxHunger * 0.05;
     }
 
     @Override
     public void tick() {
+        if (npcNeedHelp.isEmpty()) return;
+
+        List<Entity> allEntities =npcNeedHelp.stream().toList();
+        for (Entity e : allEntities) {
+            if (!e.isAlive())
+                npcNeedHelp.remove(e);
+        }
+        
         if (npcNeedHelp.isEmpty()) return;
 
         List<BlockPos> allPositionsToHelp = new ArrayList<>();
