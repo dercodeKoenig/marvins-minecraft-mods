@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.*;
@@ -122,7 +123,6 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         }
 
         guiModuleText useWoodmillsInRadiusText = new guiModuleText(-1, "use woodmills: r=", guiHandlerMain, 60, 13, 0xff000000, false);
-        guiHandlerMain.getModules().add(useWoodmillsInRadiusText);
         useWoodmillsInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
@@ -144,7 +144,10 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
                 }
             }
         };
-        guiHandlerMain.getModules().add(useWoodmillsInRadiusTextInput);
+        if(ModList.get().isLoaded("aw_npc")) {
+            guiHandlerMain.getModules().add(useWoodmillsInRadiusText);
+            guiHandlerMain.getModules().add(useWoodmillsInRadiusTextInput);
+        }
         useWoodmillsInRadiusTextInput.text = String.valueOf(useWoodmillsInRadius);
     }
     @Override

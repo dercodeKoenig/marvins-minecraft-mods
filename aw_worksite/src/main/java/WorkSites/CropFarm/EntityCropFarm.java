@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.*;
@@ -114,7 +115,6 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         }
 
         guiModuleText useMillStonesInRadiusText = new guiModuleText(-1, "use millstones: r=", guiHandlerMain, 60, 13, 0xff000000, false);
-        guiHandlerMain.getModules().add(useMillStonesInRadiusText);
         useMillStonesInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
@@ -136,7 +136,10 @@ public class EntityCropFarm extends EntityWorkSiteBase {
                 }
             }
         };
-        guiHandlerMain.getModules().add(useMillStonesInRadiusTextInput);
+        if(ModList.get().isLoaded("aw_npc")) {
+            guiHandlerMain.getModules().add(useMillStonesInRadiusTextInput);
+            guiHandlerMain.getModules().add(useMillStonesInRadiusText);
+        }
         useMillStonesInRadiusTextInput.text = String.valueOf(useMillStonesInRadius);
     }
 

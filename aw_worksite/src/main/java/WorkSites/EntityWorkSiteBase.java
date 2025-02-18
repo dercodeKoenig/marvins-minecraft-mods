@@ -43,7 +43,7 @@ public abstract class EntityWorkSiteBase extends BlockEntity implements IMechani
     public int maxSize = 16; // can be modified with bounds upgrades
     public int minSize = 1;
 
-    public int maxWorkersAllowed = 2;
+    //public int maxWorkersAllowed = 2;
     // config end
 
     public static Set<BlockPos> knownWorkSites = new HashSet<>();
