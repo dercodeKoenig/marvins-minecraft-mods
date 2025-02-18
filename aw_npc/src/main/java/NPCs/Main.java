@@ -38,6 +38,8 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(TownHallNames::onLevelSave);
         NeoForge.EVENT_BUS.addListener(TownHallNames::onLevelLoad);
 
+        NeoForge.EVENT_BUS.addListener(HostileEntities::onEntityJoin);
+
         Registry.register(modEventBus);
 
     }
@@ -47,7 +49,8 @@ public class Main {
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ENTITY_WORKER.get(), WorkerNPCRenderer::new);
+        event.registerEntityRenderer(ENTITY_WORKER.get(), NPCRenderer::new);
+        event.registerEntityRenderer(ENTITY_FIGHTER.get(), NPCRenderer::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -57,6 +60,7 @@ public class Main {
     public void entityAttributeCreation(EntityAttributeCreationEvent event) {
         // Register attributes for your custom entity
         event.put(ENTITY_WORKER.get(), WorkerNPC.createAttributes().build());
+        event.put(ENTITY_FIGHTER.get(), CombatNPC.createAttributes().build());
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

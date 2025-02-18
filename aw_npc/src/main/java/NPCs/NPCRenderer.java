@@ -11,8 +11,8 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.resources.ResourceLocation;
 
-public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<WorkerNPC>> {
-    public WorkerNPCRenderer(EntityRendererProvider.Context context) {
+public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
+    public NPCRenderer(EntityRendererProvider.Context context) {
         super(context, new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false), 0.5F);
         this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         this.addLayer(new HumanoidArmorLayer<>(this,
@@ -24,9 +24,9 @@ public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<Work
     }
 
     @Override
-    public ResourceLocation getTextureLocation(WorkerNPC entity) {
-        if(!entity.getEntityData().get(WorkerNPC.DATA_TEXTURE).isEmpty()) {
-            ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/" + entity.getEntityData().get(WorkerNPC.DATA_TEXTURE));
+    public ResourceLocation getTextureLocation(NPCBase entity) {
+        if(!entity.getEntityData().get(NPCBase.DATA_TEXTURE).isEmpty()) {
+            ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/" + entity.getEntityData().get(NPCBase.DATA_TEXTURE));
             return tex;
         }else{
             ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/worker.png");
@@ -36,7 +36,7 @@ public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<Work
     }
 
     @Override
-    public void render(WorkerNPC entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+    public void render(NPCBase entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         model.attackTime = entity.getAttackAnim(partialTicks);
 
 

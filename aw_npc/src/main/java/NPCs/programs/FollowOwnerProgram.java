@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.EnumSet;
 
 import static NPCs.Utils.EXIT_FAIL;
+import static NPCs.Utils.EXIT_SUCCESS;
 
 public class FollowOwnerProgram extends Goal {
     NPCBase worker;
@@ -31,19 +32,22 @@ public class FollowOwnerProgram extends Goal {
 
     @Override
     public void tick() {
-        if(worker.followOwner == null)return;
+        if (worker.followOwner == null) return;
 
-        if(worker.level() instanceof  ServerLevel l){
-            Entity owner= l.getEntity(worker.followOwner);
-            if(owner instanceof Player){
-                if(worker.slowMobNavigation.moveToPosition(
+        if (worker.level() instanceof ServerLevel l) {
+            Entity owner = l.getEntity(worker.followOwner);
+            if (owner instanceof Player) {
+                int moveExit = worker.slowMobNavigation.moveToPosition(
                         owner.getOnPos(),
-                        5,128,512,30
-                ) == EXIT_FAIL){
+                        5, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick
+                );
+                if (moveExit == EXIT_FAIL) {
                     worker.followOwner = null;
                 }
-                worker.lookAt(EntityAnchorArgument.Anchor.EYES,owner.getEyePosition());
-            }else{
+                if (moveExit == EXIT_SUCCESS) {
+                    worker.lookAt(EntityAnchorArgument.Anchor.EYES, owner.getEyePosition());
+                }
+            } else {
                 worker.followOwner = null;
             }
         }

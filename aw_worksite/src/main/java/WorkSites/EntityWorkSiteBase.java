@@ -43,7 +43,7 @@ public abstract class EntityWorkSiteBase extends BlockEntity implements IMechani
     public int maxSize = 16; // can be modified with bounds upgrades
     public int minSize = 1;
 
-    //public int maxWorkersAllowed = 2;
+    public int maxWorkersAllowed = 2;
     // config end
 
     public static Set<BlockPos> knownWorkSites = new HashSet<>();
@@ -219,13 +219,13 @@ super.setRemoved();
         }
     }
 
-    public void updateAllowedBlocksList(){
+    public void updateAllowedBlocksList() {
         // compute allowed blockpos
         allowedBlocks.clear();
-        for (int y = pmin.getY(); y <= pmax.getY(); y++) {
-            for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
-                for (int x = pmin.getX(); x <= pmax.getX(); x++) {
-                    BlockPos target = new BlockPos(x,y,z);
+        for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
+            for (int x = pmin.getX(); x <= pmax.getX(); x++) {
+                for (int y = pmin.getY(); y <= pmax.getY(); y++) {
+                    BlockPos target = new BlockPos(x, y, z);
                     if (!blackListAsBlockPos.contains(target)) {
                         allowedBlocks.add(target);
                     }

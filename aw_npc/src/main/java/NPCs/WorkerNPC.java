@@ -30,8 +30,6 @@ import java.util.List;
 public class WorkerNPC extends NPCBase {
 
     public static EntityDataAccessor<Integer> DATA_WORKTYPE = SynchedEntityData.defineId(WorkerNPC.class, EntityDataSerializers.INT);
-    public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(WorkerNPC.class, EntityDataSerializers.STRING);
-
 
     public enum WorkTypes {
         Farmer,
@@ -60,7 +58,7 @@ public class WorkerNPC extends NPCBase {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 20.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D) // Default movement speed
-                .add(Attributes.FOLLOW_RANGE, 64);
+                .add(Attributes.FOLLOW_RANGE, 32);
     }
 
     @Override
@@ -68,9 +66,6 @@ public class WorkerNPC extends NPCBase {
         super.onAddedToLevel();
         if (!level().isClientSide) {
             registerGoals();
-            if (getEntityData().get(WorkerNPC.DATA_TEXTURE).isEmpty()) {
-                getEntityData().set(WorkerNPC.DATA_TEXTURE, "worker.png");
-            }
         }
     }
 
@@ -117,7 +112,6 @@ public class WorkerNPC extends NPCBase {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_WORKTYPE, WorkTypes.Worker.ordinal());
-        builder.define(DATA_TEXTURE, "");
     }
 
     @Override
@@ -175,7 +169,6 @@ public class WorkerNPC extends NPCBase {
         }
 
         compound.putInt("worktyoe", getEntityData().get(DATA_WORKTYPE));
-        compound.putString("texture", getEntityData().get(DATA_TEXTURE));
     }
 
     @Override
@@ -185,7 +178,6 @@ public class WorkerNPC extends NPCBase {
             lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
         getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
-        getEntityData().set(DATA_TEXTURE, compound.getString("texture"));
         registerGoals();
     }
 }

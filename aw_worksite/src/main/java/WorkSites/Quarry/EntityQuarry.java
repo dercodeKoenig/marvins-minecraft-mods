@@ -181,85 +181,84 @@ public class EntityQuarry extends EntityWorkSiteBase {
 
         structureBlocks.clear();
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-        boolean useCounterClockWise = controllerOffsetW < w/2;
+        boolean useCounterClockWise = controllerOffsetW < w / 2;
         Direction currentDirection;
-        if(useCounterClockWise)
-            currentDirection= facing.getCounterClockWise();
+        if (useCounterClockWise)
+            currentDirection = facing.getCounterClockWise();
         else
-            currentDirection= facing.getClockWise();
-        BlockPos p1 = getBlockPos().relative(facing, - 1).relative(Direction.DOWN);
+            currentDirection = facing.getClockWise();
+        BlockPos p1 = getBlockPos().relative(facing, -1).relative(Direction.DOWN);
         // fill all blocks up to the end with structure blocks
         BlockPos next = p1;
         BlockPos next2 = null;
-        while (true){
-            if(isInBounds(next)){
+        while (true) {
+            if (isInBounds(next)) {
                 for (int i = 0; i < structureW; i++) {
                     BlockPos p;
-                    if(useCounterClockWise)
-                        p = next.relative(currentDirection.getCounterClockWise(),i);
+                    if (useCounterClockWise)
+                        p = next.relative(currentDirection.getCounterClockWise(), i);
                     else
-                        p = next.relative(currentDirection.getClockWise(),i);
+                        p = next.relative(currentDirection.getClockWise(), i);
                     for (int j = yTarget; j <= p.getY(); j++) {
-                        structureBlocks.add(new BlockPos(p.getX(),j,p.getZ()));
+                        structureBlocks.add(new BlockPos(p.getX(), j, p.getZ()));
                     }
                 }
-            }else{
+            } else {
                 break;
             }
             next2 = next;
             next = next.relative(currentDirection.getOpposite());
         }
         boolean wentDown = false;
-        while(true){
+        while (true) {
             next2 = next2.relative(currentDirection);
-            if(!isInBounds(next2.relative(currentDirection,structureW))){
+            if (!isInBounds(next2.relative(currentDirection, structureW))) {
                 for (int o = 0; o < structureW; o++) {
                     for (int i = 0; i < structureW; i++) {
                         BlockPos p;
-                        if(useCounterClockWise)
-                            p= next2.relative(currentDirection.getCounterClockWise(), i).relative(currentDirection,o);
+                        if (useCounterClockWise)
+                            p = next2.relative(currentDirection.getCounterClockWise(), i).relative(currentDirection, o);
                         else
-                            p= next2.relative(currentDirection.getClockWise(), i).relative(currentDirection,o);
+                            p = next2.relative(currentDirection.getClockWise(), i).relative(currentDirection, o);
                         for (int j = yTarget; j <= p.getY(); j++) {
                             structureBlocks.add(new BlockPos(p.getX(), j, p.getZ()));
                         }
                     }
                 }
-                next2 = next2.relative(currentDirection,structureW-1);
-                if(useCounterClockWise)
+                next2 = next2.relative(currentDirection, structureW - 1);
+                if (useCounterClockWise)
                     currentDirection = currentDirection.getCounterClockWise();
                 else
                     currentDirection = currentDirection.getClockWise();
-                if(!wentDown)
+                if (!wentDown)
                     break;
                 wentDown = false;
-            }
-            else if(!structureBlocks.contains(next2)){
+            } else if (!structureBlocks.contains(next2)) {
                 for (int i = 0; i < structureW; i++) {
                     BlockPos p;
-                    if(useCounterClockWise)
-                        p = next2.relative(currentDirection.getCounterClockWise(),i);
+                    if (useCounterClockWise)
+                        p = next2.relative(currentDirection.getCounterClockWise(), i);
                     else
-                        p = next2.relative(currentDirection.getClockWise(),i);
+                        p = next2.relative(currentDirection.getClockWise(), i);
                     for (int j = yTarget; j <= next2.getY(); j++) {
-                        structureBlocks.add(new BlockPos(p.getX(),j,p.getZ()));
+                        structureBlocks.add(new BlockPos(p.getX(), j, p.getZ()));
                     }
                 }
                 next2 = next2.relative(Direction.DOWN);
-                if(next2.getY() == yTarget)
+                if (next2.getY() == yTarget)
                     break;
                 wentDown = true;
             }
         }
 
-int ymin = next2.getY()+1;
+        int ymin = next2.getY() + 1;
 
         // compute allowed blockpos
         allowedBlocks.clear();
         allowedBlocksList.clear();
-        for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
-            for (int x = pmin.getX(); x <= pmax.getX(); x++) {
-                for (int y = ymin; y <= pmax.getY(); y++) {
+        for (int y = pmax.getY(); y >= ymin; y--) {
+            for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
+                for (int x = pmin.getX(); x <= pmax.getX(); x++) {
                     BlockPos target = new BlockPos(x, y, z);
                     if (!structureBlocks.contains(target)) {
                         allowedBlocks.add(target);

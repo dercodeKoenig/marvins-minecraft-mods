@@ -6,7 +6,9 @@ import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
+import NPCs.CombatNPC;
 import NPCs.NPCBase;
+import NPCs.WorkerNPC;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -25,10 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static NPCs.Registry.ENTITY_TOWNHALL;
 
@@ -55,15 +54,15 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
 
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 2; y++) {
-                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, inventory, y * 9 + x, 1, 0, guiHandler, x * 18 + 10, y * 18 + 50);
+                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, inventory, y * 9 + x, 1, 0, guiHandler, x * 18 + 10, y * 18 + 75);
                 guiHandler.getModules().add(m);
             }
         }
 
-        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 0, 1, guiHandler)) {
+        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 175, 1000, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
-        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 100, 1100, 0, 1, guiHandler)) {
+        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 120  , 1100, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
 
@@ -91,7 +90,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         openOwnersMenuButton.color = 0xffffffff;
         guiHandler.getModules().add(openOwnersMenuButton);
 
-        guiModuleButton callWorkersButton = new guiModuleButton(6111, "call all", guiHandler, 60, 30, 40, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
+        guiModuleButton callWorkersButton = new guiModuleButton(6111, "call workers", guiHandler, 110, 50, 65, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
             @Override
             public void onButtonClicked() {
                 CompoundTag callWorkersTag = new CompoundTag();
@@ -101,6 +100,28 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         };
         callWorkersButton.color = 0xffffffff;
         guiHandler.getModules().add(callWorkersButton);
+
+        guiModuleButton uncallButton = new guiModuleButton(6113, "release NPCs", guiHandler, 10, 50, 70, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag callWorkersTag = new CompoundTag();
+                callWorkersTag.put("releaseNPCs", new CompoundTag());
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, callWorkersTag));
+            }
+        };
+        uncallButton.color = 0xffffffff;
+        guiHandler.getModules().add(uncallButton);
+
+        guiModuleButton callFightersButton = new guiModuleButton(6112, "call fighters", guiHandler, 110, 30, 65, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag callWorkersTag = new CompoundTag();
+                callWorkersTag.put("callFighters", new CompoundTag());
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, callWorkersTag));
+            }
+        };
+        callFightersButton.color = 0xffffffff;
+        guiHandler.getModules().add(callFightersButton);
 
 
         ownersMenu = new GuiHandlerBlockEntity(this) {
@@ -237,10 +258,40 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             }
             if (compoundTag.contains("callWorkers")) {
                 for (Entity e : ((ServerLevel) p.level()).getEntities().getAll()) {
-                    if (e instanceof NPCBase npc) {
+                    if (e instanceof WorkerNPC npc) {
                         if (npc.townHall != null) {
                             if (npc.townHall.equals(getBlockPos())) {
                                 npc.followOwner = p.getUUID();
+                            }
+                        }
+                    }
+                }
+                CompoundTag response = new CompoundTag();
+                response.put("closeGui", new CompoundTag());
+                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, response));
+            }
+            if (compoundTag.contains("callFighters")) {
+                for (Entity e : ((ServerLevel) p.level()).getEntities().getAll()) {
+                    if (e instanceof CombatNPC npc) {
+                        if (npc.townHall != null) {
+                            if (npc.townHall.equals(getBlockPos())) {
+                                npc.followOwner = p.getUUID();
+                            }
+                        }
+                    }
+                }
+                CompoundTag response = new CompoundTag();
+                response.put("closeGui", new CompoundTag());
+                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, response));
+            }
+            if (compoundTag.contains("releaseNPCs")) {
+                for (Entity e : ((ServerLevel) p.level()).getEntities().getAll()) {
+                    if (e instanceof NPCBase npc) {
+                        if (npc.townHall != null) {
+                            if (npc.townHall.equals(getBlockPos())) {
+                                if(Objects.equals(npc.followOwner, p.getUUID())) {
+                                    npc.followOwner = null;
+                                }
                             }
                         }
                     }

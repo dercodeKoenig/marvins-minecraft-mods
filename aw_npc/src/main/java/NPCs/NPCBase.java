@@ -15,6 +15,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -54,6 +58,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public String owner;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
+
+    public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(NPCBase.class, EntityDataSerializers.STRING);
 
     public ItemStackHandler foodOrderStackHandler = new ItemStackHandler(1) {
         @Override
@@ -168,14 +174,14 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public guiModuleProgressBarHorizontal6px hungerBar;
     public guiModuleText ownerText;
     public guiModuleText townHallText;
-    public guiModuleTextInput        nameTextInput;
+    public guiModuleTextInput nameTextInput;
 
     int ticksSinceLastRegen = 0;
     public UUID followOwner = null;
 
 
-    protected NPCBase(EntityType<WorkerNPC> entityType, Level level) {
-        super(entityType, level);
+    protected NPCBase(EntityType<?> entityType, Level level) {
+        super((EntityType<? extends PathfinderMob>) entityType, level);
         this.setPersistenceRequired();
         this.noCulling = true;
         setGuaranteedDrop(EquipmentSlot.MAINHAND);
@@ -265,7 +271,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(leg);
         guiHandler.getModules().add(feet);
 
-        guiModuleItemHandlerSlot foodOrderSlot = new guiModuleItemHandlerSlot(13001, foodOrderStackHandler, 0, 1,0,guiHandler, 140,50);
+        guiModuleItemHandlerSlot foodOrderSlot = new guiModuleItemHandlerSlot(13001, foodOrderStackHandler, 0, 1, 0, guiHandler, 140, 50);
         guiHandler.getModules().addFirst(foodOrderSlot);
 
         int w = 5;
@@ -289,12 +295,12 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(lifeBar);
         guiHandler.getModules().add(hungerBar);
 
-        ownerText = new guiModuleText(2001, "owner",guiHandler, 10,9,0xff000000,false);
-        townHallText = new guiModuleText(2002, "townhallpos",guiHandler, 10,21,0xff000000,false);
-        guiModuleText nameText = new guiModuleText(2003, "Name: ",guiHandler, 10,33,0xff000000,false);
-        nameTextInput = new guiModuleTextInput(2004,guiHandler, 40,33,100,10){
+        ownerText = new guiModuleText(2001, "owner", guiHandler, 10, 9, 0xff000000, false);
+        townHallText = new guiModuleText(2002, "townhallpos", guiHandler, 10, 21, 0xff000000, false);
+        guiModuleText nameText = new guiModuleText(2003, "Name: ", guiHandler, 10, 33, 0xff000000, false);
+        nameTextInput = new guiModuleTextInput(2004, guiHandler, 40, 33, 100, 10) {
             @Override
-            public void server_readNetworkData(CompoundTag tag){
+            public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
                 setCustomName(Component.literal(text));
             }
@@ -304,12 +310,12 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(nameText);
         guiHandler.getModules().add(nameTextInput);
 
-        guiModuleButton resetTownHallButton = new guiModuleButton(2999, "reset Townhall", guiHandler, 90,110,80,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
+        guiModuleButton resetTownHallButton = new guiModuleButton(2999, "reset Townhall", guiHandler, 90, 110, 80, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         resetTownHallButton.color = 0xffffffff;
         resetTownHallButton.makeShadow = true;
         guiHandler.getModules().add(resetTownHallButton);
 
-        guiModuleButton setHomeButton = new guiModuleButton(3000,"set home",guiHandler,110,90,60,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
+        guiModuleButton setHomeButton = new guiModuleButton(3000, "set home", guiHandler, 110, 90, 60, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         setHomeButton.color = 0xffffffff;
         setHomeButton.makeShadow = true;
         guiHandler.getModules().add(setHomeButton);
@@ -319,21 +325,22 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     }
 
 
-    public static void updateAllTownHalls(){
-        for (ServerLevel  l :ServerLifecycleHooks.getCurrentServer().getAllLevels()){
-            for (Entity e : l.getEntities().getAll()){
-                if( e instanceof NPCBase npc){
+    public static void updateAllTownHalls() {
+        for (ServerLevel l : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
+            for (Entity e : l.getEntities().getAll()) {
+                if (e instanceof NPCBase npc) {
                     npc.updateTownHall();
                 }
             }
         }
     }
+
     public void updateTownHall() {
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
             for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(), this)) {
-                if(Utils.distanceManhattan(this, p.getCenter()) > 256)
+                if (Utils.distanceManhattan(this, p.getCenter()) > 256)
                     break;
 
                 if (TownHallOwners.getOwners(level(), p).contains(owner)) {
@@ -350,8 +357,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             }
         }
         if (townHall != null) {
-            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(),townHall));
-        }else{
+            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(), townHall));
+        } else {
             townHallText.setTextAndSync("Town: none");
         }
     }
@@ -361,24 +368,36 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_TEXTURE, "");
+    }
+
+
+    @Override
     public void onAddedToLevel() {
         super.onAddedToLevel();
-        if(!level().isClientSide) {
+        if (!level().isClientSide) {
+
+            if (getEntityData().get(DATA_TEXTURE).isEmpty()) {
+                getEntityData().set(DATA_TEXTURE, "worker.png");
+            }
+
             if (owner == null) {
                 Player closestPlayer = null;
                 double closestDistance = 999;
                 for (Player p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
-                    if(getPosition(0).distanceTo(p.getPosition(0)) < closestDistance){
-                        closestDistance =getPosition(0).distanceTo(p.getPosition(0));
+                    if (getPosition(0).distanceTo(p.getPosition(0)) < closestDistance) {
+                        closestDistance = getPosition(0).distanceTo(p.getPosition(0));
                         closestPlayer = p;
                     }
                 }
-                if(closestPlayer != null){
+                if (closestPlayer != null) {
                     owner = closestPlayer.getName().getString();
                 }
             }
-            if(owner != null){
-                ownerText.setTextAndSync("Owner: "+owner);
+            if (owner != null) {
+                ownerText.setTextAndSync("Owner: " + owner);
             }
             updateTownHall();
             nameTextInput.text = getCustomName().getString();
@@ -390,16 +409,16 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         if (!level().isClientSide) {
             Set<String> owners = TownHallOwners.getOwners(level(), townHall);
             if ((owners != null && owners.contains(player.getName().getString())) || player.getName().getString().equals(owner)) {
-                if(!player.isShiftKeyDown()) {
+                if (!player.isShiftKeyDown()) {
                     if (!guiHandler.playersTrackingGui.containsKey(player.getUUID())) {
                         CompoundTag tag = new CompoundTag();
                         tag.put("openGui", new CompoundTag());
                         PacketDistributor.sendToPlayer((ServerPlayer) player, PacketEntity.getEntityPacket(this, tag));
                     }
-                }else{
-                    if(followOwner == null) {
+                } else {
+                    if (followOwner == null) {
                         followOwner = player.getUUID();
-                    }else{
+                    } else {
                         followOwner = null;
                     }
                 }
@@ -407,7 +426,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
-
 
 
     @Override
@@ -447,24 +465,38 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         return Utils.countEmptySlots(this) > 0;
     }
 
-@Override
-protected void pickUpItem(ItemEntity itemEntity) {
-    ItemStack itemstack = itemEntity.getItem();
-    if (Utils.countEmptySlots(this) > 0) {
-        ItemStack stackCopy = itemstack.copy();
-        for (int i = 0; i < combinedInventory.getSlots(); i++) {
-            stackCopy = combinedInventory.insertItem(i,stackCopy,false);
+    @Override
+    protected void pickUpItem(ItemEntity itemEntity) {
+        ItemStack itemstack = itemEntity.getItem();
+        if (Utils.countEmptySlots(this) > 0) {
+            ItemStack stackCopy = itemstack.copy();
+            for (int i = 0; i < combinedInventory.getSlots(); i++) {
+                stackCopy = combinedInventory.insertItem(i, stackCopy, false);
+            }
+            this.onItemPickup(itemEntity);
+            this.take(itemEntity, itemstack.getCount());
+            itemEntity.discard();
         }
-        this.onItemPickup(itemEntity);
-        this.take(itemEntity, itemstack.getCount());
-        itemEntity.discard();
     }
-}
 
     @Override
     protected void hurtArmor(DamageSource damageSource, float damage) {
         this.doHurtEquipment(damageSource, damage, new EquipmentSlot[]{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD});
     }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+if(source.getDirectEntity() != null) {
+    List<CombatNPC> fighters = level().getEntitiesOfClass(CombatNPC.class, new AABB(blockPosition()).inflate(64), (e) -> true);
+    for (CombatNPC fighter : fighters) {
+        if (fighter.runForHelpProgram != null) {
+            fighter.runForHelpProgram.requestHelp(this, source.getDirectEntity());
+        }
+    }
+}
+        return super.hurt(source, amount);
+    }
+
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
@@ -474,35 +506,37 @@ protected void pickUpItem(ItemEntity itemEntity) {
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
     }
 
-@Override
+    @Override
     public ItemStack eat(Level level, ItemStack food, FoodProperties foodProperties) {
-    hunger += foodProperties.nutrition();
-    return super.eat(level, food, foodProperties);
-}
+        hunger += foodProperties.nutrition();
+        return super.eat(level, food, foodProperties);
+    }
 
 
-        @Override
+    @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
 
-        if(homePosition != null) {
+        if (homePosition != null) {
             compound.putInt("homePositionX", homePosition.getX());
             compound.putInt("homePositionY", homePosition.getY());
             compound.putInt("homePositionZ", homePosition.getZ());
         }
 
-        if(townHall != null) {
+        if (townHall != null) {
             compound.putInt("townHallX", townHall.getX());
             compound.putInt("townHallY", townHall.getY());
             compound.putInt("townHallZ", townHall.getZ());
         }
 
-        if(owner != null){
+        if (owner != null) {
             compound.putString("owner", owner);
         }
 
         compound.putDouble("hunger", hunger);
+
+        compound.putString("texture", getEntityData().get(DATA_TEXTURE));
     }
 
     @Override
@@ -518,11 +552,13 @@ protected void pickUpItem(ItemEntity itemEntity) {
             townHall = new BlockPos(compound.getInt("townHallX"), compound.getInt("townHallY"), compound.getInt("townHallZ"));
         }
 
-        if(compound.contains("owner")){
+        if (compound.contains("owner")) {
             owner = compound.getString("owner");
         }
 
         hunger = compound.getDouble("hunger");
+
+        getEntityData().set(DATA_TEXTURE, compound.getString("texture"));
     }
 
 
@@ -542,8 +578,8 @@ protected void pickUpItem(ItemEntity itemEntity) {
                     ItemStack setHomeTool = new ItemStack(ITEM_SET_HOME_TOOL.get());
                     CompoundTag info = new CompoundTag();
                     info.putUUID("uuid", getUUID());
-                    Utils.setStackTag(setHomeTool,info);
-                    level().addFreshEntity(new ItemEntity(level(),p.position().x, p.position().y, p.position().z,setHomeTool));
+                    Utils.setStackTag(setHomeTool, info);
+                    level().addFreshEntity(new ItemEntity(level(), p.position().x, p.position().y, p.position().z, setHomeTool));
 
                     CompoundTag response = new CompoundTag();
                     response.put("closeGui", new CompoundTag());
@@ -558,11 +594,11 @@ protected void pickUpItem(ItemEntity itemEntity) {
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
 
-        if(compoundTag.contains("openGui")){
+        if (compoundTag.contains("openGui")) {
             guiHandler.openGui(180, 220, true);
         }
-        if(compoundTag.contains("closeGui")){
-            if(NPCBase.this.guiHandler.screen instanceof ModularScreen m){
+        if (compoundTag.contains("closeGui")) {
+            if (NPCBase.this.guiHandler.screen instanceof ModularScreen m) {
                 m.onClose();
             }
         }

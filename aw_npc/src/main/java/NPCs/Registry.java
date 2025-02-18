@@ -46,6 +46,11 @@ public class Registry {
             () -> EntityType.Builder.of(WorkerNPC::new, MobCategory.CREATURE).build(Main.MODID+":worker")
     );
 
+    public static final Supplier<EntityType<CombatNPC>> ENTITY_FIGHTER = ENTITIES.register(
+            "fighter",
+            () -> EntityType.Builder.of(CombatNPC::new, MobCategory.CREATURE).build(Main.MODID+":fighter")
+    );
+
     public static final Supplier<Item> ITEM_SET_HOME_TOOL = ITEMS.register(
             "set_home_tool",
             () -> new ItemSetHomeTool()
