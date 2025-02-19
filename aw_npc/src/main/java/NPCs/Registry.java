@@ -3,6 +3,7 @@ package NPCs;
 import NPCs.Items.ItemSetHomeTool;
 import NPCs.Items.ItemFoodOrder;
 import NPCs.Items.ItemSpawnNpc;
+import NPCs.Items.ItemWorkOrder;
 import NPCs.TownHall.BlockTownHall;
 import NPCs.TownHall.EntityTownHall;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -60,6 +61,12 @@ public class Registry {
             "food_order",
             () -> new ItemFoodOrder()
     );
+
+    public static final Supplier<Item> ITEM_WORK_ORDER = ITEMS.register(
+            "work_order",
+            () -> new ItemWorkOrder()
+    );
+
     public static final Supplier<Item> ITEM_WORKER_SPAWN = ITEMS.register(
             "spawn_worker",
             () -> new ItemSpawnNpc()

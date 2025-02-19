@@ -67,6 +67,7 @@ public class Main {
         if (e.getTab().equals(Registry.CREATIVETAB.get())) {
             e.accept(TOWNHALL.get());
             e.accept(ITEM_FOOD_ORDER.get());
+            e.accept(ITEM_WORK_ORDER.get());
             e.accept(ITEM_WORKER_SPAWN.get());
         }
     }

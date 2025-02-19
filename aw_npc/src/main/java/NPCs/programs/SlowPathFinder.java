@@ -30,6 +30,7 @@ public class SlowPathFinder {
     public SlowPathFinder(Mob mob) {
         this.nodeEvaluator = new WalkNodeEvaluator();
         nodeEvaluator.setCanOpenDoors(true);
+        nodeEvaluator.setCanFloat(true);
         nodeEvaluator.setCanPassDoors(true);
         this.mob = mob;
 

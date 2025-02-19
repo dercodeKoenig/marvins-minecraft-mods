@@ -2,6 +2,7 @@ package NPCs;
 
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import NPCs.Items.ItemFoodOrder;
+import NPCs.Items.ItemWorkOrder;
 import NPCs.programs.*;
 import NPCs.programs.CropFarming.MainFarmingProgram;
 import NPCs.programs.Mining.MainMiningProgram;
@@ -46,9 +47,9 @@ public class CombatNPC extends NPCBase {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (slot == 0) {
-                //if (stack.getItem() instanceof ItemFoodOrder) {
-                return true;
-                //}
+                if (stack.getItem() instanceof ItemWorkOrder) {
+                    return true;
+                }
             }
             return false;
         }
@@ -66,7 +67,7 @@ public class CombatNPC extends NPCBase {
                 .add(Attributes.MAX_HEALTH, 30.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.ATTACK_DAMAGE, 1.0)
-                .add(Attributes.FOLLOW_RANGE, 64)
+                .add(Attributes.FOLLOW_RANGE, 32)
                 .add(Attributes.ATTACK_SPEED)
                 .add(Attributes.LUCK)
                 .add(Attributes.BLOCK_BREAK_SPEED)
@@ -92,7 +93,6 @@ public class CombatNPC extends NPCBase {
 
         int priority = 0;
 
-        this.goalSelector.addGoal(priority++, new FloatGoal(this));
 
         Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.5, true);
         goalSelector.addGoal(priority++, attackGoal0);
@@ -105,9 +105,12 @@ public class CombatNPC extends NPCBase {
         runForHelpProgram = new RunForHelpProgram(this);
         goalSelector.addGoal(priority++, runForHelpProgram);
 
+        goalSelector.addGoal(priority++, new FighterFollowWorkOrderProgram(this));
+
         goalSelector.addGoal(priority++, new FoodProgramFighter(this));
 
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
+        this.goalSelector.addGoal(priority++, new FloatGoal(this));
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -136,12 +139,14 @@ public class CombatNPC extends NPCBase {
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putInt("worktyoe", getEntityData().get(DATA_WORKTYPE));
+        compound.put("orderInv",ordersStackHandler.serializeNBT(this.registryAccess()));
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
+        ordersStackHandler.deserializeNBT(this.registryAccess(), compound.getCompound("orderInv"));
         registerGoals();
     }
 }

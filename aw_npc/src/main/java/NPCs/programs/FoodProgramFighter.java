@@ -27,7 +27,8 @@ public class FoodProgramFighter extends Goal {
     IItemHandler inventoryTarget;
     int workDelay = 0;
     boolean canUse;
-    int minStock = 8;
+    int minStock = 3;
+    long lastCheck = 0;
 
     public FoodProgramFighter(NPCBase worker) {
         this.worker = worker;
@@ -91,7 +92,15 @@ public class FoodProgramFighter extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.hunger >= worker.maxHunger && countFoodItems() >= minStock)
+
+        if(worker.level().getGameTime() < lastCheck + 20*5){
+            return false;
+        }
+        lastCheck = worker.level().getGameTime();
+
+        int foodItems = countFoodItems();
+
+        if (worker.hunger >= worker.maxHunger && foodItems >= minStock)
             return false;
 
         if(worker.hunger < worker.maxHunger) {
@@ -108,7 +117,9 @@ public class FoodProgramFighter extends Goal {
                 if(inventory != null){
                     target = targetPos;
                     inventoryTarget = inventory;
-                    return true;
+                    if(foodItems == 0 || worker.blockPosition().getCenter().distanceTo(target.getCenter()) < 10) {
+                        return true;
+                    }
                 }
             }
         }else {
@@ -122,7 +133,9 @@ public class FoodProgramFighter extends Goal {
                     if (takeFood(itemHandler, true)) {
                         target = worker.townHall;
                         inventoryTarget = t.inventory;
-                        return true;
+                        if(foodItems == 0 || worker.blockPosition().getCenter().distanceTo(target.getCenter()) < 10) {
+                            return true;
+                        }
                     }
                 }
             }

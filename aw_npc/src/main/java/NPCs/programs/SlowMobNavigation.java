@@ -40,7 +40,7 @@ public class SlowMobNavigation {
         if (target == null) return EXIT_FAIL;
 
         double distToTarget = Utils.distanceManhattan(npc, target.getCenter());
-        if (distToTarget <= precision + 2) {
+        if (distToTarget <= precision + 1.5) {
             return EXIT_SUCCESS;
         }
         if (isPositionCachedAsInvalid(target)) {
