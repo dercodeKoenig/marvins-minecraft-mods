@@ -1,11 +1,15 @@
 package NPCs;
 
+import NPCs.Blocks.StrategyTable.BlockStrategyTable;
+import NPCs.Blocks.StrategyTable.EntityStrategyTable;
 import NPCs.Items.ItemSetHomeTool;
 import NPCs.Items.ItemFoodOrder;
 import NPCs.Items.ItemSpawnNpc;
 import NPCs.Items.ItemWorkOrder;
-import NPCs.TownHall.BlockTownHall;
-import NPCs.TownHall.EntityTownHall;
+import NPCs.Npc.CombatNPC;
+import NPCs.Npc.WorkerNPC;
+import NPCs.Blocks.TownHall.BlockTownHall;
+import NPCs.Blocks.TownHall.EntityTownHall;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.BlockItem;
@@ -42,6 +46,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityTownHall::new,TOWNHALL.get()).build(null)
     );
 
+    public static final Supplier<Block> STRATEGY_TABLE = BLOCKS.register(
+            "strategy_table",
+            () -> new BlockStrategyTable()
+    );
+    public static final Supplier<BlockEntityType<EntityStrategyTable>> ENTITY_STRATEGY_TABLE = BLOCK_ENTITIES.register(
+            "entity_strategy_table",
+            () -> BlockEntityType.Builder.of(EntityStrategyTable::new,STRATEGY_TABLE.get()).build(null)
+    );
+
     public static final Supplier<EntityType<WorkerNPC>> ENTITY_WORKER = ENTITIES.register(
             "worker",
             () -> EntityType.Builder.of(WorkerNPC::new, MobCategory.CREATURE).build(Main.MODID+":worker")
@@ -74,6 +87,7 @@ public class Registry {
 
     static {
         registerBlockItem("townhall", TOWNHALL);
+        registerBlockItem("strategy_table", STRATEGY_TABLE);
     }
 
     public static void register(IEventBus modBus) {

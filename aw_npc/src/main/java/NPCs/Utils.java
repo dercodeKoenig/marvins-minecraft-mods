@@ -1,6 +1,7 @@
 package NPCs;
 
 import ARLib.utils.ItemUtils;
+import NPCs.Npc.NPCBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;

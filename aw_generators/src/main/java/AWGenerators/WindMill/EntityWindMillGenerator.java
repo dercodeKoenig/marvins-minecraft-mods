@@ -2,6 +2,7 @@ package AWGenerators.WindMill;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.DimensionUtils;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
@@ -145,7 +146,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
             if (!state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
                 return true;
             } else {
-                BlockPos masterPos = BlockWindMillBlade.getMasterPos(new BlockWindMillBlade.BlockIdentifier(DimensionUtils.getLevelId(level), p));
+                BlockPos masterPos = BlockWindMillBlade.getMasterPos(new BlockIdentifier(DimensionUtils.getLevelId(level), p));
                 if (masterPos == null || masterPos.equals(getBlockPos())) {
                     return true;
                 }
@@ -170,7 +171,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                     BlockState state = level.getBlockState(targetBlock);
                     if (state.getBlock() instanceof BlockWindMillBlade) {
                         if(state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
-                            BlockPos masterPos = BlockWindMillBlade.getMasterPos(new BlockWindMillBlade.BlockIdentifier(DimensionUtils.getLevelId(level), targetBlock));
+                            BlockPos masterPos = BlockWindMillBlade.getMasterPos(new BlockIdentifier(DimensionUtils.getLevelId(level), targetBlock));
 
                             if(masterPos==null){
                                 // this should never print if i did all correct
@@ -253,7 +254,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 if (level.getBlockState(i).getBlock() instanceof BlockWindMillBlade b) {
                     // first change blockstate and after this set master because onRemove will clear master pos again
                     level.setBlock(i, level.getBlockState(i).setValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED, true), 3);
-                    BlockWindMillBlade.setMaster(new BlockWindMillBlade.BlockIdentifier(DimensionUtils.getLevelId(level), i), getBlockPos());
+                    BlockWindMillBlade.setMaster(new BlockIdentifier(DimensionUtils.getLevelId(level), i), getBlockPos());
                 }
             }
         }else {

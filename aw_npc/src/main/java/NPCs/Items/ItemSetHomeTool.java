@@ -1,6 +1,6 @@
 package NPCs.Items;
 
-import NPCs.NPCBase;
+import NPCs.Npc.NPCBase;
 import NPCs.Utils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;

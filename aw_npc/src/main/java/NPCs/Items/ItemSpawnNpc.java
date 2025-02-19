@@ -1,10 +1,8 @@
 package NPCs.Items;
 
 import NPCs.Registry;
-import NPCs.WorkerNPC;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;

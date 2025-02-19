@@ -1,7 +1,11 @@
 package NPCs;
 
-import NPCs.TownHall.TownHallNames;
-import NPCs.TownHall.TownHallOwners;
+import NPCs.Npc.CombatNPC;
+import NPCs.Npc.HostileEntities;
+import NPCs.Npc.NPCRenderer;
+import NPCs.Npc.WorkerNPC;
+import NPCs.Blocks.TownHall.TownHallNames;
+import NPCs.Blocks.TownHall.TownHallOwners;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -66,6 +70,7 @@ public class Main {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(Registry.CREATIVETAB.get())) {
             e.accept(TOWNHALL.get());
+            e.accept(STRATEGY_TABLE.get());
             e.accept(ITEM_FOOD_ORDER.get());
             e.accept(ITEM_WORK_ORDER.get());
             e.accept(ITEM_WORKER_SPAWN.get());
