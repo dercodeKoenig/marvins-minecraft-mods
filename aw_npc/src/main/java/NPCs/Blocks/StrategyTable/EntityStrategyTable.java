@@ -194,7 +194,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         townHallText = new guiModuleText(2002, "townhallpos", guiHandler, 5, 5, 0xff000000, false);
         guiHandler.getModules().add(townHallText);
 
-        guiHandler.getModules().add(new guiModuleText(8798, "Redstone Control", guiHandler, 5, 17, 0xff000000, false));
+        guiHandler.getModules().add(new guiModuleText(8798, "Redstone Control:", guiHandler, 5, 17, 0xff000000, false));
         redstoneControlButton = new guiModuleDefaultButton(8799,"",guiHandler,100,12,50,15);
         guiHandler.getModules().add(redstoneControlButton);
 
