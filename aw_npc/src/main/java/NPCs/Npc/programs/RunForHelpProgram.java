@@ -61,7 +61,7 @@ public class RunForHelpProgram extends Goal {
 
         int moveExit = worker.slowMobNavigation.moveToPosition(
                 toGo,
-                3, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick,1.5f
+                3, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick,1.2f
         );
         if (moveExit != SUCCESS_STILL_RUNNING) {
             npcNeedHelp.remove(bp_to_entity.get(toGo));

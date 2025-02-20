@@ -100,14 +100,16 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                 if (npc.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
                     for (int n : targetManagerMap_Fighters.keySet()) {
                         workTargetManager m = targetManagerMap_Fighters.get(n);
-                        if (Objects.equals(m.lastWorker, worker)) {
+                        if (Objects.equals(m.lastWorker, worker) && Objects.equals(npc.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
                             return m;
                         }
                     }
                 }
 
 
-                for (int n : targetManagerMap_Fighters.keySet()) {
+                List<Integer> keys = new ArrayList<>(targetManagerMap_Fighters.keySet());
+                Collections.shuffle(keys); // Shuffle the list randomly so that it will not get stuck at something it can not reach
+                for (int n : keys) {
                     workTargetManager m = targetManagerMap_Fighters.get(n);
                     if (!m.workPositions.isEmpty()) {
                         if (m.lastWorker != null) {
@@ -134,6 +136,13 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                             }
                         }
                         if (m.lastWorker == null) {
+                            // clear this worker from other positions or it will return the wrong manager later
+                            for (int n2 : keys) {
+                                workTargetManager m2 = targetManagerMap_Fighters.get(n2);
+                                if(Objects.equals(m2.lastWorker, worker)){
+                                    m2.lastWorker=null;
+                                }
+                            }
                             m.lastWorker = worker;
                             return m;
                         }
@@ -176,8 +185,6 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                     PacketDistributor.sendToPlayer((ServerPlayer) p, PacketBlockEntity.getBlockEntityPacket(this, tag));
                 }
             }
-            Gson g = new Gson();
-            System.out.println(g.toJson(knownStrategyTablesForTownhallPosition));
         }
     }
 

@@ -94,7 +94,7 @@ public class CombatNPC extends NPCBase {
         int priority = 0;
 
 
-        Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.5, true);
+        Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
         goalSelector.addGoal(priority++, attackGoal0);
 
         Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));

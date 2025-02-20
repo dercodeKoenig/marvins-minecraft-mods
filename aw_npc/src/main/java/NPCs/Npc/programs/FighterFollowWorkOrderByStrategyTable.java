@@ -10,9 +10,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static NPCs.Utils.*;
 
@@ -44,7 +42,8 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
         }
         if (worker.townHall != null) {
             BlockIdentifier b_id = new BlockIdentifier(DimensionUtils.getLevelId(worker.level()), worker.townHall);
-            Set<BlockPos> strategyTables = EntityStrategyTable.knownStrategyTablesForTownhallPosition.get(b_id);
+            List<BlockPos> strategyTables =new ArrayList<>(EntityStrategyTable.knownStrategyTablesForTownhallPosition.get(b_id));
+            Collections.shuffle(strategyTables); // Shuffle the list randomly
             for (BlockPos p : strategyTables) {
                 BlockEntity e = worker.level().getBlockEntity(p);
                 if (e instanceof EntityStrategyTable table) {
@@ -93,7 +92,7 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
             worker.getLookControl().setLookAt(worker.getX() + relX, worker.getEyeY(), worker.getZ() + relZ);
         }
 
-        if (worker.level().getGameTime() < lastCheckTick + 20 * 1) {
+        if (worker.level().getGameTime() < lastCheckTick + 20 * 1 && !(lastMoveExit == SUCCESS_STILL_RUNNING)) {
             return;
         }
         lastCheckTick = worker.level().getGameTime();
