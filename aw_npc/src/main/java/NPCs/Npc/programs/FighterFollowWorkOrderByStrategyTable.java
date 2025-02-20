@@ -23,10 +23,12 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
     long lastCheck = 0;
     long lastCheckTick = 0;
     public BlockPos lastUsedStrategyTable = null;
+    int lastMoveExit = 0;
+    double relX, relZ;
 
     public FighterFollowWorkOrderByStrategyTable(CombatNPC worker) {
         this.worker = worker;
-        setFlags(EnumSet.of(Flag.MOVE));
+        setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
@@ -79,6 +81,18 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
 
     @Override
     public void tick() {
+
+
+        // random look around
+        if (lastMoveExit == EXIT_SUCCESS) {
+            if (worker.getRandom().nextFloat() < 0.01F) {
+                double d0 = (Math.PI * 2D) * worker.getRandom().nextDouble();
+                relX = Math.cos(d0);
+                relZ = Math.sin(d0);
+            }
+            worker.getLookControl().setLookAt(worker.getX() + relX, worker.getEyeY(), worker.getZ() + relZ);
+        }
+
         if (worker.level().getGameTime() < lastCheckTick + 20 * 1) {
             return;
         }
@@ -90,26 +104,27 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
                 EntityStrategyTable.workTargetManager m = table.getManagerForUUID(worker.getUUID());
                 if (m != null) {
                     BlockPos target = m.getTarget();
-                    if(target == null){
+                    if (target == null) {
                         lastUsedStrategyTable = null;
                         return;
                     }
-                    int moveExit = worker.slowMobNavigation.moveToPosition(target, 0, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick);
-                    if (moveExit == EXIT_FAIL) {
+                    lastMoveExit = worker.slowMobNavigation.moveToPosition(target, 0, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick);
+                    if (lastMoveExit == EXIT_FAIL) {
                         lastUsedStrategyTable = null;
                         return;
                     }
-                    if (moveExit == SUCCESS_STILL_RUNNING) {
+                    if (lastMoveExit == SUCCESS_STILL_RUNNING) {
                         m.timer = -1;
                         return;
                     }
 
-                    if (moveExit == EXIT_SUCCESS) {
+                    if (lastMoveExit == EXIT_SUCCESS) {
                         if (m.timer == -1)
                             m.timer = worker.level().getGameTime();
 
                         if (worker.level().getGameTime() > m.timer + 20 * 10) {
                             m.index++;
+                            m.timer = worker.level().getGameTime();
                         }
                     }
                 } else {

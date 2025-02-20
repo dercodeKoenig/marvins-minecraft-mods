@@ -106,6 +106,7 @@ public class WorkerNPC extends NPCBase {
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
     }
 
     @Override

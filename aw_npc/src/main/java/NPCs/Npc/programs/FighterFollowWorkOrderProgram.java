@@ -19,10 +19,12 @@ public class FighterFollowWorkOrderProgram extends Goal {
     boolean canUse;
     int currentIndex = 0;
     long timeArrivedAtLocation = 0;
+    int lastMoveExit;
+    double relX, relZ;
 
     public FighterFollowWorkOrderProgram(CombatNPC worker) {
         this.worker = worker;
-        setFlags(EnumSet.of(Flag.MOVE));
+        setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
@@ -55,6 +57,16 @@ public class FighterFollowWorkOrderProgram extends Goal {
 
     @Override
     public void tick() {
+
+        if (lastMoveExit == EXIT_SUCCESS) {
+            if (worker.getRandom().nextFloat() < 0.01F) {
+                double d0 = (Math.PI * 2D) * worker.getRandom().nextDouble();
+                relX = Math.cos(d0);
+                relZ = Math.sin(d0);
+            }
+            worker.getLookControl().setLookAt(worker.getX() + relX, worker.getEyeY(), worker.getZ() + relZ);
+        }
+
         if (worker.level().getGameTime() < lastCheckTick + 20 * 1) {
             return;
         }
@@ -78,24 +90,24 @@ public class FighterFollowWorkOrderProgram extends Goal {
         BlockPos target = new BlockPos(v.x, v.y, v.z);
         //System.out.println(target);
 
-        int moveExit = worker.slowMobNavigation.moveToPosition(target, 0, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick);
-        if (moveExit == EXIT_FAIL) {
+        lastMoveExit = worker.slowMobNavigation.moveToPosition(target, 0, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick);
+        if (lastMoveExit == EXIT_FAIL) {
             currentIndex++;
             return;
         }
-        if (moveExit == SUCCESS_STILL_RUNNING) {
+        if (lastMoveExit == SUCCESS_STILL_RUNNING) {
             timeArrivedAtLocation = -1;
             return;
         }
 
-        if (moveExit == EXIT_SUCCESS) {
+        if (lastMoveExit == EXIT_SUCCESS) {
             if (timeArrivedAtLocation == -1)
                 timeArrivedAtLocation = worker.level().getGameTime();
 
-            if(worker.level().getGameTime() > timeArrivedAtLocation + 20*10){
+            if (worker.level().getGameTime() > timeArrivedAtLocation + 20 * 10) {
                 currentIndex++;
+                timeArrivedAtLocation = worker.level().getGameTime();
             }
-            return;
         }
     }
 }

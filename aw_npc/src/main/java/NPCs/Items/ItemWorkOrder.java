@@ -12,6 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -53,16 +54,21 @@ public class ItemWorkOrder extends Item {
                 if (!context.getPlayer().isShiftKeyDown()) {
                     List<vec3> existing = getBlockList(context.getItemInHand());
 
+                    BlockPos target = context.getClickedPos();
+                    BlockState targetState = context.getLevel().getBlockState(target);
+                    if(!targetState.getCollisionShape(context.getLevel(),target).isEmpty())
+                        target = target.above();
+
                     vec3 newPos = new vec3();
-                    newPos.x = context.getClickedPos().getX();
-                    newPos.y = context.getClickedPos().getY()+1;
-                    newPos.z = context.getClickedPos().getZ();
+                    newPos.x = target.getX();
+                    newPos.y = target.getY();
+                    newPos.z = target.getZ();
 
                     existing.add(newPos);
 
                     setBlockList(existing, context.getItemInHand());
 
-                    context.getPlayer().sendSystemMessage(Component.literal("position set to " + context.getClickedPos().above()));
+                    context.getPlayer().sendSystemMessage(Component.literal("position set to " + target));
                 }else{
                     setBlockList(new ArrayList<>(), context.getItemInHand());
                     context.getPlayer().sendSystemMessage(Component.literal("positions cleared"));

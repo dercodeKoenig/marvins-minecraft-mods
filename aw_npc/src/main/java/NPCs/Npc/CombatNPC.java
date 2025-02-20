@@ -71,10 +71,15 @@ public class CombatNPC extends NPCBase {
 
     @Override
     public void onAddedToLevel() {
-        super.onAddedToLevel();
         if (!level().isClientSide) {
             registerGoals();
+
+            if(getEntityData().get(DATA_TEXTURE).isEmpty()) {
+                int randomNumber = Math.abs(level().random.nextInt()) % 4 + 1;
+                getEntityData().set(DATA_TEXTURE, "po_soldier_" + randomNumber + ".png");
+            }
         }
+        super.onAddedToLevel();
     }
 
     @Override
@@ -113,6 +118,8 @@ public class CombatNPC extends NPCBase {
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
+
     }
 
     @Override

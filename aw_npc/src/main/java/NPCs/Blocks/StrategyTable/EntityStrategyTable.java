@@ -66,21 +66,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         @Override
         public void onContentsChanged(int slot) {
             setChanged();
-
-            ItemStack stack = getStackInSlot(slot);
-
-            targetManagerMap_Fighters.get(slot).reset();
-
-            if (stack.getItem() instanceof ItemWorkOrder) {
-                List<ItemWorkOrder.vec3> vecs = ItemWorkOrder.getBlockList(stack);
-                List<BlockPos> blocks = new ArrayList<>();
-                for (ItemWorkOrder.vec3 v : vecs) {
-                    blocks.add(new BlockPos(v.x, v.y, v.z));
-                }
-                if (!blocks.isEmpty()) {
-                    targetManagerMap_Fighters.get(slot).workPositions = blocks;
-                }
-            }
+            scanSlot_fighters(slot);
         }
 
         @Override
@@ -91,6 +77,21 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             return false;
         }
     };
+
+    public void scanSlot_fighters(int slot){
+        ItemStack stack = handler_fighters.getStackInSlot(slot);
+        targetManagerMap_Fighters.get(slot).reset();
+        if (stack.getItem() instanceof ItemWorkOrder) {
+            List<ItemWorkOrder.vec3> vecs = ItemWorkOrder.getBlockList(stack);
+            List<BlockPos> blocks = new ArrayList<>();
+            for (ItemWorkOrder.vec3 v : vecs) {
+                blocks.add(new BlockPos(v.x, v.y, v.z));
+            }
+            if (!blocks.isEmpty()) {
+                targetManagerMap_Fighters.get(slot).workPositions = blocks;
+            }
+        }
+    }
 
     public workTargetManager getManagerForUUID(UUID worker) {
         if (level instanceof ServerLevel serverLevel) {
@@ -261,6 +262,12 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             knownStrategyTables.add(new BlockIdentifier(DimensionUtils.getLevelId(level), getBlockPos()));
 
             updateTownHall();
+
+            // read the work orders on load
+            for (int i = 0; i < handler_fighters.getSlots(); i++) {
+                scanSlot_fighters(i);
+            }
+
         }
     }
     @Override
