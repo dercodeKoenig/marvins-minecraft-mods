@@ -116,7 +116,7 @@ public class CombatNPC extends NPCBase {
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(priority++, new FloatGoal(this));
 
-        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
 
@@ -144,14 +144,16 @@ public class CombatNPC extends NPCBase {
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
-        compound.putInt("worktyoe", getEntityData().get(DATA_WORKTYPE));
+        compound.putInt("worktype", getEntityData().get(DATA_WORKTYPE));
         compound.put("orderInv",ordersStackHandler.serializeNBT(this.registryAccess()));
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
+        if(compound.contains("worktype")) {
+            getEntityData().set(DATA_WORKTYPE, compound.getInt("worktype"));
+        }
         ordersStackHandler.deserializeNBT(this.registryAccess(), compound.getCompound("orderInv"));
         registerGoals();
     }

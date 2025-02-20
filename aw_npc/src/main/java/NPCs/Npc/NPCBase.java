@@ -368,7 +368,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_TEXTURE, "");
+        builder.define(DATA_TEXTURE, "worker.png");
     }
 
 
@@ -376,10 +376,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void onAddedToLevel() {
         super.onAddedToLevel();
         if (!level().isClientSide) {
-
-            if (getEntityData().get(DATA_TEXTURE).isEmpty()) {
-                getEntityData().set(DATA_TEXTURE, "worker.png");
-            }
 
             if (owner == null) {
                 Player closestPlayer = null;
@@ -561,7 +557,9 @@ if(!source.isDirect()) {
 
         hunger = compound.getDouble("hunger");
 
-        getEntityData().set(DATA_TEXTURE, compound.getString("texture"));
+        if(compound.contains("texture")) {
+            getEntityData().set(DATA_TEXTURE, compound.getString("texture"));
+        }
     }
 
 

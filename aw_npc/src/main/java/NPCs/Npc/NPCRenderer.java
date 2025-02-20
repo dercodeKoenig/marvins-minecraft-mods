@@ -25,14 +25,8 @@ public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
 
     @Override
     public ResourceLocation getTextureLocation(NPCBase entity) {
-        if(!entity.getEntityData().get(NPCBase.DATA_TEXTURE).isEmpty()) {
-            ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/" + entity.getEntityData().get(NPCBase.DATA_TEXTURE));
-            return tex;
-        }else{
-            ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/worker.png");
-            return tex;
-        }
-
+        ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/" + entity.getEntityData().get(NPCBase.DATA_TEXTURE));
+        return tex;
     }
 
     @Override

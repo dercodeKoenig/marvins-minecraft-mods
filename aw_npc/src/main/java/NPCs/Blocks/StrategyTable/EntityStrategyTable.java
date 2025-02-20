@@ -1,12 +1,15 @@
 package NPCs.Blocks.StrategyTable;
 
 import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.gui.modules.guiModuleText;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
 import ARLib.utils.DimensionUtils;
+import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
 import NPCs.Items.ItemWorkOrder;
 import NPCs.Npc.CombatNPC;
@@ -37,6 +40,24 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     public static HashMap<BlockIdentifier, Set<BlockPos>> knownStrategyTablesForTownhallPosition = new HashMap<>();
     public static HashSet<BlockIdentifier> knownStrategyTables = new HashSet<>();
 
+
+    public Map<Integer, workTargetManager> targetManagerMap_Fighters = new HashMap<>();
+
+    GuiHandlerBlockEntity guiHandler;
+    BlockPos townHall;
+    String owner;
+    public guiModuleText townHallText;
+    public guiModuleDefaultButton redstoneControlButton;
+    boolean useNormalRedstoneSignal;
+
+    public void updateRedstoneButtontext(){
+        if(useNormalRedstoneSignal == false)
+            redstoneControlButton.setTextAndSync("inverted");
+        else{
+            redstoneControlButton.setTextAndSync("normal");
+        }
+    }
+
     public static class workTargetManager {
         public int index;
         public List<BlockPos> workPositions = new ArrayList<>();
@@ -55,12 +76,6 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             return workPositions.get(index);
         }
     }
-
-    public Map<Integer, workTargetManager> targetManagerMap_Fighters = new HashMap<>();
-
-    GuiHandlerBlockEntity guiHandler;
-    BlockPos townHall;
-    String owner;
 
     ItemStackHandler handler_fighters = new ItemStackHandler(9) {
         @Override
@@ -95,6 +110,12 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
 
     public workTargetManager getManagerForUUID(UUID worker) {
         if (level instanceof ServerLevel serverLevel) {
+
+            if(!level.hasNeighborSignal(getBlockPos()) && useNormalRedstoneSignal)
+                return null;
+            if(level.hasNeighborSignal(getBlockPos()) && !useNormalRedstoneSignal)
+                return null;
+
             Entity e = serverLevel.getEntity(worker);
             if (e instanceof CombatNPC npc) {
                 if (npc.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
@@ -153,6 +174,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         return null;
     }
 
+
     public EntityStrategyTable(BlockPos pos, BlockState blockState) {
         super(ENTITY_STRATEGY_TABLE.get(), pos, blockState);
 
@@ -169,7 +191,12 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 120, 1100, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
+        townHallText = new guiModuleText(2002, "townhallpos", guiHandler, 5, 5, 0xff000000, false);
+        guiHandler.getModules().add(townHallText);
 
+        guiHandler.getModules().add(new guiModuleText(8798, "Redstone Control", guiHandler, 5, 17, 0xff000000, false));
+        redstoneControlButton = new guiModuleDefaultButton(8799,"",guiHandler,100,12,50,15);
+        guiHandler.getModules().add(redstoneControlButton);
 
         for (int i = 0; i < handler_fighters.getSlots(); i++) {
             targetManagerMap_Fighters.put(i, new workTargetManager());
@@ -231,9 +258,9 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             }
         }
         if (townHall != null) {
-            //townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(), townHall));
+            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level, townHall));
         } else {
-            //townHallText.setTextAndSync("Town: none");
+            townHallText.setTextAndSync("Town: none");
         }
 
         if(townHall != null) {
@@ -275,6 +302,8 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                 scanSlot_fighters(i);
             }
 
+            updateRedstoneButtontext();
+
         }
     }
     @Override
@@ -304,6 +333,13 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
+        if(compoundTag.contains("guiButtonClick")){
+            int buttonId = compoundTag.getInt("guiButtonClick");
+            if(buttonId==8799){
+                useNormalRedstoneSignal = !useNormalRedstoneSignal;
+            updateRedstoneButtontext();
+            }
+        }
     }
 
     @Override
@@ -320,6 +356,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         super.saveAdditional(tag, registries);
         tag.put("inventory1", handler_fighters.serializeNBT(registries));
 
+        tag.putBoolean("invRedstone", useNormalRedstoneSignal);
 
         if (townHall != null) {
             tag.putInt("townHallX", townHall.getX());
@@ -336,6 +373,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         super.loadAdditional(tag, registries);
         handler_fighters.deserializeNBT(registries, tag.getCompound("inventory1"));
 
+        useNormalRedstoneSignal = tag.getBoolean("invRedstone");
 
         if (tag.contains("townHallX") && tag.contains("townHallY") && tag.contains("townHallZ")) {
             townHall = new BlockPos(tag.getInt("townHallX"), tag.getInt("townHallY"), tag.getInt("townHallZ"));

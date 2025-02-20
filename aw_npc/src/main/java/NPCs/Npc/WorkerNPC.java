@@ -20,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,7 @@ public class WorkerNPC extends NPCBase {
         super(entityType, level);
         //guiModuleItemHandlerSlot workOrderSlot = new guiModuleItemHandlerSlot(13002, ordersStackHandler, 1, 1,0,guiHandler, 140,70);
         //guiHandler.getModules().addFirst(workOrderSlot);
+
     }
 
     public MainFarmingProgram farmingProgram;
@@ -104,7 +106,7 @@ public class WorkerNPC extends NPCBase {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
 
-        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
     }
@@ -168,7 +170,6 @@ public class WorkerNPC extends NPCBase {
             compound.putInt("worksitePositionY", lastWorksitePosition.getY());
             compound.putInt("worksitePositionZ", lastWorksitePosition.getZ());
         }
-
         compound.putInt("worktyoe", getEntityData().get(DATA_WORKTYPE));
     }
 
@@ -178,7 +179,9 @@ public class WorkerNPC extends NPCBase {
         if (compound.contains("worksitePositionX") && compound.contains("worksitePositionY") && compound.contains("worksitePositionZ")) {
             lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
-        getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
+        if(compound.contains("worktype")) {
+            getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
+        }
         registerGoals();
     }
 }

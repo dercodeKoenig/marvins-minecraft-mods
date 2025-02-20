@@ -1,6 +1,5 @@
-package NPCs.Blocks.StrategyTable;
+package NPCs.Blocks.Armory;
 
-import NPCs.Blocks.TownHall.EntityTownHall;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -18,28 +17,29 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import static NPCs.Registry.ENTITY_ARMORY;
 import static NPCs.Registry.ENTITY_STRATEGY_TABLE;
 
-public class BlockStrategyTable extends Block implements EntityBlock {
-    public BlockStrategyTable() {
+public class BlockArmory extends Block implements EntityBlock {
+    public BlockArmory() {
         super(Properties.of().noOcclusion());
     }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_STRATEGY_TABLE.get().create(blockPos,blockState);
+        return ENTITY_ARMORY.get().create(blockPos,blockState);
     }
 
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityStrategyTable::tick;
+        return EntityArmory::tick;
     }
 
 
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockEntity e = level.getBlockEntity(pos);
-        if (e instanceof EntityStrategyTable t) {
+        if (e instanceof EntityArmory t) {
             t.useWithoutItem(player);
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;

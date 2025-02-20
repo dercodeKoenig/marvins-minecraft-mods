@@ -1,5 +1,7 @@
 package NPCs;
 
+import NPCs.Blocks.Armory.BlockArmory;
+import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Blocks.StrategyTable.BlockStrategyTable;
 import NPCs.Blocks.StrategyTable.EntityStrategyTable;
 import NPCs.Items.ItemSetHomeTool;
@@ -55,6 +57,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityStrategyTable::new,STRATEGY_TABLE.get()).build(null)
     );
 
+    public static final Supplier<Block> ARMORY = BLOCKS.register(
+            "armory",
+            () -> new BlockArmory()
+    );
+    public static final Supplier<BlockEntityType<EntityArmory>> ENTITY_ARMORY = BLOCK_ENTITIES.register(
+            "entity_armory",
+            () -> BlockEntityType.Builder.of(EntityArmory::new,ARMORY.get()).build(null)
+    );
+
     public static final Supplier<EntityType<WorkerNPC>> ENTITY_WORKER = ENTITIES.register(
             "worker",
             () -> EntityType.Builder.of(WorkerNPC::new, MobCategory.CREATURE).build(Main.MODID+":worker")
@@ -88,6 +99,7 @@ public class Registry {
     static {
         registerBlockItem("townhall", TOWNHALL);
         registerBlockItem("strategy_table", STRATEGY_TABLE);
+        registerBlockItem("armory", ARMORY);
     }
 
     public static void register(IEventBus modBus) {

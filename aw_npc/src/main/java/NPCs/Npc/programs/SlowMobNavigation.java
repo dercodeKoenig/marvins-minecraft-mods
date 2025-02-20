@@ -74,7 +74,7 @@ public class SlowMobNavigation {
 
         if (npc.getNavigation().isStuck()) {
             failTimeOut++;
-            if (failTimeOut > 50 && npc.getNavigation().isStuck()) {
+            if (failTimeOut > 50) {
                 // try to jump if we are stuck
                 npc.getJumpControl().jump();
             }
