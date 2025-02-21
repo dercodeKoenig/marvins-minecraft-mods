@@ -85,7 +85,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
 
     public static void updateAllTownHalls() {
         for (BlockIdentifier b : knownBlocks) {
-            BlockEntity be = DimensionUtils.getDimensionLevelServer(b.levelId).getBlockEntity(b.pos);
+            BlockEntity be = b.level.getBlockEntity(b.pos);
             if (be instanceof EntityArmory t) {
                 t.updateTownHall();
             }
@@ -114,7 +114,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
             }
         } else {
             if (TownHallOwners.getEntry(level, townHall) == null || !TownHallOwners.getOwners(level, townHall).contains(owner)) {
-                BlockIdentifier townhallId = new BlockIdentifier(DimensionUtils.getLevelId(level),townHall);
+                BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
                 Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
                 if(strategyTables != null){
                     strategyTables.remove(getBlockPos());
@@ -131,7 +131,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
         }
 
         if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(DimensionUtils.getLevelId(level),townHall);
+            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
             Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
             if(strategyTables == null)
                 strategyTables = new HashSet<>();
@@ -160,7 +160,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
             if (owner != null) {
                 //ownerText.setTextAndSync("Owner: " + owner);
             }
-            knownBlocks.add(new BlockIdentifier(DimensionUtils.getLevelId(level), getBlockPos()));
+            knownBlocks.add(new BlockIdentifier(level, getBlockPos()));
 
             updateTownHall();
 
@@ -170,12 +170,12 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
     public void setRemoved(){
         super.setRemoved();
         if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(DimensionUtils.getLevelId(level),townHall);
+            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
             Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
             if(strategyTables != null){
                 strategyTables.remove(getBlockPos());
             }
-            knownBlocks.remove(new BlockIdentifier(DimensionUtils.getLevelId(level), getBlockPos()));
+            knownBlocks.remove(new BlockIdentifier(level, getBlockPos()));
         }
     }
 

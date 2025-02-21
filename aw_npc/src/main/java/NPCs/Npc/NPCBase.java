@@ -482,19 +482,17 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-
-if(!source.isDirect()) {
-    List<CombatNPC> fighters = level().getEntitiesOfClass(CombatNPC.class, new AABB(blockPosition()).inflate(64), (e) -> true);
-    for (CombatNPC fighter : fighters) {
-        if (fighter.runForHelpProgram != null) {
-            if(source.getEntity() instanceof LivingEntity) {
-                fighter.runForHelpProgram.requestHelp(this, source.getEntity());
-            }else{
-                fighter.runForHelpProgram.requestHelp(this, this);
+        if (!level().isClientSide) {
+            if (source.getEntity() instanceof LivingEntity) {
+                List<CombatNPC> fighters = level().getEntitiesOfClass(CombatNPC.class, new AABB(blockPosition()).inflate(64), (e) -> true);
+                for (CombatNPC fighter : fighters) {
+                    if (fighter.runForHelpProgram != null) {
+                        fighter.runForHelpProgram.requestHelp(this, source.getEntity());
+                    }
+                }
+                HostileEntities.addTemporaryHostile(source.getEntity(), this, 20 * 15);
             }
         }
-    }
-}
         return super.hurt(source, amount);
     }
 
@@ -503,6 +501,9 @@ if(!source.isDirect()) {
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
         for (int i = 0; i < inventory.getSlots(); i++) {
             level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, inventory.getStackInSlot(i)));
+        }
+        for (int i = 0; i < foodOrderStackHandler.getSlots(); i++) {
+            level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, foodOrderStackHandler.getStackInSlot(i)));
         }
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
     }

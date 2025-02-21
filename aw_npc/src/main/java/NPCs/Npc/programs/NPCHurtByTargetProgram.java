@@ -2,6 +2,7 @@ package NPCs.Npc.programs;
 
 
 import NPCs.Blocks.TownHall.TownHallOwners;
+import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCBase;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
@@ -27,20 +28,8 @@ public class NPCHurtByTargetProgram extends TargetGoal {
         int i = this.mob.getLastHurtByMobTimestamp();
         LivingEntity livingentity = this.mob.getLastHurtByMob();
         if (i != this.timestamp && livingentity != null) {
-            if(livingentity instanceof Player player) {
-                String pName = player.getName().getString();
-                if (Objects.equals(worker.owner, pName))
-                    return false;
-                if (worker.townHall != null && TownHallOwners.getOwners(worker.level(), worker.townHall).contains(pName))
-                    return false;
-            }
-            if(livingentity instanceof NPCBase otherNPC) {
-                String pName = otherNPC.owner;
-                if (Objects.equals(worker.owner, pName))
-                    return false;
-                if (worker.townHall != null && TownHallOwners.getOwners(worker.level(), worker.townHall).contains(pName))
-                    return false;
-            }
+            if (HostileEntities.isUnableToAttack(livingentity, worker))
+                return false;
             return this.canAttack(livingentity, HURT_BY_TARGETING);
         }
         return false;

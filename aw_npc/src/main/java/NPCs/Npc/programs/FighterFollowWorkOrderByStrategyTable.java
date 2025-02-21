@@ -41,7 +41,7 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
             return false;
         }
         if (worker.townHall != null) {
-            BlockIdentifier b_id = new BlockIdentifier(DimensionUtils.getLevelId(worker.level()), worker.townHall);
+            BlockIdentifier b_id = new BlockIdentifier(worker.level(), worker.townHall);
             List<BlockPos> strategyTables =new ArrayList<>(EntityStrategyTable.knownStrategyTablesForTownhallPosition.get(b_id));
             Collections.shuffle(strategyTables); // Shuffle the list randomly
             for (BlockPos p : strategyTables) {

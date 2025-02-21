@@ -2,15 +2,17 @@ package ARLib.utils;
 
 import ARLib.multiblockCore.BlockMultiblockPart;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.Objects;
 
 public class BlockIdentifier {
-    public String levelId;
+    public Level level;
     public BlockPos pos;
 
-    public BlockIdentifier(String level, BlockPos pos) {
-        this.levelId = level;
+
+    public BlockIdentifier(Level level, BlockPos pos) {
+        this.level = level;
         this.pos = pos;
     }
 
@@ -23,12 +25,12 @@ public class BlockIdentifier {
 
         BlockIdentifier that = (BlockIdentifier) obj;
 
-        return Objects.equals(levelId, that.levelId) && Objects.equals(pos, that.pos);
+        return Objects.equals(level, that.level) && Objects.equals(pos, that.pos);
     }
 
     // Override hashCode() to compute hash based on fields
     @Override
     public int hashCode() {
-        return Objects.hash(levelId, pos);
+        return Objects.hash(level, pos);
     }
 }

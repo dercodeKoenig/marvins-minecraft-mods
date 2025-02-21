@@ -80,11 +80,11 @@ public class BlockWindMillBlade extends Block {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
-        BlockPos masterPos = multiblockMasterPositions.get(new BlockIdentifier(DimensionUtils.getLevelId(level), pos));
+        BlockPos masterPos = multiblockMasterPositions.get(new BlockIdentifier(level, pos));
         if (masterPos != null && level.getBlockEntity(masterPos) instanceof EntityWindMillGenerator e) {
             e.scanStructure();
         }
-        multiblockMasterPositions.remove(new BlockIdentifier(DimensionUtils.getLevelId(level), pos));
+        multiblockMasterPositions.remove(new BlockIdentifier(level, pos));
     }
 
 

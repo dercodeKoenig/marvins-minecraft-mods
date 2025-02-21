@@ -1,5 +1,6 @@
 package NPCs.Npc.programs;
 
+import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCBase;
 import NPCs.Blocks.TownHall.TownHallOwners;
 import NPCs.Utils;
@@ -23,7 +24,9 @@ public class RunForHelpProgram extends Goal {
     public void requestHelp(NPCBase npc, Entity e) {
         if (Objects.equals(npc.owner, worker.owner) || (worker.townHall != null && TownHallOwners.getOwners(worker.level(), worker.townHall).contains(npc.owner))) {
             if (!worker.slowMobNavigation.isPositionCachedAsInvalid(npc.blockPosition())) {
-                npcNeedHelp.add(e);
+                if (!HostileEntities.isUnableToAttack(e, worker)) {
+                    npcNeedHelp.add(e);
+                }
             }
         }
     }

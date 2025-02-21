@@ -148,7 +148,7 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
                     BlockState blockState = level.getBlockState(globalPos);
                     Block newBlock = blockState.getBlock();
                     if (newBlock instanceof BlockMultiblockPart bmp) {
-                        bmp.setMaster(new BlockIdentifier(DimensionUtils.getLevelId(level), globalPos), null);
+                        bmp.setMaster(new BlockIdentifier(level, globalPos), null);
                     }
                     if (newBlock instanceof BlockMultiblockPart || newBlock instanceof BlockMultiblockMaster ) {
                         level.setBlock(globalPos, blockState.setValue(STATE_MULTIBLOCK_FORMED, false), 3);
@@ -205,7 +205,7 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
 
                     blockState = level.getBlockState(globalPos);
                     if (blockState.getBlock() instanceof BlockMultiblockPart t) {
-                        t.setMaster(new BlockIdentifier(DimensionUtils.getLevelId(level), globalPos), getBlockPos());
+                        t.setMaster(new BlockIdentifier(level, globalPos), getBlockPos());
                     }
                 }
             }

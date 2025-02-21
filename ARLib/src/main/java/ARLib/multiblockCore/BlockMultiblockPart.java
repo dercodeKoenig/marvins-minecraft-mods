@@ -54,11 +54,11 @@ public class BlockMultiblockPart extends Block {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (!level.isClientSide) {
             if (state.getBlock() instanceof BlockMultiblockPart t) {
-                BlockPos master = t.getMaster(new BlockIdentifier(DimensionUtils.getLevelId(level), pos));
+                BlockPos master = t.getMaster(new BlockIdentifier(level, pos));
                 if (master != null && level.getBlockEntity(master) instanceof EntityMultiblockMaster masterTile) {
                     masterTile.scanStructure(); // returns on clientside by itself
                 }
-                multiblockMasterPositions.remove(new BlockIdentifier(DimensionUtils.getLevelId(level), pos));
+                multiblockMasterPositions.remove(new BlockIdentifier(level, pos));
             }
         }
     }
@@ -73,7 +73,7 @@ public class BlockMultiblockPart extends Block {
         // if it is a SUCCESS and item is used the server should update the inventory and send the changes
         if (level.isClientSide) return InteractionResult.SUCCESS_NO_ITEM_USED;
 
-        BlockPos master = getMaster(new BlockIdentifier(DimensionUtils.getLevelId(level), pos));
+        BlockPos master = getMaster(new BlockIdentifier(level, pos));
         if (master != null && level.getBlockEntity(master) instanceof EntityMultiblockMaster masterTile && masterTile.forwardInteractionToMaster) {
             return masterTile.useWithoutItem(state, level, pos, player, hitResult);
         }

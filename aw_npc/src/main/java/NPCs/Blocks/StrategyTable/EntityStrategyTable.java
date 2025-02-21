@@ -218,7 +218,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
 
     public static void updateAllTownHalls() {
         for (BlockIdentifier b : knownStrategyTables) {
-            BlockEntity be = DimensionUtils.getDimensionLevelServer(b.levelId).getBlockEntity(b.pos);
+            BlockEntity be = b.level.getBlockEntity(b.pos);
             if (be instanceof EntityStrategyTable t) {
                 t.updateTownHall();
             }
@@ -247,7 +247,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             }
         } else {
             if (TownHallOwners.getEntry(level, townHall) == null || !TownHallOwners.getOwners(level, townHall).contains(owner)) {
-                BlockIdentifier townhallId = new BlockIdentifier(DimensionUtils.getLevelId(level),townHall);
+                BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
                 Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
                 if(strategyTables != null){
                     strategyTables.remove(getBlockPos());
@@ -264,7 +264,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         }
 
         if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(DimensionUtils.getLevelId(level),townHall);
+            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
             Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
             if(strategyTables == null)
                 strategyTables = new HashSet<>();
@@ -293,7 +293,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             if (owner != null) {
                 //ownerText.setTextAndSync("Owner: " + owner);
             }
-            knownStrategyTables.add(new BlockIdentifier(DimensionUtils.getLevelId(level), getBlockPos()));
+            knownStrategyTables.add(new BlockIdentifier(level, getBlockPos()));
 
             updateTownHall();
 
@@ -310,12 +310,12 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     public void setRemoved(){
         super.setRemoved();
         if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(DimensionUtils.getLevelId(level),townHall);
+            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
             Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
             if(strategyTables != null){
                 strategyTables.remove(getBlockPos());
             }
-            knownStrategyTables.remove(new BlockIdentifier(DimensionUtils.getLevelId(level), getBlockPos()));
+            knownStrategyTables.remove(new BlockIdentifier(level, getBlockPos()));
         }
     }
 

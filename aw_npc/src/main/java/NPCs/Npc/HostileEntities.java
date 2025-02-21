@@ -1,5 +1,6 @@
 package NPCs.Npc;
 
+import ARLib.utils.BlockIdentifier;
 import NPCs.Blocks.TownHall.TownHallOwners;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -10,31 +11,97 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
-import java.util.Objects;
+import java.util.*;
 
 public class HostileEntities {
 
+    public static class TemporaryHostile{
+        public UUID id;
+        public long gameTimeStart=0;
+        public int tickDuration = 300;
+    }
+
+    public static HashMap<BlockIdentifier, Set<TemporaryHostile>> hostilesToTownhall = new HashMap<>();
+
+    public static void addTemporaryHostile(Entity e, NPCBase npc, int tickDuration) {
+        if (npc.townHall != null) {
+            BlockIdentifier id = new BlockIdentifier(npc.level(), npc.townHall);
+            Set<TemporaryHostile> hostiles = hostilesToTownhall.get(id);
+            if (hostiles == null)
+                hostiles = new HashSet<>();
+            TemporaryHostile t = new TemporaryHostile();
+            t.id = e.getUUID();
+            t.tickDuration = tickDuration;
+            t.gameTimeStart = npc.level().getGameTime();
+            hostiles.add(t);
+            hostilesToTownhall.put(id, hostiles);
+        }
+    }
+
+    public static boolean isUnableToAttack(Entity e, NPCBase npc) {
+        if (e instanceof NPCBase otherNPC) {
+            if (Objects.equals(npc.owner, otherNPC.owner)) {
+                // do not attack on same owner
+                return true;
+            }
+
+            if (npc.townHall != null && TownHallOwners.getOwners(npc.level(), npc.townHall).contains(otherNPC.owner)) {
+                // do not attack when other NPCs owner is an owner of this NPCs townhall
+                return true;
+            }
+        }
+
+        if (e instanceof Player p) {
+            String pName = p.getName().getString();
+            if (Objects.equals(npc.owner, pName)) {
+                // do not attack owner
+                return true;
+            }
+
+            if (npc.townHall != null && TownHallOwners.getOwners(npc.level(), npc.townHall).contains(pName)) {
+                // do not attack when player is an owner of this NPCs townhall
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static boolean shouldAttack(Entity e, NPCBase npc) {
+
+        if (isUnableToAttack(e, npc))
+            return false;
 
         // attack monsters
         if (e instanceof Monster)
             if (!(e instanceof Creeper))
                 return true;
 
-        // attack other npcs that are not owned by the owner of this npc && that are not owned by any owner of the townhall
-        if (npc.townHall != null && e instanceof NPCBase otherNPC) {
-            if (!TownHallOwners.getOwners(npc.level(), npc.townHall).contains(otherNPC.owner)) {
-                if (!Objects.equals(npc.owner, otherNPC.owner)) {
-                    return true;
-                }
+        if (e instanceof NPCBase)
+            return true;
+        if (e instanceof Player)
+            return true;
+
+        // cleanup old entries
+        for (BlockIdentifier id : hostilesToTownhall.keySet()) {
+            Set<TemporaryHostile> temporaryHostiles = hostilesToTownhall.get(id);
+            for (TemporaryHostile i : new HashSet<>(temporaryHostiles)) {
+                if (i.gameTimeStart + i.tickDuration < npc.level().getGameTime())
+                    temporaryHostiles.remove(i);
+            }
+            if(temporaryHostiles.isEmpty()){
+                hostilesToTownhall.remove(id);
+                break;
             }
         }
 
-        // attack players that are not owner of this npc && that are not a owner of the townhall that this npc belongs to
-        if (npc.townHall != null && e instanceof Player p) {
-            if (!TownHallOwners.getOwners(npc.level(), npc.townHall).contains(p.getName().getString())) {
-                if (!p.getName().getString().equals(npc.owner)) {
-                    return true;
+        if(npc.townHall != null){
+            Set<TemporaryHostile> temporaryHostiles = hostilesToTownhall.get(new BlockIdentifier(npc.level(),npc.townHall));
+            if(temporaryHostiles != null){
+                for(TemporaryHostile i : new HashSet<>(temporaryHostiles)){
+                    if(i.id.equals(e.getUUID())){
+                        return true;
+                    }
                 }
             }
         }
