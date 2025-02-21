@@ -487,8 +487,8 @@ if(!source.isDirect()) {
     List<CombatNPC> fighters = level().getEntitiesOfClass(CombatNPC.class, new AABB(blockPosition()).inflate(64), (e) -> true);
     for (CombatNPC fighter : fighters) {
         if (fighter.runForHelpProgram != null) {
-            if(source.getDirectEntity() instanceof LivingEntity) {
-                fighter.runForHelpProgram.requestHelp(this, source.getDirectEntity());
+            if(source.getEntity() instanceof LivingEntity) {
+                fighter.runForHelpProgram.requestHelp(this, source.getEntity());
             }else{
                 fighter.runForHelpProgram.requestHelp(this, this);
             }

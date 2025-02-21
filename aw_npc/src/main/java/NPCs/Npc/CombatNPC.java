@@ -15,6 +15,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -93,12 +94,15 @@ public class CombatNPC extends NPCBase {
 
         int priority = 0;
 
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.fighter.ordinal()) {
+            Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
+            goalSelector.addGoal(priority++, attackGoal0);
 
-        Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
-        goalSelector.addGoal(priority++, attackGoal0);
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
+            goalSelector.addGoal(priority++, attackGoal1);
 
-        Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
-        goalSelector.addGoal(priority++, attackGoal1);
+            goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
+        }
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
 
@@ -116,7 +120,7 @@ public class CombatNPC extends NPCBase {
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(priority++, new FloatGoal(this));
 
-        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.5, 120, false));
+        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.8, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
 

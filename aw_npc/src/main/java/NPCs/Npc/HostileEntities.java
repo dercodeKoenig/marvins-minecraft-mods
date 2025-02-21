@@ -31,12 +31,10 @@ public class HostileEntities {
         }
 
         // attack players that are not owner of this npc && that are not a owner of the townhall that this npc belongs to
-        if (e instanceof Player p) {
-            if (npc.townHall != null) {
-                if (!TownHallOwners.getOwners(npc.level(), npc.townHall).contains(p.getName().getString())) {
-                    if (!p.getName().getString().equals(npc.owner)) {
-                        return true;
-                    }
+        if (npc.townHall != null && e instanceof Player p) {
+            if (!TownHallOwners.getOwners(npc.level(), npc.townHall).contains(p.getName().getString())) {
+                if (!p.getName().getString().equals(npc.owner)) {
+                    return true;
                 }
             }
         }

@@ -113,7 +113,7 @@ public class WorkerNPC extends NPCBase {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
 
-        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.5, 120, false));
+        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.8, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
     }
