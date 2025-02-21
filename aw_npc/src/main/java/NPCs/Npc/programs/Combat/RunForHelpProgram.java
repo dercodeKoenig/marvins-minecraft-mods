@@ -1,4 +1,4 @@
-package NPCs.Npc.programs;
+package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCBase;

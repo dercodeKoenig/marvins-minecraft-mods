@@ -6,19 +6,13 @@ import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
-import ARLib.utils.DimensionUtils;
 import NPCs.Blocks.TownHall.TownHallOwners;
-import NPCs.Items.ItemWorkOrder;
-import NPCs.Npc.CombatNPC;
 import NPCs.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,9 +22,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
-import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Registry.ENTITY_ARMORY;
-import static NPCs.Registry.ENTITY_STRATEGY_TABLE;
 
 public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
 
@@ -41,7 +33,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
     BlockPos townHall;
     String owner;
 
-    ItemStackHandler handler = new ItemStackHandler(18) {
+    public ItemStackHandler inventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int slot) {
             setChanged();
@@ -56,7 +48,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
 
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 2; y++) {
-                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, handler, x, 1, 0, guiHandler, x * 18 + 10, y*18+30);
+                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, inventory, x+y*9, 1, 0, guiHandler, x * 18 + 10, y*18+30);
                 guiHandler.getModules().add(m);
             }
         }
@@ -175,8 +167,8 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
             if(strategyTables != null){
                 strategyTables.remove(getBlockPos());
             }
-            knownBlocks.remove(new BlockIdentifier(level, getBlockPos()));
         }
+        knownBlocks.remove(new BlockIdentifier(level, getBlockPos()));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -207,7 +199,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("inventory1", handler.serializeNBT(registries));
+        tag.put("inventory1", inventory.serializeNBT(registries));
 
 
         if (townHall != null) {
@@ -223,7 +215,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
 
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        handler.deserializeNBT(registries, tag.getCompound("inventory1"));
+        inventory.deserializeNBT(registries, tag.getCompound("inventory1"));
 
 
         if (tag.contains("townHallX") && tag.contains("townHallY") && tag.contains("townHallZ")) {

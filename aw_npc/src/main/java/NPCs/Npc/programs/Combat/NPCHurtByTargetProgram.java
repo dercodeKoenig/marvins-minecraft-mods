@@ -1,16 +1,13 @@
-package NPCs.Npc.programs;
+package NPCs.Npc.programs.Combat;
 
 
-import NPCs.Blocks.TownHall.TownHallOwners;
 import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCBase;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.player.Player;
 
 import java.util.EnumSet;
-import java.util.Objects;
 
 public class NPCHurtByTargetProgram extends TargetGoal {
     private static final TargetingConditions HURT_BY_TARGETING = TargetingConditions.forCombat().ignoreLineOfSight().ignoreInvisibilityTesting();

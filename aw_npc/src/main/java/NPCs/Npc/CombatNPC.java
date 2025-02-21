@@ -3,6 +3,7 @@ package NPCs.Npc;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import NPCs.Items.ItemWorkOrder;
 import NPCs.Npc.programs.*;
+import NPCs.Npc.programs.Combat.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -17,7 +18,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -97,6 +97,8 @@ public class CombatNPC extends NPCBase {
 
         int priority = 0;
 
+        goalSelector.addGoal(priority++, new ArmoryProgram(this));
+
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.fighter.ordinal()) {
             Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
             goalSelector.addGoal(priority++, attackGoal0);
@@ -104,7 +106,8 @@ public class CombatNPC extends NPCBase {
             Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
 
-            //goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
+            // this is in case there is no townhall to manage temporal enemies
+            goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
         }
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));

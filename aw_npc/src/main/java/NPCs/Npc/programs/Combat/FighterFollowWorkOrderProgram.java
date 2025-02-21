@@ -1,4 +1,4 @@
-package NPCs.Npc.programs;
+package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
 import NPCs.Items.ItemWorkOrder;
@@ -29,7 +29,7 @@ public class FighterFollowWorkOrderProgram extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.level().getGameTime() < lastCheckTick + 20 * 1 && !(lastMoveExit == SUCCESS_STILL_RUNNING)) {
+        if (worker.level().getGameTime() < lastCheck + 20 * 1) {
             return canUse;
         }
         lastCheck = worker.level().getGameTime();
@@ -67,7 +67,7 @@ public class FighterFollowWorkOrderProgram extends Goal {
             worker.getLookControl().setLookAt(worker.getX() + relX, worker.getEyeY(), worker.getZ() + relZ);
         }
 
-        if (worker.level().getGameTime() < lastCheckTick + 20 * 1) {
+        if (worker.level().getGameTime() < lastCheckTick + 20 * 1 && !(lastMoveExit == SUCCESS_STILL_RUNNING)) {
             return;
         }
         lastCheckTick = worker.level().getGameTime();

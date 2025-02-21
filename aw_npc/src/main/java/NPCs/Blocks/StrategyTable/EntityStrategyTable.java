@@ -315,8 +315,8 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             if(strategyTables != null){
                 strategyTables.remove(getBlockPos());
             }
-            knownStrategyTables.remove(new BlockIdentifier(level, getBlockPos()));
         }
+        knownStrategyTables.remove(new BlockIdentifier(level, getBlockPos()));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {

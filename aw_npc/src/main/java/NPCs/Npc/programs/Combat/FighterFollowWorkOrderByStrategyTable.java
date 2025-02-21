@@ -1,13 +1,10 @@
-package NPCs.Npc.programs;
+package NPCs.Npc.programs.Combat;
 
 import ARLib.utils.BlockIdentifier;
-import ARLib.utils.DimensionUtils;
 import NPCs.Blocks.StrategyTable.EntityStrategyTable;
-import NPCs.Items.ItemWorkOrder;
 import NPCs.Npc.CombatNPC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.*;
@@ -55,10 +52,6 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
                             return true;
                         }
                     }
-                } else {
-                    System.err.println("error: " + p + " is not a strategy table");
-                    strategyTables.remove(p);
-                    break;
                 }
             }
         }

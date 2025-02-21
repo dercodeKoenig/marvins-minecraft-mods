@@ -1,8 +1,10 @@
-package NPCs.Npc.programs;
+package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.NPCBase;
+import NPCs.Npc.programs.TakeToolProgram;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.item.SwordItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -19,6 +21,7 @@ public class NearestAttackableTargetGoalWithHunger<T extends LivingEntity> exten
                 mustReach,
                 targetPredicate);
         this.npc = npc;
+
     }
 
 

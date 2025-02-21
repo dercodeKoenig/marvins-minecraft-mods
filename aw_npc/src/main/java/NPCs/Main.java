@@ -6,9 +6,12 @@ import NPCs.Npc.NPCRenderer;
 import NPCs.Npc.WorkerNPC;
 import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -20,6 +23,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
+import static BetterPipes.Registry.PIPE;
 import static NPCs.Registry.*;
 
 
@@ -35,6 +39,7 @@ public class Main {
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerNetworkStuff);
         modEventBus.addListener(this::entityAttributeCreation);
+        modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelSave);
@@ -46,6 +51,10 @@ public class Main {
 
         Registry.register(modEventBus);
 
+    }
+    public void onClientSetup(FMLClientSetupEvent event) {
+        // bc of the armor items beeing transparent
+        ItemBlockRenderTypes.setRenderLayer(ARMORY.get(), RenderType.cutout());
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {

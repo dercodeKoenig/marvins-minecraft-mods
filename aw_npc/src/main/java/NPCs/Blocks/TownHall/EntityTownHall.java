@@ -5,6 +5,7 @@ import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Blocks.StrategyTable.EntityStrategyTable;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.NPCBase;
@@ -143,6 +144,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
 
     public static void updateTownhalls(){
         NPCBase.updateAllTownHalls();
+        EntityArmory.updateAllTownHalls();
         EntityStrategyTable.updateAllTownHalls();
     }
 
