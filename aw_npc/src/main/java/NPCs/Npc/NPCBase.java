@@ -22,6 +22,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -193,6 +194,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         super.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
         super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
+        super.getNavigation().getNodeEvaluator().setCanFloat(true);
 
         slowMobNavigation = new SlowMobNavigation(this);
 
@@ -319,7 +321,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(setHomeButton);
 
         setCustomName(Component.literal("NPC"));
-        setCustomNameVisible(true);
     }
 
 
@@ -368,13 +369,14 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_TEXTURE, "worker.png");
+        builder.define(DATA_TEXTURE, "");
     }
 
 
     @Override
     public void onAddedToLevel() {
         super.onAddedToLevel();
+        setCustomNameVisible(true);
         if (!level().isClientSide) {
 
             if (owner == null) {
@@ -510,7 +512,10 @@ if(!source.isDirect()) {
         hunger += foodProperties.nutrition();
         return super.eat(level, food, foodProperties);
     }
-
+    @Override
+    public int getMaxFallDistance() { // makes fighters not jump from >3 block tall walls down to attack a target
+        return 3;
+    }
 
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {

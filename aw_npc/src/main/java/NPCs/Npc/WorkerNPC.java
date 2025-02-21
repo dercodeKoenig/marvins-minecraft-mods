@@ -58,7 +58,10 @@ public class WorkerNPC extends NPCBase {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 20.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D) // Default movement speed
-                .add(Attributes.FOLLOW_RANGE, 32);
+                .add(Attributes.FOLLOW_RANGE, 32)
+                .add(Attributes.LUCK)
+                .add(Attributes.BLOCK_BREAK_SPEED)
+                ;
     }
 
     @Override
@@ -66,6 +69,10 @@ public class WorkerNPC extends NPCBase {
         super.onAddedToLevel();
         if (!level().isClientSide) {
             registerGoals();
+
+            if(getEntityData().get(DATA_TEXTURE).isEmpty()){
+                getEntityData().set(DATA_TEXTURE,"worker.png");
+            }
         }
     }
 
@@ -106,7 +113,7 @@ public class WorkerNPC extends NPCBase {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
 
-        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D, 120, false));
+        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.5, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
     }

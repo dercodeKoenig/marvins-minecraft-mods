@@ -61,8 +61,8 @@ public class CombatNPC extends NPCBase {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 30.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
-                .add(Attributes.ATTACK_DAMAGE, 1.0)
                 .add(Attributes.FOLLOW_RANGE, 32)
+                .add(Attributes.ATTACK_DAMAGE)
                 .add(Attributes.ATTACK_SPEED)
                 .add(Attributes.LUCK)
                 .add(Attributes.BLOCK_BREAK_SPEED)
@@ -116,7 +116,7 @@ public class CombatNPC extends NPCBase {
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(priority++, new FloatGoal(this));
 
-        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D, 120, false));
+        this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.5, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
 
