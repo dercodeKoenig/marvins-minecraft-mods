@@ -78,25 +78,40 @@ public class TreeFarmingProgram {
     public BlockPos getNextHarvestTargetFromFarm(EntityTreeFarm farm) {
         List<BlockPos> potentialTargets = new ArrayList<>();
 
+        // try to cut only leaves on lower parts to not waste too much time / tools breaking leaves
         for (BlockPos i : farm.positionsToHarvest_Leaves) {
-            if (i.getY() <= farm.getBlockPos().getY() + 3) {
+            if (i.getY() <= farm.getBlockPos().getY() + 2) {
                 if (isPositionWorkable(i)) {
                     potentialTargets.add(i);
                 }
             }
         }
+        if (!potentialTargets.isEmpty()) {
+            for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(potentialTargets, worker)) {
+                return i;
+            }
+        }
+
 
         for (BlockPos i : farm.positionsToHarvest_Logs) {
             if (isPositionWorkable(i)) {
                 potentialTargets.add(i);
             }
         }
-
-        // try to cut only leaves on lower parts to not waste too much time / tools breaking leaves
-        for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(potentialTargets, worker)) {
+        // work wood blocks top to bottom
+        int highestY = -99999;
+        for (BlockPos p : potentialTargets) {
+            highestY = Math.max(highestY, p.getY());
+        }
+        List<BlockPos> potentialTargets2 = new ArrayList<>();
+        for (BlockPos p : potentialTargets) {
+            if (p.getY() == highestY) {
+                potentialTargets2.add(p);
+            }
+        }
+        for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(potentialTargets2, worker)) {
             return i;
         }
-
 
         return null;
     }
