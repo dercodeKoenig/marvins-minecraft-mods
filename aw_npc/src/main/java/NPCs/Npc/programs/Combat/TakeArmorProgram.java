@@ -51,26 +51,22 @@ public class TakeArmorProgram {
                 float d = getRemainingDurabilityRelative(stack);
                 EquipmentSlot slot = a.getEquipmentSlot();
 
-                if(slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
-
-                    // Check each armor type
-                    if (slot == EquipmentSlot.HEAD && ((headDur < 0.2 && d > 0.2) || headDur < 0 || (d > 0.2 && isArmorBetter(stack, npc.armorInventory.getStackInSlot(EquipmentSlot.HEAD.getIndex()))))) {
-                        headDur = d;
-                        bestHeadIndex = j;
-                    }
-                    if (slot == EquipmentSlot.CHEST && ((chestDur < 0.2 && d > 0.2) || chestDur < 0 || (d > 0.2 && isArmorBetter(stack, npc.armorInventory.getStackInSlot(EquipmentSlot.CHEST.getIndex()))))) {
-                        chestDur = d;
-                        bestChestIndex = j;
-                    }
-                    if (slot == EquipmentSlot.LEGS && ((legsDur < 0.2 && d > 0.2) || legsDur < 0 || (d > 0.2 && isArmorBetter(stack, npc.armorInventory.getStackInSlot(EquipmentSlot.LEGS.getIndex()))))) {
-                        legsDur = d;
-                        bestLegsIndex = j;
-                    }
-                    if (slot == EquipmentSlot.FEET && ((feetDur < 0.2 && d > 0.2) || feetDur < 0 || (d > 0.2 && isArmorBetter(stack, npc.armorInventory.getStackInSlot(EquipmentSlot.FEET.getIndex()))))) {
-                        feetDur = d;
-                        bestFeetIndex = j;
-                    }
-
+                // Check each armor type
+                if (slot == EquipmentSlot.HEAD && ((headDur < 0.2 && d > 0.2) || headDur < 0 || (d > 0.2 && isArmorBetter(stack,npc.armorInventory.getStackInSlot(EquipmentSlot.HEAD.getIndex()))))) {
+                    headDur = d;
+                    bestHeadIndex = j;
+                }
+                if (slot == EquipmentSlot.CHEST && ((chestDur < 0.2 && d > 0.2) || chestDur < 0 || (d > 0.2 && isArmorBetter(stack,npc.armorInventory.getStackInSlot(EquipmentSlot.CHEST.getIndex()))))) {
+                    chestDur = d;
+                    bestChestIndex = j;
+                }
+                if (slot == EquipmentSlot.LEGS && ((legsDur < 0.2 && d > 0.2) || legsDur < 0 || (d > 0.2 && isArmorBetter(stack,npc.armorInventory.getStackInSlot(EquipmentSlot.LEGS.getIndex()))))) {
+                    legsDur = d;
+                    bestLegsIndex = j;
+                }
+                if (slot == EquipmentSlot.FEET && ((feetDur < 0.2 && d > 0.2) || feetDur < 0 || (d > 0.2 && isArmorBetter(stack,npc.armorInventory.getStackInSlot(EquipmentSlot.FEET.getIndex()))))) {
+                    feetDur = d;
+                    bestFeetIndex = j;
                 }
             }
         }
