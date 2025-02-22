@@ -1,5 +1,6 @@
 package NPCs.Blocks.Armory;
 
+import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
@@ -11,14 +12,18 @@ import NPCs.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -37,6 +42,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
         @Override
         public void onContentsChanged(int slot) {
             setChanged();
+            sendUpdateTag(null);
         }
     };
 
@@ -74,6 +80,20 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
         }
     }
 
+    public CompoundTag getUpdateTag() {
+        CompoundTag info = new CompoundTag();
+        info.put("inventory", this.inventory.serializeNBT(this.level.registryAccess()));
+        return info;
+    }
+    public void sendUpdateTag(@Nullable ServerPlayer target) {
+        if (target == null) {
+            if (level instanceof ServerLevel l) {
+                PacketDistributor.sendToPlayersTrackingChunk(l, new ChunkPos(this.getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, this.getUpdateTag()), new CustomPacketPayload[0]);
+            }
+        } else {
+            PacketDistributor.sendToPlayer(target, PacketBlockEntity.getBlockEntityPacket(this, this.getUpdateTag()), new CustomPacketPayload[0]);
+        }
+    }
 
     public static void updateAllTownHalls() {
         for (BlockIdentifier b : knownBlocks) {
@@ -105,7 +125,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
                 }
             }
         } else {
-            if (TownHallOwners.getEntry(level, townHall) == null || !TownHallOwners.getOwners(level, townHall).contains(owner)) {
+            if (!TownHallOwners.getOwners(level, townHall).contains(owner)) {
                 BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
                 Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
                 if(strategyTables != null){
@@ -155,7 +175,11 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
             knownBlocks.add(new BlockIdentifier(level, getBlockPos()));
 
             updateTownHall();
-
+        }
+        if (level.isClientSide) {
+            CompoundTag i = new CompoundTag();
+            i.put("ping", new CompoundTag());
+            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
         }
     }
     @Override
@@ -185,17 +209,21 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
+        if (compoundTag.contains("ping")) {
+            this.sendUpdateTag(serverPlayer);
+        }
     }
 
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
-
+        if (compoundTag.contains("inventory")) {
+            this.inventory.deserializeNBT(this.level.registryAccess(), compoundTag.getCompound("inventory"));
+        }
         if (compoundTag.contains("openGui")) {
             guiHandler.openGui(180, 200, true);
         }
     }
-
 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);

@@ -349,7 +349,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 }
             }
         } else {
-            if (TownHallOwners.getEntry(level(), townHall) == null || !TownHallOwners.getOwners(level(), townHall).contains(owner)) {
+            if (!TownHallOwners.getOwners(level(), townHall).contains(owner)) {
                 //System.out.println("townhall " + townHall + "is no longer valid");
                 townHall = null;
                 updateTownHall();

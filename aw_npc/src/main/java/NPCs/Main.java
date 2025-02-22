@@ -1,5 +1,6 @@
 package NPCs;
 
+import NPCs.Blocks.Armory.RenderArmory;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCRenderer;
@@ -53,8 +54,6 @@ public class Main {
 
     }
     public void onClientSetup(FMLClientSetupEvent event) {
-        // bc of the armor items beeing transparent
-        ItemBlockRenderTypes.setRenderLayer(ARMORY.get(), RenderType.cutout());
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
@@ -64,6 +63,7 @@ public class Main {
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ENTITY_WORKER.get(), NPCRenderer::new);
         event.registerEntityRenderer(ENTITY_FIGHTER.get(), NPCRenderer::new);
+        event.registerBlockEntityRenderer(ENTITY_ARMORY.get(), RenderArmory::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {

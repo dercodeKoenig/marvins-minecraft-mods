@@ -35,15 +35,6 @@
       }
     },
     {
-      "from": [2, 16.01, 4],
-      "to": [10, 16.01, 12],
-      "faces": {
-        "up": {
-          "uv": [0,0,16,16],
-          "texture": "#sword" }
-      }
-    },
-    {
       "from": [1, 7, 1],
       "to": [15, 8, 15],
       "faces": {
@@ -53,16 +44,6 @@
         "west": { "texture": "#planks" },
         "north": { "texture": "#planks" },
         "south": { "texture": "#planks" }
-      }
-    },
-    {
-      "from": [5, 8.01, 3],
-      "to": [12, 8.01, 10],
-      "faces": {
-        "up": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#helmet"
-        }
       }
     },
 
@@ -102,52 +83,6 @@
         "west": { "texture": "#planks" },
         "north": { "texture": "#planks" },
         "south": { "texture": "#planks" }
-      }
-    },
-
-    {
-      "from": [2, 1.01, 3],
-      "to": [8, 1.01, 10],
-      "faces": {
-        "up": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#pickaxe"
-        }
-      }
-    },
-    {
-      "from": [8, 1.01, 3],
-      "to": [14, 1.01, 10],
-      "faces": {
-        "up": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#shovel"
-        }
-      }
-    },
-    {
-      "from": [2, 8.02, 3],
-      "to": [8.5, 8.02, 10],
-      "faces": {
-        "up": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#armor"
-        }
-      }
-    },
-    {
-      "from": [8.5, 8.02, 3],
-      "to": [15, 8.02, 10],
-      "rotation": {
-        "origin": [11.75, 11.01, 6.5],
-        "axis": "y",
-        "angle": 45
-      },
-      "faces": {
-        "up": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#axe"
-        }
       }
     }
   ]

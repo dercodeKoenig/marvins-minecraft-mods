@@ -246,7 +246,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                 }
             }
         } else {
-            if (TownHallOwners.getEntry(level, townHall) == null || !TownHallOwners.getOwners(level, townHall).contains(owner)) {
+            if (!TownHallOwners.getOwners(level, townHall).contains(owner)) {
                 BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
                 Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
                 if(strategyTables != null){

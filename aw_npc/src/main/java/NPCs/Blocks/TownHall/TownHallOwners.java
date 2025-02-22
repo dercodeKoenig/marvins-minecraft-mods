@@ -24,8 +24,10 @@ public class TownHallOwners {
     private static boolean hasChanges = false;
 
     public static Set<String> getOwners(Level level, BlockPos pos) {
-      verifyExist(level,null);
-        return ownerNamesStatic.get(DimensionUtils.getLevelId(level)).get(pos);
+        verifyExist(level, null);
+        Set<String> ret = ownerNamesStatic.get(DimensionUtils.getLevelId(level)).get(pos);
+        if (ret == null) ret = new HashSet<>();
+        return ret;
     }
 
     public static void setChanged(){hasChanges = true;}
@@ -61,10 +63,6 @@ public class TownHallOwners {
         verifyExist(l,null);
         ownerNamesStatic.get(DimensionUtils.getLevelId(l)).remove(p);
         setChanged();
-    }
-    public static Set<String> getEntry(Level l, BlockPos p) {
-        verifyExist(l,null);
-        return ownerNamesStatic.get(DimensionUtils.getLevelId(l)).get(p);
     }
     public static HashMap<BlockPos,Set<String>> getEntries(Level l) {
         verifyExist(l,null);

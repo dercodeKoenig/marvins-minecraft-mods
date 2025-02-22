@@ -44,39 +44,6 @@
         "north": { "texture": "#planks" },
         "south": { "texture": "#planks" }
       }
-    },
-
-
-    {
-      "from": [2, 3, 1.01],
-      "to": [8.5, 10, 1.01],
-      "faces": {
-        "south": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#armor"
-        }
-      }
-    },
-    {
-      "from": [7, 3, 1.01],
-      "to": [13.5, 10, 1.01],
-      "faces": {
-        "south": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#helmet"
-        }
-      }
-    },
-
-    {
-      "from": [4, 6, 1.02],
-      "to": [10.5, 13, 1.02],
-      "faces": {
-        "south": {
-          "uv": [0, 0, 16, 16],
-          "texture": "#armor"
-        }
-      }
     }
   ]
 }

@@ -15,6 +15,7 @@ public class MeleeAttackGoalWithHunger extends MeleeAttackGoal {
     public MeleeAttackGoalWithHunger(NPCBase npc, double speedModifier, boolean followingTargetEvenIfNotSeen) {
         super(npc, speedModifier, followingTargetEvenIfNotSeen);
         this.npc = npc;
+        takeToolProgram = new TakeToolProgram(npc);
     }
 
     @Override

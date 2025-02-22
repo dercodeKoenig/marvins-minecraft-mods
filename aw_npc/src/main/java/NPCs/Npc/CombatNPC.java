@@ -97,7 +97,6 @@ public class CombatNPC extends NPCBase {
 
         int priority = 0;
 
-        goalSelector.addGoal(priority++, new ArmoryProgram(this));
 
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.fighter.ordinal()) {
             Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
@@ -112,6 +111,8 @@ public class CombatNPC extends NPCBase {
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
 
+        goalSelector.addGoal(priority++, new ArmoryProgram(this));
+        
         runForHelpProgram = new RunForHelpProgram(this);
         goalSelector.addGoal(priority++, runForHelpProgram);
 
