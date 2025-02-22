@@ -25,6 +25,7 @@ public class TakeMeleeWeaponProgram {
     }
 
     public void findBestWeaponIndex(){
+        bestWeaponIndex = 0;
         for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
             ItemStack bestWeaponStack = npc.combinedInventory.getStackInSlot(bestWeaponIndex);
             ItemStack current = npc.combinedInventory.getStackInSlot(i);
@@ -54,16 +55,39 @@ public class TakeMeleeWeaponProgram {
             ItemStack stack = target.getStackInSlot(j);
             float d = getRemainingDurabilityRelative(stack);
             // Check each armor type
-            if (((currentDur < 0.2 && d > 0.2) || currentDur < 0 || (d > 0.2 && isWeaponBetter(stack, npc.combinedInventory.getStackInSlot(bestWeaponIndex))))) {
-                currentDur = d;
-                otherBestIndex = j;
+            if(!stack.isEmpty()) {
+                if (((currentDur < 0.2 && d > 0.2) || currentDur < 0 || (d > 0.2 && isWeaponBetter(stack, npc.combinedInventory.getStackInSlot(bestWeaponIndex))))) {
+                    currentDur = d;
+                    otherBestIndex = j;
+                }
             }
         }
 
         // Swap each armor piece if a better one was found
         if (otherBestIndex != -1) {
+
+            // avoid placing non-weapons in the armory. check if the current weapon is better than air
+            if(!isWeaponBetter(npc.combinedInventory.getStackInSlot(bestWeaponIndex), ItemStack.EMPTY)){
+                // if it is not better than air, make sure  he has any empty slot where he can place the weapon
+                boolean hasEmptySlot = false;
+                for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
+                    if(npc.combinedInventory.getStackInSlot(i).isEmpty()){
+                        hasEmptySlot = true;
+                        break;
+                    }
+                }
+                if(!hasEmptySlot)
+                    // it can not take weapon
+                    return false;
+            }
+
             if (!simulate) {
-                swapWeapon(bestWeaponIndex, otherBestIndex, target);
+                takeBestWeaponToMainHand();
+                if(!isWeaponBetter(npc.combinedInventory.getStackInSlot(bestWeaponIndex), ItemStack.EMPTY)){
+                    // if no weapon is in main hand, make it empty to swap to weapon
+                    Utils.moveItemStackToMainHand(ItemStack.EMPTY, npc);
+                }
+                swapWeapon(0, otherBestIndex, target);
             }
             return true;
         }

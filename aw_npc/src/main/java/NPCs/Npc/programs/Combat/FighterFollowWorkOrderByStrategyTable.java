@@ -39,17 +39,20 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
         }
         if (worker.townHall != null) {
             BlockIdentifier b_id = new BlockIdentifier(worker.level(), worker.townHall);
-            List<BlockPos> strategyTables =new ArrayList<>(EntityStrategyTable.knownStrategyTablesForTownhallPosition.get(b_id));
-            Collections.shuffle(strategyTables); // Shuffle the list randomly
-            for (BlockPos p : strategyTables) {
-                BlockEntity e = worker.level().getBlockEntity(p);
-                if (e instanceof EntityStrategyTable table) {
-                    EntityStrategyTable.workTargetManager m = table.getManagerForUUID(worker.getUUID());
-                    if (m != null) {
-                        BlockPos nextTarget = m.getTarget(); // check if the target is cached as invalid
-                        if (nextTarget != null && !worker.slowMobNavigation.isPositionCachedAsInvalid(nextTarget)) {
-                            lastUsedStrategyTable = p;
-                            return true;
+            Set<BlockPos> knownStrategyTablesForTownhall = EntityStrategyTable.knownStrategyTablesForTownhallPosition.get(b_id);
+            if (knownStrategyTablesForTownhall != null) {
+                List<BlockPos> strategyTables = new ArrayList<>();
+                Collections.shuffle(strategyTables); // Shuffle the list randomly
+                for (BlockPos p : strategyTables) {
+                    BlockEntity e = worker.level().getBlockEntity(p);
+                    if (e instanceof EntityStrategyTable table) {
+                        EntityStrategyTable.workTargetManager m = table.getManagerForUUID(worker.getUUID());
+                        if (m != null) {
+                            BlockPos nextTarget = m.getTarget(); // check if the target is cached as invalid
+                            if (nextTarget != null && !worker.slowMobNavigation.isPositionCachedAsInvalid(nextTarget)) {
+                                lastUsedStrategyTable = p;
+                                return true;
+                            }
                         }
                     }
                 }
