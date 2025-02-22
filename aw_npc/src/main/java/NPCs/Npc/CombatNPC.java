@@ -87,6 +87,9 @@ public class CombatNPC extends NPCBase {
             }
         }
         super.onAddedToLevel();
+        if(!level().isClientSide){
+            takeWeaponProgram.findBestWeaponIndex();
+        }
     }
 
     @Override

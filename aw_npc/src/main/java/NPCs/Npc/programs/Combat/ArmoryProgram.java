@@ -87,6 +87,7 @@ public class ArmoryProgram extends Goal {
                             }
 
 
+
                             if (takeArmorProgram.swapArmorFromTarget(armory.inventory, true)) {
                                 targetPos = p;
                                 targetInventory = armory.inventory;
