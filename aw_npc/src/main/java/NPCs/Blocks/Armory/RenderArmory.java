@@ -19,9 +19,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RenderArmory  implements BlockEntityRenderer<EntityArmory> {
-    public RenderArmory(BlockEntityRendererProvider.Context c) {
 
+    static List<List<Float>> translations = new ArrayList<>();
+    static {
+        translations.add(List.of(-0.2f, 0.02f, 0f, -80f, 0f));
+        translations.add(List.of(0f, 0.03f, 0f, 0f, 0f));
+        translations.add(List.of(0.2f, 0.02f, 0.1f, 0f, 0f));
+        translations.add(List.of(0.2f, 0.05f, -0.1f, 0f, 0f));
+        translations.add(List.of(0.1f, 0.06f, -0.15f, -20f, 0f));
+
+        translations.add(List.of(-0.2f, 0.0f - 0.40f, 0f, -60f, 0f));
+        translations.add(List.of(0f, 0.01f - 0.40f, 0f, -20f, 0f));
+        translations.add(List.of(0.2f, 0.00f - 0.40f, 0.1f, -50f, 0f));
+        translations.add(List.of(0.2f, 0.03f - 0.40f, -0.2f, 0f, 0f));
+        translations.add(List.of(0.1f, 0.04f - 0.40f, -0.25f, -20f, 0f));
+
+        translations.add(List.of(-0.2f, 0.0f + 0.51f, 0f, -60f, 0f));
+        translations.add(List.of(0.3f, 0.0f + 0.52f, -0.16f, -20f, 0f));
+        translations.add(List.of(0.15f, 0.0f + 0.53f, 0.1f, 70f, 0f));
+        translations.add(List.of(0.05f, 0.0f + 0.54f, -0.1f, -10f, 0f));
+
+        translations.add(List.of(-0.2f, 0.3f + 1.0f, 0.43f, 0f, -90f));
+        translations.add(List.of(-0.15f, -0.1f + 1.0f, 0.44f, -60f, -90f));
+        translations.add(List.of(0.2f, 0.3f + 1.0f, 0.43f, 0f, -90f));
+        translations.add(List.of(0.15f, -0.1f + 1.0f, 0.44f, -60f, -90f));
     }
+
+    public RenderArmory(BlockEntityRendererProvider.Context c) {}
 
     public void render(EntityArmory tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
             BlockState state = tile.getBlockState();
@@ -44,29 +68,6 @@ public class RenderArmory  implements BlockEntityRenderer<EntityArmory> {
                 if (facing == Direction.NORTH) {
                     stack.mulPose((new Quaternionf()).fromAxisAngleDeg(0.0F, 1.0F, 0.0F, 180.0F));
                 }
-
-                List<List<Float>> translations = new ArrayList<>();
-                translations.add(List.of(-0.2f,0.02f,0f, -80f, 0f));
-                translations.add(List.of(0f,0.03f,0f, 0f, 0f));
-                translations.add(List.of(0.2f,0.02f,0.1f, 0f, 0f));
-                translations.add(List.of(0.2f,0.05f,-0.1f, 0f, 0f));
-                translations.add(List.of(0.1f,0.06f,-0.15f, -20f, 0f));
-
-                translations.add(List.of(-0.2f,0.0f-0.40f,0f, -60f, 0f));
-                translations.add(List.of(0f,0.01f-0.40f,0f, -20f, 0f));
-                translations.add(List.of(0.2f,0.00f-0.40f,0.1f, -50f, 0f));
-                translations.add(List.of(0.2f,0.03f-0.40f,-0.2f, 0f, 0f));
-                translations.add(List.of(0.1f,0.04f-0.40f,-0.25f, -20f, 0f));
-
-                translations.add(List.of(-0.2f,0.0f+0.51f,0f, -60f, 0f));
-                translations.add(List.of(0.3f,0.0f+0.52f,-0.16f, -20f, 0f));
-                translations.add(List.of(0.15f,0.0f+0.53f,0.1f, 70f, 0f));
-                translations.add(List.of(0.05f,0.0f+0.54f,-0.1f, -10f, 0f));;
-
-                translations.add(List.of(-0.2f,0.3f+1.0f, 0.43f, 0f, -90f));
-                translations.add(List.of(-0.15f,-0.1f+1.0f, 0.44f, -60f, -90f));
-                translations.add(List.of(0.2f,0.3f+1.0f, 0.43f, 0f, -90f));
-                translations.add(List.of(0.15f,-0.1f+1.0f, 0.44f, -60f, -90f));
 
 
                 //long t0 = System.nanoTime();

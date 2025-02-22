@@ -98,7 +98,7 @@ public class ArmoryProgram extends Goal {
                     if (isPositionWorkable(p)) {
                         BlockEntity e = worker.level().getBlockEntity(p);
                         if (e instanceof EntityArmory armory) {
-                            if (takeArmorProgram.pickupToolFromTarget(ArmorItem.class, armory.inventory, true)) {
+                            if (takeArmorProgram.swapArmorFromTarget(armory.inventory, true)) {
                                 targetPos = p;
                                 targetInventory = armory.inventory;
                                 lockTargetPosition();
@@ -135,7 +135,7 @@ public class ArmoryProgram extends Goal {
             return;
         }
 
-        exit = takeArmorProgram.run(ArmorItem.class, targetPos, targetInventory);
+        exit = takeArmorProgram.run(targetPos, targetInventory);
         if (exit == SUCCESS_STILL_RUNNING) {
             return;
         }
