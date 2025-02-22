@@ -22,7 +22,6 @@ public class ArmoryProgram extends Goal {
 
     CombatNPC worker;
     long lastCheck = 0;
-    boolean canUse;
 
     BlockPos targetPos;
     IItemHandler targetInventory;
@@ -66,7 +65,7 @@ public class ArmoryProgram extends Goal {
     public boolean canUse() {
 
         if (worker.level().getGameTime() < lastCheck + 20 * 1) {
-            return canUse;
+            return false;
         }
         lastCheck = worker.level().getGameTime();
 

@@ -27,8 +27,16 @@ public class SleepProgram extends Goal {
     public boolean canUse() {
 
         if(!worker.level().isNight()) return false;
-        if(worker.homePosition == null) return false;
-        if(worker.slowMobNavigation.isPositionCachedAsInvalid(worker.homePosition)) return false;
+
+        if(worker.homePosition == null){
+            if(worker.townHall == null)
+                return false;
+            if(worker.position().distanceTo(worker.townHall.getCenter()) < 16)
+                return false;
+        }else {
+            if (worker.slowMobNavigation.isPositionCachedAsInvalid(worker.homePosition))
+                return false;
+        }
 
         return  true;
     }
@@ -39,15 +47,21 @@ public class SleepProgram extends Goal {
 
     @Override
     public void tick() {
-        if(worker.homePosition == null) return;
-        if(worker.isSleeping()) return;
+        if (worker.isSleeping()) return;
 
-        if(worker.slowMobNavigation.moveToPosition(worker.homePosition,2,worker.slowNavigationMaxDistance,worker.slowNavigationMaxNodes,worker.slowNavigationStepPerTick) == EXIT_SUCCESS){
-            BlockState b = worker.level().getBlockState(worker.homePosition);
-            if(b.getBlock() instanceof BedBlock bed){
-                if(!b.getValue(OCCUPIED)){
-                    worker.getNavigation().stop();
-                    worker.startSleeping(worker.homePosition);
+        if (worker.homePosition == null) {
+            if(worker.townHall != null) {
+                worker.slowMobNavigation.moveToPosition(worker.townHall,6,worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick, 0.8f);
+            }
+
+        } else {
+            if (worker.slowMobNavigation.moveToPosition(worker.homePosition, 2, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick) == EXIT_SUCCESS) {
+                BlockState b = worker.level().getBlockState(worker.homePosition);
+                if (b.getBlock() instanceof BedBlock bed) {
+                    if (!b.getValue(OCCUPIED)) {
+                        worker.getNavigation().stop();
+                        worker.startSleeping(worker.homePosition);
+                    }
                 }
             }
         }
