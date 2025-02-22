@@ -118,7 +118,7 @@ public class TakeArmorProgram {
             }
         }
 
-        return armor1V > armor2V;  // Returns true if helmet1 is better
+        return armor1V > armor2V;
     }
 
     // Helper to compute remaining durability

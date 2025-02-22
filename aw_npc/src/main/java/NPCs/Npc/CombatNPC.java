@@ -42,6 +42,8 @@ public class CombatNPC extends NPCBase {
     public FighterFollowWorkOrderProgram fighterFollowWorkOrderProgram;
     public FighterFollowWorkOrderByStrategyTable fighterFollowWorkOrderByStrategyTable;
 
+    public TakeMeleeWeaponProgram takeWeaponProgram;
+
     public ItemStackHandler ordersStackHandler = new ItemStackHandler(1) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
@@ -59,6 +61,7 @@ public class CombatNPC extends NPCBase {
         super(entityType, level);
         guiModuleItemHandlerSlot workOrderSlot = new guiModuleItemHandlerSlot(19009, ordersStackHandler, 0, 1, 0, guiHandler, 140, 70);
         guiHandler.getModules().addFirst(workOrderSlot);
+        takeWeaponProgram = new TakeMeleeWeaponProgram(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -131,6 +134,13 @@ public class CombatNPC extends NPCBase {
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));
 
+    }
+
+    @Override
+    public void onInventoryChange() {
+        if (takeWeaponProgram != null) {
+            takeWeaponProgram.findBestWeaponIndex();
+        }
     }
 
     @Override

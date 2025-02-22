@@ -27,9 +27,7 @@ public class ArmoryProgram extends Goal {
     BlockPos targetPos;
     IItemHandler targetInventory;
 
-    TakeToolProgram takeToolProgram_sword;
     TakeArmorProgram takeArmorProgram;
-
 
     public void lockTargetPosition() {
         long gameTime = worker.level().getGameTime();
@@ -61,7 +59,6 @@ public class ArmoryProgram extends Goal {
     public ArmoryProgram(CombatNPC worker) {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-        takeToolProgram_sword = new TakeToolProgram(worker);
         takeArmorProgram = new TakeArmorProgram(worker);
     }
 
@@ -76,28 +73,21 @@ public class ArmoryProgram extends Goal {
         if (worker.townHall != null) {
             Set<BlockPos> armoryPositions = EntityArmory.knownBlocksForTownhallPosition.get(new BlockIdentifier(worker.level(), worker.townHall));
             if (armoryPositions != null) {
-                if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
-                    if (!takeToolProgram_sword.hasTool(SwordItem.class)) {
-                        for (BlockPos p : armoryPositions) {
-                            if (isPositionWorkable(p)) {
-                                BlockEntity e = worker.level().getBlockEntity(p);
-                                if (e instanceof EntityArmory armory) {
-                                    if (takeToolProgram_sword.pickupToolFromTarget(SwordItem.class, armory.inventory, true)) {
-                                        targetPos = p;
-                                        targetInventory = armory.inventory;
-                                        lockTargetPosition();
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 for (BlockPos p : armoryPositions) {
                     if (isPositionWorkable(p)) {
                         BlockEntity e = worker.level().getBlockEntity(p);
                         if (e instanceof EntityArmory armory) {
+
+                            if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
+                                if (worker.takeWeaponProgram.swapWeaponFromTarget(armory.inventory, true)) {
+                                    targetPos = p;
+                                    targetInventory = armory.inventory;
+                                    lockTargetPosition();
+                                    return true;
+                                }
+                            }
+
+
                             if (takeArmorProgram.swapArmorFromTarget(armory.inventory, true)) {
                                 targetPos = p;
                                 targetInventory = armory.inventory;
@@ -130,7 +120,7 @@ public class ArmoryProgram extends Goal {
 
         lockTargetPosition();
 
-        int exit = takeToolProgram_sword.run(SwordItem.class, targetPos, targetInventory);
+        int exit = worker.takeWeaponProgram.run(targetPos, targetInventory);
         if (exit == SUCCESS_STILL_RUNNING) {
             return;
         }

@@ -1,5 +1,6 @@
 package NPCs.Npc.programs.Combat;
 
+import NPCs.Npc.CombatNPC;
 import NPCs.Npc.NPCBase;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
@@ -10,12 +11,10 @@ import net.minecraft.world.item.SwordItem;
 
 public class MeleeAttackGoalWithHunger extends MeleeAttackGoal {
 
-    NPCBase npc;
-    TakeToolProgram takeToolProgram;
-    public MeleeAttackGoalWithHunger(NPCBase npc, double speedModifier, boolean followingTargetEvenIfNotSeen) {
+    CombatNPC npc;
+    public MeleeAttackGoalWithHunger(CombatNPC npc, double speedModifier, boolean followingTargetEvenIfNotSeen) {
         super(npc, speedModifier, followingTargetEvenIfNotSeen);
         this.npc = npc;
-        takeToolProgram = new TakeToolProgram(npc);
     }
 
     @Override
@@ -25,7 +24,7 @@ public class MeleeAttackGoalWithHunger extends MeleeAttackGoal {
 
     @Override
     public void tick(){
-        takeToolProgram.takeToolToMainHand(SwordItem.class);
+        npc.takeWeaponProgram.takeBestWeaponToMainHand();
         super.tick();
     }
 

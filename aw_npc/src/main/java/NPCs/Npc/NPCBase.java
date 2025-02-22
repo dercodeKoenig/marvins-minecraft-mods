@@ -56,7 +56,12 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public BlockPos townHall;
     public String owner;
 
-    public ItemStackHandler inventory = new ItemStackHandler(8);
+    public ItemStackHandler inventory = new ItemStackHandler(8){
+        @Override
+        public void onContentsChanged(int slot){
+            onInventoryChange();
+        }
+    };
 
     public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(NPCBase.class, EntityDataSerializers.STRING);
 
@@ -165,7 +170,15 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         protected void validateSlotIndex(int slot) {
         }
+
+        public void onContentsChanged(int slot) {
+            onInventoryChange();
+        }
     };
+    public void onInventoryChange(){
+
+    }
+
     public ItemStackHandler armorInventory;
 
     public GuiHandlerEntity guiHandler;

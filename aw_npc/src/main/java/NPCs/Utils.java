@@ -100,6 +100,7 @@ public class Utils {
                 ItemStack tmp = stackInSlot.copy();
                 npc.combinedInventory.setStackInSlot(i, stackInMainHand.copy());
                 npc.setItemInHand(InteractionHand.MAIN_HAND, tmp);
+                npc.onInventoryChange();
                 break;
             }
         }
@@ -115,6 +116,7 @@ public class Utils {
                 ItemStack tmp = stackInSlot.copy();
                 npc.combinedInventory.setStackInSlot(i, stackInOffHand.copy());
                 npc.setItemInHand(InteractionHand.OFF_HAND, tmp);
+                npc.onInventoryChange();
                 break;
             }
         }
