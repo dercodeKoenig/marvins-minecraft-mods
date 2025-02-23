@@ -8,6 +8,8 @@ import WorkSites.Quarry.BlockQuarry;
 import WorkSites.Quarry.EntityQuarry;
 import WorkSites.TreeFarm.BlockTreeFarm;
 import WorkSites.TreeFarm.EntityTreeFarm;
+import WorkSites.Warehouse.BlockWarehouse;
+import WorkSites.Warehouse.EntityWarehouse;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -64,6 +66,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityQuarry::new, QUARRY.get()).build(null)
     );
 
+    public static final Supplier<Block> WAREHOUSE = BLOCKS.register(
+            "warehouse",
+            () -> new BlockWarehouse()
+    );
+    public static final Supplier<BlockEntityType<EntityWarehouse>> ENTITY_WAREHOUSE = BLOCK_ENTITIES.register(
+            "entity_warehouse",
+            () -> BlockEntityType.Builder.of(EntityWarehouse::new, WAREHOUSE.get()).build(null)
+    );
+
     public static final Supplier<CreativeModeTab> CREATIVETAB = CREATIVE_TAB.register(
             Main.MODID,()->new CustomCreativeTab()
     );
@@ -73,6 +84,7 @@ public class Registry {
         registerBlockItem("tree_farm", TREE_FARM);
         registerBlockItem("fish_farm", FISH_FARM);
         registerBlockItem("quarry", QUARRY);
+        registerBlockItem("warehouse", WAREHOUSE);
     }
 
     public static void register(IEventBus modBus) {

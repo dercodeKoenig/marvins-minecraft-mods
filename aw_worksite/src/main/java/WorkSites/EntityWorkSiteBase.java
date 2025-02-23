@@ -215,6 +215,7 @@ super.setRemoved();
         blackListAsBlockPos.clear();
         for (Vector2i i : blackList) {
             BlockPos blocked = p1.relative(facing.getCounterClockWise(), i.x).relative(facing.getOpposite(), i.y);
+            blocked = new BlockPos(blocked.getX(), getBlockPos().getY(), blocked.getZ());
             blackListAsBlockPos.add(blocked);
         }
     }
@@ -226,7 +227,7 @@ super.setRemoved();
             for (int x = pmin.getX(); x <= pmax.getX(); x++) {
                 for (int y = pmin.getY(); y <= pmax.getY(); y++) {
                     BlockPos target = new BlockPos(x, y, z);
-                    if (!blackListAsBlockPos.contains(target)) {
+                    if (!blackListAsBlockPos.contains(new BlockPos(x,getBlockPos().getY(),z))) {
                         allowedBlocks.add(target);
                     }
                 }

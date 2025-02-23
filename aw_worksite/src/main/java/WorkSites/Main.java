@@ -56,6 +56,7 @@ public static final String MODID = "aw_worksite";
         event.registerBlockEntityRenderer(ENTITY_TREE_FARM.get(), RenderWorkSiteBounds::new);
         event.registerBlockEntityRenderer(ENTITY_FISH_FARM.get(), RenderWorkSiteBounds::new);
         event.registerBlockEntityRenderer(ENTITY_QUARRY.get(), RenderWorkSiteBounds::new);
+        event.registerBlockEntityRenderer(ENTITY_WAREHOUSE.get(), RenderWorkSiteBounds::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -68,6 +69,7 @@ public static final String MODID = "aw_worksite";
             e.accept(TREE_FARM.get());
             e.accept(FISH_FARM.get());
             e.accept(QUARRY.get());
+            e.accept(WAREHOUSE.get());
         }
     }
 
