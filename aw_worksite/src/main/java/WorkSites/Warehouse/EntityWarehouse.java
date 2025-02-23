@@ -59,7 +59,6 @@ public class EntityWarehouse extends EntityWorkSiteBase {
             currentBlockToScanIndex_blocks += 1;
 
             if (!knownInventories.keySet().contains(nextPosToScan)) {
-                System.out.println("blockscan" + nextPosToScan);
                 BlockEntity be = level.getBlockEntity(nextPosToScan);
                 if (be != null) {
                     IItemHandler inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, nextPosToScan, be.getBlockState(), be, Direction.UP);
