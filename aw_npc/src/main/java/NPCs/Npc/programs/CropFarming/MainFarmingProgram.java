@@ -15,7 +15,7 @@ import static NPCs.Utils.*;
 
 public class MainFarmingProgram extends Goal {
 
-    public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
+    long lastCheck = 0;
 
     public WorkerNPC worker;
     public int timeoutForWorkCheck = 20 * 10;
@@ -73,14 +73,6 @@ public class MainFarmingProgram extends Goal {
             return false;
         }
 
-        //clean up entries that no longer exist
-        for (BlockPos i : workCheckedTracker.keySet()) {
-            if (!EntityCropFarm.knownCropFarms.contains(i)) {
-                workCheckedTracker.remove(i);
-                break;
-            }
-        }
-
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
 
@@ -93,12 +85,11 @@ public class MainFarmingProgram extends Goal {
                     //if (w.workersWorkingHereWithTimeout.size() >= 6)
                     continue;
 
-                if (workCheckedTracker.containsKey(p)) {
-                    if (workCheckedTracker.get(p) + timeoutForWorkCheck > gameTime)
-                        continue;
-                }
 
-                workCheckedTracker.put(p, gameTime);
+                if (lastCheck + timeoutForWorkCheck > gameTime)
+                    continue;
+                lastCheck = gameTime;
+
                 if (hasWorkAtCropFarm(p)) {
                     worker.lastWorksitePosition = p;
                     return true;
@@ -139,7 +130,7 @@ public class MainFarmingProgram extends Goal {
         }
 
         // try to farm
-        if(!useMillStoneProgram.hasWork) {
+        if (!useMillStoneProgram.hasWork) {
             int cropFarmingExit = cropFarmingProgram.run(farm);
             if (cropFarmingExit == EXIT_FAIL) return EXIT_FAIL;
             if (cropFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;

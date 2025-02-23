@@ -15,7 +15,7 @@ import static NPCs.Utils.*;
 
 public class MainMiningProgram extends Goal {
 
-    public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
+    long lastCheck = 0;
 
     public WorkerNPC worker;
     public int timeoutForWorkCheck = 20 * 10;
@@ -68,14 +68,6 @@ public class MainMiningProgram extends Goal {
             return false;
         }
 
-        //clean up entries that no longer exist
-        for (BlockPos i : workCheckedTracker.keySet()) {
-            if (!EntityQuarry.knownQuarries.contains(i)) {
-                workCheckedTracker.remove(i);
-                break;
-            }
-        }
-
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityQuarry.knownQuarries, worker)) {
 
@@ -88,12 +80,10 @@ public class MainMiningProgram extends Goal {
                     //if (w.workersWorkingHereWithTimeout.size() >= 6)
                     continue;
 
-                if (workCheckedTracker.containsKey(p)) {
-                    if (workCheckedTracker.get(p) + timeoutForWorkCheck > gameTime)
+                    if (lastCheck + timeoutForWorkCheck > gameTime)
                         continue;
-                }
+                lastCheck =  gameTime;
 
-                workCheckedTracker.put(p, gameTime);
                 if (hasWorkAtQuarry(p)) {
                     worker.lastWorksitePosition = p;
                     return true;

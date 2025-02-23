@@ -15,7 +15,7 @@ import static NPCs.Utils.*;
 
 public class MainLumberjackProgram extends Goal {
 
-    public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
+    long lastCheck=0;
 
     public WorkerNPC worker;
     public int timeoutForWorkCheck = 20 * 10;
@@ -72,14 +72,6 @@ public class MainLumberjackProgram extends Goal {
             return false;
         }
 
-        //clean up entries that no longer exist
-        for (BlockPos i : workCheckedTracker.keySet()) {
-            if (!EntityTreeFarm.knownTreeFarms.contains(i)) {
-                workCheckedTracker.remove(i);
-                break;
-            }
-        }
-
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityTreeFarm.knownTreeFarms, worker)) {
 
@@ -92,12 +84,10 @@ public class MainLumberjackProgram extends Goal {
                     //if (w.workersWorkingHereWithTimeout.size() >= 6)
                     continue;
 
-                if (workCheckedTracker.containsKey(p)) {
-                    if (workCheckedTracker.get(p) + timeoutForWorkCheck > gameTime)
-                        continue;
-                }
+                if (lastCheck + timeoutForWorkCheck > gameTime)
+                    continue;
+                lastCheck = gameTime;
 
-                workCheckedTracker.put(p, gameTime);
                 if (hasWorkAtFarm(p)) {
                     worker.lastWorksitePosition = p;
                     return true;
