@@ -58,27 +58,16 @@ public class EntityWarehouse extends EntityWorkSiteBase {
             BlockPos nextPosToScan = allowedBlocksList.get(currentBlockToScanIndex_blocks);
             currentBlockToScanIndex_blocks += 1;
 
-            if (blackListAsBlockPos.contains(nextPosToScan))
-                removeBlockEntityInventory(nextPosToScan);
-
-            BlockEntity be = null;
-            if (knownInventories.get(nextPosToScan) instanceof BlockEntity currentBE) {
-                if (!currentBE.isRemoved())
-                    be = currentBE;
-            } else {
-                be = level.getBlockEntity(nextPosToScan);
-            }
-            if (be == null) {
-                removeBlockEntityInventory(nextPosToScan);
-            } else {
+            if (!knownInventories.keySet().contains(nextPosToScan)) {
+                System.out.println("blockscan"+nextPosToScan);
+                BlockEntity be = level.getBlockEntity(nextPosToScan);
                 IItemHandler inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, nextPosToScan, be.getBlockState(), be, Direction.UP);
                 if (inventory != null) {
                     addBlockEntityInventory(be, inventory);
-                } else {
-                    removeBlockEntityInventory(nextPosToScan);
                 }
             }
         }
+
         if (!knownInventoriesList.isEmpty()) {
             if (currentBlockToScanIndex_inventories >= knownInventoriesList.size()) {
                 currentBlockToScanIndex_inventories = 0;
@@ -94,10 +83,10 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     public void tick() {
         super.tick();
         if (!level.isClientSide) {
-            long t0 = System.nanoTime();
+            //long t0 = System.nanoTime();
             scanStep();
-            long t1 = System.nanoTime();
-            System.out.println((double) (t1 - t0) / 1000 / 1000 );
+            //long t1 = System.nanoTime();
+            //System.out.println((double) (t1 - t0) / 1000 / 1000 );
 
             if (level.getGameTime() % 100 == 0) {
                 for (ComparableItemStack i : allItemStacksWithCount.keySet()) {
