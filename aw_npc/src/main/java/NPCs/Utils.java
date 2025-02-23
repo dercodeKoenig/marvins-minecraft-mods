@@ -65,10 +65,10 @@ public class Utils {
     }
     public static InteractionHand moveItemStackToAnyHand(ItemStack stack, NPCBase npc) {
 
-        if(itemStacksEqual( stack, npc.getMainHandItem())){
+        if(ItemStack.isSameItemSameComponents( stack, npc.getMainHandItem())){
             return InteractionHand.MAIN_HAND;
         }
-        if(itemStacksEqual( stack, npc.getOffhandItem())){
+        if(ItemStack.isSameItemSameComponents( stack, npc.getOffhandItem())){
             return InteractionHand.OFF_HAND;
         }
 
@@ -91,12 +91,12 @@ public class Utils {
 
     public static void moveItemStackToMainHand(ItemStack stack, NPCBase npc) {
         ItemStack stackInMainHand = npc.getMainHandItem();
-        if (itemStacksEqual(stack, stackInMainHand)) {
+        if (ItemStack.isSameItemSameComponents(stack, stackInMainHand)) {
             return;
         }
         for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
             ItemStack stackInSlot = npc.combinedInventory.getStackInSlot(i);
-            if (itemStacksEqual(stack, stackInSlot)) {
+            if (ItemStack.isSameItemSameComponents(stack, stackInSlot)) {
                 ItemStack tmp = stackInSlot.copy();
                 npc.combinedInventory.setStackInSlot(i, stackInMainHand.copy());
                 npc.setItemInHand(InteractionHand.MAIN_HAND, tmp);
@@ -107,12 +107,12 @@ public class Utils {
     }
     public static void moveItemStackToOffHand(ItemStack stack, NPCBase npc) {
         ItemStack stackInOffHand = npc.getOffhandItem();
-        if (itemStacksEqual(stack, stackInOffHand))
+        if (ItemStack.isSameItemSameComponents(stack, stackInOffHand))
             return;
 
         for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
             ItemStack stackInSlot = npc.combinedInventory.getStackInSlot(i);
-            if (itemStacksEqual(stack, stackInSlot)) {
+            if (ItemStack.isSameItemSameComponents(stack, stackInSlot)) {
                 ItemStack tmp = stackInSlot.copy();
                 npc.combinedInventory.setStackInSlot(i, stackInOffHand.copy());
                 npc.setItemInHand(InteractionHand.OFF_HAND, tmp);
@@ -123,7 +123,6 @@ public class Utils {
     }
     public static int countEmptySlots(NPCBase npc) {
         int numEmptySlots = 0;
-        boolean hadFoundInput = false;
         for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
             if (npc.combinedInventory.getStackInSlot(i).isEmpty()) {
                 numEmptySlots++;

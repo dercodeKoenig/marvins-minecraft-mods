@@ -8,13 +8,11 @@ import ARLib.gui.modules.guiModuleText;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
-import ARLib.utils.DimensionUtils;
 import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
 import NPCs.Items.ItemWorkOrder;
 import NPCs.Npc.CombatNPC;
 import NPCs.Utils;
-import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -37,8 +35,8 @@ import static NPCs.Registry.ENTITY_STRATEGY_TABLE;
 
 public class EntityStrategyTable extends BlockEntity implements INetworkTagReceiver {
 
-    public static HashMap<BlockIdentifier, Set<BlockPos>> knownStrategyTablesForTownhallPosition = new HashMap<>();
-    public static HashSet<BlockIdentifier> knownStrategyTables = new HashSet<>();
+    public static HashMap<BlockIdentifier, Set<BlockPos>> knownBlocksForTownhallPosition = new HashMap<>();
+    public static HashSet<BlockIdentifier> knownBlocks = new HashSet<>();
 
 
     public Map<Integer, workTargetManager> targetManagerMap_Fighters = new HashMap<>();
@@ -77,7 +75,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         }
     }
 
-    ItemStackHandler handler_fighters = new ItemStackHandler(9) {
+    ItemStackHandler orderInventory_fighters = new ItemStackHandler(9) {
         @Override
         public void onContentsChanged(int slot) {
             setChanged();
@@ -94,7 +92,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     };
 
     public void scanSlot_fighters(int slot){
-        ItemStack stack = handler_fighters.getStackInSlot(slot);
+        ItemStack stack = orderInventory_fighters.getStackInSlot(slot);
         targetManagerMap_Fighters.get(slot).reset();
         if (stack.getItem() instanceof ItemWorkOrder) {
             List<ItemWorkOrder.vec3> vecs = ItemWorkOrder.getBlockList(stack);
@@ -111,9 +109,9 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     public workTargetManager getManagerForUUID(UUID worker) {
         if (level instanceof ServerLevel serverLevel) {
 
-            if(!level.hasNeighborSignal(getBlockPos()) && useNormalRedstoneSignal)
+            if (!level.hasNeighborSignal(getBlockPos()) && useNormalRedstoneSignal)
                 return null;
-            if(level.hasNeighborSignal(getBlockPos()) && !useNormalRedstoneSignal)
+            if (level.hasNeighborSignal(getBlockPos()) && !useNormalRedstoneSignal)
                 return null;
 
             Entity e = serverLevel.getEntity(worker);
@@ -125,47 +123,45 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                             return m;
                         }
                     }
-                }
-
-
-                List<Integer> keys = new ArrayList<>(targetManagerMap_Fighters.keySet());
-                Collections.shuffle(keys); // Shuffle the list randomly so that it will not get stuck at something it can not reach
-                for (int n : keys) {
-                    workTargetManager m = targetManagerMap_Fighters.get(n);
-                    if (!m.workPositions.isEmpty()) {
-                        if (m.lastWorker != null) {
-                            // if the last worker is
-                            // no longer alive or
-                            // changed workType or
-                            // has its own work order or
-                            // received work from a different strategy table,
-                            // remove him from this entry
-                            Entity workingHereEntity = serverLevel.getEntity(m.lastWorker);
-                            if (!(workingHereEntity instanceof CombatNPC)) {
-                                m.lastWorker = null;
-                            }
-                            if (workingHereEntity instanceof CombatNPC alreadyWorkingNPC) {
-                                if (alreadyWorkingNPC.getEntityData().get(DATA_WORKTYPE) != CombatNPC.WorkTypes.fighter.ordinal()) {
+                    List<Integer> keys = new ArrayList<>(targetManagerMap_Fighters.keySet());
+                    Collections.shuffle(keys); // Shuffle the list randomly so that it will not get stuck at something it can not reach
+                    for (int n : keys) {
+                        workTargetManager m = targetManagerMap_Fighters.get(n);
+                        if (!m.workPositions.isEmpty()) {
+                            if (m.lastWorker != null) {
+                                // if the last worker is
+                                // no longer alive or
+                                // changed workType or
+                                // has its own work order or
+                                // received work from a different strategy table,
+                                // remove him from this entry
+                                Entity workingHereEntity = serverLevel.getEntity(m.lastWorker);
+                                if (!(workingHereEntity instanceof CombatNPC)) {
                                     m.lastWorker = null;
                                 }
-                                if (alreadyWorkingNPC.fighterFollowWorkOrderProgram.canUse()) {
-                                    m.lastWorker = null;
-                                }
-                                if (!Objects.equals(alreadyWorkingNPC.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
-                                    m.lastWorker = null;
-                                }
-                            }
-                        }
-                        if (m.lastWorker == null) {
-                            // clear this worker from other positions or it will return the wrong manager later
-                            for (int n2 : keys) {
-                                workTargetManager m2 = targetManagerMap_Fighters.get(n2);
-                                if(Objects.equals(m2.lastWorker, worker)){
-                                    m2.lastWorker=null;
+                                if (workingHereEntity instanceof CombatNPC alreadyWorkingNPC) {
+                                    if (alreadyWorkingNPC.getEntityData().get(DATA_WORKTYPE) != CombatNPC.WorkTypes.fighter.ordinal()) {
+                                        m.lastWorker = null;
+                                    }
+                                    if (alreadyWorkingNPC.fighterFollowWorkOrderProgram.canUse()) {
+                                        m.lastWorker = null;
+                                    }
+                                    if (!Objects.equals(alreadyWorkingNPC.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
+                                        m.lastWorker = null;
+                                    }
                                 }
                             }
-                            m.lastWorker = worker;
-                            return m;
+                            if (m.lastWorker == null) {
+                                // clear this worker from other positions or it will return the wrong manager later
+                                for (int n2 : keys) {
+                                    workTargetManager m2 = targetManagerMap_Fighters.get(n2);
+                                    if (Objects.equals(m2.lastWorker, worker)) {
+                                        m2.lastWorker = null;
+                                    }
+                                }
+                                m.lastWorker = worker;
+                                return m;
+                            }
                         }
                     }
                 }
@@ -181,7 +177,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         guiHandler = new GuiHandlerBlockEntity(this);
 
         for (int x = 0; x < 9; x++) {
-            guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(1 * 9 + x, handler_fighters, x, 1, 0, guiHandler, x * 18 + 10, 30);
+            guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(1 * 9 + x, orderInventory_fighters, x, 1, 0, guiHandler, x * 18 + 10, 30);
             guiHandler.getModules().add(m);
         }
 
@@ -198,7 +194,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         redstoneControlButton = new guiModuleDefaultButton(8799,"",guiHandler,100,12,50,15);
         guiHandler.getModules().add(redstoneControlButton);
 
-        for (int i = 0; i < handler_fighters.getSlots(); i++) {
+        for (int i = 0; i < orderInventory_fighters.getSlots(); i++) {
             targetManagerMap_Fighters.put(i, new workTargetManager());
         }
     }
@@ -217,20 +213,31 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
 
 
     public static void updateAllTownHalls() {
-        for (BlockIdentifier b : knownStrategyTables) {
+        for (BlockIdentifier b : knownBlocks) {
             BlockEntity be = b.level.getBlockEntity(b.pos);
             if (be instanceof EntityStrategyTable t) {
                 t.updateTownHall();
             }
         }
+       updateSortedTownhallMap();
+    }
 
-        for (BlockIdentifier th : new HashSet<>(knownStrategyTablesForTownhallPosition.keySet())){
-            if(knownStrategyTablesForTownhallPosition.get(th) == null || knownStrategyTablesForTownhallPosition.get(th).isEmpty()){
-                knownStrategyTablesForTownhallPosition.remove(th);
+public static void updateSortedTownhallMap() {
+    knownBlocksForTownhallPosition.clear();
+    for (BlockIdentifier b : knownBlocks) {
+        BlockEntity be = b.level.getBlockEntity(b.pos);
+        if (be instanceof EntityStrategyTable t) {
+            if (t.townHall != null) {
+                BlockIdentifier bi = new BlockIdentifier(t.getLevel(), t.townHall);
+                Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(bi);
+                if (strategyTables == null)
+                    strategyTables = new HashSet<>();
+                strategyTables.add(t.getBlockPos());
+                knownBlocksForTownhallPosition.put(bi, strategyTables);
             }
         }
     }
-
+}
 
     public void updateTownHall() {
         // assign to townhall
@@ -247,12 +254,6 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             }
         } else {
             if (!TownHallOwners.getOwners(level, townHall).contains(owner)) {
-                BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
-                Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
-                if(strategyTables != null){
-                    strategyTables.remove(getBlockPos());
-                }
-                knownStrategyTablesForTownhallPosition.put(townhallId, strategyTables);
                 townHall = null;
                 updateTownHall();
             }
@@ -261,15 +262,6 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             townHallText.setTextAndSync("Town: " + TownHallNames.getName(level, townHall));
         } else {
             townHallText.setTextAndSync("Town: none");
-        }
-
-        if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
-            Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
-            if(strategyTables == null)
-                strategyTables = new HashSet<>();
-            strategyTables.add(getBlockPos());
-            knownStrategyTablesForTownhallPosition.put(townhallId, strategyTables);
         }
     }
 
@@ -293,12 +285,13 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             if (owner != null) {
                 //ownerText.setTextAndSync("Owner: " + owner);
             }
-            knownStrategyTables.add(new BlockIdentifier(level, getBlockPos()));
 
+            knownBlocks.add(new BlockIdentifier(level, getBlockPos()));
             updateTownHall();
+            updateSortedTownhallMap();
 
             // read the work orders on load
-            for (int i = 0; i < handler_fighters.getSlots(); i++) {
+            for (int i = 0; i < orderInventory_fighters.getSlots(); i++) {
                 scanSlot_fighters(i);
             }
 
@@ -309,14 +302,8 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     @Override
     public void setRemoved(){
         super.setRemoved();
-        if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
-            Set<BlockPos> strategyTables = knownStrategyTablesForTownhallPosition.get(townhallId);
-            if(strategyTables != null){
-                strategyTables.remove(getBlockPos());
-            }
-        }
-        knownStrategyTables.remove(new BlockIdentifier(level, getBlockPos()));
+        knownBlocks.remove(new BlockIdentifier(level, getBlockPos()));
+        updateSortedTownhallMap();
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -354,7 +341,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("inventory1", handler_fighters.serializeNBT(registries));
+        tag.put("inventory1", orderInventory_fighters.serializeNBT(registries));
 
         tag.putBoolean("invRedstone", useNormalRedstoneSignal);
 
@@ -371,7 +358,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
 
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        handler_fighters.deserializeNBT(registries, tag.getCompound("inventory1"));
+        orderInventory_fighters.deserializeNBT(registries, tag.getCompound("inventory1"));
 
         useNormalRedstoneSignal = tag.getBoolean("invRedstone");
 

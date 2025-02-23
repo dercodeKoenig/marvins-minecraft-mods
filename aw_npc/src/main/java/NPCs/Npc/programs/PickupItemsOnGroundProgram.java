@@ -10,8 +10,7 @@ import net.minecraft.world.phys.AABB;
 
 import java.util.*;
 
-import static NPCs.Utils.EXIT_FAIL;
-import static NPCs.Utils.SUCCESS_STILL_RUNNING;
+import static NPCs.Utils.*;
 
 public class PickupItemsOnGroundProgram extends Goal {
     NPCBase npc;
@@ -41,7 +40,7 @@ public class PickupItemsOnGroundProgram extends Goal {
         long gametime = npc.level().getGameTime();
         if (gametime > lastScanTime + 10) {
 
-            if (Utils. countEmptySlots(npc) < 1) return false;
+            if (Utils.countEmptySlots(npc) < 1) return false;
 
             lastScanTime = gametime;
 
@@ -78,7 +77,7 @@ public class PickupItemsOnGroundProgram extends Goal {
     @Override
     public void tick() {
 
-        if (Utils. countEmptySlots(npc)  < 1) {
+        if (Utils.countEmptySlots(npc) < 1) {
             canUse = false;
             return;
         }
@@ -89,33 +88,15 @@ public class PickupItemsOnGroundProgram extends Goal {
 
                 int pathFindExit = npc.slowMobNavigation.moveToPosition(
                         i.getOnPos(),
-                        2,
+                        1,
                         npc.slowNavigationMaxDistance,
                         npc.slowNavigationMaxNodes,
                         npc.slowNavigationStepPerTick
                 );
 
-
-                if (pathFindExit == EXIT_FAIL) {
-                    return;
-                } else if (pathFindExit == SUCCESS_STILL_RUNNING) {
-                    workDelay = 0;
+                if (pathFindExit == SUCCESS_STILL_RUNNING) {
                     return;
                 }
-                npc.lookAt(EntityAnchorArgument.Anchor.EYES, i.getPosition(0));
-                npc.lookAt(EntityAnchorArgument.Anchor.FEET, i.getPosition(0));
-
-                if (workDelay > 20) {
-                    workDelay = 0;
-                    ItemStack onGround = i.getItem();
-                    ItemStack toInsertCopy = onGround.copy();
-                    for (int n = 0; n < npc.combinedInventory.getSlots(); n++) {
-                        toInsertCopy = npc.combinedInventory.insertItem(n, toInsertCopy, false);
-                    }
-                    onGround.setCount(0);
-                }
-                workDelay++;
-                return;
             }
         }
         canUse = false;

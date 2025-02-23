@@ -1,12 +1,13 @@
 package NPCs.Blocks.Armory;
 
-import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.gui.modules.guiModuleText;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
+import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
 import NPCs.Utils;
 import net.minecraft.core.BlockPos;
@@ -45,6 +46,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
             sendUpdateTag(null);
         }
     };
+    public guiModuleText townHallText;
 
 
     public EntityArmory(BlockPos pos, BlockState blockState) {
@@ -65,6 +67,9 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
         for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 120, 1100, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
+
+        townHallText = new guiModuleText(2002, "townhallpos", guiHandler, 5, 5, 0xff000000, false);
+        guiHandler.getModules().add(townHallText);
 
     }
 
@@ -95,6 +100,8 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
         }
     }
 
+
+
     public static void updateAllTownHalls() {
         for (BlockIdentifier b : knownBlocks) {
             BlockEntity be = b.level.getBlockEntity(b.pos);
@@ -102,14 +109,25 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
                 t.updateTownHall();
             }
         }
+        updateSortedTownhallMap();
+    }
 
-        for (BlockIdentifier th : new HashSet<>(knownBlocksForTownhallPosition.keySet())){
-            if(knownBlocksForTownhallPosition.get(th) == null || knownBlocksForTownhallPosition.get(th).isEmpty()){
-                knownBlocksForTownhallPosition.remove(th);
+    public static void updateSortedTownhallMap() {
+        knownBlocksForTownhallPosition.clear();
+        for (BlockIdentifier b : knownBlocks) {
+            BlockEntity be = b.level.getBlockEntity(b.pos);
+            if (be instanceof EntityArmory t) {
+                if (t.townHall != null) {
+                    BlockIdentifier bi = new BlockIdentifier(t.getLevel(), t.townHall);
+                    Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(bi);
+                    if (strategyTables == null)
+                        strategyTables = new HashSet<>();
+                    strategyTables.add(t.getBlockPos());
+                    knownBlocksForTownhallPosition.put(bi, strategyTables);
+                }
             }
         }
     }
-
 
     public void updateTownHall() {
         // assign to townhall
@@ -126,32 +144,23 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
             }
         } else {
             if (!TownHallOwners.getOwners(level, townHall).contains(owner)) {
-                BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
-                Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
-                if(strategyTables != null){
-                    strategyTables.remove(getBlockPos());
-                }
-                knownBlocksForTownhallPosition.put(townhallId, strategyTables);
                 townHall = null;
                 updateTownHall();
             }
         }
         if (townHall != null) {
-            //townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(), townHall));
+            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level, townHall));
         } else {
-            //townHallText.setTextAndSync("Town: none");
-        }
-
-        if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
-            Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
-            if(strategyTables == null)
-                strategyTables = new HashSet<>();
-            strategyTables.add(getBlockPos());
-            knownBlocksForTownhallPosition.put(townhallId, strategyTables);
+            townHallText.setTextAndSync("Town: none");
         }
     }
 
+    @Override
+    public void setRemoved(){
+        super.setRemoved();
+        knownBlocks.remove(new BlockIdentifier(level, getBlockPos()));
+        updateSortedTownhallMap();
+    }
     @Override
     public void onLoad() {
         super.onLoad();
@@ -173,26 +182,14 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
                 //ownerText.setTextAndSync("Owner: " + owner);
             }
             knownBlocks.add(new BlockIdentifier(level, getBlockPos()));
-
             updateTownHall();
+            updateSortedTownhallMap();
         }
         if (level.isClientSide) {
             CompoundTag i = new CompoundTag();
             i.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
         }
-    }
-    @Override
-    public void setRemoved(){
-        super.setRemoved();
-        if(townHall != null) {
-            BlockIdentifier townhallId = new BlockIdentifier(level,townHall);
-            Set<BlockPos> strategyTables = knownBlocksForTownhallPosition.get(townhallId);
-            if(strategyTables != null){
-                strategyTables.remove(getBlockPos());
-            }
-        }
-        knownBlocks.remove(new BlockIdentifier(level, getBlockPos()));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {

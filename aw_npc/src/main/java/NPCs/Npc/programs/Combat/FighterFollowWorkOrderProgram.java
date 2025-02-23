@@ -15,7 +15,6 @@ public class FighterFollowWorkOrderProgram extends Goal {
 
     CombatNPC worker;
     long lastCheck = 0;
-    long lastCheckTick = 0;
     boolean canUse;
     int currentIndex = 0;
     long timeArrivedAtLocation = 0;
@@ -67,10 +66,10 @@ public class FighterFollowWorkOrderProgram extends Goal {
             worker.getLookControl().setLookAt(worker.getX() + relX, worker.getEyeY(), worker.getZ() + relZ);
         }
 
-        if (worker.level().getGameTime() < lastCheckTick + 20 * 1 && !(lastMoveExit == SUCCESS_STILL_RUNNING)) {
+        if (worker.level().getGameTime() < lastCheck + 20 * 1 && !(lastMoveExit == SUCCESS_STILL_RUNNING)) {
             return;
         }
-        lastCheckTick = worker.level().getGameTime();
+        lastCheck = worker.level().getGameTime();
 
         ItemStack order = worker.ordersStackHandler.getStackInSlot(0);
         if (order.isEmpty() || !(order.getItem() instanceof ItemWorkOrder)) {

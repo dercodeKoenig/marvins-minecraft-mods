@@ -1,5 +1,6 @@
 package NPCs.Npc;
 
+import NPCs.Npc.programs.Combat.DropLootFighterProgram;
 import NPCs.Utils;
 import NPCs.Npc.programs.*;
 import NPCs.Npc.programs.CropFarming.MainFarmingProgram;
@@ -20,7 +21,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,8 +101,6 @@ public class WorkerNPC extends NPCBase {
 
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
-        //goalSelector.addGoal(priority++ ,new PickupItemsOnGroundProgram(this));
-
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Farmer.ordinal()) {
             this.goalSelector.addGoal(priority++, farmingProgram);
         }
@@ -112,6 +110,10 @@ public class WorkerNPC extends NPCBase {
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Lumberjack.ordinal()) {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
+
+        goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
+
+        goalSelector.addGoal(priority++, new DropLootProgram(this));
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.8, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));

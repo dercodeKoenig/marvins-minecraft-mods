@@ -124,11 +124,15 @@ public class CombatNPC extends NPCBase {
 
         goalSelector.addGoal(priority++, new FoodProgramFighter(this));
 
+        goalSelector.addGoal(priority++, new DropLootFighterProgram(this));
+
         fighterFollowWorkOrderProgram = new FighterFollowWorkOrderProgram(this);
         goalSelector.addGoal(priority++, fighterFollowWorkOrderProgram);
 
         fighterFollowWorkOrderByStrategyTable = new FighterFollowWorkOrderByStrategyTable(this);
         goalSelector.addGoal(priority++, fighterFollowWorkOrderByStrategyTable);
+
+        goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
 
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(priority++, new FloatGoal(this));

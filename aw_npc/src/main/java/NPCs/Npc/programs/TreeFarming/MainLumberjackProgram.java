@@ -39,7 +39,7 @@ public class MainLumberjackProgram extends Goal {
     }
 
 
-    public boolean hasWorkAtCropFarm(BlockPos p) {
+    public boolean hasWorkAtFarm(BlockPos p) {
 
         BlockEntity e = worker.level().getBlockEntity(p);
         if (!(e instanceof EntityTreeFarm farm)) return false;
@@ -49,7 +49,7 @@ public class MainLumberjackProgram extends Goal {
         // check if he can unload his inventory there
         if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
 
-        if(useSawMillProgram.recalculateHasWork(farm)) return true;
+        if (useSawMillProgram.recalculateHasWork(farm)) return true;
 
         return false;
     }
@@ -57,7 +57,7 @@ public class MainLumberjackProgram extends Goal {
     @Override
     public boolean canUse() {
 
-        if(worker.level().isNight())return false;
+        if (worker.level().isNight()) return false;
 
 
         // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
@@ -83,7 +83,7 @@ public class MainLumberjackProgram extends Goal {
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityTreeFarm.knownTreeFarms, worker)) {
 
-            if(Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
+            if (Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 
             BlockEntity worksite = worker.level().getBlockEntity(p);
             if (worksite instanceof EntityWorkSiteBase w) {
@@ -98,7 +98,7 @@ public class MainLumberjackProgram extends Goal {
                 }
 
                 workCheckedTracker.put(p, gameTime);
-                if (hasWorkAtCropFarm(p)) {
+                if (hasWorkAtFarm(p)) {
                     worker.lastWorksitePosition = p;
                     return true;
                 }
@@ -130,18 +130,15 @@ public class MainLumberjackProgram extends Goal {
 
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
+        // try to use sawmill - always top priority because items can despawn
+        int samillExit = useSawMillProgram.run(farm);
+        if (samillExit == EXIT_FAIL) return EXIT_FAIL;
+        if (samillExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+
         // try to farm
-        if(!useSawMillProgram.hasWork) {
-            int treeFarmingExit = treeFarmingProgram.run(farm);
-            if (treeFarmingExit == EXIT_FAIL) return EXIT_FAIL;
-            if (treeFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
-        }
-        // try to use sawmill
-        if(!treeFarmingProgram.hasWork) {
-            int samillExit = useSawMillProgram.run(farm);
-            if (samillExit == EXIT_FAIL) return EXIT_FAIL;
-            if (samillExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
-        }
+        int treeFarmingExit = treeFarmingProgram.run(farm);
+        if (treeFarmingExit == EXIT_FAIL) return EXIT_FAIL;
+        if (treeFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
 
         // try to unload Inventory
         int tryUnloadExit = unloadInventoryProgram.run(farm);

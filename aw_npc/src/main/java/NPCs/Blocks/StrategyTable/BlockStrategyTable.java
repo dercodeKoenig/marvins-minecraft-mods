@@ -1,9 +1,9 @@
 package NPCs.Blocks.StrategyTable;
 
-import NPCs.Blocks.TownHall.EntityTownHall;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -44,6 +44,18 @@ public class BlockStrategyTable extends Block implements EntityBlock {
             t.useWithoutItem(player);
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        BlockEntity e = level.getBlockEntity(pos);
+        if(e instanceof EntityStrategyTable t){
+            for (int i = 0; i < t.orderInventory_fighters.getSlots(); i++) {
+                Block.popResource(level,pos,t.orderInventory_fighters.getStackInSlot(i).copy());
+                t.orderInventory_fighters.setStackInSlot(i, ItemStack.EMPTY);
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
 

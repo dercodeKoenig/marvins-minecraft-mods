@@ -1,5 +1,6 @@
 package NPCs.Blocks.Armory;
 
+import NPCs.Blocks.TownHall.EntityTownHall;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -51,6 +52,13 @@ public class BlockArmory extends Block implements EntityBlock {
         BlockState otherState = level.getBlockState(otherPos);
         if (otherState.is(this) && otherState.getValue(HALF) != state.getValue(HALF)) {
             level.destroyBlock(otherPos, false);
+        }
+        BlockEntity e = level.getBlockEntity(pos);
+        if(e instanceof EntityArmory t){
+            for (int i = 0; i < t.inventory.getSlots(); i++) {
+                Block.popResource(level,pos,t.inventory.getStackInSlot(i).copy());
+                t.inventory.setStackInSlot(i, ItemStack.EMPTY);
+            }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

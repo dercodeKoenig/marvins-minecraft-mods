@@ -58,7 +58,7 @@ public class MainFarmingProgram extends Goal {
     @Override
     public boolean canUse() {
 
-        if(worker.level().isNight())return false;
+        if (worker.level().isNight()) return false;
 
 
         // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
@@ -84,7 +84,7 @@ public class MainFarmingProgram extends Goal {
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
 
-            if(Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
+            if (Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 
             BlockEntity worksite = worker.level().getBlockEntity(p);
             if (worksite instanceof EntityWorkSiteBase w) {
@@ -132,7 +132,7 @@ public class MainFarmingProgram extends Goal {
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
         // try to use millstone only if the farming program has no work so we do not interrupt
-        if(!cropFarmingProgram.hasWork) {
+        if (!cropFarmingProgram.hasWork) {
             int millStoneExit = useMillStoneProgram.run(farm);
             if (millStoneExit == EXIT_FAIL) return EXIT_FAIL;
             if (millStoneExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;

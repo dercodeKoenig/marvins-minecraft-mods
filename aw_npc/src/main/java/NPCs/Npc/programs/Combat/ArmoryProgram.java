@@ -70,30 +70,27 @@ public class ArmoryProgram extends Goal {
         lastCheck = worker.level().getGameTime();
 
         if (worker.townHall != null) {
-            Set<BlockPos> armoryPositions = EntityArmory.knownBlocksForTownhallPosition.get(new BlockIdentifier(worker.level(), worker.townHall));
-            if (armoryPositions != null) {
-                for (BlockPos p : armoryPositions) {
-                    if (isPositionWorkable(p)) {
-                        BlockEntity e = worker.level().getBlockEntity(p);
-                        if (e instanceof EntityArmory armory) {
+            Set<BlockPos> armoryPositions = EntityArmory.knownBlocksForTownhallPosition.getOrDefault(new BlockIdentifier(worker.level(), worker.townHall), Set.of());
+            for (BlockPos p : armoryPositions) {
+                if (isPositionWorkable(p)) {
+                    BlockEntity e = worker.level().getBlockEntity(p);
+                    if (e instanceof EntityArmory armory) {
 
-                            if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
-                                if (worker.takeWeaponProgram.swapWeaponFromTarget(armory.inventory, true)) {
-                                    targetPos = p;
-                                    targetInventory = armory.inventory;
-                                    lockTargetPosition();
-                                    return true;
-                                }
-                            }
-
-
-
-                            if (takeArmorProgram.swapArmorFromTarget(armory.inventory, true)) {
+                        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
+                            if (worker.takeWeaponProgram.swapWeaponFromTarget(armory.inventory, true)) {
                                 targetPos = p;
                                 targetInventory = armory.inventory;
                                 lockTargetPosition();
                                 return true;
                             }
+                        }
+
+
+                        if (takeArmorProgram.swapArmorFromTarget(armory.inventory, true)) {
+                            targetPos = p;
+                            targetInventory = armory.inventory;
+                            lockTargetPosition();
+                            return true;
                         }
                     }
                 }
