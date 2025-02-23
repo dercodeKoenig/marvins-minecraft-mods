@@ -51,7 +51,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     }
 
     public void scanStep() {
-        if (!allowedBlocksList.isEmpty()) {
+        if (!allowedBlocksList.isEmpty() && allowedBlocks.size() != knownInventoriesList.size()) {
             if (currentBlockToScanIndex_blocks >= allowedBlocksList.size()) {
                 currentBlockToScanIndex_blocks = 0;
             }
@@ -94,10 +94,10 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     public void tick() {
         super.tick();
         if (!level.isClientSide) {
-            //long t0 = System.nanoTime();
+            long t0 = System.nanoTime();
             scanStep();
-            //long t1 = System.nanoTime();
-            //System.out.println((double) (t1 - t0) / 1000 / 1000 + ":" + lastKnownInventoryContents.values().size());
+            long t1 = System.nanoTime();
+            System.out.println((double) (t1 - t0) / 1000 / 1000 );
 
             if (level.getGameTime() % 100 == 0) {
                 for (ComparableItemStack i : allItemStacksWithCount.keySet()) {
@@ -142,6 +142,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
 
         knownInventories.clear();
         filteredItemStacksMap_reference.clear();
+        filteredItemStacksMap_copy.clear();
         lastItemStacksMap.clear();
         knownInventoriesList.clear();
         allItemStacksWithCount.clear();
@@ -171,7 +172,9 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         }
     }
 
+    // all the detected inventories are here
     public HashMap<BlockPos, BlockEntity> knownInventories = new HashMap<>();
+    public List<BlockEntity> knownInventoriesList = new ArrayList<>(); // same but as a list
 
     // This one is to hold references to all the scanned ItemStacks.
     // It is used to check if a itemstack was already processed.
@@ -187,8 +190,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     // this one holds every itemstack in the correct order as it is in the inventory to detect changes
     BiDirectionalMultiMap<ItemStack, BlockPos> lastItemStacksMap = new BiDirectionalMultiMap<>();
 
-    public List<BlockEntity> knownInventoriesList = new ArrayList<>();
-
+// final map with all items and count
     public Map<ComparableItemStack, Integer> allItemStacksWithCount = new HashMap<>();
 
     public void addBlockEntityInventory(BlockEntity e, IItemHandler handler) {
@@ -225,7 +227,6 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         if (itemHandler != null) {
             boolean needsRescan = false;
                 if (cachedContents.size() != itemHandler.getSlots()) {
-                    System.out.println(cachedContents.size());
                     needsRescan = true;
                 } else {
                     List<ItemStack> cachedStackList = cachedContents.stream().toList();
