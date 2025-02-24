@@ -51,6 +51,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     }
 
     public void scanStep() {
+        // this will scan for new inventories one block a tick
         if (!allowedBlocksList.isEmpty() && allowedBlocks.size() != knownInventoriesList.size()) {
             if (currentBlockToScanIndex_blocks >= allowedBlocksList.size()) {
                 currentBlockToScanIndex_blocks = 0;
@@ -68,7 +69,8 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                 }
             }
         }
-
+        // this will scan discovered inventories for changes, 1 block a tick
+        // it will also take care of removing invalid inventories
         if (!knownInventoriesList.isEmpty()) {
             if (currentBlockToScanIndex_inventories >= knownInventoriesList.size()) {
                 currentBlockToScanIndex_inventories = 0;
@@ -87,7 +89,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
             //long t0 = System.nanoTime();
             scanStep();
             //long t1 = System.nanoTime();
-            //System.out.println((double) (t1 - t0) / 1000 / 1000 );
+            //System.out.println((double) (t1 - t0) / 1000 / 1000 ); // 0.01-0.1ms
 
             if (level.getGameTime() % 100 == 0) {
                 for (ComparableItemStack i : allItemStacksWithCount.keySet()) {
@@ -129,11 +131,12 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         // this farm does not use blacklist
         updateAllowedBlocksList();
 
-
+        // clean all maps because blocks that was before in the are might no longer be
+        // the most important is that "filteredItemStacksMap_copy" and "allItemStacksWithCount" are always kept in sync
         knownInventories.clear();
         filteredItemStacksMap_reference.clear();
         filteredItemStacksMap_copy.clear();
-        lastItemStacksMap.clear();
+        fullItemStacksMap_copy.clear();
         knownInventoriesList.clear();
         allItemStacksWithCount.clear();
     }
@@ -178,9 +181,14 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     BiDirectionalMultiMap<ItemStack, BlockPos> filteredItemStacksMap_copy = new BiDirectionalMultiMap<>();
 
     // this one holds every itemstack in the correct order as it is in the inventory to detect changes
-    BiDirectionalMultiMap<ItemStack, BlockPos> lastItemStacksMap = new BiDirectionalMultiMap<>();
+    BiDirectionalMultiMap<ItemStack, BlockPos> fullItemStacksMap_copy = new BiDirectionalMultiMap<>();
 
-// final map with all items and count
+    // final map with all items and count
+    // also referenced as "full map" in comments below
+    // because the system never makes a full re-scan of the entire inventory at once (to save a lot of time),
+    // you should not write to this yourself. you risk making the map out of sync with the inventories and it will
+    // never recover until world reload when out of sync. so if you modify anything here, make sure you know what you are doing
+    // (dont touch it and it should work)
     public Map<ComparableItemStack, Integer> allItemStacksWithCount = new HashMap<>();
 
     public void addBlockEntityInventory(BlockEntity e, IItemHandler handler) {
@@ -191,6 +199,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     public void removeBlockEntityInventory(BlockPos p) {
         knownInventories.remove(p);
 
+        // remove all the items added to the full map by this entity before removing it
         for (ItemStack i : filteredItemStacksMap_copy.getFromvalue(p)) {
             ComparableItemStack c = new ComparableItemStack(i);
             if (allItemStacksWithCount.get(c) != null) {
@@ -199,10 +208,12 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                     allItemStacksWithCount.remove(c);
             }
         }
-
+        // cleanup the maps
         filteredItemStacksMap_copy.removeByValue(p);
         filteredItemStacksMap_reference.removeByValue(p);
-        lastItemStacksMap.removeByValue(p);
+        fullItemStacksMap_copy.removeByValue(p);
+
+        // recompute the list for iteration
         knownInventoriesList = new ArrayList<>(knownInventories.values());
     }
 
@@ -213,8 +224,10 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         }
 
         IItemHandler itemHandler = level.getCapability(Capabilities.ItemHandler.BLOCK, e.getBlockPos(), e.getBlockState(), e, Direction.UP);
-        LinkedHashSet<ItemStack> cachedContents = lastItemStacksMap.getFromvalue(e.getBlockPos());
+        LinkedHashSet<ItemStack> cachedContents = fullItemStacksMap_copy.getFromvalue(e.getBlockPos());
         if (itemHandler != null) {
+            // check if anything in the inventory has changed since last scanning
+            // if nothing is changed, the set should be exactly as the itemhandler by item, components and count
             boolean needsRescan = false;
                 if (cachedContents.size() != itemHandler.getSlots()) {
                     needsRescan = true;
@@ -228,6 +241,9 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                     }
                 }
             if (needsRescan) {
+                // if the inventory is changed, first revert the added itemstacks to the full map
+                // last scan it added some itemstacks to the full map. now this exact items need to be removed again
+                // this requires the map with copies of the itemstacks, because the references already reflect the new state
                 for (ItemStack i : filteredItemStacksMap_copy.getFromvalue(e.getBlockPos())) {
                     ComparableItemStack c = new ComparableItemStack(i);
                     if (allItemStacksWithCount.get(c) != null) {
@@ -236,22 +252,37 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                             allItemStacksWithCount.remove(c);
                     }
                 }
+
+                // now reset all the entries for this blockentity
                 filteredItemStacksMap_reference.removeByValue(e.getBlockPos());
-                lastItemStacksMap.removeByValue(e.getBlockPos());
+                fullItemStacksMap_copy.removeByValue(e.getBlockPos());
                 filteredItemStacksMap_copy.removeByValue(e.getBlockPos());
+
                 for (int i = 0; i < itemHandler.getSlots(); i++) {
                     ItemStack stackInSlot = itemHandler.getStackInSlot(i);
                     if(stackInSlot.isEmpty()) {
-                        lastItemStacksMap.put(new ItemStack(Items.AIR, 0), e.getBlockPos());
+                        // this entry will be used later to check for inventory change
+                        // do not use .copy on empty stack, this will not work! it will return ItemStack.EMPTY as of 1.21.1
+                        fullItemStacksMap_copy.put(new ItemStack(Items.AIR, 0), e.getBlockPos());
                     }else{
+                        // because some blocks like chests can have 2 positions and 2 itemhandler,
+                        // this can cause items to be scanned and added double.
+                        // because of this, check if the reference to this itemstack is already registered
+                        // and only add it if it is not.
+                        // because the references to all itemstacks addedby this inventory are cleared above,
+                        // if there is stil a reference this indicates that the itemstack was already added by another blockentity on a shared inventory
                         if(filteredItemStacksMap_reference.getFromKey(stackInSlot) == null) {
+                            // add the reference for future scans
                             filteredItemStacksMap_reference.put(stackInSlot, e.getBlockPos());
+                            // add the copy to revert adding to the full map on the next inventory change
                             filteredItemStacksMap_copy.put(stackInSlot.copy(), e.getBlockPos());
                         }
-                        lastItemStacksMap.put(stackInSlot.copy(), e.getBlockPos());
+                        // add a copy of all itemstacks in the inventory to later detect changes
+                        fullItemStacksMap_copy.put(stackInSlot.copy(), e.getBlockPos());
                     }
                 }
 
+                //  this part adds the filtered scanned stacks to the full map. this is the map that shows itemstack + count for all items
                 for (ItemStack i : filteredItemStacksMap_copy.getFromvalue(e.getBlockPos())) {
                     if (!i.isEmpty()) {
                         ComparableItemStack c = new ComparableItemStack(i);
