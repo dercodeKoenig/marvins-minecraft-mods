@@ -37,7 +37,7 @@ public class Config {
         try {
             if (!Files.exists(filePath, new LinkOption[0])) {
                 Files.createFile(filePath);
-                Files.write(filePath, (new GsonBuilder()).setPrettyPrinting().create().toJson(new AgeOfSteam.Config.Config()).getBytes(StandardCharsets.UTF_8), new OpenOption[0]);
+                Files.write(filePath, (new GsonBuilder()).setPrettyPrinting().create().toJson(new Config()).getBytes(StandardCharsets.UTF_8), new OpenOption[0]);
             }
 
             String jsonContent = Files.readString(filePath);

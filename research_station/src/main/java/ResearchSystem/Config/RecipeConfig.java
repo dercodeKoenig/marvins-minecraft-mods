@@ -23,10 +23,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class RecipeConfig {
@@ -115,13 +112,14 @@ public class RecipeConfig {
     // because i can not call the direct jei method from here (the class may not be found if not installed),
     // i let the plugin insert a runnable here and i execute it on recipe load.
     // this way it should not crash when jei is not found.
-    public static Runnable jeiRunnableOnConfigLoad = null;
+    public static Set<Runnable> jeiRunnableOnConfigLoad = new HashSet<>();
 
     public void loadConfig(String configString) {
         RecipeConfig.INSTANCE = new Gson().fromJson(configString, RecipeConfig.class);
         System.out.println("client load config:" + configString);
-        if(jeiRunnableOnConfigLoad!=null)
-            jeiRunnableOnConfigLoad.run();
+        for( Runnable i : jeiRunnableOnConfigLoad) {
+            i.run();
+        }
     }
 
     public static RecipeConfig loadConfig() {

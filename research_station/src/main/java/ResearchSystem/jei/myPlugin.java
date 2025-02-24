@@ -188,6 +188,7 @@ public class myPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtime = jeiRuntime;
-        RecipeConfig.jeiRunnableOnConfigLoad = this::onConfigReceived;
+        System.out.println("jei runtime available now");
+        RecipeConfig.jeiRunnableOnConfigLoad.add (this::onConfigReceived);
     }
 }

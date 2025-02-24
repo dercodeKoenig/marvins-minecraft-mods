@@ -1,11 +1,11 @@
-package ResearchSystem.EngineeringStation;
+package WorkSites.WarehouseCrafter;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.RecipeConfig;
-import ResearchSystem.ResearchStation.BlockResearchStation;
-import ResearchSystem.ResearchStation.EntityResearchStation;
+import ResearchSystem.EngineeringStation.BlockEngineeringStation;
+import ResearchSystem.EngineeringStation.CraftingContainerItemStackHandler;
 import ResearchSystem.ResearchStation.ItemResearchBook;
 import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
@@ -15,24 +15,25 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.*;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;;
 
-import static ResearchSystem.Registry.ENTITY_ENGINEERING_STATION;
+public class EntityWarehouseCrafter extends BlockEntity implements INetworkTagReceiver {
 
-public class EntityEngineeringStation extends BlockEntity implements INetworkTagReceiver {
-
-    public CraftingContainerItemStackHandler craftingInventory = new CraftingContainerItemStackHandler(3, 3) {
+    public ResearchSystem.EngineeringStation.CraftingContainerItemStackHandler craftingInventory = new CraftingContainerItemStackHandler(3, 3) {
         @Override
         public void onContentsChanged(int slot) {
-            EntityEngineeringStation.super.setChanged();
+            EntityWarehouseCrafter.super.setChanged();
             updateCraftingContainerFromCraftingInventory();
         }
     };
@@ -90,9 +91,9 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
 
         //update blockstate to show/hide book
         // do not use my own blockstate, it could have changed on remove after pop-inventory
-        if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockEngineeringStation) {
+        if (level.getBlockState(getBlockPos()).getBlock() instanceof ResearchSystem.EngineeringStation.BlockEngineeringStation) {
             if (bookInventory.getStackInSlot(0).getItem() instanceof ItemResearchBook && bookInventory.getStackInSlot(0).getCount()>0) {
-                level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, true), 3);
+                level.setBlock(getBlockPos(), getBlockState().setValue(ResearchSystem.EngineeringStation.BlockEngineeringStation.HAS_BOOK, true), 3);
             } else {
                 level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, false), 3);
             }
@@ -111,16 +112,8 @@ onBookContentChanged();
         }
     };
 
-    public ItemStackHandler inputInventory = new ItemStackHandler(18) {
-        @Override
-        public void onContentsChanged(int slot) {
-            setChanged();
-        }
-    };
-
-
-    public EntityEngineeringStation(BlockPos pos, BlockState blockState) {
-        super(ENTITY_ENGINEERING_STATION.get(), pos, blockState);
+    public EntityWarehouseCrafter(BlockPos pos, BlockState blockState) {
+        super(ENTITY_WAREHOUSE_CRAFTER.get(), pos, blockState);
     }
 
     @Override
@@ -133,10 +126,7 @@ onBookContentChanged();
     public void popInventory() {
         Block.popResource(level, getBlockPos(), bookInventory.getStackInSlot(0));
         bookInventory.setStackInSlot(0, ItemStack.EMPTY);
-        for (int i = 0; i < inputInventory.getSlots(); i++) {
-            Block.popResource(level, getBlockPos(), inputInventory.getStackInSlot(i));
-            inputInventory.setStackInSlot(i, ItemStack.EMPTY);
-        }
+
         for (int i = 0; i < craftingInventory.getSlots(); i++) {
             Block.popResource(level, getBlockPos(), craftingInventory.getStackInSlot(i));
             craftingInventory.setStackInSlot(i, ItemStack.EMPTY);
@@ -148,7 +138,6 @@ onBookContentChanged();
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("craftingInventory", craftingInventory.serializeNBT(registries));
-        tag.put("inputInventory", inputInventory.serializeNBT(registries));
         tag.put("bookInventory", bookInventory.serializeNBT(registries));
     }
 
@@ -157,7 +146,6 @@ onBookContentChanged();
         super.loadAdditional(tag, registries);
 
         craftingInventory.deserializeNBT(registries, tag.getCompound("craftingInventory"));
-        inputInventory.deserializeNBT(registries, tag.getCompound("inputInventory"));
         bookInventory.deserializeNBT(registries, tag.getCompound("bookInventory"));
     }
 

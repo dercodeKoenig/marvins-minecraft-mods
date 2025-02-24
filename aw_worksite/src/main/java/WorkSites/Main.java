@@ -1,5 +1,7 @@
 package WorkSites;
 
+import ResearchSystem.EngineeringStation.ScreenEngineeringStation;
+import WorkSites.WarehouseCrafter.ScreenWarehouseCrafter;
 import net.minecraft.core.Direction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -9,6 +11,7 @@ import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -18,6 +21,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
+import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
 import static WorkSites.Registry.*;
 
 @Mod(Main.MODID)
@@ -36,10 +40,15 @@ public static final String MODID = "aw_worksite";
         modEventBus.addListener(this::RegisterCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::loadShaders);
+        modEventBus.addListener(this::registerScreens);
         modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
 
 
+    }
+
+    public void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(MENU_WAREHOUSE_CRAFTER.get(), ScreenWarehouseCrafter::new);
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
@@ -70,6 +79,7 @@ public static final String MODID = "aw_worksite";
             e.accept(FISH_FARM.get());
             e.accept(QUARRY.get());
             e.accept(WAREHOUSE.get());
+            e.accept(WAREHOUSE_CRAFTER.get());
         }
     }
 
