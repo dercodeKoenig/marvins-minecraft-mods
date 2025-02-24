@@ -21,23 +21,31 @@ import org.jetbrains.annotations.Nullable;
 
 import static WorkSites.Registry.ENTITY_WAREHOUSE_CRAFTER;
 
+///  this entire Package is almost exact copy of the Engineering Station from the research system
+
 public class BlockWarehouseCrafter extends Block implements EntityBlock {
-    public static BooleanProperty HAS_BOOK = BooleanProperty.create("has_book");
+    //public static BooleanProperty HAS_BOOK = BooleanProperty.create("has_book");
 
     public BlockWarehouseCrafter() {
         super(Properties.of().noOcclusion());
-        this.registerDefaultState(this.getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH).setValue(HAS_BOOK, false));
+        this.registerDefaultState(this.getStateDefinition().any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH)
+                //.setValue(HAS_BOOK, false)
+                );
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite()).setValue(HAS_BOOK, false);
+        return this.defaultBlockState()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+                //.setValue(HAS_BOOK, false)
+                ;
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
-        builder.add(HAS_BOOK);
+        //builder.add(HAS_BOOK);
     }
 
     @Override

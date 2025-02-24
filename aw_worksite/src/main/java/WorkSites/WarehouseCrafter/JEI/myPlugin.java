@@ -1,11 +1,13 @@
-package ResearchSystem.jei;
+package WorkSites.WarehouseCrafter.JEI;
 
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.RecipePart;
-import ResearchSystem.EngineeringStation.MenuEngineeringStation;
 import ResearchSystem.Config.RecipeConfig;
+import WorkSites.Main;
+import WorkSites.WarehouseCrafter.MenuWarehouseCrafter;
 import com.google.gson.Gson;
 import mezz.jei.api.IModPlugin;
+import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
@@ -19,7 +21,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import mezz.jei.api.JeiPlugin;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ResearchSystem.Registry.*;
+import static WorkSites.Registry.MENU_WAREHOUSE_CRAFTER;
+import static WorkSites.Registry.WAREHOUSE_CRAFTER;
 
 @JeiPlugin
 public class myPlugin implements IModPlugin {
@@ -41,38 +43,37 @@ public class myPlugin implements IModPlugin {
 
     @Override
     public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath("research_station", "plugin");
+        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "plugin");
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        //this is delayed to register only after recipes are synced to client
-        //registration.addRecipes(RealNiceJeiCategory.recipeType, recipeConfig.INSTANCE.recipeList);
+
     }
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new RealNiceJeiCategory());
+
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(ENGINEERING_STATION.get(), RecipeTypes.CRAFTING);
-        registration.addRecipeCatalyst(ENGINEERING_STATION.get(), RealNiceJeiCategory.recipeType);
+        registration.addRecipeCatalyst(WAREHOUSE_CRAFTER.get(), RecipeTypes.CRAFTING);
+        registration.addRecipeCatalyst(WAREHOUSE_CRAFTER.get(), ResearchSystem.jei.RealNiceJeiCategory.recipeType);
     }
 
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
 
-        IUniversalRecipeTransferHandler<MenuEngineeringStation> whateverbs = new IUniversalRecipeTransferHandler<>() {
+        IUniversalRecipeTransferHandler<MenuWarehouseCrafter> whateverbs = new IUniversalRecipeTransferHandler<>() {
             @Override
-            public @NotNull Class<MenuEngineeringStation> getContainerClass() {
-                return MenuEngineeringStation.class;
+            public @NotNull Class<MenuWarehouseCrafter> getContainerClass() {
+                return MenuWarehouseCrafter.class;
             }
 
             @Override
-            public @NotNull Optional<MenuType<MenuEngineeringStation>> getMenuType() {
-                return Optional.of(MENU_ENGINEERING_STATION.get());
+            public @NotNull Optional<MenuType<MenuWarehouseCrafter>> getMenuType() {
+                return Optional.of(MENU_WAREHOUSE_CRAFTER.get());
             }
 
 
@@ -90,7 +91,7 @@ public class myPlugin implements IModPlugin {
              */
             @Nullable
             public IRecipeTransferError transferRecipe(
-                    MenuEngineeringStation container,
+                    MenuWarehouseCrafter container,
                     Object recipe,
                     IRecipeSlotsView recipeSlots,
                     Player player,
@@ -178,17 +179,8 @@ public class myPlugin implements IModPlugin {
         registration.addUniversalRecipeTransferHandler(whateverbs);
     }
 
-    // I refuse to use the built in recipe system because it is complicated and i like to do things my way
-    // so i made the recipe config execute this runnable on config sync
-    public void onConfigReceived() {
-        runtime.getRecipeManager().addRecipes(RealNiceJeiCategory.recipeType, RecipeConfig.INSTANCE.recipeList);
-        System.out.println("delayed jei registration completed");
-    }
-
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
-        runtime = jeiRuntime;
-        System.out.println("jei runtime available now");
-        RecipeConfig.jeiRunnableOnConfigLoad.add (this::onConfigReceived);
+
     }
 }

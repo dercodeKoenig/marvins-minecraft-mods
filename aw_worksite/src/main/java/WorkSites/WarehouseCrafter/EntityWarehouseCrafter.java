@@ -4,9 +4,9 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.RecipeConfig;
-import ResearchSystem.EngineeringStation.BlockEngineeringStation;
 import ResearchSystem.EngineeringStation.CraftingContainerItemStackHandler;
 import ResearchSystem.ResearchStation.ItemResearchBook;
+import WorkSites.Warehouse.EntityWarehouse;
 import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -26,7 +26,12 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.List;
-import java.util.Optional;;
+import java.util.Optional;
+
+import static WorkSites.Registry.ENTITY_WAREHOUSE_CRAFTER;
+
+
+///  this entire Package is almost exact copy of the Engineering Station from the research system
 
 public class EntityWarehouseCrafter extends BlockEntity implements INetworkTagReceiver {
 
@@ -89,15 +94,17 @@ public class EntityWarehouseCrafter extends BlockEntity implements INetworkTagRe
         setChanged();
         updateCraftingContainerFromCraftingInventory();
 
+        /*
         //update blockstate to show/hide book
         // do not use my own blockstate, it could have changed on remove after pop-inventory
-        if (level.getBlockState(getBlockPos()).getBlock() instanceof ResearchSystem.EngineeringStation.BlockEngineeringStation) {
+        if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockWarehouseCrafter) {
             if (bookInventory.getStackInSlot(0).getItem() instanceof ItemResearchBook && bookInventory.getStackInSlot(0).getCount()>0) {
-                level.setBlock(getBlockPos(), getBlockState().setValue(ResearchSystem.EngineeringStation.BlockEngineeringStation.HAS_BOOK, true), 3);
+                level.setBlock(getBlockPos(), getBlockState().setValue(BlockWarehouseCrafter.HAS_BOOK, true), 3);
             } else {
-                level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, false), 3);
+                level.setBlock(getBlockPos(), getBlockState().setValue(BlockWarehouseCrafter.HAS_BOOK, false), 3);
             }
         }
+         */
     }
 
     public ItemStackHandler bookInventory = new ItemStackHandler(1) {
@@ -154,6 +161,13 @@ onBookContentChanged();
             List<List<String>> recipe, // the target recipe, the List<String> holds valid ids for the slot
             ServerPlayer player
     ) {
+
+        BlockEntity be = level.getBlockEntity(getBlockPos().below());
+        EntityWarehouse warehouse = null;
+        if(be instanceof EntityWarehouse w)
+            warehouse = w;
+
+
         if (recipe.size() != 9) return; // it should be 3x3
         Inventory playerInv = player.getInventory();
 
@@ -170,12 +184,14 @@ onBookContentChanged();
             }
 
             if (needsClearSlot) {
-                for (int i = 0; i < inputInventory.getSlots(); i++) {
-                    stackInSlot = craftingInventory.getStackInSlot(n);
-                    int numBefore = stackInSlot.getCount();
-                    ItemStack remaining = inputInventory.insertItem(i, stackInSlot.copy(), false);
-                    int wasInserted = numBefore - remaining.getCount();
-                    stackInSlot.shrink(wasInserted);
+                if(warehouse != null) {
+                    for (int i = 0; i < warehouse.myItemHandler.getSlots(); i++) {
+                        stackInSlot = craftingInventory.getStackInSlot(n);
+                        int numBefore = stackInSlot.getCount();
+                        ItemStack remaining = warehouse.myItemHandler.insertItem(i, stackInSlot.copy(), false);
+                        int wasInserted = numBefore - remaining.getCount();
+                        stackInSlot.shrink(wasInserted);
+                    }
                 }
 
                 stackInSlot = craftingInventory.getStackInSlot(n);
@@ -186,25 +202,27 @@ onBookContentChanged();
                 }
             }
 
-            for (int i = 0; i < inputInventory.getSlots(); i++) {
-                stackInSlot = craftingInventory.getStackInSlot(n);
-                ItemStack stackAvailable = inputInventory.getStackInSlot(i);
+            if(warehouse != null) {
+                for (int i = 0; i < warehouse.myItemHandler.getSlots(); i++) {
+                    stackInSlot = craftingInventory.getStackInSlot(n);
+                    ItemStack stackAvailable = warehouse.myItemHandler.getStackInSlot(i);
 
-                for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
-                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p), RecipePart.class);
-                    if (ItemUtils.matches(allowed.id, stackAvailable)) {
-                        int required = Math.max(0, allowed.amount - stackInSlot.getCount());
-                        if (required == 0) {
-                            break;
-                        }
-                        ItemStack extracted = inputInventory.extractItem(i, required, true);
-                        ItemStack notInserted = craftingInventory.insertItem(n, extracted, true);
-                        int canInsert = extracted.getCount() - notInserted.getCount();
-                        extracted = inputInventory.extractItem(i, canInsert, false);
-                        notInserted = craftingInventory.insertItem(n, extracted, false);
-                        if (!notInserted.isEmpty()) {
-                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n + ". Moving it back to input inventory");
-                            inputInventory.insertItem(i, notInserted, false);
+                    for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
+                        RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p), RecipePart.class);
+                        if (ItemUtils.matches(allowed.id, stackAvailable)) {
+                            int required = Math.max(0, allowed.amount - stackInSlot.getCount());
+                            if (required == 0) {
+                                break;
+                            }
+                            ItemStack extracted = warehouse.myItemHandler.extractItem(i, required, true);
+                            ItemStack notInserted = craftingInventory.insertItem(n, extracted, true);
+                            int canInsert = extracted.getCount() - notInserted.getCount();
+                            extracted = warehouse.myItemHandler.extractItem(i, canInsert, false);
+                            notInserted = craftingInventory.insertItem(n, extracted, false);
+                            if (!notInserted.isEmpty()) {
+                                System.out.println("error - could not insert all into craftingInventory," + i + ":" + n + ". Moving it back to input inventory");
+                                warehouse.myItemHandler.insertItem(i, notInserted, false);
+                            }
                         }
                     }
                 }

@@ -4,6 +4,7 @@ import ARLib.utils.ItemUtils;
 import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.EngineeringStation.CraftingContainerItemStackHandler;
 import ResearchSystem.EngineeringStation.EntityEngineeringStation;
+import WorkSites.Warehouse.EntityWarehouse;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,6 +19,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
+import static WorkSites.Registry.MENU_WAREHOUSE_CRAFTER;
 
 public class MenuWarehouseCrafter extends AbstractContainerMenu {
 
@@ -39,7 +42,7 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
     }
 
     public MenuWarehouseCrafter(int containerId, Inventory playerInv, EntityWarehouseCrafter station) {
-        super(MENU_ENGINEERING_STATION.get(), containerId);
+        super(MENU_WAREHOUSE_CRAFTER.get(), containerId);
         this.station = station;
 
         int craftingx = 65;
@@ -101,7 +104,7 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
                                             matches = false;
                                         } else {
                                             itemstack.shrink(inp.input.amount);
-                                            if(inp.onComplete != null) {
+                                            if (inp.onComplete != null) {
                                                 ItemStack toProduce = ItemUtils.getItemStackFromIdOrTag(inp.onComplete.id, inp.onComplete.amount, station.getLevel().registryAccess());
                                                 if (toProduce != null) {
                                                     moveItemStackTo(toProduce, 11, 11 + 4 * 9 + 18, false);
@@ -120,27 +123,33 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
                             }
                         }
                     }
+                    BlockEntity be = station.getLevel().getBlockEntity(station.getBlockPos().below());
+                    EntityWarehouse warehouse = null;
+                    if (be instanceof EntityWarehouse w)
+                        warehouse = w;
 
                     // now re-stock from inventory
-                    for (int i = 0; i < station.craftingInventory.getSlots(); i++) {
-                        ItemStack savedStack = savedStacks.get(i);
-                        for (int j = 0; j < station.inputInventory.getSlots(); j++) {
-                            ItemStack stackInSlot = station.craftingInventory.getStackInSlot(i);
-                            int diff = savedStack.getCount() - stackInSlot.getCount();
-                            if (diff == 0) break;
-                            ItemStack availableStack = station.inputInventory.getStackInSlot(j);
-                            if (ItemStack.isSameItemSameComponents(availableStack, savedStack)) {
-                                ItemStack remaining = station.craftingInventory.insertItem(i, availableStack, true);
-                                int toInsert = Math.min(diff, availableStack.getCount() - remaining.getCount());
-                                if (toInsert > 0) {
-                                    ItemStack extracted = station.inputInventory.extractItem(j, toInsert, false);
-                                    station.craftingInventory.insertItem(i, extracted, false);
+                    if (warehouse != null) {
+                        for (int i = 0; i < station.craftingInventory.getSlots(); i++) {
+                            ItemStack savedStack = savedStacks.get(i);
+                            for (int j = 0; j < warehouse.myItemHandler.getSlots(); j++) {
+                                ItemStack stackInSlot = station.craftingInventory.getStackInSlot(i);
+                                int diff = savedStack.getCount() - stackInSlot.getCount();
+                                if (diff == 0) break;
+                                ItemStack availableStack = warehouse.myItemHandler.getStackInSlot(j);
+                                if (ItemStack.isSameItemSameComponents(availableStack, savedStack)) {
+                                    ItemStack remaining = station.craftingInventory.insertItem(i, availableStack, true);
+                                    int toInsert = Math.min(diff, availableStack.getCount() - remaining.getCount());
+                                    if (toInsert > 0) {
+                                        ItemStack extracted = warehouse.myItemHandler.extractItem(j, toInsert, false);
+                                        station.craftingInventory.insertItem(i, extracted, false);
+                                    }
                                 }
                             }
+                            //System.out.println(station.craftingInventory.getStackInSlot(i)+":"+i);
                         }
-                        //System.out.println(station.craftingInventory.getStackInSlot(i)+":"+i);
+                        //station.craftingInventory.setChanged();
                     }
-                    //station.craftingInventory.setChanged();
                 }
             }
         });
@@ -154,12 +163,6 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
         for (int i = 9; i < 9 * 4; i++) {
             addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, yoffset2 + i / 9 * 18));
         }
-
-        // 11+4*9 - 11+4*9*18 inputInventory
-        int yoffset = 75;
-        for (int i = 0; i < 18; i++) {
-            addSlot(new SlotItemHandler(station != null ? station.inputInventory : new ItemStackHandler(18), i, 10 + i % 9 * 18, yoffset + i / 9 * 18));
-        }
     }
 
     @Override
@@ -170,7 +173,7 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
             stack = slot.getItem();
             ItemStack stack1 = stack.copy();
             if (index == 10) {
-                if (!moveItemStackTo(stack1, 11, 11 + 4 * 9 + 18, false)) {
+                if (!moveItemStackTo(stack1, 11, 11 + 4 * 9, false)) {
                     return ItemStack.EMPTY;
                 }
                 slots.get(index).onQuickCraft(stack, stack1);
@@ -182,20 +185,13 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
                 }
             }
             else if (index < 10) {
-                if (!moveItemStackTo(stack, 11, 11 + 4 * 9 + 18, false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else if (index > 10 && index < 11 + 4 * 9) {
-                // try to insert into bookslot first
-                moveItemStackTo(stack, 9, 10, false);
-                // if no book, insert into input inventory slots
-                if (!moveItemStackTo(stack, 11 + 4 * 9, 11 + 4 * 9 + 18, false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else if (index >= 11 + 4 * 9) {
                 if (!moveItemStackTo(stack, 11, 11 + 4 * 9, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else if (index > 10) {
+                // try to insert into bookslot first
+                if(!moveItemStackTo(stack, 0, 10, true)) {
                     return ItemStack.EMPTY;
                 }
             }

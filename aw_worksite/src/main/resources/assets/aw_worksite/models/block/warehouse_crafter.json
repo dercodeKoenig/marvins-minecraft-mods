@@ -1,0 +1,12 @@
+{
+    "parent": "minecraft:block/cube",
+    "textures": {
+        "particle": "aw_worksite:block/warehouse_crafting_front",
+        "down": "aw_worksite:block/warehouse_crafting_bottom",
+        "up": "aw_worksite:block/warehouse_crafting_top",
+        "north": "aw_worksite:block/warehouse_crafting_front",
+        "south": "aw_worksite:block/warehouse_crafting_side",
+        "east": "aw_worksite:block/warehouse_crafting_side",
+        "west": "aw_worksite:block/warehouse_crafting_side"
+    }
+}

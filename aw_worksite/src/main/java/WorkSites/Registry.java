@@ -104,6 +104,7 @@ public class Registry {
         registerBlockItem("fish_farm", FISH_FARM);
         registerBlockItem("quarry", QUARRY);
         registerBlockItem("warehouse", WAREHOUSE);
+        registerBlockItem("warehouse_crafter", WAREHOUSE_CRAFTER);
     }
 
     public static void register(IEventBus modBus) {
