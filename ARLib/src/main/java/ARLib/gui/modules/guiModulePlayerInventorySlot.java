@@ -101,7 +101,16 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
             // move all items in the current slot to slots of the instant transfer target group
             // loop over all modules and try to find a module where the group id matches the transfer target
 
-            for (GuiModuleBase i : this.guiHandler.getModules()) {
+
+            List<GuiModuleBase> allModules =new ArrayList<>(this.guiHandler.getModules());
+            for (GuiModuleBase i : new ArrayList<>(allModules)) {
+                if (i instanceof guiModuleScrollContainer container) {
+                    allModules.addAll(container.getAllModulesAndSubModules());
+                }
+            }
+
+            for (GuiModuleBase i : allModules) {
+
                 if (i instanceof guiModulePlayerInventorySlot j) {
                     if (j.invGroup == instantTransferTarget) {
                         ItemStack notInserted = j.insertItemIntoSlot(player, stack, stack.getCount());

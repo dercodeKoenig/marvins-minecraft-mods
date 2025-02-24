@@ -57,7 +57,9 @@ public interface IGuiHandler {
                 dropSinglePlayersCarriedItem(player);
         }
 
-        for (GuiModuleBase m : getModules()) {
+        for (int i = 0; i < getModules().size(); i++) {
+            if (!(i < getModules().size())) break;
+            GuiModuleBase m = getModules().get(i);
             m.server_readNetworkData(tag);
         }
     }

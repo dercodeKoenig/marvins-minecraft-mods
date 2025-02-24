@@ -12,6 +12,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
 
     IItemHandler itemHandler;
@@ -35,7 +38,9 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
             myTag.putBoolean("isEmpty", itemHandler.getStackInSlot(targetSlot).isEmpty());
             if (!itemHandler.getStackInSlot(targetSlot).isEmpty()) {
                 CompoundTag itemTag = new CompoundTag();
-                myTag.put("ItemStack", itemHandler.getStackInSlot(targetSlot).save(registryAccess, itemTag));
+                myTag.put("ItemStack", itemHandler.getStackInSlot(targetSlot).copyWithCount(1).save(registryAccess, itemTag));
+                // as of 1.21.1, itemstacks can only be saved up to 99 items, so make a custom integer to set the count
+                myTag.putInt("ItemStackCount", itemHandler.getStackInSlot(targetSlot).getCount());
             }
             tag.put(getMyTagKey(), myTag);
         }
@@ -45,26 +50,27 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
     }
 
     @Override
-    public void serverTick(){
-        if (!ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(targetSlot),lastStack) || itemHandler.getStackInSlot(targetSlot).getCount() != lastStack.getCount()){
-            broadcastModuleUpdate();
-            lastStack = itemHandler.getStackInSlot(targetSlot).copy();
-        }
-    }
-
-    @Override
     public void client_handleDataSyncedToClient(CompoundTag tag) {
         if (tag.contains(getMyTagKey())) {
             CompoundTag myTag = tag.getCompound(getMyTagKey());
             RegistryAccess registryAccess = Minecraft.getInstance().level.registryAccess();
-            if (myTag.contains("ItemStack")) {
+            if (myTag.contains("ItemStack") && myTag.contains("ItemStackCount")) {
                 this.stack = ItemStack.parse(registryAccess, myTag.getCompound("ItemStack")).orElse(ItemStack.EMPTY);
+                this.stack.setCount(myTag.getInt("ItemStackCount"));
             } else {
                 if (myTag.contains("isEmpty") && myTag.getBoolean("isEmpty"))
                     this.stack = ItemStack.EMPTY;
             }
         }
         super.client_handleDataSyncedToClient(tag);
+    }
+
+    @Override
+    public void serverTick(){
+        if (!ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(targetSlot),lastStack) || itemHandler.getStackInSlot(targetSlot).getCount() != lastStack.getCount()){
+            broadcastModuleUpdate();
+            lastStack = itemHandler.getStackInSlot(targetSlot).copy();
+        }
     }
 
     public guiModuleItemHandlerSlot(int id, IItemHandler itemHandler, int targetSlot, int inventoryGroupId, int instantTransferTargetGroup, IGuiHandler guiHandler, int x, int y) {
@@ -121,7 +127,14 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
             // move all items in the current slot to slots of the instant transfer target group
             // loop over all modules and try to find a module where the group id matches the transfer target
 
-            for (GuiModuleBase i : this.guiHandler.getModules()) {
+            List<GuiModuleBase> allModules =new ArrayList<>(this.guiHandler.getModules());
+            for (GuiModuleBase i : new ArrayList<>(allModules)) {
+                if (i instanceof guiModuleScrollContainer container) {
+                    allModules.addAll(container.getAllModulesAndSubModules());
+                }
+            }
+
+            for (GuiModuleBase i : allModules) {
                 if (i instanceof guiModuleItemHandlerSlot j) {
                     if (j.invGroup == instantTransferTarget) {
                         ItemStack notInserted = j.insertItemIntoSlot(stack, stack.getCount());

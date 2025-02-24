@@ -4,6 +4,7 @@ import ARLib.gui.IGuiHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -22,6 +23,18 @@ public class guiModuleScrollContainer extends GuiModuleBase {
         this.h = h;
         this.modules = modules;
         this.backgroundColor = backgroundColor;
+    }
+
+    public List<GuiModuleBase> getAllModulesAndSubModules(){
+        List<GuiModuleBase> allModules = new ArrayList<>();
+        for (GuiModuleBase i: modules){
+            allModules.add(i);
+            if(i instanceof guiModuleScrollContainer container){
+                List<GuiModuleBase> sublist = container.getAllModulesAndSubModules();
+                allModules.addAll(sublist);
+            }
+        }
+        return allModules;
     }
 
     @Override
@@ -128,7 +141,7 @@ public class guiModuleScrollContainer extends GuiModuleBase {
         }
     }
 
-    protected String getMyTagKey() {
+    public String getMyTagKey() {
         return "moduleTag" + this.id;
     }
 }

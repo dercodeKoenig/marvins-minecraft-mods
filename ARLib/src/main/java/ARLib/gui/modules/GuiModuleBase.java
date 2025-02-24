@@ -100,10 +100,10 @@ public class GuiModuleBase {
 
     }
 
-    protected String getMyTagKey(){
+    public String getMyTagKey(){
         return "moduleTag"+this.id;
     }
-    private String getMySuperTagKey(){
+    public String getMySuperTagKey(){
         return "moduleTag_s_"+this.id;
     }
 }

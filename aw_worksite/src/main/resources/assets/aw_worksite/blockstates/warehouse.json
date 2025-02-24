@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": {"model": "aw_worksite:block/warehouse"},
+        "facing=south": {"model": "aw_worksite:block/warehouse", "y": 180},
+        "facing=west": {"model": "aw_worksite:block/warehouse", "y": 270},
+        "facing=east": {"model": "aw_worksite:block/warehouse", "y": 90}
+    }
+}
