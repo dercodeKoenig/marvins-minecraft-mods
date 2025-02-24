@@ -38,10 +38,10 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         super(ENTITY_WAREHOUSE.get(), pos, blockState);
 
 
-        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 1, guiHandlerMain)) {
+        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 2, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
         }
-        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 150, 600, 0, 1, guiHandlerMain)) {
+        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 150, 600, 0, 2, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
         }
 
@@ -71,7 +71,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
             BlockPos nextPosToScan = allowedBlocksList.get(currentBlockToScanIndex_blocks);
             currentBlockToScanIndex_blocks += 1;
 
-            if (!knownInventories.keySet().contains(nextPosToScan)) {
+            if (!knownInventories.containsKey(nextPosToScan)) {
                 BlockEntity be = level.getBlockEntity(nextPosToScan);
                 if (be != null) {
                     IItemHandler inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, nextPosToScan, be.getBlockState(), be, Direction.UP);
@@ -225,6 +225,11 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     // a blockentity in here may no longer contain the item or is completely removed
     public Map<ComparableItemStack, LinkedHashSet<BlockEntity>> whereItemStacksComeFrom = new HashMap<>();
 
+    // insertion and extraction can be compute expensive on large storage areas.
+    // if another program wants to insert into this inventory and it fails,
+    // the program needs not to try again until this value changes indicating the inventory has changed
+    public long lastContentUpdateTime = 0;
+
     public void addBlockEntityInventory(BlockEntity e) {
         knownInventories.put(e.getBlockPos(), e);
         knownInventoriesList = new ArrayList<>(knownInventories.values());
@@ -335,6 +340,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                 if (numSlotsAfter != numSlotsBefore) {
                     updateGuiSlots();
                 }
+                lastContentUpdateTime = level.getGameTime();
                 //System.out.println(e.getBlockPos()+" was rescanned");
             }
         } else {
@@ -362,11 +368,15 @@ public class EntityWarehouse extends EntityWorkSiteBase {
 
     public void updateGuiSlots() {
         scrollContainer.modules.clear();
-        int i = 0;
-        for (; i < myItemHandler.getSlots(); i++) {
+        for (int i = 0; i < myItemHandler.getSlots(); i++) {
             int x = i % 9 * 18;
             int y = i / 9 * 18;
-            guiModuleItemHandlerSlot slot = new guiModuleItemHandlerSlot(10000 + i, myItemHandler, i, 1, 0, guiHandlerMain, x, y);
+            // because the guihandler will try to insert in any slot of this group,
+            // but the itemhandler does not care about the index and will scan the entire area if required
+            // if you have the group id on all slots it can in worst case do a full rescan for EVERY slot currently in the inventory
+            // so only make the correct group id on the last (or any) slot
+            int inventoryGroup = i+1 == myItemHandler.getSlots() ? 2 : 1;
+            guiModuleItemHandlerSlot slot = new guiModuleItemHandlerSlot(10000 + i, myItemHandler, i, inventoryGroup, 0, guiHandlerMain, x, y);
             scrollContainer.modules.add(slot);
         }
         notifyPlayersOfSlotNum(null);
