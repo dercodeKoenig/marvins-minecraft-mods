@@ -9,6 +9,7 @@ import ResearchSystem.ResearchStation.ItemResearchBook;
 import WorkSites.Warehouse.EntityWarehouse;
 import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -162,10 +163,14 @@ onBookContentChanged();
             ServerPlayer player
     ) {
 
-        BlockEntity be = level.getBlockEntity(getBlockPos().below());
         EntityWarehouse warehouse = null;
-        if(be instanceof EntityWarehouse w)
-            warehouse = w;
+        for(Direction facing : Direction.values()) {
+            BlockEntity be = getLevel().getBlockEntity(getBlockPos().relative(facing));
+            if (be instanceof EntityWarehouse w) {
+                warehouse = w;
+                break;
+            }
+        }
 
 
         if (recipe.size() != 9) return; // it should be 3x3

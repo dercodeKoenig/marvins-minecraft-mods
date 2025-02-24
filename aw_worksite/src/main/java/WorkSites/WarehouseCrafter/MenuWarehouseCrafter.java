@@ -6,6 +6,7 @@ import ResearchSystem.EngineeringStation.CraftingContainerItemStackHandler;
 import ResearchSystem.EngineeringStation.EntityEngineeringStation;
 import WorkSites.Warehouse.EntityWarehouse;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -123,10 +124,14 @@ public class MenuWarehouseCrafter extends AbstractContainerMenu {
                             }
                         }
                     }
-                    BlockEntity be = station.getLevel().getBlockEntity(station.getBlockPos().below());
                     EntityWarehouse warehouse = null;
-                    if (be instanceof EntityWarehouse w)
-                        warehouse = w;
+                    for(Direction facing : Direction.values()) {
+                        BlockEntity be = station.getLevel().getBlockEntity(station.getBlockPos().relative(facing));
+                        if (be instanceof EntityWarehouse w) {
+                            warehouse = w;
+                            break;
+                        }
+                    }
 
                     // now re-stock from inventory
                     if (warehouse != null) {
