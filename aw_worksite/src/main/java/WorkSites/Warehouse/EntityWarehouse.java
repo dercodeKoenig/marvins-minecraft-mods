@@ -224,22 +224,22 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         }
 
         IItemHandler itemHandler = level.getCapability(Capabilities.ItemHandler.BLOCK, e.getBlockPos(), e.getBlockState(), e, Direction.UP);
-        LinkedHashSet<ItemStack> cachedContents = fullItemStacksMap_copy.getFromvalue(e.getBlockPos());
         if (itemHandler != null) {
             // check if anything in the inventory has changed since last scanning
             // if nothing is changed, the set should be exactly as the itemhandler by item, components and count
+            LinkedHashSet<ItemStack> lastContents = fullItemStacksMap_copy.getFromvalue(e.getBlockPos());
             boolean needsRescan = false;
-                if (cachedContents.size() != itemHandler.getSlots()) {
-                    needsRescan = true;
-                } else {
-                    List<ItemStack> cachedStackList = cachedContents.stream().toList();
-                    for (int i = 0; i < cachedStackList.size(); i++) {
-                        if (!ItemStack.isSameItemSameComponents(cachedStackList.get(i), itemHandler.getStackInSlot(i)) || cachedStackList.get(i).getCount() != itemHandler.getStackInSlot(i).getCount()) {
-                            needsRescan = true;
-                            break;
-                        }
+            if (lastContents.size() != itemHandler.getSlots()) {
+                needsRescan = true;
+            } else {
+                List<ItemStack> cachedStackList = lastContents.stream().toList();
+                for (int i = 0; i < cachedStackList.size(); i++) {
+                    if (!ItemStack.isSameItemSameComponents(cachedStackList.get(i), itemHandler.getStackInSlot(i)) || cachedStackList.get(i).getCount() != itemHandler.getStackInSlot(i).getCount()) {
+                        needsRescan = true;
+                        break;
                     }
                 }
+            }
             if (needsRescan) {
                 // if the inventory is changed, first revert the added itemstacks to the full map
                 // last scan it added some itemstacks to the full map. now this exact items need to be removed again
@@ -260,18 +260,18 @@ public class EntityWarehouse extends EntityWorkSiteBase {
 
                 for (int i = 0; i < itemHandler.getSlots(); i++) {
                     ItemStack stackInSlot = itemHandler.getStackInSlot(i);
-                    if(stackInSlot.isEmpty()) {
+                    if (stackInSlot.isEmpty()) {
                         // this entry will be used later to check for inventory change
                         // do not use .copy on empty stack, this will not work! it will return ItemStack.EMPTY as of 1.21.1
                         fullItemStacksMap_copy.put(new ItemStack(Items.AIR, 0), e.getBlockPos());
-                    }else{
+                    } else {
                         // because some blocks like chests can have 2 positions and 2 itemhandler,
                         // this can cause items to be scanned and added double.
                         // because of this, check if the reference to this itemstack is already registered
                         // and only add it if it is not.
                         // because the references to all itemstacks addedby this inventory are cleared above,
                         // if there is stil a reference this indicates that the itemstack was already added by another blockentity on a shared inventory
-                        if(filteredItemStacksMap_reference.getFromKey(stackInSlot) == null) {
+                        if (filteredItemStacksMap_reference.getFromKey(stackInSlot) == null) {
                             // add the reference for future scans
                             filteredItemStacksMap_reference.put(stackInSlot, e.getBlockPos());
                             // add the copy to revert adding to the full map on the next inventory change
