@@ -64,7 +64,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                 if (be != null) {
                     IItemHandler inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, nextPosToScan, be.getBlockState(), be, Direction.UP);
                     if (inventory != null) {
-                        addBlockEntityInventory(be, inventory);
+                        addBlockEntityInventory(be);
                     }
                 }
             }
@@ -191,7 +191,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     // (dont touch it and it should work)
     public Map<ComparableItemStack, Integer> allItemStacksWithCount = new HashMap<>();
 
-    public void addBlockEntityInventory(BlockEntity e, IItemHandler handler) {
+    public void addBlockEntityInventory(BlockEntity e) {
         knownInventories.put(e.getBlockPos(), e);
         knownInventoriesList = new ArrayList<>(knownInventories.values());
     }
