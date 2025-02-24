@@ -3,6 +3,7 @@ package WorkSites.Quarry;
 import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.utils.InventoryUtils;
+import WorkSites.Config;
 import WorkSites.EntityWorkSiteBase;
 import WorkSites.Main;
 import net.minecraft.core.BlockPos;
@@ -29,10 +30,11 @@ public class EntityQuarry extends EntityWorkSiteBase {
 
     public static Set<BlockPos> knownQuarries = new HashSet<>();
 
-    public int energy_try_quarry = 8000;
+    public int energy_try_quarry = Config.INSTANCE.energy_try_quarry;
     int yTarget = 0;
+    int structureW = 3;
+
     Set<BlockPos> structureBlocks = new HashSet<>();
-    int structureW = 2;
 
     public TreeSet<BlockPos> blocksToMine = new TreeSet<>(new Comparator<BlockPos>() {
         @Override
@@ -166,8 +168,10 @@ public class EntityQuarry extends EntityWorkSiteBase {
     @Override
     public void updateAllowedBlocksList() {
 
+        // this thing computes a stair pattern
+        // dont ask me how it works, i did this months ago and already forgot about it
+        
         blocksToMine.clear();
-
         structureBlocks.clear();
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         boolean useCounterClockWise = controllerOffsetW < w / 2;

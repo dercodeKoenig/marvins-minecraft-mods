@@ -9,7 +9,6 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,7 +28,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
@@ -38,12 +36,14 @@ import java.util.*;
 public abstract class EntityWorkSiteBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     //config
-    public static boolean allowMechanicalEnergy = true;
+    public static boolean allowMechanicalEnergy = Config.INSTANCE.allow_mechanical_energy;
 
     public int maxSize = 16; // can be modified with bounds upgrades
     public int minSize = 1;
 
-    public int maxWorkersAllowed = 2;
+    public double k = Config.INSTANCE.k;
+
+    public int maxWorkersAllowed = 2; // for npc module
     // config end
 
     public static Set<BlockPos> knownWorkSites = new HashSet<>();
@@ -67,7 +67,7 @@ public abstract class EntityWorkSiteBase extends BlockEntity implements IMechani
     public BlockPos pmin;
     public BlockPos pmax;
 
-    public IEnergyStorage battery = new EnergyStorage(10000) {
+    public IEnergyStorage battery = new EnergyStorage(Config.INSTANCE.max_energy_storage) {
         @Override
         public int receiveEnergy(int toReceive, boolean simulate) {
             int r = super.receiveEnergy(toReceive, simulate);
@@ -84,7 +84,6 @@ public abstract class EntityWorkSiteBase extends BlockEntity implements IMechani
     };
 
     public double currentResistance;
-    public double k = 10;
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -172,7 +171,7 @@ super.setRemoved();
                 }
             }
 
-            // timeout workers
+            // timeout workers for npc module
                 for (Entity e : workersWorkingHereWithTimeout.keySet()){
                     int ticks = workersWorkingHereWithTimeout.get(e);
                     workersWorkingHereWithTimeout.put(e, ticks+1);

@@ -48,11 +48,14 @@ public abstract class BlockWorkSiteBase extends Block implements EntityBlock {
         if (m instanceof EntityWorkSiteBase c) {
             if (!player.isShiftKeyDown()) {
                 c.openMainGui();
-                if (level.isClientSide) {
-                    c.renderInfoTimer = 20 * 120;
-                }
             } else {
-                c.renderInfoTimer = 0;
+                if (level.isClientSide) {
+                    if(c.renderInfoTimer != 0)
+                        c.renderInfoTimer = 0;
+                    else
+                        c.renderInfoTimer = 20 * 120;
+                }
+
             }
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;

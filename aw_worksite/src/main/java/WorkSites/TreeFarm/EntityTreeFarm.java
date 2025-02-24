@@ -2,6 +2,7 @@ package WorkSites.TreeFarm;
 
 import ARLib.gui.modules.*;
 import ARLib.utils.InventoryUtils;
+import WorkSites.Config;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -27,10 +28,10 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
 
     public static Set<BlockPos> knownTreeFarms = new HashSet<>();
 
-    public int energy_plant = 4000;
-    public int energy_harvest_leaves = 2000;
-    public int energy_harvest_logs = 9000;
-    public int energy_boneMeal = 2000;
+    public int energy_plant = Config.INSTANCE.tree_farm_energy_plant;
+    public int energy_harvest_leaves = Config.INSTANCE.tree_farm_energy_harvest_leaves;
+    public int energy_harvest_logs = Config.INSTANCE.tree_farm_energy_harvest_logs;
+    public int energy_boneMeal = Config.INSTANCE.tree_farm_energy_boneMeal;
 
     public int useWoodmillsInRadius = 32;
     guiModuleTextInput useWoodmillsInRadiusTextInput;

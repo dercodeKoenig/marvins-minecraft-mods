@@ -5,6 +5,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.utils.InventoryUtils;
+import WorkSites.Config;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,11 +34,11 @@ import static WorkSites.Registry.ENTITY_FISH_FARM;
 public class EntityFishFarm extends EntityWorkSiteBase {
     public static Set<BlockPos> knownFishFarms = new HashSet<>();
 
-    public int energy_try_fish = 8000;
+    public int energy_try_fish = Config.INSTANCE.energy_try_fish;
     int depth = 5;
 
     // a fish farm with this size would always find something during fish step
-    // a sfish farm half the size will find about half as often something
+    // a fish farm half the size will find about half as often something
     // set it larger to reduce findings
     int maxVolumeForP = 64 * 64 * depth * 2;
 

@@ -2,14 +2,13 @@ package WorkSites.CropFarm;
 
 import ARLib.gui.modules.*;
 import ARLib.utils.InventoryUtils;
+import WorkSites.Config;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,9 +25,9 @@ import static WorkSites.Registry.ENTITY_CROP_FARM;
 public class EntityCropFarm extends EntityWorkSiteBase {
     public static Set<BlockPos> knownCropFarms = new HashSet<>();
 
-    public int energy_plant = 3000;
-    public int energy_harvest = 3000;
-    public int energy_boneMeal = 2000;
+    public int energy_plant = Config.INSTANCE.crop_farm_energy_plant;
+    public int energy_harvest = Config.INSTANCE.crop_farm_energy_harvest;
+    public int energy_boneMeal = Config.INSTANCE.crop_farm_energy_boneMeal;
 
     public int useMillStonesInRadius = 32;
     guiModuleTextInput useMillStonesInRadiusTextInput;
