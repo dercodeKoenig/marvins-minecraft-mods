@@ -1,0 +1,12 @@
+{
+    "parent": "minecraft:block/cube",
+    "textures": {
+        "particle": "aw_worksite:block/warehouse_interface_side",
+        "down": "aw_worksite:block/warehouse_interface_bottom",
+        "up": "aw_worksite:block/warehouse_interface_top",
+        "north": "aw_worksite:block/warehouse_interface_side",
+        "south": "aw_worksite:block/warehouse_interface_side",
+        "east": "aw_worksite:block/warehouse_interface_side",
+        "west": "aw_worksite:block/warehouse_interface_side"
+    }
+}

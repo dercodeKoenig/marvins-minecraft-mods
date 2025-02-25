@@ -14,6 +14,8 @@ import WorkSites.Warehouse.EntityWarehouse;
 import WorkSites.WarehouseCrafter.BlockWarehouseCrafter;
 import WorkSites.WarehouseCrafter.EntityWarehouseCrafter;
 import WorkSites.WarehouseCrafter.MenuWarehouseCrafter;
+import WorkSites.WarehouseInterface.BlockWarehouseInterface;
+import WorkSites.WarehouseInterface.EntityWarehouseInterface;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -83,6 +85,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityWarehouse::new, WAREHOUSE.get()).build(null)
     );
 
+    public static final Supplier<Block> WAREHOUSE_INTERFACE = BLOCKS.register(
+            "warehouse_interface",
+            () -> new BlockWarehouseInterface()
+    );
+    public static final Supplier<BlockEntityType<EntityWarehouseInterface>> ENTITY_WAREHOUSE_INTERFACE = BLOCK_ENTITIES.register(
+            "entity_warehouse_interface",
+            () -> BlockEntityType.Builder.of(EntityWarehouseInterface::new, WAREHOUSE_INTERFACE.get()).build(null)
+    );
+
     public static final Supplier<Block> WAREHOUSE_CRAFTER = BLOCKS.register(
             "warehouse_crafter",
             () -> new BlockWarehouseCrafter()
@@ -105,6 +116,7 @@ public class Registry {
         registerBlockItem("quarry", QUARRY);
         registerBlockItem("warehouse", WAREHOUSE);
         registerBlockItem("warehouse_crafter", WAREHOUSE_CRAFTER);
+        registerBlockItem("warehouse_interface", WAREHOUSE_INTERFACE);
     }
 
     public static void register(IEventBus modBus) {

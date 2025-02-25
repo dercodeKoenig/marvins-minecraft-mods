@@ -5,6 +5,7 @@ import ARLib.gui.modules.*;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
 import WorkSites.EntityWorkSiteBase;
+import WorkSites.WarehouseInterface.EntityWarehouseInterface;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -64,6 +65,7 @@ public class EntityWarehouse extends EntityWorkSiteBase {
 
     public void scanStep() {
         // this will scan for new inventories one block a tick
+        // it also scans for interfaces and places itself as the warehouse reference to it
         if (!allowedBlocksList.isEmpty() && allowedBlocks.size() != knownInventoriesList.size()) {
             if (currentBlockToScanIndex_blocks >= allowedBlocksList.size()) {
                 currentBlockToScanIndex_blocks = 0;
@@ -74,9 +76,14 @@ public class EntityWarehouse extends EntityWorkSiteBase {
             if (!knownInventories.containsKey(nextPosToScan)) {
                 BlockEntity be = level.getBlockEntity(nextPosToScan);
                 if (be != null) {
-                    IItemHandler inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, nextPosToScan, be.getBlockState(), be, Direction.UP);
-                    if (inventory != null) {
-                        addBlockEntityInventory(be);
+                    if(be instanceof EntityWarehouseInterface warehouseInterface){
+                        warehouseInterface.warehouseReference = this;
+                    }
+                    else{
+                        IItemHandler inventory = level.getCapability(Capabilities.ItemHandler.BLOCK, nextPosToScan, be.getBlockState(), be, Direction.UP);
+                        if (inventory != null) {
+                            addBlockEntityInventory(be);
+                        }
                     }
                 }
             }
@@ -120,17 +127,6 @@ public class EntityWarehouse extends EntityWorkSiteBase {
             CompoundTag request = new CompoundTag();
             request.put("requestSlotNum", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, request));
-        } else {
-            //System.out.println(myItemHandler.insertItem(-1,new ItemStack(Items.BREAD,1),false));
-            //System.out.println(myItemHandler.getSlots());
-            //if(myItemHandler.getSlots() > 0){
-            //    System.out.println(myItemHandler.extractItem(myItemHandler.getSlots()-1,1,false));
-            //}
-            /*
-            for (int i = 0; i < myItemHandler.getSlots(); i++) {
-                System.out.println(myItemHandler.getStackInSlot(i));
-            }
-             */
         }
     }
 

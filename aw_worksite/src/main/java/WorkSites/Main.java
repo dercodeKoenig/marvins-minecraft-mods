@@ -27,7 +27,7 @@ import static WorkSites.Registry.*;
 @Mod(Main.MODID)
 public class Main {
 
-public static final String MODID = "aw_worksite";
+    public static final String MODID = "aw_worksite";
 
     public Main(IEventBus modEventBus, ModContainer modContaine) throws IOException {
         //modEventBus.register(this);
@@ -51,7 +51,7 @@ public static final String MODID = "aw_worksite";
         event.register(MENU_WAREHOUSE_CRAFTER.get(), ScreenWarehouseCrafter::new);
     }
 
-    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
 
     }
 
@@ -80,6 +80,7 @@ public static final String MODID = "aw_worksite";
             e.accept(QUARRY.get());
             e.accept(WAREHOUSE.get());
             e.accept(WAREHOUSE_CRAFTER.get());
+            e.accept(WAREHOUSE_INTERFACE.get());
         }
     }
 
@@ -89,25 +90,30 @@ public static final String MODID = "aw_worksite";
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_CROP_FARM.get(), (x, y) -> {
-            if (y == Direction.DOWN)return x.mainInventory;
-            if (y == Direction.UP)return x.inputsInventory;
+            if (y == Direction.DOWN) return x.mainInventory;
+            if (y == Direction.UP) return x.inputsInventory;
             else return x.specialResourcesInventory;
         });
 
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_TREE_FARM.get(), (x, y) -> {
-            if (y == Direction.DOWN)return x.mainInventory;
-            if (y == Direction.UP)return x.inputsInventory;
+            if (y == Direction.DOWN) return x.mainInventory;
+            if (y == Direction.UP) return x.inputsInventory;
             else return x.specialResourcesInventory;
         });
 
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_FISH_FARM.get(), (x, y) -> {
-            if (y == Direction.DOWN)return x.mainInventory;
+            if (y == Direction.DOWN) return x.mainInventory;
             else return x.specialResourcesInventory;
         });
 
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_QUARRY.get(), (x, y) -> {
-            if (y == Direction.DOWN)return x.mainInventory;
+            if (y == Direction.DOWN) return x.mainInventory;
             else return x.specialResourcesInventory;
+        });
+
+
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_WAREHOUSE_INTERFACE.get(), (x, y) -> {
+            return x.inventory;
         });
     }
 
