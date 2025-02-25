@@ -124,25 +124,11 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         }
 
         guiModuleText useWoodmillsInRadiusText = new guiModuleText(-1, "use woodmills: r=", guiHandlerMain, 60, 13, 0xff000000, false);
-        useWoodmillsInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
+        useWoodmillsInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10, true) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
-                String lastText = new String(text);
                 super.server_readNetworkData(tag);
-                try {
-                    if(text.length() > 1){
-                        while (text.charAt(0) == '0')
-                            this.text = this.text.substring(1, this.text.length());
-                    }
-                    useWoodmillsInRadius = Integer.parseInt(text);
-                    broadcastModuleUpdate();
-                } catch (NumberFormatException e) {
-                    if(text == "")
-                        text = "0";
-                    else
-                        text = lastText;
-                    broadcastModuleUpdate();
-                }
+                useWoodmillsInRadius = textInt;
             }
         };
         if(ModList.get().isLoaded("aw_npc")) {

@@ -114,25 +114,11 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         }
 
         guiModuleText useMillStonesInRadiusText = new guiModuleText(-1, "use millstones: r=", guiHandlerMain, 60, 13, 0xff000000, false);
-        useMillStonesInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
+        useMillStonesInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10, true) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
                 String lastText = new String(text);
-                super.server_readNetworkData(tag);
-                try {
-                    if(text.length() > 1){
-                        while (text.charAt(0) == '0')
-                            this.text = this.text.substring(1, this.text.length());
-                    }
-                    useMillStonesInRadius = Integer.parseInt(text);
-                    broadcastModuleUpdate();
-                } catch (NumberFormatException e) {
-                    if(text == "")
-                        text = "0";
-                    else
-                        text = lastText;
-                    broadcastModuleUpdate();
-                }
+                useMillStonesInRadius = textInt;
             }
         };
         if(ModList.get().isLoaded("aw_npc")) {
