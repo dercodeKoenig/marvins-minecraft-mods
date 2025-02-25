@@ -158,11 +158,12 @@ public class EntityWarehouse extends EntityWorkSiteBase {
         // clean all maps because blocks that was before in the are might no longer be
         // the most important is that "filteredItemStacksMap_copy" and "allItemStacksWithCount" are always kept in sync
         knownInventories.clear();
+        knownInventoriesList.clear();
         filteredItemStacksMap_reference.clear();
         filteredItemStacksMap_copy.clear();
         fullItemStacksMap_copy.clear();
-        knownInventoriesList.clear();
         allItemStacksWithCount.clear();
+        whereItemStacksComeFrom.clear();
     }
 
 

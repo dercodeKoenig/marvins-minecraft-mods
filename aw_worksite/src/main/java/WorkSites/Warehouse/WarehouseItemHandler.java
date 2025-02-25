@@ -23,7 +23,7 @@ public class WarehouseItemHandler implements IItemHandler {
 
     @Override
     public ItemStack getStackInSlot(int i) {
-        if (i == wareHouse.allItemStacksWithCount.size()) return ItemStack.EMPTY;
+        if (i >= wareHouse.allItemStacksWithCount.size()) return ItemStack.EMPTY;
 
         EntityWarehouse.ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(i);
         return key.stack.copyWithCount(wareHouse.allItemStacksWithCount.get(key));
@@ -86,13 +86,7 @@ public class WarehouseItemHandler implements IItemHandler {
         return remaining;
     }
 
-    @Override
-    public ItemStack extractItem(int slot, int count, boolean b) {
-
-        if (wareHouse.allItemStacksWithCount.size() == slot) return ItemStack.EMPTY;
-
-        EntityWarehouse.ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(slot);
-
+    public ItemStack extractItem(EntityWarehouse.ComparableItemStack key, int count, boolean b) {
         if (key.stack.isEmpty()) return ItemStack.EMPTY;
 
         LinkedHashSet<BlockEntity> whereItemsAreFound = wareHouse.whereItemStacksComeFrom.getOrDefault(key, new LinkedHashSet<>());
@@ -151,6 +145,13 @@ public class WarehouseItemHandler implements IItemHandler {
             }
         }
         return extracted;
+    }
+
+    @Override
+    public ItemStack extractItem(int slot, int count, boolean b) {
+        if (slot >= wareHouse.allItemStacksWithCount.size()) return ItemStack.EMPTY;
+        EntityWarehouse.ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(slot);
+        return extractItem(key, count, b);
     }
 
     @Override

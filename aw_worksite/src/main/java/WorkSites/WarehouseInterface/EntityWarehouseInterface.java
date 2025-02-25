@@ -2,6 +2,7 @@ package WorkSites.WarehouseInterface;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleFakeItemHandlerSlot;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
@@ -61,18 +62,6 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
     public ItemStackHandler filterInventory = new ItemStackHandler(9) {
         @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            super.insertItem(slot, stack, simulate);
-            return stack;
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            super.extractItem(slot, amount, simulate);
-            return ItemStack.EMPTY;
-        }
-
-        @Override
         public void onContentsChanged(int slot) {
             setChanged();
             reScan();
@@ -96,7 +85,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
         for (int i = 0; i < 9; i++) {
             int x = 10 + i * 18;
             int y = 20;
-            guiModuleItemHandlerSlot slot = new guiModuleItemHandlerSlot(100 + i, filterInventory, i, 1, 0, guiHandler, x, y);
+            guiModuleFakeItemHandlerSlot slot = new guiModuleFakeItemHandlerSlot(100 + i, filterInventory, i, 1, 0, guiHandler, x, y);
             guiHandler.getModules().add(slot);
         }
 
@@ -170,7 +159,13 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
     public void reScan() {
 
-        // sum up all the target stacks without components
+        nextStackToRemove = ItemStack.EMPTY;
+        nextStackToInsert = null;
+        if(warehouseReference == null)
+            return;
+
+        // sum up all the target stacks
+        // items are inserted without components
         Map<EntityWarehouse.ComparableItemStack, Integer> targetStacks = new HashMap<>();
         for (int i = 0; i < filterInventory.getSlots(); i++) {
             ItemStack stackInSlot = filterInventory.getStackInSlot(i);
@@ -179,11 +174,10 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             targetStacks.put(c, targetStacks.get(c) + stackInSlot.getCount());
         }
 
-        // sums up all the items allowed by filters (currently only durability filter)
-        Map<EntityWarehouse.ComparableItemStack, Integer> allowedStacks = new HashMap<>();
 
-        nextStackToRemove = ItemStack.EMPTY;
-        nextStackToInsert = null;
+        // this are the ItemStacks that are available in the interface
+        // items are inserted without components
+        Map<EntityWarehouse.ComparableItemStack, Integer> availableStacks = new HashMap<>();
 
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stackInSlot = inventory.getStackInSlot(i);
@@ -197,13 +191,13 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             }
 
             EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
-            allowedStacks.computeIfAbsent(c, (key) -> 0);
-            allowedStacks.put(c, allowedStacks.get(c) + stackInSlot.getCount());
+            availableStacks.computeIfAbsent(c, (key) -> 0);
+            availableStacks.put(c, availableStacks.get(c) + stackInSlot.getCount());
 
         }
 
-        for (EntityWarehouse.ComparableItemStack key : allowedStacks.keySet()) {
-            int available = allowedStacks.get(key);
+        for (EntityWarehouse.ComparableItemStack key : availableStacks.keySet()) {
+            int available = availableStacks.get(key);
             if (targetStacks.containsKey(key)) {
                 int targetCount = targetStacks.get(key);
                 int toRemove = available - targetCount;
@@ -219,12 +213,11 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
         // at this point it can scan if it can pull any from the warehouse
 
-
         for (EntityWarehouse.ComparableItemStack key : targetStacks.keySet()) {
             int required = targetStacks.get(key);
             int toInsert = 0;
-            if (allowedStacks.containsKey(key)) {
-                int available = allowedStacks.get(key);
+            if (availableStacks.containsKey(key)) {
+                int available = availableStacks.get(key);
                 toInsert = required - available;
             } else {
                 toInsert = required;
@@ -277,35 +270,43 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
         if (!level.isClientSide) {
             guiHandler.serverTick();
             if (warehouseReference != null) {
-                if (warehouseReference.isRemoved()) {
+                if (warehouseReference.isRemoved() || !warehouseReference.allowedBlocks.contains(getBlockPos())) {
                     warehouseReference = null;
+                    System.out.println("warehouse reference removed");
                 } else {
+                    if (warehouseReference.lastContentUpdateTime != lastWarehouseScanTime) {
+                        lastWarehouseScanTime = warehouseReference.lastContentUpdateTime;
+                        reScan();
+                    }
+
                     if (level.getGameTime() % 1 == 0) {
                         ItemStack extraced = extractOneItemToRemove(true);
                         if (!extraced.isEmpty()) {
+                            System.out.println("try extract into warehouse:"+nextStackToRemove);
                             if (warehouseReference.myItemHandler.insertItem(0, extraced, true) == ItemStack.EMPTY) {
                                 warehouseReference.myItemHandler.insertItem(0, extractOneItemToRemove(false), false);
-                                System.out.println(extraced);
+                            } else {
+                                // disable removing items until next rescan
+                                // it can be compute heavy to try to insert into a full warehouse
+                                nextStackToRemove = ItemStack.EMPTY;
                             }
                         }
 
                         if (nextStackToInsert != null) {
-                            System.out.println(nextStackToInsert.stack);
+                            System.out.println("try insert from warehouse:"+nextStackToInsert.stack);
                             BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(nextStackToInsert, warehouseReference);
                             if (target != null)
                                 System.out.println(target.getBlockPos());
-                            Insertion:
-                            {
-                                for (int i = 0; i < warehouseReference.myItemHandler.getSlots(); i++) {
-                                    if (ItemStack.isSameItemSameComponents(warehouseReference.myItemHandler.getStackInSlot(i), nextStackToInsert.stack)) {
-                                        ItemStack extracted = warehouseReference.myItemHandler.extractItem(i, 1, true);
-                                        for (int j = 0; j < inventory.getSlots(); j++) {
-                                            ItemStack ret = inventory.insertItem(j, extracted, true);
-                                            if (ret.isEmpty()) {
-                                                inventory.insertItem(j, warehouseReference.myItemHandler.extractItem(i, 1, false), false);
-                                                break Insertion;
-                                            }
-                                        }
+
+                            ItemStack extracted = warehouseReference.myItemHandler.extractItem(nextStackToInsert, 1, true);
+                            if (extracted.isEmpty()) {
+                                reScan();
+                            } else {
+                                for (int j = 0; j < inventory.getSlots(); j++) {
+                                    ItemStack ret = inventory.insertItem(j, extracted, true);
+                                    if (ret.isEmpty()) {
+                                        inventory.insertItem(j, warehouseReference.myItemHandler.extractItem(nextStackToInsert, 1, false), false);
+                                        break;
                                     }
                                 }
                             }
