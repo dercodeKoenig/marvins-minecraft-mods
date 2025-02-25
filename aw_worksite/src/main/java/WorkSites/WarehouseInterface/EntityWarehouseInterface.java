@@ -12,6 +12,7 @@ import ResearchSystem.EngineeringStation.CraftingContainerItemStackHandler;
 import ResearchSystem.ResearchStation.ItemResearchBook;
 import WorkSites.EntityWorkSiteBase;
 import WorkSites.Warehouse.EntityWarehouse;
+import WorkSites.Warehouse.WarehouseItemHandler;
 import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -44,14 +45,18 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
         @Override
         public void onContentsChanged(int slot) {
             setChanged();
+            reScan();
         }
     };
 
-    public BlockEntity warehouseReference;
-public     int durabilityPercentFilter = 0;
+    public EntityWarehouse warehouseReference;
+    public long lastWarehouseScanTime;
+
+    public int durabilityPercentFilter = 0;
     public boolean durabilityFilter_aboveTarget = true;
 
     public ItemStack nextStackToRemove = ItemStack.EMPTY;
+    public EntityWarehouse.ComparableItemStack nextStackToInsert = null;
 
 
     public ItemStackHandler filterInventory = new ItemStackHandler(9) {
@@ -70,6 +75,7 @@ public     int durabilityPercentFilter = 0;
         @Override
         public void onContentsChanged(int slot) {
             setChanged();
+            reScan();
         }
     };
 
@@ -177,11 +183,12 @@ public     int durabilityPercentFilter = 0;
         Map<EntityWarehouse.ComparableItemStack, Integer> allowedStacks = new HashMap<>();
 
         nextStackToRemove = ItemStack.EMPTY;
+        nextStackToInsert = null;
 
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stackInSlot = inventory.getStackInSlot(i);
 
-            if(stackInSlot.isEmpty())continue;
+            if (stackInSlot.isEmpty()) continue;
 
             // check for the durability filter first
             if (!fitsDurabilityFilter(stackInSlot)) {
@@ -204,20 +211,63 @@ public     int durabilityPercentFilter = 0;
                     nextStackToRemove = new ItemStack(key.stack.getItem(), toRemove);
                     return;
                 }
-            }else{
+            } else {
                 nextStackToRemove = new ItemStack(key.stack.getItem(), available);
+                return;
+            }
+        }
+
+        // at this point it can scan if it can pull any from the warehouse
+
+
+        for (EntityWarehouse.ComparableItemStack key : targetStacks.keySet()) {
+            int required = targetStacks.get(key);
+            int toInsert = 0;
+            if (allowedStacks.containsKey(key)) {
+                int available = allowedStacks.get(key);
+                toInsert = required - available;
+            } else {
+                toInsert = required;
+            }
+            if (toInsert > 0) {
+                // scan if the warehouse can deliver a match
+                for (EntityWarehouse.ComparableItemStack c : warehouseReference.allItemStacksWithCount.keySet()) {
+                    if (ItemStack.isSameItem(c.stack, key.stack)) {
+                        if (fitsDurabilityFilter(c.stack)) {
+                            nextStackToInsert = new EntityWarehouse.ComparableItemStack(c.stack);
+                            nextStackToInsert.stack.setCount(required);
+                            return;
+                        }
+                    }
+                }
             }
         }
     }
 
-    public ItemStack extractOneItemToRemove(){
-        
+    public ItemStack extractOneItemToRemove(boolean simulate) {
+        if (!nextStackToRemove.isEmpty()) {
+            // first check with matching components
+            for (int i = 0; i < inventory.getSlots(); i++) {
+                ItemStack stackInSlot = inventory.getStackInSlot(i);
+                if (ItemStack.isSameItemSameComponents(stackInSlot, nextStackToRemove)) {
+                    return inventory.extractItem(i, 1, simulate);
+                }
+            }
+            // now check without components
+            for (int i = 0; i < inventory.getSlots(); i++) {
+                ItemStack stackInSlot = inventory.getStackInSlot(i);
+                if (ItemStack.isSameItem(stackInSlot, nextStackToRemove)) {
+                    return inventory.extractItem(i, 1, simulate);
+                }
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
-    public void interact(){
+    public void interact() {
         if (level.isClientSide) {
             guiHandler.openGui(180, 190, true);
-        }else{
+        } else {
             reScan();
             //System.out.println(nextStackToRemove);
         }
@@ -226,12 +276,41 @@ public     int durabilityPercentFilter = 0;
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
-
             if (warehouseReference != null) {
                 if (warehouseReference.isRemoved()) {
                     warehouseReference = null;
                 } else {
+                    if (level.getGameTime() % 20 == 0) {
+                        ItemStack extraced = extractOneItemToRemove(true);
+                        if (!extraced.isEmpty()) {
+                            if (warehouseReference.myItemHandler.insertItem(0, extraced, true) == ItemStack.EMPTY) {
+                                warehouseReference.myItemHandler.insertItem(0, extractOneItemToRemove(false), false);
+                                System.out.println(extraced);
+                            }
+                        }
 
+                        if (nextStackToInsert != null) {
+                            System.out.println(nextStackToInsert.stack);
+                            BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(nextStackToInsert, warehouseReference);
+                            if (target != null)
+                                System.out.println(target.getBlockPos());
+                            Insertion:
+                            {
+                                for (int i = 0; i < warehouseReference.myItemHandler.getSlots(); i++) {
+                                    if (ItemStack.isSameItemSameComponents(warehouseReference.myItemHandler.getStackInSlot(i), nextStackToInsert.stack)) {
+                                        ItemStack extracted = warehouseReference.myItemHandler.extractItem(i, 1, true);
+                                        for (int j = 0; j < inventory.getSlots(); j++) {
+                                            ItemStack ret = inventory.insertItem(j, extracted, true);
+                                            if (ret.isEmpty()) {
+                                                inventory.insertItem(j, warehouseReference.myItemHandler.extractItem(i, 1, false), false);
+                                                break Insertion;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
