@@ -280,7 +280,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
                 if (warehouseReference.isRemoved()) {
                     warehouseReference = null;
                 } else {
-                    if (level.getGameTime() % 20 == 0) {
+                    if (level.getGameTime() % 1 == 0) {
                         ItemStack extraced = extractOneItemToRemove(true);
                         if (!extraced.isEmpty()) {
                             if (warehouseReference.myItemHandler.insertItem(0, extraced, true) == ItemStack.EMPTY) {
