@@ -32,8 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static WorkSites.Registry.ENTITY_WAREHOUSE_CRAFTER;
 import static WorkSites.Registry.ENTITY_WAREHOUSE_INTERFACE;
@@ -49,6 +48,11 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
     };
 
     public BlockEntity warehouseReference;
+public     int durabilityPercentFilter = 0;
+    public boolean durabilityFilter_aboveTarget = true;
+
+    public ItemStack nextStackToRemove = ItemStack.EMPTY;
+
 
     public ItemStackHandler filterInventory = new ItemStackHandler(9) {
         @Override
@@ -138,10 +142,85 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
     }
-    
-    public void reScan(){
-        // first check for itemstacks to be removed
 
+    public boolean fitsDurabilityFilter(ItemStack stack) {
+        int damage = stack.getDamageValue();
+        int maxDamage = stack.getMaxDamage();
+        int durabilityPercent = 100;
+        if (maxDamage > 0) {
+            durabilityPercent = (int) ((1 - (float) damage / maxDamage) * 100);
+        }
+        if (durabilityFilter_aboveTarget) {
+            if (durabilityPercent < durabilityPercentFilter) {
+                return false;
+            }
+        } else {
+            if (durabilityPercent > durabilityPercentFilter) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void reScan() {
+
+        // sum up all the target stacks without components
+        Map<EntityWarehouse.ComparableItemStack, Integer> targetStacks = new HashMap<>();
+        for (int i = 0; i < filterInventory.getSlots(); i++) {
+            ItemStack stackInSlot = filterInventory.getStackInSlot(i);
+            EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
+            targetStacks.computeIfAbsent(c, (key) -> 0);
+            targetStacks.put(c, targetStacks.get(c) + stackInSlot.getCount());
+        }
+
+        // sums up all the items allowed by filters (currently only durability filter)
+        Map<EntityWarehouse.ComparableItemStack, Integer> allowedStacks = new HashMap<>();
+
+        nextStackToRemove = ItemStack.EMPTY;
+
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            ItemStack stackInSlot = inventory.getStackInSlot(i);
+
+            if(stackInSlot.isEmpty())continue;
+
+            // check for the durability filter first
+            if (!fitsDurabilityFilter(stackInSlot)) {
+                nextStackToRemove = stackInSlot.copy();
+                return;
+            }
+
+            EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
+            allowedStacks.computeIfAbsent(c, (key) -> 0);
+            allowedStacks.put(c, allowedStacks.get(c) + stackInSlot.getCount());
+
+        }
+
+        for (EntityWarehouse.ComparableItemStack key : allowedStacks.keySet()) {
+            int available = allowedStacks.get(key);
+            if (targetStacks.containsKey(key)) {
+                int targetCount = targetStacks.get(key);
+                int toRemove = available - targetCount;
+                if (toRemove > 0) {
+                    nextStackToRemove = new ItemStack(key.stack.getItem(), toRemove);
+                    return;
+                }
+            }else{
+                nextStackToRemove = new ItemStack(key.stack.getItem(), available);
+            }
+        }
+    }
+
+    public ItemStack extractOneItemToRemove(){
+        
+    }
+
+    public void interact(){
+        if (level.isClientSide) {
+            guiHandler.openGui(180, 190, true);
+        }else{
+            reScan();
+            //System.out.println(nextStackToRemove);
+        }
     }
 
     public void tick() {

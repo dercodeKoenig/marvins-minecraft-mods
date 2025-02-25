@@ -51,11 +51,9 @@ public class BlockWarehouseInterface extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) {
-            BlockEntity station = level.getBlockEntity(pos);
-            if (station instanceof EntityWarehouseInterface e) {
-                e.guiHandler.openGui(180, 190, true);
-            }
+        BlockEntity station = level.getBlockEntity(pos);
+        if (station instanceof EntityWarehouseInterface e) {
+            e.interact();
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
