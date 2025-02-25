@@ -12,9 +12,9 @@ import org.lwjgl.glfw.GLFW;
 public class guiModuleTextInput extends GuiModuleBase {
     public boolean isSelected = false;
     public int w, h;
-    public String text = "";
+    private String text = "";
     public int textInt = 0;
-    public boolean isInt;
+    private boolean isInt;
 
     public guiModuleTextInput(int id, IGuiHandler guiHandler, int x, int y, int w, int h, boolean isInt) {
         super(id, guiHandler, x, y);
@@ -41,27 +41,35 @@ public class guiModuleTextInput extends GuiModuleBase {
         super.server_writeDataToSyncToClient(tag);
     }
 
+    public void setTextAndSync(String newText){
+        if (!isInt) {
+            text=newText;
+        } else {
+            textInt = 0;
+            try {
+                while (!newText.isEmpty() && newText.charAt(0) == '0')
+                    newText = newText.substring(1);
+
+                textInt = Integer.parseInt(newText);
+                text = newText;
+            } catch (NumberFormatException e) {
+                if (newText.isEmpty())
+                    text = "0";
+            }
+        }
+        broadcastModuleUpdate();
+    }
+    public void setTextAndSync(int v){
+        setTextAndSync(String.valueOf(v));
+    }
+    public int getAsInt(){return textInt;}
+    public String getText(){return text;}
+
     public void server_readNetworkData(CompoundTag tag) {
         if (tag.contains(this.getMyTagKey())) {
             CompoundTag myTag = tag.getCompound(this.getMyTagKey());
             if (myTag.contains("text")) {
-                if (!isInt) {
-                    text = myTag.getString("text");
-                } else {
-                    textInt = 0;
-                    String newText = myTag.getString("text");
-                    try {
-                        while (!newText.isEmpty() && newText.charAt(0) == '0')
-                            newText = newText.substring(1);
-
-                        textInt = Integer.parseInt(newText);
-                        text = newText;
-                    } catch (NumberFormatException e) {
-                        if (newText.isEmpty())
-                            text = "0";
-                    }
-                }
-                broadcastModuleUpdate();
+                setTextAndSync(myTag.getString("text"));
             }
         }
         super.server_readNetworkData(tag);

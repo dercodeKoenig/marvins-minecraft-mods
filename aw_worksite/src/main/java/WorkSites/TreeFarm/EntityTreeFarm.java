@@ -81,10 +81,10 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
     public EntityTreeFarm(BlockPos pos, BlockState blockState) {
         super(ENTITY_TREE_FARM.get(), pos, blockState);
 
-        maxEnergy = Math.max(maxEnergy,energy_plant);
-        maxEnergy = Math.max(maxEnergy,energy_boneMeal);
-        maxEnergy = Math.max(maxEnergy,energy_harvest_leaves);
-        maxEnergy = Math.max(maxEnergy,energy_harvest_logs);
+        maxEnergy = Math.max(maxEnergy, energy_plant);
+        maxEnergy = Math.max(maxEnergy, energy_boneMeal);
+        maxEnergy = Math.max(maxEnergy, energy_harvest_leaves);
+        maxEnergy = Math.max(maxEnergy, energy_harvest_logs);
 
         for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 1, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
@@ -128,22 +128,28 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
-                useWoodmillsInRadius = textInt;
+                if (tag.contains(this.getMyTagKey())) {
+                    useWoodmillsInRadius = getAsInt();
+                }
             }
         };
-        if(ModList.get().isLoaded("aw_npc")) {
+        if (ModList.get().isLoaded("aw_npc")) {
             guiHandlerMain.getModules().add(useWoodmillsInRadiusText);
             guiHandlerMain.getModules().add(useWoodmillsInRadiusTextInput);
         }
-        useWoodmillsInRadiusTextInput.text = String.valueOf(useWoodmillsInRadius);
     }
+
     @Override
-    public void onLoad(){
+    public void onLoad() {
         super.onLoad();
         knownTreeFarms.add(this.getBlockPos());
+        if (!level.isClientSide) {
+            useWoodmillsInRadiusTextInput.setTextAndSync(useWoodmillsInRadius);
+        }
     }
+
     @Override
-    public void setRemoved(){
+    public void setRemoved() {
         knownTreeFarms.remove(this.getBlockPos());
         super.setRemoved();
     }
@@ -167,6 +173,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         if (state.canBeReplaced()) return true;
         return false;
     }
+
     public boolean tryPlantPosition(BlockPos p) {
         if (!canPlant(p)) return false;
         for (int i = 0; i < inputsInventory.getSlots(); i++) {
@@ -183,16 +190,17 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         return false;
     }
 
-    public boolean canBoneMeal(BlockPos p){
+    public boolean canBoneMeal(BlockPos p) {
         BlockState state = level.getBlockState(p);
-        return state.getBlock() instanceof BonemealableBlock bab && bab.isValidBonemealTarget(level,p,state);
+        return state.getBlock() instanceof BonemealableBlock bab && bab.isValidBonemealTarget(level, p, state);
     }
+
     public boolean canHarvestPosition(BlockPos p) {
         BlockState state = level.getBlockState(p);
-        if(state.is(BlockTags.LOGS)){
+        if (state.is(BlockTags.LOGS)) {
             return true;
         }
-        if(state.is(BlockTags.LEAVES)){
+        if (state.is(BlockTags.LEAVES)) {
             return true;
         }
         return false;
@@ -202,13 +210,13 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         if (canHarvestPosition(p)) {
             BlockState s = level.getBlockState(p);
             ItemStack tool = new ItemStack(Items.IRON_AXE);
-            if(s.is(BlockTags.LEAVES)){
+            if (s.is(BlockTags.LEAVES)) {
                 for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
                     ItemStack stackInSlot = specialResourcesInventory.getStackInSlot(i);
-                    if(stackInSlot.getItem().equals(Items.SHEARS)){
+                    if (stackInSlot.getItem().equals(Items.SHEARS)) {
                         tool = stackInSlot;
-                        tool.setDamageValue(tool.getDamageValue()+1);
-                        if(tool.getDamageValue()>=tool.getMaxDamage()){
+                        tool.setDamageValue(tool.getDamageValue() + 1);
+                        if (tool.getDamageValue() >= tool.getMaxDamage()) {
                             stackInSlot.shrink(1);
                         }
                         setChanged();
@@ -217,22 +225,22 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
                 }
             }
             LootParams.Builder b = new LootParams.Builder((ServerLevel) level)
-                    .withParameter(LootContextParams.TOOL,tool)
-                    .withParameter(LootContextParams.ORIGIN,getBlockPos().getCenter());
+                    .withParameter(LootContextParams.TOOL, tool)
+                    .withParameter(LootContextParams.ORIGIN, getBlockPos().getCenter());
             List<ItemStack> drops = s.getDrops(b);
 
             //this does not consider that inputsInventory only can hold valid seeds
             // worst case some items get "voided" if mainInventory is full but inputsInventory is not
-            if(InventoryUtils.canInsertAllItems(List.of(inputsInventory,mainInventory),drops)) {
-                level.destroyBlock(p,false);
+            if (InventoryUtils.canInsertAllItems(List.of(inputsInventory, mainInventory), drops)) {
+                level.destroyBlock(p, false);
                 for (ItemStack i : drops) {
                     if (isItemValidSapling(i)) {
                         for (int j = 0; j < inputsInventory.getSlots(); j++) {
-                            i = inputsInventory.insertItem(j,i,false);
+                            i = inputsInventory.insertItem(j, i, false);
                         }
                     }
                     for (int j = 0; j < mainInventory.getSlots(); j++) {
-                        i = mainInventory.insertItem(j,i,false);
+                        i = mainInventory.insertItem(j, i, false);
                     }
                 }
                 return true;
@@ -241,7 +249,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         return false;
     }
 
-    public void scanStep(){
+    public void scanStep() {
         if (!allowedBlocksList.isEmpty()) {
             if (currentBlockToScanIndex >= allowedBlocksList.size()) {
                 currentBlockToScanIndex = 0;
@@ -249,17 +257,17 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
             BlockPos nextPosToScan = allowedBlocksList.get(currentBlockToScanIndex);
             currentBlockToScanIndex += 1;
 
-            if(blackListAsBlockPos.contains(nextPosToScan))
+            if (blackListAsBlockPos.contains(nextPosToScan))
                 return;
 
             if (canPlant(nextPosToScan)) {
                 positionsToPlant.add(nextPosToScan);
             }
-            if(canBoneMeal(nextPosToScan)){
+            if (canBoneMeal(nextPosToScan)) {
                 positionsToBoneMeal.add(nextPosToScan);
             }
 
-            if(!positionsToHarvest_Logs.contains(nextPosToScan)) {
+            if (!positionsToHarvest_Logs.contains(nextPosToScan)) {
                 BlockState state = level.getBlockState(nextPosToScan);
                 if (state.is(BlockTags.LOGS)) {
                     //use new sets because it could miss blocks else
@@ -273,7 +281,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         }
     }
 
-    public boolean tryPlant(){
+    public boolean tryPlant() {
         while (!positionsToPlant.isEmpty()) {
             BlockPos target = positionsToPlant.iterator().next();
             positionsToPlant.remove(target);
@@ -283,7 +291,8 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         }
         return false;
     }
-    public boolean tryHarvestLeaves(){
+
+    public boolean tryHarvestLeaves() {
         if (!positionsToHarvest_Leaves.isEmpty()) {
             // Find the topmost position in the set
             BlockPos topmost = null;
@@ -300,7 +309,8 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         }
         return false;
     }
-    public boolean tryHarvestLogs(){
+
+    public boolean tryHarvestLogs() {
         if (!positionsToHarvest_Logs.isEmpty()) {
             // Find the topmost position in the set
             BlockPos topmost = null;
@@ -317,7 +327,8 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         }
         return false;
     }
-    public boolean tryBoneMeal(){
+
+    public boolean tryBoneMeal() {
         while (!positionsToBoneMeal.isEmpty()) {
             List<BlockPos> shuffledList = new ArrayList<>(positionsToBoneMeal);
             Collections.shuffle(shuffledList);
@@ -327,7 +338,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
             if (canBoneMeal(target)) {
                 for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
                     ItemStack stackInSlot = specialResourcesInventory.getStackInSlot(i);
-                    if(stackInSlot.getItem().equals(Items.BONE_MEAL)){
+                    if (stackInSlot.getItem().equals(Items.BONE_MEAL)) {
                         stackInSlot.shrink(1);
                         BlockState s = level.getBlockState(target);
                         if (s.getBlock() instanceof BonemealableBlock bab) {
@@ -396,7 +407,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         inputsInventory.deserializeNBT(registries, tag.getCompound("inv2"));
         specialResourcesInventory.deserializeNBT(registries, tag.getCompound("inv3"));
 
-        useWoodmillsInRadius = tag.getInt("useWoodmillRadius");
-        useWoodmillsInRadiusTextInput.text = String.valueOf(useWoodmillsInRadius);
+        if (tag.contains("useWoodmillRadius"))
+            useWoodmillsInRadius = tag.getInt("useWoodmillRadius");
     }
 }

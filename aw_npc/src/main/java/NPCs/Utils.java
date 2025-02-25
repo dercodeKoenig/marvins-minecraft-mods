@@ -150,7 +150,11 @@ public class Utils {
         }
         return count;
     }
-
+    // Helper to compute remaining durability
+    public static float getRemainingDurabilityRelative(ItemStack stack) {
+        if(stack.getMaxDamage() == 0) return 1;
+        return stack.isEmpty() ? -1f : (float)(stack.getMaxDamage() - stack.getDamageValue()) / stack.getMaxDamage();
+    }
 
     public static void damageMainHandItem(NPCBase npc) {
         npc.getMainHandItem().setDamageValue(npc.getMainHandItem().getDamageValue() + 1);

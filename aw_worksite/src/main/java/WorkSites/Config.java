@@ -16,6 +16,8 @@ public class Config {
     public int max_energy_storage = 10000;
     public double k = 10;
 
+    public boolean automatic_warehouse_interface = true;
+
     public int crop_farm_energy_plant = 3000;
     public int crop_farm_energy_harvest = 3000;
     public int crop_farm_energy_boneMeal = 2000;

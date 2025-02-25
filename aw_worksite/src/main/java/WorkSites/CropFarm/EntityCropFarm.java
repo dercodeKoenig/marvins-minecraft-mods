@@ -117,21 +117,25 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         useMillStonesInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10, true) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
-                String lastText = new String(text);
-                useMillStonesInRadius = textInt;
+                super.server_readNetworkData(tag);
+                if (tag.contains(this.getMyTagKey())) {
+                    useMillStonesInRadius = getAsInt();
+                }
             }
         };
         if(ModList.get().isLoaded("aw_npc")) {
             guiHandlerMain.getModules().add(useMillStonesInRadiusTextInput);
             guiHandlerMain.getModules().add(useMillStonesInRadiusText);
         }
-        useMillStonesInRadiusTextInput.text = String.valueOf(useMillStonesInRadius);
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
         knownCropFarms.add(this.getBlockPos());
+        if(!level.isClientSide){
+            useMillStonesInRadiusTextInput.setTextAndSync(useMillStonesInRadius);
+        }
     }
 
     @Override
@@ -408,7 +412,7 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         inputsInventory.deserializeNBT(registries, tag.getCompound("inv2"));
         specialResourcesInventory.deserializeNBT(registries, tag.getCompound("inv3"));
 
-        useMillStonesInRadius = tag.getInt("useMillStonesRadius");
-        useMillStonesInRadiusTextInput.text = String.valueOf(useMillStonesInRadius);
+        if(tag.contains("useMillStonesRadius"))
+            useMillStonesInRadius = tag.getInt("useMillStonesRadius");
     }
 }

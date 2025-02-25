@@ -67,12 +67,14 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         }
 
         guiHandler.getModules().add(new guiModuleText(5001, "Name:", guiHandler, 10, 10, 0xff000000, false));
-        townNameInput = new guiModuleTextInput(5000, guiHandler, 40, 10, 120, 10) {
+        townNameInput = new guiModuleTextInput(5000, guiHandler, 40, 10, 120, 10, false) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
-                updateTownhalls(); // update if the name changes
-                TownHallNames.setName(level, getBlockPos(), text);
+                if(tag.contains(getMyTagKey())) {
+                    updateTownhalls(); // update if the name changes
+                    TownHallNames.setName(level, getBlockPos(), getText());
+                }
             }
         };
 
@@ -138,7 +140,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         guiModuleButton b = new guiModuleButton(10909, "+", ownersMenu, 10, 9, 12, 12, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         b.color = 0xffffffff;
         ownersMenu.getModules().add(b);
-        addOwner = new guiModuleTextInput(9990, ownersMenu, 30, 10, 120, 10);
+        addOwner = new guiModuleTextInput(9990, ownersMenu, 30, 10, 120, 10, false);
         ownersMenu.getModules().add(addOwner);
     }
 
@@ -196,7 +198,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             knownTownHalls.add(getBlockPos());
             String name = TownHallNames.getName(level, getBlockPos());
             if (name != null)
-                townNameInput.text = name;
+                townNameInput.setTextAndSync(name);
             else {
                 System.out.println("for some reason, the town at " + getBlockPos() + " does not have a name entry");
             }
@@ -245,8 +247,8 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             if (compoundTag.contains("guiButtonClick")) {
                 int btn = compoundTag.getInt("guiButtonClick");
                 if (btn == 10909) {
-                    TownHallOwners.addOwner(level, getBlockPos(), addOwner.text);
-                    addOwner.text = "";
+                    TownHallOwners.addOwner(level, getBlockPos(), addOwner.getText());
+                    addOwner.setTextAndSync("");
                     addOwner.broadcastModuleUpdate();
                     CompoundTag ret = new CompoundTag();
                     ret.put("owners", ownersTag());

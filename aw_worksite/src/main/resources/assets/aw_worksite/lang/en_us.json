@@ -9,5 +9,14 @@
   "item.aw_worksite.crop_farm": "Crop Farm",
 
   "block.aw_worksite.quarry": "Quarry",
-  "item.aw_worksite.quarry": "Quarry"
+  "item.aw_worksite.quarry": "Quarry",
+
+  "block.aw_worksite.warehouse": "Warehouse",
+  "item.aw_worksite.warehouse": "Warehouse",
+
+  "block.aw_worksite.warehouse_crafter": "Warehouse Engineering Station",
+  "item.aw_worksite.warehouse_crafter": "Warehouse Engineering Station",
+
+  "block.aw_worksite.warehouse_interface": "Warehouse Interface",
+  "item.aw_worksite.warehouse_interface": "Warehouse Interface"
 }

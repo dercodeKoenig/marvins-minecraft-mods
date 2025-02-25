@@ -114,11 +114,6 @@ public class TakeMeleeWeaponProgram {
         return armor1V > armor2V;
     }
 
-    // Helper to compute remaining durability
-    private float getRemainingDurabilityRelative(ItemStack stack) {
-        return stack.isEmpty() ? -1f : (float)(stack.getMaxDamage() - stack.getDamageValue()) / stack.getMaxDamage();
-    }
-
     private void swapWeapon(int slotIndex, int targetSlotIndex, IItemHandler target) {
         ItemStack currentStack = npc.combinedInventory.getStackInSlot(slotIndex);
         ItemStack targetStack = target.getStackInSlot(targetSlotIndex);

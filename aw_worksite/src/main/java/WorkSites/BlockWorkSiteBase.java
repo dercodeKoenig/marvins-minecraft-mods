@@ -40,6 +40,13 @@ public abstract class BlockWorkSiteBase extends Block implements EntityBlock {
             else
                 level.setBlock(pos, state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite()), 3);
         }
+
+        if (level.isClientSide) {
+            BlockEntity m = level.getBlockEntity(pos);
+            if (m instanceof EntityWorkSiteBase c) {
+                c.renderInfoTimer = 20 * 120;
+            }
+        }
     }
 
     @Override

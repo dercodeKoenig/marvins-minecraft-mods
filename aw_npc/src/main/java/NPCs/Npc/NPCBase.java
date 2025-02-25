@@ -311,11 +311,13 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         ownerText = new guiModuleText(2001, "owner", guiHandler, 10, 9, 0xff000000, false);
         townHallText = new guiModuleText(2002, "townhallpos", guiHandler, 10, 21, 0xff000000, false);
         guiModuleText nameText = new guiModuleText(2003, "Name: ", guiHandler, 10, 33, 0xff000000, false);
-        nameTextInput = new guiModuleTextInput(2004, guiHandler, 40, 33, 100, 10) {
+        nameTextInput = new guiModuleTextInput(2004, guiHandler, 40, 33, 100, 10,false) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
-                setCustomName(Component.literal(text));
+                if(tag.contains(getMyTagKey())) {
+                    setCustomName(Component.literal(getText()));
+                }
             }
         };
         guiHandler.getModules().add(ownerText);
@@ -409,7 +411,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 ownerText.setTextAndSync("Owner: " + owner);
             }
             updateTownHall();
-            nameTextInput.text = getCustomName().getString();
+            nameTextInput.setTextAndSync(getCustomName().getString());
         }
     }
 

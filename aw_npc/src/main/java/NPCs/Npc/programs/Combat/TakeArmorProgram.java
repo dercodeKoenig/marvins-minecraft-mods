@@ -121,11 +121,6 @@ public class TakeArmorProgram {
         return armor1V > armor2V;
     }
 
-    // Helper to compute remaining durability
-    private float getRemainingDurabilityRelative(ItemStack stack) {
-        return stack.isEmpty() ? -1f : (float)(stack.getMaxDamage() - stack.getDamageValue()) / stack.getMaxDamage();
-    }
-
     // Helper method to swap a single armor piece
     private void swapArmorPiece(EquipmentSlot slot, int targetSlotIndex, IItemHandler target) {
         int npcSlotIndex = slot.getIndex();

@@ -3,6 +3,7 @@ package WorkSites.WarehouseInterface;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
+import WorkSites.Config;
 import WorkSites.Warehouse.EntityWarehouse;
 import WorkSites.Warehouse.WarehouseItemHandler;
 import net.minecraft.core.BlockPos;
@@ -64,7 +65,8 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             guiHandler.getModules().add(m);
         }
 
-
+        guiModuleText t1 = new guiModuleText(-2, "Filter", guiHandler, 10, 10, 0xff000000, false);
+        guiHandler.getModules().add(t1);
         for (int i = 0; i < 9; i++) {
             int x = 10 + i * 18;
             int y = 20;
@@ -72,6 +74,8 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             guiHandler.getModules().add(slot);
         }
 
+        guiModuleText t2 = new guiModuleText(-3, "Inventory", guiHandler, 10, 40, 0xff000000, false);
+        guiHandler.getModules().add(t2);
         for (int i = 0; i < 9; i++) {
             int x = 10 + i * 18;
             int y = 50;
@@ -89,19 +93,17 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             @Override
             public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
-                durabilityPercentFilter = textInt;
+                durabilityPercentFilter = getAsInt();
                 reScan();
             }
         };
         guiHandler.getModules().add(durabilityPercentFilterInput);
-
-        refreshGui();
     }
 
     @Override
     public void onLoad() {
         if (!level.isClientSide) {
-
+            refreshGui();
         }
     }
 
@@ -129,7 +131,6 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
         filterInventory.deserializeNBT(registries, tag.getCompound("filterInventory"));
         durabilityFilter_needsToBeAbove = tag.getBoolean("durabilityFilter_needsToBeAbove");
         durabilityPercentFilter = tag.getInt("durabilityPercentFilter");
-        refreshGui();
     }
 
 
@@ -152,8 +153,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
     }
 
     public void refreshGui() {
-        durabilityPercentFilterInput.text = String.valueOf(durabilityPercentFilter);
-        durabilityPercentFilterInput.broadcastModuleUpdate();
+        durabilityPercentFilterInput.setTextAndSync(durabilityPercentFilter);
         if (durabilityFilter_needsToBeAbove) {
             durabilityFilter_needsToBeAboveBtn.setTextAndSync(">");
         } else {
@@ -295,31 +295,30 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             if (warehouseReference != null) {
                 if (warehouseReference.isRemoved() || !warehouseReference.allowedBlocks.contains(getBlockPos())) {
                     warehouseReference = null;
-                    System.out.println("warehouse reference removed");
                 } else {
                     if (warehouseReference.lastContentUpdateTime != lastWarehouseScanTime) {
                         lastWarehouseScanTime = warehouseReference.lastContentUpdateTime;
                         reScan();
                     }
 
-                    if (level.getGameTime() % 1 == 0) {
-                        ItemStack extraced = extractOneItemToRemove(true);
-                        if (!extraced.isEmpty()) {
-                            System.out.println("try extract into warehouse:" + nextStackToRemove);
-                            if (warehouseReference.myItemHandler.insertItem(0, extraced, true) == ItemStack.EMPTY) {
-                                warehouseReference.myItemHandler.insertItem(0, extractOneItemToRemove(false), false);
-                            } else {
-                                // disable removing items until next rescan
-                                // it can be compute heavy to try to insert into a full warehouse
-                                nextStackToRemove = ItemStack.EMPTY;
+                    if (Config.INSTANCE.automatic_warehouse_interface) {
+                        if(!nextStackToRemove.isEmpty()) {
+                            ItemStack extracted = extractOneItemToRemove(true);
+                            if (!extracted.isEmpty()) {
+                                if (warehouseReference.myItemHandler.insertItem(0, extracted, true) == ItemStack.EMPTY) {
+                                    warehouseReference.myItemHandler.insertItem(0, extractOneItemToRemove(false), false);
+                                } else {
+                                    // disable removing items until next rescan
+                                    // it can be compute heavy to try to insert into a full warehouse
+                                    nextStackToRemove = ItemStack.EMPTY;
+                                }
                             }
                         }
 
                         if (nextStackToInsert != null) {
-                            System.out.println("try insert from warehouse:" + nextStackToInsert.stack);
-                            BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(nextStackToInsert, warehouseReference);
-                            if (target != null)
-                                System.out.println(target.getBlockPos());
+                            //BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(nextStackToInsert, warehouseReference);
+                            //if (target != null)
+                            //    System.out.println(target.getBlockPos());
 
                             ItemStack extracted = warehouseReference.myItemHandler.extractItem(nextStackToInsert, 1, true);
                             if (extracted.isEmpty()) {
