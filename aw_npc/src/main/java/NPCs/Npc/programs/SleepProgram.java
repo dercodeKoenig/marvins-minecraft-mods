@@ -12,6 +12,7 @@ import static net.minecraft.world.level.block.BedBlock.OCCUPIED;
 
 public class SleepProgram extends Goal {
     NPCBase worker;
+    long lastCheck;
 
     public SleepProgram(NPCBase worker) {
         this.worker = worker;
@@ -27,6 +28,13 @@ public class SleepProgram extends Goal {
     public boolean canUse() {
 
         if(!worker.level().isNight()) return false;
+
+
+        long gameTime = worker.level().getGameTime();
+        if (lastCheck + 20*10 > gameTime)
+            return false;
+        lastCheck = gameTime;
+
 
         if(worker.homePosition == null){
             if(worker.townHall == null)

@@ -28,7 +28,7 @@ public class FighterFollowWorkOrderProgram extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.level().getGameTime() < lastCheck + 20 * 1) {
+        if (worker.level().getGameTime() < lastCheck + 20 * 10) {
             return canUse;
         }
         lastCheck = worker.level().getGameTime();

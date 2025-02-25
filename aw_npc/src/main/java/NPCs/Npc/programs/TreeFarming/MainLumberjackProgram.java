@@ -60,6 +60,11 @@ public class MainLumberjackProgram extends Goal {
         if (worker.level().isNight()) return false;
 
 
+        long gameTime = worker.level().getGameTime();
+        if (lastCheck + timeoutForWorkCheck > gameTime)
+            return false;
+        lastCheck = gameTime;
+
         // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
         // except he can switch to this program if the last worksite was of this program (eg after sleep, server restart)
         if (worker.lastWorksitePosition != null) {
@@ -72,7 +77,6 @@ public class MainLumberjackProgram extends Goal {
             return false;
         }
 
-        long gameTime = worker.level().getGameTime();
         for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityTreeFarm.knownTreeFarms, worker)) {
 
             if (Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
@@ -83,10 +87,6 @@ public class MainLumberjackProgram extends Goal {
                 if (w.workersWorkingHereWithTimeout.size() >= w.maxWorkersAllowed)
                     //if (w.workersWorkingHereWithTimeout.size() >= 6)
                     continue;
-
-                if (lastCheck + timeoutForWorkCheck > gameTime)
-                    continue;
-                lastCheck = gameTime;
 
                 if (hasWorkAtFarm(p)) {
                     worker.lastWorksitePosition = p;

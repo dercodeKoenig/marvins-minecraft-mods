@@ -27,8 +27,8 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.level().getGameTime() < lastCheck + 20 * 5) {
-            return lastUsedStrategyTable != null;
+        if (worker.level().getGameTime() < lastCheck + 20 * 10) {
+            return false;
         }
         lastCheck = worker.level().getGameTime();
 

@@ -26,6 +26,7 @@ public class FoodProgramWorker extends Goal {
     IItemHandler inventoryTarget;
     int workDelay = 0;
     boolean canUse;
+    long lastCheck = 0;
 
     public FoodProgramWorker(NPCBase worker) {
         this.worker = worker;
@@ -82,6 +83,12 @@ public class FoodProgramWorker extends Goal {
             return false;
         if(worker.level().isNight())
             return false;
+
+
+        long gameTime = worker.level().getGameTime();
+        if (lastCheck + 20*10 > gameTime)
+            return false;
+        lastCheck = gameTime;
 
         if(hasAnyFood()) return true;
 

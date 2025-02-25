@@ -67,8 +67,8 @@ public class DropLootFighterProgram extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.level().getGameTime() < lastCheck + 20 * 1) {
-            return canContinueToUse();
+        if (worker.level().getGameTime() < lastCheck + 20 * 10) {
+            return false;
         }
         lastCheck = worker.level().getGameTime();
 

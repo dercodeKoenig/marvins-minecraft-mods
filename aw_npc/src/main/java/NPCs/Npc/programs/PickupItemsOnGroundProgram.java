@@ -38,16 +38,15 @@ public class PickupItemsOnGroundProgram extends Goal {
     @Override
     public boolean canUse() {
         long gametime = npc.level().getGameTime();
-        if (gametime > lastScanTime + 10) {
+        if (lastScanTime + 10 > gametime) {
+            return false;
+        }
+        lastScanTime = gametime;
 
-            if (Utils.countEmptySlots(npc) < 1) return false;
-
-            lastScanTime = gametime;
-
-            for (ItemEntity i : itemsOnGround()) {
-                if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
-                    return true;
-                }
+        if (Utils.countEmptySlots(npc) < 1) return false;
+        for (ItemEntity i : itemsOnGround()) {
+            if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
+                return true;
             }
         }
         return false;

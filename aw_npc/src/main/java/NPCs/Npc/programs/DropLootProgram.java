@@ -31,7 +31,7 @@ public class DropLootProgram extends Goal {
 
     @Override
     public boolean canUse() {
-        if (worker.level().getGameTime() < lastCheck + 20 * 1) {
+        if (worker.level().getGameTime() < lastCheck + 20 * 10) {
             return canContinueToUse();
         }
         lastCheck = worker.level().getGameTime();
