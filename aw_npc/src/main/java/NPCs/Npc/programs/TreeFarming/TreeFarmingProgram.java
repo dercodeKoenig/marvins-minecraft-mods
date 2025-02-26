@@ -87,7 +87,7 @@ public class TreeFarmingProgram {
             }
         }
         if (!potentialTargets.isEmpty()) {
-            for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(potentialTargets, worker)) {
+            for (BlockPos i : Utils.sortBlockPosByDistanceToVec(potentialTargets, worker)) {
                 return i;
             }
         }
@@ -109,7 +109,7 @@ public class TreeFarmingProgram {
                 potentialTargets2.add(p);
             }
         }
-        for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(potentialTargets2, worker)) {
+        for (BlockPos i : Utils.sortBlockPosByDistanceToVec(potentialTargets2, worker)) {
             return i;
         }
 
@@ -250,7 +250,7 @@ public class TreeFarmingProgram {
     }
 
     public BlockPos getNextPlantTarget(EntityTreeFarm farm) {
-        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
+        for (BlockPos p : Utils.sortBlockPosByDistanceToVec(farm.positionsToPlant, worker)){
             if(!isPositionWorkable(p)) continue;
             ItemStack s = getStackToPlantAtPosition(farm, p);
             if(!s.isEmpty()){

@@ -60,7 +60,7 @@ public class RunForHelpProgram extends Goal {
             bp_to_entity.put(e.blockPosition(), e);
         }
 
-        BlockPos toGo = Utils.sortBlockPosByDistanceToNPC(allPositionsToHelp, worker).first();
+        BlockPos toGo = Utils.sortBlockPosByDistanceToVec(allPositionsToHelp, worker).first();
 
         int moveExit = worker.slowMobNavigation.moveToPosition(
                 toGo,

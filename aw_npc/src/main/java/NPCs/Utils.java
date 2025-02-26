@@ -1,5 +1,6 @@
 package NPCs;
 
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.ItemUtils;
 import NPCs.Npc.NPCBase;
 import net.minecraft.core.BlockPos;
@@ -10,11 +11,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.TreeSet;
 
 public class Utils {
@@ -36,7 +39,7 @@ public class Utils {
         return sorted;
     }
 
-    public static TreeSet<BlockPos> sortBlockPosByDistanceToNPC(Collection<BlockPos> list, Vec3 position) {
+    public static TreeSet<BlockPos> sortBlockPosByDistanceToVec(Collection<BlockPos> list, Vec3 position) {
         TreeSet<BlockPos> sorted = new TreeSet<>(new Comparator<BlockPos>() {
             @Override
             public int compare(BlockPos o1, BlockPos o2) {
@@ -55,9 +58,32 @@ public class Utils {
         sorted.addAll(list);
         return sorted;
     }
-    public static TreeSet<BlockPos> sortBlockPosByDistanceToNPC(Collection<BlockPos> list, Entity e) {
+    public static TreeSet<BlockPos> sortBlockPosByDistanceToVec(Collection<BlockPos> list, Entity e) {
         Vec3 position = e.getPosition(0);
-        return sortBlockPosByDistanceToNPC(list,position);
+        return sortBlockPosByDistanceToVec(list,position);
+    }
+    public static TreeSet<BlockIdentifier> sortBlockIdentifiersByDistanceToVec(Collection<BlockIdentifier> list, Level level, Vec3 position) {
+        TreeSet<BlockIdentifier> sorted = new TreeSet<>(new Comparator<BlockIdentifier>() {
+            @Override
+            public int compare(BlockIdentifier o1, BlockIdentifier o2) {
+                double d1 = o1.pos.getCenter().distanceTo(position);
+                double d2 = o2.pos.getCenter().distanceTo(position);
+                if (d1 > d2) return 1;
+                if (d1 < d2) return -1;
+                else {
+                    if(o1.pos.getY() != o2.pos.getY()) return (int) Math.signum(o1.pos.getY() - o2.pos.getY());
+                    else if(o1.pos.getX() != o2.pos.getX()) return (int) Math.signum(o1.pos.getX() - o2.pos.getX());
+                    else if(o1.pos.getZ() != o2.pos.getZ()) return (int) Math.signum(o1.pos.getZ() - o2.pos.getZ());
+                }
+                return 0;
+            }
+        });
+        for(BlockIdentifier i : list){
+            if(Objects.equals(i.level, level)){
+                sorted.add(i);
+            }
+        }
+        return sorted;
     }
 
     public static boolean itemStacksEqual(ItemStack s1, ItemStack s2){

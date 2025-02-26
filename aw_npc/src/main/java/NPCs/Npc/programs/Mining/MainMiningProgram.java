@@ -9,7 +9,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 
 import static NPCs.Utils.*;
 
@@ -73,7 +72,7 @@ public class MainMiningProgram extends Goal {
             return false;
         }
 
-        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityQuarry.knownQuarries, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityQuarry.knownQuarries, worker)) {
 
             if(Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 

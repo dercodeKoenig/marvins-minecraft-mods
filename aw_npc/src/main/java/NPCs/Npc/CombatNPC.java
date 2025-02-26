@@ -1,28 +1,21 @@
 package NPCs.Npc;
 
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import NPCs.Items.ItemWorkOrder;
 import NPCs.Npc.programs.*;
 import NPCs.Npc.programs.Combat.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,23 +37,8 @@ public class CombatNPC extends NPCBase {
 
     public TakeMeleeWeaponProgram takeWeaponProgram;
 
-    public ItemStackHandler ordersStackHandler = new ItemStackHandler(1) {
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            if (slot == 0) {
-                if (stack.getItem() instanceof ItemWorkOrder) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    };
-
-
     public CombatNPC(EntityType<CombatNPC> entityType, Level level) {
         super(entityType, level);
-        guiModuleItemHandlerSlot workOrderSlot = new guiModuleItemHandlerSlot(19009, ordersStackHandler, 0, 1, 0, guiHandler, 140, 70);
-        guiHandler.getModules().addFirst(workOrderSlot);
         takeWeaponProgram = new TakeMeleeWeaponProgram(this);
     }
 
@@ -165,13 +143,6 @@ public class CombatNPC extends NPCBase {
     }
 
     @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
-        for (int i = 0; i < ordersStackHandler.getSlots(); i++) {
-            level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, ordersStackHandler.getStackInSlot(i)));
-        }
-        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
-    }
-    @Override
     public void tick() {
         super.tick();
     }
@@ -180,7 +151,6 @@ public class CombatNPC extends NPCBase {
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putInt("worktype", getEntityData().get(DATA_WORKTYPE));
-        compound.put("orderInv",ordersStackHandler.serializeNBT(this.registryAccess()));
     }
 
     @Override
@@ -189,7 +159,6 @@ public class CombatNPC extends NPCBase {
         if(compound.contains("worktype")) {
             getEntityData().set(DATA_WORKTYPE, compound.getInt("worktype"));
         }
-        ordersStackHandler.deserializeNBT(this.registryAccess(), compound.getCompound("orderInv"));
         registerGoals();
     }
 }

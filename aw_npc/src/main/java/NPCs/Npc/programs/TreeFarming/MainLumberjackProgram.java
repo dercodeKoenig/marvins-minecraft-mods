@@ -9,7 +9,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 
 import static NPCs.Utils.*;
 
@@ -77,7 +76,7 @@ public class MainLumberjackProgram extends Goal {
             return false;
         }
 
-        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityTreeFarm.knownTreeFarms, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityTreeFarm.knownTreeFarms, worker)) {
 
             if (Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 

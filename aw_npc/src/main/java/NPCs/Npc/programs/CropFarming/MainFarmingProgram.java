@@ -9,7 +9,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.EnumSet;
-import java.util.HashMap;
 
 import static NPCs.Utils.*;
 
@@ -78,7 +77,7 @@ public class MainFarmingProgram extends Goal {
             return false;
         }
 
-        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityCropFarm.knownCropFarms, worker)) {
 
             if (Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 

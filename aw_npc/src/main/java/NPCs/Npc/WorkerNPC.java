@@ -1,5 +1,6 @@
 package NPCs.Npc;
 
+import AgeOfSteam.Registry;
 import NPCs.Npc.programs.Combat.DropLootFighterProgram;
 import NPCs.Utils;
 import NPCs.Npc.programs.*;
@@ -32,10 +33,11 @@ public class WorkerNPC extends NPCBase {
 
     public enum WorkTypes {
         Farmer,
-        FISHER,
         Miner,
-        HUNTER,
         Lumberjack,
+        Engineer,
+        FISHER,
+        HUNTER,
         Worker
     }
 
@@ -45,14 +47,12 @@ public class WorkerNPC extends NPCBase {
 
     public WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
-        //guiModuleItemHandlerSlot workOrderSlot = new guiModuleItemHandlerSlot(13002, ordersStackHandler, 1, 1,0,guiHandler, 140,70);
-        //guiHandler.getModules().addFirst(workOrderSlot);
-
     }
 
     public MainFarmingProgram farmingProgram;
     public MainLumberjackProgram lumberjackProgram;
     public MainMiningProgram miningProgram;
+    public WarehouseInterfaceSortingProgram warehouseInterfaceSortingProgram;
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
@@ -88,6 +88,7 @@ public class WorkerNPC extends NPCBase {
         farmingProgram = new MainFarmingProgram(this);
         lumberjackProgram = new MainLumberjackProgram(this);
         miningProgram = new MainMiningProgram(this);
+        warehouseInterfaceSortingProgram = new WarehouseInterfaceSortingProgram(this);
 
         int priority = 0;
 
@@ -109,6 +110,9 @@ public class WorkerNPC extends NPCBase {
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Lumberjack.ordinal()) {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
+        }
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Engineer.ordinal()) {
+            this.goalSelector.addGoal(priority++, warehouseInterfaceSortingProgram);
         }
 
         goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
@@ -151,6 +155,15 @@ public class WorkerNPC extends NPCBase {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Lumberjack.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 2 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_worker_lumberjack_" + randomNumber + ".png");
+                player.setItemInHand(hand, ItemStack.EMPTY);
+                registerGoals();
+                return InteractionResult.SUCCESS;
+            }
+
+            if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_WOODEN_HAMMER.get())) {
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.Engineer.ordinal());
+                int randomNumber = Math.abs(level().random.nextInt()) % 5 + 1;
+                getEntityData().set(DATA_TEXTURE, "po_worker_craftsman_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 return InteractionResult.SUCCESS;

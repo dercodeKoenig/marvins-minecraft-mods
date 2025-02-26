@@ -259,7 +259,7 @@ public class UseMillStoneProgram {
             }
             return hasWork;
         } else {
-            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityMillStone.knownBlockEntities, farm.getBlockPos().getCenter())) {
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityMillStone.knownBlockEntities, farm.getBlockPos().getCenter())) {
                 if (Utils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useMillStonesInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);

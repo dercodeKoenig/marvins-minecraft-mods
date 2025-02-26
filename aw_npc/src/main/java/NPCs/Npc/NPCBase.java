@@ -8,6 +8,7 @@ import ARLib.network.PacketEntity;
 import NPCs.Items.ItemFoodOrder;
 import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
+import NPCs.Items.ItemWorkOrder;
 import NPCs.Utils;
 import NPCs.Npc.programs.SlowMobNavigation;
 import net.minecraft.client.Minecraft;
@@ -22,7 +23,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -70,6 +70,18 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         public boolean isItemValid(int slot, ItemStack stack) {
             if (slot == 0) {
                 if (stack.getItem() instanceof ItemFoodOrder) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    public ItemStackHandler ordersStackHandler = new ItemStackHandler(1) {
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            if (slot == 0) {
+                if (stack.getItem() instanceof ItemWorkOrder) {
                     return true;
                 }
             }
@@ -286,6 +298,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         guiModuleItemHandlerSlot foodOrderSlot = new guiModuleItemHandlerSlot(13001, foodOrderStackHandler, 0, 1, 0, guiHandler, 140, 50);
         guiHandler.getModules().addFirst(foodOrderSlot);
+        guiModuleItemHandlerSlot workOrderSlot = new guiModuleItemHandlerSlot(19009, ordersStackHandler, 0, 1, 0, guiHandler, 140, 70);
+        guiHandler.getModules().addFirst(workOrderSlot);
 
         int w = 5;
         for (int i = 0; i < combinedInventory.getSlots(); i++) {
@@ -353,7 +367,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
-            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(), this)) {
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(TownHallOwners.getEntries(level()).keySet(), this)) {
                 if (Utils.distanceManhattan(this, p.getCenter()) > 256)
                     break;
 
@@ -520,6 +534,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         for (int i = 0; i < foodOrderStackHandler.getSlots(); i++) {
             level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, foodOrderStackHandler.getStackInSlot(i)));
         }
+        for (int i = 0; i < ordersStackHandler.getSlots(); i++) {
+            level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, ordersStackHandler.getStackInSlot(i)));
+        }
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
     }
 
@@ -537,6 +554,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
+        compound.put("orderInv",ordersStackHandler.serializeNBT(this.registryAccess()));
+        compound.put("foodOrderInv",foodOrderStackHandler.serializeNBT(this.registryAccess()));
 
         if (homePosition != null) {
             compound.putInt("homePositionX", homePosition.getX());
@@ -563,6 +582,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         inventory.deserializeNBT(this.registryAccess(), compound.getCompound("inventory1"));
+        ordersStackHandler.deserializeNBT(this.registryAccess(), compound.getCompound("orderInv"));
+        foodOrderStackHandler.deserializeNBT(this.registryAccess(), compound.getCompound("foodOrderInv"));
 
         if (compound.contains("homePositionX") && compound.contains("homePositionY") && compound.contains("homePositionZ")) {
             homePosition = new BlockPos(compound.getInt("homePositionX"), compound.getInt("homePositionY"), compound.getInt("homePositionZ"));

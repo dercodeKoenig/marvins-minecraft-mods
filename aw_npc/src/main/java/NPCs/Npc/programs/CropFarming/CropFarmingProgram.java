@@ -76,7 +76,7 @@ public class CropFarmingProgram {
 
     ///  HARVEST PROGRAM CODE START ///
     public BlockPos getNextHarvestTargetFromFarm(EntityCropFarm farm) {
-        for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(farm.positionsToHarvest, worker)) {
+        for (BlockPos i : Utils.sortBlockPosByDistanceToVec(farm.positionsToHarvest, worker)) {
             if (isPositionWorkable(i)) {
                 return i;
             }
@@ -229,7 +229,7 @@ public class CropFarmingProgram {
     }
 
     public BlockPos getNextPlantTarget(EntityCropFarm farm) {
-        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
+        for (BlockPos p : Utils.sortBlockPosByDistanceToVec(farm.positionsToPlant, worker)){
             if(!isPositionWorkable(p)) continue;
             ItemStack s = getStackToPlantAtPosition(farm, p);
             if(!s.isEmpty()){
@@ -438,7 +438,7 @@ public class CropFarmingProgram {
     }
 
     public BlockPos getNextTillTarget(EntityCropFarm farm){
-        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToVec(farm.positionsToPlant, worker)) {
             if (canTillPosition(farm, p)) {
                 return p;
             }

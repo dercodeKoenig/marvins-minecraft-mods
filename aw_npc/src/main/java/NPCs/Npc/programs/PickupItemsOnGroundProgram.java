@@ -45,8 +45,10 @@ public class PickupItemsOnGroundProgram extends Goal {
 
         if (Utils.countEmptySlots(npc) < 1) return false;
         for (ItemEntity i : itemsOnGround()) {
-            if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
-                return true;
+            if (Math.abs(i.getDeltaMovement().length()) < 0.01) {
+                if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
+                    return true;
+                }
             }
         }
         return false;
@@ -83,21 +85,22 @@ public class PickupItemsOnGroundProgram extends Goal {
 
         TreeSet<ItemEntity> itemsOnGround = sortByDistanceTo(itemsOnGround());
         for (ItemEntity i : itemsOnGround) {
-            if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
+            if (Math.abs(i.getDeltaMovement().length()) < 0.01) {
+                if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
+                    int pathFindExit = npc.slowMobNavigation.moveToPosition(
+                            i.getOnPos(),
+                            1,
+                            npc.slowNavigationMaxDistance,
+                            npc.slowNavigationMaxNodes,
+                            npc.slowNavigationStepPerTick
+                    );
 
-                int pathFindExit = npc.slowMobNavigation.moveToPosition(
-                        i.getOnPos(),
-                        1,
-                        npc.slowNavigationMaxDistance,
-                        npc.slowNavigationMaxNodes,
-                        npc.slowNavigationStepPerTick
-                );
-
-                if (pathFindExit == SUCCESS_STILL_RUNNING) {
-                    return;
+                    if (pathFindExit == SUCCESS_STILL_RUNNING) {
+                        return;
+                    }
                 }
             }
+            canUse = false;
         }
-        canUse = false;
     }
 }

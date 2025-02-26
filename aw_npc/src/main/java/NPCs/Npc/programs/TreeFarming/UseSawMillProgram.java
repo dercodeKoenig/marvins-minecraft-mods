@@ -161,7 +161,7 @@ public class UseSawMillProgram {
         workinfo w = new workinfo();
 
         // it can happen that because a worker goes eat or sleep, another worker will start working
-        // this is usually not a problem for other worksite, but on the woodmill they will wait until they cam input wood
+        // this is usually not a problem for other worksite, but on the woodmill they will wait until they can input wood
         // this can cause workers to get stuck waiting forever at a woodmill
         // so check if other workers are nearby that are currently working on this mill
         List<WorkerNPC> workersAround = worker.level().getEntitiesOfClass(WorkerNPC.class,new AABB(mill.getBlockPos()).inflate(10));
@@ -268,7 +268,7 @@ public class UseSawMillProgram {
             //System.out.println(takeOutput+":"+canPutInputsFromFarm+":"+canPutInputsFromInventory);
             return hasWork;
         } else {
-            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityWoodMill.knownBlockEntities, farm.getBlockPos().getCenter())) {
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityWoodMill.knownBlockEntities, farm.getBlockPos().getCenter())) {
                 if (Utils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useWoodmillsInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);

@@ -126,6 +126,7 @@ onBookContentChanged();
 
     @Override
     public void onLoad() {
+        super.onLoad();
         if (!level.isClientSide) {
             updateCraftingContainerFromCraftingInventory();
         }

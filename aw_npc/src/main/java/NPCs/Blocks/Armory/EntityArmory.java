@@ -133,7 +133,7 @@ public class EntityArmory extends BlockEntity implements INetworkTagReceiver {
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
-            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level).keySet(), getBlockPos().getCenter())) {
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(TownHallOwners.getEntries(level).keySet(), getBlockPos().getCenter())) {
                 if (Utils.distanceManhattan(getBlockPos().getCenter(), p.getCenter()) > 512)
                     break;
 

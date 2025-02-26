@@ -3,6 +3,7 @@ package WorkSites.WarehouseInterface;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.BlockIdentifier;
 import WorkSites.Config;
 import WorkSites.Warehouse.EntityWarehouse;
 import WorkSites.Warehouse.WarehouseItemHandler;
@@ -10,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -23,6 +25,9 @@ import static WorkSites.Registry.ENTITY_WAREHOUSE_INTERFACE;
 
 
 public class EntityWarehouseInterface extends BlockEntity implements INetworkTagReceiver {
+
+    public static Set<BlockIdentifier> knownWarehouseInterfaces = new HashSet<>();
+    public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>(); // for npc system
 
     public ItemStackHandler inventory = new ItemStackHandler(9) {
         @Override
@@ -102,9 +107,16 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
     @Override
     public void onLoad() {
+        super.onLoad();
         if (!level.isClientSide) {
             refreshGui();
+            knownWarehouseInterfaces.add(new BlockIdentifier(level, getBlockPos()));
         }
+    }
+    @Override
+    public void setRemoved(){
+        super.setRemoved();
+        knownWarehouseInterfaces.remove(new BlockIdentifier(level, getBlockPos()));
     }
 
     public void popInventory() {
@@ -334,6 +346,16 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
                             }
                         }
                     }
+                }
+            }
+
+            // timeout workers for npc module
+            for (Entity e : workersWorkingHereWithTimeout.keySet()){
+                int ticks = workersWorkingHereWithTimeout.get(e);
+                workersWorkingHereWithTimeout.put(e, ticks+1);
+                if(ticks > 100){
+                    workersWorkingHereWithTimeout.remove(e);
+                    break;
                 }
             }
         }
