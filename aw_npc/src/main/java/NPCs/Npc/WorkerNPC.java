@@ -9,6 +9,7 @@ import NPCs.Npc.programs.Mining.MainMiningProgram;
 import NPCs.Npc.programs.TreeFarming.MainLumberjackProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -137,6 +138,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_TEXTURE, "po_worker_farmer_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
+                setCustomName(Component.literal("Farmer"));
                 return InteractionResult.SUCCESS;
             }
 
@@ -146,6 +148,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_TEXTURE, "po_worker_miner_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
+                setCustomName(Component.literal("Miner"));
                 return InteractionResult.SUCCESS;
             }
 
@@ -155,6 +158,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_TEXTURE, "po_worker_lumberjack_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
+                setCustomName(Component.literal("Lumberjack"));
                 return InteractionResult.SUCCESS;
             }
 
@@ -164,6 +168,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_TEXTURE, "po_worker_craftsman_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
+                setCustomName(Component.literal("Craftsman"));
                 return InteractionResult.SUCCESS;
             }
         }
