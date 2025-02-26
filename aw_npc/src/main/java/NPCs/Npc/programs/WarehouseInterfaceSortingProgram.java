@@ -142,7 +142,6 @@ public class WarehouseInterfaceSortingProgram extends Goal {
             lastRequestedItem.stack.setCount(warehouseInterface.nextStackToInsert.stack.getCount());
         }
 
-
 if(!isLoading) {
     if (lastRequestedItem != null) {
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
@@ -153,16 +152,17 @@ if(!isLoading) {
                 if (lastRequestedItem.equals(c)) {
                     int exit = unloadInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), c.stack);
                     if (exit == EXIT_FAIL) {
+                        lastRequestedItem = null;
                         return EXIT_FAIL;
                     }
+                    lastRequestedItem.stack.shrink(1);
+                    if(lastRequestedItem.stack.isEmpty())lastRequestedItem = null;
                     return SUCCESS_STILL_RUNNING;
                 }
             }
         }
     }
-    lastRequestedItem = null;
 }
-
         int emptySlots = countEmptySlots(worker);
         if (lastRequestedItem != null && (emptySlots > 5 || isLoading) && countItems(lastRequestedItem.stack.getItem(), worker.combinedInventory) < lastRequestedItem.stack.getCount()) {
             BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(lastRequestedItem, warehouseInterface.warehouseReference);
