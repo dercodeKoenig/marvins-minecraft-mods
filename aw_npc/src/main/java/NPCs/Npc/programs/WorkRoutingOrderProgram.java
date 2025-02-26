@@ -124,17 +124,33 @@ public class WorkRoutingOrderProgram extends Goal {
         }
         IItemHandler itemHandler = worker.level().getCapability(Capabilities.ItemHandler.BLOCK, target.getBlockPos(), target.getBlockState(), target, targetFace);
         if (itemHandler != null) {
-            if (toInsert != null) {
+            if (toInsert != null && !toInsert.isEmpty()) {
                 int exit = unloadInventoryProgram.run(itemHandler,target.getBlockPos(),toInsert.keySet().stream().toList().getFirst().stack);
-                if(exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS)
+                if(exit == EXIT_SUCCESS){
+                    toInsert.put(toInsert.keySet().stream().toList().getFirst(), toInsert.get(toInsert.keySet().stream().toList().getFirst()) -1 );
+                    if(toInsert.get(toInsert.keySet().stream().toList().getFirst()) <= 0){
+                        toInsert.remove(toInsert.keySet().stream().toList().getFirst());
+                    }
+                    return;
+                }
+                if(exit == SUCCESS_STILL_RUNNING)
                     return;
             }
-            if (toExtract != null) {
+            if (toExtract != null && !toExtract.isEmpty()) {
                 int exit = takeFromInventoryProgram.run(itemHandler,target.getBlockPos(),toExtract.keySet().stream().toList().getFirst().stack);
-                if(exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS)
+                if(exit == EXIT_SUCCESS){
+                    toExtract.put(toExtract.keySet().stream().toList().getFirst(), toExtract.get(toExtract.keySet().stream().toList().getFirst()) -1 );
+                    if(toExtract.get(toExtract.keySet().stream().toList().getFirst()) <= 0){
+                        toExtract.remove(toExtract.keySet().stream().toList().getFirst());
+                    }
+                    return;
+                }
+                if(exit == SUCCESS_STILL_RUNNING)
                     return;
             }
         }
         target = null;
+        lastCheck = 0;
+        canUse();
     }
 }
