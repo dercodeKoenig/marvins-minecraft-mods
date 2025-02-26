@@ -44,15 +44,12 @@ public class WorkerNPC extends NPCBase {
     public BlockPos lastWorksitePosition;
     public double cachedDistanceManhattanToWorksite;
 
+public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogram needs to access the program from other workers
 
     public WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
     }
 
-    public MainFarmingProgram farmingProgram;
-    public MainLumberjackProgram lumberjackProgram;
-    public MainMiningProgram miningProgram;
-    public WarehouseInterfaceSortingProgram warehouseInterfaceSortingProgram;
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
@@ -78,17 +75,15 @@ public class WorkerNPC extends NPCBase {
 
     @Override
     protected void registerGoals() {
+
+        lumberjackProgram = new MainLumberjackProgram(this);
+
         List<WrappedGoal> activeGoals = new ArrayList<>(goalSelector.getAvailableGoals());
         for (WrappedGoal i : activeGoals) {
             if (i.isRunning())
                 i.stop();
         }
         goalSelector.getAvailableGoals().clear();
-
-        farmingProgram = new MainFarmingProgram(this);
-        lumberjackProgram = new MainLumberjackProgram(this);
-        miningProgram = new MainMiningProgram(this);
-        warehouseInterfaceSortingProgram = new WarehouseInterfaceSortingProgram(this);
 
         int priority = 0;
 
@@ -103,17 +98,17 @@ public class WorkerNPC extends NPCBase {
         goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Farmer.ordinal()) {
-            this.goalSelector.addGoal(priority++, farmingProgram);
+            this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Miner.ordinal()) {
-            this.goalSelector.addGoal(priority++, miningProgram);
+            this.goalSelector.addGoal(priority++, new MainMiningProgram(this));
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Lumberjack.ordinal()) {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Engineer.ordinal()) {
+            this.goalSelector.addGoal(priority++, new WarehouseInterfaceSortingProgram(this));
             this.goalSelector.addGoal(priority++, new WorkRoutingOrderProgram(this));
-            this.goalSelector.addGoal(priority++, warehouseInterfaceSortingProgram);
         }
 
         goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));

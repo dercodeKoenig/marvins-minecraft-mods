@@ -88,6 +88,10 @@ public class WarehouseInterfaceSortingProgram extends Goal {
             return false;
         lastCheck = gameTime;
 
+        if(worker.ordersStackHandler.getStackInSlot(0) != ItemStack.EMPTY)
+            // if he has a routing order do not sort the warehouse,
+            return false;
+
         // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
         // except he can switch to this program if the last worksite was of this program (eg after sleep, server restart)
         if (worker.lastWorksitePosition != null) {
