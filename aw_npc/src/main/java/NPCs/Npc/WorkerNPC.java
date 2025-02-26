@@ -120,6 +120,8 @@ public class WorkerNPC extends NPCBase {
 
         goalSelector.addGoal(priority++, new DropLootProgram(this));
 
+        goalSelector.addGoal(priority++, new ForgetLastWorksiteProgram(this));
+
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.8, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(priority++, new RandomLookAroundGoal(this));

@@ -5,6 +5,7 @@ import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import NPCs.Utils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -20,6 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -71,7 +73,15 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
         for (int entryIndex = 0; entryIndex < entries.size(); entryIndex++) {
             RoutingEntry entry = entries.get(entryIndex);
             final int finalEntryIndex = entryIndex;
-            guiModuleText info = new guiModuleText(id++, ("Position: " + entry.posX + "," + entry.posY + "," + entry.posZ + " : " + Direction.values()[entry.facingOrdinal]), guiHandler, 0, y, 0x00000000, false);
+
+            Block targetBlock = p.level().getBlockState(new BlockPos(entry.posX,entry.posY,entry.posZ)).getBlock();
+
+String blockName = targetBlock.asItem().getName(new ItemStack(targetBlock.asItem())).getString();
+            if (blockName.length() > 15) {
+                blockName = blockName.substring(0, 15);
+            }
+
+            guiModuleText info = new guiModuleText(id++, (blockName+": " + entry.posX + "," + entry.posY + "," + entry.posZ + ": " + Direction.values()[entry.facingOrdinal]), guiHandler, 0, y, 0x00000000, false);
             container.modules.add(info);
             y += 10;
             guiModuleButton modeBtn = new guiModuleDefaultButton(id++, entry.getModeText(), guiHandler, 0, y, 100, 10) {

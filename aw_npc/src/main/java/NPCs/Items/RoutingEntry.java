@@ -15,10 +15,6 @@ import static NPCs.Utils.insertStackIntoInventory;
 
 public class RoutingEntry {
 
-    /*
-    0 -> match inventory
-     */
-
     public int mode;
     public ItemStackHandler filterInventory = new ItemStackHandler(9);
     public int durabilityPercentFilter = 0;
@@ -36,12 +32,18 @@ public class RoutingEntry {
         if (mode == 2) {
             return "put any";
         }
+        if (mode == 3) {
+            return "take except";
+        }
+        if (mode == 4) {
+            return "put except";
+        }
         return "";
     }
 
     public void switchMode() {
         mode++;
-        if (mode > 2)
+        if (mode > 4)
             mode = 0;
     }
 
@@ -56,6 +58,12 @@ public class RoutingEntry {
         if (mode == 2) { // put any
             return getStacksToInsert_putAny(targetInventory, inventory);
         }
+        if (mode == 3) { // take except
+            return new HashMap<>();
+        }
+        if (mode == 4) { // put except
+            return getStacksToInsert_putExcept(targetInventory, inventory);
+        }
         return new HashMap<>();
     }
 
@@ -67,6 +75,12 @@ public class RoutingEntry {
             return getStacksToExtract_takeAny(targetInventory, inventory);
         }
         if (mode == 2) { // put any
+            return new HashMap<>();
+        }
+        if (mode == 3) { // take except
+            return getStacksToExtract_takeExcept(targetInventory, inventory);
+        }
+        if (mode == 4) { // put except
             return new HashMap<>();
         }
         return new HashMap<>();
@@ -110,6 +124,25 @@ public class RoutingEntry {
         return toExtract;
     }
 
+    public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeExcept(IItemHandler targetInventory, IItemHandler inventory) {
+        HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
+
+        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
+        HashMap<ComparableItemStack, Integer> targetTotalMatchingDurability = listInventory(targetInventory, true, true);
+
+        for (ComparableItemStack c : targetTotalMatchingDurability.keySet()) {
+            if (!filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))) {
+                int count = targetTotalMatchingDurability.get(c);
+                ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(count), inventory, true);
+                int inserted = count - notInserted.getCount();
+                if (inserted > 0) {
+                    toExtract.put(c, inserted);
+                }
+            }
+        }
+        return toExtract;
+    }
+
     public HashMap<ComparableItemStack, Integer> getStacksToInsert_putAny(IItemHandler targetInventory, IItemHandler inventory) {
         HashMap<ComparableItemStack, Integer> toInsert = new HashMap<>();
 
@@ -118,6 +151,25 @@ public class RoutingEntry {
 
         for (ComparableItemStack c : inventoryTotalMatchingDurability.keySet()) {
             if (filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))) {
+                int count = inventoryTotalMatchingDurability.get(c);
+                ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(count), targetInventory, true);
+                int inserted = count - notInserted.getCount();
+                if (inserted > 0) {
+                    toInsert.put(c, inserted);
+                }
+            }
+        }
+        return toInsert;
+    }
+
+    public HashMap<ComparableItemStack, Integer> getStacksToInsert_putExcept(IItemHandler targetInventory, IItemHandler inventory) {
+        HashMap<ComparableItemStack, Integer> toInsert = new HashMap<>();
+
+        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
+        HashMap<ComparableItemStack, Integer> inventoryTotalMatchingDurability = listInventory(inventory, true, true);
+
+        for (ComparableItemStack c : inventoryTotalMatchingDurability.keySet()) {
+            if (!filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))) {
                 int count = inventoryTotalMatchingDurability.get(c);
                 ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(count), targetInventory, true);
                 int inserted = count - notInserted.getCount();
