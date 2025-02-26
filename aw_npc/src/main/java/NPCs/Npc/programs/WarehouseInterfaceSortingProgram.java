@@ -30,6 +30,9 @@ public class WarehouseInterfaceSortingProgram extends Goal {
     public WorkerNPC worker;
     public int timeoutForWorkCheck = 20 * 10;
 
+    boolean isLoading = false;
+    EntityWarehouse.ComparableItemStack lastRequestedItem; // because as soon as the worker removes the item from the inventory, the interface thinks it is no longer available and removes it as a request. so cache it
+
     UnloadInventoryProgram unloadInventoryProgram;
     TakeFromInventoryProgram takeFromInventoryProgram;
 
@@ -65,7 +68,6 @@ public class WarehouseInterfaceSortingProgram extends Goal {
                     return true;
             }
         }
-
         return false;
     }
 
@@ -104,6 +106,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
                 if (hasWorkAtInterface(p.pos)) {
                     worker.lastWorksitePosition = p.pos;
                     w.workersWorkingHereWithTimeout.put(worker, 0);
+                    lastRequestedItem=null;
                     return true;
                 }
             }
@@ -134,22 +137,68 @@ public class WarehouseInterfaceSortingProgram extends Goal {
 
         warehouseInterface.workersWorkingHereWithTimeout.put(worker, 0);
 
+        if(lastRequestedItem==null && warehouseInterface.nextStackToInsert != null){
+            lastRequestedItem = new EntityWarehouse.ComparableItemStack(warehouseInterface.nextStackToInsert.stack);
+            lastRequestedItem.stack.setCount(warehouseInterface.nextStackToInsert.stack.getCount());
+        }
 
+
+if(!isLoading) {
+    if (lastRequestedItem != null) {
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
             ItemStack stack = worker.combinedInventory.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
 
-                if (warehouseInterface.nextStackToInsert != null) {
-                    if (warehouseInterface.nextStackToInsert.equals(c)) {
-                        int exit = unloadInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), c.stack);
-                        if (exit == EXIT_FAIL) {
-                            return EXIT_FAIL;
-                        }
-                        return SUCCESS_STILL_RUNNING;
+                if (lastRequestedItem.equals(c)) {
+                    int exit = unloadInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), c.stack);
+                    if (exit == EXIT_FAIL) {
+                        return EXIT_FAIL;
                     }
+                    return SUCCESS_STILL_RUNNING;
                 }
+            }
+        }
+    }
+    lastRequestedItem = null;
+}
 
+        int emptySlots = countEmptySlots(worker);
+        if (lastRequestedItem != null && (emptySlots > 5 || isLoading) && countItems(lastRequestedItem.stack.getItem(), worker.combinedInventory) < lastRequestedItem.stack.getCount()) {
+            BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(lastRequestedItem, warehouseInterface.warehouseReference);
+            if (target != null) {
+                IItemHandler inv = worker.level().getCapability(Capabilities.ItemHandler.BLOCK, target.getBlockPos(), target.getBlockState(), target, Direction.UP);
+                if (inv != null) {
+                    isLoading = true;
+                    int exit = takeFromInventoryProgram.run(inv, target.getBlockPos(), lastRequestedItem.stack);
+                    if (exit == EXIT_FAIL) {
+                        isLoading = false;
+                    }
+                        return SUCCESS_STILL_RUNNING;
+                }
+            }
+        }
+
+
+        if (!warehouseInterface.nextStackToRemove.isEmpty() && (emptySlots > 5 || isLoading)) {
+            isLoading = true;
+            int exit = takeFromInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), warehouseInterface.nextStackToRemove);
+            if (exit == EXIT_FAIL) {
+                isLoading = false;
+            }
+            return SUCCESS_STILL_RUNNING;
+        }
+
+        if (isLoading) {
+            isLoading = false;
+            return SUCCESS_STILL_RUNNING;
+        }
+
+
+        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+            ItemStack stack = worker.combinedInventory.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
 
                 BlockEntity target = WarehouseItemHandler.getBlockEntityWhereStackIsInsertable(c, warehouseInterface.warehouseReference);
                 if (target != null) {
@@ -163,33 +212,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
                     }
                 }
             }
-
         }
-
-
-        if (!warehouseInterface.nextStackToRemove.isEmpty()) {
-            int exit = takeFromInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), warehouseInterface.nextStackToRemove);
-            if (exit == EXIT_FAIL) {
-                return EXIT_FAIL;
-            }
-            return SUCCESS_STILL_RUNNING;
-        }
-
-
-        if (warehouseInterface.nextStackToInsert != null) {
-            BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(warehouseInterface.nextStackToInsert, warehouseInterface.warehouseReference);
-            if (target != null) {
-                IItemHandler inv = worker.level().getCapability(Capabilities.ItemHandler.BLOCK, target.getBlockPos(), target.getBlockState(), target, Direction.UP);
-                if (inv != null) {
-                    int exit = takeFromInventoryProgram.run(inv, target.getBlockPos(), warehouseInterface.nextStackToInsert.stack);
-                    if (exit == EXIT_FAIL) {
-                        return EXIT_FAIL;
-                    }
-                    return SUCCESS_STILL_RUNNING;
-                }
-            }
-        }
-
         return EXIT_SUCCESS;
     }
 }

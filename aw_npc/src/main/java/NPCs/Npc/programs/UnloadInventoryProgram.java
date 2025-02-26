@@ -52,6 +52,7 @@ public class UnloadInventoryProgram {
                     if (notInserted.isEmpty()) {
                         ItemStack extracted = npc.combinedInventory.extractItem(j, 1, false);
                         itemHandlerTarget.insertItem(i, extracted, false);
+                        //System.out.println(j+":"+i+":"+extracted);
                         return stackCopyToReturn;
                     }
                 }
