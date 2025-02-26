@@ -31,7 +31,13 @@ public class WarehouseInterfaceSortingProgram extends Goal {
     public int timeoutForWorkCheck = 20 * 10;
 
     boolean isLoading = false;
-    EntityWarehouse.ComparableItemStack lastRequestedItem; // because as soon as the worker removes the item from the inventory, the interface thinks it is no longer available and removes it as a request. so cache it
+
+    // because as soon as the worker removes the item from the inventory,
+    // the interface thinks it is no longer available and removes it as a request.
+    // so cache it.
+    // the worker needs to remember the requested item and it will be reset when it was failed to be inserted or
+    // when the total number of requested items was inserted
+    EntityWarehouse.ComparableItemStack lastRequestedItem;
 
     UnloadInventoryProgram unloadInventoryProgram;
     TakeFromInventoryProgram takeFromInventoryProgram;
@@ -106,7 +112,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
                 if (hasWorkAtInterface(p.pos)) {
                     worker.lastWorksitePosition = p.pos;
                     w.workersWorkingHereWithTimeout.put(worker, 0);
-                    lastRequestedItem=null;
+                    lastRequestedItem = null;
                     return true;
                 }
             }
@@ -137,32 +143,32 @@ public class WarehouseInterfaceSortingProgram extends Goal {
 
         warehouseInterface.workersWorkingHereWithTimeout.put(worker, 0);
 
-        if(lastRequestedItem==null && warehouseInterface.nextStackToInsert != null){
+        if (lastRequestedItem == null && warehouseInterface.nextStackToInsert != null) {
             lastRequestedItem = new EntityWarehouse.ComparableItemStack(warehouseInterface.nextStackToInsert.stack);
             lastRequestedItem.stack.setCount(warehouseInterface.nextStackToInsert.stack.getCount());
         }
 
-if(!isLoading) {
-    if (lastRequestedItem != null) {
-        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
-            ItemStack stack = worker.combinedInventory.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
+        if (!isLoading) {
+            if (lastRequestedItem != null) {
+                for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+                    ItemStack stack = worker.combinedInventory.getStackInSlot(i);
+                    if (!stack.isEmpty()) {
+                        EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
 
-                if (lastRequestedItem.equals(c)) {
-                    int exit = unloadInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), c.stack);
-                    if (exit == EXIT_FAIL) {
-                        lastRequestedItem = null;
-                        return EXIT_FAIL;
+                        if (lastRequestedItem.equals(c)) {
+                            int exit = unloadInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), c.stack);
+                            if (exit == EXIT_FAIL) {
+                                lastRequestedItem = null;
+                                return EXIT_FAIL;
+                            }
+                            lastRequestedItem.stack.shrink(1);
+                            if (lastRequestedItem.stack.isEmpty()) lastRequestedItem = null;
+                            return SUCCESS_STILL_RUNNING;
+                        }
                     }
-                    lastRequestedItem.stack.shrink(1);
-                    if(lastRequestedItem.stack.isEmpty())lastRequestedItem = null;
-                    return SUCCESS_STILL_RUNNING;
                 }
             }
         }
-    }
-}
         int emptySlots = countEmptySlots(worker);
         if (lastRequestedItem != null && (emptySlots > 5 || isLoading) && countItems(lastRequestedItem.stack.getItem(), worker.combinedInventory) < lastRequestedItem.stack.getCount()) {
             BlockEntity target = WarehouseItemHandler.getBlockEntityContainingItemStack(lastRequestedItem, warehouseInterface.warehouseReference);
@@ -174,7 +180,7 @@ if(!isLoading) {
                     if (exit == EXIT_FAIL) {
                         isLoading = false;
                     }
-                        return SUCCESS_STILL_RUNNING;
+                    return SUCCESS_STILL_RUNNING;
                 }
             }
         }
