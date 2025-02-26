@@ -12,9 +12,9 @@ import org.lwjgl.glfw.GLFW;
 public class guiModuleTextInput extends GuiModuleBase {
     public boolean isSelected = false;
     public int w, h;
-    private String text = "";
+    public String text = "";
     public int textInt = 0;
-    private boolean isInt;
+    public boolean isInt;
 
     public guiModuleTextInput(int id, IGuiHandler guiHandler, int x, int y, int w, int h, boolean isInt) {
         super(id, guiHandler, x, y);
@@ -87,9 +87,8 @@ public class guiModuleTextInput extends GuiModuleBase {
 
     @Override
     public void client_charTyped(char codePoint, int modifiers) {
-
+        if (!isSelected) return;
         text += codePoint;
-
         CompoundTag info = new CompoundTag();
         CompoundTag myTag = new CompoundTag();
         myTag.putString("text", text);

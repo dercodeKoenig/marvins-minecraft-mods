@@ -26,6 +26,21 @@ public class RoutingEntry {
 
     public int posX, posY, posZ, facingOrdinal;
 
+    public String getModeText(){
+        if(mode == 0){
+            return "match target";
+        }
+        if(mode == 1){
+            return "take any";
+        }
+        return "";
+    }
+    public void switchMode(){
+        mode++;
+        if(mode > 1)
+            mode = 0;
+    }
+
 
     public HashMap<ComparableItemStack, Integer> getStacksToInsert(IItemHandler targetInventory, IItemHandler inventory) {
         if (mode == 0) {  // match target to filter and durability filter

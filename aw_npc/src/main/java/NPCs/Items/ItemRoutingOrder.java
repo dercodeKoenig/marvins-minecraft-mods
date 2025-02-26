@@ -20,6 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,8 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
 
     GuiHandlerMainHandItem guiHandler;
     ItemStack lastStackInHand = ItemStack.EMPTY;
+    guiModuleScrollContainer container;
+    int lastSelectedTextField = -1; // because the gui resets it would un-focus the text area so store what was in focus before
 
     public ItemRoutingOrder() {
         super(new Properties());
@@ -40,45 +43,126 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
                 }
             }
         };
-    }
-    public void makeGui(ItemStack stack, Player p) {
-        guiHandler.getModules().clear();
-        List<RoutingEntry> entries = getRoutingEntries(stack,p.level().registryAccess());
 
-        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,170,10000,2,0,guiHandler)){
-            if(i.targetSlot != p.getInventory().selected)
+        container = new guiModuleScrollContainer(new ArrayList<>(), 0x00ffffff, guiHandler, 7, 10, 166, 120);
+    }
+
+    public void makeGui(ItemStack stack, Player p) {
+
+        List<RoutingEntry> entries = getRoutingEntries(stack, p.level().registryAccess());
+
+        guiHandler.getModules().clear();
+
+        guiHandler.getModules().add(container);
+
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 195, 10000, 2, 0, guiHandler)) {
+            if (i.targetSlot != p.getInventory().selected)
                 guiHandler.getModules().add(i);
         }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,110,20000,2,0,guiHandler)){
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 140, 20000, 2, 0, guiHandler)) {
             guiHandler.getModules().add(i);
         }
 
-        guiModuleScrollContainer container = new guiModuleScrollContainer(new ArrayList<>(),0x00ffffff,guiHandler,7,10,166,100);
-        guiHandler.getModules().add(container);
+        container.modules.clear();
 
         int y = 0;
         int id = 0;
         int slotId = 0;
-        for(RoutingEntry entry : entries){
-            guiModuleText info = new guiModuleText(id++, ("Position: "+entry.posX+","+entry.posY+","+entry.posZ+" : "+Direction.values()[entry.facingOrdinal]),guiHandler,0,y,0x00000000,false);
+        for (int entryIndex = 0; entryIndex < entries.size(); entryIndex++) {
+            RoutingEntry entry = entries.get(entryIndex);
+            final int finalEntryIndex = entryIndex;
+            guiModuleText info = new guiModuleText(id++, ("Position: " + entry.posX + "," + entry.posY + "," + entry.posZ + " : " + Direction.values()[entry.facingOrdinal]), guiHandler, 0, y, 0x00000000, false);
             container.modules.add(info);
-            y+=10;
+            y += 10;
+            guiModuleButton modeBtn = new guiModuleDefaultButton(id++, entry.getModeText(), guiHandler, 0, y, 100, 10) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("toggleMode", finalEntryIndex);
+                    this.guiHandler.sendToServer(tag);
+                }
+            };
+            container.modules.add(modeBtn);
+            guiModuleButton removeBtn = new guiModuleDefaultButton(id++, "X", guiHandler, 150, y, 10, 10) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("removeEntry", finalEntryIndex);
+                    this.guiHandler.sendToServer(tag);
+                }
+            };
+            container.modules.add(removeBtn);
+            y += 10;
+            guiModuleButton durabilityFilter_needsToBeAboveBtn = new guiModuleDefaultButton(id++, entry.durability_needsToBeAboveFilter == true ? ">" : "<", guiHandler, 100, y - 1, 10, 12) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("toggleDurFilterBtn", finalEntryIndex);
+                    this.guiHandler.sendToServer(tag);
+                }
+            };
+            container.modules.add(durabilityFilter_needsToBeAboveBtn);
+
+            guiModuleText durabilityFilterText = new guiModuleText(id++, "Durability % Filter:", guiHandler, 10, y + 2, 0xff000000, false);
+            container.modules.add(durabilityFilterText);
+
+            guiModuleTextInput durabilityPercentFilterInput = new guiModuleTextInput(id++, guiHandler, 115, y, 20, 10, true) {
+                public void client_charTyped(char codePoint, int modifiers) {
+                    // because item gui is different from normal gui i have to make some changes in here.
+                    // yes, the client should not sync but it does nothing anyway on this guiHandler
+                    if (this.isSelected) {
+                        setTextAndSync(text + codePoint);
+                        CompoundTag info = new CompoundTag();
+                        info.putInt("updateDurabilityPercent", finalEntryIndex);
+                        info.putInt("value", getAsInt());
+                        this.guiHandler.sendToServer(info);
+                    }
+                }
+                @Override
+                public void client_onKeyClick(int keyCode, int scanCode, int modifiers) {
+                    if (this.isSelected) {
+                        if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+                            // Handle backspace for deleting characters
+                            if (!text.isEmpty()) {
+                                setTextAndSync(text.substring(0, text.length() - 1));
+                            }
+                        }
+                        CompoundTag info = new CompoundTag();
+                        info.putInt("updateDurabilityPercent", finalEntryIndex);
+                        info.putInt("value", getAsInt());
+                        this.guiHandler.sendToServer(info);
+                    }
+                }
+
+                public void client_onMouseCLick(double x, double y, int button) {
+                    super.client_onMouseCLick(x, y, button);
+                    if (isSelected)
+                        lastSelectedTextField = finalEntryIndex;
+                }
+            };
+            durabilityPercentFilterInput.setTextAndSync(entry.durabilityPercentFilter);
+            if (lastSelectedTextField == entryIndex)
+                durabilityPercentFilterInput.isSelected = true;
+            container.modules.add(durabilityPercentFilterInput);
+
+            y += 13;
             for (int i = 0; i < 9; i++) {
                 int x = i * 18;
-                guiModuleItemGuiItemstackFakeSlot slot = new guiModuleItemGuiItemstackFakeSlot(this, slotId++,id++,guiHandler,5,6,x,y);
+                guiModuleItemGuiItemstackFakeSlot slot = new guiModuleItemGuiItemstackFakeSlot(this, slotId++, id++, guiHandler, 5, 6, x, y);
                 container.modules.add(slot);
             }
-            y += 20;
+            y += 25;
         }
 
-        if(guiHandler.screen instanceof ModularScreen m)
+        if (guiHandler.screen instanceof ModularScreen m)
             m.calculateGuiOffsetAndNotifyModules();
     }
 
     public void openGui(ItemStack bookStack, Player p) {
+        lastSelectedTextField = -1;
         makeGui(bookStack, p);
         lastStackInHand = bookStack.copy();
-        guiHandler.openGui(180, 200, true);
+        guiHandler.openGui(180, 220, true);
     }
 
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
@@ -149,7 +233,43 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
-guiHandler.readServer(compoundTag);
+        System.out.println(compoundTag);
+        guiHandler.readServer(compoundTag);
+        if (compoundTag.contains("toggleMode")) {
+            int modeBtn = compoundTag.getInt("toggleMode");
+            List<RoutingEntry> entries = getRoutingEntries(serverPlayer.getMainHandItem(), serverPlayer.level().registryAccess());
+            if (modeBtn < entries.size()) {
+                RoutingEntry entry = entries.get(modeBtn);
+                entry.switchMode();
+                setRoutingEntries(serverPlayer.getMainHandItem(), entries, serverPlayer.level().registryAccess());
+            }
+        }
+        if (compoundTag.contains("removeEntry")) {
+            int index = compoundTag.getInt("removeEntry");
+            List<RoutingEntry> entries = getRoutingEntries(serverPlayer.getMainHandItem(), serverPlayer.level().registryAccess());
+            if (index < entries.size()) {
+                entries.remove(index);
+                setRoutingEntries(serverPlayer.getMainHandItem(),entries,serverPlayer.level().registryAccess());
+            }
+        }
+        if (compoundTag.contains("toggleDurFilterBtn")) {
+            int toggleDurFilterBtn = compoundTag.getInt("toggleDurFilterBtn");
+            List<RoutingEntry> entries = getRoutingEntries(serverPlayer.getMainHandItem(), serverPlayer.level().registryAccess());
+            if (toggleDurFilterBtn < entries.size()) {
+                RoutingEntry entry = entries.get(toggleDurFilterBtn);
+                entry.durability_needsToBeAboveFilter = !entry.durability_needsToBeAboveFilter;
+                setRoutingEntries(serverPlayer.getMainHandItem(), entries, serverPlayer.level().registryAccess());
+            }
+        }
+        if (compoundTag.contains("updateDurabilityPercent") && compoundTag.contains("value")) {
+            int toggleDurFilter = compoundTag.getInt("updateDurabilityPercent");
+            List<RoutingEntry> entries = getRoutingEntries(serverPlayer.getMainHandItem(), serverPlayer.level().registryAccess());
+            if (toggleDurFilter < entries.size()) {
+                RoutingEntry entry = entries.get(toggleDurFilter);
+                entry.durabilityPercentFilter = compoundTag.getInt("value");
+                setRoutingEntries(serverPlayer.getMainHandItem(), entries, serverPlayer.level().registryAccess());
+            }
+        }
     }
 
     @Override
@@ -162,7 +282,7 @@ guiHandler.readServer(compoundTag);
         List<RoutingEntry> entries = getRoutingEntries(stack, registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
-        if(targetModuleIndex >= entries.size())
+        if (targetModuleIndex >= entries.size())
             // this can happen if the user no longer holds the gui item in main hand
             return ItemStack.EMPTY;
         RoutingEntry entry = entries.get(targetModuleIndex);
@@ -171,42 +291,42 @@ guiHandler.readServer(compoundTag);
 
     @Override
     public ItemStack insertItem(ItemStack stack, int slot, ItemStack stackToInsert, boolean simulate, RegistryAccess registry) {
-        List<RoutingEntry> entries = getRoutingEntries(stack,registry);
+        List<RoutingEntry> entries = getRoutingEntries(stack, registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
-        if(targetModuleIndex >= entries.size())
+        if (targetModuleIndex >= entries.size())
             // this can happen if the user no longer holds the gui item in main hand
             return stack;
         RoutingEntry entry = entries.get(targetModuleIndex);
-        ItemStack insert = entry.filterInventory.insertItem(targetSlot,stackToInsert,simulate);
-        if(!simulate){
+        ItemStack insert = entry.filterInventory.insertItem(targetSlot, stackToInsert, simulate);
+        if (!simulate) {
             setRoutingEntries(stack, entries, registry);
         }
-        return  insert;
+        return insert;
     }
 
     @Override
     public ItemStack extractItem(ItemStack stack, int slot, int amount, boolean simulate, RegistryAccess registry) {
-        List<RoutingEntry> entries = getRoutingEntries(stack,registry);
+        List<RoutingEntry> entries = getRoutingEntries(stack, registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
-        if(targetModuleIndex >= entries.size())
+        if (targetModuleIndex >= entries.size())
             // this can happen if the user no longer holds the gui item in main hand
             return ItemStack.EMPTY;
         RoutingEntry entry = entries.get(targetModuleIndex);
-        ItemStack extracted = entry.filterInventory.extractItem(targetSlot,amount,simulate);
-        if(!simulate){
+        ItemStack extracted = entry.filterInventory.extractItem(targetSlot, amount, simulate);
+        if (!simulate) {
             setRoutingEntries(stack, entries, registry);
         }
-        return  extracted;
+        return extracted;
     }
 
     @Override
     public int getSlotLimit(ItemStack stack, int slot, RegistryAccess registry) {
-        List<RoutingEntry> entries = getRoutingEntries(stack,registry);
+        List<RoutingEntry> entries = getRoutingEntries(stack, registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
-        if(targetModuleIndex >= entries.size())
+        if (targetModuleIndex >= entries.size())
             // this can happen if the user no longer holds the gui item in main hand
             return 0;
         RoutingEntry entry = entries.get(targetModuleIndex);
