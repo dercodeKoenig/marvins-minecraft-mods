@@ -24,7 +24,6 @@ public class ItemWorkOrder extends Item {
         public int x,y,z;
     }
 
-
     public static List<vec3> getBlockList(ItemStack stack) {
         CompoundTag stackTag = Utils.getStackTagOrEmpty(stack);
         List<vec3> l = new ArrayList<>();

@@ -55,6 +55,7 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver {
                 }
             }
         }
+
         @Override
         public void onGuiClientTick() {
             if (client_currentBookStackOpen.getItem() instanceof ItemResearchBook irb) {
@@ -64,22 +65,25 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver {
                     ItemStack stackInHand = Minecraft.getInstance().player.getMainHandItem();
                     if (!ItemStack.isSameItemSameComponents(client_currentBookStackOpen, stackInHand)) {
                         // probably updated nbt so update gui
-                        client_currentBookStackOpen = stackInHand;
+                        // and reset client_currentBookStackOpen to detect future changes.
+                        // it appears that the .copy() is not required. maybe because it creates a new object on sync
+                        // but i just add it because we should not compare the same object reference and using .copy() makes it more clear
+                        client_currentBookStackOpen = stackInHand.copy();
                         makeGui(stackInHand);
                     }
-                }else{
+                } else {
                     BlockPos pos = new BlockPos(t.getInt("sx"), t.getInt("sy"), t.getInt("sz"));
                     BlockEntity station = Minecraft.getInstance().player.level().getBlockEntity(pos);
-if(station instanceof EntityResearchStation r){
-    // this will ping the server to notify that i am still tracking the gui.
-    // i am not really tracking the gui but as long as the server thinks i am tracking the gui it will
-    // update the book stack nbt
-    r.guiHandler.onGuiClientTick();
-}
+                    if (station instanceof EntityResearchStation r) {
+                        // this will ping the server to notify that i am still tracking the gui.
+                        // i am not really tracking the gui but as long as the server thinks i am tracking the gui it will
+                        // update the book stack nbt
+                        r.guiHandler.onGuiClientTick();
+                    }
                 }
             }
         }
-        };
+    };
 
     public ItemResearchBook() {
         super(new Properties().stacksTo(1));

@@ -28,8 +28,8 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
     public int w = 18;
     public int h = 18;
 
-    int invGroup;
-    int instantTransferTarget;
+    public int invGroup;
+    public int instantTransferTarget;
 
     // returns the ItemStack for the slot to render
     public abstract ItemStack client_getItemStackToRender();

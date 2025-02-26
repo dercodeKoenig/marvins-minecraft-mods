@@ -112,6 +112,7 @@ public class WorkerNPC extends NPCBase {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Engineer.ordinal()) {
+            this.goalSelector.addGoal(priority++, new WorkRoutingOrderProgram(this));
             this.goalSelector.addGoal(priority++, warehouseInterfaceSortingProgram);
         }
 
