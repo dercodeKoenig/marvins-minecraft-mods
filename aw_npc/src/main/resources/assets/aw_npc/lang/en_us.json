@@ -1,3 +1,19 @@
 {
+  "block.aw_npc.townhall": "Townhall",
+  "item.aw_npc.townhall": "Townhall",
+
+  "block.aw_npc.strategy_table": "Strategy Table",
+  "item.aw_npc.strategy_table": "Strategy Table",
+
+  "block.aw_npc.armory": "Armory",
+  "item.aw_npc.armory": "Armory",
+
+  "item.aw_npc.food_order": "Food Supply Order",
+
+  "item.aw_npc.work_order": "Work Order",
+
+  "item.aw_npc.routing_order": "Routing Order",
+
+  "item.aw_npc.spawn_worker": "Summon Worker"
 
 }
