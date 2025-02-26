@@ -128,10 +128,11 @@ public class RoutingEntry {
                 int filterCount = filterTotalNoComponents.getOrDefault(new ComparableItemStack(new ItemStack(c.stack.getItem())), 0);
                 int toRemove = targetCount - filterCount;
                 if (toRemove > 0) {
-                    if (insertStackIntoInventory(c.stack.copyWithCount(toRemove), inventory, true) == ItemStack.EMPTY)
+                    if (insertStackIntoInventory(c.stack.copyWithCount(toRemove), inventory, true) == ItemStack.EMPTY) {
                         // remove a stack if the target has more compared to what the filter says it should have
                         toExtract.putIfAbsent(c, 0);
-                    toExtract.put(c, toExtract.get(c) + toRemove);
+                        toExtract.put(c, toExtract.get(c) + toRemove);
+                    }
                 }
             }
         }

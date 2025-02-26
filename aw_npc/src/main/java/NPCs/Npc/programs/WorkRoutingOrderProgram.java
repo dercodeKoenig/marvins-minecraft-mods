@@ -32,6 +32,13 @@ public class WorkRoutingOrderProgram extends Goal {
     UnloadInventoryProgram unloadInventoryProgram;
     TakeFromInventoryProgram takeFromInventoryProgram;
 
+    BlockEntity target;
+    Direction targetFace;
+    Map<ComparableItemStack, Integer> toExtract;
+    Map<ComparableItemStack, Integer> toInsert;
+
+    int currentIndex;
+
     public WorkRoutingOrderProgram(WorkerNPC worker) {
         this.worker = worker;
         unloadInventoryProgram = new UnloadInventoryProgram(worker);
@@ -45,6 +52,33 @@ public class WorkRoutingOrderProgram extends Goal {
     }
 
 
+    public BlockEntity computeWork(RoutingEntry i) {
+        toInsert = null;
+        toExtract = null;
+        BlockEntity e = worker.level().getBlockEntity(new BlockPos(i.posX, i.posY, i.posZ));
+        if (e != null) {
+            IItemHandler itemHandler = worker.level().getCapability(Capabilities.ItemHandler.BLOCK, e.getBlockPos(), e.getBlockState(), e, Direction.values()[i.facingOrdinal]);
+            if (itemHandler != null) {
+               Map<ComparableItemStack, Integer> _toExtract = i.getStacksToExtract(itemHandler, worker.combinedInventory);
+                Map<ComparableItemStack, Integer> _toInsert = i.getStacksToInsert(itemHandler, worker.combinedInventory);
+                if(!_toInsert.isEmpty())
+                    toInsert = _toInsert;
+                if(!_toExtract.isEmpty())
+                    toExtract = _toExtract;
+
+                if(!_toExtract.isEmpty() || !_toInsert.isEmpty())
+                    return e;
+                        /*
+                        for(ComparableItemStack c : toExtract.keySet())
+                            System.out.println(e.getBlockPos()+": toInsert :" + c.stack+":"+toExtract.get(c));
+                        for(ComparableItemStack c : toInsert.keySet())
+                            System.out.println(e.getBlockPos()+": toExtract :" +c.stack+":"+toInsert.get(c));
+                         */
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean canUse() {
 
@@ -56,21 +90,18 @@ public class WorkRoutingOrderProgram extends Goal {
         lastCheck = gameTime;
 
         ItemStack stack = worker.ordersStackHandler.getStackInSlot(0);
+        List<RoutingEntry> entries = ItemRoutingOrder.getRoutingEntries(stack, worker.level().registryAccess());
         if (!stack.isEmpty() && stack.getItem() instanceof ItemRoutingOrder routingOrder) {
-            List<RoutingEntry> entries = ItemRoutingOrder.getRoutingEntries(stack, worker.level().registryAccess());
-            for (RoutingEntry i : entries) {
-                BlockEntity e = worker.level().getBlockEntity(new BlockPos(i.posX, i.posY, i.posZ));
-                if (e != null) {
-                    IItemHandler itemHandler = worker.level().getCapability(Capabilities.ItemHandler.BLOCK, e.getBlockPos(), e.getBlockState(), e, Direction.values()[i.facingOrdinal]);
-                    if (itemHandler != null) {
+            for (int n = 0; n < entries.size(); n++) {
+                currentIndex++;
+                if (currentIndex >= entries.size())
+                    currentIndex = 0;
 
-                        Map<ComparableItemStack, Integer> toExtract = i.getStacksToInsert(itemHandler,worker.combinedInventory);
-                        Map<ComparableItemStack, Integer> toInsert = i.getStacksToInsert(itemHandler,worker.combinedInventory);
-                        for(ComparableItemStack c : toExtract.keySet())
-                            System.out.println(e.getBlockPos()+": toInsert :" + c.stack+":"+toExtract.get(c));
-                        for(ComparableItemStack c : toInsert.keySet())
-                            System.out.println(e.getBlockPos()+": toExtract :" +c.stack+":"+toInsert.get(c));
-                    }
+                BlockEntity e = computeWork(entries.get(currentIndex));
+                if (e != null) {
+                    target = e;
+                    targetFace = Direction.values()[entries.get(currentIndex).facingOrdinal];
+                    return true;
                 }
             }
         }
@@ -80,11 +111,30 @@ public class WorkRoutingOrderProgram extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        return target != null;
     }
 
     @Override
     public void tick() {
-
+        if(target == null)
+            return;
+        if(target.isRemoved()) {
+            target = null;
+            return;
+        }
+        IItemHandler itemHandler = worker.level().getCapability(Capabilities.ItemHandler.BLOCK, target.getBlockPos(), target.getBlockState(), target, targetFace);
+        if (itemHandler != null) {
+            if (toInsert != null) {
+                int exit = unloadInventoryProgram.run(itemHandler,target.getBlockPos(),toInsert.keySet().stream().toList().getFirst().stack);
+                if(exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS)
+                    return;
+            }
+            if (toExtract != null) {
+                int exit = takeFromInventoryProgram.run(itemHandler,target.getBlockPos(),toExtract.keySet().stream().toList().getFirst().stack);
+                if(exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS)
+                    return;
+            }
+        }
+        target = null;
     }
 }

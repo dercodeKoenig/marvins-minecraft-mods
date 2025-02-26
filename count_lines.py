@@ -24,3 +24,4 @@ def count_all_lines(directory):
 
 total_lines = count_all_lines(".")
 print(f"Total lines of code in Java & JSON files: {total_lines}")
+input("enter to continue")

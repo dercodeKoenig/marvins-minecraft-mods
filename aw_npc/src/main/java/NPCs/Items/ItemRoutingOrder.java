@@ -233,7 +233,6 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
-        System.out.println(compoundTag);
         guiHandler.readServer(compoundTag);
         if (compoundTag.contains("toggleMode")) {
             int modeBtn = compoundTag.getInt("toggleMode");
