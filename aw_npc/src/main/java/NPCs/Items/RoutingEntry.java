@@ -44,12 +44,15 @@ public class RoutingEntry {
         if (mode == 6) {
             return "put upto";
         }
+        if (mode == 7) {
+            return "match npc";
+        }
         return "";
     }
 
     public void switchMode() {
         mode++;
-        if (mode > 6)
+        if (mode > 7)
             mode = 0;
     }
 
@@ -57,6 +60,9 @@ public class RoutingEntry {
     public HashMap<ComparableItemStack, Integer> getStacksToInsert(IItemHandler targetInventory, IItemHandler inventory) {
         if (mode == 0) {  // match target to filter and durability filter
             return getStacksToInsert_putUpto(targetInventory, inventory);
+        }
+        if (mode == 7) {  // match inventory to filter and durability filter, basically inverse from above
+            return getStacksToExtract_matchFilter(inventory, targetInventory);
         }
         if (mode == 1) { // take any
             return new HashMap<>(); // nothing to insert
@@ -82,6 +88,9 @@ public class RoutingEntry {
     public HashMap<ComparableItemStack, Integer> getStacksToExtract(IItemHandler targetInventory, IItemHandler inventory) {
         if (mode == 0) {  // match target to filter and durability filter
             return getStacksToExtract_matchFilter(targetInventory, inventory);
+        }
+        if (mode == 7) {  // match inventory to filter and durability filter, basically inverse from above
+            return getStacksToInsert_putUpto(inventory, targetInventory);
         }
         if (mode == 1) { // take any
             return getStacksToExtract_takeAny(targetInventory, inventory);

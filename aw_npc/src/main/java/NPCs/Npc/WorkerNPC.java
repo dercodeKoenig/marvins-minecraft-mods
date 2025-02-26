@@ -112,9 +112,11 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
             this.goalSelector.addGoal(priority++, new WorkRoutingOrderProgram(this));
         }
 
-        goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
-
-        goalSelector.addGoal(priority++, new DropLootProgram(this));
+        // this one should not loot / drop loot because it can mess up its inventory
+        if (getEntityData().get(DATA_WORKTYPE) != WorkTypes.Engineer.ordinal()) {
+            goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
+            goalSelector.addGoal(priority++, new DropLootProgram(this));
+        }
 
         goalSelector.addGoal(priority++, new ForgetLastWorksiteProgram(this));
 
