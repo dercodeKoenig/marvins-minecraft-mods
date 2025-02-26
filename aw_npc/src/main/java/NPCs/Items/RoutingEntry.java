@@ -38,19 +38,25 @@ public class RoutingEntry {
         if (mode == 4) {
             return "put except";
         }
+        if (mode == 5) {
+            return "take upto";
+        }
+        if (mode == 6) {
+            return "put upto";
+        }
         return "";
     }
 
     public void switchMode() {
         mode++;
-        if (mode > 4)
+        if (mode > 6)
             mode = 0;
     }
 
 
     public HashMap<ComparableItemStack, Integer> getStacksToInsert(IItemHandler targetInventory, IItemHandler inventory) {
         if (mode == 0) {  // match target to filter and durability filter
-            return getStacksToInsert_matchFilter(targetInventory, inventory);
+            return getStacksToInsert_putUpto(targetInventory, inventory);
         }
         if (mode == 1) { // take any
             return new HashMap<>(); // nothing to insert
@@ -63,6 +69,12 @@ public class RoutingEntry {
         }
         if (mode == 4) { // put except
             return getStacksToInsert_putExcept(targetInventory, inventory);
+        }
+        if (mode == 5) { // take upto
+            return new HashMap<>();
+        }
+        if (mode == 6) { // put upto
+            return getStacksToInsert_putUpto(targetInventory, inventory);
         }
         return new HashMap<>();
     }
@@ -81,6 +93,12 @@ public class RoutingEntry {
             return getStacksToExtract_takeExcept(targetInventory, inventory);
         }
         if (mode == 4) { // put except
+            return new HashMap<>();
+        }
+        if (mode == 5) { // take upto
+            return getStacksToExtract_takeUpto(targetInventory,inventory);
+        }
+        if (mode == 6) { // put upto
             return new HashMap<>();
         }
         return new HashMap<>();
@@ -123,6 +141,7 @@ public class RoutingEntry {
         }
         return toExtract;
     }
+
 
     public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeExcept(IItemHandler targetInventory, IItemHandler inventory) {
         HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
@@ -182,7 +201,7 @@ public class RoutingEntry {
     }
 
 
-    public HashMap<ComparableItemStack, Integer> getStacksToInsert_matchFilter(IItemHandler targetInventory, IItemHandler inventory) {
+    public HashMap<ComparableItemStack, Integer> getStacksToInsert_putUpto(IItemHandler targetInventory, IItemHandler inventory) {
 
         HashMap<ComparableItemStack, Integer> toInsert = new HashMap<>();
 
@@ -214,6 +233,34 @@ public class RoutingEntry {
         return toInsert;
     }
 
+    public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeUpto(IItemHandler targetInventory, IItemHandler inventory) {
+
+        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
+        HashMap<ComparableItemStack, Integer> targetTotalFitsDurability = listInventory(targetInventory, true, true);
+        HashMap<ComparableItemStack, Integer> inventoryTotalNoComponents = listInventory(inventory, true, false);
+
+        HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
+        for (ComparableItemStack c : filterTotalNoComponents.keySet()) {
+            int uptoTargetCount = filterTotalNoComponents.get(c);
+            int existingCount = inventoryTotalNoComponents.getOrDefault(c,0);
+            int toTake =uptoTargetCount -existingCount;
+
+            for(ComparableItemStack k : targetTotalFitsDurability.keySet()){
+                if(ItemStack.isSameItem(k.stack, c.stack)){
+                    ItemStack notInserted = insertStackIntoInventory(k.stack.copyWithCount(toTake), inventory, true);
+                    int inserted = toTake - notInserted.getCount();
+                    if (inserted > 0) {
+                        toExtract.put(k, inserted);
+                        toTake -= inserted;
+                        targetTotalFitsDurability.put(k, targetTotalFitsDurability.get(k)-inserted);
+                    }
+                }
+            }
+
+        }
+        return toExtract;
+    }
+
 
     public HashMap<ComparableItemStack, Integer> getStacksToExtract_matchFilter(IItemHandler targetInventory, IItemHandler inventory) {
 
@@ -222,6 +269,7 @@ public class RoutingEntry {
 
         HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
         for (ComparableItemStack c : targetTotal.keySet()) {
+            ComparableItemStack cNoComponents = new ComparableItemStack(new ItemStack(c.stack.getItem()));
             int targetCount = targetTotal.get(c);
             int toRemove = 0;
             if (!EntityWarehouseInterface.fitsDurabilityFilter(c.stack, durability_needsToBeAboveFilter, durabilityPercentFilter))
@@ -229,7 +277,7 @@ public class RoutingEntry {
                 toRemove = targetCount;
             else {
                 // if the existing item matches the durability filter, see if it matches the filter count
-                int filterCount = filterTotalNoComponents.getOrDefault(new ComparableItemStack(new ItemStack(c.stack.getItem())), 0);
+                int filterCount = filterTotalNoComponents.getOrDefault(cNoComponents, 0);
                 toRemove = targetCount - filterCount;
             }
             if (toRemove > 0) {
@@ -237,6 +285,9 @@ public class RoutingEntry {
                 int inserted = toRemove - notInserted.getCount();
                 if (inserted > 0) {
                     toExtract.put(c, inserted);
+                    if(filterTotalNoComponents.get(cNoComponents) != null){
+                        filterTotalNoComponents.put(cNoComponents, filterTotalNoComponents.get(cNoComponents)-inserted);
+                    }
                 }
             }
 
