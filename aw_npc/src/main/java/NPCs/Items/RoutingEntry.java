@@ -46,14 +46,20 @@ public class RoutingEntry {
         if (mode == 0) {  // match target to filter and durability filter
             return getStacksToInsert_matchFilter(targetInventory,inventory);
         }
-        return null;
+        if(mode == 1){ // take any
+            return new HashMap<>(); // nothing to insert
+        }
+        return new HashMap<>();
     }
 
     public HashMap<ComparableItemStack, Integer> getStacksToExtract(IItemHandler targetInventory, IItemHandler inventory) {
         if (mode == 0) {  // match target to filter and durability filter
             return getStacksToExtract_matchFilter(targetInventory,inventory);
         }
-        return null;
+        if(mode == 1){ // take any
+            return getStacksToExtract_takeAny(targetInventory, inventory);
+        }
+        return new HashMap<>();
     }
 
 
@@ -76,6 +82,25 @@ public class RoutingEntry {
         }
         return total;
     }
+
+    public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeAny(IItemHandler targetInventory, IItemHandler inventory) {
+        HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
+
+        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
+        HashMap<ComparableItemStack, Integer> inventoryTotalMatchingDurability = listInventory(targetInventory, true, true);
+
+        for(ComparableItemStack c : inventoryTotalMatchingDurability.keySet()){
+            if(filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))){
+                int count = inventoryTotalMatchingDurability.get(c);
+                if (insertStackIntoInventory(c.stack.copyWithCount(count), inventory, true) == ItemStack.EMPTY) {
+                    toExtract.putIfAbsent(c, 0);
+                    toExtract.put(c, toExtract.get(c) + count);
+                }
+            }
+        }
+        return toExtract;
+    }
+
 
     public HashMap<ComparableItemStack, Integer> getStacksToInsert_matchFilter(IItemHandler targetInventory, IItemHandler inventory) {
 
@@ -109,7 +134,8 @@ public class RoutingEntry {
         return toInsert;
     }
 
-    public HashMap<ComparableItemStack, Integer> getStacksToExtract_matchFilter(IItemHandler targetInventory, IItemHandler inventory) {
+
+        public HashMap<ComparableItemStack, Integer> getStacksToExtract_matchFilter(IItemHandler targetInventory, IItemHandler inventory) {
 
         HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
         HashMap<ComparableItemStack, Integer> targetTotal = listInventory(targetInventory, true, false);
