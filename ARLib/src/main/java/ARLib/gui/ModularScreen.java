@@ -43,7 +43,7 @@ public class ModularScreen extends Screen {
 
     @Override
     public void tick() {
-        c.onGuiClientTick();
+        c.onGuiClientTick(Minecraft.getInstance().player);
     }
 
     @Override

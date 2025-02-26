@@ -11,7 +11,7 @@ import java.util.List;
 
 public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
 
-    int targetSlot;
+    public int targetSlot;
 
     @Override
     public ItemStack client_getItemStackToRender() {

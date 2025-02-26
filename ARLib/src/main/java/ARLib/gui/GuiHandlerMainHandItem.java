@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.api.distmarker.Dist;
@@ -38,7 +39,7 @@ public class GuiHandlerMainHandItem implements IGuiHandler {
         // not used, use client tick and read itemstack nbt
     }
     @Override
-    public void onGuiClientTick() {
+    public void onGuiClientTick(Player player) {
         // use this to update the gui with nbt data from the current itemstack in your hand
     }
 

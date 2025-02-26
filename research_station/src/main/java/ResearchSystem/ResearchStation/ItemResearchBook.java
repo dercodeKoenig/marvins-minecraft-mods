@@ -57,12 +57,12 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver {
         }
 
         @Override
-        public void onGuiClientTick() {
+        public void onGuiClientTick(Player p) {
             if (client_currentBookStackOpen.getItem() instanceof ItemResearchBook irb) {
                 CompoundTag t = getStackTagOrEmpty(client_currentBookStackOpen);
                 if (!t.getBoolean("isInStation")) {
                     // if the item is in main hand, check if the stack changed to update gui
-                    ItemStack stackInHand = Minecraft.getInstance().player.getMainHandItem();
+                    ItemStack stackInHand = p.getMainHandItem();
                     if (!ItemStack.isSameItemSameComponents(client_currentBookStackOpen, stackInHand)) {
                         // probably updated nbt so update gui
                         // and reset client_currentBookStackOpen to detect future changes.
@@ -73,12 +73,12 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver {
                     }
                 } else {
                     BlockPos pos = new BlockPos(t.getInt("sx"), t.getInt("sy"), t.getInt("sz"));
-                    BlockEntity station = Minecraft.getInstance().player.level().getBlockEntity(pos);
+                    BlockEntity station = p.level().getBlockEntity(pos);
                     if (station instanceof EntityResearchStation r) {
                         // this will ping the server to notify that i am still tracking the gui.
                         // i am not really tracking the gui but as long as the server thinks i am tracking the gui it will
                         // update the book stack nbt
-                        r.guiHandler.onGuiClientTick();
+                        r.guiHandler.onGuiClientTick(p);
                     }
                 }
             }

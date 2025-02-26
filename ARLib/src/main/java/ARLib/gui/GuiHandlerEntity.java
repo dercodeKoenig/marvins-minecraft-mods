@@ -117,7 +117,7 @@ public class GuiHandlerEntity implements IGuiHandler {
     }
 
     @Override
-    public void onGuiClientTick() {
+    public void onGuiClientTick(Player player) {
         last_ping += 1;
         if (last_ping > 20) {
             last_ping = 0;

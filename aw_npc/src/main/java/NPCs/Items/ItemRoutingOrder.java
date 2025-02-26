@@ -1,20 +1,16 @@
 package NPCs.Items;
 
 import ARLib.gui.GuiHandlerMainHandItem;
+import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import NPCs.Utils;
-import ResearchSystem.ResearchStation.EntityResearchStation;
-import ResearchSystem.ResearchStation.ItemResearchBook;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -22,10 +18,8 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,24 +32,24 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
     public ItemRoutingOrder() {
         super(new Properties());
         guiHandler = new GuiHandlerMainHandItem() {
-            public void onGuiClientTick() {
-                ItemStack stackInHand = Minecraft.getInstance().player.getMainHandItem();
+            public void onGuiClientTick(Player p) {
+                ItemStack stackInHand = p.getMainHandItem();
                 if (!ItemStack.isSameItemSameComponents(lastStackInHand, stackInHand)) {
                     lastStackInHand = stackInHand;
-                    makeGui(stackInHand);
+                    makeGui(stackInHand, p);
                 }
             }
         };
     }
-    public void makeGui(final ItemStack bookStack) {
+    public void makeGui(ItemStack stack, Player p) {
         guiHandler.getModules().clear();
-        // this executes only on client so getInstance should be available and it should not crash the server
-        List<RoutingEntry> entries = getRoutingEntries(bookStack, Minecraft.getInstance().level.registryAccess());
+        List<RoutingEntry> entries = getRoutingEntries(stack,p.level().registryAccess());
 
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(0,180,10000,2,0,guiHandler)){
-            guiHandler.getModules().add(i);
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,170,10000,2,0,guiHandler)){
+            if(i.targetSlot != p.getInventory().selected)
+                guiHandler.getModules().add(i);
         }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(0,100,20000,2,0,guiHandler)){
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,110,20000,2,0,guiHandler)){
             guiHandler.getModules().add(i);
         }
 
@@ -76,10 +70,13 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
             }
             y += 20;
         }
+
+        if(guiHandler.screen instanceof ModularScreen m)
+            m.calculateGuiOffsetAndNotifyModules();
     }
 
-    public void openGui(ItemStack bookStack) {
-        makeGui(bookStack);
+    public void openGui(ItemStack bookStack, Player p) {
+        makeGui(bookStack, p);
         lastStackInHand = bookStack.copy();
         guiHandler.openGui(180, 200, true);
     }
@@ -87,7 +84,7 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
         if (level.isClientSide && itemstack.getItem() instanceof ItemRoutingOrder) {
-            openGui(itemstack);
+            openGui(itemstack, player);
         }
         return InteractionResultHolder.success(itemstack);
     }
@@ -152,19 +149,22 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
-
+guiHandler.readServer(compoundTag);
     }
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-
+        guiHandler.readClient(compoundTag);
     }
 
     @Override
     public ItemStack getStackInSlot(ItemStack stack, int slot, RegistryAccess registry) {
-        List<RoutingEntry> entries = getRoutingEntries(stack,registry);
+        List<RoutingEntry> entries = getRoutingEntries(stack, registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
+        if(targetModuleIndex >= entries.size())
+            // this can happen if the user no longer holds the gui item in main hand
+            return ItemStack.EMPTY;
         RoutingEntry entry = entries.get(targetModuleIndex);
         return entry.filterInventory.getStackInSlot(targetSlot);
     }
@@ -174,6 +174,9 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
         List<RoutingEntry> entries = getRoutingEntries(stack,registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
+        if(targetModuleIndex >= entries.size())
+            // this can happen if the user no longer holds the gui item in main hand
+            return stack;
         RoutingEntry entry = entries.get(targetModuleIndex);
         ItemStack insert = entry.filterInventory.insertItem(targetSlot,stackToInsert,simulate);
         if(!simulate){
@@ -187,6 +190,9 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
         List<RoutingEntry> entries = getRoutingEntries(stack,registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
+        if(targetModuleIndex >= entries.size())
+            // this can happen if the user no longer holds the gui item in main hand
+            return ItemStack.EMPTY;
         RoutingEntry entry = entries.get(targetModuleIndex);
         ItemStack extracted = entry.filterInventory.extractItem(targetSlot,amount,simulate);
         if(!simulate){
@@ -200,7 +206,10 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
         List<RoutingEntry> entries = getRoutingEntries(stack,registry);
         int targetModuleIndex = slot / 9;
         int targetSlot = slot % 9;
+        if(targetModuleIndex >= entries.size())
+            // this can happen if the user no longer holds the gui item in main hand
+            return 0;
         RoutingEntry entry = entries.get(targetModuleIndex);
-        return entry.filterInventory.getSlotLimit(slot);
+        return entry.filterInventory.getSlotLimit(targetSlot);
     }
 }

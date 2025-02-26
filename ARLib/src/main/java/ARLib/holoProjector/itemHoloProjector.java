@@ -115,12 +115,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
     }
 
     public void initGui() {
-        guiHandler = new GuiHandlerMainHandItem(){
-            @Override
-            public void onGuiClientTick(){
-                // nothing to do i guess
-            }
-        };
+        guiHandler = new GuiHandlerMainHandItem();
         List<GuiModuleBase> containerModules = new ArrayList<>();
 
         for (int id : buttonIdToMachineName.keySet()) {

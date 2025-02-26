@@ -1,7 +1,7 @@
-package NPCs.Items;
+package ARLib.gui.modules;
+
 
 import ARLib.gui.IGuiHandler;
-import ARLib.gui.modules.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -10,12 +10,12 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 
 public class guiModuleItemGuiItemstackFakeSlot extends guiModuleInventorySlotBase {
-public  interface StackBasedItemHandler{
-    ItemStack getStackInSlot(ItemStack stack, int slot, RegistryAccess registry);
-    ItemStack insertItem(ItemStack stack, int slot, ItemStack stackToInsert, boolean simulate, RegistryAccess registry);
-    ItemStack extractItem(ItemStack stack, int slot, int amount, boolean simulate, RegistryAccess registry);
-    int getSlotLimit(ItemStack stack, int slot, RegistryAccess registry);
-}
+    public  interface StackBasedItemHandler{
+        ItemStack getStackInSlot(ItemStack stack, int slot, RegistryAccess registry);
+        ItemStack insertItem(ItemStack stack, int slot, ItemStack stackToInsert, boolean simulate, RegistryAccess registry);
+        ItemStack extractItem(ItemStack stack, int slot, int amount, boolean simulate, RegistryAccess registry);
+        int getSlotLimit(ItemStack stack, int slot, RegistryAccess registry);
+    }
     StackBasedItemHandler itemHandler;
     int targetSlot;
 

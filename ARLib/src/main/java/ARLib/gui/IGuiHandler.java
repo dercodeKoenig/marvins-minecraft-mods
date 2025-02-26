@@ -33,7 +33,7 @@ public interface IGuiHandler {
     void sendToServer(CompoundTag tag);
 
     @OnlyIn(Dist.CLIENT)
-    void onGuiClientTick();
+    void onGuiClientTick(Player player);
 
     @OnlyIn(Dist.CLIENT)
     default void onGuiClose() {}
