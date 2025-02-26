@@ -58,6 +58,7 @@ public class Main {
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_TOWNHALL.get(), (x, y) -> (x.inventory));
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_ARMORY.get(), (x, y) -> (x.inventory));
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
