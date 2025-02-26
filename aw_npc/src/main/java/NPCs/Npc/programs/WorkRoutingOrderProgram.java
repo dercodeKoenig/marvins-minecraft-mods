@@ -65,7 +65,6 @@ public class WorkRoutingOrderProgram extends Goal {
                     toInsert = _toInsert;
                 if(!_toExtract.isEmpty())
                     toExtract = _toExtract;
-
                 if(!_toExtract.isEmpty() || !_toInsert.isEmpty())
                     return e;
                         /*

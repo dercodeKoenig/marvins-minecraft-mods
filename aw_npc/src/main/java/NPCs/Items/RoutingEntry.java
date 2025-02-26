@@ -33,12 +33,15 @@ public class RoutingEntry {
         if (mode == 1) {
             return "take any";
         }
+        if (mode == 2) {
+            return "put any";
+        }
         return "";
     }
 
     public void switchMode() {
         mode++;
-        if (mode > 1)
+        if (mode > 2)
             mode = 0;
     }
 
@@ -50,6 +53,9 @@ public class RoutingEntry {
         if (mode == 1) { // take any
             return new HashMap<>(); // nothing to insert
         }
+        if (mode == 2) { // put any
+            return getStacksToInsert_putAny(targetInventory, inventory);
+        }
         return new HashMap<>();
     }
 
@@ -59,6 +65,9 @@ public class RoutingEntry {
         }
         if (mode == 1) { // take any
             return getStacksToExtract_takeAny(targetInventory, inventory);
+        }
+        if (mode == 2) { // put any
+            return new HashMap<>();
         }
         return new HashMap<>();
     }
@@ -99,6 +108,25 @@ public class RoutingEntry {
             }
         }
         return toExtract;
+    }
+
+    public HashMap<ComparableItemStack, Integer> getStacksToInsert_putAny(IItemHandler targetInventory, IItemHandler inventory) {
+        HashMap<ComparableItemStack, Integer> toInsert = new HashMap<>();
+
+        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
+        HashMap<ComparableItemStack, Integer> inventoryTotalMatchingDurability = listInventory(inventory, true, true);
+
+        for (ComparableItemStack c : inventoryTotalMatchingDurability.keySet()) {
+            if (filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))) {
+                int count = inventoryTotalMatchingDurability.get(c);
+                ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(count), targetInventory, true);
+                int inserted = count - notInserted.getCount();
+                if (inserted > 0) {
+                    toInsert.put(c, inserted);
+                }
+            }
+        }
+        return toInsert;
     }
 
 
