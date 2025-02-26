@@ -213,4 +213,17 @@ public class Utils {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
+
+
+
+    public static ItemStack insertStackIntoInventory(ItemStack stack, IItemHandler inventory, boolean simulate) {
+        ItemStack notInserted = stack.copy();
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            notInserted = inventory.insertItem(i, notInserted, simulate);
+            if (notInserted.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+        }
+        return notInserted;
+    }
 }

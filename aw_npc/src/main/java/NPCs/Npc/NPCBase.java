@@ -8,6 +8,7 @@ import ARLib.network.PacketEntity;
 import NPCs.Items.ItemFoodOrder;
 import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
+import NPCs.Items.ItemRoutingOrder;
 import NPCs.Items.ItemWorkOrder;
 import NPCs.Utils;
 import NPCs.Npc.programs.SlowMobNavigation;
@@ -82,6 +83,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         public boolean isItemValid(int slot, ItemStack stack) {
             if (slot == 0) {
                 if (stack.getItem() instanceof ItemWorkOrder) {
+                    return true;
+                }
+                if (stack.getItem() instanceof ItemRoutingOrder) {
                     return true;
                 }
             }

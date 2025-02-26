@@ -8,6 +8,7 @@ import NPCs.Npc.programs.CropFarming.UseMillStoneProgram;
 import NPCs.Utils;
 import WorkSites.CropFarm.EntityCropFarm;
 import WorkSites.EntityWorkSiteBase;
+import WorkSites.Warehouse.ComparableItemStack;
 import WorkSites.Warehouse.EntityWarehouse;
 import WorkSites.Warehouse.WarehouseItemHandler;
 import WorkSites.WarehouseInterface.EntityWarehouseInterface;
@@ -37,7 +38,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
     // so cache it.
     // the worker needs to remember the requested item and it will be reset when it was failed to be inserted or
     // when the total number of requested items was inserted
-    EntityWarehouse.ComparableItemStack lastRequestedItem;
+    ComparableItemStack lastRequestedItem;
 
     UnloadInventoryProgram unloadInventoryProgram;
     TakeFromInventoryProgram takeFromInventoryProgram;
@@ -68,7 +69,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
             ItemStack stack = worker.combinedInventory.getStackInSlot(i);
             if (!stack.isEmpty()) {
-                EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
+                ComparableItemStack c = new ComparableItemStack(stack);
                 BlockEntity target = WarehouseItemHandler.getBlockEntityWhereStackIsInsertable(c, warehouseInterface.warehouseReference);
                 if (target != null)
                     return true;
@@ -144,7 +145,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
         warehouseInterface.workersWorkingHereWithTimeout.put(worker, 0);
 
         if (lastRequestedItem == null && warehouseInterface.nextStackToInsert != null) {
-            lastRequestedItem = new EntityWarehouse.ComparableItemStack(warehouseInterface.nextStackToInsert.stack);
+            lastRequestedItem = new ComparableItemStack(warehouseInterface.nextStackToInsert.stack);
             lastRequestedItem.stack.setCount(warehouseInterface.nextStackToInsert.stack.getCount());
         }
 
@@ -153,16 +154,17 @@ public class WarehouseInterfaceSortingProgram extends Goal {
                 for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
                     ItemStack stack = worker.combinedInventory.getStackInSlot(i);
                     if (!stack.isEmpty()) {
-                        EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
-
+                        ComparableItemStack c = new ComparableItemStack(stack);
                         if (lastRequestedItem.equals(c)) {
                             int exit = unloadInventoryProgram.run(warehouseInterface.inventory, warehouseInterface.getBlockPos(), c.stack);
+                            
                             if (exit == EXIT_FAIL) {
                                 lastRequestedItem = null;
                                 return EXIT_FAIL;
+                            }if(exit == EXIT_SUCCESS) {
+                                lastRequestedItem.stack.shrink(1);
+                                if (lastRequestedItem.stack.isEmpty()) lastRequestedItem = null;
                             }
-                            lastRequestedItem.stack.shrink(1);
-                            if (lastRequestedItem.stack.isEmpty()) lastRequestedItem = null;
                             return SUCCESS_STILL_RUNNING;
                         }
                     }
@@ -204,7 +206,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
             ItemStack stack = worker.combinedInventory.getStackInSlot(i);
             if (!stack.isEmpty()) {
-                EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(stack);
+                ComparableItemStack c = new ComparableItemStack(stack);
 
                 BlockEntity target = WarehouseItemHandler.getBlockEntityWhereStackIsInsertable(c, warehouseInterface.warehouseReference);
                 if (target != null) {

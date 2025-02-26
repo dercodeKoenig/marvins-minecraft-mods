@@ -7,7 +7,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 
 public class WarehouseItemHandler implements IItemHandler {
     EntityWarehouse wareHouse;
@@ -25,13 +24,13 @@ public class WarehouseItemHandler implements IItemHandler {
     public ItemStack getStackInSlot(int i) {
         if (i >= wareHouse.allItemStacksWithCount.size()) return ItemStack.EMPTY;
 
-        EntityWarehouse.ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(i);
+        ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(i);
         return key.stack.copyWithCount(wareHouse.allItemStacksWithCount.get(key));
     }
 
     @Override
     public ItemStack insertItem(int __i, ItemStack itemStack, boolean b) {
-        EntityWarehouse.ComparableItemStack key = new EntityWarehouse.ComparableItemStack(itemStack);
+        ComparableItemStack key = new ComparableItemStack(itemStack);
         LinkedHashSet<BlockEntity> whereItemsAreFound = wareHouse.whereItemStacksComeFrom.getOrDefault(key, new LinkedHashSet<>());
 
         ItemStack remaining = itemStack.copy();
@@ -47,7 +46,7 @@ public class WarehouseItemHandler implements IItemHandler {
                 continue;
             }
             for (int j = 0; j < itemHandler.getSlots(); j++) {
-                EntityWarehouse.ComparableItemStack sc = new EntityWarehouse.ComparableItemStack(itemHandler.getStackInSlot(j));
+                ComparableItemStack sc = new ComparableItemStack(itemHandler.getStackInSlot(j));
                 if (sc.equals(key)) {
                     remaining = itemHandler.insertItem(j, remaining, b);
                 }
@@ -86,7 +85,7 @@ public class WarehouseItemHandler implements IItemHandler {
         return remaining;
     }
 
-    public ItemStack extractItem(EntityWarehouse.ComparableItemStack key, int count, boolean b) {
+    public ItemStack extractItem(ComparableItemStack key, int count, boolean b) {
         if (key.stack.isEmpty()) return ItemStack.EMPTY;
 
         LinkedHashSet<BlockEntity> whereItemsAreFound = wareHouse.whereItemStacksComeFrom.getOrDefault(key, new LinkedHashSet<>());
@@ -104,7 +103,7 @@ public class WarehouseItemHandler implements IItemHandler {
                 continue;
             }
             for (int j = 0; j < itemHandler.getSlots(); j++) {
-                EntityWarehouse.ComparableItemStack sc = new EntityWarehouse.ComparableItemStack(itemHandler.getStackInSlot(j));
+                ComparableItemStack sc = new ComparableItemStack(itemHandler.getStackInSlot(j));
                 if (sc.equals(key)) {
                     ItemStack newExtracted = itemHandler.extractItem(j, count - extracted.getCount(), b);
                     extracted.grow(newExtracted.getCount());
@@ -131,7 +130,7 @@ public class WarehouseItemHandler implements IItemHandler {
                     continue;
                 }
                 for (int j = 0; j < itemHandler.getSlots(); j++) {
-                    EntityWarehouse.ComparableItemStack sc = new EntityWarehouse.ComparableItemStack(itemHandler.getStackInSlot(j));
+                    ComparableItemStack sc = new ComparableItemStack(itemHandler.getStackInSlot(j));
                     if (sc.equals(key)) {
                         ItemStack newExtracted = itemHandler.extractItem(j, count - extracted.getCount(), b);
                         extracted.grow(newExtracted.getCount());
@@ -150,7 +149,7 @@ public class WarehouseItemHandler implements IItemHandler {
     @Override
     public ItemStack extractItem(int slot, int count, boolean b) {
         if (slot >= wareHouse.allItemStacksWithCount.size()) return ItemStack.EMPTY;
-        EntityWarehouse.ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(slot);
+        ComparableItemStack key = wareHouse.allItemStacksWithCount.keySet().stream().toList().get(slot);
         return extractItem(key, count, b);
     }
 
@@ -165,7 +164,7 @@ public class WarehouseItemHandler implements IItemHandler {
     }
 
 
-    public static BlockEntity getBlockEntityContainingItemStack(EntityWarehouse.ComparableItemStack key, EntityWarehouse wareHouse) {
+    public static BlockEntity getBlockEntityContainingItemStack(ComparableItemStack key, EntityWarehouse wareHouse) {
 
         if (key.stack.isEmpty()) return null;
 
@@ -183,7 +182,7 @@ public class WarehouseItemHandler implements IItemHandler {
                 continue;
             }
             for (int j = 0; j < itemHandler.getSlots(); j++) {
-                EntityWarehouse.ComparableItemStack sc = new EntityWarehouse.ComparableItemStack(itemHandler.getStackInSlot(j));
+                ComparableItemStack sc = new ComparableItemStack(itemHandler.getStackInSlot(j));
                 if (sc.equals(key)) {
                     return e;
                 }
@@ -201,7 +200,7 @@ public class WarehouseItemHandler implements IItemHandler {
                 continue;
             }
             for (int j = 0; j < itemHandler.getSlots(); j++) {
-                EntityWarehouse.ComparableItemStack sc = new EntityWarehouse.ComparableItemStack(itemHandler.getStackInSlot(j));
+                ComparableItemStack sc = new ComparableItemStack(itemHandler.getStackInSlot(j));
                 if (sc.equals(key)) {
                     return e;
                 }
@@ -210,7 +209,7 @@ public class WarehouseItemHandler implements IItemHandler {
         return null;
     }
 
-    public static BlockEntity getBlockEntityWhereStackIsInsertable(EntityWarehouse.ComparableItemStack key, EntityWarehouse wareHouse) {
+    public static BlockEntity getBlockEntityWhereStackIsInsertable(ComparableItemStack key, EntityWarehouse wareHouse) {
 
         if (key.stack.isEmpty()) return null;
 

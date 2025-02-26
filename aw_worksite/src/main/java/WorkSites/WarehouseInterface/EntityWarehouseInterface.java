@@ -5,8 +5,8 @@ import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.BlockIdentifier;
 import WorkSites.Config;
+import WorkSites.Warehouse.ComparableItemStack;
 import WorkSites.Warehouse.EntityWarehouse;
-import WorkSites.Warehouse.WarehouseItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -46,7 +46,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
     guiModuleButton durabilityFilter_needsToBeAboveBtn;
 
     public ItemStack nextStackToRemove = ItemStack.EMPTY;
-    public EntityWarehouse.ComparableItemStack nextStackToInsert = null;
+    public ComparableItemStack nextStackToInsert = null;
 
 
     public ItemStackHandler filterInventory = new ItemStackHandler(9) {
@@ -173,7 +173,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
         }
     }
 
-    public boolean fitsDurabilityFilter(ItemStack stack, boolean needsToBeAbove, int percentValue) {
+    public static boolean fitsDurabilityFilter(ItemStack stack, boolean needsToBeAbove, int percentValue) {
         int damage = stack.getDamageValue();
         int maxDamage = stack.getMaxDamage();
         int durabilityPercent = 100;
@@ -201,10 +201,10 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
         // sum up all the target stacks
         // items are inserted without components
-        Map<EntityWarehouse.ComparableItemStack, Integer> targetStacks = new HashMap<>();
+        Map<ComparableItemStack, Integer> targetStacks = new HashMap<>();
         for (int i = 0; i < filterInventory.getSlots(); i++) {
             ItemStack stackInSlot = filterInventory.getStackInSlot(i);
-            EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
+            ComparableItemStack c = new ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
             targetStacks.computeIfAbsent(c, (key) -> 0);
             targetStacks.put(c, targetStacks.get(c) + stackInSlot.getCount());
         }
@@ -212,7 +212,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
         // this are the ItemStacks that are available in the interface
         // items are inserted without components
-        Map<EntityWarehouse.ComparableItemStack, Integer> availableStacks = new HashMap<>();
+        Map<ComparableItemStack, Integer> availableStacks = new HashMap<>();
 
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stackInSlot = inventory.getStackInSlot(i);
@@ -225,13 +225,13 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
                 return;
             }
 
-            EntityWarehouse.ComparableItemStack c = new EntityWarehouse.ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
+            ComparableItemStack c = new ComparableItemStack(new ItemStack(stackInSlot.getItem(), stackInSlot.getCount()));
             availableStacks.computeIfAbsent(c, (key) -> 0);
             availableStacks.put(c, availableStacks.get(c) + stackInSlot.getCount());
 
         }
 
-        for (EntityWarehouse.ComparableItemStack key : availableStacks.keySet()) {
+        for (ComparableItemStack key : availableStacks.keySet()) {
             int available = availableStacks.get(key);
             if (targetStacks.containsKey(key)) {
                 int targetCount = targetStacks.get(key);
@@ -248,7 +248,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
         // at this point it can scan if it can pull any from the warehouse
 
-        for (EntityWarehouse.ComparableItemStack key : targetStacks.keySet()) {
+        for (ComparableItemStack key : targetStacks.keySet()) {
             int required = targetStacks.get(key);
             int toInsert = 0;
             if (availableStacks.containsKey(key)) {
@@ -259,10 +259,10 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             }
             if (toInsert > 0) {
                 // scan if the warehouse can deliver a match
-                for (EntityWarehouse.ComparableItemStack c : warehouseReference.allItemStacksWithCount.keySet()) {
+                for (ComparableItemStack c : warehouseReference.allItemStacksWithCount.keySet()) {
                     if (ItemStack.isSameItem(c.stack, key.stack)) {
                         if (fitsDurabilityFilter(c.stack, durabilityFilter_needsToBeAbove, durabilityPercentFilter)) {
-                            nextStackToInsert = new EntityWarehouse.ComparableItemStack(c.stack);
+                            nextStackToInsert = new ComparableItemStack(c.stack);
                             nextStackToInsert.stack.setCount(required);
                             return;
                         }

@@ -4,10 +4,7 @@ import NPCs.Blocks.Armory.BlockArmory;
 import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Blocks.StrategyTable.BlockStrategyTable;
 import NPCs.Blocks.StrategyTable.EntityStrategyTable;
-import NPCs.Items.ItemSetHomeTool;
-import NPCs.Items.ItemFoodOrder;
-import NPCs.Items.ItemSpawnNpc;
-import NPCs.Items.ItemWorkOrder;
+import NPCs.Items.*;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.WorkerNPC;
 import NPCs.Blocks.TownHall.BlockTownHall;
@@ -89,6 +86,11 @@ public class Registry {
     public static final Supplier<Item> ITEM_WORK_ORDER = ITEMS.register(
             "work_order",
             () -> new ItemWorkOrder()
+    );
+
+    public static final Supplier<Item> ITEM_ROUTING_ORDER = ITEMS.register(
+            "routing_order",
+            () -> new ItemRoutingOrder()
     );
 
     public static final Supplier<Item> ITEM_WORKER_SPAWN = ITEMS.register(

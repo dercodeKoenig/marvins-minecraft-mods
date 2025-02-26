@@ -47,14 +47,11 @@ public class UnloadInventoryProgram {
             ItemStack stackCopyToReturn = npc.combinedInventory.getStackInSlot(j).copy();
             if (!canExtract.isEmpty() && ItemStack.isSameItemSameComponents(stackToUnload, canExtract)) {
                 // try to insert in inventory
-                for (int i = 0; i < itemHandlerTarget.getSlots(); i++) {
-                    ItemStack notInserted = itemHandlerTarget.insertItem(i, canExtract, true);
-                    if (notInserted.isEmpty()) {
-                        ItemStack extracted = npc.combinedInventory.extractItem(j, 1, false);
-                        itemHandlerTarget.insertItem(i, extracted, false);
-                        //System.out.println(j+":"+i+":"+extracted);
-                        return stackCopyToReturn;
-                    }
+                ItemStack notInserted = insertStackIntoInventory(canExtract, itemHandlerTarget, true);
+                if (notInserted.isEmpty()) {
+                    ItemStack extracted = npc.combinedInventory.extractItem(j, 1, false);
+                    insertStackIntoInventory(extracted, itemHandlerTarget, false);
+                    return stackCopyToReturn;
                 }
             }
         }
