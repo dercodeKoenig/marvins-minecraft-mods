@@ -24,15 +24,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static AWGenerators.Registry.ENTITY_WINDMILL_GENERATOR;
 
@@ -46,6 +45,11 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     public double inertiaPerBlock = Config.INSTANCE.windmill_inertiaPerBlock;
     public int max_size = Config.INSTANCE.windmill_maxSize;
 
+    // todo: make a small offset for wind and include rotation multiplier based on facing
+    public static PerlinSimplexNoise noise          = new PerlinSimplexNoise(new SingleThreadedRandomSource(8082003),List.of(-2, -1, 0, 1, 2));;
+    public static PerlinSimplexNoise noiseDirection          = new PerlinSimplexNoise(new SingleThreadedRandomSource(4092003),List.of(-2, -1, 0, 1, 2));;
+    PerlinSimplexNoise currentRandomNoiseOffset = new PerlinSimplexNoise(new SingleThreadedRandomSource(new Random().nextInt()),List.of(-2, -1, 0, 1, 2));;;;
+
     // usually, changes in wind are slowly with noise. but on server start or entity load,
     // it will just start at a random starting value and this can cause a huge sudden change in force.
     // this change in force will overstress the network and cause it to break.
@@ -55,8 +59,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
-
-    PerlinSimplexNoise noise;
 
     int size;
     int last_size_for_meshUpdate;
@@ -105,7 +107,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     @Override
     public void onLoad() {
         super.onLoad();
-        noise = new PerlinSimplexNoise(level.random,List.of(-2, -1, 0, 1, 2));
         myMechanicalBlock.mechanicalOnload();
         if (level.isClientSide) {
             CompoundTag request = new CompoundTag();
@@ -130,7 +131,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
             int zMultiplier = myFacing.getAxis() == Direction.Axis.X ? 1 : 0;
             int xMultiplier = myFacing.getAxis() == Direction.Axis.Z ? 1 : 0;
-            resetInvalidBlocks(center,new ArrayList<>(),xMultiplier,zMultiplier);
+            resetInvalidBlocks(center,new HashSet<BlockPos>(),xMultiplier,zMultiplier);
         }
         super.setRemoved();
     }
@@ -156,7 +157,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         return false;
     }
 
-    void resetInvalidBlocks(BlockPos center, List<BlockPos> validBlocks, int xMultiplier, int zMultiplier){
+    void resetInvalidBlocks(BlockPos center, Set<BlockPos> validBlocks, int xMultiplier, int zMultiplier){
         // now reset all blocks that could have been modified by this generator, except for the valid blocks
         // if the block has a different master, do not reset it, it belongs to another controller
         for (int x = -max_size; x <= max_size; x++) {
@@ -207,7 +208,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         boolean doScan = true;
         int maxValidSize = 0;
         int s = 0;
-        List<BlockPos> validBlocks = new ArrayList<>();
+        Set<BlockPos> validBlocks = new HashSet<>();
         while (doScan) {
             A:{
                 List<BlockPos> validBlocks_tmp = new ArrayList<>();
@@ -280,9 +281,18 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 }else{
                     currentForceMultiplier = 1;
                 }
-                double noiseval = noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
+                double randomOffset = currentRandomNoiseOffset.getValue((double) System.currentTimeMillis() / 100000,0,false);
+                double noiseval = noise.getValue((double) System.currentTimeMillis() / 80000 + randomOffset / 10, 0, false);
                 // use sqrt to make it more evenly distributed and less low wind speeds
                 double windSpeed = windSpeedMultiplier * Math.sqrt(Math.abs(noiseval)) * Math.signum(noiseval) ;
+
+                // make some difference in wind direction, but not too much, we want the windmill to be spinning!
+                double windDirection = noiseDirection.getValue((double) System.currentTimeMillis() / 30000,0,false);
+                if(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis() == Direction.Axis.X)
+                    windSpeed = windSpeed *( 0.3 + 0.7 * Math.abs(Math.cos(2*Math.PI*windDirection)));
+                if(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis() == Direction.Axis.Z)
+                    windSpeed = windSpeed * ( 0.3 + 0.7 * Math.abs(Math.sin(2*Math.PI*windDirection)));
+
                 myForce = 0;
                 myInertia = 0;
                 int numberOfBlocks = 0;
@@ -297,7 +307,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
                 myFriction = frictionPerBlock * numberOfBlocks;
                 myForce *= currentForceMultiplier; // will slowly increase to 1 over a few ticks
-               // System.out.println(currentForceMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+                //System.out.println(currentForceMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {
                 currentForceMultiplier = 0;
