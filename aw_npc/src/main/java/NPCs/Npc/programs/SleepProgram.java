@@ -22,6 +22,8 @@ public class SleepProgram extends Goal {
     @Override
     public boolean canUse() {
 
+        if(!worker.level().isNight()) return false;
+
         long gameTime = worker.level().getGameTime();
         if (lastCheck + 20*10 > gameTime)
             return false;

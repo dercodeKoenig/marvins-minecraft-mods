@@ -12,6 +12,7 @@ import static NPCs.Utils.*;
 public class SlowMobNavigation {
     public NPCBase npc;
     int failTimeOut = 0;
+    int sameTargetRetries = 0; // just another fail timeout
     int removeInvalidTargetsTime = 20 * 60;
     HashMap<BlockPos, Long> unreachableBlocks = new HashMap<>();
 
@@ -39,12 +40,17 @@ public class SlowMobNavigation {
 
         if (target == null) return EXIT_FAIL;
 
-        double distToTarget = Utils.distanceManhattan(npc, target.getCenter());
+        double distToTarget = Utils.distanceManhattan(npc.getOnPos().above().getCenter(), target.getCenter());
         if (distToTarget <= precision + 1.5) {
+            sameTargetRetries = 0;
             return EXIT_SUCCESS;
         }
         if (isPositionCachedAsInvalid(target)) {
+            sameTargetRetries = 0;
             return EXIT_FAIL;
+        }
+        if (npc.getNavigation().getPath() != null && !Objects.equals(npc.getNavigation().getPath().getTarget(), target)) {
+            sameTargetRetries = 0;
         }
 
         if (npc.getNavigation().getPath() == null ||
@@ -52,6 +58,12 @@ public class SlowMobNavigation {
                 npc.getNavigation().isDone()
         ) {
             failTimeOut = 0;
+            sameTargetRetries++;
+            if (sameTargetRetries > 10) {
+                // whatever went wrong here....
+                unreachableBlocks.put(target, npc.level().getGameTime());
+                return EXIT_FAIL;
+            }
             //long t0 = System.nanoTime();
             SlowPathFinder.PathFindExit exit = pathFinder.findPath(target, maxDistace, precision, maxNodesVisit, steps);
             //long t1 = System.nanoTime();

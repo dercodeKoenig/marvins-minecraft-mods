@@ -170,8 +170,10 @@ public class UseSawMillProgram {
                 if(i.lumberjackProgram != null)
                     if(i.lumberjackProgram.useSawMillProgram != null)
                         if(i.lumberjackProgram.useSawMillProgram.currentWoodmill != null)
-                            if(i.lumberjackProgram.useSawMillProgram.currentWoodmill.getBlockPos().equals(mill.getBlockPos()))
+                            if(i.lumberjackProgram.useSawMillProgram.currentWoodmill.getBlockPos().equals(mill.getBlockPos())) {
+                                //System.out.println("other worker has woodmill");
                                 return w;
+                            }
 
 
 
