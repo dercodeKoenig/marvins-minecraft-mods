@@ -163,9 +163,9 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 return InteractionResult.SUCCESS;
             }
 
-            if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_WOODEN_HAMMER.get())) {
+            if (player.getItemInHand(hand).getItem().equals(Items.LEATHER_BOOTS)) {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Courier.ordinal());
-                int randomNumber = Math.abs(level().random.nextInt()) % 2 + 1;
+                int randomNumber = Math.abs(level().random.nextInt()) % 1 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_courier_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
