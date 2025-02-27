@@ -233,16 +233,17 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
 
         for (ComparableItemStack key : availableStacks.keySet()) {
             int available = availableStacks.get(key);
-            if (targetStacks.containsKey(key)) {
-                int targetCount = targetStacks.get(key);
-                int toRemove = available - targetCount;
-                if (toRemove > 0) {
-                    nextStackToRemove = new ItemStack(key.stack.getItem(), toRemove);
-                    return;
+            int targetCount = targetStacks.getOrDefault(key, 0);
+            int toRemove = available - targetCount;
+            if (toRemove > 0) {
+                // the key is in this case without nbt, but it is needed with nbt so find the next item that matches the key
+                for (int i = 0; i < inventory.getSlots(); i++) {
+                    ItemStack stackInSlot = inventory.getStackInSlot(i);
+                    if(ItemStack.isSameItem(stackInSlot,key.stack)){
+                        nextStackToRemove = stackInSlot.copy();
+                        return;
+                    }
                 }
-            } else {
-                nextStackToRemove = new ItemStack(key.stack.getItem(), available);
-                return;
             }
         }
 
