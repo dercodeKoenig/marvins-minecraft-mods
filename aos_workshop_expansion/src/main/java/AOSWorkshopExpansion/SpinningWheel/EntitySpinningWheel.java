@@ -37,7 +37,7 @@ import static AOSWorkshopExpansion.Registry.ENTITY_SPINNING_WHEEL;
 public class EntitySpinningWheel extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public VertexBuffer vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+    public VertexBuffer vertexBuffer;
     public MeshData mesh;
     public int lastLight;
 

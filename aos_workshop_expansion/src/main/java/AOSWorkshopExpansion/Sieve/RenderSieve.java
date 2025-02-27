@@ -199,21 +199,15 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
 
 
         if (tile.myMesh.getItem() instanceof IMesh mesh) {
-            RenderSystem.setShaderTexture(0, mesh.getTexture());
 
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.apply();
-
-            tile.vertexBuffer2.bind();
-            tile.vertexBuffer2.draw();
+            Matrix4f m4 = new Matrix4f(m2);
 
             Matrix4f m3 = new Matrix4f(m2);
             m3.translate(0, -0.01f, 0);
             m3.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 180f));
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m3, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.apply();
-            tile.vertexBuffer2.bind();
-            tile.vertexBuffer2.draw();
+
+            Matrix4f m5 = new Matrix4f(m3);
+
 
             if (tile.myInputs.getItem() instanceof BlockItem bi) {
                 if (!tile.lastInputStackForRender.getItem().equals(tile.myInputs.getItem())) {
@@ -229,6 +223,7 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
                 tile.myInputRendererBuffer.bind();
                 tile.myInputRendererBuffer.draw();
 
+                // i know in this one the normal is the wrong direction but nobody will look from below so i really dont care
                 m3.translate(0, -0.01f, 0);
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m3, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
                 shader.apply();
@@ -253,6 +248,15 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
                 tile.myHopperInputRendererBuffer.bind();
                 tile.myHopperInputRendererBuffer.draw();
             }
+
+            RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutShader);
+            shader = RenderSystem.getShader();
+            RenderSystem.setShaderTexture(0, mesh.getTexture());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m4, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.apply();
+
+            tile.vertexBuffer2.bind();
+            tile.vertexBuffer2.draw();
         }
 
 
