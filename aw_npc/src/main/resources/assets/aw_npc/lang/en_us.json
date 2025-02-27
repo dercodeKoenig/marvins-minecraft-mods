@@ -14,6 +14,7 @@
 
   "item.aw_npc.routing_order": "Routing Order",
 
-  "item.aw_npc.spawn_worker": "Summon Worker"
+  "item.aw_npc.spawn_worker": "Summon Worker",
+  "item.aw_npc.spawn_fighter": "Summon Fighter"
 
 }

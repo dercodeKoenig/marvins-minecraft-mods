@@ -28,8 +28,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import static NPCs.Registry.ENTITY_ARMORY;
-import static NPCs.Registry.ENTITY_STRATEGY_TABLE;
+import static NPCs.Registry.*;
+
 public class BlockArmory extends Block implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -65,7 +65,7 @@ public class BlockArmory extends Block implements EntityBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return blockState.getValue(HALF) == DoubleBlockHalf.LOWER ? ENTITY_ARMORY.get().create(blockPos, blockState) : null;
+        return blockState.getValue(HALF) == DoubleBlockHalf.LOWER ? ENTITY_ARMORY.get().create(blockPos, blockState) : ENTITY_ARMORY_UPPER.get().create(blockPos,blockState);
     }
 
     @Override

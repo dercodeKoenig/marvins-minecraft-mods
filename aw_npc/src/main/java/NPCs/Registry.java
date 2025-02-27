@@ -2,6 +2,7 @@ package NPCs;
 
 import NPCs.Blocks.Armory.BlockArmory;
 import NPCs.Blocks.Armory.EntityArmory;
+import NPCs.Blocks.Armory.EntityArmoryUpper;
 import NPCs.Blocks.StrategyTable.BlockStrategyTable;
 import NPCs.Blocks.StrategyTable.EntityStrategyTable;
 import NPCs.Items.*;
@@ -61,6 +62,10 @@ public class Registry {
     public static final Supplier<BlockEntityType<EntityArmory>> ENTITY_ARMORY = BLOCK_ENTITIES.register(
             "entity_armory",
             () -> BlockEntityType.Builder.of(EntityArmory::new,ARMORY.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<EntityArmoryUpper>> ENTITY_ARMORY_UPPER = BLOCK_ENTITIES.register(
+            "entity_armory_upper",
+            () -> BlockEntityType.Builder.of(EntityArmoryUpper::new,ARMORY.get()).build(null)
     );
 
     public static final Supplier<EntityType<WorkerNPC>> ENTITY_WORKER = ENTITIES.register(

@@ -1,5 +1,6 @@
 package NPCs;
 
+import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Blocks.Armory.RenderArmory;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.HostileEntities;
@@ -9,6 +10,7 @@ import NPCs.Blocks.TownHall.TownHallNames;
 import NPCs.Blocks.TownHall.TownHallOwners;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -59,6 +61,13 @@ public class Main {
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_TOWNHALL.get(), (x, y) -> (x.inventory));
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_ARMORY.get(), (x, y) -> (x.inventory));
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_ARMORY_UPPER.get(), (x, y) -> {
+            BlockEntity lower = x.getLevel().getBlockEntity(x.getBlockPos().below());
+            if(lower instanceof EntityArmory armory){
+                return armory.inventory;
+            }
+            return null;
+        });
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
