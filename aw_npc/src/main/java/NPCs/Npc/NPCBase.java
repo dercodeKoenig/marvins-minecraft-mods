@@ -402,7 +402,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public Set<String> getFriendlyPlayerNames(){
         Set<String> friendlyPlayers = new HashSet<>();
         if(townHall != null)
-            friendlyPlayers = TownHallOwners.getOwners(level(), townHall);
+            friendlyPlayers.addAll(TownHallOwners.getOwners(level(), townHall));
         friendlyPlayers.add(owner);
         return friendlyPlayers;
     }
