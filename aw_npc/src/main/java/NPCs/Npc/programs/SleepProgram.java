@@ -16,19 +16,11 @@ public class SleepProgram extends Goal {
 
     public SleepProgram(NPCBase worker) {
         this.worker = worker;
-        setFlags(EnumSet.of(Flag.MOVE));
-    }
-
-    @Override
-    public boolean requiresUpdateEveryTick() {
-        return true;
+        setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public boolean canUse() {
-
-        if(!worker.level().isNight()) return false;
-
 
         long gameTime = worker.level().getGameTime();
         if (lastCheck + 20*10 > gameTime)

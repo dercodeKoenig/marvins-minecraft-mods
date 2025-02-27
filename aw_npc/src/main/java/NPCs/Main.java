@@ -86,6 +86,7 @@ public class Main {
             e.accept(ITEM_ROUTING_ORDER.get());
             e.accept(ITEM_WORK_ORDER.get());
             e.accept(ITEM_WORKER_SPAWN.get());
+            e.accept(ITEM_FIGHTER_SPAWN.get());
         }
     }
 }

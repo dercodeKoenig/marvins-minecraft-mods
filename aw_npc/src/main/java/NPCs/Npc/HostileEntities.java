@@ -82,6 +82,8 @@ public class HostileEntities {
         if (e instanceof Player)
             return true;
 
+
+        // the following attacks temporary hostiles
         // cleanup old entries
         for (BlockIdentifier id : hostilesToTownhall.keySet()) {
             Set<TemporaryHostile> temporaryHostiles = hostilesToTownhall.get(id);
@@ -94,7 +96,6 @@ public class HostileEntities {
                 break;
             }
         }
-
         if(npc.townHall != null){
             Set<TemporaryHostile> temporaryHostiles = hostilesToTownhall.get(new BlockIdentifier(npc.level(),npc.townHall));
             if(temporaryHostiles != null){

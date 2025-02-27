@@ -81,8 +81,6 @@ public class WorkRoutingOrderProgram extends Goal {
     @Override
     public boolean canUse() {
 
-        if (worker.level().isNight()) return false;
-
         long gameTime = worker.level().getGameTime();
         if (lastCheck + timeoutForWorkCheck > gameTime)
             return false;

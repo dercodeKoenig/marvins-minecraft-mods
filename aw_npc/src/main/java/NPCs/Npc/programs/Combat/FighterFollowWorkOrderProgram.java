@@ -50,7 +50,7 @@ public class FighterFollowWorkOrderProgram extends Goal {
 
     @Override
     public boolean requiresUpdateEveryTick() {
-        return true;
+        return false;
     }
 
 
@@ -58,7 +58,7 @@ public class FighterFollowWorkOrderProgram extends Goal {
     public void tick() {
 
         if (lastMoveExit == EXIT_SUCCESS) {
-            if (worker.getRandom().nextFloat() < 0.01F) {
+            if (worker.getRandom().nextFloat() < 0.02F) {
                 double d0 = (Math.PI * 2D) * worker.getRandom().nextDouble();
                 relX = Math.cos(d0);
                 relZ = Math.sin(d0);

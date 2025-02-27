@@ -33,7 +33,7 @@ public class RunForHelpProgram extends Goal {
 
     @Override
     public boolean requiresUpdateEveryTick() {
-        return true;
+        return false;
     }
 
     @Override
@@ -53,21 +53,26 @@ public class RunForHelpProgram extends Goal {
 
         if (npcNeedHelp.isEmpty()) return;
 
-        List<BlockPos> allPositionsToHelp = new ArrayList<>();
-        Map<BlockPos, Entity> bp_to_entity = new HashMap<>();
+        BlockPos toGo = null;
+        Entity toGoE = null;
+        double closestDistance = 99999;
         for (Entity e : npcNeedHelp) {
-            allPositionsToHelp.add(e.blockPosition());
-            bp_to_entity.put(e.blockPosition(), e);
+            double d = e.getPosition(0).distanceTo(worker.getPosition(0));
+            if(d < closestDistance){
+                closestDistance = d;
+                toGoE = e;
+                toGo = e.getOnPos();
+            }
         }
 
-        BlockPos toGo = Utils.sortBlockPosByDistanceToVec(allPositionsToHelp, worker).first();
+
 
         int moveExit = worker.slowMobNavigation.moveToPosition(
                 toGo,
                 3, worker.slowNavigationMaxDistance, worker.slowNavigationMaxNodes, worker.slowNavigationStepPerTick,1.2f
         );
         if (moveExit != SUCCESS_STILL_RUNNING) {
-            npcNeedHelp.remove(bp_to_entity.get(toGo));
+            npcNeedHelp.remove(toGoE);
         }
     }
 }

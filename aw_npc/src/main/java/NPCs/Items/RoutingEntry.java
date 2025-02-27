@@ -62,7 +62,7 @@ public class RoutingEntry {
             return getStacksToInsert_putUpto(targetInventory, inventory);
         }
         if (mode == 7) {  // match inventory to filter and durability filter, basically inverse from above
-            return getStacksToExtract_takeExcept(inventory, targetInventory);
+            return getStacksToExtract_matchTarget(inventory, targetInventory);
         }
         if (mode == 1) { // take any
             return new HashMap<>(); // nothing to insert
@@ -87,25 +87,25 @@ public class RoutingEntry {
 
     public HashMap<ComparableItemStack, Integer> getStacksToExtract(IItemHandler targetInventory, IItemHandler inventory) {
         if (mode == 0) {  // match target to filter and durability filter
-            return getStacksToExtract_takeExcept(targetInventory, inventory);
+            return getStacksToExtract_matchTarget(targetInventory, inventory);
         }
         if (mode == 7) {  // match inventory to filter and durability filter, basically inverse from above
             return getStacksToInsert_putUpto(inventory, targetInventory);
         }
         if (mode == 1) { // take any
-            return getStacksToExtract_takeAny(targetInventory, inventory);
+            return getStacksToInsert_putAny(inventory, targetInventory);
         }
         if (mode == 2) { // put any
             return new HashMap<>();
         }
         if (mode == 3) { // take except
-            return getStacksToExtract_takeExcept(targetInventory, inventory);
+            return getStacksToInsert_putExcept(inventory, targetInventory);
         }
         if (mode == 4) { // put except
             return new HashMap<>();
         }
         if (mode == 5) { // take upto
-            return getStacksToExtract_takeUpto(targetInventory,inventory);
+            return getStacksToInsert_putUpto(inventory, targetInventory);
         }
         if (mode == 6) { // put upto
             return new HashMap<>();
@@ -131,26 +131,6 @@ public class RoutingEntry {
         }
         return total;
     }
-
-    public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeAny(IItemHandler targetInventory, IItemHandler inventory) {
-        HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
-
-        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
-        HashMap<ComparableItemStack, Integer> targetTotalMatchingDurability = listInventory(targetInventory, true, true);
-
-        for (ComparableItemStack c : targetTotalMatchingDurability.keySet()) {
-            if (filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))) {
-                int count = targetTotalMatchingDurability.get(c);
-                ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(count), inventory, true);
-                int inserted = count - notInserted.getCount();
-                if (inserted > 0) {
-                    toExtract.put(c, inserted);
-                }
-            }
-        }
-        return toExtract;
-    }
-
 
     public HashMap<ComparableItemStack, Integer> getStacksToInsert_putAny(IItemHandler targetInventory, IItemHandler inventory) {
         HashMap<ComparableItemStack, Integer> toInsert = new HashMap<>();
@@ -216,6 +196,11 @@ public class RoutingEntry {
                     int inserted = toInsertCount - notInserted.getCount();
                     if (inserted > 0) {
                         toInsert.put(c, inserted);
+
+                        // remove filled count from the filter count so it does not fill the same filter multiple times for different item components
+                        if(targetTotalFittingDurabilityFilterNoComponents.get(cNoComponents)!=null){
+                            targetTotalFittingDurabilityFilterNoComponents.put(cNoComponents, targetTotalFittingDurabilityFilterNoComponents.get(cNoComponents)-inserted);
+                        }
                     }
                 }
             }
@@ -223,49 +208,37 @@ public class RoutingEntry {
         return toInsert;
     }
 
-    public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeUpto(IItemHandler targetInventory, IItemHandler inventory) {
+    public HashMap<ComparableItemStack, Integer> getStacksToExtract_matchTarget(IItemHandler targetInventory, IItemHandler inventory) {
 
         HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
-        HashMap<ComparableItemStack, Integer> targetTotalFitsDurability = listInventory(targetInventory, true, true);
-        HashMap<ComparableItemStack, Integer> inventoryTotalNoComponents = listInventory(inventory, true, false);
+        HashMap<ComparableItemStack, Integer> targetTotal = listInventory(targetInventory, true, false);
 
         HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
-        for (ComparableItemStack c : filterTotalNoComponents.keySet()) {
-            int uptoTargetCount = filterTotalNoComponents.get(c);
-            int existingCount = inventoryTotalNoComponents.getOrDefault(c,0);
-            int toTake =uptoTargetCount -existingCount;
+        for (ComparableItemStack c : targetTotal.keySet()) {
+            ComparableItemStack cNoComponents = new ComparableItemStack(new ItemStack(c.stack.getItem()));
+            int targetCount = targetTotal.get(c);
+            int toRemove = 0;
+            if (!EntityWarehouseInterface.fitsDurabilityFilter(c.stack, durability_needsToBeAboveFilter, durabilityPercentFilter))
+                // if it does not fit the durability filter, remove it all
+                toRemove = targetCount;
+            else {
+                // if the existing item matches the durability filter, see if it matches the filter count
+                int filterCount = filterTotalNoComponents.getOrDefault(cNoComponents, 0);
+                toRemove = targetCount - filterCount;
+            }
+            if (toRemove > 0) {
+                ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(toRemove), inventory, true);
+                int inserted = toRemove - notInserted.getCount();
+                if (inserted > 0) {
+                    toExtract.put(c, inserted);
 
-            for(ComparableItemStack k : targetTotalFitsDurability.keySet()){
-                if(ItemStack.isSameItem(k.stack, c.stack)){
-                    ItemStack notInserted = insertStackIntoInventory(k.stack.copyWithCount(toTake), inventory, true);
-                    int inserted = toTake - notInserted.getCount();
-                    if (inserted > 0) {
-                        toExtract.put(k, inserted);
-                        toTake -= inserted;
-                        targetTotalFitsDurability.put(k, targetTotalFitsDurability.get(k)-inserted);
+                    // remove the inserted from the filter in case there are multiple same items with different components
+                    if(filterTotalNoComponents.get(cNoComponents) != null){
+                        filterTotalNoComponents.put(cNoComponents, filterTotalNoComponents.get(cNoComponents)-inserted);
                     }
                 }
             }
 
-        }
-        return toExtract;
-    }
-
-    public HashMap<ComparableItemStack, Integer> getStacksToExtract_takeExcept(IItemHandler targetInventory, IItemHandler inventory) {
-        HashMap<ComparableItemStack, Integer> toExtract = new HashMap<>();
-
-        HashMap<ComparableItemStack, Integer> filterTotalNoComponents = listInventory(filterInventory, false, false);
-        HashMap<ComparableItemStack, Integer> targetTotalMatchingDurability = listInventory(targetInventory, true, true);
-
-        for (ComparableItemStack c : targetTotalMatchingDurability.keySet()) {
-            if (!filterTotalNoComponents.containsKey(new ComparableItemStack(new ItemStack(c.stack.getItem())))) {
-                int count = targetTotalMatchingDurability.get(c);
-                ItemStack notInserted = insertStackIntoInventory(c.stack.copyWithCount(count), inventory, true);
-                int inserted = count - notInserted.getCount();
-                if (inserted > 0) {
-                    toExtract.put(c, inserted);
-                }
-            }
         }
         return toExtract;
     }

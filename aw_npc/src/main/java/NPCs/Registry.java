@@ -98,6 +98,11 @@ public class Registry {
             () -> new ItemSpawnNpc()
     );
 
+    public static final Supplier<Item> ITEM_FIGHTER_SPAWN = ITEMS.register(
+            "spawn_fighter",
+            () -> new ItemSpawnCombatNpc()
+    );
+
     static {
         registerBlockItem("townhall", TOWNHALL);
         registerBlockItem("strategy_table", STRATEGY_TABLE);

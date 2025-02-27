@@ -81,9 +81,6 @@ public class FoodProgramWorker extends Goal {
     public boolean canUse() {
         if (worker.hunger / worker.maxHunger > 0.25)
             return false;
-        if(worker.level().isNight())
-            return false;
-
 
         long gameTime = worker.level().getGameTime();
         if (lastCheck + 20*10 > gameTime)

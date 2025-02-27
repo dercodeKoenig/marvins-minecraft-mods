@@ -88,14 +88,13 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
         int priority = 0;
 
         goalSelector.addGoal(priority++, new FloatGoal(this));
+        goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
 
         goalSelector.addGoal(priority++, new SleepProgram(this));
 
         goalSelector.addGoal(priority++, new FoodProgramWorker(this));
-
-        goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Farmer.ordinal()) {
             this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
@@ -118,6 +117,8 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
         }
 
         goalSelector.addGoal(priority++, new ForgetLastWorksiteProgram(this));
+
+        goalSelector.addGoal(priority++, new ReturnToTownhallProgram(this));
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 0.8, 120, false));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));

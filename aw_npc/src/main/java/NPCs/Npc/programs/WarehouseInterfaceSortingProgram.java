@@ -81,8 +81,6 @@ public class WarehouseInterfaceSortingProgram extends Goal {
     @Override
     public boolean canUse() {
 
-        if (worker.level().isNight()) return false;
-
         long gameTime = worker.level().getGameTime();
         if (lastCheck + timeoutForWorkCheck > gameTime)
             return false;
@@ -127,7 +125,7 @@ public class WarehouseInterfaceSortingProgram extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return worker.lastWorksitePosition != null && !worker.level().isNight();
+        return worker.lastWorksitePosition != null;
     }
 
     @Override
