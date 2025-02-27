@@ -3,29 +3,41 @@ package AgeOfSteam.Blocks.Mechanics.Axle;
 import ARLib.network.INetworkTagReceiver;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import AgeOfSteam.Main;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import static AgeOfSteam.Blocks.Mechanics.Axle.BlockAxleBase.ROTATION_AXIS;
 
 public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
+    public VertexBuffer vertexBuffer;
+    public MeshData mesh;
+    public int lastLight;
+
     public double myInertia;
     public double myFriction;
     public double maxStress;
 
-    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
             return maxStress;
         }
+
         @Override
         public double getInertia(Direction face) {
             return myInertia;
@@ -49,15 +61,25 @@ public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvi
 
     public EntityAxleBase(BlockEntityType t, BlockPos pos, BlockState blockState) {
         super(t, pos, blockState);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     @Override
     public void setRemoved() {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer.close();
+            });
+        }
         super.setRemoved();
     }
 
 
-    public void tick(){
+    public void tick() {
         myMechanicalBlock.mechanicalTick();
     }
 
@@ -78,7 +100,9 @@ public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvi
     }
 
     @Override
-    public BlockEntity getBlockEntity(){return this;}
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
 
     @Override
     public void onLoad() {
@@ -94,7 +118,7 @@ public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvi
 
     @Override
     public void readServer(CompoundTag tag, ServerPlayer p) {
-        myMechanicalBlock.mechanicalReadServer(tag,p);
+        myMechanicalBlock.mechanicalReadServer(tag, p);
     }
 
     @Override

@@ -38,6 +38,15 @@ import static AWGenerators.Registry.ENTITY_WINDMILL_GENERATOR;
 
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
+    public VertexBuffer vertexBuffer_wheel;
+    public MeshData mesh_wheel;
+    public VertexBuffer vertexBuffer_axle;
+    public MeshData mesh_axle;
+    public VertexBuffer vertexBuffer;
+    public MeshData mesh;
+    public int lastLight;
+
+
 
     public  double forcePerBlock = Config.INSTANCE.windmill_forcePerBlock;
     public  double windSpeedMultiplier = Config.INSTANCE.windmill_windSpeedMultiplier;
@@ -45,7 +54,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     public double inertiaPerBlock = Config.INSTANCE.windmill_inertiaPerBlock;
     public int max_size = Config.INSTANCE.windmill_maxSize;
 
-    // todo: make a small offset for wind and include rotation multiplier based on facing
     public static PerlinSimplexNoise noise          = new PerlinSimplexNoise(new SingleThreadedRandomSource(8082003),List.of(-2, -1, 0, 1, 2));;
     public static PerlinSimplexNoise noiseDirection          = new PerlinSimplexNoise(new SingleThreadedRandomSource(4092003),List.of(-2, -1, 0, 1, 2));;
     PerlinSimplexNoise currentRandomNoiseOffset = new PerlinSimplexNoise(new SingleThreadedRandomSource(new Random().nextInt()),List.of(-2, -1, 0, 1, 2));;;;
@@ -56,9 +64,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     // this is why we have to slowly increase force so that it does not have this big spikes in force
     double forceSteps = 0.0005; // should be 1 after 100 seconds
     double currentForceMultiplier = 0;
-
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
 
     int size;
     int last_size_for_meshUpdate;
@@ -100,6 +105,8 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_wheel = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_axle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
@@ -123,6 +130,8 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer.close();
+                vertexBuffer_axle.close();
+                vertexBuffer_wheel.close();
             });
         }
         if(!level.isClientSide){

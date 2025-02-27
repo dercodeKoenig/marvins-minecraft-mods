@@ -3,6 +3,9 @@ package AgeOfSteam.Blocks.Mechanics.Gearbox;
 import ARLib.network.INetworkTagReceiver;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -12,8 +15,19 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 public class EntityGearboxBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+
+    public VertexBuffer vertexBuffer_in;
+    public VertexBuffer vertexBuffer_out;
+    public VertexBuffer vertexBuffer_mid;
+    public MeshData mesh_in;
+    public MeshData mesh_out;
+    public MeshData mesh_mid;
+    public int lastLight = 0;
+
 
     double myInertia;
     double myFriction;
@@ -102,11 +116,26 @@ public class EntityGearboxBase extends BlockEntity implements IMechanicalBlockPr
         // I think the gearbox should have a ratio of 2:3 for both sides to a total of 4:9 or 9:4
         // if we reset after 6 rotations, the high rpm part should have completed 9 rotations and the low rpm part should completed 4 rotations
         myMechanicalBlock.resetRotationAfterX = 360*6;
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer_in = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_out = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_mid = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer_in.close();
+                vertexBuffer_out.close();
+                vertexBuffer_mid.close();
+            });
+        }
     }
 
 

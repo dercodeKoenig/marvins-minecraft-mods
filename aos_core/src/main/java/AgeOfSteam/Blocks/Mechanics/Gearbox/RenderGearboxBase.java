@@ -8,6 +8,7 @@ import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -25,14 +26,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGearboxBase> {
 
     static WavefrontObject model;
-    static ResourceLocation tex;
-
-    static VertexBuffer vertexBuffer_in= new VertexBuffer(VertexBuffer.Usage.STATIC);
-    static VertexBuffer vertexBuffer_out= new VertexBuffer(VertexBuffer.Usage.STATIC);
-    static VertexBuffer vertexBuffer_mid= new VertexBuffer(VertexBuffer.Usage.STATIC);
-    static MeshData mesh_in;
-    static MeshData mesh_out;
-    static MeshData mesh_mid;
+    ResourceLocation tex;
 
     static {
         try {
@@ -40,39 +34,6 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
-
-
-        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("small_output").faces) {
-            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
-        }
-        mesh_in = b.build();
-        vertexBuffer_in.bind();
-        vertexBuffer_in.upload(mesh_in);
-        byteBuffer.close();
-
-
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("big_output").faces) {
-            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
-        }
-        vertexBuffer_out.bind();
-        mesh_out = b.build();
-        vertexBuffer_out.upload(mesh_out);
-        byteBuffer.close();
-
-
-        byteBuffer = new ByteBufferBuilder(2048);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("connection").faces) {
-            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
-        }
-        mesh_mid = b.build();
-        vertexBuffer_mid.bind();
-        vertexBuffer_mid.upload(mesh_mid);
-        byteBuffer.close();
     }
 
 
@@ -84,8 +45,45 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
 
     @Override
     public void render(EntityGearboxBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+
+        if(tile.lastLight != packedLight){
+            tile.lastLight = packedLight;
+            ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
+            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            for (Face i : model.groupObjects.get("small_output").faces) {
+                i.addFaceForRender(new PoseStack(), b, packedLight, 0, 0xffffffff);
+            }
+            tile.mesh_in = b.build();
+            tile.vertexBuffer_in.bind();
+            tile.vertexBuffer_in.upload(tile.mesh_in);
+            byteBuffer.close();
+
+
+            byteBuffer = new ByteBufferBuilder(1024);
+            b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            for (Face i : model.groupObjects.get("big_output").faces) {
+                i.addFaceForRender(new PoseStack(), b, packedLight, 0, 0xffffffff);
+            }
+            tile.vertexBuffer_out.bind();
+            tile.mesh_out = b.build();
+            tile.vertexBuffer_out.upload(tile.mesh_out);
+            byteBuffer.close();
+
+
+            byteBuffer = new ByteBufferBuilder(2048);
+            b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            for (Face i : model.groupObjects.get("connection").faces) {
+                i.addFaceForRender(new PoseStack(), b, packedLight, 0, 0xffffffff);
+            }
+            tile.mesh_mid = b.build();
+            tile.vertexBuffer_mid.bind();
+            tile.vertexBuffer_mid.upload(tile.mesh_mid);
+            byteBuffer.close();
+        }
+
         BlockState myState = tile.getBlockState();
-        if (myState.getBlock() instanceof BlockGearboxBase) {
+        if (!(myState.getBlock() instanceof BlockGearboxBase))return;
+
             Direction facing = myState.getValue(BlockGearboxBase.FACING);
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
@@ -108,7 +106,7 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 90));
             }
 
-            RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
+            RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
             LIGHTMAP.setupRenderState();
             LEQUAL_DEPTH_TEST.setupRenderState();
             NO_TRANSPARENCY.setupRenderState();
@@ -124,12 +122,9 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
 
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
-
             shader.apply();
-            vertexBuffer_in.bind();
-            vertexBuffer_in.draw();
+        tile.vertexBuffer_in.bind();
+        tile.vertexBuffer_in.draw();
 
 
             m2 = new Matrix4f(m1);
@@ -139,12 +134,10 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
                     (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing.getOpposite()) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
 
-            vertexBuffer_out.bind();
-            vertexBuffer_out.draw();
+        tile.vertexBuffer_out.bind();
+        tile.vertexBuffer_out.draw();
             //shader.clear();
 
 
@@ -156,12 +149,10 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
                     (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
 
-            vertexBuffer_mid.bind();
-            vertexBuffer_mid.draw();
+        tile.vertexBuffer_mid.bind();
+        tile.vertexBuffer_mid.draw();
             //shader.clear();
 
             m2 = new Matrix4f(m1);
@@ -172,12 +163,10 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
                     (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
 
-            vertexBuffer_mid.bind();
-            vertexBuffer_mid.draw();
+        tile.vertexBuffer_mid.bind();
+        tile.vertexBuffer_mid.draw();
 
 
             shader.clear();
@@ -187,5 +176,4 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
             LEQUAL_DEPTH_TEST.clearRenderState();
             NO_TRANSPARENCY.clearRenderState();
         }
-    }
 }

@@ -4,6 +4,9 @@ import ARLib.network.INetworkTagReceiver;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -15,11 +18,17 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import static AWGenerators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 
 
 public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
+
+    public VertexBuffer vertexBuffer;
+    public MeshData mesh;
+    public int lastLight;
 
     public double myInertia = Config.INSTANCE.waterWheel_inertia;
     public    double maxStress = Config.INSTANCE.waterWheel_maxStress;
@@ -59,6 +68,21 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
 
     public EntityWaterWheelGenerator(BlockPos pos, BlockState blockState) {
         super(ENTITY_WATERWHEEL_GENERATOR.get(), pos, blockState);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
+    }
+
+    @Override
+    public void setRemoved(){
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer.close();
+            });
+        }
+        super.setRemoved();
     }
 
     @Override

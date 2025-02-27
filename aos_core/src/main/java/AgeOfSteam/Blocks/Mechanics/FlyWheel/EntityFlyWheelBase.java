@@ -4,6 +4,9 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,6 +17,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -24,6 +29,11 @@ import java.util.UUID;
 import static AgeOfSteam.Blocks.Mechanics.FlyWheel.BlockFlyWheelBase.ROTATION_AXIS;
 
 public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+
+    public VertexBuffer vertexBuffer;
+    public MeshData mesh;
+    public int lastLight = 0;
+
 
     public double myInertia;
     public double myFriction;
@@ -73,11 +83,21 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
 
     public EntityFlyWheelBase(BlockEntityType t, BlockPos pos, BlockState blockState) {
         super(t, pos, blockState);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer.close();
+            });
+        }
     }
 
 

@@ -1,5 +1,6 @@
 package AgeOfSteam;
 
+import AgeOfSteam.Blocks.Mechanics.Axle.RenderAxle;
 import AgeOfSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.RenderBigWoodenCrankShaft;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.RenderSmallWoodenCrankShaft;
@@ -54,7 +55,6 @@ public static final String MODID ="age_of_steam";
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::RegisterCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
 
@@ -114,15 +114,6 @@ public static final String MODID ="age_of_steam";
             e.accept(CASING_SLAB.get());
             e.accept(ITEM_WOODEN_HAMMER.get());
             e.accept(ITEM_WOODEN_GEAR.get());
-        }
-    }
-
-    private void loadShaders(RegisterShadersEvent e) {
-        try {
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "shader_dynamic_normal_dynamic_light"),POSITION_COLOR_TEXTURE_NORMAL_LIGHT),(shader)->Static.ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL_DYNAMIC_LIGHT = shader);
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "shader_dynamic_normal"),POSITION_COLOR_TEXTURE_NORMAL_LIGHT),(shader)->Static.ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL = shader);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
         }
     }
 

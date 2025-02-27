@@ -33,11 +33,6 @@ public class Static {
                             .build();
         }
     }
-    public static ShaderInstance ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;
-    public static ShaderInstance getEntitySolidDynamicNormalShader(){return ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;}
-
-    public static ShaderInstance ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL_DYNAMIC_LIGHT;
-    public static ShaderInstance getEntitySolidDynamicNormalDynamicLightShader(){return ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL_DYNAMIC_LIGHT;}
 
     public static SoundEvent[] WOODEN_SOUNDS = {
             SoundEvents.WOODEN_BUTTON_CLICK_ON,

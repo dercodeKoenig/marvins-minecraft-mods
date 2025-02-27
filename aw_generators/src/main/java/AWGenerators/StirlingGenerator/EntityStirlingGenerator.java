@@ -10,6 +10,9 @@ import ARLib.utils.BlockEntityItemStackHandler;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +27,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -33,6 +38,22 @@ import static AWGenerators.Registry.ENTITY_STIRLING_GENERATOR;
 
 
 public class EntityStirlingGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
+
+
+    public VertexBuffer vertexBuffer_flywheel;
+    public MeshData mesh_flywheel;
+    public VertexBuffer vertexBuffer_flywheel_arm;
+    public MeshData mesh_flywheel_arm;
+    public VertexBuffer vertexBuffer_piston_arm1;
+    public MeshData mesh_piston_arm1;
+    public VertexBuffer vertexBuffer_piston_arm2;
+    public MeshData mesh_piston_arm2;
+    public VertexBuffer vertexBuffer_piston_crank1;
+    public MeshData mesh_piston_crank1;
+    public VertexBuffer vertexBuffer_piston_crank2;
+    public MeshData mesh_piston_crank2;
+    int lastLight;
+
 
     public  double maxForceMultiplier = Config.INSTANCE.stirlingGenerator_maxForceMultiplier;
     public  double k = Config.INSTANCE.stirlingGenerator_k;
@@ -80,22 +101,34 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         super(ENTITY_STIRLING_GENERATOR.get(), pos, blockState);
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        inventory = new BlockEntityItemStackHandler(1,this){
+        inventory = new BlockEntityItemStackHandler(1, this) {
             public boolean isItemValid(int slot, ItemStack stack) {
-                if(stack.getItem().getBurnTime(stack, null) >0){
+                if (stack.getItem().getBurnTime(stack, null) > 0) {
                     return true;
                 }
                 return false;
             }
         };
 
-        guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(0,inventory,0,1,0,guiHandler,70,10);
+        guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(0, inventory, 0, 1, 0, guiHandler, 70, 10);
         guiHandler.getModules().add(s1);
-        for( GuiModuleBase i: guiModulePlayerInventorySlot.makePlayerHotbarModules(10,120,200,0,1,guiHandler)){
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 120, 200, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
         }
-        for( GuiModuleBase i: guiModulePlayerInventorySlot.makePlayerInventoryModules(10,50,100,0,1,guiHandler)){
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 50, 100, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
+        }
+
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer_flywheel = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_flywheel_arm = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_piston_arm1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_piston_arm2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_piston_crank1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_piston_crank2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
         }
     }
 
@@ -109,6 +142,21 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         CompoundTag t = new CompoundTag();
         t.putInt("burnTime", currentBurnTime);
         return t;
+    }
+
+    @Override
+    public void setRemoved(){
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer_flywheel.close();
+                vertexBuffer_flywheel_arm.close();
+                vertexBuffer_piston_arm1.close();
+                vertexBuffer_piston_arm2.close();
+                vertexBuffer_piston_crank1.close();
+                vertexBuffer_piston_crank2.close();
+            });
+        }
+        super.setRemoved();
     }
 
     @Override

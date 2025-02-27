@@ -8,6 +8,10 @@ import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
 import FiniteWater.Config;
+import com.mojang.blaze3d.pipeline.RenderCall;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -23,7 +27,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -38,11 +44,19 @@ import static AOSBasicFluid.Registry.PUMP_EXT;
 public class EntityPump extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
+    public VertexBuffer vertexBufferArm1;
+    public MeshData meshArm1;
+    public VertexBuffer vertexBufferArm2;
+    public MeshData meshArm2;
+    public VertexBuffer vertexBufferArm3;
+    public MeshData meshArm3;
+    public int lastLight;
+
     public int maxRadiusSqr = PumpConfig.INSTANCE.maxRadius * PumpConfig.INSTANCE.maxRadius;
 
-    public PumpFluidTank myTank = new PumpFluidTank(PumpConfig.INSTANCE.tankCapacity){
+    public PumpFluidTank myTank = new PumpFluidTank(PumpConfig.INSTANCE.tankCapacity) {
         @Override
-        public void onContentsChanged(){
+        public void onContentsChanged() {
             setChanged();
         }
     };
@@ -56,24 +70,24 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                 @Override
                 public int compare(BlockPos o1, BlockPos o2) {
                     // sort by distance to pump
-                    if(o1.getCenter().distanceTo(getBlockPos().getCenter()) > o2.getCenter().distanceTo(getBlockPos().getCenter()))
+                    if (o1.getCenter().distanceTo(getBlockPos().getCenter()) > o2.getCenter().distanceTo(getBlockPos().getCenter()))
                         return 1;
-                    if(o1.getCenter().distanceTo(getBlockPos().getCenter()) < o2.getCenter().distanceTo(getBlockPos().getCenter()))
+                    if (o1.getCenter().distanceTo(getBlockPos().getCenter()) < o2.getCenter().distanceTo(getBlockPos().getCenter()))
                         return -1;
 
-                    if(o1.getY() > o2.getY())
+                    if (o1.getY() > o2.getY())
                         return 1;
-                    if(o1.getY() < o2.getY())
+                    if (o1.getY() < o2.getY())
                         return -1;
 
-                    if(o1.getX() > o2.getX())
+                    if (o1.getX() > o2.getX())
                         return 1;
-                    if(o1.getX() < o2.getX())
+                    if (o1.getX() < o2.getX())
                         return -1;
 
-                    if(o1.getZ() > o2.getZ())
+                    if (o1.getZ() > o2.getZ())
                         return 1;
-                    if(o1.getZ() < o2.getZ())
+                    if (o1.getZ() < o2.getZ())
                         return -1;
 
                     return 0;
@@ -83,6 +97,31 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
     public EntityPump(BlockPos p_155229_, BlockState p_155230_) {
         super(ENTITY_PUMP.get(), p_155229_, p_155230_);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBufferArm1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferArm2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferArm3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBufferArm1.close();
+                vertexBufferArm2.close();
+                vertexBufferArm3.close();
+            });
+        }
+        super.setRemoved();
+    }
+
+    @Override
+    public void onLoad() {
+        myMechanicalBlock.mechanicalOnload();
+        super.onLoad();
     }
 
     double force = 0;
@@ -113,10 +152,6 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         }
     };
 
-    @Override
-    public void onLoad() {
-        myMechanicalBlock.mechanicalOnload();
-    }
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
@@ -159,19 +194,16 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             BlockPos below = start.below();
             if (below.getY() < level.getMinBuildHeight()) {
                 return;
-            }
-            else if (level.getBlockState(below).isAir()) {
+            } else if (level.getBlockState(below).isAir()) {
                 level.setBlock(below, PUMP_EXT.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), 3);
                 return;
-            }
-            else if (level.getBlockState(below).getBlock().equals(PUMP_EXT.get())) {
+            } else if (level.getBlockState(below).getBlock().equals(PUMP_EXT.get())) {
                 start = start.below();
-            }
-            else if (!level.getBlockState(below).getFluidState().isEmpty()) {
+            } else if (!level.getBlockState(below).getFluidState().isEmpty()) {
                 fluidToPump = level.getBlockState(below).getFluidState().getType().getFluidType();
                 nextBlocksToScan.add(below);
                 return;
-            }else{
+            } else {
                 return;
             }
         }
@@ -194,17 +226,17 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         return true;
     }
 
-    public void tryPumpBlock(BlockPos pos){
+    public void tryPumpBlock(BlockPos pos) {
         BlockState targetState = level.getBlockState(pos);
-        if(myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
-            myTank._fill(new FluidStack(targetState.getFluidState().getType(),1000), IFluidHandler.FluidAction.EXECUTE);
+        if (myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
+            myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.EXECUTE);
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
     }
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
-        
+
         if (!level.isClientSide) {
             double trig_res_force_multiplier = Math.sin(myMechanicalBlock.currentRotation / 180 * Math.PI);
             force = -PumpConfig.INSTANCE.unevenForceMultiplier * trig_res_force_multiplier;
@@ -218,9 +250,9 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                     waterSourceBlocks.clear();
                     findStartPos();
 
-                    if(!PumpConfig.INSTANCE.consumeWater && fluidToPump.equals(Fluids.WATER.getFluidType()) && !nextBlocksToScan.isEmpty()){
+                    if (!PumpConfig.INSTANCE.consumeWater && fluidToPump.equals(Fluids.WATER.getFluidType()) && !nextBlocksToScan.isEmpty()) {
                         // no actual pickup of water
-                        myTank._fill(new FluidStack(Fluids.WATER,1000), IFluidHandler.FluidAction.EXECUTE);
+                        myTank._fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
                         nextBlocksToScan.clear();
                     }
 
@@ -231,20 +263,20 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             int n = 0;
             while (!nextBlocksToScan.isEmpty()) {
                 n++;
-                if(n>maxSteps)
+                if (n > maxSteps)
                     break;
                 BlockPos next = nextBlocksToScan.removeFirst();
                 if (!workedPositions.contains(next)) {
                     workedPositions.add(next);
                     double dx = next.getX() - getBlockPos().getX();
                     double dz = next.getZ() - getBlockPos().getZ();
-                    double d = dx*dx+dz*dz;
+                    double d = dx * dx + dz * dz;
                     BlockState s = level.getBlockState(next);
                     if (s.getFluidState().getType().getFluidType().equals(fluidToPump) && d < maxRadiusSqr) {
                         if (s.getFluidState().isSource()) {
                             waterSourceBlocks.add(next);
 
-                            if(ModList.get().isLoaded("finite_water") && fluidToPump.equals(Fluids.WATER.getFluidType())) {
+                            if (ModList.get().isLoaded("finite_water") && fluidToPump.equals(Fluids.WATER.getFluidType())) {
                                 if (isInfiniteWater(next)) {
                                     // if my finite water mod is loaded and the current scan target is in a infinite water biome, use this block as target and break scanning
                                     nextBlocksToScan.clear();
@@ -271,8 +303,8 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                     }
                 }
             }
-            if(nextBlocksToScan.isEmpty()){
-                if(!waterSourceBlocks.isEmpty()){
+            if (nextBlocksToScan.isEmpty()) {
+                if (!waterSourceBlocks.isEmpty()) {
                     BlockPos target = waterSourceBlocks.last();
                     tryPumpBlock(target);
                     waterSourceBlocks.clear();
@@ -280,23 +312,23 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             }
 
 
-                for (Direction d : new Direction[]{getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getClockWise(), getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getCounterClockWise()}) {
-                    if (!myTank.getFluid().isEmpty()) {
-                        IFluidHandler fluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(d), d.getOpposite());
-                        if (fluidHandler != null) {
-                            double relativeFill = (double) myTank.getFluidAmount() / myTank.getCapacity();
-                            int toExtract = (int) (100 * relativeFill);
-                            toExtract = Math.max(1,toExtract);
+            for (Direction d : new Direction[]{getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getClockWise(), getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getCounterClockWise()}) {
+                if (!myTank.getFluid().isEmpty()) {
+                    IFluidHandler fluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(d), d.getOpposite());
+                    if (fluidHandler != null) {
+                        double relativeFill = (double) myTank.getFluidAmount() / myTank.getCapacity();
+                        int toExtract = (int) (100 * relativeFill);
+                        toExtract = Math.max(1, toExtract);
 
-                            int canFill = fluidHandler.fill(myTank.drain(toExtract, IFluidHandler.FluidAction.SIMULATE), IFluidHandler.FluidAction.SIMULATE);
-                            if(canFill > 0){
-                                fluidHandler.fill(myTank.drain(canFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-                            }
+                        int canFill = fluidHandler.fill(myTank.drain(toExtract, IFluidHandler.FluidAction.SIMULATE), IFluidHandler.FluidAction.SIMULATE);
+                        if (canFill > 0) {
+                            fluidHandler.fill(myTank.drain(canFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
                         }
-                    }else{
-                        break;
                     }
+                } else {
+                    break;
                 }
+            }
         }
     }
 
@@ -304,14 +336,14 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
-        myTank.readFromNBT(registries,tag);
+        myTank.readFromNBT(registries, tag);
     }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
-        myTank.writeToNBT(registries,tag);
+        myTank.writeToNBT(registries, tag);
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {

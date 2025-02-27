@@ -7,6 +7,10 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import AgeOfSteam.Main;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,6 +26,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -33,6 +39,11 @@ import static AgeOfSteam.Static.*;
 
 
 public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, IEnergyStorage {
+
+    public  VertexBuffer vertexBuffer;
+    public  MeshData mesh;
+    public int lastLight = 0;
+
 
     double n = 1;
 
@@ -151,6 +162,12 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         invertRotation = new guiModuleButton(11, directionMultiplier > 0 ? "+":"-", guiHandler, 155, 70, 30,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         invertRotation.color = 0xFFFFFFFF;
         guiHandler.getModules().add(invertRotation);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     public void openGui() {
@@ -198,6 +215,11 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     @Override
     public void setRemoved() {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer.close();
+            });
+        }
         super.setRemoved();
     }
 
