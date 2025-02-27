@@ -287,11 +287,11 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 double windSpeed = windSpeedMultiplier * Math.sqrt(Math.abs(noiseval)) * Math.signum(noiseval) ;
 
                 // make some difference in wind direction, but not too much, we want the windmill to be spinning!
-                double windDirection = noiseDirection.getValue((double) System.currentTimeMillis() / 30000,0,false);
+                double windDirection = noiseDirection.getValue((double) System.currentTimeMillis() / 60000,0,false);
                 if(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis() == Direction.Axis.X)
-                    windSpeed = windSpeed *( 0.3 + 0.7 * Math.abs(Math.cos(2*Math.PI*windDirection)));
+                    windSpeed = windSpeed *( 0.4 + 0.6 * Math.abs(Math.cos(2*Math.PI*windDirection)));
                 if(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis() == Direction.Axis.Z)
-                    windSpeed = windSpeed * ( 0.3 + 0.7 * Math.abs(Math.sin(2*Math.PI*windDirection)));
+                    windSpeed = windSpeed * ( 0.4 + 0.6 * Math.abs(Math.sin(2*Math.PI*windDirection)));
 
                 myForce = 0;
                 myInertia = 0;
