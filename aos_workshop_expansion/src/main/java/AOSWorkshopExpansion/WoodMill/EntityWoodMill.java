@@ -14,6 +14,8 @@ import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,6 +52,14 @@ import static AOSWorkshopExpansion.Registry.*;
 import static AgeOfSteam.Registry.CASING_SLAB;
 
 public class EntityWoodMill extends EntityMultiblockMaster implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
+
+
+
+    public VertexBuffer vertexBuffer_saw = new VertexBuffer(VertexBuffer.Usage.STATIC);
+    public MeshData mesh_saw;
+    public VertexBuffer vertexBuffer_arm = new VertexBuffer(VertexBuffer.Usage.STATIC);
+    public MeshData mesh_arm;
+public int lastLight;
 
     // aw npc compat
     public static Set<BlockPos> knownBlockEntities = new HashSet<>();
@@ -156,6 +166,13 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
         if (!level.isClientSide) {
             knownBlockEntities.remove(getBlockPos());
         }
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer_saw.close();
+                vertexBuffer_arm.close();
+            });
+        }
+
         super.setRemoved();
     }
 
@@ -217,6 +234,13 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
     public EntityWoodMill(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODMILL.get(), pos, blockState);
         super.forwardInteractionToMaster = true;
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer_arm = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_saw = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     CompoundTag getClientSyncUpdateTag() {

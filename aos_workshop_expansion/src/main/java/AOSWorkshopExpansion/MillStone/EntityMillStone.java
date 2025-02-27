@@ -10,6 +10,9 @@ import ARLib.utils.ItemUtils;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,6 +37,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -46,6 +51,16 @@ import static AOSWorkshopExpansion.Registry.MILLSTONE;
 import static AgeOfSteam.Registry.WOODEN_AXLE;
 
 public class EntityMillStone extends EntityMultiblockMaster implements IMechanicalBlockProvider {
+
+
+    public VertexBuffer vertexBufferPlate;
+    public MeshData meshPlate;
+    public VertexBuffer vertexBufferStone;
+    public MeshData meshStone;
+    public VertexBuffer vertexBufferAxle;
+    public MeshData meshAxle;
+    public int lastLight;
+
 
     // aw npc compat
     public static Set<BlockPos> knownBlockEntities = new HashSet<>();
@@ -106,6 +121,14 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
         super(ENTITY_MILLSTONE.get(), pos, blockState);
         myMechanicalBlock.resetRotationAfterX = 360 * 4;
         super.forwardInteractionToMaster = true;
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBufferStone = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferPlate = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferAxle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     @Override
@@ -126,6 +149,13 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     public void setRemoved() {
         if (!level.isClientSide) {
             knownBlockEntities.remove(getBlockPos());
+        }
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBufferAxle.close();
+                vertexBufferStone.close();
+                vertexBufferPlate.close();
+            });
         }
         super.setRemoved();
     }

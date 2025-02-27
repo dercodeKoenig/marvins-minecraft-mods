@@ -9,6 +9,9 @@ import ARLib.utils.*;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -24,12 +27,20 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_SPINNING_WHEEL;
 
 public class EntitySpinningWheel extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
+
+
+    public VertexBuffer vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+    public MeshData mesh;
+    public int lastLight;
+
 
     // aw npc compat
     public static Set<BlockPos> knownBlockEntities = new HashSet<>();
@@ -81,36 +92,42 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public EntitySpinningWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_SPINNING_WHEEL.get(), pos, blockState);
 
-        inventoryInput = new BlockEntityItemStackHandler(9,this);
-        inventoryOutput = new BlockEntityItemStackHandler(9,this);
+        inventoryInput = new BlockEntityItemStackHandler(9, this);
+        inventoryOutput = new BlockEntityItemStackHandler(9, this);
 
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        for(guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,130,100,1,0,guiHandler)){
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 130, 100, 1, 0, guiHandler)) {
             guiHandler.getModules().add(i);
         }
-        for(guiModulePlayerInventorySlot i :guiModulePlayerInventorySlot.makePlayerInventoryModules(10,70,200,1,0,guiHandler)){
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 70, 200, 1, 0, guiHandler)) {
             guiHandler.getModules().add(i);
         }
 
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
-                guiModuleItemHandlerSlot i1 = new guiModuleItemHandlerSlot(x+y*3+10000,inventoryInput,x+y*3,0,1,guiHandler,20+x*20,10+y*20);
+                guiModuleItemHandlerSlot i1 = new guiModuleItemHandlerSlot(x + y * 3 + 10000, inventoryInput, x + y * 3, 0, 1, guiHandler, 20 + x * 20, 10 + y * 20);
                 guiHandler.getModules().add(i1);
             }
         }
 
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
-                guiModuleItemHandlerSlot o1 = new guiModuleItemHandlerSlot(x+y*3+10100,inventoryOutput,x+y*3,2,1,guiHandler,110+x*20,10+y*20);
+                guiModuleItemHandlerSlot o1 = new guiModuleItemHandlerSlot(x + y * 3 + 10100, inventoryOutput, x + y * 3, 2, 1, guiHandler, 110 + x * 20, 10 + y * 20);
                 guiHandler.getModules().add(o1);
             }
         }
 
 
         guiHandler.getModules().add(
-                new guiModuleImage(guiHandler,80,30,20,18,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"),16,12)
-                );
+                new guiModuleImage(guiHandler, 80, 30, 20, 18, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"), 16, 12)
+        );
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     @Override
@@ -125,6 +142,12 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public void setRemoved(){
         if (!level.isClientSide) {
             knownBlockEntities.remove(getBlockPos());
+        }
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer.close();
+            });
         }
         super.setRemoved();
     }

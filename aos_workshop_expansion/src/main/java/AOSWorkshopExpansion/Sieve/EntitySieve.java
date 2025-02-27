@@ -13,6 +13,7 @@ import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -50,16 +51,28 @@ import static AOSWorkshopExpansion.Registry.SIEVE_HOPPER_UPGRADE;
 
 public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
+
+
+    public      VertexBuffer vertexBuffer;
+    public  MeshData mesh;
+    public  VertexBuffer vertexBuffer2;
+    public  MeshData mesh2;
+    public  VertexBuffer vertexBuffer3;
+    public  MeshData mesh3;
+    public VertexBuffer myInputRendererBuffer;
+    public VertexBuffer myHopperInputRendererBuffer;
+public int lastLight;
+
+
     // aw npc compat
     public static Set<BlockPos> knownBlockEntities = new HashSet<>();
     public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
 
 
-    VertexBuffer myInputRendererBuffer;
+
     ItemStack lastInputStackForRender = ItemStack.EMPTY;
     ResourceLocation inputStackTexture = ResourceLocation.withDefaultNamespace("textures/block/air");
 
-    VertexBuffer myHopperInputRendererBuffer;
     ItemStack lastHopperInputStackForRender = ItemStack.EMPTY;
     ResourceLocation hopperStackTexture = ResourceLocation.withDefaultNamespace("textures/block/air");
 
@@ -136,6 +149,9 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
             RenderSystem.recordRenderCall(() -> {
                 myInputRendererBuffer.close();
                 myHopperInputRendererBuffer.close();
+                vertexBuffer3.close();
+                vertexBuffer.close();
+                vertexBuffer2.close();
             });
         }
 
@@ -254,6 +270,9 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
             RenderSystem.recordRenderCall(() -> {
                 myInputRendererBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 myHopperInputRendererBuffer= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer2= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer3= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
