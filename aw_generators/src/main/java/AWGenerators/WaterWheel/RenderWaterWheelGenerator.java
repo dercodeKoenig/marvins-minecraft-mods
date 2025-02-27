@@ -52,6 +52,7 @@ public class RenderWaterWheelGenerator implements BlockEntityRenderer<EntityWate
     public void render(EntityWaterWheelGenerator tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
         if (tile.lastLight != packedLight) {
+            tile.lastLight = packedLight;
             ByteBufferBuilder byteBuffer;
             BufferBuilder b;
             byteBuffer = new ByteBufferBuilder(1024);

@@ -48,6 +48,7 @@ public class RenderStirlingGenerator implements BlockEntityRenderer<EntityStirli
     public void render(EntityStirlingGenerator tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
         if (tile.lastLight != packedLight) {
+tile.lastLight = packedLight;
 
             ByteBufferBuilder byteBuffer;
             BufferBuilder b;

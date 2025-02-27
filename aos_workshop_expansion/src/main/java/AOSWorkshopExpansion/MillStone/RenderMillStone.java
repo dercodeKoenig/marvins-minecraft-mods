@@ -57,6 +57,7 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
     public void render(EntityMillStone tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
         if (tile.lastLight != packedLight) {
+            tile.lastLight = packedLight;
 
             ByteBufferBuilder byteBuffer;
             BufferBuilder b;

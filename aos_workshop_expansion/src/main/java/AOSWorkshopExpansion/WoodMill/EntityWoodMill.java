@@ -55,9 +55,9 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
 
 
 
-    public VertexBuffer vertexBuffer_saw = new VertexBuffer(VertexBuffer.Usage.STATIC);
+    public VertexBuffer vertexBuffer_saw;
     public MeshData mesh_saw;
-    public VertexBuffer vertexBuffer_arm = new VertexBuffer(VertexBuffer.Usage.STATIC);
+    public VertexBuffer vertexBuffer_arm;
     public MeshData mesh_arm;
 public int lastLight;
 

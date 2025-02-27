@@ -85,7 +85,7 @@ public class RenderWindMillGenerator implements BlockEntityRenderer<EntityWindMi
     public void render(EntityWindMillGenerator tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
         if (tile.lastLight != packedLight) {
-
+tile.lastLight = packedLight;
             ByteBufferBuilder byteBuffer;
             BufferBuilder b;
 
