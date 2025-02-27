@@ -399,6 +399,14 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void checkDespawn() {
     }
 
+    public Set<String> getFriendlyPlayerNames(){
+        Set<String> friendlyPlayers = new HashSet<>();
+        if(townHall != null)
+            friendlyPlayers = TownHallOwners.getOwners(level(), townHall);
+        friendlyPlayers.add(owner);
+        return friendlyPlayers;
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);

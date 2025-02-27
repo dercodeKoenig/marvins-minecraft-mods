@@ -40,12 +40,7 @@ public class HostileEntities {
 
     public static boolean isUnableToAttack(Entity e, NPCBase npc) {
         if (e instanceof NPCBase otherNPC) {
-            if (Objects.equals(npc.owner, otherNPC.owner)) {
-                // do not attack on same owner
-                return true;
-            }
-
-            if (npc.townHall != null && TownHallOwners.getOwners(npc.level(), npc.townHall).contains(otherNPC.owner)) {
+            if (npc.getFriendlyPlayerNames().contains(otherNPC.owner)) {
                 // do not attack when other NPCs owner is an owner of this NPCs townhall
                 return true;
             }
@@ -53,12 +48,7 @@ public class HostileEntities {
 
         if (e instanceof Player p) {
             String pName = p.getName().getString();
-            if (Objects.equals(npc.owner, pName)) {
-                // do not attack owner
-                return true;
-            }
-
-            if (npc.townHall != null && TownHallOwners.getOwners(npc.level(), npc.townHall).contains(pName)) {
+            if (npc.getFriendlyPlayerNames().contains(pName)) {
                 // do not attack when player is an owner of this NPCs townhall
                 return true;
             }
