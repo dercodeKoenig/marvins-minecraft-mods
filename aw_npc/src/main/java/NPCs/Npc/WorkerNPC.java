@@ -1,7 +1,6 @@
 package NPCs.Npc;
 
 import AgeOfSteam.Registry;
-import NPCs.Npc.programs.Combat.DropLootFighterProgram;
 import NPCs.Utils;
 import NPCs.Npc.programs.*;
 import NPCs.Npc.programs.CropFarming.MainFarmingProgram;
@@ -36,7 +35,7 @@ public class WorkerNPC extends NPCBase {
         Farmer,
         Miner,
         Lumberjack,
-        Engineer,
+        Courier,
         FISHER,
         HUNTER,
         Worker
@@ -107,13 +106,13 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Lumberjack.ordinal()) {
             this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
-        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Engineer.ordinal()) {
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Courier.ordinal()) {
             this.goalSelector.addGoal(priority++, new WarehouseInterfaceSortingProgram(this));
             this.goalSelector.addGoal(priority++, new WorkRoutingOrderProgram(this));
         }
 
         // this one should not loot / drop loot because it can mess up its inventory
-        if (getEntityData().get(DATA_WORKTYPE) != WorkTypes.Engineer.ordinal()) {
+        if (getEntityData().get(DATA_WORKTYPE) != WorkTypes.Courier.ordinal()) {
             goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
             goalSelector.addGoal(priority++, new DropLootProgram(this));
         }
@@ -165,12 +164,12 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
             }
 
             if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_WOODEN_HAMMER.get())) {
-                getEntityData().set(DATA_WORKTYPE, WorkTypes.Engineer.ordinal());
-                int randomNumber = Math.abs(level().random.nextInt()) % 5 + 1;
-                getEntityData().set(DATA_TEXTURE, "po_worker_craftsman_" + randomNumber + ".png");
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.Courier.ordinal());
+                int randomNumber = Math.abs(level().random.nextInt()) % 2 + 1;
+                getEntityData().set(DATA_TEXTURE, "po_courier_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
-                setCustomName(Component.literal("Craftsman"));
+                setCustomName(Component.literal("Deliveryman"));
                 return InteractionResult.SUCCESS;
             }
         }
