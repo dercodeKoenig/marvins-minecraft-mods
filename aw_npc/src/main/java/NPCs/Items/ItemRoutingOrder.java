@@ -77,13 +77,35 @@ public class ItemRoutingOrder extends Item implements INetworkTagReceiver, guiMo
             Block targetBlock = p.level().getBlockState(new BlockPos(entry.posX,entry.posY,entry.posZ)).getBlock();
 
 String blockName = targetBlock.asItem().getName(new ItemStack(targetBlock.asItem())).getString();
-            if (blockName.length() > 15) {
-                blockName = blockName.substring(0, 15);
+            if (blockName.length() > 22) {
+                blockName = blockName.substring(0, 22);
             }
 
-            guiModuleText info = new guiModuleText(id++, (blockName+": " + entry.posX + "," + entry.posY + "," + entry.posZ + ": " + Direction.values()[entry.facingOrdinal]), guiHandler, 0, y, 0x00000000, false);
+            guiModuleText info = new guiModuleText(id++, blockName, guiHandler, 0, y, 0x00000000, false);
             container.modules.add(info);
+            guiModuleButton directionButton = new guiModuleDefaultButton(id++, Direction.values()[entry.facingOrdinal].toString(), guiHandler, 135, y, 32, 10) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("toggleDirection", finalEntryIndex);
+                    this.guiHandler.sendToServer(tag);
+                }
+            };
+            container.modules.add(directionButton);
             y += 10;
+            guiModuleText info2 = new guiModuleText(id++, (entry.posX + "," + entry.posY + "," + entry.posZ), guiHandler, 0, y, 0x00000000, false);
+            container.modules.add(info2);
+
+            guiModuleButton removeBtn = new guiModuleDefaultButton(id++, "X", guiHandler, 155, y+2, 10, 10) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("removeEntry", finalEntryIndex);
+                    this.guiHandler.sendToServer(tag);
+                }
+            };
+            container.modules.add(removeBtn);
+            y+=10;
             guiModuleButton modeBtn = new guiModuleDefaultButton(id++, entry.getModeText(), guiHandler, 0, y, 100, 10) {
                 @Override
                 public void onButtonClicked() {
@@ -93,15 +115,6 @@ String blockName = targetBlock.asItem().getName(new ItemStack(targetBlock.asItem
                 }
             };
             container.modules.add(modeBtn);
-            guiModuleButton removeBtn = new guiModuleDefaultButton(id++, "X", guiHandler, 150, y, 10, 10) {
-                @Override
-                public void onButtonClicked() {
-                    CompoundTag tag = new CompoundTag();
-                    tag.putInt("removeEntry", finalEntryIndex);
-                    this.guiHandler.sendToServer(tag);
-                }
-            };
-            container.modules.add(removeBtn);
             y += 10;
             guiModuleButton durabilityFilter_needsToBeAboveBtn = new guiModuleDefaultButton(id++, entry.durability_needsToBeAboveFilter == true ? ">" : "<", guiHandler, 100, y - 1, 10, 12) {
                 @Override
@@ -250,6 +263,17 @@ String blockName = targetBlock.asItem().getName(new ItemStack(targetBlock.asItem
             if (modeBtn < entries.size()) {
                 RoutingEntry entry = entries.get(modeBtn);
                 entry.switchMode();
+                setRoutingEntries(serverPlayer.getMainHandItem(), entries, serverPlayer.level().registryAccess());
+            }
+        }
+        if (compoundTag.contains("toggleDirection")) {
+            int index = compoundTag.getInt("toggleDirection");
+            List<RoutingEntry> entries = getRoutingEntries(serverPlayer.getMainHandItem(), serverPlayer.level().registryAccess());
+            if (index < entries.size()) {
+                RoutingEntry entry = entries.get(index);
+                entry.facingOrdinal++;
+                if(entry.facingOrdinal >= Direction.values().length)
+                    entry.facingOrdinal = 0;
                 setRoutingEntries(serverPlayer.getMainHandItem(), entries, serverPlayer.level().registryAccess());
             }
         }
