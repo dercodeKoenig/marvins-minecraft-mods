@@ -263,7 +263,7 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
                     if (ItemStack.isSameItem(c.stack, key.stack)) {
                         if (fitsDurabilityFilter(c.stack, durabilityFilter_needsToBeAbove, durabilityPercentFilter)) {
                             nextStackToInsert = new ComparableItemStack(c.stack);
-                            nextStackToInsert.stack.setCount(required);
+                            nextStackToInsert.stack.setCount(toInsert);
                             return;
                         }
                     }
