@@ -1,7 +1,7 @@
 {
   "textures": {
-    "wood": "minecraft:block/oak_planks",
-    "map": "minecraft:block/stone"
+    "wood": "aw_npc:block/strategy_table",
+    "map": "aw_npc:block/strategy_table_top"
   },
   "elements": [
     {
