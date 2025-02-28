@@ -98,7 +98,7 @@ public class PickupItemsOnGroundProgram extends Goal {
                     }
                 }
             }
-            canUse = false;
         }
+        canUse = false;
     }
 }

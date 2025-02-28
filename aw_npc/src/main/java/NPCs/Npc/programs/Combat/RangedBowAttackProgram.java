@@ -58,10 +58,11 @@ public class RangedBowAttackProgram extends Goal {
     }
 
     public boolean canUse() {
-        return this.npc.getTarget() != null && npc.getTarget().isAlive() &&
+        boolean c =  this.npc.getTarget() != null && npc.getTarget().isAlive() &&
                 takeBowProgram.hasTool(BowItem.class) &&
                 takeArrowProgram.hasTool(ArrowItem.class) &&
                 npc.hunger > npc.maxHunger * 0.05;
+        return c;
     }
 
     public boolean canContinueToUse() {
@@ -79,7 +80,6 @@ public class RangedBowAttackProgram extends Goal {
         this.seeTime = 0;
         this.attackTime = -1;
         this.npc.stopUsingItem();
-        npc.getMoveControl().strafe(0, 0);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -120,18 +120,6 @@ public class RangedBowAttackProgram extends Goal {
                 this.strafingTime = -1;
             }
 
-            if (this.strafingTime >= 20) {
-                if ((double) this.npc.getRandom().nextFloat() < 0.3) {
-                    this.strafingClockwise = !this.strafingClockwise;
-                }
-
-                if ((double) this.npc.getRandom().nextFloat() < 0.3) {
-                    this.strafingBackwards = !this.strafingBackwards;
-                }
-
-                this.strafingTime = 0;
-            }
-
             if (this.strafingTime > -1) {
                 if (d0 > (double) (this.attackRadiusSqr * 0.85F)) {
                     this.strafingBackwards = false;
@@ -148,6 +136,19 @@ public class RangedBowAttackProgram extends Goal {
                     }
                 }
                 if (shouldStrafe) {
+
+                    if (this.strafingTime >= 20) {
+                        if ((double) this.npc.getRandom().nextFloat() < 0.3) {
+                            this.strafingClockwise = !this.strafingClockwise;
+                        }
+
+                        if ((double) this.npc.getRandom().nextFloat() < 0.3) {
+                            this.strafingBackwards = !this.strafingBackwards;
+                        }
+
+                        this.strafingTime = 0;
+                    }
+
                     this.npc.getMoveControl().strafe(this.strafingBackwards ? -0.5F : 0.5F, this.strafingClockwise ? 0.5F : -0.5F);
                 }
                 Entity var7 = this.npc.getControlledVehicle();
@@ -169,7 +170,7 @@ public class RangedBowAttackProgram extends Goal {
                     int i = this.npc.getTicksUsingItem();
                     if (i >= 25) {
                         EntityHitResult hit = ProjectileUtil.getEntityHitResult(npc.level(), npc, npc.getEyePosition(0), npc.getTarget().getEyePosition(), npc.getBoundingBox().expandTowards(npc.getTarget().getPosition(0).subtract(npc.getPosition(0))).inflate(1), (x) -> x instanceof LivingEntity, 2);
-                        if (!HostileEntities.isUnableToAttack(hit.getEntity(), npc)) {
+                        if (hit == null || !HostileEntities.isUnableToAttack(hit.getEntity(), npc)) {
                             this.npc.stopUsingItem();
                             performRangedAttack(BowItem.getPowerForTime(i));
                             this.attackTime = this.attackIntervalMin;
