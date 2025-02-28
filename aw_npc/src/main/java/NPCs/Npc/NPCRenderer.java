@@ -10,6 +10,7 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.BowItem;
 
 public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
@@ -36,19 +37,33 @@ public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
     public void render(NPCBase entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         model.attackTime = entity.getAttackAnim(partialTicks);
 
-        if (entity.getMainHandItem().isEmpty())
-            model.rightArmPose = HumanoidModel.ArmPose.EMPTY;
-        else
-            model.rightArmPose = HumanoidModel.ArmPose.ITEM;
+        if(entity.getMainArm() == HumanoidArm.RIGHT) {
+            if (entity.getMainHandItem().isEmpty())
+                model.rightArmPose = HumanoidModel.ArmPose.EMPTY;
+            else
+                model.rightArmPose = HumanoidModel.ArmPose.ITEM;
 
-        if (entity.getOffhandItem().isEmpty())
-            model.leftArmPose = HumanoidModel.ArmPose.EMPTY;
-        else
-            model.leftArmPose = HumanoidModel.ArmPose.ITEM;
+            if (entity.getOffhandItem().isEmpty())
+                model.leftArmPose = HumanoidModel.ArmPose.EMPTY;
+            else
+                model.leftArmPose = HumanoidModel.ArmPose.ITEM;
+        }else{
+            if (entity.getOffhandItem().isEmpty())
+                model.rightArmPose = HumanoidModel.ArmPose.EMPTY;
+            else
+                model.rightArmPose = HumanoidModel.ArmPose.ITEM;
 
+            if (entity.getMainHandItem().isEmpty())
+                model.leftArmPose = HumanoidModel.ArmPose.EMPTY;
+            else
+                model.leftArmPose = HumanoidModel.ArmPose.ITEM;
+        }
 
-        if(entity.isUsingItem() && entity.getMainHandItem().getItem() instanceof BowItem){
-            model.rightArmPose = HumanoidModel.ArmPose.BOW_AND_ARROW;
+        if(entity.isUsingItem() && entity.getItemInHand(entity.getUsedItemHand()) .getItem() instanceof BowItem) {
+            if (entity.getMainArm() == HumanoidArm.RIGHT)
+                model.rightArmPose = HumanoidModel.ArmPose.BOW_AND_ARROW;
+            else
+                model.leftArmPose = HumanoidModel.ArmPose.BOW_AND_ARROW;
         }
 
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
