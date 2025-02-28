@@ -10,6 +10,7 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BowItem;
 
 public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
     public NPCRenderer(EntityRendererProvider.Context context) {
@@ -35,7 +36,6 @@ public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
     public void render(NPCBase entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         model.attackTime = entity.getAttackAnim(partialTicks);
 
-
         if (entity.getMainHandItem().isEmpty())
             model.rightArmPose = HumanoidModel.ArmPose.EMPTY;
         else
@@ -45,6 +45,11 @@ public class NPCRenderer extends MobRenderer<NPCBase, HumanoidModel<NPCBase>> {
             model.leftArmPose = HumanoidModel.ArmPose.EMPTY;
         else
             model.leftArmPose = HumanoidModel.ArmPose.ITEM;
+
+
+        if(entity.isUsingItem() && entity.getMainHandItem().getItem() instanceof BowItem){
+            model.rightArmPose = HumanoidModel.ArmPose.BOW_AND_ARROW;
+        }
 
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }

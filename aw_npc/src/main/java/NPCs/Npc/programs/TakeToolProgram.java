@@ -97,6 +97,19 @@ public class TakeToolProgram {
         return false;
     }
 
+    public int getToolIndex(Class<?> itemCLass) {
+        if (itemCLass.isInstance(npc.combinedInventory.getStackInSlot(cachedToolIndex).getItem()))
+            return cachedToolIndex;
+
+        for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
+            if (itemCLass.isInstance(npc.combinedInventory.getStackInSlot(i).getItem())) {
+                cachedToolIndex = i;
+                return cachedToolIndex;
+            }
+        }
+        return -1;
+    }
+
     public boolean pickupToolFromTarget(Class<?> itemClass, IItemHandler target, boolean simulate) {
         for (int j = 0; j < target.getSlots(); j++) {
             ItemStack stackInSlot = target.getStackInSlot(j);

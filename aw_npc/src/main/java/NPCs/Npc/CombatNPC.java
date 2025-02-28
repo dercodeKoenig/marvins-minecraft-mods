@@ -79,9 +79,7 @@ public class CombatNPC extends NPCBase {
 
     @Override
     protected void registerGoals() {
-        List<WrappedGoal> activeGoals = new ArrayList<>(goalSelector.getAvailableGoals());
-        for (WrappedGoal i : activeGoals) {
-            if (i.isRunning())
+        for (WrappedGoal i : goalSelector.getAvailableGoals()) {
                 i.stop();
         }
         goalSelector.getAvailableGoals().clear();
@@ -100,6 +98,12 @@ public class CombatNPC extends NPCBase {
             goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
         }
         if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()){
+            Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20,25);
+            goalSelector.addGoal(priority++, attackGoal0);
+
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, false, (entity) -> HostileEntities.shouldAttack(entity, this));
+            goalSelector.addGoal(priority++, attackGoal1);
+
             // this is in case there is no townhall to manage temporal enemies
             goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
         }
@@ -112,7 +116,6 @@ public class CombatNPC extends NPCBase {
         goalSelector.addGoal(priority++, runForHelpProgram);
 
         goalSelector.addGoal(priority++, new FoodProgramFighter(this));
-
 
         goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
         goalSelector.addGoal(priority++, new DropLootFighterProgram(this));

@@ -1,0 +1,180 @@
+package NPCs.Npc.programs.Combat;
+
+import NPCs.Npc.CombatNPC;
+import NPCs.Npc.programs.TakeToolProgram;
+import NPCs.Utils;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.*;
+
+import java.util.EnumSet;
+
+import static net.minecraft.world.entity.projectile.ProjectileUtil.getMobArrow;
+
+public class RangedBowAttackProgram extends Goal {
+    public CombatNPC npc;
+    public double speedModifier;
+    public int attackIntervalMin;
+    public float attackRadiusSqr;
+    public float attackRadius;
+    public int attackTime;
+    public int seeTime;
+    public boolean strafingClockwise;
+    public boolean strafingBackwards;
+    public int strafingTime;
+    public TakeToolProgram takeBowProgram;
+    public TakeToolProgram takeArrowProgram;
+
+
+    public RangedBowAttackProgram(CombatNPC npc, double speedModifier, int attackIntervalMin, float attackRadius) {
+        this.attackTime = -1;
+        this.strafingTime = -1;
+        this.npc = npc;
+        this.speedModifier = speedModifier;
+        this.attackIntervalMin = attackIntervalMin;
+        this.attackRadiusSqr = attackRadius * attackRadius;
+        this.attackRadius = attackRadius;
+        takeArrowProgram = new TakeToolProgram(npc);
+        takeBowProgram = new TakeToolProgram(npc);
+
+        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+    }
+
+    public boolean canUse() {
+        return this.npc.getTarget() != null &&
+                takeBowProgram.hasTool(BowItem.class) &&
+                takeArrowProgram.hasTool(ArrowItem.class) &&
+                npc.hunger > npc.maxHunger * 0.05;
+    }
+
+    public boolean canContinueToUse() {
+        return canUse();
+    }
+
+    public void start() {
+        super.start();
+        //this.npc.setAggressive(true);
+    }
+
+    public void stop() {
+        //this.npc.setAggressive(false);
+        this.seeTime = 0;
+        this.attackTime = -1;
+        this.npc.stopUsingItem();
+    }
+
+    public boolean requiresUpdateEveryTick() {
+        return true;
+    }
+
+    public void tick() {
+        takeBowProgram.takeToolToMainHand(BowItem.class);
+        if (attackTime <= attackIntervalMin / 2 && this.seeTime >= -60 && !(npc.getOffhandItem().getItem() instanceof ArrowItem) && !npc.isUsingItem()) {
+            int arrowIndex = takeArrowProgram.getToolIndex(ArrowItem.class);
+            Utils.moveItemStackToOffHand(npc.combinedInventory.getStackInSlot(arrowIndex), npc);
+            npc.swing(InteractionHand.OFF_HAND);
+        }
+        if(npc.isUsingItem()){
+            Utils.moveItemStackToOffHand(ItemStack.EMPTY, npc);
+        }
+
+        LivingEntity livingentity = this.npc.getTarget();
+        if (livingentity != null) {
+            double d0 = this.npc.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
+            boolean flag = this.npc.getSensing().hasLineOfSight(livingentity);
+            boolean flag1 = this.seeTime > 0;
+            if (flag != flag1) {
+                this.seeTime = 0;
+            }
+
+            if (flag) {
+                ++this.seeTime;
+            } else {
+                --this.seeTime;
+            }
+
+            if ((d0 < (double) this.attackRadiusSqr) && this.seeTime >= 20) {
+                this.npc.getNavigation().stop();
+                ++this.strafingTime;
+            } else {
+                this.npc.getNavigation().moveTo(livingentity.getX(),livingentity.getY(),livingentity.getZ(), (int) (attackRadius-1), this.speedModifier);
+                this.strafingTime = -1;
+            }
+
+            if (this.strafingTime >= 20) {
+                if ((double) this.npc.getRandom().nextFloat() < 0.3) {
+                    this.strafingClockwise = !this.strafingClockwise;
+                }
+
+                if ((double) this.npc.getRandom().nextFloat() < 0.3) {
+                    this.strafingBackwards = !this.strafingBackwards;
+                }
+
+                this.strafingTime = 0;
+            }
+
+            if (this.strafingTime > -1) {
+                if (d0 > (double) (this.attackRadiusSqr * 0.85F)) {
+                    this.strafingBackwards = false;
+                } else if (d0 < (double) (this.attackRadiusSqr * 0.5F)) {
+                    this.strafingBackwards = true;
+                }
+
+                this.npc.getMoveControl().strafe(this.strafingBackwards ? -0.5F : 0.5F, this.strafingClockwise ? 0.5F : -0.5F);
+                Entity var7 = this.npc.getControlledVehicle();
+                if (var7 instanceof Mob) {
+                    Mob mob = (Mob) var7;
+                    mob.lookAt(livingentity, 30.0F, 30.0F);
+                }
+
+                this.npc.lookAt(livingentity, 30.0F, 30.0F);
+            } else {
+                this.npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
+            }
+
+            if (this.npc.isUsingItem()) {
+                if (!flag && this.seeTime < -60) {
+                    this.npc.stopUsingItem();
+                } else if (flag) {
+                    int i = this.npc.getTicksUsingItem();
+                    if (i >= 20) {
+                        this.npc.stopUsingItem();
+                        performRangedAttack(BowItem.getPowerForTime(i));
+                        this.attackTime = this.attackIntervalMin;
+                    }
+                }
+            } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
+                this.npc.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.npc, (item) -> item instanceof BowItem));
+            }
+        }
+    }
+
+
+    public void performRangedAttack(float distanceFactor) {
+        ItemStack weapon = npc.getMainHandItem();
+        int arrowSlot = takeArrowProgram.getToolIndex(ArrowItem.class);
+        if (arrowSlot < 0) return;
+        ItemStack arrowStack = npc.combinedInventory.extractItem(arrowSlot, 1, false);
+        AbstractArrow arrow = ProjectileUtil.getMobArrow(npc, arrowStack, distanceFactor, weapon);
+        Item var7 = weapon.getItem();
+        if (var7 instanceof ProjectileWeaponItem weaponItem) {
+            arrow = weaponItem.customArrow(arrow, arrowStack, weapon);
+        }
+
+        LivingEntity target = npc.getTarget();
+        double d0 = target.getX() - npc.getX();
+        double d1 = target.getY(0.3333333333333333) - arrow.getY();
+        double d2 = target.getZ() - npc.getZ();
+        double d3 = Math.sqrt(d0 * d0 + d2 * d2);
+        arrow.shoot(d0, d1 + d3 * (double) 0.2F, d2, 1.6F, (float) (14 - npc.level().getDifficulty().getId() * 4));
+        npc.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (npc.getRandom().nextFloat() * 0.4F + 0.8F));
+        npc.level().addFreshEntity(arrow);
+    }
+}
+

@@ -16,7 +16,6 @@ public class PickupItemsOnGroundProgram extends Goal {
     NPCBase npc;
     long lastScanTime = 0;
     boolean canUse = false;
-    int workDelay = 0;
     int radius;
 
     public PickupItemsOnGroundProgram(NPCBase npc, int radius) {
@@ -31,7 +30,7 @@ public class PickupItemsOnGroundProgram extends Goal {
 
     @Override
     public boolean requiresUpdateEveryTick() {
-        return true;
+        return false;
     }
 
 
@@ -85,7 +84,7 @@ public class PickupItemsOnGroundProgram extends Goal {
 
         TreeSet<ItemEntity> itemsOnGround = sortByDistanceTo(itemsOnGround());
         for (ItemEntity i : itemsOnGround) {
-            if (Math.abs(i.getDeltaMovement().length()) < 0.01) {
+            if (Math.abs(i.getDeltaMovement().lengthSqr()) < 0.01) {
                 if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
                     int pathFindExit = npc.slowMobNavigation.moveToPosition(
                             i.getOnPos(),
@@ -94,7 +93,6 @@ public class PickupItemsOnGroundProgram extends Goal {
                             npc.slowNavigationMaxNodes,
                             npc.slowNavigationStepPerTick
                     );
-
                     if (pathFindExit == SUCCESS_STILL_RUNNING) {
                         return;
                     }
