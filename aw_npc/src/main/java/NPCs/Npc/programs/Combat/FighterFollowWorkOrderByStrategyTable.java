@@ -3,12 +3,15 @@ package NPCs.Npc.programs.Combat;
 import ARLib.utils.BlockIdentifier;
 import NPCs.Blocks.StrategyTable.EntityStrategyTable;
 import NPCs.Npc.CombatNPC;
+import NPCs.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.*;
 
+import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Utils.*;
 
 public class FighterFollowWorkOrderByStrategyTable extends Goal {
@@ -70,6 +73,10 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
         return false;
     }
 
+@Override
+public void stop(){
+        lastUsedStrategyTable = null;
+}
 
     @Override
     public void tick() {
@@ -89,6 +96,15 @@ public class FighterFollowWorkOrderByStrategyTable extends Goal {
             return;
         }
         lastCheck = worker.level().getGameTime();
+
+        if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()){
+            worker.takeWeaponProgram.takeBestWeaponToMainHand();
+            Utils.moveItemStackToOffHand(ItemStack.EMPTY,worker);
+        }
+        if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()){
+            worker.takeBowWeaponProgram.takeBestWeaponToMainHand();
+            Utils.moveItemStackToOffHand(ItemStack.EMPTY,worker);
+        }
 
         if (lastUsedStrategyTable != null) {
             BlockEntity e = worker.level().getBlockEntity(lastUsedStrategyTable);

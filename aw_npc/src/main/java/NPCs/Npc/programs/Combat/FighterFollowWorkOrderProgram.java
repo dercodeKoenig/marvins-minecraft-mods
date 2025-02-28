@@ -2,6 +2,7 @@ package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
 import NPCs.Items.ItemWorkOrder;
+import NPCs.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
@@ -9,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.EnumSet;
 import java.util.List;
 
+import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Utils.*;
 
 public class FighterFollowWorkOrderProgram extends Goal {
@@ -70,6 +72,15 @@ public class FighterFollowWorkOrderProgram extends Goal {
             return;
         }
         lastCheck = worker.level().getGameTime();
+
+        if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()){
+            worker.takeWeaponProgram.takeBestWeaponToMainHand();
+            Utils.moveItemStackToOffHand(ItemStack.EMPTY,worker);
+        }
+        if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()){
+            worker.takeBowWeaponProgram.takeBestWeaponToMainHand();
+            Utils.moveItemStackToOffHand(ItemStack.EMPTY,worker);
+        }
 
         ItemStack order = worker.ordersStackHandler.getStackInSlot(0);
         if (order.isEmpty() || !(order.getItem() instanceof ItemWorkOrder)) {
