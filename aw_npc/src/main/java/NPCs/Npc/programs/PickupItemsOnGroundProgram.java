@@ -37,7 +37,7 @@ public class PickupItemsOnGroundProgram extends Goal {
     @Override
     public boolean canUse() {
         long gametime = npc.level().getGameTime();
-        if (lastScanTime + 10 > gametime) {
+        if (lastScanTime + 20 > gametime) {
             return false;
         }
         lastScanTime = gametime;
@@ -89,8 +89,8 @@ public class PickupItemsOnGroundProgram extends Goal {
                     int pathFindExit = npc.slowMobNavigation.moveToPosition(
                             i.getOnPos(),
                             1,
-                            npc.slowNavigationMaxDistance,
-                            npc.slowNavigationMaxNodes,
+                            radius*6,
+                            128,
                             npc.slowNavigationStepPerTick
                     );
                     if (pathFindExit == SUCCESS_STILL_RUNNING) {

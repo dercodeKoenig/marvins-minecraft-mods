@@ -181,15 +181,15 @@ public class EntityWarehouseInterface extends BlockEntity implements INetworkTag
             durabilityPercent = (int) ((1 - (float) damage / maxDamage) * 100);
         }
         if (needsToBeAbove) {
-            if (durabilityPercent < percentValue) {
-                return false;
+            if (durabilityPercent > percentValue) {
+                return true;
             }
         } else {
-            if (durabilityPercent > percentValue) {
-                return false;
+            if (durabilityPercent < percentValue) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public void reScan() {

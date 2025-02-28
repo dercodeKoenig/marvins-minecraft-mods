@@ -54,6 +54,9 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     @Override
     public void onLoad() {
         super.onLoad();
+        if(!level.isClientSide){
+            updateGuiSlots();
+        }
         knownWarehouses.add(new BlockIdentifier(getLevel(), getBlockPos()));
     }
 
@@ -343,14 +346,12 @@ public class EntityWarehouse extends EntityWorkSiteBase {
     public void updateGuiSlots() {
         scrollContainer.modules.clear();
         for (int i = 0; i < myItemHandler.getSlots(); i++) {
-            int x = i % 9 * 18;
-            int y = i / 9 * 18;
             // because the guihandler will try to insert in any slot of this group,
             // but the itemhandler does not care about the index and will scan the entire area if required
             // if you have the group id on all slots it can in worst case do a full rescan for EVERY slot currently in the inventory
             // so only make the correct group id on the last (or any) slot
-            int inventoryGroup = i+1 == myItemHandler.getSlots() ? 2 : 1;
-            guiModuleItemHandlerSlot slot = new guiModuleItemHandlerSlot(10000 + i, myItemHandler, i, inventoryGroup, 0, guiHandlerMain, x, y);
+            int inventoryGroup =(i+1 == myItemHandler.getSlots() )? 2 : 1;
+            guiModuleItemHandlerSlot slot = new guiModuleItemHandlerSlot(10000 + i, myItemHandler, i, inventoryGroup, 0, guiHandlerMain, 0, 0);
             scrollContainer.modules.add(slot);
         }
         notifyPlayersOfSlotNum(null);
@@ -379,14 +380,27 @@ public class EntityWarehouse extends EntityWorkSiteBase {
                     @Override
                     public int compare(guiModuleItemHandlerSlot o1, guiModuleItemHandlerSlot o2) {
                         int diff = o1.client_getItemStackToRender().getCount() - o2.client_getItemStackToRender().getCount();
-                        if (diff == 0) {
-                            return ItemStack.hashItemAndComponents(o1.client_getItemStackToRender()) - ItemStack.hashItemAndComponents(o2.client_getItemStackToRender());
-                        } else {
-                            return -diff;
+
+                        if (diff != 0) {
+                            return -diff; // Sort descending by count
                         }
+
+                        String name1 = o1.client_getItemStackToRender().getHoverName().getString();
+                        String name2 = o2.client_getItemStackToRender().getHoverName().getString();
+
+                        int nameDiff = name1.compareToIgnoreCase(name2);
+                        if (nameDiff != 0) {
+                            return nameDiff; // Sort alphabetically if count is the same
+                        }
+
+                        return Integer.compare(
+                                ItemStack.hashItemAndComponents(o1.client_getItemStackToRender()),
+                                ItemStack.hashItemAndComponents(o2.client_getItemStackToRender())
+                        ); // Fallback to hash comparison
                     }
                 }
         );
+
         // sort slots by count
         for (GuiModuleBase i : scrollContainer.modules) {
             if (i instanceof guiModuleItemHandlerSlot is) {
