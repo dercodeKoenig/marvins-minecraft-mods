@@ -47,7 +47,7 @@ public class RangedBowAttackProgram extends Goal {
     }
 
     public boolean canUse() {
-        return this.npc.getTarget() != null &&
+        return this.npc.getTarget() != null && npc.getTarget().isAlive() &&
                 takeBowProgram.hasTool(BowItem.class) &&
                 takeArrowProgram.hasTool(ArrowItem.class) &&
                 npc.hunger > npc.maxHunger * 0.05;
@@ -67,6 +67,7 @@ public class RangedBowAttackProgram extends Goal {
         this.seeTime = 0;
         this.attackTime = -1;
         this.npc.stopUsingItem();
+        npc.getMoveControl().strafe(0,0);
     }
 
     public boolean requiresUpdateEveryTick() {
