@@ -143,7 +143,7 @@ public class RangedBowAttackProgram extends Goal {
                     this.npc.stopUsingItem();
                 } else if (flag) {
                     int i = this.npc.getTicksUsingItem();
-                    if (i >= 20) {
+                    if (i >= 25) {
                         this.npc.stopUsingItem();
                         performRangedAttack(BowItem.getPowerForTime(i));
                         this.attackTime = this.attackIntervalMin;
@@ -169,10 +169,17 @@ public class RangedBowAttackProgram extends Goal {
 
         LivingEntity target = npc.getTarget();
         double d0 = target.getX() - npc.getX();
-        double d1 = target.getY(0.3333333333333333) - arrow.getY();
+        double d1 = target.getY(1) - arrow.getY();
         double d2 = target.getZ() - npc.getZ();
-        double d3 = Math.sqrt(d0 * d0 + d2 * d2);
-        arrow.shoot(d0, d1 + d3 * (double) 0.2F, d2, 1.6F, (float) (14 - npc.level().getDifficulty().getId() * 4));
+        double d3 = Math.sqrt(d0 * d0 + d2 * d2); // Horizontal distance
+
+        float speed = 3f;
+        float spread = 6f;
+        double gravity = 0.05;
+        double time = d3 / speed;
+        double vy = (d1 + 0.5 * gravity * time * time) / time;
+        arrow.shoot(d0, vy, d2, speed, spread);
+
         npc.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (npc.getRandom().nextFloat() * 0.4F + 0.8F));
         npc.level().addFreshEntity(arrow);
     }
