@@ -151,6 +151,7 @@ public class RangedBowAttackProgram extends Goal {
                 }
 
                 this.npc.lookAt(livingentity, 30.0F, 30.0F);
+                this.npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             } else {
                 this.npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             }
