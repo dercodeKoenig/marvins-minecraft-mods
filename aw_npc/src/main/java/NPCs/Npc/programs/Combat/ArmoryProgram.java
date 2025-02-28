@@ -101,6 +101,7 @@ public class ArmoryProgram extends Goal {
                             if(distance < 5){
                                 minRequiredCount =  64;
                             }
+
                             if(arrows < minRequiredCount){
                                 if(takeToolProgram.pickupToolFromTarget(ArrowItem.class,armory.inventory,true)){
                                     lockTargetPosition();

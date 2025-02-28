@@ -13,8 +13,8 @@ import static NPCs.Utils.*;
 public class SlowPathFinder {
 
     public static class PathFindExit {
-        int exitCode;
-        Path path;
+        public int exitCode;
+        public Path path;
 
         public PathFindExit(int code, Path path) {
             this.exitCode = code;

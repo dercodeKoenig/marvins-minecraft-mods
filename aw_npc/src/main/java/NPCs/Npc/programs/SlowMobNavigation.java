@@ -11,12 +11,12 @@ import static NPCs.Utils.*;
 
 public class SlowMobNavigation {
     public NPCBase npc;
-    int failTimeOut = 0;
-    int sameTargetRetries = 0; // just another fail timeout
-    int removeInvalidTargetsTime = 20 * 60;
-    HashMap<BlockPos, Long> unreachableBlocks = new HashMap<>();
+    public int failTimeOut = 0;
+    public int sameTargetRetries = 0; // just another fail timeout
+    public int removeInvalidTargetsTime = 20 * 60;
+    public HashMap<BlockPos, Long> unreachableBlocks = new HashMap<>();
 
-    SlowPathFinder pathFinder;
+    public SlowPathFinder pathFinder;
 
     public SlowMobNavigation(NPCBase npc) {
         this.npc = npc;

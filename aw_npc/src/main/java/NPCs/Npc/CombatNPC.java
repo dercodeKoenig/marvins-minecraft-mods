@@ -52,7 +52,7 @@ public class CombatNPC extends NPCBase {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 30.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
-                .add(Attributes.FOLLOW_RANGE, 32)
+                .add(Attributes.FOLLOW_RANGE, 50)
                 .add(Attributes.ATTACK_DAMAGE)
                 .add(Attributes.ATTACK_SPEED)
                 .add(Attributes.LUCK)

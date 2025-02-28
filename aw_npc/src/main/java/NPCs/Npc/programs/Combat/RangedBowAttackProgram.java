@@ -3,6 +3,7 @@ package NPCs.Npc.programs.Combat;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -15,6 +16,8 @@ import net.minecraft.world.item.*;
 
 import java.util.EnumSet;
 
+import static NPCs.Utils.EXIT_FAIL;
+import static NPCs.Utils.EXIT_SUCCESS;
 import static net.minecraft.world.entity.projectile.ProjectileUtil.getMobArrow;
 
 public class RangedBowAttackProgram extends Goal {
@@ -28,6 +31,8 @@ public class RangedBowAttackProgram extends Goal {
     public boolean strafingClockwise;
     public boolean strafingBackwards;
     public int strafingTime;
+    long lastTimeSafeCheck;
+    boolean shouldStrafe;
     public TakeToolProgram takeBowProgram;
     public TakeToolProgram takeArrowProgram;
 
@@ -59,6 +64,7 @@ public class RangedBowAttackProgram extends Goal {
 
     public void start() {
         super.start();
+        lastTimeSafeCheck = 0;
         //this.npc.setAggressive(true);
     }
 
@@ -67,7 +73,7 @@ public class RangedBowAttackProgram extends Goal {
         this.seeTime = 0;
         this.attackTime = -1;
         this.npc.stopUsingItem();
-        npc.getMoveControl().strafe(0,0);
+        npc.getMoveControl().strafe(0, 0);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -81,7 +87,7 @@ public class RangedBowAttackProgram extends Goal {
             Utils.moveItemStackToOffHand(npc.combinedInventory.getStackInSlot(arrowIndex), npc);
             npc.swing(InteractionHand.OFF_HAND);
         }
-        if(npc.isUsingItem()){
+        if (npc.isUsingItem()) {
             Utils.moveItemStackToOffHand(ItemStack.EMPTY, npc);
         }
 
@@ -104,7 +110,7 @@ public class RangedBowAttackProgram extends Goal {
                 this.npc.getNavigation().stop();
                 ++this.strafingTime;
             } else {
-                this.npc.getNavigation().moveTo(livingentity.getX(),livingentity.getY(),livingentity.getZ(), (int) (attackRadius-1), this.speedModifier);
+                this.npc.getNavigation().moveTo(livingentity.getX(), livingentity.getY(), livingentity.getZ(), (int) (attackRadius - 1), this.speedModifier);
                 this.strafingTime = -1;
             }
 
@@ -127,7 +133,17 @@ public class RangedBowAttackProgram extends Goal {
                     this.strafingBackwards = true;
                 }
 
-                this.npc.getMoveControl().strafe(this.strafingBackwards ? -0.5F : 0.5F, this.strafingClockwise ? 0.5F : -0.5F);
+                if (lastTimeSafeCheck + 20 < npc.level().getGameTime()) {
+                    lastTimeSafeCheck = npc.level().getGameTime();
+                    if (npc.slowMobNavigation.pathFinder.findPath(npc.getTarget().getOnPos(), (int) (attackRadius*1.5), 2, (int) (attackRadius*1.7), 1000).exitCode == EXIT_SUCCESS) {
+                        shouldStrafe = true;
+                    } else {
+                        shouldStrafe = false;
+                    }
+                }
+                if (shouldStrafe) {
+                    this.npc.getMoveControl().strafe(this.strafingBackwards ? -0.5F : 0.5F, this.strafingClockwise ? 0.5F : -0.5F);
+                }
                 Entity var7 = this.npc.getControlledVehicle();
                 if (var7 instanceof Mob) {
                     Mob mob = (Mob) var7;
@@ -170,7 +186,7 @@ public class RangedBowAttackProgram extends Goal {
 
         LivingEntity target = npc.getTarget();
         double d0 = target.getX() - npc.getX();
-        double d1 = target.getY(1) - arrow.getY();
+        double d1 = target.getY(0.5) - arrow.getY();
         double d2 = target.getZ() - npc.getZ();
         double d3 = Math.sqrt(d0 * d0 + d2 * d2); // Horizontal distance
 
@@ -179,7 +195,7 @@ public class RangedBowAttackProgram extends Goal {
         double gravity = 0.05;
         double time = d3 / speed;
         double vy = (d1 + 0.5 * gravity * time * time) / time;
-        arrow.shoot(d0, vy, d2, speed, spread);
+        arrow.shoot(d0/time, vy, d2/time, speed, spread);
 
         npc.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (npc.getRandom().nextFloat() * 0.4F + 0.8F));
         npc.level().addFreshEntity(arrow);
