@@ -149,7 +149,7 @@ public class CombatNPC extends NPCBase {
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!level().isClientSide) {
+        if (!level().isClientSide && isFriendlyTo(player)) {
             if (player.getItemInHand(hand).getItem().equals(Items.BOW)) {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.archer.ordinal());
                 player.setItemInHand(hand, ItemStack.EMPTY);

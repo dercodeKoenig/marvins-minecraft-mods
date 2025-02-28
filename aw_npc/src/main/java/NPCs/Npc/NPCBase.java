@@ -399,6 +399,13 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void checkDespawn() {
     }
 
+    public boolean isFriendlyTo(Player p){
+        return getFriendlyPlayerNames().contains(p.getName().getString());
+    }
+    public boolean isFriendlyTo(NPCBase otherNpc){
+        return getFriendlyPlayerNames().contains(otherNpc.owner);
+    }
+
     public Set<String> getFriendlyPlayerNames(){
         Set<String> friendlyPlayers = new HashSet<>();
         if(townHall != null)

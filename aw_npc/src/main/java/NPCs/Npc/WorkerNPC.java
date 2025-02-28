@@ -133,7 +133,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!level().isClientSide) {
+        if (!level().isClientSide && isFriendlyTo(player)) {
             if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_HOE)) {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Farmer.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 7 + 1;

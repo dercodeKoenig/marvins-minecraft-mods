@@ -40,16 +40,14 @@ public class HostileEntities {
 
     public static boolean isUnableToAttack(Entity e, NPCBase npc) {
         if (e instanceof NPCBase otherNPC) {
-            if (npc.getFriendlyPlayerNames().contains(otherNPC.owner)) {
-                // do not attack when other NPCs owner is an owner of this NPCs townhall
+            if (npc.isFriendlyTo(otherNPC)) {
                 return true;
             }
         }
 
         if (e instanceof Player p) {
             String pName = p.getName().getString();
-            if (npc.getFriendlyPlayerNames().contains(pName)) {
-                // do not attack when player is an owner of this NPCs townhall
+            if (npc.isFriendlyTo(p)) {
                 return true;
             }
         }
