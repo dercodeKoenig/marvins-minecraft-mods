@@ -1,6 +1,7 @@
 package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
+import NPCs.Npc.HostileEntities;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
 import net.minecraft.core.BlockPos;
@@ -11,8 +12,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.*;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 
 import java.util.EnumSet;
 
@@ -162,9 +168,12 @@ public class RangedBowAttackProgram extends Goal {
                 } else if (flag) {
                     int i = this.npc.getTicksUsingItem();
                     if (i >= 25) {
-                        this.npc.stopUsingItem();
-                        performRangedAttack(BowItem.getPowerForTime(i));
-                        this.attackTime = this.attackIntervalMin;
+                        EntityHitResult hit = ProjectileUtil.getEntityHitResult(npc.level(), npc, npc.getEyePosition(0), npc.getTarget().getEyePosition(), npc.getBoundingBox().expandTowards(npc.getTarget().getPosition(0).subtract(npc.getPosition(0))).inflate(1), (x) -> x instanceof LivingEntity, 2);
+                        if (!HostileEntities.isUnableToAttack(hit.getEntity(), npc)) {
+                            this.npc.stopUsingItem();
+                            performRangedAttack(BowItem.getPowerForTime(i));
+                            this.attackTime = this.attackIntervalMin;
+                        }
                     }
                 }
             } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
