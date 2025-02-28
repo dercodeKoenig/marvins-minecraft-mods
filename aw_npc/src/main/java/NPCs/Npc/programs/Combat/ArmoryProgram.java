@@ -4,9 +4,11 @@ import ARLib.utils.BlockIdentifier;
 import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.programs.TakeToolProgram;
+import NPCs.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -27,6 +29,7 @@ public class ArmoryProgram extends Goal {
     IItemHandler targetInventory;
 
     TakeArmorProgram takeArmorProgram;
+    TakeToolProgram takeToolProgram;
 
     public void lockTargetPosition() {
         long gameTime = worker.level().getGameTime();
@@ -59,6 +62,7 @@ public class ArmoryProgram extends Goal {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         takeArmorProgram = new TakeArmorProgram(worker);
+        takeToolProgram = new TakeToolProgram(worker);
     }
 
     @Override
@@ -82,6 +86,28 @@ public class ArmoryProgram extends Goal {
                                 targetInventory = armory.inventory;
                                 lockTargetPosition();
                                 return true;
+                            }
+                        }
+                        if(worker.getEntityData().get(DATA_WORKTYPE) ==  CombatNPC.WorkTypes.archer.ordinal()) {
+                            if (worker.takeBowWeaponProgram.swapWeaponFromTarget(armory.inventory, true)) {
+                                targetPos = p;
+                                targetInventory = armory.inventory;
+                                lockTargetPosition();
+                                return true;
+                            }
+                            int arrows = Utils.countItems(ArrowItem.class,worker.combinedInventory);
+                            double distance = Utils.distanceManhattan(p.getCenter(),worker.getOnPos().getCenter());
+                            int minRequiredCount = 20;
+                            if(distance < 5){
+                                minRequiredCount =  64;
+                            }
+                            if(arrows < minRequiredCount){
+                                if(takeToolProgram.pickupToolFromTarget(ArrowItem.class,armory.inventory,true)){
+                                    lockTargetPosition();
+                                    targetPos = p;
+                                    targetInventory = armory.inventory;
+                                    return true;
+                                }
                             }
                         }
 
@@ -117,12 +143,33 @@ public class ArmoryProgram extends Goal {
 
         lockTargetPosition();
 
-        int exit = worker.takeWeaponProgram.run(targetPos, targetInventory);
-        if (exit == SUCCESS_STILL_RUNNING) {
-            return;
+        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
+            int exit = worker.takeWeaponProgram.run(targetPos, targetInventory);
+            if (exit == SUCCESS_STILL_RUNNING) {
+                return;
+            }
+        }
+        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+            int exit = worker.takeBowWeaponProgram.run(targetPos, targetInventory);
+            if (exit == SUCCESS_STILL_RUNNING) {
+                return;
+            }
+
+            int arrows = Utils.countItems(ArrowItem.class,worker.combinedInventory);
+            double distance = Utils.distanceManhattan(targetPos.getCenter(),worker.getOnPos().getCenter());
+            int minRequiredCount = 20;
+            if(distance < 5){
+                minRequiredCount =  64;
+            }
+            if(arrows < minRequiredCount){
+                exit = takeToolProgram.run(ArrowItem.class,targetPos,targetInventory,true);
+                if (exit == SUCCESS_STILL_RUNNING ||exit == EXIT_SUCCESS) {
+                    return;
+                }
+            }
         }
 
-        exit = takeArmorProgram.run(targetPos, targetInventory);
+        int exit = takeArmorProgram.run(targetPos, targetInventory);
         if (exit == SUCCESS_STILL_RUNNING) {
             return;
         }

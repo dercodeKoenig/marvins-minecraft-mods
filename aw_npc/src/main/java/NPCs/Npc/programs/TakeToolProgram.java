@@ -114,9 +114,11 @@ public class TakeToolProgram {
         }
         return false;
     }
-
     public int run(Class<?> toolClass, BlockPos targetPos, IItemHandler targetInventory) {
-        if (hasTool(toolClass)) return EXIT_SUCCESS;
+        return run(toolClass,targetPos,targetInventory, false);
+    }
+    public int run(Class<?> toolClass, BlockPos targetPos, IItemHandler targetInventory, boolean ignoreExisting) {
+        if (!ignoreExisting && hasTool(toolClass)) return EXIT_SUCCESS;
         else if (!pickupToolFromTarget(toolClass, targetInventory, true)) {
             return -2;
         }

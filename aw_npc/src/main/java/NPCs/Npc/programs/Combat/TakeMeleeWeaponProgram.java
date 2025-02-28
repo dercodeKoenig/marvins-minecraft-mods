@@ -8,8 +8,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.neoforged.fml.ISystemReportExtender;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Utils.*;
 
 public class TakeMeleeWeaponProgram {
@@ -46,7 +48,6 @@ public class TakeMeleeWeaponProgram {
     public boolean swapWeaponFromTarget(IItemHandler target, boolean simulate) {
 
         float currentDur = getRemainingDurabilityRelative(npc.combinedInventory.getStackInSlot(bestWeaponIndex));
-
         // Variables to store the best target slot index for each piece (-1 means no better item found)
         int otherBestIndex = -1;
 
@@ -54,18 +55,19 @@ public class TakeMeleeWeaponProgram {
         for (int j = 0; j < target.getSlots(); j++) {
             ItemStack stack = target.getStackInSlot(j);
             float d = getRemainingDurabilityRelative(stack);
-            // Check each armor type
+            // Check each  type
             if(!stack.isEmpty()) {
-                if (((currentDur < 0.2 && d > 0.2) || currentDur < 0 || (d > 0.2 && isWeaponBetter(stack, npc.combinedInventory.getStackInSlot(bestWeaponIndex))))) {
-                    currentDur = d;
-                    otherBestIndex = j;
+                // only use combat items and not just items with high durability, so check if it is better than air
+                if(isWeaponBetter(stack, ItemStack.EMPTY)) {
+                    if (((currentDur < 0.2 && d > 0.2) || currentDur < 0 || (d > 0.2 && isWeaponBetter(stack, npc.combinedInventory.getStackInSlot(bestWeaponIndex))))) {
+                        currentDur = d;
+                        otherBestIndex = j;
+                    }
                 }
             }
         }
 
-        // Swap each armor piece if a better one was found
         if (otherBestIndex != -1) {
-
             // avoid placing non-weapons in the armory. check if the current weapon is better than air
             if(!isWeaponBetter(npc.combinedInventory.getStackInSlot(bestWeaponIndex), ItemStack.EMPTY)){
                 // if it is not better than air, make sure  he has any empty slot where he can place the weapon
@@ -94,7 +96,7 @@ public class TakeMeleeWeaponProgram {
         return false;
     }
 
-    public static boolean isWeaponBetter(ItemStack s1, ItemStack s2) {
+    public boolean isWeaponBetter(ItemStack s1, ItemStack s2) {
         ItemAttributeModifiers modifiers1 = s1.getAttributeModifiers();
         ItemAttributeModifiers modifiers2 = s2.getAttributeModifiers();
 

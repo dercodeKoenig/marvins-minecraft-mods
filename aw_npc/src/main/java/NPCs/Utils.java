@@ -8,6 +8,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -176,16 +177,25 @@ public class Utils {
         }
         return count;
     }
+    public static int countItems(Class<?> itemclass, IItemHandler inventory){
+        int count = 0;
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            ItemStack stackInSlot = inventory.getStackInSlot(i);
+            if (itemclass.isInstance(stackInSlot.getItem())) {
+                count += stackInSlot.getCount();
+            }
+        }
+        return count;
+    }
     // Helper to compute remaining durability
     public static float getRemainingDurabilityRelative(ItemStack stack) {
+        if(stack.isEmpty()) return 0;
         if(stack.getMaxDamage() == 0) return 1;
         return stack.isEmpty() ? -1f : (float)(stack.getMaxDamage() - stack.getDamageValue()) / stack.getMaxDamage();
     }
 
     public static void damageMainHandItem(NPCBase npc) {
-        npc.getMainHandItem().setDamageValue(npc.getMainHandItem().getDamageValue() + 1);
-        if (npc.getMainHandItem().getDamageValue() >= npc.getMainHandItem().getMaxDamage())
-            npc.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        npc.getMainHandItem().hurtAndBreak(1,npc, EquipmentSlot.MAINHAND);
     }
 
     public static double distanceManhattan(Entity e, Vec3 p2) {

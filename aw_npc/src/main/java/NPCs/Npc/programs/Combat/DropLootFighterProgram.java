@@ -6,12 +6,14 @@ import NPCs.Npc.programs.UnloadInventoryProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.EnumSet;
 
+import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Utils.SUCCESS_STILL_RUNNING;
 
 public class DropLootFighterProgram extends Goal {
@@ -45,10 +47,22 @@ public class DropLootFighterProgram extends Goal {
         int numFoodItems = countFoodItems();
 
         for (int j = 0; j < worker.combinedInventory.getSlots(); j++) {
-            if (j == worker.takeWeaponProgram.bestWeaponIndex) {
-                continue;
-            }
             ItemStack canExtract = worker.combinedInventory.extractItem(j, 1, true);
+
+            if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
+                if (j == worker.takeWeaponProgram.bestWeaponIndex) {
+                    continue;
+                }
+            }
+            if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+                if (j == worker.takeBowWeaponProgram.bestWeaponIndex) {
+                    continue;
+                }
+                if(canExtract.getItem() instanceof ArrowItem){
+                    continue;
+                }
+            }
+
             if (canExtract.has(DataComponents.FOOD) && numFoodItems <= 3) {
                 continue;
             }

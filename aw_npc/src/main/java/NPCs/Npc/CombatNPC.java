@@ -3,6 +3,7 @@ package NPCs.Npc;
 import NPCs.Npc.programs.*;
 import NPCs.Npc.programs.Combat.*;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -15,6 +16,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -28,7 +31,8 @@ public class CombatNPC extends NPCBase {
     public enum WorkTypes {
         fighter,
         archer,
-        medic
+        medic,
+        arbalist
     }
 
     public RunForHelpProgram runForHelpProgram;
@@ -36,10 +40,12 @@ public class CombatNPC extends NPCBase {
     public FighterFollowWorkOrderByStrategyTable fighterFollowWorkOrderByStrategyTable;
 
     public TakeMeleeWeaponProgram takeWeaponProgram;
+    public TakeBowWeaponProgram takeBowWeaponProgram;
 
     public CombatNPC(EntityType<CombatNPC> entityType, Level level) {
         super(entityType, level);
         takeWeaponProgram = new TakeMeleeWeaponProgram(this);
+        takeBowWeaponProgram = new TakeBowWeaponProgram(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -67,6 +73,7 @@ public class CombatNPC extends NPCBase {
         super.onAddedToLevel();
         if(!level().isClientSide){
             takeWeaponProgram.findBestWeaponIndex();
+            takeBowWeaponProgram.findBestWeaponIndex();
         }
     }
 
@@ -89,6 +96,10 @@ public class CombatNPC extends NPCBase {
             Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
 
+            // this is in case there is no townhall to manage temporal enemies
+            goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
+        }
+        if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()){
             // this is in case there is no townhall to manage temporal enemies
             goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
         }
@@ -123,9 +134,8 @@ public class CombatNPC extends NPCBase {
 
     @Override
     public void onInventoryChange() {
-        if (takeWeaponProgram != null) {
-            takeWeaponProgram.findBestWeaponIndex();
-        }
+        takeWeaponProgram.findBestWeaponIndex();
+        takeBowWeaponProgram.findBestWeaponIndex();
     }
 
     @Override
@@ -137,7 +147,21 @@ public class CombatNPC extends NPCBase {
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
+            if (player.getItemInHand(hand).getItem().equals(Items.BOW)) {
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.archer.ordinal());
+                player.setItemInHand(hand, ItemStack.EMPTY);
+                registerGoals();
+                setCustomName(Component.literal("Archer"));
+                return InteractionResult.SUCCESS;
+            }
 
+            if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_SWORD)) {
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.fighter.ordinal());
+                player.setItemInHand(hand, ItemStack.EMPTY);
+                registerGoals();
+                setCustomName(Component.literal("Fighter"));
+                return InteractionResult.SUCCESS;
+            }
         }
         return super.mobInteract(player, hand);
     }
