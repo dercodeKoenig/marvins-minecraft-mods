@@ -46,6 +46,7 @@ public class CombatNPC extends NPCBase {
         super(entityType, level);
         takeWeaponProgram = new TakeMeleeWeaponProgram(this);
         takeBowWeaponProgram = new TakeBowWeaponProgram(this);
+        setCustomName(Component.literal("Fighter"));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

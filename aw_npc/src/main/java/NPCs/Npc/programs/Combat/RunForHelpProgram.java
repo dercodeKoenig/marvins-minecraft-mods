@@ -2,8 +2,7 @@ package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCBase;
-import NPCs.Blocks.TownHall.TownHallOwners;
-import NPCs.Utils;
+import NPCs.Blocks.TownHall.TownHallData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -22,7 +21,7 @@ public class RunForHelpProgram extends Goal {
     }
 
     public void requestHelp(NPCBase npc, Entity e) {
-        if (Objects.equals(npc.owner, worker.owner) || (worker.townHall != null && TownHallOwners.getOwners(worker.level(), worker.townHall).contains(npc.owner))) {
+        if (Objects.equals(npc.getOwner(), worker.getOwner()) || (worker.townHall != null && TownHallData.getOwners(worker.level(), worker.townHall).contains(npc.getOwner()))) {
             if (!worker.slowMobNavigation.isPositionCachedAsInvalid(npc.blockPosition())) {
                 if (!HostileEntities.isUnableToAttack(e, worker)) {
                     npcNeedHelp.add(e);

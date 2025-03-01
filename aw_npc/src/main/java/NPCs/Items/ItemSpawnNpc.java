@@ -1,5 +1,6 @@
 package NPCs.Items;
 
+import NPCs.Npc.NPCBase;
 import NPCs.Registry;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -13,8 +14,11 @@ public class ItemSpawnNpc extends Item {
     }
 
     public InteractionResult useOn(UseOnContext context) {
-        if(context.getLevel() instanceof ServerLevel l)
-            Registry.ENTITY_WORKER.get().spawn(l,context.getClickedPos().above(), MobSpawnType.SPAWN_EGG);
+        if(context.getLevel() instanceof ServerLevel l) {
+            NPCBase npc = Registry.ENTITY_WORKER.get().spawn(l, context.getClickedPos().above(), MobSpawnType.SPAWN_EGG);
+            if(npc != null && context.getPlayer() != null)
+                npc.setOwner(context.getPlayer().getName().getString());
+        }
         return InteractionResult.SUCCESS;
     }
 

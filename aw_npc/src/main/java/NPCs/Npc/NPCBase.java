@@ -6,8 +6,7 @@ import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
 import NPCs.Items.ItemFoodOrder;
-import NPCs.Blocks.TownHall.TownHallNames;
-import NPCs.Blocks.TownHall.TownHallOwners;
+import NPCs.Blocks.TownHall.TownHallData;
 import NPCs.Items.ItemRoutingOrder;
 import NPCs.Items.ItemWorkOrder;
 import NPCs.Utils;
@@ -55,16 +54,16 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public double maxHunger = 20;
     public BlockPos homePosition;
     public BlockPos townHall;
-    public String owner;
 
-    public ItemStackHandler inventory = new ItemStackHandler(8){
+    public ItemStackHandler inventory = new ItemStackHandler(8) {
         @Override
-        public void onContentsChanged(int slot){
+        public void onContentsChanged(int slot) {
             onInventoryChange();
         }
     };
 
     public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(NPCBase.class, EntityDataSerializers.STRING);
+    public static EntityDataAccessor<String> DATA_OWNER = SynchedEntityData.defineId(NPCBase.class, EntityDataSerializers.STRING);
 
     public ItemStackHandler foodOrderStackHandler = new ItemStackHandler(1) {
         @Override
@@ -191,7 +190,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             onInventoryChange();
         }
     };
-    public void onInventoryChange(){
+
+    public void onInventoryChange() {
 
     }
 
@@ -329,11 +329,11 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         ownerText = new guiModuleText(2001, "owner", guiHandler, 10, 9, 0xff000000, false);
         townHallText = new guiModuleText(2002, "townhallpos", guiHandler, 10, 21, 0xff000000, false);
         guiModuleText nameText = new guiModuleText(2003, "Name: ", guiHandler, 10, 33, 0xff000000, false);
-        nameTextInput = new guiModuleTextInput(2004, guiHandler, 40, 33, 100, 10,false) {
+        nameTextInput = new guiModuleTextInput(2004, guiHandler, 40, 33, 100, 10, false) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
-                if(tag.contains(getMyTagKey())) {
+                if (tag.contains(getMyTagKey())) {
                     setCustomName(Component.literal(getText()));
                 }
             }
@@ -371,25 +371,25 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
-            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(TownHallOwners.getEntries(level()).keySet(), this)) {
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(TownHallData.getEntries(level()).keySet(), this)) {
                 if (Utils.distanceManhattan(this, p.getCenter()) > 256)
                     break;
 
-                if (TownHallOwners.getOwners(level(), p).contains(owner)) {
+                if (TownHallData.getOwners(level(), p).contains(getOwner())) {
                     townHall = p;
                     //System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
                     break;
                 }
             }
         } else {
-            if (!TownHallOwners.getOwners(level(), townHall).contains(owner)) {
+            if (!TownHallData.getOwners(level(), townHall).contains(getOwner())) {
                 //System.out.println("townhall " + townHall + "is no longer valid");
                 townHall = null;
                 updateTownHall();
             }
         }
         if (townHall != null) {
-            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(), townHall));
+            townHallText.setTextAndSync("Town: " + TownHallData.getName(level(), townHall));
         } else {
             townHallText.setTextAndSync("Town: none");
         }
@@ -399,18 +399,27 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void checkDespawn() {
     }
 
-    public boolean isFriendlyTo(Player p){
-        return getFriendlyPlayerNames().contains(p.getName().getString());
-    }
-    public boolean isFriendlyTo(NPCBase otherNpc){
-        return getFriendlyPlayerNames().contains(otherNpc.owner);
+    public String getOwner() {
+        return getEntityData().get(DATA_OWNER);
     }
 
-    public Set<String> getFriendlyPlayerNames(){
+    public void setOwner(String owner) {
+        getEntityData().set(DATA_OWNER, owner);
+    }
+
+    public boolean isFriendlyTo(Player p) {
+        return getFriendlyPlayerNames().contains(p.getName().getString());
+    }
+
+    public boolean isFriendlyTo(NPCBase otherNpc) {
+        return getFriendlyPlayerNames().contains(otherNpc.getOwner());
+    }
+
+    public Set<String> getFriendlyPlayerNames() {
         Set<String> friendlyPlayers = new HashSet<>();
-        if(townHall != null)
-            friendlyPlayers.addAll(TownHallOwners.getOwners(level(), townHall));
-        friendlyPlayers.add(owner);
+        if (townHall != null)
+            friendlyPlayers.addAll(TownHallData.getOwners(level(), townHall));
+        friendlyPlayers.add(getOwner());
         return friendlyPlayers;
     }
 
@@ -418,6 +427,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_TEXTURE, "");
+        builder.define(DATA_OWNER, "");
     }
 
 
@@ -427,7 +437,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         setCustomNameVisible(true);
         if (!level().isClientSide) {
 
-            if (owner == null) {
+            if (false && getOwner().isEmpty()) {
                 Player closestPlayer = null;
                 double closestDistance = 999;
                 for (Player p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
@@ -437,12 +447,10 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                     }
                 }
                 if (closestPlayer != null) {
-                    owner = closestPlayer.getName().getString();
+                    setOwner(closestPlayer.getName().getString());
                 }
             }
-            if (owner != null) {
-                ownerText.setTextAndSync("Owner: " + owner);
-            }
+            ownerText.setTextAndSync("Owner: " + getOwner());
             updateTownHall();
             nameTextInput.setTextAndSync(getCustomName().getString());
         }
@@ -451,8 +459,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
-            Set<String> owners = TownHallOwners.getOwners(level(), townHall);
-            if ((owners != null && owners.contains(player.getName().getString())) || player.getName().getString().equals(owner)) {
+            Set<String> owners = TownHallData.getOwners(level(), townHall);
+            if (owners.contains(player.getName().getString()) || player.getName().getString().equals(getOwner())) {
                 if (!player.isShiftKeyDown()) {
                     if (!guiHandler.playersTrackingGui.containsKey(player.getUUID())) {
                         CompoundTag tag = new CompoundTag();
@@ -501,7 +509,26 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             }
             hungerBar.setProgressAndSync(hunger / maxHunger);
         }
+
+        if(level().isClientSide){
+            if(level().getGameTime() % 20 == 0){
+setNameColor();
+            }
+        }
+
         this.updateSwingTime(); //wtf do i need to call this myself??
+    }
+
+    public void setNameColor(){
+        String owner = getOwner();
+        HashMap<BlockPos, TownHallData> entries = TownHallData.getEntries(level());
+        for(TownHallData i : entries.values()){
+            if(i.owners.contains(owner)){
+                setCustomName(Component.literal(getCustomName().getString()).withColor(0xffffffff));
+                return;
+            }
+        }
+        setCustomName(Component.literal(getCustomName().getString()).withColor(0xffff0000));
     }
 
     @Override
@@ -564,6 +591,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         hunger += foodProperties.nutrition();
         return super.eat(level, food, foodProperties);
     }
+
     @Override
     public int getMaxFallDistance() { // makes fighters not jump from >3 block tall walls down to attack a target
         return 3;
@@ -573,8 +601,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
-        compound.put("orderInv",ordersStackHandler.serializeNBT(this.registryAccess()));
-        compound.put("foodOrderInv",foodOrderStackHandler.serializeNBT(this.registryAccess()));
+        compound.put("orderInv", ordersStackHandler.serializeNBT(this.registryAccess()));
+        compound.put("foodOrderInv", foodOrderStackHandler.serializeNBT(this.registryAccess()));
 
         if (homePosition != null) {
             compound.putInt("homePositionX", homePosition.getX());
@@ -588,9 +616,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             compound.putInt("townHallZ", townHall.getZ());
         }
 
-        if (owner != null) {
-            compound.putString("owner", owner);
-        }
+
+        compound.putString("owner", getOwner());
 
         compound.putDouble("hunger", hunger);
 
@@ -613,12 +640,14 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         }
 
         if (compound.contains("owner")) {
-            owner = compound.getString("owner");
+            setOwner(compound.getString("owner"));
         }
 
-        hunger = compound.getDouble("hunger");
+        if (compound.contains("hunger")) {
+            hunger = compound.getDouble("hunger");
+        }
 
-        if(compound.contains("texture")) {
+        if (compound.contains("texture")) {
             getEntityData().set(DATA_TEXTURE, compound.getString("texture"));
         }
     }
@@ -627,8 +656,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         // verify server side that the player is friend or owner before allow anything to go to the gui
-        Set<String> owners = TownHallOwners.getOwners(level(), townHall);
-        if ((owners != null && owners.contains(p.getName().getString())) || p.getName().getString().equals(owner)) {
+        Set<String> owners = TownHallData.getOwners(level(), townHall);
+        if (owners.contains(p.getName().getString()) || p.getName().getString().equals(getOwner())) {
             guiHandler.readServer(compoundTag);
 
             if (compoundTag.contains("guiButtonClick")) {

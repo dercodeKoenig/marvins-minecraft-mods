@@ -8,8 +8,7 @@ import ARLib.gui.modules.guiModuleText;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
-import NPCs.Blocks.TownHall.TownHallNames;
-import NPCs.Blocks.TownHall.TownHallOwners;
+import NPCs.Blocks.TownHall.TownHallData;
 import NPCs.Items.ItemWorkOrder;
 import NPCs.Npc.CombatNPC;
 import NPCs.Utils;
@@ -201,7 +200,7 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
 
     public void useWithoutItem(Player p) {
         if (!level.isClientSide) {
-            if (townHall == null || (TownHallOwners.getOwners(level, townHall) != null && TownHallOwners.getOwners(level, townHall).contains(p.getName().getString()))) {
+            if (townHall == null || (TownHallData.getOwners(level, townHall) != null && TownHallData.getOwners(level, townHall).contains(p.getName().getString()))) {
                 if (!guiHandler.playersTrackingGui.containsKey(p.getUUID())) {
                     CompoundTag tag = new CompoundTag();
                     tag.put("openGui", new CompoundTag());
@@ -243,23 +242,23 @@ public static void updateSortedTownhallMap() {
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
-            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(TownHallOwners.getEntries(level).keySet(), getBlockPos().getCenter())) {
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(TownHallData.getEntries(level).keySet(), getBlockPos().getCenter())) {
                 if (Utils.distanceManhattan(getBlockPos().getCenter(), p.getCenter()) > 512)
                     break;
 
-                if (TownHallOwners.getOwners(level, p).contains(owner)) {
+                if (TownHallData.getOwners(level, p).contains(owner)) {
                     townHall = p;
                     break;
                 }
             }
         } else {
-            if (!TownHallOwners.getOwners(level, townHall).contains(owner)) {
+            if (!TownHallData.getOwners(level, townHall).contains(owner)) {
                 townHall = null;
                 updateTownHall();
             }
         }
         if (townHall != null) {
-            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level, townHall));
+            townHallText.setTextAndSync("Town: " + TownHallData.getName(level, townHall));
         } else {
             townHallText.setTextAndSync("Town: none");
         }

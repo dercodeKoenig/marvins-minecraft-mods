@@ -1,6 +1,5 @@
 package NPCs.Blocks.TownHall;
 
-import NPCs.Npc.NPCBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,8 +37,7 @@ public class BlockTownHall extends Block implements EntityBlock {
 
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if(!level.isClientSide) {
-            TownHallOwners.removeEntry(level, pos);
-            TownHallNames.removeEntry(level, pos);
+            TownHallData.removeEntry(level, pos);
             EntityTownHall.updateTownhalls();
             BlockEntity e = level.getBlockEntity(pos);
             if(e instanceof EntityTownHall t){
@@ -55,8 +53,8 @@ public class BlockTownHall extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable LivingEntity placer, ItemStack stack) {
         if (!level.isClientSide) {
             if (placer instanceof Player player) {
-                TownHallOwners.addOwner(level, pos, player.getName().getString());
-                TownHallNames.setName(level, pos, "Town of " + player.getName().getString());
+                TownHallData.addOwner(level, pos, player.getName().getString());
+                TownHallData.setName(level, pos, "Town of " + player.getName().getString());
                 EntityTownHall.updateTownhalls();
             }
         }

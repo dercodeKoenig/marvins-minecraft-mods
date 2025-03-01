@@ -1,6 +1,6 @@
 package AgeOfSteam;
 
-import AgeOfSteam.Blocks.Mechanics.Axle.RenderAxle;
+import ARLib.network.SimpleNetworkPacket;
 import AgeOfSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.RenderBigWoodenCrankShaft;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.RenderSmallWoodenCrankShaft;
@@ -13,11 +13,8 @@ import AgeOfSteam.Blocks.Mechanics.HandGenerator.RenderHandGenerator;
 
 import AgeOfSteam.Blocks.Mechanics.TJunction.RenderWoodenTJunction;
 import AgeOfSteam.Config.Config;
-import AgeOfSteam.Config.PacketConfigSync;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -27,17 +24,13 @@ import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-import java.io.IOException;
-
 import static AgeOfSteam.Registry.*;
-import static AgeOfSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
 
 
 @Mod(Main.MODID)
@@ -58,6 +51,7 @@ public static final String MODID ="age_of_steam";
         modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
 
+        SimpleNetworkPacket.registerReceiver("aos_config_sync", Config.INSTANCE);
 
     }
 
@@ -92,7 +86,6 @@ public static final String MODID ="age_of_steam";
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
-        PacketConfigSync.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

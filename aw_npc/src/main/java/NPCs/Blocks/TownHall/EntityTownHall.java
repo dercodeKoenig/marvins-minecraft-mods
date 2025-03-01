@@ -73,7 +73,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
                 super.server_readNetworkData(tag);
                 if(tag.contains(getMyTagKey())) {
                     updateTownhalls(); // update if the name changes
-                    TownHallNames.setName(level, getBlockPos(), getText());
+                    TownHallData.setName(level, getBlockPos(), getText());
                 }
             }
         };
@@ -176,7 +176,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
     }
 
     public Set<String> getOwners() {
-        return TownHallOwners.getOwners(level, getBlockPos());
+        return TownHallData.getOwners(level, getBlockPos());
     }
 
     public void useWithoutItem(Player p) {
@@ -196,7 +196,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         super.onLoad();
         if (!level.isClientSide) {
             knownTownHalls.add(getBlockPos());
-            String name = TownHallNames.getName(level, getBlockPos());
+            String name = TownHallData.getName(level, getBlockPos());
             if (name != null)
                 townNameInput.setTextAndSync(name);
             else {
@@ -247,7 +247,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             if (compoundTag.contains("guiButtonClick")) {
                 int btn = compoundTag.getInt("guiButtonClick");
                 if (btn == 10909) {
-                    TownHallOwners.addOwner(level, getBlockPos(), addOwner.getText());
+                    TownHallData.addOwner(level, getBlockPos(), addOwner.getText());
                     addOwner.setTextAndSync("");
                     addOwner.broadcastModuleUpdate();
                     CompoundTag ret = new CompoundTag();
@@ -258,7 +258,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             }
             if (compoundTag.contains("removeOwner")) {
                 String toRemove = compoundTag.getString("removeOwner");
-                TownHallOwners.removeOwner(level, getBlockPos(), toRemove);
+                TownHallData.removeOwner(level, getBlockPos(), toRemove);
                 CompoundTag ret = new CompoundTag();
                 ret.put("owners", ownersTag());
                 PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, ret));

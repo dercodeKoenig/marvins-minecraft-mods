@@ -1,15 +1,14 @@
 package NPCs;
 
+import ARLib.network.SimpleNetworkPacket;
 import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Blocks.Armory.RenderArmory;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.HostileEntities;
 import NPCs.Npc.NPCRenderer;
 import NPCs.Npc.WorkerNPC;
-import NPCs.Blocks.TownHall.TownHallNames;
-import NPCs.Blocks.TownHall.TownHallOwners;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
+import NPCs.Blocks.TownHall.TownHallData;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -21,12 +20,12 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
-import static BetterPipes.Registry.PIPE;
 import static NPCs.Registry.*;
 
 
@@ -45,18 +44,27 @@ public class Main {
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerCapabilities);
 
-        NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelSave);
-        NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelLoad);
-        NeoForge.EVENT_BUS.addListener(TownHallNames::onLevelSave);
-        NeoForge.EVENT_BUS.addListener(TownHallNames::onLevelLoad);
+        NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
+        NeoForge.EVENT_BUS.addListener(TownHallData::onLevelSave);
+        NeoForge.EVENT_BUS.addListener(TownHallData::onLevelLoad);
 
         NeoForge.EVENT_BUS.addListener(HostileEntities::onEntityJoin);
 
         Registry.register(modEventBus);
 
+        SimpleNetworkPacket.registerReceiver("to_sync", TownHallData.TOClientReceiver.INSTANCE);
+
     }
     public void onClientSetup(FMLClientSetupEvent event) {
     }
+
+
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
+        if(login.getEntity() instanceof ServerPlayer p){
+            TownHallData.syncDataToPlayer(p);
+        }
+    }
+
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_TOWNHALL.get(), (x, y) -> (x.inventory));

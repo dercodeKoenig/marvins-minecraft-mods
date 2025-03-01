@@ -1,5 +1,6 @@
 package AgeOfSteam.Config;
 
+import ARLib.network.SimpleNetworkPacket;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -13,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Config {
+public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     public static Config INSTANCE = loadConfig();
 
@@ -70,16 +71,19 @@ public class Config {
     public double hand_generator_max_speed = 10;
 
 
+    public void readClient(String data) {
+        Config.INSTANCE.loadConfig(data);
+    }
 
     public void SyncConfig(ServerPlayer p) {
         if (p != null) {
-            PacketDistributor.sendToPlayer(p, new PacketConfigSync(new Gson().toJson(this)));
+            PacketDistributor.sendToPlayer(p, new SimpleNetworkPacket("aos_config_sync", new Gson().toJson(this)));
         }
     }
 
     public void loadConfig(String configString) {
         Config.INSTANCE = new Gson().fromJson(configString, Config.class);
-        System.out.println("load config:"+configString);
+        System.out.println("load config:" + configString);
     }
 
     public static Config loadConfig() {

@@ -1,7 +1,6 @@
 package NPCs.Npc;
 
 import ARLib.utils.BlockIdentifier;
-import NPCs.Blocks.TownHall.TownHallOwners;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
