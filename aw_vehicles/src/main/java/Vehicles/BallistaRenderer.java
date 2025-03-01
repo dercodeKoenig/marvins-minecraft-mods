@@ -36,7 +36,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class BallistaRenderer extends EntityRenderer<EntityBallista> {
 
     RenderType r;
-
+ModelPart main;
     protected BallistaRenderer(EntityRendererProvider.Context context) {
         super(context);
         r = RenderType.create("x", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,1024, RenderType.CompositeState.builder()
@@ -44,14 +44,29 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
                 .setLightmapState(LIGHTMAP)
                 .setTextureState(new TextureStateShard(getTextureLocation(null),false,true))
                 .createCompositeState(false));
+
+        main = createBodyLayer().bakeRoot();
     }
 
     @Override
     public void render(EntityBallista p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        main = createBodyLayer().bakeRoot();
 
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1,0,0,180));
-        createBodyLayer().bakeRoot().render(poseStack,bufferSource.getBuffer(r),packedLight,0);
 
+        double drawProgress = p_entity.drawProgress;
+        double aMax = -67.5;
+        double aMin = -30;
+        double a = (aMax-aMin)*drawProgress+aMin;
+        double stringAbgle = -aMin-Math.pow (drawProgress,0.38) * 1.305f*a;
+
+        main.getChild("armMain").getChild("armLeftMain").yRot = (float)( a / 180*Math.PI);
+        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").yRot = (float)( stringAbgle  / 180*Math.PI);
+
+        main.getChild("armMain").getChild("armRightMain").yRot = -(float)( a / 180*Math.PI);
+        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot = -(float)( stringAbgle  / 180*Math.PI);
+
+        main.render(poseStack,bufferSource.getBuffer(r),packedLight,0);
         super.render(p_entity,entityYaw,partialTick,poseStack,bufferSource,packedLight);
     }
 
@@ -61,7 +76,7 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         return ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/entity/ballista_stand_3.png");
     }
 
-    public static LayerDefinition createBodyLayer() {
+    public LayerDefinition createBodyLayer() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
 
@@ -335,7 +350,7 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         armRightMain.addOrReplaceChild("stringRight",
                 CubeListBuilder.create()
                         .texOffs(0, 220)
-                        .addBox(0.0F, -0.5F, 0.0F, 17, 1, 1),
+                        .addBox(0.0F, -0.33F, 0.0F, 17, 0.66f, 0.66f),
                 PartPose.offsetAndRotation(-13.0F, 0.5F, 0.0F, 0.0F, -0.5235985F, 0.0F)
         );
 
@@ -380,7 +395,7 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         armLeftMain.addOrReplaceChild("stringLeft",
                 CubeListBuilder.create()
                         .texOffs(0, 220)
-                        .addBox(-17.0F, -0.5F, 0.0F, 17, 1, 1),
+                        .addBox(-17.0F, -0.33F, 0.0F, 17, 0.66f, 0.66f),
                 PartPose.offsetAndRotation(13.0F, 1.5F, 0.0F, 0.0F, 0.5235985F, 0.0F)
         );
 
