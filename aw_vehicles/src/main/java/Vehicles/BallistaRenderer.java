@@ -50,9 +50,6 @@ ModelPart main;
 
     @Override
     public void render(EntityBallista p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        main = createBodyLayer().bakeRoot();
-
-        poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1,0,0,180));
 
         double drawProgress = p_entity.drawProgress;
         double aMax = -67.5;
@@ -66,7 +63,10 @@ ModelPart main;
         main.getChild("armMain").getChild("armRightMain").yRot = -(float)( a / 180*Math.PI);
         main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot = -(float)( stringAbgle  / 180*Math.PI);
 
+        poseStack.pushPose();
+        poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1,0,0,180));
         main.render(poseStack,bufferSource.getBuffer(r),packedLight,0);
+        poseStack.popPose();
         super.render(p_entity,entityYaw,partialTick,poseStack,bufferSource,packedLight);
     }
 
