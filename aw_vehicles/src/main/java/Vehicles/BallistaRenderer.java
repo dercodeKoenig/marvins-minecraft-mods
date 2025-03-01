@@ -49,55 +49,45 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         main = createBodyLayer().bakeRoot();
     }
 
-    double lastDrawProgress = 0;
-
     @Override
     public void render(EntityBallista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        main = createBodyLayer().bakeRoot();
+
         double dp = entity.client_drawProcess - entity.client_drawProcessPrev;
         double drawProgress = Math.clamp(entity.client_drawProcessPrev + dp * partialTick, -1, 1);
-        if (drawProgress < 0 && lastDrawProgress > 0) {
-            drawProgress = -1;
-            entity.client_drawProcess = (float) (-0.99-0.01*partialTick);
-            entity.client_drawProcessPrev = entity.client_drawProcess-0.01f;
-        }
-        lastDrawProgress = drawProgress;
 
         // ---- RECOIL EFFECT ----
         double recoilOffset = 0.0;
         double recoilOffset2 = 0.0;
-        if (drawProgress < 0) { // Recoil only when recently fired
-            double v = (1 + drawProgress) * 50;
-            double timeSinceShot = 1.5 * Math.PI + v; // Scale time
-            double amplitude = 30;  // How much it shakes
+
+        if(entity.ticksAfterShoot > 0) {
+            double v = (entity.ticksAfterShoot - 1 + partialTick);
+            double timeSinceShot = 1 * Math.PI + v; // Scale time
+            double amplitude = 20;  // How much it shakes
             double damping = 0.15;    // How fast it stops shaking
-            recoilOffset = amplitude * Math.exp(-damping * timeSinceShot) * (Math.cos(timeSinceShot));
             if(v > 0.5*Math.PI)
-                recoilOffset2 = amplitude * Math.exp(-damping * timeSinceShot) * (Math.sin(timeSinceShot));
-            drawProgress = 0;
+                recoilOffset = amplitude * Math.exp(-damping * timeSinceShot) * (Math.cos(timeSinceShot));
+            recoilOffset2 = amplitude * Math.exp(-damping * timeSinceShot) * (Math.sin(timeSinceShot));
         }
-        if(dp < 0){
-            recoilOffset2-=30 * Math.max((0.5-Math.abs(drawProgress-0.5)),0);
-        }
+
 
 
         double aMax = -67.5;
         double aMin = -30;
         double a = (aMax - aMin) * drawProgress + aMin + recoilOffset;
         double rA = (a - aMin) / (aMax - aMin);
-        double p = drawProgress > 0 ? 0.38 : 1;
+        double p = drawProgress > 0 ? 0.38 : 0.6;
         double stringAngle = -aMin - Math.pow(Math.abs(rA), p) * Math.signum(rA) * 1.305f * a;
 
-        main.getChild("armMain").z = (float) (-2f - recoilOffset2/30);
+        main.getChild("armMain").z = (float) (-2f - recoilOffset2*0.2);
 
         // ---- APPLY ARM MOVEMENTS ----
         main.getChild("armMain").getChild("armLeftMain").yRot = (float) (a / 180 * Math.PI);
         main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").yRot = (float) (stringAngle / 180 * Math.PI);
-        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").xScale = (float) (1 + Math.max(0,recoilOffset/200f));
+        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").xScale = (float) (1 + Math.abs(recoilOffset)/300f);
 
         main.getChild("armMain").getChild("armRightMain").yRot = -(float) (a / 180 * Math.PI);
         main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot = -(float) (stringAngle / 180 * Math.PI);
-        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").xScale = (float) (1 + Math.max(0,recoilOffset/200f));
+        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").xScale = (float) (1 + Math.abs(recoilOffset)/300f);
 
         // ---- FINAL RENDER ----
         poseStack.pushPose();

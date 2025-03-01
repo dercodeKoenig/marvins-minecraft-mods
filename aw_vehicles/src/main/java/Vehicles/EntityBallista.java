@@ -26,6 +26,7 @@ public class EntityBallista extends Entity {
     }
     float client_drawProcess;
     float client_drawProcessPrev;
+    int ticksAfterShoot = 0;
     @Override
     public void tick() {
         super.tick();
@@ -36,8 +37,18 @@ public class EntityBallista extends Entity {
             }
         }
         if (level().isClientSide) {
+
+            if (getDrawProcess() <= 0)
+                ticksAfterShoot++;
+            else
+                ticksAfterShoot = 0;
+
             client_drawProcessPrev = client_drawProcess; // Store previous value
-            client_drawProcess += (getDrawProcess() - client_drawProcess) * 0.2f; // Smoothly lerp
+            if(getDrawProcess()<=0){
+                client_drawProcess -= Math.min(0.5f, client_drawProcess);
+            }else {
+                client_drawProcess += (getDrawProcess() - client_drawProcess) * 0.1f; // Smoothly lerp
+            }
         }
     }
 
