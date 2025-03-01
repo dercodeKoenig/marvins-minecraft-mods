@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "aw_npc:block/townhall" }
+  }
+}

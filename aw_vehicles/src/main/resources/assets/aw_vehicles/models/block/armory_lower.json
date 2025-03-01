@@ -1,0 +1,89 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "planks": "minecraft:block/oak_planks",
+    "armor": "minecraft:item/iron_chestplate",
+    "sword": "minecraft:item/iron_sword",
+    "helmet": "minecraft:item/iron_helmet",
+    "pickaxe": "minecraft:item/iron_pickaxe",
+    "shovel": "minecraft:item/iron_shovel",
+    "axe": "minecraft:item/iron_axe"
+  },
+  "elements": [
+    {
+      "from": [1, 0, 1],
+      "to": [15, 1, 16],
+      "faces": {
+        "up": { "texture": "#planks" },
+        "down": { "texture": "#planks" },
+        "east": { "texture": "#planks" },
+        "west": { "texture": "#planks" },
+        "north": { "texture": "#planks" },
+        "south": { "texture": "#planks" }
+      }
+    },
+    {
+      "from": [1, 15, 1],
+      "to": [15, 16, 16],
+      "faces": {
+        "up": { "texture": "#planks" },
+        "down": { "texture": "#planks" },
+        "east": { "texture": "#planks" },
+        "west": { "texture": "#planks" },
+        "north": { "texture": "#planks" },
+        "south": { "texture": "#planks" }
+      }
+    },
+    {
+      "from": [1, 7, 1],
+      "to": [15, 8, 15],
+      "faces": {
+        "up": { "texture": "#planks" },
+        "down": { "texture": "#planks" },
+        "east": { "texture": "#planks" },
+        "west": { "texture": "#planks" },
+        "north": { "texture": "#planks" },
+        "south": { "texture": "#planks" }
+      }
+    },
+
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 1],
+      "faces": {
+        "up": { "texture": "#planks" },
+        "down": { "texture": "#planks" },
+        "east": { "texture": "#planks" },
+        "west": { "texture": "#planks" },
+        "north": { "texture": "#planks" },
+        "south": { "texture": "#planks" }
+      }
+    },
+
+    {
+      "from": [0, 0, 1],
+      "to": [1, 16, 16],
+      "faces": {
+        "up": { "texture": "#planks" },
+        "down": { "texture": "#planks" },
+        "east": { "texture": "#planks" },
+        "west": { "texture": "#planks" },
+        "north": { "texture": "#planks" },
+        "south": { "texture": "#planks" }
+      }
+    },
+
+    {
+      "from": [15, 0, 1],
+      "to": [16, 16, 16],
+      "faces": {
+        "up": { "texture": "#planks" },
+        "down": { "texture": "#planks" },
+        "east": { "texture": "#planks" },
+        "west": { "texture": "#planks" },
+        "north": { "texture": "#planks" },
+        "south": { "texture": "#planks" }
+      }
+    }
+  ]
+}

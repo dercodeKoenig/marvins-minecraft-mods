@@ -1,0 +1,11 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "aw_npc:block/townhall_bottom",
+    "up": "aw_npc:block/townhall_top",
+    "north": "aw_npc:block/townhall_side",
+    "south": "aw_npc:block/townhall_side",
+    "west": "aw_npc:block/townhall_side",
+    "east": "aw_npc:block/townhall_side"
+  }
+}

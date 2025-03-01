@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "aw_npc:item/upkeep_order"
+  }
+}

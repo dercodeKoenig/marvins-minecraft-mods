@@ -405,6 +405,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
     public void setOwner(String owner) {
         getEntityData().set(DATA_OWNER, owner);
+        ownerText.setTextAndSync("Owner: " + getOwner());
+        updateTownHall();
     }
 
     public boolean isFriendlyTo(Player p) {
@@ -450,7 +452,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                     setOwner(closestPlayer.getName().getString());
                 }
             }
-            ownerText.setTextAndSync("Owner: " + getOwner());
             updateTownHall();
             nameTextInput.setTextAndSync(getCustomName().getString());
         }

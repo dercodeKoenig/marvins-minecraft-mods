@@ -1,0 +1,68 @@
+{
+  "textures": {
+    "wood": "aw_npc:block/strategy_table",
+    "map": "aw_npc:block/strategy_table_top"
+  },
+  "elements": [
+    {
+      "from": [0, 12, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "up":    {"uv": [0, 0, 16, 16], "texture": "#map"},
+        "down":  {"uv": [0, 0, 16, 4],  "texture": "#wood"},
+        "north": {"uv": [0, 12, 16, 16],"texture": "#wood"},
+        "south": {"uv": [0, 12, 16, 16],"texture": "#wood"},
+        "east":  {"uv": [0, 12, 16, 16],"texture": "#wood"},
+        "west":  {"uv": [0, 12, 16, 16],"texture": "#wood"}
+      }
+    },
+    {
+      "from": [1, 0, 1],
+      "to": [3, 12, 3],
+      "faces": {
+        "north": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "south": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "east":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "west":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "up":    {"uv": [0, 0, 2, 2],  "texture": "#wood"},
+        "down":  {"uv": [0, 0, 2, 2],  "texture": "#wood"}
+      }
+    },
+    {
+      "from": [13, 0, 1],
+      "to": [15, 12, 3],
+      "faces": {
+        "north": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "south": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "east":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "west":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "up":    {"uv": [0, 0, 2, 2],  "texture": "#wood"},
+        "down":  {"uv": [0, 0, 2, 2],  "texture": "#wood"}
+      }
+    },
+    {
+      "from": [1, 0, 13],
+      "to": [3, 12, 15],
+      "faces": {
+        "north": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "south": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "east":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "west":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "up":    {"uv": [0, 0, 2, 2],  "texture": "#wood"},
+        "down":  {"uv": [0, 0, 2, 2],  "texture": "#wood"}
+      }
+    },
+    {
+      "from": [13, 0, 13],
+      "to": [15, 12, 15],
+      "faces": {
+        "north": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "south": {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "east":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "west":  {"uv": [0, 0, 2, 12], "texture": "#wood"},
+        "up":    {"uv": [0, 0, 2, 2],  "texture": "#wood"},
+        "down":  {"uv": [0, 0, 2, 2],  "texture": "#wood"}
+      }
+    }
+  ]
+}
