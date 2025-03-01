@@ -36,42 +36,80 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class BallistaRenderer extends EntityRenderer<EntityBallista> {
 
     RenderType r;
-ModelPart main;
+    ModelPart main;
+
     protected BallistaRenderer(EntityRendererProvider.Context context) {
         super(context);
-        r = RenderType.create("x", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,1024, RenderType.CompositeState.builder()
+        r = RenderType.create("x", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1024, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
                 .setLightmapState(LIGHTMAP)
-                .setTextureState(new TextureStateShard(getTextureLocation(null),false,true))
+                .setTextureState(new TextureStateShard(getTextureLocation(null), false, true))
                 .createCompositeState(false));
 
         main = createBodyLayer().bakeRoot();
     }
 
-    @Override
-    public void render(EntityBallista p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+    double lastDrawProgress = 0;
 
-        double drawProgress = p_entity.drawProgress;
+    @Override
+    public void render(EntityBallista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        main = createBodyLayer().bakeRoot();
+        double dp = entity.client_drawProcess - entity.client_drawProcessPrev;
+        double drawProgress = Math.clamp(entity.client_drawProcessPrev + dp * partialTick, -1, 1);
+        if (drawProgress < 0 && lastDrawProgress > 0) {
+            drawProgress = -1;
+            entity.client_drawProcess = (float) (-0.99-0.01*partialTick);
+            entity.client_drawProcessPrev = entity.client_drawProcess-0.01f;
+        }
+        lastDrawProgress = drawProgress;
+
+        // ---- RECOIL EFFECT ----
+        double recoilOffset = 0.0;
+        double recoilOffset2 = 0.0;
+        if (drawProgress < 0) { // Recoil only when recently fired
+            double v = (1 + drawProgress) * 50;
+            double timeSinceShot = 1.5 * Math.PI + v; // Scale time
+            double amplitude = 30;  // How much it shakes
+            double damping = 0.15;    // How fast it stops shaking
+            recoilOffset = amplitude * Math.exp(-damping * timeSinceShot) * (Math.cos(timeSinceShot));
+            if(v > 0.5*Math.PI)
+                recoilOffset2 = amplitude * Math.exp(-damping * timeSinceShot) * (Math.sin(timeSinceShot));
+            drawProgress = 0;
+        }
+        if(dp < 0){
+            recoilOffset2-=30 * Math.max((0.5-Math.abs(drawProgress-0.5)),0);
+        }
+
+
         double aMax = -67.5;
         double aMin = -30;
-        double a = (aMax-aMin)*drawProgress+aMin;
-        double stringAbgle = -aMin-Math.pow (drawProgress,0.38) * 1.305f*a;
+        double a = (aMax - aMin) * drawProgress + aMin + recoilOffset;
+        double rA = (a - aMin) / (aMax - aMin);
+        double p = drawProgress > 0 ? 0.38 : 1;
+        double stringAngle = -aMin - Math.pow(Math.abs(rA), p) * Math.signum(rA) * 1.305f * a;
 
-        main.getChild("armMain").getChild("armLeftMain").yRot = (float)( a / 180*Math.PI);
-        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").yRot = (float)( stringAbgle  / 180*Math.PI);
+        main.getChild("armMain").z = (float) (-2f - recoilOffset2/30);
 
-        main.getChild("armMain").getChild("armRightMain").yRot = -(float)( a / 180*Math.PI);
-        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot = -(float)( stringAbgle  / 180*Math.PI);
+        // ---- APPLY ARM MOVEMENTS ----
+        main.getChild("armMain").getChild("armLeftMain").yRot = (float) (a / 180 * Math.PI);
+        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").yRot = (float) (stringAngle / 180 * Math.PI);
+        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").xScale = (float) (1 + Math.max(0,recoilOffset/200f));
 
+        main.getChild("armMain").getChild("armRightMain").yRot = -(float) (a / 180 * Math.PI);
+        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot = -(float) (stringAngle / 180 * Math.PI);
+        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").xScale = (float) (1 + Math.max(0,recoilOffset/200f));
+
+        // ---- FINAL RENDER ----
         poseStack.pushPose();
-        poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1,0,0,180));
-        main.render(poseStack,bufferSource.getBuffer(r),packedLight,0);
+        poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
+        main.render(poseStack, bufferSource.getBuffer(r), packedLight, 0);
         poseStack.popPose();
-        super.render(p_entity,entityYaw,partialTick,poseStack,bufferSource,packedLight);
+
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
 
-        @Override
+    @Override
     public ResourceLocation getTextureLocation(EntityBallista entityBallista) {
         return ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/entity/ballista_stand_3.png");
     }
@@ -350,7 +388,7 @@ ModelPart main;
         armRightMain.addOrReplaceChild("stringRight",
                 CubeListBuilder.create()
                         .texOffs(0, 220)
-                        .addBox(0.0F, -0.33F, 0.0F, 17, 0.66f, 0.66f),
+                        .addBox(0.0F, -0.33F, 0.0F, 17.0f, 0.66f, 0.66f),
                 PartPose.offsetAndRotation(-13.0F, 0.5F, 0.0F, 0.0F, -0.5235985F, 0.0F)
         );
 
@@ -395,7 +433,7 @@ ModelPart main;
         armLeftMain.addOrReplaceChild("stringLeft",
                 CubeListBuilder.create()
                         .texOffs(0, 220)
-                        .addBox(-17.0F, -0.33F, 0.0F, 17, 0.66f, 0.66f),
+                        .addBox(-17.0F, -0.33F, 0.0F, 17.0f, 0.66f, 0.66f),
                 PartPose.offsetAndRotation(13.0F, 1.5F, 0.0F, 0.0F, 0.5235985F, 0.0F)
         );
 

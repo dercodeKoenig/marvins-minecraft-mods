@@ -1,6 +1,8 @@
 package Vehicles;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -8,22 +10,40 @@ import net.minecraft.world.level.Level;
 
 public class EntityBallista extends Entity {
 
-    double drawProgress;
+    private static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(EntityBallista.class, EntityDataSerializers.FLOAT);
+
 
     public EntityBallista(EntityType<EntityBallista> entityType, Level level) {
         super(entityType, level);
     }
 
+
+    public float getDrawProcess(){
+        return getEntityData().get(DRAW_PROGRESS);
+    }
+    public void setDrawProcess(float process){
+        getEntityData().set(DRAW_PROGRESS, process);
+    }
+    float client_drawProcess;
+    float client_drawProcessPrev;
     @Override
-    public void tick(){
+    public void tick() {
         super.tick();
-        drawProgress+=0.01;
-        if(drawProgress > 1)drawProgress = 0;
+        if (!level().isClientSide) {
+            setDrawProcess(getDrawProcess() + 0.01f);
+            if (getDrawProcess() > 1.05) {
+                setDrawProcess(-1);
+            }
+        }
+        if (level().isClientSide) {
+            client_drawProcessPrev = client_drawProcess; // Store previous value
+            client_drawProcess += (getDrawProcess() - client_drawProcess) * 0.2f; // Smoothly lerp
+        }
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-
+builder.define(DRAW_PROGRESS,0f);
     }
 
     @Override
