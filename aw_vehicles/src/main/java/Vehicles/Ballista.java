@@ -162,7 +162,7 @@ boolean shouldReload = false;
                     //player.startRiding(this);
                 } else if (getDrawProcess() == 1) {
                     if(bolt != null) {
-                        bolt.setDeltaMovement(getLookAngle().x, getLookAngle().y, getLookAngle().z);
+                        bolt.setDeltaMovement(getLookAngle());
                         setDrawProcess(-1);
                         bolt.setNoGravity(false);
                         bolt.shouldTick = true;
@@ -172,14 +172,14 @@ boolean shouldReload = false;
             } else {
                 if(controllingEntity == null) {
                     if (bolt != null && getDrawProcess() == 1) {
-                        bolt.setDeltaMovement(getLookAngle().x, getLookAngle().y, getLookAngle().z);
+                        bolt.setDeltaMovement(getLookAngle());
                         setDrawProcess(-1);
                         bolt.setNoGravity(false);
                         bolt.shouldTick = true;
                         bolt = null;
                         shouldReload = false;
                     }
-                    if(getDrawProcess() != 1)
+                    else if(getDrawProcess() != 1)
                         shouldReload = true;
                 }
                 controllingEntity = null;

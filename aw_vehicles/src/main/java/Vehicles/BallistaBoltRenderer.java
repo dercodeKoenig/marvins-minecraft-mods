@@ -2,7 +2,9 @@ package Vehicles;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -14,6 +16,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -39,15 +42,26 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
 
         main = createBodyLayer().bakeRoot();
         poseStack.pushPose();
+
         float scale = 0.2f;
-        main.setRotation((float) (entity.getXRot() / 180 * Math.PI), (float) (entity.getYRot()/180 * Math.PI),0);
-        poseStack.translate(0,0,0f);
-        poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
         poseStack.scale(scale,scale,scale);
+
+        double dx = entity.lx * partialTick;
+        double dy = entity.ly * partialTick;
+        double dz = entity.lz * partialTick;
+        poseStack.translate(dx,dy,dz);
+
+        main.setRotation((float) (entity.getXRot() / 180 * Math.PI), (float) (entity.getYRot() / 180 * Math.PI), 0);
+        //main.setRotation((float) (entity.getXRot()), (float) (entity.getYRot()), 0);
+
+        poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
+
         main.render(poseStack, bufferSource.getBuffer(r), packedLight, 0);
         poseStack.popPose();
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+
+
     }
 
 
