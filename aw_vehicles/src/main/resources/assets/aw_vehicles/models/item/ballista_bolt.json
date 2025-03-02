@@ -1,6 +1,6 @@
 {
   "parent": "item/handheld",
   "textures": {
-    "layer0": "aw_npc:item/spawn_worker"
+    "layer0": "aw_vehicles:item/ammo_bolt"
   }
 }

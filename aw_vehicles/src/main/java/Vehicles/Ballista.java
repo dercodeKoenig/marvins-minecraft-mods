@@ -70,21 +70,16 @@ public class Ballista extends Entity {
             if (shouldReload)
                 setDrawProcess(getDrawProcess() + 0.05f);
 
-            if (getDrawProcess() == 1 && bolt == null) {
+            if(getDrawProcess() == 1 && bolt == null) {
                 List<BallistaBolt> bolts = level().getEntitiesOfClass(BallistaBolt.class, getBoundingBox());
-                if (!bolts.isEmpty())
+                if (!bolts.isEmpty()) {
                     for (BallistaBolt i : bolts) {
-                        if(!i.shotEnd) {
+                        if (!i.shotEnd) {
                             bolt = bolts.getFirst();
                             break;
                         }
                     }
-                else {
-                    bolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
-                    level().addFreshEntity(bolt);
                 }
-                bolt.owner = this;
-                bolt.setNoGravity(true);
             }
 
             if (controllingEntity != null) {
@@ -176,6 +171,14 @@ public class Ballista extends Entity {
                         bolt.setNoGravity(false);
                         bolt = null;
                         //shouldReload = false;
+                    }else {
+                        if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_BALLISTA_BOLD.get())) {
+                            player.getItemInHand(hand).shrink(1);
+                            bolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
+                            level().addFreshEntity(bolt);
+                            bolt.owner = this;
+                            bolt.setNoGravity(true);
+                        }
                     }
                 } else {
                     shouldReload = true;

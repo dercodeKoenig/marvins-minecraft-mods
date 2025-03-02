@@ -15,6 +15,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import java.io.IOException;
 
 import static Vehicles.Registry.ENTITY_BALLISTA_BOLT;
+import static Vehicles.Registry.ITEM_BALLISTA_BOLD;
 
 
 @Mod(Main.MODID)
@@ -62,7 +63,7 @@ public class Main {
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(Registry.CREATIVETAB.get())) {
-
+e.accept(ITEM_BALLISTA_BOLD.get());
         }
     }
 }

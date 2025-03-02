@@ -37,6 +37,8 @@ public class Registry {
             "ballista_bolt",
             () -> EntityType.Builder.of(BallistaBolt::new, MobCategory.MISC).sized(0.25f,0.25f).build(Main.MODID+":ballista_bolt")
     );
+    public static final Supplier<Item> ITEM_BALLISTA_BOLD = ITEMS.register("ballista_bolt", () -> new Item(new Item.Properties().stacksTo(1).durability(1)));
+
 
     static {
 

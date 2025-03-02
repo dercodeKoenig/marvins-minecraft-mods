@@ -67,6 +67,9 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         main.getChild("armMain").x = (float) (Math.sin(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
         // TODO: y recoil missing
 
+        if(dp > 0){
+            main.getChild("armMain").getChild("crankAxle").xRot = (float) (drawProgress*10);
+        }
 
         float yRotDiff = (float) (entity.client_currentYRot - entity.client_lastYRot);
         float xRotDiff = (float) (entity.client_currentxRot - entity.client_lastxRot);
