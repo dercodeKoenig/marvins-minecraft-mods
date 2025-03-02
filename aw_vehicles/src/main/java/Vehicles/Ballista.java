@@ -92,16 +92,11 @@ boolean shouldReload = false;
                     float yRotCurrent = getYRot();
                     float xRotCurrent = getXRot();
 
-                    float yRotDiff = 99999;
-                    float yRotDiff0 = yRotTarget - yRotCurrent;
-                    float yRotDiff1 = yRotTarget - yRotCurrent - 360;
-                    float yRotDiff2 = yRotTarget - yRotCurrent + 360;
-                    if (Math.abs(yRotDiff0) < Math.abs(yRotDiff))
-                        yRotDiff = yRotDiff0;
-                    if (Math.abs(yRotDiff1) < Math.abs(yRotDiff))
-                        yRotDiff = yRotDiff1;
-                    if (Math.abs(yRotDiff2) < Math.abs(yRotDiff))
-                        yRotDiff = yRotDiff2;
+                    float yRotDiff = yRotTarget - yRotCurrent;
+                    if (Math.abs(yRotDiff - 360) < Math.abs(yRotDiff))
+                        yRotDiff -=360;
+                    if (Math.abs(yRotDiff + 360) < Math.abs(yRotDiff))
+                        yRotDiff += 360;
 
                     float toRotateY = Math.clamp(yRotDiff, -1f, 1f);
 
