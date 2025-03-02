@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
 import java.util.UUID;
 
 public class Ballista extends Entity {
@@ -66,10 +67,15 @@ boolean shouldReload = false;
                 setDrawProcess(getDrawProcess() + 0.05f);
 
             if (getDrawProcess() == 1 && bolt == null) {
-                bolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
+                List<BallistaBolt> bolts = level().getEntitiesOfClass(BallistaBolt.class, getBoundingBox());
+                if (!bolts.isEmpty())
+                    bolt = bolts.getFirst();
+                else {
+                    bolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
+                    level().addFreshEntity(bolt);
+                }
                 bolt.setOwner(this);
                 bolt.setNoGravity(true);
-                level().addFreshEntity(bolt);
             }
 
             if (controllingEntity != null) {
@@ -157,32 +163,24 @@ boolean shouldReload = false;
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
             if (!player.isShiftKeyDown()) {
-                if (!player.getUUID().equals(controllingEntity)) {
-                    controllingEntity = player.getUUID();
-                    //player.startRiding(this);
-                } else if (getDrawProcess() == 1) {
-                    if(bolt != null) {
-                        bolt.setDeltaMovement(getLookAngle());
-                        setDrawProcess(-1);
-                        bolt.setNoGravity(false);
-                        bolt.shouldTick = true;
-                        bolt = null;
-                    }
-                }
-            } else {
-                if(controllingEntity == null) {
-                    if (bolt != null && getDrawProcess() == 1) {
-                        bolt.setDeltaMovement(getLookAngle());
+                if (getDrawProcess() == 1) {
+                    if (bolt != null) {
+                        bolt.setDeltaMovement(getLookAngle().scale(5));
                         setDrawProcess(-1);
                         bolt.setNoGravity(false);
                         bolt.shouldTick = true;
                         bolt = null;
                         shouldReload = false;
                     }
-                    else if(getDrawProcess() != 1)
-                        shouldReload = true;
+                }else{
+                    shouldReload = true;
                 }
-                controllingEntity = null;
+            } else {
+                if (!player.getUUID().equals(controllingEntity)) {
+                    controllingEntity = player.getUUID();
+                } else {
+                    controllingEntity = null;
+                }
             }
         }
         return InteractionResult.SUCCESS;
