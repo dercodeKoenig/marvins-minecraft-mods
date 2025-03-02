@@ -123,7 +123,7 @@ boolean shouldReload = false;
                 }
             }
             if (bolt != null) {
-                bolt.setPos(getPosition(0).add(0, 1.12, 0));
+                bolt.setPos(getPosition(0).add(0, 1, 0));
                 bolt.setXRot(-getXRot());
                 bolt.setYRot(getYRot()-180);
             }
@@ -165,7 +165,7 @@ boolean shouldReload = false;
             if (!player.isShiftKeyDown()) {
                 if (getDrawProcess() == 1) {
                     if (bolt != null) {
-                        bolt.setDeltaMovement(getLookAngle().scale(3));
+                        bolt.setDeltaMovement(getLookAngle().scale(4));
                         setDrawProcess(-1);
                         bolt.setNoGravity(false);
                         bolt = null;

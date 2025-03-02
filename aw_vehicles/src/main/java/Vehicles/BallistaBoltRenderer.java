@@ -44,6 +44,7 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
         poseStack.pushPose();
 
         float scale = 0.2f;
+        poseStack.translate(0,0.125f,0);
         poseStack.scale(scale,scale,scale);
 
         double dx = entity.lx * partialTick;
@@ -52,7 +53,6 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
         poseStack.translate(dx,dy,dz);
 
         main.setRotation((float) (entity.getXRot() / 180 * Math.PI), (float) (entity.getYRot() / 180 * Math.PI), 0);
-        //main.setRotation((float) (entity.getXRot()), (float) (entity.getYRot()), 0);
 
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
 
