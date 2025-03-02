@@ -3,11 +3,7 @@ package Vehicles;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.ModelPart.Cube;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
@@ -17,19 +13,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.item.BowItem;
 import org.joml.Quaternionf;
-
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
@@ -52,6 +37,9 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
     @Override
     public void render(EntityBallista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
+        main = createBodyLayer().bakeRoot();
+
+
         double dp = entity.client_drawProcess - entity.client_drawProcessPrev;
         double drawProgress = Math.clamp(entity.client_drawProcessPrev + dp * partialTick, -1, 1);
 
@@ -59,10 +47,10 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         double recoilOffset = 0.0;
         double recoilOffset2 = 0.0;
 
-        if(entity.ticksAfterShoot > 0) {
-            double v = (entity.ticksAfterShoot - 1 + partialTick);
+        if(entity.clien_ticksAfterShoot > 0) {
+            double v = (entity.clien_ticksAfterShoot - 1 + partialTick);
             double timeSinceShot = 1 * Math.PI + v; // Scale time
-            double amplitude = 20;  // How much it shakes
+            double amplitude = 15;  // How much it shakes
             double damping = 0.15;    // How fast it stops shaking
             if(v > 0.5*Math.PI)
                 recoilOffset = amplitude * Math.exp(-damping * timeSinceShot) * (Math.cos(timeSinceShot));
@@ -78,7 +66,22 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         double p = drawProgress > 0 ? 0.38 : 0.6;
         double stringAngle = -aMin - Math.pow(Math.abs(rA), p) * Math.signum(rA) * 1.305f * a;
 
-        main.getChild("armMain").z = (float) (-2f - recoilOffset2*0.2);
+        // TODO: ADD ROTATION LOGIC
+        //main.getChild("armMain").z = (float) (-2f - recoilOffset2*0.1);
+
+
+        float yRotDiff = 99999;
+        float yRotDiff0 = (float) (entity.client_currentYRot - entity.client_lastYRot);
+        float yRotDiff1 = (float) (entity.client_currentYRot - entity.client_lastYRot - 360);
+        float yRotDiff2 = (float) (entity.client_currentYRot - entity.client_lastYRot + 360);
+        if (Math.abs(yRotDiff0) < Math.abs(yRotDiff))
+            yRotDiff = yRotDiff0;
+        if (Math.abs(yRotDiff1) < Math.abs(yRotDiff))
+            yRotDiff = yRotDiff1;
+        if (Math.abs(yRotDiff2) < Math.abs(yRotDiff))
+            yRotDiff = yRotDiff2;
+        main.getChild("armMain").yRot = (float) ((entity.client_currentYRot + partialTick*yRotDiff) / 180 * Math.PI);
+        main.getChild("armMain").xRot = (float) (entity.getXRot() / 180 * Math.PI);
 
         // ---- APPLY ARM MOVEMENTS ----
         main.getChild("armMain").getChild("armLeftMain").yRot = (float) (a / 180 * Math.PI);
