@@ -34,6 +34,8 @@ public class Ballista extends Entity {
     int clien_ticksAfterShoot = 0;
     double client_lastYRot = 0;
     double client_currentYRot = 0;
+    double client_lastxRot = 0;
+    double client_currentxRot = 0;
 
     UUID controllingEntity;
     boolean shouldReload = false;
@@ -122,7 +124,6 @@ public class Ballista extends Entity {
         if (level().isClientSide) {
 
             client_lastYRot = client_currentYRot;
-
             if (getYRot() < client_currentYRot - 180) {
                 client_currentYRot -= 360;
                 client_lastYRot -= 360;
@@ -132,8 +133,21 @@ public class Ballista extends Entity {
                 client_lastYRot += 360;
             }
             float yRotDiff = (float) (getYRot() - client_currentYRot);
-
             client_currentYRot += (yRotDiff) * 0.3;
+
+
+            client_lastxRot = client_currentxRot;
+            if (getXRot() < client_currentxRot - 180) {
+                client_currentxRot -= 360;
+                client_lastxRot -= 360;
+            }
+            if (getXRot() > client_currentxRot + 180) {
+                client_currentxRot += 360;
+                client_lastxRot += 360;
+            }
+            float xRotDiff = (float) (getXRot() - client_currentxRot);
+            client_currentxRot += (xRotDiff) * 0.3;
+
 
             if (getDrawProcess() <= 0)
                 clien_ticksAfterShoot++;

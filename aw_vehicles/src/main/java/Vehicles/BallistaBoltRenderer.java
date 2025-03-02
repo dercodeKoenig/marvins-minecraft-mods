@@ -49,8 +49,11 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
         double dz = entity.dz * partialTick;
         poseStack.translate(dx,dy,dz);
 
-        main.setRotation((float) (entity.getXRot() / 180 * Math.PI), (float) (entity.getYRot() / 180 * Math.PI), 0);
-
+        float yRotDiff = (float) (entity.client_currentYRot - entity.client_lastYRot);
+        float xRotDiff = (float) (entity.client_currentxRot - entity.client_lastxRot);
+        main.yRot = (float) ((entity.client_currentYRot + partialTick*yRotDiff) / 180 * Math.PI);
+        main.xRot = (float) ((entity.client_currentxRot + partialTick*xRotDiff) / 180 * Math.PI);
+        
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
 
         main.render(poseStack, bufferSource.getBuffer(r), packedLight, 0);

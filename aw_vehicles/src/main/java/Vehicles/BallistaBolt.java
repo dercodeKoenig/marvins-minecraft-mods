@@ -28,6 +28,10 @@ public class BallistaBolt extends Entity {
     public Set<Entity> hitEntities = new HashSet<>();
     public double x, y, z, dx, dy, dz;
     public Entity owner;
+    double client_lastYRot = 0;
+    double client_currentYRot = 0;
+    double client_lastxRot = 0;
+    double client_currentxRot = 0;
 
     protected BallistaBolt(EntityType<?> entityType, Level level) {
         super(Registry.ENTITY_BALLISTA_BOLT.get(), level);
@@ -51,6 +55,7 @@ public class BallistaBolt extends Entity {
 
     @Override
     public void tick() {
+
         dx = getX() - x;
         dy = getY() - y;
         dz = getZ() - z;
@@ -116,6 +121,34 @@ public class BallistaBolt extends Entity {
                 this.setXRot((float) (Mth.atan2(getDeltaMovement().y, getDeltaMovement().horizontalDistance()) * (double) 180.0F / (double) (float) Math.PI));
             applyGravity();
             setPos(position().add(getDeltaMovement()));
+        }
+
+
+        if(level().isClientSide){
+            client_lastYRot = client_currentYRot;
+            if (getYRot() < client_currentYRot - 180) {
+                client_currentYRot -= 360;
+                client_lastYRot -= 360;
+            }
+            if (getYRot() > client_currentYRot + 180) {
+                client_currentYRot += 360;
+                client_lastYRot += 360;
+            }
+            float yRotDiff = (float) (getYRot() - client_currentYRot);
+            client_currentYRot += (yRotDiff) * 0.3;
+
+
+            client_lastxRot = client_currentxRot;
+            if (getXRot() < client_currentxRot - 180) {
+                client_currentxRot -= 360;
+                client_lastxRot -= 360;
+            }
+            if (getXRot() > client_currentxRot + 180) {
+                client_currentxRot += 360;
+                client_lastxRot += 360;
+            }
+            float xRotDiff = (float) (getXRot() - client_currentxRot);
+            client_currentxRot += (xRotDiff) * 0.3;
         }
     }
 

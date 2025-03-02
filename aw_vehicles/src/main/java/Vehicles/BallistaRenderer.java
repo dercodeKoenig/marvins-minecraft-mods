@@ -69,9 +69,9 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
 
         float yRotDiff = (float) (entity.client_currentYRot - entity.client_lastYRot);
-
+        float xRotDiff = (float) (entity.client_currentxRot - entity.client_lastxRot);
         main.getChild("armMain").yRot = (float) ((entity.client_currentYRot + partialTick*yRotDiff) / 180 * Math.PI);
-        main.getChild("armMain").xRot = (float) (entity.getXRot() / 180 * Math.PI);
+        main.getChild("armMain").xRot = (float) ((entity.client_currentxRot + partialTick*xRotDiff) / 180 * Math.PI);
 
         // ---- APPLY ARM MOVEMENTS ----
         main.getChild("armMain").getChild("armLeftMain").yRot = (float) (a / 180 * Math.PI);
