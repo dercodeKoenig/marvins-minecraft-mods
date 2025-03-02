@@ -131,16 +131,17 @@ boolean shouldReload = false;
         if (level().isClientSide) {
 
             client_lastYRot = client_currentYRot;
-            float yRotDiff = 99999;
-            float yRotDiff0 = (float) (getYRot()-client_currentYRot);
-            float yRotDiff1 = (float) (getYRot()-client_currentYRot - 360);
-            float yRotDiff2 = (float) (getYRot()-client_currentYRot + 360);
-            if (Math.abs(yRotDiff0) < Math.abs(yRotDiff))
-                yRotDiff = yRotDiff0;
-            if (Math.abs(yRotDiff1) < Math.abs(yRotDiff))
-                yRotDiff = yRotDiff1;
-            if (Math.abs(yRotDiff2) < Math.abs(yRotDiff))
-                yRotDiff = yRotDiff2;
+
+            if(getYRot() < client_currentYRot - 180){
+                client_currentYRot -= 360;
+                client_lastYRot -=360;
+            }
+            if(getYRot() > client_currentYRot + 180){
+                client_currentYRot += 360;
+                client_lastYRot +=360;
+            }
+            float yRotDiff = (float) (getYRot()-client_currentYRot);
+
             client_currentYRot += (yRotDiff)*0.3;
 
             if (getDrawProcess() <= 0)

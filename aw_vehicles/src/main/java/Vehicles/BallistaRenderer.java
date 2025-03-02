@@ -65,19 +65,11 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
         main.getChild("armMain").z = (float) (Math.cos(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
         main.getChild("armMain").x = (float) (Math.sin(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
-        //main.getChild("armMain").z = (float) Math.abs((entity.getLookAngle().z)*(recoilOffset2*0.1));
+        // TODO: y recoil missing
 
 
-        float yRotDiff = 99999;
-        float yRotDiff0 = (float) (entity.client_currentYRot - entity.client_lastYRot);
-        float yRotDiff1 = (float) (entity.client_currentYRot - entity.client_lastYRot - 360);
-        float yRotDiff2 = (float) (entity.client_currentYRot - entity.client_lastYRot + 360);
-        if (Math.abs(yRotDiff0) < Math.abs(yRotDiff))
-            yRotDiff = yRotDiff0;
-        if (Math.abs(yRotDiff1) < Math.abs(yRotDiff))
-            yRotDiff = yRotDiff1;
-        if (Math.abs(yRotDiff2) < Math.abs(yRotDiff))
-            yRotDiff = yRotDiff2;
+        float yRotDiff = (float) (entity.client_currentYRot - entity.client_lastYRot);
+
         main.getChild("armMain").yRot = (float) ((entity.client_currentYRot + partialTick*yRotDiff) / 180 * Math.PI);
         main.getChild("armMain").xRot = (float) (entity.getXRot() / 180 * Math.PI);
 
