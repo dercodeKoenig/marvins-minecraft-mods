@@ -67,7 +67,10 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         double stringAngle = -aMin - Math.pow(Math.abs(rA), p) * Math.signum(rA) * 1.305f * a;
 
         // TODO: ADD ROTATION LOGIC
-        //main.getChild("armMain").z = (float) (-2f - recoilOffset2*0.1);
+
+        main.getChild("armMain").z = (float) (Math.cos(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
+        main.getChild("armMain").x = (float) (Math.sin(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
+        //main.getChild("armMain").z = (float) Math.abs((entity.getLookAngle().z)*(recoilOffset2*0.1));
 
 
         float yRotDiff = 99999;

@@ -74,7 +74,7 @@ public class EntityBallista extends Entity {
                 //    controllingEntity = null;
                 //}
 
-                setDrawProcess(getDrawProcess() + 0.01f);
+                setDrawProcess(getDrawProcess() + 0.05f);
                 //if (getDrawProcess() > 1.05) {
                 //    setDrawProcess(-1);
                 //}
@@ -104,21 +104,24 @@ public class EntityBallista extends Entity {
                     float xRotDiff0 = xRotTarget - xRotCurrent;
                     float xRotDiff1 = xRotTarget - xRotCurrent - 360;
                     float xRotDiff2 = xRotTarget - xRotCurrent + 360;
-                    if (Math.abs(yRotDiff0) < Math.abs(xRotDiff))
+                    if (Math.abs(xRotDiff0) < Math.abs(xRotDiff))
                         xRotDiff = xRotDiff0;
-                    if (Math.abs(yRotDiff1) < Math.abs(xRotDiff))
+                    if (Math.abs(xRotDiff1) < Math.abs(xRotDiff))
                         xRotDiff = xRotDiff1;
-                    if (Math.abs(yRotDiff2) < Math.abs(xRotDiff))
+                    if (Math.abs(xRotDiff2) < Math.abs(xRotDiff))
                         xRotDiff = xRotDiff2;
 
-                    float toRotateX = Math.clamp(xRotDiff, -1f, 1f);
+                    float toRotateX = Math.clamp(xRotDiff, -3f, 3f);
                     setXRot(xRotCurrent + toRotateX);
 
 
                     //Vec3 targetPos = getPosition(0).subtract(calculateViewVector(0,yRotTarget).scale(2));
-                    Vec3 targetPos = getPosition(0).subtract(getLookAngle().scale(2));
+                    Vec3 look = getLookAngle();
+                    Vec3 lookNoY = new Vec3(look.x,0,look.z);
 
-                    controller.teleportTo(targetPos.x, controller.getY(), targetPos.z);
+                    Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2));
+
+                    controller.teleportTo(targetPos.x, getY(), targetPos.z);
 
                 } else controllingEntity = null;
             }
