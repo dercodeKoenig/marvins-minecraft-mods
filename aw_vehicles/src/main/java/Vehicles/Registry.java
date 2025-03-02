@@ -30,7 +30,7 @@ public class Registry {
 
     public static final Supplier<EntityType<EntityBallista>> ENTITY_BALLISTA = ENTITIES.register(
             "ballista",
-            () -> EntityType.Builder.of(EntityBallista::new, MobCategory.MISC).build(Main.MODID+":ballista")
+            () -> EntityType.Builder.of(EntityBallista::new, MobCategory.MISC).sized(1,2).build(Main.MODID+":ballista")
     );
 
     static {

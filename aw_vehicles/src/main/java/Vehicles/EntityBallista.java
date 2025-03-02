@@ -25,6 +25,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -61,18 +62,18 @@ public class EntityBallista extends Entity {
     @Override
     public void tick() {
         super.tick();
+
         if (level() instanceof ServerLevel serverLevel) {
 
             applyGravity();
             Vec3 vec3d1 = this.getDeltaMovement();
             this.move(MoverType.SELF, new Vec3(vec3d1.x, vec3d1.y, vec3d1.z));
 
-
             if (controllingEntity != null) {
                 Entity controller = serverLevel.getEntity(controllingEntity);
-                //if(controller.getPosition(0).distanceTo(getPosition(0))>3){
-                //    controllingEntity = null;
-                //}
+                if(controller.getPosition(0).distanceTo(getPosition(0))>4){
+                    controllingEntity = null;
+                }
 
                 setDrawProcess(getDrawProcess() + 0.05f);
                 //if (getDrawProcess() > 1.05) {
@@ -111,7 +112,7 @@ public class EntityBallista extends Entity {
                     if (Math.abs(xRotDiff2) < Math.abs(xRotDiff))
                         xRotDiff = xRotDiff2;
 
-                    float toRotateX = Math.clamp(xRotDiff, -3f, 3f);
+                    float toRotateX = Math.clamp(xRotDiff, -5f, 5f);
                     setXRot(xRotCurrent + toRotateX);
 
 
@@ -121,7 +122,7 @@ public class EntityBallista extends Entity {
 
                     Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2));
 
-                    controller.teleportTo(targetPos.x, getY(), targetPos.z);
+                    //controller.teleportTo(targetPos.x, getY(), targetPos.z);
 
                 } else controllingEntity = null;
             }
@@ -160,24 +161,25 @@ public class EntityBallista extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
-            if(!player.isShiftKeyDown()) {
-                if(!player.getUUID().equals(controllingEntity))
+            if (!player.isShiftKeyDown()) {
+                if (!player.getUUID().equals(controllingEntity)) {
                     controllingEntity = player.getUUID();
-                else
-                    if(getDrawProcess() == 1) {
+                    //player.startRiding(this);
+                } else if (getDrawProcess() == 1) {
 
-                        AbstractArrow a = new Arrow(level(), player,new ItemStack(Items.ARROW), null){
-                            protected void onHitEntity(EntityHitResult result){
-                                System.out.println(result.getEntity());
-                                if(result.getEntity().equals(EntityBallista.this) || result.getEntity().equals(player))return;
-                                super.onHitEntity(result);
-                            }
-                            };
-                        level().addFreshEntity(a);
-                        a.shoot(getLookAngle().x, getLookAngle().y, getLookAngle().z, 8, 1);
-setDrawProcess(-1);
-                    }
-            }else{
+                    AbstractArrow a = new Arrow(level(), player, new ItemStack(Items.ARROW), null) {
+                        protected void onHitEntity(EntityHitResult result) {
+                            System.out.println(result.getEntity());
+                            if (result.getEntity().equals(EntityBallista.this) || result.getEntity().equals(player))
+                                return;
+                            super.onHitEntity(result);
+                        }
+                    };
+                    level().addFreshEntity(a);
+                    a.shoot(getLookAngle().x, getLookAngle().y, getLookAngle().z, 8, 1);
+                    setDrawProcess(-1);
+                }
+            } else {
                 controllingEntity = null;
             }
         }
@@ -190,6 +192,13 @@ setDrawProcess(-1);
         return (double) 0.1F;
     }
 
+    public Vec3 getPassengerRidingPosition(Entity entity) {
+        Vec3 look = calculateViewVector((float) getX(), (float) client_currentYRot);
+        Vec3 lookNoY = new Vec3(look.x,0,look.z);
+
+        Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2)).add(new Vec3(0,0.5,0));
+        return targetPos;
+    }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
