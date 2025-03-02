@@ -14,6 +14,8 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
+import static Vehicles.Registry.ENTITY_BALLISTA_BOLT;
+
 
 @Mod(Main.MODID)
 public class Main {
@@ -48,6 +50,7 @@ public class Main {
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(Registry.ENTITY_BALLISTA.get(), BallistaRenderer::new);
+        event.registerEntityRenderer(Registry.ENTITY_BALLISTA_BOLT.get(), BallistaBoltRenderer::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {

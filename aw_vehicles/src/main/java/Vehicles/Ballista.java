@@ -1,14 +1,10 @@
 package Vehicles;
 
-import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -18,23 +14,18 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Arrow;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.entity.vehicle.Minecart;
-import net.minecraft.world.item.ArrowItem;
-import net.minecraft.world.item.BowItem;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.UUID;
 
-public class EntityBallista extends Entity {
+public class Ballista extends Entity {
 
-    private static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(EntityBallista.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.FLOAT);
 
 
     float client_drawProcess;
@@ -44,8 +35,10 @@ public class EntityBallista extends Entity {
     double client_currentYRot = 0;
 
     UUID controllingEntity;
+boolean shouldReload = false;
+    BallistaBolt bolt = null;
 
-    public EntityBallista(EntityType<EntityBallista> entityType, Level level) {
+    public Ballista(EntityType<Ballista> entityType, Level level) {
         super(entityType, level);
     }
 
@@ -69,18 +62,24 @@ public class EntityBallista extends Entity {
             Vec3 vec3d1 = this.getDeltaMovement();
             this.move(MoverType.SELF, new Vec3(vec3d1.x, vec3d1.y, vec3d1.z));
 
+            if (shouldReload)
+                setDrawProcess(getDrawProcess() + 0.05f);
+
+            if (getDrawProcess() == 1 && bolt == null) {
+                bolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
+                bolt.setOwner(this);
+                bolt.setNoGravity(true);
+                level().addFreshEntity(bolt);
+            }
+
             if (controllingEntity != null) {
                 Entity controller = serverLevel.getEntity(controllingEntity);
-                if(controller.getPosition(0).distanceTo(getPosition(0))>4){
+
+                if (controller.getPosition(0).distanceTo(getPosition(0)) > 4 || !(controller instanceof LivingEntity)) {
                     controllingEntity = null;
-                }
+                } else {
+                    shouldReload = true;
 
-                setDrawProcess(getDrawProcess() + 0.05f);
-                //if (getDrawProcess() > 1.05) {
-                //    setDrawProcess(-1);
-                //}
-
-                if (controller instanceof LivingEntity l) {
                     float yRotTarget = controller.getYRot();
                     float xRotTarget = controller.getXRot();
 
@@ -98,8 +97,8 @@ public class EntityBallista extends Entity {
                     if (Math.abs(yRotDiff2) < Math.abs(yRotDiff))
                         yRotDiff = yRotDiff2;
 
+
                     float toRotateY = Math.clamp(yRotDiff, -1f, 1f);
-                    setYRot(yRotCurrent + toRotateY);
 
                     float xRotDiff = 99999;
                     float xRotDiff0 = xRotTarget - xRotCurrent;
@@ -113,18 +112,14 @@ public class EntityBallista extends Entity {
                         xRotDiff = xRotDiff2;
 
                     float toRotateX = Math.clamp(xRotDiff, -5f, 5f);
-                    setXRot(xRotCurrent + toRotateX);
 
-
-                    //Vec3 targetPos = getPosition(0).subtract(calculateViewVector(0,yRotTarget).scale(2));
-                    Vec3 look = getLookAngle();
-                    Vec3 lookNoY = new Vec3(look.x,0,look.z);
-
-                    Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2));
-
-                    //controller.teleportTo(targetPos.x, getY(), targetPos.z);
-
-                } else controllingEntity = null;
+                    setRot(yRotCurrent + toRotateY, xRotCurrent + toRotateX);
+                }
+            }
+            if (bolt != null) {
+                bolt.setPos(getPosition(0).add(0, 1.12, 0));
+                bolt.setXRot(-getXRot());
+                bolt.setYRot(getYRot()-180);
             }
         }
         if (level().isClientSide) {
@@ -166,20 +161,27 @@ public class EntityBallista extends Entity {
                     controllingEntity = player.getUUID();
                     //player.startRiding(this);
                 } else if (getDrawProcess() == 1) {
-
-                    AbstractArrow a = new Arrow(level(), player, new ItemStack(Items.ARROW), null) {
-                        protected void onHitEntity(EntityHitResult result) {
-                            System.out.println(result.getEntity());
-                            if (result.getEntity().equals(EntityBallista.this) || result.getEntity().equals(player))
-                                return;
-                            super.onHitEntity(result);
-                        }
-                    };
-                    level().addFreshEntity(a);
-                    a.shoot(getLookAngle().x, getLookAngle().y, getLookAngle().z, 8, 1);
-                    setDrawProcess(-1);
+                    if(bolt != null) {
+                        bolt.setDeltaMovement(getLookAngle().x, getLookAngle().y, getLookAngle().z);
+                        setDrawProcess(-1);
+                        bolt.setNoGravity(false);
+                        bolt.shouldTick = true;
+                        bolt = null;
+                    }
                 }
             } else {
+                if(controllingEntity == null) {
+                    if (bolt != null && getDrawProcess() == 1) {
+                        bolt.setDeltaMovement(getLookAngle().x, getLookAngle().y, getLookAngle().z);
+                        setDrawProcess(-1);
+                        bolt.setNoGravity(false);
+                        bolt.shouldTick = true;
+                        bolt = null;
+                        shouldReload = false;
+                    }
+                    if(getDrawProcess() != 1)
+                        shouldReload = true;
+                }
                 controllingEntity = null;
             }
         }

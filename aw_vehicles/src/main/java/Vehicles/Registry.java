@@ -28,9 +28,14 @@ public class Registry {
     );
 
 
-    public static final Supplier<EntityType<EntityBallista>> ENTITY_BALLISTA = ENTITIES.register(
+    public static final Supplier<EntityType<Ballista>> ENTITY_BALLISTA = ENTITIES.register(
             "ballista",
-            () -> EntityType.Builder.of(EntityBallista::new, MobCategory.MISC).sized(1,2).build(Main.MODID+":ballista")
+            () -> EntityType.Builder.of(Ballista::new, MobCategory.MISC).sized(1,2).build(Main.MODID+":ballista")
+    );
+
+    public static final Supplier<EntityType<BallistaBolt>> ENTITY_BALLISTA_BOLT = ENTITIES.register(
+            "ballista_bolt",
+            () -> EntityType.Builder.of(BallistaBolt::new, MobCategory.MISC).sized(0.25f,0.25f).build(Main.MODID+":ballista_bolt")
     );
 
     static {

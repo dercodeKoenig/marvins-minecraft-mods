@@ -18,7 +18,7 @@ import org.joml.Quaternionf;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class BallistaRenderer extends EntityRenderer<EntityBallista> {
+public class BallistaRenderer extends EntityRenderer<Ballista> {
 
     RenderType r;
     ModelPart main;
@@ -35,10 +35,7 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
     }
 
     @Override
-    public void render(EntityBallista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-
-        main = createBodyLayer().bakeRoot();
-
+    public void render(Ballista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
         double dp = entity.client_drawProcess - entity.client_drawProcessPrev;
         double drawProgress = Math.clamp(entity.client_drawProcessPrev + dp * partialTick, -1, 1);
@@ -65,8 +62,6 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
         double rA = (a - aMin) / (aMax - aMin);
         double p = drawProgress > 0 ? 0.38 : 0.6;
         double stringAngle = -aMin - Math.pow(Math.abs(rA), p) * Math.signum(rA) * 1.305f * a;
-
-        // TODO: ADD ROTATION LOGIC
 
         main.getChild("armMain").z = (float) (Math.cos(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
         main.getChild("armMain").x = (float) (Math.sin(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
@@ -106,7 +101,7 @@ public class BallistaRenderer extends EntityRenderer<EntityBallista> {
 
 
     @Override
-    public ResourceLocation getTextureLocation(EntityBallista entityBallista) {
+    public ResourceLocation getTextureLocation(Ballista entityBallista) {
         return ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/entity/ballista_stand_3.png");
     }
 
