@@ -36,7 +36,7 @@ public class Ballista extends Entity {
     double client_currentYRot = 0;
 
     UUID controllingEntity;
-boolean shouldReload = false;
+    boolean shouldReload = false;
     BallistaBolt bolt = null;
 
     public Ballista(EntityType<Ballista> entityType, Level level) {
@@ -49,12 +49,14 @@ boolean shouldReload = false;
     }
 
     public void setDrawProcess(float process) {
-        process = Math.clamp(process,-1,1);
+        process = Math.clamp(process, -1, 1);
         getEntityData().set(DRAW_PROGRESS, process);
     }
 
     @Override
     public void tick() {
+        Vec3 c =  blockPosition().getCenter();
+        setPos(c.x,getY(),c.z);
         super.tick();
 
         if (level() instanceof ServerLevel serverLevel) {
@@ -69,12 +71,17 @@ boolean shouldReload = false;
             if (getDrawProcess() == 1 && bolt == null) {
                 List<BallistaBolt> bolts = level().getEntitiesOfClass(BallistaBolt.class, getBoundingBox());
                 if (!bolts.isEmpty())
-                    bolt = bolts.getFirst();
+                    for (BallistaBolt i : bolts) {
+                        if(!i.shotEnd) {
+                            bolt = bolts.getFirst();
+                            break;
+                        }
+                    }
                 else {
                     bolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
                     level().addFreshEntity(bolt);
                 }
-                bolt.setOwner(this);
+                bolt.owner = this;
                 bolt.setNoGravity(true);
             }
 
@@ -94,7 +101,7 @@ boolean shouldReload = false;
 
                     float yRotDiff = yRotTarget - yRotCurrent;
                     if (Math.abs(yRotDiff - 360) < Math.abs(yRotDiff))
-                        yRotDiff -=360;
+                        yRotDiff -= 360;
                     if (Math.abs(yRotDiff + 360) < Math.abs(yRotDiff))
                         yRotDiff += 360;
 
@@ -109,24 +116,24 @@ boolean shouldReload = false;
             if (bolt != null) {
                 bolt.setPos(getPosition(0).add(0, 1, 0));
                 bolt.setXRot(-getXRot());
-                bolt.setYRot(getYRot()-180);
+                bolt.setYRot(getYRot() - 180);
             }
         }
         if (level().isClientSide) {
 
             client_lastYRot = client_currentYRot;
 
-            if(getYRot() < client_currentYRot - 180){
+            if (getYRot() < client_currentYRot - 180) {
                 client_currentYRot -= 360;
-                client_lastYRot -=360;
+                client_lastYRot -= 360;
             }
-            if(getYRot() > client_currentYRot + 180){
+            if (getYRot() > client_currentYRot + 180) {
                 client_currentYRot += 360;
-                client_lastYRot +=360;
+                client_lastYRot += 360;
             }
-            float yRotDiff = (float) (getYRot()-client_currentYRot);
+            float yRotDiff = (float) (getYRot() - client_currentYRot);
 
-            client_currentYRot += (yRotDiff)*0.3;
+            client_currentYRot += (yRotDiff) * 0.3;
 
             if (getDrawProcess() <= 0)
                 clien_ticksAfterShoot++;
@@ -156,7 +163,7 @@ boolean shouldReload = false;
                         bolt = null;
                         //shouldReload = false;
                     }
-                }else{
+                } else {
                     shouldReload = true;
                 }
             } else {
@@ -178,9 +185,9 @@ boolean shouldReload = false;
 
     public Vec3 getPassengerRidingPosition(Entity entity) {
         Vec3 look = calculateViewVector((float) getX(), (float) client_currentYRot);
-        Vec3 lookNoY = new Vec3(look.x,0,look.z);
+        Vec3 lookNoY = new Vec3(look.x, 0, look.z);
 
-        Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2)).add(new Vec3(0,0.5,0));
+        Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2)).add(new Vec3(0, 0.5, 0));
         return targetPos;
     }
 
@@ -207,5 +214,4 @@ boolean shouldReload = false;
     public boolean isPickable() {
         return !this.isRemoved();
     }
-
 }

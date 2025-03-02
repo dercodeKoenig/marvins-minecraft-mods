@@ -1,61 +1,64 @@
 package Vehicles;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.event.EventHooks;
 
-public class BallistaBolt extends AbstractArrow {
-    public boolean shouldTick = false;
-    double x, y, z, lx, ly, lz;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
-    protected BallistaBolt(EntityType<? extends Projectile> entityType, Level level) {
+public class BallistaBolt extends Entity {
+    public boolean shotEnd = false;
+    public Set<Entity> hitEntities = new HashSet<>();
+    public double x, y, z, dx, dy, dz;
+    public Entity owner;
+
+    protected BallistaBolt(EntityType<?> entityType, Level level) {
         super(Registry.ENTITY_BALLISTA_BOLT.get(), level);
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
+        //super.defineSynchedData(builder);
     }
 
-    @Override
+    //@Override
     protected ItemStack getDefaultPickupItem() {
         return new ItemStack(Items.ARROW);
     }
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        if (entity.equals(getOwner())) return false;
+        if (entity.equals(owner)) return false;
         return super.canCollideWith(entity);
     }
 
     @Override
     public void tick() {
-        lx = getX() - x;
-        ly = getY() - y;
-        lz = getZ() - z;
+        dx = getX() - x;
+        dy = getY() - y;
+        dz = getZ() - z;
         x = getX();
         y = getY();
         z = getZ();
 
-        inGround = false;
+        boolean inGround = false;
         // prevent it from beeing inside the block and having packedlight of 0
         Vec3 posOffset = position().subtract(getLookAngle().normalize().scale(0.05));
         int i = Mth.floor(posOffset.x);
@@ -68,7 +71,8 @@ public class BallistaBolt extends AbstractArrow {
             if (!voxelshape.isEmpty()) {
                 for (AABB aabb : voxelshape.toAabbs()) {
                     if (aabb.move(blockpos).contains(posOffset)) {
-                        this.inGround = true;
+                        inGround = true;
+                        shotEnd = true;
                         setDeltaMovement(Vec3.ZERO);
                         break;
                     }
@@ -87,6 +91,9 @@ public class BallistaBolt extends AbstractArrow {
                     setPos(hitresult.getLocation().add(getDeltaMovement().normalize().scale(-0.01)));
                     setDeltaMovement(Vec3.ZERO);
                     inGround = true;
+                    if(!shotEnd){
+                        // whatever here
+                    }
                 }
             }
 
@@ -94,8 +101,12 @@ public class BallistaBolt extends AbstractArrow {
             if (entityhitresult != null) {
                 Entity entity = entityhitresult.getEntity();
                 System.out.println(entity.getName().getString());
-                if (entity != getOwner()) {
-                    System.out.println("hit entity");
+                if (entity != owner && owner != null) {
+                    if(!shotEnd && ! hitEntities.contains(entity)) {
+                        hitEntities.add(entity);
+                        entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW),null, owner,owner.position()),50);
+                        System.out.println("hit entity");
+                    }
                 }
             }
         }
@@ -106,5 +117,17 @@ public class BallistaBolt extends AbstractArrow {
             applyGravity();
             setPos(position().add(getDeltaMovement()));
         }
+    }
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+        if (compoundTag.contains("shotEnd")) {
+            shotEnd = compoundTag.getBoolean("shotEnd");
+        }
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+        compoundTag.putBoolean("shotEnd", shotEnd);
     }
 }

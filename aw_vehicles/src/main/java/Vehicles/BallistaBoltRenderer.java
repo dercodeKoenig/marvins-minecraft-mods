@@ -2,9 +2,7 @@ package Vehicles;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -16,7 +14,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -47,9 +44,9 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
         poseStack.translate(0,0.125f,0);
         poseStack.scale(scale,scale,scale);
 
-        double dx = entity.lx * partialTick;
-        double dy = entity.ly * partialTick;
-        double dz = entity.lz * partialTick;
+        double dx = entity.dx * partialTick;
+        double dy = entity.dy * partialTick;
+        double dz = entity.dz * partialTick;
         poseStack.translate(dx,dy,dz);
 
         main.setRotation((float) (entity.getXRot() / 180 * Math.PI), (float) (entity.getYRot() / 180 * Math.PI), 0);
