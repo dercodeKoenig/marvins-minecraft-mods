@@ -165,12 +165,11 @@ boolean shouldReload = false;
             if (!player.isShiftKeyDown()) {
                 if (getDrawProcess() == 1) {
                     if (bolt != null) {
-                        bolt.setDeltaMovement(getLookAngle().scale(5));
+                        bolt.setDeltaMovement(getLookAngle().scale(3));
                         setDrawProcess(-1);
                         bolt.setNoGravity(false);
-                        bolt.shouldTick = true;
                         bolt = null;
-                        shouldReload = false;
+                        //shouldReload = false;
                     }
                 }else{
                     shouldReload = true;

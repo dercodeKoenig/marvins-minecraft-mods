@@ -40,7 +40,7 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
     @Override
     public void render(BallistaBolt entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
-        main = createBodyLayer().bakeRoot();
+        //main = createBodyLayer().bakeRoot();
         poseStack.pushPose();
 
         float scale = 0.2f;

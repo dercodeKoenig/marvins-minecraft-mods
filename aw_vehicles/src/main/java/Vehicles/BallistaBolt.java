@@ -18,10 +18,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.event.EventHooks;
 
@@ -59,15 +56,18 @@ public class BallistaBolt extends AbstractArrow {
         z = getZ();
 
         inGround = false;
-        BlockPos blockpos = this.blockPosition();
+        // prevent it from beeing inside the block and having packedlight of 0
+        Vec3 posOffset = position().subtract(getLookAngle().normalize().scale(0.05));
+        int i = Mth.floor(posOffset.x);
+        int j = Mth.floor(posOffset.y);
+        int k = Mth.floor(posOffset.z);
+        BlockPos blockpos = new BlockPos(i, j, k);
         BlockState blockstate = this.level().getBlockState(blockpos);
         if (!blockstate.isAir()) {
             VoxelShape voxelshape = blockstate.getCollisionShape(this.level(), blockpos);
             if (!voxelshape.isEmpty()) {
-                Vec3 vec31 = this.position();
-
                 for (AABB aabb : voxelshape.toAabbs()) {
-                    if (aabb.move(blockpos).contains(vec31)) {
+                    if (aabb.move(blockpos).contains(posOffset)) {
                         this.inGround = true;
                         setDeltaMovement(Vec3.ZERO);
                         break;
@@ -82,25 +82,29 @@ public class BallistaBolt extends AbstractArrow {
             HitResult hitresult = this.level().clip(new ClipContext(vec32, vec33, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
 
             if (hitresult.getType() != HitResult.Type.MISS) {
-                vec33 = hitresult.getLocation();
-                // hit
+                System.out.println("hit");
+                if (hitresult instanceof BlockHitResult b) {
+                    setPos(hitresult.getLocation().add(getDeltaMovement().normalize().scale(-0.01)));
+                    setDeltaMovement(Vec3.ZERO);
+                    inGround = true;
+                }
             }
 
-            EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(this.level(), this, vec32, vec33, this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate((double)10.0F), (x)->true);
+            EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(this.level(), this, vec32, vec33, this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate((double) 10.0F), (x) -> true);
             if (entityhitresult != null) {
                 Entity entity = entityhitresult.getEntity();
                 System.out.println(entity.getName().getString());
                 if (entity != getOwner()) {
-                    // hit entity
+                    System.out.println("hit entity");
                 }
             }
+        }
 
-
+        if (!inGround) {
             if (getDeltaMovement().lengthSqr() > 0)
                 this.setXRot((float) (Mth.atan2(getDeltaMovement().y, getDeltaMovement().horizontalDistance()) * (double) 180.0F / (double) (float) Math.PI));
-
             applyGravity();
-            setPos(getPosition(0).add(getDeltaMovement()));
+            setPos(position().add(getDeltaMovement()));
         }
     }
 }
