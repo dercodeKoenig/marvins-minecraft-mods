@@ -1,3 +1,6 @@
 {
-  "item.aw_vehicles.ballista_bolt": "Ballista Bolt"
+  "item.aw_vehicles.ballista_bolt": "Ballista Bolt",
+  "item.aw_vehicles.ballista": "Ballista",
+  "item.aw_vehicles.ballista_damaged": "Damaged Ballista",
+  "item.aw_vehicles.ballista_repair": "Ballista Repair"
 }

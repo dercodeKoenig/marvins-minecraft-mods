@@ -41,6 +41,8 @@ public class Registry {
 
     public static final Supplier<Item> ITEM_BALLISTA_SPAWN = ITEMS.register("ballista", () -> new BallistaSpawnItem(new Item.Properties().stacksTo(1)));
 
+    public static final Supplier<Item> ITEM_BALLISTA_REPAIR = ITEMS.register("ballista_repair", () -> new Item(new Item.Properties().stacksTo(1)));
+
 
     static {
 

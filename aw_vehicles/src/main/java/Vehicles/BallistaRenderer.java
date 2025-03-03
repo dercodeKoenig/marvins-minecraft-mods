@@ -36,7 +36,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
     @Override
     public void render(Ballista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-
+        main = createBodyLayer().bakeRoot();
         double dp = entity.client_drawProgress - entity.client_drawProgressPrev;
         double drawProgress = Math.clamp(entity.client_drawProgressPrev + dp * partialTick, -1, 1);
 
@@ -91,7 +91,6 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
             main.getChild("armMain").getChild("trigger1").xRot=  (float) (-20f/180*Math.PI);
 
         int bp = entity.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS);
-        //System.out.println(bp);
         main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").visible = bp >= 17;
         main.getChild("armMain").getChild("armRightMain").getChild("stringRight").visible = bp >= 17;
         main.getChild("armMain").getChild("crankAxle").visible = bp >= 16;
@@ -116,6 +115,28 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         main.getChild("armMain").getChild("armSlotRight").visible = bp >= 3;
         main.getChild("armMain").getChild("armMidBrace").visible = bp >= 2;
         main.getChild("armMain").visible = bp >= 1;
+
+        if(entity.getEntityData().get(Ballista.IS_BROKEN)){
+            main.getChild("armMain").getChild("armLeftMain").yRot=-2.3f;
+            main.getChild("armMain").getChild("turretHorizontalBrace4").xRot=0.4f;
+            main.getChild("armMain").getChild("turretHorizontalBrace4").yRot=0.4f;
+            main.getChild("armMain").getChild("rightTensionerRope").xRot=0.4f;
+            main.getChild("armMain").getChild("rightTensionerRope").z=-6.5f;
+            main.getChild("armMain").getChild("armRightMain").xRot = 0.4f;
+            main.getChild("armMain").getChild("armRightMain").yRot = -1.2f;
+            main.getChild("armMain").getChild("armRightMain").zRot = -0.5f;
+            main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").visible = false;
+            main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot=0;
+            main.getChild("armMain").getChild("armRightMain").getChild("stringRight").zRot=1.6f;
+        }else{
+            main.getChild("armMain").getChild("rightTensionerRope").z=-6.0f;
+            main.getChild("armMain").getChild("turretHorizontalBrace4").xRot=0f;
+            main.getChild("armMain").getChild("turretHorizontalBrace4").yRot=0f;
+            main.getChild("armMain").getChild("rightTensionerRope").xRot=0f;
+            main.getChild("armMain").getChild("armRightMain").xRot = 0f;
+            main.getChild("armMain").getChild("armRightMain").zRot = 0f;
+            main.getChild("armMain").getChild("armRightMain").getChild("stringRight").zRot=0f;
+        }
 
         // ---- FINAL RENDER ----
         poseStack.pushPose();

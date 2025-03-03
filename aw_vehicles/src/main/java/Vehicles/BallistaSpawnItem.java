@@ -1,8 +1,19 @@
 package Vehicles;
 
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
+
+import static Vehicles.Ballista.CONSTRUCTION_PROGRESS;
+import static Vehicles.Ballista.IS_BROKEN;
+import static Vehicles.Utils.getStackTagOrEmpty;
 
 public class BallistaSpawnItem extends Item {
     public BallistaSpawnItem(Properties properties) {
@@ -14,8 +25,18 @@ public class BallistaSpawnItem extends Item {
         ballista.setYRot(context.getRotation());
         ballista.setPos(context.getClickLocation());
         context.getLevel().addFreshEntity(ballista);
+
+        CompoundTag tag = getStackTagOrEmpty(context.getItemInHand());
+        if(tag.contains("isBroken"))
+            ballista.getEntityData().set(IS_BROKEN, tag.getBoolean("isBroken"));
+        if(tag.contains("constructionProgress"))
+            ballista.getEntityData().set(CONSTRUCTION_PROGRESS, tag.getInt("constructionProgress"));
+
+
         context.getItemInHand().shrink(1);
         return InteractionResult.SUCCESS;
     }
+
+
 
 }

@@ -28,7 +28,7 @@ public class Ballista extends Entity {
 
     public static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Integer> CONSTRUCTION_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.INT);
-    //public static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.BOOLEAN);
 
 
     float client_drawProgress;
@@ -61,19 +61,20 @@ public class Ballista extends Entity {
     }
 
     @Override
-    public void onAddedToLevel(){
+    public void onAddedToLevel() {
         super.onAddedToLevel();
         checkExistingBolt();
     }
 
-    public void setBoltPosition(){
+    public void setBoltPosition() {
         if (bolt != null) {
             bolt.setPos(getPosition(0).add(0, 1, 0));
             bolt.setXRot(-getXRot());
             bolt.setYRot(getYRot() - 180);
         }
     }
-    public void checkExistingBolt(){
+
+    public void checkExistingBolt() {
         if (getDrawProgress() == 1 && bolt == null) {
             List<BallistaBolt> bolts = level().getEntitiesOfClass(BallistaBolt.class, getBoundingBox());
             if (!bolts.isEmpty()) {
@@ -103,12 +104,11 @@ public class Ballista extends Entity {
             Vec3 vec3d1 = this.getDeltaMovement();
             this.move(MoverType.SELF, new Vec3(vec3d1.x, vec3d1.y, vec3d1.z));
 
-            if(getDrawProgress() < 0){
-                setDrawProgress(Math.min(getDrawProgress() + 0.05f,0));
-            }
-            else if (reloadTicksRemaining > 0) {
+            if (getDrawProgress() < 0) {
+                setDrawProgress(Math.min(getDrawProgress() + 0.05f, 0));
+            } else if (reloadTicksRemaining > 0) {
                 setDrawProgress(getDrawProgress() + 0.02f);
-                reloadTicksRemaining -=1;
+                reloadTicksRemaining -= 1;
             }
 
             if (controllingEntity != null) {
@@ -186,15 +186,24 @@ public class Ballista extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
-            if(player.getItemInHand(hand).getItem() instanceof ItemHammer && player.isShiftKeyDown()) {
-                if(bolt != null){
-                    Block.popResource(level(),blockPosition(),new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
-                    bolt.discard();
+            if (player.getItemInHand(hand).getItem() instanceof ItemHammer && player.isShiftKeyDown()) {
+                // deconstruct
+                getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) - 1);
+                if (getEntityData().get(CONSTRUCTION_PROGRESS) == 0) {
+                    if (bolt != null) {
+                        Block.popResource(level(), blockPosition(), new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
+                        bolt.discard();
+                    }
+                    ItemStack ballistaStack = new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get());
+                    CompoundTag t = new CompoundTag();
+                    t.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
+                    t.putInt("constructionProgress", getEntityData().get(CONSTRUCTION_PROGRESS));
+                    Utils.setStackTag(ballistaStack, t);
+                    Block.popResource(level(), blockPosition(), ballistaStack);
+                    discard();
                 }
-                Block.popResource(level(),blockPosition(),new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get()));
-                discard();
-            }
-            else if(getEntityData().get(CONSTRUCTION_PROGRESS) == 17) {
+            } else if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17 && !getEntityData().get(IS_BROKEN)) {
+                // use
                 if (!player.isShiftKeyDown()) {
                     if (getDrawProgress() == 1) {
                         if (bolt != null) {
@@ -212,8 +221,9 @@ public class Ballista extends Entity {
                             }
                         }
                     } else {
-                        if (player.getItemInHand(hand).isEmpty())
+                        if (player.getItemInHand(hand).isEmpty()) {
                             reloadTicksRemaining = 5;
+                        }
                     }
                 } else {
                     if (!player.getUUID().equals(controllingEntity)) {
@@ -222,17 +232,25 @@ public class Ballista extends Entity {
                         controllingEntity = null;
                     }
                 }
-            }else{
-                if(player.getItemInHand(hand).getItem() instanceof ItemHammer) {
-                    if(!player.isShiftKeyDown()) {
-                        getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
-                        if(getEntityData().get(CONSTRUCTION_PROGRESS) == 17){
-                            if (level() instanceof ServerLevel serverLevel) {
-                                serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY()+1, getZ(),
-                                        25, 0.2, 0.2, 0.2, 1);
-                            }
+            } else {
+                // construct / repair
+                if (!getEntityData().get(IS_BROKEN)) {
+                    if (player.getItemInHand(hand).getItem() instanceof ItemHammer) {
+                        if (!player.isShiftKeyDown()) {
+                            getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
+                            if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17) {
+                                if (level() instanceof ServerLevel serverLevel) {
+                                    serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 1, getZ(),
+                                            25, 0.2, 0.2, 0.2, 1);
+                                }
 
+                            }
                         }
+                    }
+                } else {
+                    if (player.getItemInHand(hand).equals(Registry.ITEM_BALLISTA_REPAIR)) {
+                        getEntityData().set(IS_BROKEN, false);
+                        player.getItemInHand(hand).shrink(1);
                     }
                 }
             }
@@ -248,8 +266,10 @@ public class Ballista extends Entity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if(random.nextFloat() < amount/20)
-            discard();
+        if (random.nextFloat() < amount / 20) {
+            getEntityData().set(IS_BROKEN, true);
+            controllingEntity = null;
+        }
         return true;
     }
 
@@ -265,6 +285,7 @@ public class Ballista extends Entity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(DRAW_PROGRESS, 0f);
         builder.define(CONSTRUCTION_PROGRESS, 0);
+        builder.define(IS_BROKEN, false);
     }
 
     @Override
@@ -273,8 +294,11 @@ public class Ballista extends Entity {
             setDrawProgress(compoundTag.getFloat("drawProgress"));
         if (compoundTag.contains("life"))
             life = compoundTag.getFloat("life");
-        if(compoundTag.contains("construction")){
-            getEntityData().set(CONSTRUCTION_PROGRESS,compoundTag.getInt("construction"));
+        if (compoundTag.contains("construction")) {
+            getEntityData().set(CONSTRUCTION_PROGRESS, compoundTag.getInt("construction"));
+        }
+        if (compoundTag.contains("isBroken")) {
+            getEntityData().set(IS_BROKEN, compoundTag.getBoolean("isBroken"));
         }
     }
 
@@ -283,6 +307,7 @@ public class Ballista extends Entity {
         compoundTag.putFloat("drawProgress", getDrawProgress());
         compoundTag.putFloat("life", life);
         compoundTag.putInt("construction", getEntityData().get(CONSTRUCTION_PROGRESS));
+        compoundTag.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
     }
 
     @Override

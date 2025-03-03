@@ -64,6 +64,7 @@ public class Main {
         if (e.getTab().equals(Registry.CREATIVETAB.get())) {
             e.accept(ITEM_BALLISTA_BOLT.get());
             e.accept(ITEM_BALLISTA_SPAWN.get());
+            e.accept(ITEM_BALLISTA_REPAIR.get());
         }
     }
 }
