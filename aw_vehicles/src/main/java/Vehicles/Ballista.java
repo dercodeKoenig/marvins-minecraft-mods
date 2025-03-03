@@ -269,9 +269,11 @@ public class Ballista extends Entity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (random.nextFloat() < amount / 20) {
-            getEntityData().set(IS_BROKEN, true);
-            controllingEntity = null;
+        if(!level().isClientSide) {
+            if (random.nextFloat() < amount / life) {
+                getEntityData().set(IS_BROKEN, true);
+                controllingEntity = null;
+            }
         }
         return true;
     }
@@ -295,8 +297,7 @@ public class Ballista extends Entity {
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         if (compoundTag.contains("drawProgress"))
             setDrawProgress(compoundTag.getFloat("drawProgress"));
-        if (compoundTag.contains("life"))
-            life = compoundTag.getFloat("life");
+
         if (compoundTag.contains("construction")) {
             getEntityData().set(CONSTRUCTION_PROGRESS, compoundTag.getInt("construction"));
         }
@@ -308,7 +309,6 @@ public class Ballista extends Entity {
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("drawProgress", getDrawProgress());
-        compoundTag.putFloat("life", life);
         compoundTag.putInt("construction", getEntityData().get(CONSTRUCTION_PROGRESS));
         compoundTag.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
     }
