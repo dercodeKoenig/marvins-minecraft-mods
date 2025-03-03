@@ -186,6 +186,7 @@ public class Ballista extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
+            //System.out.println(getEntityData().get(CONSTRUCTION_PROGRESS) + ":" + getEntityData().get(IS_BROKEN));
             if (player.getItemInHand(hand).getItem() instanceof ItemHammer && player.isShiftKeyDown()) {
                 // deconstruct
                 getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) - 1);
@@ -233,8 +234,8 @@ public class Ballista extends Entity {
                     }
                 }
             } else {
-                // construct / repair
-                if (!getEntityData().get(IS_BROKEN)) {
+                // construct
+                if (getEntityData().get(CONSTRUCTION_PROGRESS) < 17) {
                     if (player.getItemInHand(hand).getItem() instanceof ItemHammer) {
                         if (!player.isShiftKeyDown()) {
                             getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
@@ -247,8 +248,10 @@ public class Ballista extends Entity {
                             }
                         }
                     }
-                } else {
-                    if (player.getItemInHand(hand).equals(Registry.ITEM_BALLISTA_REPAIR)) {
+                }
+                // repair
+                if (getEntityData().get(IS_BROKEN)) {
+                    if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_BALLISTA_REPAIR.get())) {
                         getEntityData().set(IS_BROKEN, false);
                         player.getItemInHand(hand).shrink(1);
                     }
