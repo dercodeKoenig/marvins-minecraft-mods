@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -43,9 +44,11 @@ public class Registry {
 
     public static final Supplier<Item> ITEM_BALLISTA_REPAIR = ITEMS.register("ballista_repair", () -> new Item(new Item.Properties().stacksTo(1)));
 
-
+    public static Supplier<Item> ITEM_WOODEN_HAMMER = null;
     static {
-
+        if(!ModList.get().isLoaded("age_of_steam")){
+            ITEM_WOODEN_HAMMER = ITEMS.register("wooden_hammer", () -> new Item(new Item.Properties().stacksTo(1)));
+        }
     }
 
     public static void register(IEventBus modBus) {

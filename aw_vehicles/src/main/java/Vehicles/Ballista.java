@@ -1,7 +1,6 @@
 package Vehicles;
 
 import AgeOfSteam.Items.Hammer.ItemHammer;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,13 +12,13 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 
 import java.util.List;
 import java.util.UUID;
@@ -179,15 +178,20 @@ public class Ballista extends Entity {
                 client_drawProgress += (getDrawProgress() - client_drawProgress) * 0.1f; // Smoothly lerp
             }
         }
+    }
 
-
+    public boolean isHammerItem(ItemStack item){
+        if (ModList.get().isLoaded("age_of_steam")) {
+            return item.getItem() instanceof ItemHammer;
+        }else{
+            return item.getItem().equals(Registry.ITEM_WOODEN_HAMMER.get());
+        }
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
-            //System.out.println(getEntityData().get(CONSTRUCTION_PROGRESS) + ":" + getEntityData().get(IS_BROKEN));
-            if (player.getItemInHand(hand).getItem() instanceof ItemHammer && player.isShiftKeyDown()) {
+            if (isHammerItem(player.getItemInHand(hand)) && player.isShiftKeyDown()) {
                 // deconstruct
                 getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) - 1);
                 if (bolt != null) {
@@ -237,7 +241,7 @@ public class Ballista extends Entity {
             } else {
                 // construct
                 if (getEntityData().get(CONSTRUCTION_PROGRESS) < 17) {
-                    if (player.getItemInHand(hand).getItem() instanceof ItemHammer) {
+                    if (isHammerItem(player.getItemInHand(hand))) {
                         if (!player.isShiftKeyDown()) {
                             getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
                             if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17) {
