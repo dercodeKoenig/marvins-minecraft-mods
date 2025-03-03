@@ -248,8 +248,7 @@ public class Ballista extends Entity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        life -= amount;
-        if (life <= 0)
+        if(random.nextFloat() < amount/20)
             discard();
         return true;
     }
