@@ -90,6 +90,33 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         else
             main.getChild("armMain").getChild("trigger1").xRot=  (float) (-20f/180*Math.PI);
 
+        int bp = entity.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS);
+        //System.out.println(bp);
+        main.getChild("armMain").getChild("armLeftMain").getChild("stringLeft").visible = bp >= 17;
+        main.getChild("armMain").getChild("armRightMain").getChild("stringRight").visible = bp >= 17;
+        main.getChild("armMain").getChild("crankAxle").visible = bp >= 16;
+        main.getChild("armMain").getChild("armLeftMain").visible = bp >= 15;
+        main.getChild("armMain").getChild("armRightMain").visible = bp >= 14;
+        main.getChild("armMain").getChild("trigger1").visible = bp >= 13;
+        main.getChild("armMain").getChild("catch1").visible = bp >= 13;
+        main.getChild("armMain").getChild("catch2").visible = bp >= 13;
+        main.getChild("armMain").getChild("rightTensionerRope").visible = bp >= 12;
+        main.getChild("armMain").getChild("leftTensionerRope").visible = bp >= 11;
+        main.getChild("armMain").getChild("turretHorizontalBrace4").visible = bp >= 10;
+        main.getChild("armMain").getChild("armLeftVertical1").visible = bp >= 9;
+        main.getChild("armMain").getChild("armLeftVertical2").visible = bp >= 9;
+        main.getChild("armMain").getChild("armLeftVertical3").visible = bp >= 9;
+        main.getChild("armMain").getChild("armRightVertical1").visible = bp >= 8;
+        main.getChild("armMain").getChild("armRightVertical2").visible = bp >= 8;
+        main.getChild("armMain").getChild("armRightVertical3").visible = bp >= 8;
+        main.getChild("armMain").getChild("turretHorizontalBrace3").visible = bp >= 7;
+        main.getChild("armMain").getChild("turretHorizontalBrace1").visible = bp >= 6;
+        main.getChild("armMain").getChild("turretHorizontalBrace2").visible = bp >= 5;
+        main.getChild("armMain").getChild("armSlotLeft").visible = bp >= 4;
+        main.getChild("armMain").getChild("armSlotRight").visible = bp >= 3;
+        main.getChild("armMain").getChild("armMidBrace").visible = bp >= 2;
+        main.getChild("armMain").visible = bp >= 1;
+
         // ---- FINAL RENDER ----
         poseStack.pushPose();
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
@@ -191,7 +218,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         );
 
         // Vertical parts on the arm
-        armMain.addOrReplaceChild("armleftVertical3",
+        armMain.addOrReplaceChild("armLeftVertical3",
                 CubeListBuilder.create()
                         .texOffs(78, 128)
                         .addBox(0.0F, 0.0F, 0.0F, 1, 1, 1),

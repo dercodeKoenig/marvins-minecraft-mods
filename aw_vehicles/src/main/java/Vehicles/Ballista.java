@@ -1,5 +1,8 @@
 package Vehicles;
 
+import AgeOfSteam.Items.Hammer.ItemHammer;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -13,7 +16,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -21,7 +26,9 @@ import java.util.UUID;
 
 public class Ballista extends Entity {
 
-    private static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Integer> CONSTRUCTION_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.INT);
+    //public static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.BOOLEAN);
 
 
     float client_drawProgress;
@@ -179,31 +186,54 @@ public class Ballista extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (!level().isClientSide) {
-            if (!player.isShiftKeyDown()) {
-                if (getDrawProgress() == 1) {
-                    if (bolt != null) {
-                        bolt.setDeltaMovement(getLookAngle().scale(4));
-                        bolt.setNoGravity(false);
-                        bolt = null;
-                        setDrawProgress(-1);
-                        //shouldReload = false;
-                    } else {
-                        if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
-                            player.getItemInHand(hand).shrink(1);
-                            BallistaBolt newBolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
-                            newBolt.setPos(position());
-                            level().addFreshEntity(newBolt);
+            if(player.getItemInHand(hand).getItem() instanceof ItemHammer && player.isShiftKeyDown()) {
+                if(bolt != null){
+                    Block.popResource(level(),blockPosition(),new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
+                    bolt.discard();
+                }
+                Block.popResource(level(),blockPosition(),new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get()));
+                discard();
+            }
+            else if(getEntityData().get(CONSTRUCTION_PROGRESS) == 17) {
+                if (!player.isShiftKeyDown()) {
+                    if (getDrawProgress() == 1) {
+                        if (bolt != null) {
+                            bolt.setDeltaMovement(getLookAngle().scale(4));
+                            bolt.setNoGravity(false);
+                            bolt = null;
+                            setDrawProgress(-1);
+                            //shouldReload = false;
+                        } else {
+                            if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
+                                player.getItemInHand(hand).shrink(1);
+                                BallistaBolt newBolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
+                                newBolt.setPos(position());
+                                level().addFreshEntity(newBolt);
+                            }
                         }
+                    } else {
+                        if (player.getItemInHand(hand).isEmpty())
+                            reloadTicksRemaining = 5;
                     }
                 } else {
-                    if(player.getItemInHand(hand).isEmpty())
-                        reloadTicksRemaining = 5;
+                    if (!player.getUUID().equals(controllingEntity)) {
+                        controllingEntity = player.getUUID();
+                    } else {
+                        controllingEntity = null;
+                    }
                 }
-            } else {
-                if (!player.getUUID().equals(controllingEntity)) {
-                    controllingEntity = player.getUUID();
-                } else {
-                    controllingEntity = null;
+            }else{
+                if(player.getItemInHand(hand).getItem() instanceof ItemHammer) {
+                    if(!player.isShiftKeyDown()) {
+                        getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
+                        if(getEntityData().get(CONSTRUCTION_PROGRESS) == 17){
+                            if (level() instanceof ServerLevel serverLevel) {
+                                serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY()+1, getZ(),
+                                        25, 0.2, 0.2, 0.2, 1);
+                            }
+
+                        }
+                    }
                 }
             }
         }
@@ -235,6 +265,7 @@ public class Ballista extends Entity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(DRAW_PROGRESS, 0f);
+        builder.define(CONSTRUCTION_PROGRESS, 0);
     }
 
     @Override
@@ -243,12 +274,16 @@ public class Ballista extends Entity {
             setDrawProgress(compoundTag.getFloat("drawProgress"));
         if (compoundTag.contains("life"))
             life = compoundTag.getFloat("life");
+        if(compoundTag.contains("construction")){
+            getEntityData().set(CONSTRUCTION_PROGRESS,compoundTag.getInt("construction"));
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("drawProgress", getDrawProgress());
         compoundTag.putFloat("life", life);
+        compoundTag.putInt("construction", getEntityData().get(CONSTRUCTION_PROGRESS));
     }
 
     @Override
