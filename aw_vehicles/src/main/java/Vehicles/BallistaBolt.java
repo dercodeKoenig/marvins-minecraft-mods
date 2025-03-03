@@ -20,6 +20,7 @@ import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,8 +34,8 @@ public class BallistaBolt extends Entity {
     double client_lastxRot = 0;
     double client_currentxRot = 0;
 
-    protected BallistaBolt(EntityType<?> entityType, Level level) {
-        super(Registry.ENTITY_BALLISTA_BOLT.get(), level);
+    public BallistaBolt(EntityType<BallistaBolt> entityType, Level level) {
+        super(entityType, level);
     }
 
     @Override
@@ -42,9 +43,13 @@ public class BallistaBolt extends Entity {
         //super.defineSynchedData(builder);
     }
 
-    //@Override
-    protected ItemStack getDefaultPickupItem() {
-        return new ItemStack(Items.ARROW);
+    @Override
+    public void onAddedToLevel(){
+        super.onAddedToLevel();
+        List<Ballista> ballistas = level().getEntitiesOfClass(Ballista.class, getBoundingBox());
+        if (!ballistas.isEmpty()) {
+            ballistas.getFirst().checkExistingBolt();
+        }
     }
 
     @Override

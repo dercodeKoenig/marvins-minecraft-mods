@@ -37,8 +37,8 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
     @Override
     public void render(Ballista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
-        double dp = entity.client_drawProcess - entity.client_drawProcessPrev;
-        double drawProgress = Math.clamp(entity.client_drawProcessPrev + dp * partialTick, -1, 1);
+        double dp = entity.client_drawProgress - entity.client_drawProgressPrev;
+        double drawProgress = Math.clamp(entity.client_drawProgressPrev + dp * partialTick, -1, 1);
 
         // ---- RECOIL EFFECT ----
         double recoilOffset = 0.0;
@@ -84,6 +84,11 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         main.getChild("armMain").getChild("armRightMain").yRot = -(float) (a / 180 * Math.PI);
         main.getChild("armMain").getChild("armRightMain").getChild("stringRight").yRot = -(float) (stringAngle / 180 * Math.PI);
         main.getChild("armMain").getChild("armRightMain").getChild("stringRight").xScale = (float) (1 + Math.abs(recoilOffset)/300f);
+
+        if(entity.getDrawProgress()==1)
+            main.getChild("armMain").getChild("trigger1").xRot=  (float) (-70f/180*Math.PI);
+        else
+            main.getChild("armMain").getChild("trigger1").xRot=  (float) (-20f/180*Math.PI);
 
         // ---- FINAL RENDER ----
         poseStack.pushPose();
