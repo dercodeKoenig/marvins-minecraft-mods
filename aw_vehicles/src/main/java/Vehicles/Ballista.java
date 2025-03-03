@@ -7,6 +7,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,6 +36,8 @@ public class Ballista extends Entity {
     BallistaBolt bolt = null;
 
     int reloadTicksRemaining = 0;
+
+    float life = 20;
 
     public Ballista(EntityType<Ballista> entityType, Level level) {
         super(entityType, level);
@@ -213,6 +216,14 @@ public class Ballista extends Entity {
         return (double) 0.1F;
     }
 
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        life -= amount;
+        if (life <= 0)
+            discard();
+        return true;
+    }
+
     public Vec3 getPassengerRidingPosition(Entity entity) {
         Vec3 look = calculateViewVector((float) getX(), (float) client_currentYRot);
         Vec3 lookNoY = new Vec3(look.x, 0, look.z);
@@ -228,12 +239,16 @@ public class Ballista extends Entity {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
-        setDrawProgress(compoundTag.getFloat("drawProgress"));
+        if (compoundTag.contains("drawProgress"))
+            setDrawProgress(compoundTag.getFloat("drawProgress"));
+        if (compoundTag.contains("life"))
+            life = compoundTag.getFloat("life");
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("drawProgress", getDrawProgress());
+        compoundTag.putFloat("life", life);
     }
 
     @Override

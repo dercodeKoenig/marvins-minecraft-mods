@@ -34,6 +34,8 @@ public class BallistaBolt extends Entity {
     double client_lastxRot = 0;
     double client_currentxRot = 0;
 
+    int ticksInGround = 0;
+
     public BallistaBolt(EntityType<BallistaBolt> entityType, Level level) {
         super(entityType, level);
     }
@@ -44,7 +46,7 @@ public class BallistaBolt extends Entity {
     }
 
     @Override
-    public void onAddedToLevel(){
+    public void onAddedToLevel() {
         super.onAddedToLevel();
         List<Ballista> ballistas = level().getEntitiesOfClass(Ballista.class, getBoundingBox());
         if (!ballistas.isEmpty()) {
@@ -101,7 +103,7 @@ public class BallistaBolt extends Entity {
                     setPos(hitresult.getLocation().add(getDeltaMovement().normalize().scale(-0.01)));
                     setDeltaMovement(Vec3.ZERO);
                     inGround = true;
-                    if(!shotEnd){
+                    if (!shotEnd) {
                         // whatever here
                     }
                 }
@@ -112,9 +114,9 @@ public class BallistaBolt extends Entity {
                 Entity entity = entityhitresult.getEntity();
                 System.out.println(entity.getName().getString());
                 if (entity != owner && owner != null) {
-                    if(!shotEnd && ! hitEntities.contains(entity)) {
+                    if (!shotEnd && !hitEntities.contains(entity)) {
                         hitEntities.add(entity);
-                        entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW),null, owner,owner.position()),50);
+                        entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), 50);
                         System.out.println("hit entity");
                     }
                 }
@@ -128,8 +130,15 @@ public class BallistaBolt extends Entity {
             setPos(position().add(getDeltaMovement()));
         }
 
+        if (inGround) {
+            ticksInGround++;
+            if (ticksInGround > 20 * 5) {
+                discard();
+            }
+        } else
+            ticksInGround = 0;
 
-        if(level().isClientSide){
+        if (level().isClientSide) {
             client_lastYRot = client_currentYRot;
             if (getYRot() < client_currentYRot - 180) {
                 client_currentYRot -= 360;
