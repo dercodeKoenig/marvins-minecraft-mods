@@ -190,11 +190,12 @@ public class Ballista extends Entity {
             if (player.getItemInHand(hand).getItem() instanceof ItemHammer && player.isShiftKeyDown()) {
                 // deconstruct
                 getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) - 1);
+                if (bolt != null) {
+                    Block.popResource(level(), blockPosition(), new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
+                    bolt.discard();
+                    bolt = null;
+                }
                 if (getEntityData().get(CONSTRUCTION_PROGRESS) == 0) {
-                    if (bolt != null) {
-                        Block.popResource(level(), blockPosition(), new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
-                        bolt.discard();
-                    }
                     ItemStack ballistaStack = new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get());
                     CompoundTag t = new CompoundTag();
                     t.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
@@ -273,6 +274,11 @@ public class Ballista extends Entity {
             if (random.nextFloat() < amount / life) {
                 getEntityData().set(IS_BROKEN, true);
                 controllingEntity = null;
+                if (bolt != null) {
+                    Block.popResource(level(), blockPosition(), new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
+                    bolt.discard();
+                    bolt = null;
+                }
             }
         }
         return true;

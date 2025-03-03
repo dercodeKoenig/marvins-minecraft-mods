@@ -132,7 +132,7 @@ public class BallistaBolt extends Entity {
 
         if (inGround) {
             ticksInGround++;
-            if (ticksInGround > 20 * 5) {
+            if (ticksInGround > 20 * 5 * 60) {
                 discard();
             }
         } else
