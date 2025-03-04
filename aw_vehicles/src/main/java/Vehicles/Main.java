@@ -1,6 +1,8 @@
 package Vehicles;
 
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -36,7 +38,8 @@ public class Main {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTab().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)) {
+        ResourceLocation tabKey = BuiltInRegistries.CREATIVE_MODE_TAB.getKey(e.getTab());
+        if (tabKey.equals(CreativeModeTabs.FUNCTIONAL_BLOCKS.location())) {
             e.accept(ITEM_BALLISTA_BOLT.get());
             e.accept(ITEM_BALLISTA_SPAWN.get());
             e.accept(ITEM_BALLISTA_REPAIR.get());
