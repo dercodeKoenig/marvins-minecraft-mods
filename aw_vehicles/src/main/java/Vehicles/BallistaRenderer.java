@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Quaternionf;
 
@@ -63,9 +64,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         main.getChild("armMain").x = (float) (Math.sin(entity.getYRot()/180*Math.PI)*(-recoilOffset2*0.1));
         // TODO: y recoil missing
 
-        if(dp > 0){
-            main.getChild("armMain").getChild("crankAxle").xRot = (float) (drawProgress*10);
-        }
+        main.getChild("armMain").getChild("crankAxle").xRot = -(float) (drawProgress*10);
 
         float yRotDiff = (float) (entity.client_currentYRot - entity.client_lastYRot);
         float xRotDiff = (float) (entity.client_currentxRot - entity.client_lastxRot);
@@ -137,10 +136,9 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         // ---- FINAL RENDER ----
         poseStack.pushPose();
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
-        main.render(poseStack, bufferSource.getBuffer(r), packedLight, 0);
+        main.render(poseStack, bufferSource.getBuffer(r), packedLight, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
 
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
 
