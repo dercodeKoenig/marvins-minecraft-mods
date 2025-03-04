@@ -214,7 +214,10 @@ public class Ballista extends Entity {
                 if (!player.isShiftKeyDown()) {
                     if (getDrawProgress() == 1) {
                         if (bolt != null) {
-                            bolt.setDeltaMovement(getLookAngle().scale(8));
+                            float spreadx = (random.nextFloat()-0.5f) * 0.04f;
+                            float spready = (random.nextFloat()-0.5f) * 0.04f;
+                            float spreadz = (random.nextFloat()-0.5f) * 0.04f;
+                            bolt.setDeltaMovement(getLookAngle().add(new Vec3(spreadx,spready,spreadz)).normalize().scale(8));
                             bolt.setNoGravity(false);
                             bolt = null;
                             setDrawProgress(-1);
