@@ -73,6 +73,11 @@ public class ArmoryProgram extends Goal {
         }
         lastCheck = worker.level().getGameTime();
 
+        // check if he has already armor in his normal inventory
+        if (takeArmorProgram.swapArmorFromTarget(worker.combinedInventory, false)) {
+            return false;
+        }
+
         if (worker.townHall != null) {
             Set<BlockPos> armoryPositions = EntityArmory.knownBlocksForTownhallPosition.getOrDefault(new BlockIdentifier(worker.level(), worker.townHall), Set.of());
             for (BlockPos p : armoryPositions) {

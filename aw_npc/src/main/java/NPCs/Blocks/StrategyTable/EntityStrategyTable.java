@@ -28,6 +28,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Registry.ENTITY_STRATEGY_TABLE;
@@ -38,7 +40,8 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
     public static HashSet<BlockIdentifier> knownBlocks = new HashSet<>();
 
 
-    public Map<Integer, workTargetManager> targetManagerMap_Fighters = new HashMap<>();
+    public List<workTargetManager> targetManagerMap_Fighters = new ArrayList<>();
+    public List<workTargetManager> targetManagerMap_Archers = new ArrayList<>();
 
     GuiHandlerBlockEntity guiHandler;
     BlockPos townHall;
@@ -89,6 +92,21 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             return false;
         }
     };
+    ItemStackHandler orderInventory_archers = new ItemStackHandler(9) {
+        @Override
+        public void onContentsChanged(int slot) {
+            setChanged();
+            scanSlot_archers(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            if (stack.getItem() instanceof ItemWorkOrder) {
+                return true;
+            }
+            return false;
+        }
+    };
 
     public void scanSlot_fighters(int slot){
         ItemStack stack = orderInventory_fighters.getStackInSlot(slot);
@@ -105,6 +123,21 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         }
     }
 
+    public void scanSlot_archers(int slot){
+        ItemStack stack = orderInventory_archers.getStackInSlot(slot);
+        targetManagerMap_Archers.get(slot).reset();
+        if (stack.getItem() instanceof ItemWorkOrder) {
+            List<ItemWorkOrder.vec3> vecs = ItemWorkOrder.getBlockList(stack);
+            List<BlockPos> blocks = new ArrayList<>();
+            for (ItemWorkOrder.vec3 v : vecs) {
+                blocks.add(new BlockPos(v.x, v.y, v.z));
+            }
+            if (!blocks.isEmpty()) {
+                targetManagerMap_Archers.get(slot).workPositions = blocks;
+            }
+        }
+    }
+
     public workTargetManager getManagerForUUID(UUID worker) {
         if (level instanceof ServerLevel serverLevel) {
 
@@ -116,13 +149,13 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             Entity e = serverLevel.getEntity(worker);
             if (e instanceof CombatNPC npc) {
                 if (npc.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.fighter.ordinal()) {
-                    for (int n : targetManagerMap_Fighters.keySet()) {
+                    for (int n = 0; n<9;n++) {
                         workTargetManager m = targetManagerMap_Fighters.get(n);
                         if (Objects.equals(m.lastWorker, worker) && Objects.equals(npc.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
                             return m;
                         }
                     }
-                    List<Integer> keys = new ArrayList<>(targetManagerMap_Fighters.keySet());
+                    List<Integer> keys = new ArrayList<>(List.of(0, 1, 2, 3, 4, 5, 6, 7, 8));
                     Collections.shuffle(keys); // Shuffle the list randomly so that it will not get stuck at something it can not reach
                     for (int n : keys) {
                         workTargetManager m = targetManagerMap_Fighters.get(n);
@@ -130,21 +163,13 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                             if (m.lastWorker != null) {
                                 // if the last worker is
                                 // no longer alive or
-                                // changed workType or
-                                // has its own work order or
-                                // received work from a different strategy table,
+                                // no longer working at this location
                                 // remove him from this entry
                                 Entity workingHereEntity = serverLevel.getEntity(m.lastWorker);
                                 if (!(workingHereEntity instanceof CombatNPC)) {
                                     m.lastWorker = null;
                                 }
                                 if (workingHereEntity instanceof CombatNPC alreadyWorkingNPC) {
-                                    if (alreadyWorkingNPC.getEntityData().get(DATA_WORKTYPE) != CombatNPC.WorkTypes.fighter.ordinal()) {
-                                        m.lastWorker = null;
-                                    }
-                                    if (alreadyWorkingNPC.fighterFollowWorkOrderProgram.canUse()) {
-                                        m.lastWorker = null;
-                                    }
                                     if (!Objects.equals(alreadyWorkingNPC.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
                                         m.lastWorker = null;
                                     }
@@ -154,6 +179,47 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
                                 // clear this worker from other positions or it will return the wrong manager later
                                 for (int n2 : keys) {
                                     workTargetManager m2 = targetManagerMap_Fighters.get(n2);
+                                    if (Objects.equals(m2.lastWorker, worker)) {
+                                        m2.lastWorker = null;
+                                    }
+                                }
+                                m.lastWorker = worker;
+                                return m;
+                            }
+                        }
+                    }
+                }
+                if (npc.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+                    for (int n = 0; n<9;n++) {
+                        workTargetManager m = targetManagerMap_Archers.get(n);
+                        if (Objects.equals(m.lastWorker, worker) && Objects.equals(npc.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
+                            return m;
+                        }
+                    }
+                    List<Integer> keys = new ArrayList<>(List.of(0, 1, 2, 3, 4, 5, 6, 7, 8));
+                    Collections.shuffle(keys); // Shuffle the list randomly so that it will not get stuck at something it can not reach
+                    for (int n : keys) {
+                        workTargetManager m = targetManagerMap_Archers.get(n);
+                        if (!m.workPositions.isEmpty()) {
+                            if (m.lastWorker != null) {
+                                // if the last worker is
+                                // no longer alive or
+                                // no longer working at this location
+                                // remove him from this entry
+                                Entity workingHereEntity = serverLevel.getEntity(m.lastWorker);
+                                if (!(workingHereEntity instanceof CombatNPC)) {
+                                    m.lastWorker = null;
+                                }
+                                if (workingHereEntity instanceof CombatNPC alreadyWorkingNPC) {
+                                    if (!Objects.equals(alreadyWorkingNPC.fighterFollowWorkOrderByStrategyTable.lastUsedStrategyTable, getBlockPos())) {
+                                        m.lastWorker = null;
+                                    }
+                                }
+                            }
+                            if (m.lastWorker == null) {
+                                // clear this worker from other positions or it will return the wrong manager later
+                                for (int n2 : keys) {
+                                    workTargetManager m2 = targetManagerMap_Archers.get(n2);
                                     if (Objects.equals(m2.lastWorker, worker)) {
                                         m2.lastWorker = null;
                                     }
@@ -179,6 +245,10 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
             guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(1 * 9 + x, orderInventory_fighters, x, 1, 0, guiHandler, x * 18 + 10, 30);
             guiHandler.getModules().add(m);
         }
+        for (int x = 0; x < 9; x++) {
+            guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(2 * 9 + x, orderInventory_archers, x, 1, 0, guiHandler, x * 18 + 10, 50);
+            guiHandler.getModules().add(m);
+        }
 
         for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 175, 1000, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
@@ -194,7 +264,10 @@ public class EntityStrategyTable extends BlockEntity implements INetworkTagRecei
         guiHandler.getModules().add(redstoneControlButton);
 
         for (int i = 0; i < orderInventory_fighters.getSlots(); i++) {
-            targetManagerMap_Fighters.put(i, new workTargetManager());
+            targetManagerMap_Fighters.add(new workTargetManager());
+        }
+        for (int i = 0; i < orderInventory_archers.getSlots(); i++) {
+            targetManagerMap_Archers.add(new workTargetManager());
         }
     }
 
