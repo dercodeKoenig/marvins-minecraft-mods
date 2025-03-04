@@ -7,6 +7,8 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -208,6 +210,8 @@ public class Ballista extends Entity {
                     Block.popResource(level(), blockPosition(), ballistaStack);
                     discard();
                 }
+                level().playSound(null,blockPosition(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS,1,1);
+
             } else if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17 && !getEntityData().get(IS_BROKEN)) {
                 // use
                 if (!player.isShiftKeyDown()) {
@@ -217,7 +221,7 @@ public class Ballista extends Entity {
                             bolt.setNoGravity(false);
                             bolt = null;
                             setDrawProgress(-1);
-                            //shouldReload = false;
+                            level().playSound(null,blockPosition(),Registry.SOUND_BALLISTA_LAUNCH.get(), SoundSource.BLOCKS,1,1);
                         } else {
                             if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
                                 player.getItemInHand(hand).shrink(1);
@@ -227,8 +231,9 @@ public class Ballista extends Entity {
                             }
                         }
                     } else {
-                        if (player.getItemInHand(hand).isEmpty()) {
-                            reloadTicksRemaining = 5;
+                        if (player.getItemInHand(hand).isEmpty() && reloadTicksRemaining == 0 && getDrawProgress() < 1) {
+                            reloadTicksRemaining = 20;
+                            level().playSound(null,blockPosition(),Registry.SOUND_BALLISTA_RELOAD.get(), SoundSource.BLOCKS,1,1);
                         }
                     }
                 } else {
@@ -251,6 +256,7 @@ public class Ballista extends Entity {
                                 }
 
                             }
+                            level().playSound(null,blockPosition(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS,1,1);
                         }
                     }
                 }

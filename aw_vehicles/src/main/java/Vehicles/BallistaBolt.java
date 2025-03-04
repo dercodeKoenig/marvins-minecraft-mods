@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -101,6 +103,7 @@ public class BallistaBolt extends Entity {
                     inGround = true;
                     if (!shotEnd) {
                         // whatever here
+                        level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_GROUND_HIT.get(), SoundSource.BLOCKS,1,1);
                     }
                 }
             }
@@ -113,6 +116,7 @@ public class BallistaBolt extends Entity {
                     if (!shotEnd && !hitEntities.contains(entity)) {
                         hitEntities.add(entity);
                         entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), 50);
+                        level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_ENTITY_HIT.get(), SoundSource.BLOCKS,1,1);
                         System.out.println("hit entity");
                     }
                 }

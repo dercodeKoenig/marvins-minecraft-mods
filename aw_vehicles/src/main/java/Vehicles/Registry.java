@@ -1,6 +1,7 @@
 package Vehicles;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,6 +20,7 @@ public class Registry {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, Main.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, Main.MODID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Main.MODID);
+    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, Main.MODID);
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {
         return ITEMS.register(name, () -> new BlockItem(b.get(), new Item.Properties()));
@@ -51,11 +53,17 @@ public class Registry {
         }
     }
 
+    public static final Supplier<SoundEvent> SOUND_BALLISTA_RELOAD = SOUND_EVENTS.register("ballista_reload", SoundEvent::createVariableRangeEvent);
+    public static final Supplier<SoundEvent> SOUND_BALLISTA_LAUNCH = SOUND_EVENTS.register("ballista_launch", SoundEvent::createVariableRangeEvent);
+    public static final Supplier<SoundEvent> SOUND_BALLISTA_ENTITY_HIT = SOUND_EVENTS.register("ballista_bolt_hit_entity", SoundEvent::createVariableRangeEvent);
+    public static final Supplier<SoundEvent> SOUND_BALLISTA_GROUND_HIT = SOUND_EVENTS.register("ballista_bolt_hit_ground", SoundEvent::createVariableRangeEvent);
+
     public static void register(IEventBus modBus) {
         CREATIVE_TAB.register(modBus);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
+        SOUND_EVENTS.register(modBus);
         ENTITIES.register(modBus);
     }
 
