@@ -1,18 +1,13 @@
 package Vehicles;
 
 
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-
-import java.io.IOException;
 
 import static Vehicles.Registry.*;
 
@@ -22,7 +17,7 @@ public class Main {
 
     public static final String MODID = "aw_vehicles";
 
-    public Main(IEventBus modEventBus, ModContainer modContaine) throws IOException {
+    public Main(IEventBus modEventBus) {
         //modEventBus.register(this);
 
         modEventBus.addListener(this::addCreative);
@@ -38,7 +33,7 @@ public class Main {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTab().equals(Registry.CREATIVETAB.get())) {
+        if (e.getTab().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)) {
             e.accept(ITEM_BALLISTA_BOLT.get());
             e.accept(ITEM_BALLISTA_SPAWN.get());
             e.accept(ITEM_BALLISTA_REPAIR.get());

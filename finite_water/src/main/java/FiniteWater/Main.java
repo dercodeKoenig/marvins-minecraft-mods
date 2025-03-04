@@ -8,13 +8,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.IOException;
 import java.util.Map;
@@ -22,24 +22,25 @@ import java.util.Map;
 @Mod("finite_water")
 public class Main {
 
-    public Main() {
-        MinecraftForge.EVENT_BUS.addListener(Main::onSourceCreate);
+    public Main(IEventBus modEventBus, ModContainer modContaine) {
+        NeoForge.EVENT_BUS.addListener(this::onSourceCreate);
     }
 
-    public static void onSourceCreate(BlockEvent.CreateFluidSourceEvent e) {
+    private void onSourceCreate(CreateFluidSourceEvent e) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null) {
-            if (e.getState().getFluidState().getType().isSame(Fluids.WATER)) {
+            if (e.getFluidState().getType().isSame(Fluids.WATER)) {
                 Holder<Biome> h = e.getLevel().getBiome(e.getPos());
                 ResourceLocation id = server.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
                 String idString = id.toString();
+
                 if (Config.INSTANCE.biomes.contains(idString)) {
                     if (Config.INSTANCE.isBlackList) {
-                        e.setResult(Event.Result.DENY);
+                        e.setCanConvert(false);
                     }
                 } else {
                     if (!Config.INSTANCE.isBlackList) {
-                        e.setResult(Event.Result.DENY);
+                        e.setCanConvert(false);
                     }
                 }
             }

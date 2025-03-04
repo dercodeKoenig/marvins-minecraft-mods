@@ -18,18 +18,11 @@ public class Registry {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, Main.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Main.MODID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, Main.MODID);
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Main.MODID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE, Main.MODID);
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {
         return ITEMS.register(name, () -> new BlockItem(b.get(), new Item.Properties()));
     }
-
-    public static final Supplier<CreativeModeTab> CREATIVETAB = CREATIVE_TAB.register(
-            Main.MODID, () -> new CustomCreativeTab()
-    );
-
-
     public static final Supplier<EntityType<Ballista>> ENTITY_BALLISTA = ENTITIES.register(
             "ballista",
             () -> EntityType.Builder.of(Ballista::new, MobCategory.MISC).sized(1,2).build(Main.MODID+":ballista")
@@ -48,7 +41,6 @@ public class Registry {
     public static Supplier<Item> ITEM_WOODEN_HAMMER = ITEMS.register("wooden_hammer", () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static void register(IEventBus modBus) {
-        CREATIVE_TAB.register(modBus);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
