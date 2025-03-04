@@ -1,6 +1,8 @@
 package Vehicles;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
@@ -26,6 +28,7 @@ public class BallistaSpawnItem extends Item {
         if(tag.contains("constructionProgress"))
             ballista.getEntityData().set(CONSTRUCTION_PROGRESS, tag.getInt("constructionProgress"));
 
+        context.getLevel().playSound(null,context.getClickedPos(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS,1,1);
 
         context.getItemInHand().shrink(1);
         return InteractionResult.SUCCESS;
