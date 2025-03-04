@@ -107,6 +107,10 @@ public class Ballista extends Entity {
             } else if (reloadTicksRemaining > 0) {
                 setDrawProgress(getDrawProgress() + 0.02f);
                 reloadTicksRemaining -= 1;
+                if(getDrawProgress() == 1) {
+                    reloadTicksRemaining = 0;
+                    level().playSound(null, blockPosition(), SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1, 1);
+                }
             }
 
             if (controllingEntity != null) {
@@ -224,7 +228,7 @@ public class Ballista extends Entity {
                             }
                         }
                     } else {
-                        if (player.getItemInHand(hand).isEmpty() && reloadTicksRemaining == 0 && getDrawProgress() < 1) {
+                        if (player.getItemInHand(hand).isEmpty() && reloadTicksRemaining <= 0 && getDrawProgress() < 1) {
                             reloadTicksRemaining = 20;
                             level().playSound(null,blockPosition(),Registry.SOUND_BALLISTA_RELOAD.get(), SoundSource.BLOCKS,1,1);
                         }

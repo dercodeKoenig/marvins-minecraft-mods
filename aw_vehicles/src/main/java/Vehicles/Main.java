@@ -39,11 +39,12 @@ public class Main {
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         ResourceLocation tabKey = BuiltInRegistries.CREATIVE_MODE_TAB.getKey(e.getTab());
-        if (tabKey.equals(CreativeModeTabs.FUNCTIONAL_BLOCKS.location())) {
-            e.accept(ITEM_BALLISTA_BOLT.get());
-            e.accept(ITEM_BALLISTA_SPAWN.get());
-            e.accept(ITEM_BALLISTA_REPAIR.get());
-            e.accept(ITEM_WOODEN_HAMMER.get());
-        }
+        if (tabKey != null)
+            if (tabKey.equals(CreativeModeTabs.FUNCTIONAL_BLOCKS.location())) {
+                e.accept(ITEM_BALLISTA_BOLT.get());
+                e.accept(ITEM_BALLISTA_SPAWN.get());
+                e.accept(ITEM_BALLISTA_REPAIR.get());
+                e.accept(ITEM_WOODEN_HAMMER.get());
+            }
     }
 }

@@ -95,7 +95,7 @@ public class BallistaBolt extends Entity {
             HitResult hitresult = this.level().clip(new ClipContext(vec32, vec33, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
 
             if (hitresult.getType() != HitResult.Type.MISS) {
-                System.out.println("hit");
+                //System.out.println("hit");
                 if (hitresult instanceof BlockHitResult b) {
                     setPos(hitresult.getLocation().add(getDeltaMovement().normalize().scale(-0.01)));
                     setDeltaMovement(Vec3.ZERO);
@@ -110,13 +110,13 @@ public class BallistaBolt extends Entity {
             EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(this.level(), this, vec32, vec33, this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate((double) 10.0F), (x) -> true);
             if (entityhitresult != null) {
                 Entity entity = entityhitresult.getEntity();
-                System.out.println(entity.getName().getString());
+                //System.out.println(entity.getName().getString());
                 if (entity != owner && owner != null) {
                     if (!shotEnd && !hitEntities.contains(entity)) {
                         hitEntities.add(entity);
                         entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), 50);
                         level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_ENTITY_HIT.get(), SoundSource.BLOCKS,1,1);
-                        System.out.println("hit entity");
+                        //System.out.println("hit entity");
                     }
                 }
             }
