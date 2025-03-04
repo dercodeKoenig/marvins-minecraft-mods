@@ -40,7 +40,7 @@ public class BallistaBolt extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        //super.defineSynchedData(builder);
+
     }
 
     @Override
@@ -103,7 +103,7 @@ public class BallistaBolt extends Entity {
                     inGround = true;
                     if (!shotEnd) {
                         // whatever here
-                        level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_GROUND_HIT.get(), SoundSource.BLOCKS,1,1);
+                        level().playSound(null, blockPosition(), Registry.SOUND_BALLISTA_GROUND_HIT.get(), SoundSource.BLOCKS, 1, 1);
                     }
                 }
             }
@@ -116,7 +116,7 @@ public class BallistaBolt extends Entity {
                     if (!shotEnd && !hitEntities.contains(entity)) {
                         hitEntities.add(entity);
                         entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), 50);
-                        level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_ENTITY_HIT.get(), SoundSource.BLOCKS,1,1);
+                        level().playSound(null, blockPosition(), Registry.SOUND_BALLISTA_ENTITY_HIT.get(), SoundSource.BLOCKS, 1, 1);
                         //System.out.println("hit entity");
                     }
                 }
@@ -176,5 +176,10 @@ public class BallistaBolt extends Entity {
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putBoolean("shotEnd", shotEnd);
+    }
+
+    @Override
+    protected double getDefaultGravity() {
+        return 0.05;
     }
 }
