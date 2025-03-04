@@ -127,7 +127,7 @@ public class BallistaBolt extends Entity {
                 this.setXRot((float) (Mth.atan2(getDeltaMovement().y, getDeltaMovement().horizontalDistance()) * (double) 180.0F / (double) (float) Math.PI));
             // gravity
             if(!isNoGravity())
-                this.setDeltaMovement(this.getDeltaMovement().add((double)0.0F, -0.08, (double)0.0F));
+                this.setDeltaMovement(this.getDeltaMovement().add((double)0.0F, -0.05, (double)0.0F));
 
             setPos(position().add(getDeltaMovement()));
         }
