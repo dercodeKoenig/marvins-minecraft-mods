@@ -7,14 +7,14 @@
   ],
   "key": {
     "P": {
-      "tag": "c:rods/wooden"
+      "tag": "forge:rods/wooden"
     },
     "N": {
-      "tag": "c:nuggets/iron"
+      "tag": "forge:nuggets/iron"
     }
   },
   "result": {
-    "id": "aw_vehicles:ballista_bolt",
+    "item": "aw_vehicles:ballista_bolt",
     "count": 1
   }
 }

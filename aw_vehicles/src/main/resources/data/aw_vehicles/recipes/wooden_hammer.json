@@ -7,14 +7,14 @@
   ],
   "key": {
     "S": {
-      "tag": "c:rods/wooden"
+      "tag": "forge:rods/wooden"
     },
     "P": {
       "tag": "minecraft:planks"
     }
   },
   "result": {
-    "id": "aw_vehicles:wooden_hammer",
+    "item": "aw_vehicles:wooden_hammer",
     "count" : 1
   }
 }

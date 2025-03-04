@@ -1,23 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IPI",
-    "SPS",
-    "SPS"
+    "   ",
+    "IPS",
+    "   "
   ],
   "key": {
     "P": {
       "tag": "minecraft:planks"
     },
     "S": {
-      "tag": "c:strings"
+      "tag": "forge:string"
     },
     "I": {
-      "tag": "c:ingots/iron"
+      "tag": "forge:ingots/iron"
     }
   },
   "result": {
-    "id": "aw_vehicles:ballista",
+    "item": "aw_vehicles:ballista_repair",
     "count": 1
   }
 }
