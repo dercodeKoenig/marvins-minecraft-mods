@@ -1,0 +1,33 @@
+{
+  "ballista_reload": {
+    "sounds": [
+      {
+        "name": "aw_vehicles:ballista_reload_short"
+      }
+    ]
+  },
+  "ballista_launch": {
+    "sounds": [
+      {
+        "name": "aw_vehicles:ballista_launch_1"
+      },
+      {
+        "name": "aw_vehicles:ballista_launch_2"
+      }
+    ]
+  },
+  "ballista_bolt_hit_entity": {
+    "sounds": [
+      {
+        "name": "aw_vehicles:ballista_bolt_hit_entity"
+      }
+    ]
+  },
+  "ballista_bolt_hit_ground": {
+    "sounds": [
+      {
+        "name": "aw_vehicles:ballista_bolt_hit_ground"
+      }
+    ]
+  }
+}

@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -36,6 +38,9 @@ public class BallistaBolt extends Entity {
         super(entityType, level);
     }
 
+    @Override
+    protected void defineSynchedData() {
+    }
 
     @Override
     public void onAddedToWorld() {
@@ -50,11 +55,6 @@ public class BallistaBolt extends Entity {
     public boolean canCollideWith(Entity entity) {
         if (entity.equals(owner)) return false;
         return super.canCollideWith(entity);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-
     }
 
     @Override
@@ -102,6 +102,7 @@ public class BallistaBolt extends Entity {
                     inGround = true;
                     if (!shotEnd) {
                         // whatever here
+                        level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_GROUND_HIT.get(), SoundSource.BLOCKS,1,1);
                     }
                 }
             }
@@ -114,6 +115,7 @@ public class BallistaBolt extends Entity {
                     if (!shotEnd && !hitEntities.contains(entity)) {
                         hitEntities.add(entity);
                         entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), 50);
+                        level().playSound(null,blockPosition(), Registry.SOUND_BALLISTA_ENTITY_HIT.get(), SoundSource.BLOCKS,1,1);
                         System.out.println("hit entity");
                     }
                 }
@@ -123,11 +125,9 @@ public class BallistaBolt extends Entity {
         if (!inGround) {
             if (getDeltaMovement().lengthSqr() > 0)
                 this.setXRot((float) (Mth.atan2(getDeltaMovement().y, getDeltaMovement().horizontalDistance()) * (double) 180.0F / (double) (float) Math.PI));
-
             // gravity
             Vec3 velocity = this.getDeltaMovement();
             this.setDeltaMovement(velocity.x, velocity.y - 0.02, velocity.z);
-
             setPos(position().add(getDeltaMovement()));
         }
 
