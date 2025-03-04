@@ -28,7 +28,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
     protected BallistaRenderer(EntityRendererProvider.Context context) {
         super(context);
-        r = RenderType.entityCutout(getTextureLocation(null));
+        r = RenderType.entitySolid(getTextureLocation(null));
 
         main = createBodyLayer().bakeRoot();
     }
