@@ -8,6 +8,7 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import static Vehicles.Registry.*;
 
@@ -17,14 +18,16 @@ public class Main {
 
     public static final String MODID = "aw_vehicles";
 
-    public Main(IEventBus modEventBus) {
-        //modEventBus.register(this);
+    public Main() {
+        // Retrieve the mod event bus
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        // Register event listeners
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::registerEntityRenderers);
 
+        // Register your mod-specific registries
         Registry.register(modEventBus);
-
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

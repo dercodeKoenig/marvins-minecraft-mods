@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -25,11 +26,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
     protected BallistaRenderer(EntityRendererProvider.Context context) {
         super(context);
-        r = RenderType.create("x", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1024, RenderType.CompositeState.builder()
-                .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
-                .setLightmapState(LIGHTMAP)
-                .setTextureState(new TextureStateShard(getTextureLocation(null), false, true))
-                .createCompositeState(false));
+        r = RenderType.entitySolid(getTextureLocation(null));
 
         main = createBodyLayer().bakeRoot();
     }
@@ -38,7 +35,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
     public void render(Ballista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         main = createBodyLayer().bakeRoot();
         double dp = entity.client_drawProgress - entity.client_drawProgressPrev;
-        double drawProgress = Math.clamp(entity.client_drawProgressPrev + dp * partialTick, -1, 1);
+        double drawProgress = Mth.clamp(entity.client_drawProgressPrev + dp * partialTick, -1, 1);
 
         // ---- RECOIL EFFECT ----
         double recoilOffset = 0.0;
@@ -150,7 +147,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
     @Override
     public ResourceLocation getTextureLocation(Ballista entityBallista) {
-        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/entity/ballista_stand_3.png");
+        return new ResourceLocation(Main.MODID, "textures/entity/ballista_stand_3.png");
     }
 
     public LayerDefinition createBodyLayer() {
