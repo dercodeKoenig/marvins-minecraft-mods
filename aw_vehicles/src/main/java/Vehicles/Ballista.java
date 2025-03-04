@@ -100,11 +100,7 @@ public class Ballista extends Entity {
 
         if (level() instanceof ServerLevel serverLevel) {
 
-            //applyGravity();
-            Vec3 velocity = this.getDeltaMovement();
-            this.setDeltaMovement(velocity.x, velocity.y - 0.02, velocity.z);
-            Vec3 vec3d1 = this.getDeltaMovement();
-            this.move(MoverType.SELF, new Vec3(vec3d1.x, vec3d1.y, vec3d1.z));
+            this.setDeltaMovement(this.getDeltaMovement().add((double)0.0F, -0.1, (double)0.0F));
 
             if (getDrawProgress() < 0) {
                 setDrawProgress(Math.min(getDrawProgress() + 0.05f, 0));

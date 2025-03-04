@@ -26,14 +26,14 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
 
     protected BallistaRenderer(EntityRendererProvider.Context context) {
         super(context);
-        r = RenderType.entitySolid(getTextureLocation(null));
+        r = RenderType.entityCutout(getTextureLocation(null));
 
         main = createBodyLayer().bakeRoot();
     }
 
     @Override
     public void render(Ballista entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        main = createBodyLayer().bakeRoot();
+
         double dp = entity.client_drawProgress - entity.client_drawProgressPrev;
         double drawProgress = Mth.clamp(entity.client_drawProgressPrev + dp * partialTick, -1, 1);
 
@@ -140,8 +140,6 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
         main.render(poseStack, bufferSource.getBuffer(r), packedLight, 0);
         poseStack.popPose();
-
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
 
