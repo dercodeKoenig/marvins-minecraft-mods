@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Quaternionf;
 
@@ -51,7 +52,7 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
 
         poseStack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
 
-        main.render(poseStack, bufferSource.getBuffer(r), packedLight, 0);
+        main.render(poseStack, bufferSource.getBuffer(r), packedLight,  OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
