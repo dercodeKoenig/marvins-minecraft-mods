@@ -205,7 +205,7 @@ public class Ballista extends Entity {
                     bolt.discard();
                     bolt = null;
                 }
-                if (getEntityData().get(CONSTRUCTION_PROGRESS) == 0) {
+                if (getEntityData().get(CONSTRUCTION_PROGRESS) <= 0) {
                     ItemStack ballistaStack = new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get());
                     CompoundTag t = new CompoundTag();
                     t.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
@@ -221,7 +221,7 @@ public class Ballista extends Entity {
                 if (!player.isShiftKeyDown()) {
                     if (getDrawProgress() == 1) {
                         if (bolt != null) {
-                            bolt.setDeltaMovement(getLookAngle().scale(4));
+                            bolt.setDeltaMovement(getLookAngle().normalize().scale(4));
                             bolt.setNoGravity(false);
                             bolt = null;
                             setDrawProgress(-1);
