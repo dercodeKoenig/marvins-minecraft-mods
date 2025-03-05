@@ -6,13 +6,12 @@ import NPCs.Npc.CombatNPC;
 import NPCs.Npc.programs.TakeFromInventoryProgram;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
+import Vehicles.BallistaBolt;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
 
@@ -32,8 +31,8 @@ public class ArmoryProgram extends Goal {
     IItemHandler targetInventory;
 
     TakeArmorProgram takeArmorProgram;
-    TakeToolProgram takeToolProgram;
-    TakeFromInventoryProgram takeFromInventoryProgram;
+    TakeToolProgram takeArrowProgram;
+    TakeToolProgram takeBallistaBoltProgram;
 
     public void lockTargetPosition() {
         long gameTime = worker.level().getGameTime();
@@ -66,8 +65,8 @@ public class ArmoryProgram extends Goal {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         takeArmorProgram = new TakeArmorProgram(worker);
-        takeToolProgram = new TakeToolProgram(worker);
-        takeFromInventoryProgram = new TakeFromInventoryProgram(worker);
+        takeArrowProgram = new TakeToolProgram(worker);
+        takeBallistaBoltProgram = new TakeToolProgram(worker);
     }
 
     @Override
@@ -113,7 +112,7 @@ public class ArmoryProgram extends Goal {
                             }
 
                             if (arrows < minRequiredCount) {
-                                if (takeToolProgram.pickupToolFromTarget(ArrowItem.class, armory.inventory, true)) {
+                                if (takeArrowProgram.pickupToolFromTarget(ArrowItem.class, armory.inventory, true)) {
                                     lockTargetPosition();
                                     targetPos = p;
                                     targetInventory = armory.inventory;
@@ -124,15 +123,19 @@ public class ArmoryProgram extends Goal {
 
 
                         if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
-                            if (countEmptySlots(worker) > 0 && countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory) < 3) {
-                                for (int j = 0; j < armory.inventory.getSlots(); j++) {
-                                    ItemStack canExtract = armory.inventory.extractItem(j, 1, true);
-                                    if (canExtract.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
-                                        targetPos = p;
-                                        targetInventory = armory.inventory;
-                                        lockTargetPosition();
-                                        return true;
-                                    }
+                            int arrows = Utils.countItems(BallistaBolt.class, worker.combinedInventory);
+                            double distance = Utils.distanceManhattan(p.getCenter(), worker.getOnPos().getCenter());
+                            int minRequiredCount = 1;
+                            if (distance < 5) {
+                                minRequiredCount = 3;
+                            }
+
+                            if (arrows < minRequiredCount) {
+                                if (takeBallistaBoltProgram.pickupToolFromTarget(BallistaBolt.class, armory.inventory, true)) {
+                                    lockTargetPosition();
+                                    targetPos = p;
+                                    targetInventory = armory.inventory;
+                                    return true;
                                 }
                             }
                         }
@@ -187,7 +190,7 @@ public class ArmoryProgram extends Goal {
                 minRequiredCount = 64;
             }
             if (arrows < minRequiredCount) {
-                exit = takeToolProgram.run(ArrowItem.class, targetPos, targetInventory, true);
+                exit = takeArrowProgram.run(ArrowItem.class, targetPos, targetInventory, true);
                 if (exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS) {
                     return;
                 }
@@ -201,14 +204,16 @@ public class ArmoryProgram extends Goal {
 
 
         if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
-            if (countEmptySlots(worker) > 0 && countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory) < 3) {
-                for (int j = 0; j < targetInventory.getSlots(); j++) {
-                    ItemStack canExtract = targetInventory.extractItem(j, 1, true);
-                    if (canExtract.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
-                        exit = takeFromInventoryProgram.run(targetInventory, targetPos, canExtract);
-                        if (exit == SUCCESS_STILL_RUNNING)
-                            return;
-                    }
+            int arrows = Utils.countItems(BallistaBolt.class, worker.combinedInventory);
+            double distance = Utils.distanceManhattan(targetPos.getCenter(), worker.getOnPos().getCenter());
+            int minRequiredCount = 1;
+            if (distance < 5) {
+                minRequiredCount = 3;
+            }
+            if (arrows < minRequiredCount) {
+                exit = takeBallistaBoltProgram.run(BallistaBolt.class, targetPos, targetInventory, true);
+                if (exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS) {
+                    return;
                 }
             }
         }

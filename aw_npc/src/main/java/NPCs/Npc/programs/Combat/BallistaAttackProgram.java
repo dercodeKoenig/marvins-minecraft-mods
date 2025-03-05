@@ -153,7 +153,7 @@ public class BallistaAttackProgram extends Goal {
                 double d1 = livingentity.getZ() - ballista.getZ();
                 double targetYRot = (Mth.atan2(d1, d0) * (double) 180.0F / (double) (float) Math.PI) - 90.0F;
                 ballista.targetYRot = (float) targetYRot;
-                if (Math.abs(ballista.getYRot() - (360 + ballista.targetYRot) % 360) < 0.1) {
+                if (Math.abs((360+ballista.getYRot()) % 360 - (360 + ballista.targetYRot) % 360) < 0.1) {
                     double d2 = livingentity.getY(0.5) - ballista.getY();
                     double d3 = Math.sqrt(d0 * d0 + d1 * d1); // Horizontal distance
 
@@ -165,8 +165,8 @@ public class BallistaAttackProgram extends Goal {
                     ballista.targetXRot = (float) Math.atan(vy / d3);
 
                     attackTime++;
+                    System.out.println(attackTime);
                     if (Math.abs(ballista.getXRot() - ballista.targetXRot) < 0.05 && attackTime > attackWait) {
-
 
                         List<Entity> entities = npc.level().getEntities((Entity) null, npc.getBoundingBox().expandTowards(npc.getTarget().getPosition(0).subtract(npc.getPosition(0))).inflate(1), (Predicate<Entity>) entity -> entity instanceof LivingEntity);
                         boolean freeToFire = true;
@@ -181,7 +181,7 @@ public class BallistaAttackProgram extends Goal {
                                 }
                             }
                         }
-                        System.out.println(freeToFire+":");
+
                         if (freeToFire) {
                             ballista.shoot();
                             attackTime = 0;

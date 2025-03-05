@@ -1,8 +1,10 @@
 package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
+import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
 import Vehicles.Ballista;
+import Vehicles.BallistaBolt;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -27,10 +29,12 @@ public class BallistaReloadProgram extends Goal {
     public long lastCheck;
     public Ballista ballista;
 int waitTimer = 0;
+TakeToolProgram takeBoltProgram;
 
     public BallistaReloadProgram(CombatNPC npc) {
         this.npc = npc;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        takeBoltProgram = new TakeToolProgram(npc);
     }
 
     public void lockTargetPosition() {
@@ -75,7 +79,7 @@ int waitTimer = 0;
                 lockTargetPosition();
                 return true;
             }
-            if (isPositionWorkable(i.blockPosition()) && countItems(Registry.ITEM_BALLISTA_BOLT.get(), npc.combinedInventory) > 0 && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            if (isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(BallistaBolt.class) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
@@ -129,19 +133,16 @@ int waitTimer = 0;
             }
             return;
         }
-        if (ballista.getDrawProgress() == 1 && ballista.bolt == null) {
-            for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
-                ItemStack extracted = npc.combinedInventory.extractItem(i, 1, true);
-                if (extracted.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
-                    waitTimer++;
-                    if(waitTimer > 20) {
-                        ballista.load();
-                        npc.combinedInventory.extractItem(i, 1, false);
-                        waitTimer = 0;
-                    }
-                    return;
-                }
+        if (ballista.getDrawProgress() == 1 && ballista.bolt == null && takeBoltProgram.hasTool(BallistaBolt.class)) {
+            takeBoltProgram.takeToolToMainHand(BallistaBolt.class);
+            waitTimer++;
+            if (waitTimer > 20) {
+                ballista.load();
+                npc.combinedInventory.extractItem(0, 1, false);
+                npc.swing(InteractionHand.MAIN_HAND);
+                waitTimer = 0;
             }
+            return;
         }
 
         ballista = null;
