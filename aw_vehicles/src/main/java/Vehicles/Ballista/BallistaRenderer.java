@@ -1,5 +1,6 @@
-package Vehicles;
+package Vehicles.Ballista;
 
+import Vehicles.Main;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -20,7 +21,7 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
     RenderType r;
     ModelPart main;
 
-    protected BallistaRenderer(EntityRendererProvider.Context context) {
+    public BallistaRenderer(EntityRendererProvider.Context context) {
         super(context);
         r = RenderType.entitySolid(getTextureLocation(null));
 

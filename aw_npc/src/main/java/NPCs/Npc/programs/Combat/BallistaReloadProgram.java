@@ -1,12 +1,14 @@
 package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
+import NPCs.Npc.HostileEntities;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
-import Vehicles.Ballista;
+import Vehicles.Ballista.Ballista;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -68,14 +70,23 @@ TakeToolProgram takeBoltProgram;
         if (npc.hunger > npc.maxHunger * 0.05) {
         } else return false;
 
-        List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(64));
-        for (Ballista i : nearbyBallistas) {
-            if (isPositionWorkable(i.blockPosition()) && i.getDrawProgress() < 1 && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+        List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(128));
+        for (Ballista i : sortedEntitiesByDistanceTo(nearbyBallistas,npc.position())) {
+            // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
+            List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(16));
+            boolean canUse = true;
+            for (LivingEntity j : entitiesAroundBallista){
+                if(HostileEntities.shouldAttack(j,npc)){
+                    canUse = false;
+                    break;
+                }
+            }
+            if (canUse && isPositionWorkable(i.blockPosition()) && i.getDrawProgress() < 1 && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
             }
-            if (isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(Registry.ITEM_BALLISTA_BOLT.get()) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            if (canUse && isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(Registry.ITEM_BALLISTA_BOLT.get()) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;

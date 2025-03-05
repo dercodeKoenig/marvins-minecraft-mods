@@ -1,6 +1,7 @@
 package Vehicles;
 
-import AgeOfSteam.Blocks.Mechanics.Axle.EntityAxleBase;
+import Vehicles.Ballista.Ballista;
+import Vehicles.Ballista.BallistaBolt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -10,9 +11,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
@@ -22,12 +20,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
-import java.util.Random;
 
 
 // ghost blocks to avoid entities getting stuck trying to go through siege weapons because pathfinders do not know they can not pass
-public class BallistaGhostBlock extends Block {
-    public BallistaGhostBlock() {
+public class GhostBlock extends Block {
+    public GhostBlock() {
         super(Properties.of().noOcclusion());
     }
 
@@ -67,10 +64,7 @@ public class BallistaGhostBlock extends Block {
     public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityContext) {
             Entity entity = entityContext.getEntity();
-            if (entity instanceof Ballista) {
-                return Shapes.empty();
-            }
-            if (entity instanceof BallistaBolt) {
+            if (entity instanceof NoGhostBlockCollider) {
                 return Shapes.empty();
             }
         }

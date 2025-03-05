@@ -119,7 +119,7 @@ public class ArmoryProgram extends Goal {
                         }
 
 
-                        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+                        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.siege_engineer.ordinal()) {
                             int arrows = Utils.countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory);
                             double distance = Utils.distanceManhattan(p.getCenter(), worker.getOnPos().getCenter());
                             int minRequiredCount = 1;
@@ -200,7 +200,7 @@ public class ArmoryProgram extends Goal {
         }
 
 
-        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.siege_engineer.ordinal()) {
             int arrows = Utils.countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory);
             double distance = Utils.distanceManhattan(targetPos.getCenter(), worker.getOnPos().getCenter());
             int minRequiredCount = 1;

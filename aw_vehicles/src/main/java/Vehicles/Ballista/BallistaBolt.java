@@ -1,12 +1,13 @@
-package Vehicles;
+package Vehicles.Ballista;
 
+import Vehicles.NoGhostBlockCollider;
+import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,7 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class BallistaBolt extends Entity {
+public class BallistaBolt extends Entity implements NoGhostBlockCollider {
 
     // it does not correctly sync deltaMovement
     public static final EntityDataAccessor<Vector3f> VELOCITY = SynchedEntityData.defineId(BallistaBolt.class, EntityDataSerializers.VECTOR3);

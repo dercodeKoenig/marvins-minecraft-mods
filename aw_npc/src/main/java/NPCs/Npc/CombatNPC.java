@@ -1,5 +1,6 @@
 package NPCs.Npc;
 
+import AgeOfSteam.Registry;
 import NPCs.Npc.programs.*;
 import NPCs.Npc.programs.Combat.*;
 import net.minecraft.nbt.CompoundTag;
@@ -20,9 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class CombatNPC extends NPCBase {
 
@@ -31,6 +29,7 @@ public class CombatNPC extends NPCBase {
     public enum WorkTypes {
         fighter,
         archer,
+        siege_engineer,
         medic,
         arbalist
     }
@@ -57,8 +56,7 @@ public class CombatNPC extends NPCBase {
                 .add(Attributes.ATTACK_DAMAGE)
                 .add(Attributes.ATTACK_SPEED)
                 .add(Attributes.LUCK)
-                .add(Attributes.BLOCK_BREAK_SPEED)
-                ;
+                .add(Attributes.BLOCK_BREAK_SPEED);
     }
 
     @Override
@@ -92,27 +90,32 @@ public class CombatNPC extends NPCBase {
             Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
             goalSelector.addGoal(priority++, attackGoal0);
 
-            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
-
-            // this is in case there is no townhall to manage temporal enemies
-            goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
         }
         if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()){
             Goal attackGoal2 = new BallistaAttackProgram(this, 1.2, 10);
             goalSelector.addGoal(priority++, attackGoal2);
-            Goal attackGoal3 = new BallistaReloadProgram(this);
-            goalSelector.addGoal(priority++, attackGoal3);
 
             Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20,25);
             goalSelector.addGoal(priority++, attackGoal0);
 
-            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 20, true, false, (entity) -> HostileEntities.shouldAttack(entity, this));
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, false, (entity) -> HostileEntities.shouldAttack(entity, this));
+            goalSelector.addGoal(priority++, attackGoal1);
+        }
+        if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.siege_engineer.ordinal()){
+            Goal attackGoal2 = new BallistaAttackProgram(this, 1.2, 10);
+            goalSelector.addGoal(priority++, attackGoal2);
+
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, false, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
 
-            // this is in case there is no townhall to manage temporal enemies
-            goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
+            Goal attackGoal3 = new BallistaReloadProgram(this);
+            goalSelector.addGoal(priority++, attackGoal3);
         }
+
+        // this is in case there is no townhall to manage temporal enemies
+        goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
 
@@ -124,7 +127,7 @@ public class CombatNPC extends NPCBase {
         goalSelector.addGoal(priority++, new FoodProgramFighter(this));
 
         goalSelector.addGoal(priority++, new PickupItemsOnGroundProgram(this, 8));
-        goalSelector.addGoal(priority++, new DropLootFighterProgram(this));
+        goalSelector.addGoal(priority++, new FighterDropLootProgram(this));
 
         fighterFollowWorkOrderProgram = new FighterFollowWorkOrderProgram(this);
         goalSelector.addGoal(priority++, fighterFollowWorkOrderProgram);
@@ -161,6 +164,8 @@ public class CombatNPC extends NPCBase {
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 setCustomName(Component.literal("Archer"));
+                int randomNumber = Math.abs(level().random.nextInt()) % 4 + 1;
+                getEntityData().set(DATA_TEXTURE, "po_soldier_" + randomNumber + ".png");
                 return InteractionResult.SUCCESS;
             }
 
@@ -169,6 +174,18 @@ public class CombatNPC extends NPCBase {
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 setCustomName(Component.literal("Fighter"));
+                int randomNumber = Math.abs(level().random.nextInt()) % 4 + 1;
+                getEntityData().set(DATA_TEXTURE, "po_soldier_" + randomNumber + ".png");
+                return InteractionResult.SUCCESS;
+            }
+
+            if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_WOODEN_HAMMER.get())) {
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.siege_engineer.ordinal());
+                player.setItemInHand(hand, ItemStack.EMPTY);
+                registerGoals();
+                setCustomName(Component.literal("Siege Engineer"));
+                int randomNumber = Math.abs(level().random.nextInt()) % 1 + 1;
+                getEntityData().set(DATA_TEXTURE, "po_engineer_" + randomNumber + ".png");
                 return InteractionResult.SUCCESS;
             }
         }

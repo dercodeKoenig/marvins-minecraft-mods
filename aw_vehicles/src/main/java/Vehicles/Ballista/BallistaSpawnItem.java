@@ -1,5 +1,6 @@
-package Vehicles;
+package Vehicles.Ballista;
 
+import Vehicles.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -7,8 +8,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 
-import static Vehicles.Ballista.CONSTRUCTION_PROGRESS;
-import static Vehicles.Ballista.IS_BROKEN;
+import static Vehicles.Ballista.Ballista.CONSTRUCTION_PROGRESS;
+import static Vehicles.Ballista.Ballista.IS_BROKEN;
 import static Vehicles.Utils.getStackTagOrEmpty;
 
 public class BallistaSpawnItem extends Item {

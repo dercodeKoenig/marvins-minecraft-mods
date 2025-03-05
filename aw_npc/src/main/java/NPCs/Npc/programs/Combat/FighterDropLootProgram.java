@@ -17,7 +17,7 @@ import java.util.EnumSet;
 import static NPCs.Npc.CombatNPC.DATA_WORKTYPE;
 import static NPCs.Utils.SUCCESS_STILL_RUNNING;
 
-public class DropLootFighterProgram extends Goal {
+public class FighterDropLootProgram extends Goal {
     long lastCheck = 0;
     CombatNPC worker;
     UnloadInventoryProgram unloadInventoryProgram;
@@ -25,7 +25,7 @@ public class DropLootFighterProgram extends Goal {
     BlockPos targetPos;
     IItemHandler targetInventory;
 
-    public DropLootFighterProgram(CombatNPC worker) {
+    public FighterDropLootProgram(CombatNPC worker) {
         this.worker = worker;
         unloadInventoryProgram = new UnloadInventoryProgram(worker);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
@@ -64,7 +64,7 @@ public class DropLootFighterProgram extends Goal {
                 }
             }
 
-            if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+            if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.siege_engineer.ordinal()) {
                 if(canExtract.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())){
                     continue;
                 }

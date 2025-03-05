@@ -1,6 +1,8 @@
 package NPCs.Npc;
 
 import ARLib.utils.BlockIdentifier;
+import Vehicles.Ballista.Ballista;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -48,6 +50,14 @@ public class HostileEntities {
             String pName = p.getName().getString();
             if (npc.isFriendlyTo(p)) {
                 return true;
+            }
+        }
+
+        if(npc.level() instanceof ServerLevel serverLevel) {
+            if (e instanceof Ballista b) {
+                if (b.controllingEntity == null || isUnableToAttack(serverLevel.getEntity(b.controllingEntity), npc)) {
+                    return true;
+                }
             }
         }
 

@@ -1,5 +1,7 @@
 package Vehicles;
 
+import Vehicles.Ballista.BallistaBoltRenderer;
+import Vehicles.Ballista.BallistaRenderer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;

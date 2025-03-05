@@ -2,22 +2,17 @@ package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.HostileEntities;
-import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
-import Vehicles.Ballista;
+import Vehicles.Ballista.Ballista;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.*;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
@@ -42,8 +37,6 @@ public class BallistaAttackProgram extends Goal {
         this.npc = npc;
         this.speedModifier = speedModifier;
         this.attackWait = attackWait;
-        this.attackRadiusSqr = attackRadius * attackRadius;
-        this.attackRadius = attackRadius;
 
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
@@ -80,12 +73,21 @@ public class BallistaAttackProgram extends Goal {
         }
         lastCheck = npc.level().getGameTime();
 
-        boolean c = this.npc.getTarget() != null && npc.getTarget().isAlive() && npc.hunger > npc.maxHunger * 0.05;
+        boolean c = npc.getTarget() != null && npc.getTarget().isAlive() && npc.hunger > npc.maxHunger * 0.05&& npc.position().distanceTo(npc.getTarget().position()) > 6;
         if (!c) return false;
 
-        List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(64));
-        for (Ballista i : nearbyBallistas) {
-            if (isPositionWorkable(i.blockPosition()) && i.bolt != null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+        List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(128));
+        for (Ballista i : sortedEntitiesByDistanceTo(nearbyBallistas,npc.position())) {
+            // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
+           List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(16));
+           boolean canUse = true;
+           for (LivingEntity j : entitiesAroundBallista){
+               if(HostileEntities.shouldAttack(j,npc)){
+                   canUse = false;
+                   break;
+               }
+           }
+            if (canUse && (i.controllingEntity == null || Objects.equals(i.controllingEntity,npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.bolt != null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
@@ -95,7 +97,7 @@ public class BallistaAttackProgram extends Goal {
     }
 
     public boolean canContinueToUse() {
-        return ballista != null && this.npc.getTarget() != null && npc.getTarget().isAlive() && npc.hunger > npc.maxHunger * 0.05;
+        return ballista != null && npc.getTarget() != null && npc.getTarget().isAlive() && npc.hunger > npc.maxHunger * 0.05&& npc.position().distanceTo(npc.getTarget().position()) > 6;
     }
 
     public void start() {
@@ -106,6 +108,7 @@ public class BallistaAttackProgram extends Goal {
     public void stop() {
         if (ballista != null && Objects.equals(ballista.controllingEntity, npc.getUUID()))
             ballista.controllingEntity = null;
+        ballista = null;
         super.stop();
     }
 
@@ -115,11 +118,13 @@ public class BallistaAttackProgram extends Goal {
 
     public void tick() {
 
-        if (ballista == null || ballista.bolt == null || ballista.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) != 17 || ballista.getEntityData().get(Ballista.IS_BROKEN)) {
+        if ((ballista.controllingEntity != null && !Objects.equals(npc.getUUID(), ballista.controllingEntity)) || ballista == null || ballista.bolt == null || ballista.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) != 17 || ballista.getEntityData().get(Ballista.IS_BROKEN)) {
             ballista = null;
             return;
         }
         lockTargetPosition();
+
+        ballista.controllingEntity = npc.getUUID();
 
         double distToTarget = Utils.distanceManhattan(npc.position(), ballista.position());
         if (distToTarget > 5.5) {
@@ -134,7 +139,6 @@ public class BallistaAttackProgram extends Goal {
 
         LivingEntity livingentity = this.npc.getTarget();
         if (livingentity != null) {
-
             Vec3 look = ballista.calculateViewVector(ballista.getXRot(), ballista.getYRot());
             Vec3 lookNoY = new Vec3(look.x, 0.0, look.z);
             Vec3 targetPosition = ballista.position().subtract(lookNoY.normalize().scale(2.0)).add(new Vec3((double) 0.0F, (double) 0.5F, (double) 0.0F));
@@ -166,10 +170,9 @@ public class BallistaAttackProgram extends Goal {
                     ballista.targetXRot = (float) Math.atan(vy / d3);
 
                     attackTime++;
-                    System.out.println(attackTime);
                     if (Math.abs(ballista.getXRot() - ballista.targetXRot) < 0.05 && attackTime > attackWait) {
 
-                        List<Entity> entities = npc.level().getEntities((Entity) null, npc.getBoundingBox().expandTowards(npc.getTarget().getPosition(0).subtract(npc.getPosition(0))).inflate(1), (Predicate<Entity>) entity -> entity instanceof LivingEntity);
+                        List<Entity> entities = npc.level().getEntities((Entity) null, ballista.getBoundingBox().expandTowards(npc.getTarget().position().subtract(ballista.position())).inflate(1), (Predicate<Entity>) entity -> entity instanceof LivingEntity);
                         boolean freeToFire = true;
                         // scan for friendly entities in area
                         for (Entity entity1 : entities) {
@@ -184,6 +187,7 @@ public class BallistaAttackProgram extends Goal {
                         }
 
                         if (freeToFire) {
+                            npc.swing(InteractionHand.MAIN_HAND);
                             ballista.shoot();
                             attackTime = 0;
                         }

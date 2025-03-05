@@ -1,6 +1,8 @@
-package Vehicles;
+package Vehicles.Ballista;
 
-import AgeOfSteam.Items.Hammer.ItemHammer;
+import Vehicles.Registry;
+import Vehicles.SiegeEngine;
+import Vehicles.Utils;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -20,17 +22,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.ModList;
 
 import java.util.List;
 import java.util.UUID;
 
-public class Ballista extends Entity {
+public class Ballista extends SiegeEngine {
 
     public static final EntityDataAccessor<Float> DRAW_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Integer> CONSTRUCTION_PROGRESS = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(Ballista.class, EntityDataSerializers.BOOLEAN);
-
 
     float client_drawProgress;
     float client_drawProgressPrev;
@@ -102,14 +100,6 @@ public class Ballista extends Entity {
 
         if (level() instanceof ServerLevel serverLevel) {
 
-            // set ghost block for pathfinding
-            if(level().getBlockState(blockPosition()).getBlock() != Registry.BALLISTA_GHOST_BLOCK.get()){
-                level().setBlock(blockPosition(), Registry.BALLISTA_GHOST_BLOCK.get().defaultBlockState(),3);
-            }
-            if(level().getBlockState(blockPosition().above()).getBlock() != Registry.BALLISTA_GHOST_BLOCK.get()){
-                level().setBlock(blockPosition().above(), Registry.BALLISTA_GHOST_BLOCK.get().defaultBlockState(),3);
-            }
-
             applyGravity();
             Vec3 vec3d1 = this.getDeltaMovement();
             this.move(MoverType.SELF, new Vec3(vec3d1.x, vec3d1.y, vec3d1.z));
@@ -130,7 +120,7 @@ public class Ballista extends Entity {
                 if (controller == null || controller.getPosition(0).distanceTo(getPosition(0)) > 4) {
                     controllingEntity = null;
                 } else {
-                    if(controller instanceof Player){
+                    if (controller instanceof Player) {
                         targetYRot = controller.getYRot();
                         targetXRot = controller.getXRot();
                     }
@@ -194,14 +184,6 @@ public class Ballista extends Entity {
             } else {
                 client_drawProgress += (getDrawProgress() - client_drawProgress) * 0.1f; // Smoothly lerp
             }
-        }
-    }
-
-    public boolean isHammerItem(ItemStack item) {
-        if (ModList.get().isLoaded("age_of_steam")) {
-            return item.getItem() instanceof ItemHammer;
-        } else {
-            return item.getItem().equals(Registry.ITEM_WOODEN_HAMMER.get());
         }
     }
 
@@ -314,11 +296,6 @@ public class Ballista extends Entity {
 
 
     @Override
-    protected double getDefaultGravity() {
-        return (double) 0.1F;
-    }
-
-    @Override
     public boolean hurt(DamageSource source, float amount) {
         if (!level().isClientSide) {
             if (random.nextFloat() < amount / life) {
@@ -345,36 +322,19 @@ public class Ballista extends Entity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(DRAW_PROGRESS, 0f);
-        builder.define(CONSTRUCTION_PROGRESS, 0);
-        builder.define(IS_BROKEN, false);
+        super.defineSynchedData(builder);
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         if (compoundTag.contains("drawProgress"))
             setDrawProgress(compoundTag.getFloat("drawProgress"));
-
-        if (compoundTag.contains("construction")) {
-            getEntityData().set(CONSTRUCTION_PROGRESS, compoundTag.getInt("construction"));
-        }
-        if (compoundTag.contains("isBroken")) {
-            getEntityData().set(IS_BROKEN, compoundTag.getBoolean("isBroken"));
-        }
+        super.readAdditionalSaveData(compoundTag);
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("drawProgress", getDrawProgress());
-        compoundTag.putInt("construction", getEntityData().get(CONSTRUCTION_PROGRESS));
-        compoundTag.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
-    }
-
-    @Override
-    public boolean canBeCollidedWith() {
-        return true;
-    }
-
-    public boolean isPickable() {
-        return !this.isRemoved();
+        super.addAdditionalSaveData(compoundTag);
     }
 }

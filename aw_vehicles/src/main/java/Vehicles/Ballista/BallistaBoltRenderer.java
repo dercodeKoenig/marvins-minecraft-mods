@@ -1,5 +1,6 @@
-package Vehicles;
+package Vehicles.Ballista;
 
+import Vehicles.Main;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -24,7 +25,7 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
     RenderType r;
     ModelPart main;
 
-    protected BallistaBoltRenderer(EntityRendererProvider.Context context) {
+    public BallistaBoltRenderer(EntityRendererProvider.Context context) {
         super(context);
         r = RenderType.create("x", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1024, RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)

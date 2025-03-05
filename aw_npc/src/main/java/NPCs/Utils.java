@@ -29,11 +29,11 @@ public class Utils {
     public static final int EXIT_FAIL = -1;
 
 
-    public static TreeSet<Vec3> sortByDistanceTo(Collection<Vec3> list, Vec3 position) {
-        TreeSet<Vec3> sorted = new TreeSet<>(new Comparator<Vec3>() {
+    public static<T extends Entity> TreeSet<T> sortedEntitiesByDistanceTo(Collection<T> list, Vec3 position) {
+        TreeSet<T> sorted = new TreeSet<>(new Comparator<T>() {
             @Override
-            public int compare(Vec3 o1, Vec3 o2) {
-                return (int) Math.signum(o1.distanceTo(position) - o2.distanceTo(position));
+            public int compare(Entity o1, Entity o2) {
+                return (int) Math.signum(o1.position().distanceTo(position) - o2.position().distanceTo(position));
             }
         });
         sorted.addAll(list);
