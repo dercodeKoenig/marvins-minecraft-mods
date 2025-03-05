@@ -26,7 +26,7 @@ public class BallistaReloadProgram extends Goal {
     public CombatNPC npc;
     public long lastCheck;
     public Ballista ballista;
-
+int waitTimer = 0;
 
     public BallistaReloadProgram(CombatNPC npc) {
         this.npc = npc;
@@ -90,6 +90,7 @@ public class BallistaReloadProgram extends Goal {
 
     public void start() {
         super.start();
+        waitTimer = 0;
     }
 
     public void stop() {
@@ -120,9 +121,11 @@ public class BallistaReloadProgram extends Goal {
         npc.getLookControl().setLookAt(ballista, 30, 30);
 
         if (ballista.getDrawProgress() < 1) {
-            if (ballista.reloadTicksRemaining == 0) {
+            waitTimer++;
+            if (ballista.reloadTicksRemaining == 0 && waitTimer > 20) {
                 ballista.resetReloadTimer();
                 npc.swing(InteractionHand.MAIN_HAND);
+                waitTimer = 0;
             }
             return;
         }
@@ -130,8 +133,12 @@ public class BallistaReloadProgram extends Goal {
             for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
                 ItemStack extracted = npc.combinedInventory.extractItem(i, 1, true);
                 if (extracted.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
-                    ballista.load();
-                    npc.combinedInventory.extractItem(i, 1, false);
+                    waitTimer++;
+                    if(waitTimer > 20) {
+                        ballista.load();
+                        npc.combinedInventory.extractItem(i, 1, false);
+                        waitTimer = 0;
+                    }
                     return;
                 }
             }
