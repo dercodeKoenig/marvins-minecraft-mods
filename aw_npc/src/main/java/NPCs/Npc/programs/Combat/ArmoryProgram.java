@@ -3,15 +3,12 @@ package NPCs.Npc.programs.Combat;
 import ARLib.utils.BlockIdentifier;
 import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Npc.CombatNPC;
-import NPCs.Npc.programs.TakeFromInventoryProgram;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
-import Vehicles.BallistaBolt;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ArrowItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
 
@@ -123,7 +120,7 @@ public class ArmoryProgram extends Goal {
 
 
                         if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
-                            int arrows = Utils.countItems(BallistaBolt.class, worker.combinedInventory);
+                            int arrows = Utils.countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory);
                             double distance = Utils.distanceManhattan(p.getCenter(), worker.getOnPos().getCenter());
                             int minRequiredCount = 1;
                             if (distance < 5) {
@@ -131,7 +128,7 @@ public class ArmoryProgram extends Goal {
                             }
 
                             if (arrows < minRequiredCount) {
-                                if (takeBallistaBoltProgram.pickupToolFromTarget(BallistaBolt.class, armory.inventory, true)) {
+                                if (takeBallistaBoltProgram.pickupToolFromTarget(Registry.ITEM_BALLISTA_BOLT.get(), armory.inventory, true)) {
                                     lockTargetPosition();
                                     targetPos = p;
                                     targetInventory = armory.inventory;
@@ -204,14 +201,14 @@ public class ArmoryProgram extends Goal {
 
 
         if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
-            int arrows = Utils.countItems(BallistaBolt.class, worker.combinedInventory);
+            int arrows = Utils.countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory);
             double distance = Utils.distanceManhattan(targetPos.getCenter(), worker.getOnPos().getCenter());
             int minRequiredCount = 1;
             if (distance < 5) {
                 minRequiredCount = 3;
             }
             if (arrows < minRequiredCount) {
-                exit = takeBallistaBoltProgram.run(BallistaBolt.class, targetPos, targetInventory, true);
+                exit = takeBallistaBoltProgram.run(Registry.ITEM_BALLISTA_BOLT.get(), targetPos, targetInventory, true);
                 if (exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS) {
                     return;
                 }

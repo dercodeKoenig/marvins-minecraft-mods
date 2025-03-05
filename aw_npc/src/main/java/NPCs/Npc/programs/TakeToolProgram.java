@@ -4,6 +4,7 @@ import NPCs.Npc.NPCBase;
 import NPCs.Utils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -56,6 +57,51 @@ public class TakeToolProgram {
         for (int j = 0; j < target.getSlots(); j++) {
             ItemStack stackInSlot = target.getStackInSlot(j);
             if (stackInSlot.isCorrectToolForDrops(stateToMine)) {
+                for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
+                    if (npc.combinedInventory.insertItem(i, stackInSlot.copyWithCount(1), true).isEmpty()) {
+                        if (!simulate) {
+                            npc.combinedInventory.insertItem(i, target.extractItem(j, 1, false), false);
+                            npc.swing(Utils.moveItemStackToAnyHand(stackInSlot, npc));
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+    public boolean takeToolToMainHand(Item item) {
+        ItemStack stackInHand = npc.getMainHandItem();
+        if (stackInHand.getItem().equals(item)) return true;
+        if (!hasTool(item)) return false;
+
+        ItemStack stack = npc.combinedInventory.getStackInSlot(cachedToolIndex);
+        if (stack.getItem().equals(item)) {
+            Utils.moveItemStackToMainHand(stack, npc);
+            return true;
+        }
+        return false;
+    }
+    public boolean hasTool(Item item) {
+        if (npc.combinedInventory.getStackInSlot(cachedToolIndex).getItem().equals(item))
+            return true;
+
+        for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
+            if (npc.combinedInventory.getStackInSlot(i).getItem().equals(item)) {
+                cachedToolIndex = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean pickupToolFromTarget(Item item, IItemHandler target, boolean simulate) {
+        for (int j = 0; j < target.getSlots(); j++) {
+            ItemStack stackInSlot = target.getStackInSlot(j);
+            if (stackInSlot.getItem().equals(item)) {
                 for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
                     if (npc.combinedInventory.insertItem(i, stackInSlot.copyWithCount(1), true).isEmpty()) {
                         if (!simulate) {
@@ -157,6 +203,44 @@ public class TakeToolProgram {
         if (workDelay > 20) {
             workDelay = 0;
             if (pickupToolFromTarget(toolClass, targetInventory, false))
+                return EXIT_SUCCESS;
+            else
+                return EXIT_FAIL; // should never trigger because first line in run() checks if it can take tool
+        }
+        workDelay++;
+        return SUCCESS_STILL_RUNNING;
+    }
+
+    public int run(Item item, BlockPos targetPos, IItemHandler targetInventory) {
+        return run(item,targetPos,targetInventory, false);
+    }
+    public int run(Item item, BlockPos targetPos, IItemHandler targetInventory, boolean ignoreExisting) {
+        if (!ignoreExisting && hasTool(item)) return EXIT_SUCCESS;
+        else if (!pickupToolFromTarget(item, targetInventory, true)) {
+            return -2;
+        }
+
+        int pathFindExit = npc.slowMobNavigation.moveToPosition(
+                targetPos,
+                requiredDistance,
+                npc.slowNavigationMaxDistance,
+                npc.slowNavigationMaxNodes,
+                npc.slowNavigationStepPerTick
+        );
+
+        if (pathFindExit == EXIT_FAIL) {
+            return EXIT_FAIL;
+        } else if (pathFindExit == SUCCESS_STILL_RUNNING) {
+            workDelay = 0;
+            return SUCCESS_STILL_RUNNING;
+        }
+
+        npc.lookAt(EntityAnchorArgument.Anchor.EYES, targetPos.getCenter());
+        npc.lookAt(EntityAnchorArgument.Anchor.FEET, targetPos.getCenter());
+
+        if (workDelay > 20) {
+            workDelay = 0;
+            if (pickupToolFromTarget(item, targetInventory, false))
                 return EXIT_SUCCESS;
             else
                 return EXIT_FAIL; // should never trigger because first line in run() checks if it can take tool

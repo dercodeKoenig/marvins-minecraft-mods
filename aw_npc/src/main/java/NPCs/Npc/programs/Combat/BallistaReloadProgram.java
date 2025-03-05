@@ -2,18 +2,12 @@ package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.programs.TakeToolProgram;
-import NPCs.Utils;
 import Vehicles.Ballista;
-import Vehicles.BallistaBolt;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -79,7 +73,7 @@ TakeToolProgram takeBoltProgram;
                 lockTargetPosition();
                 return true;
             }
-            if (isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(BallistaBolt.class) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            if (isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(Registry.ITEM_BALLISTA_BOLT.get()) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
@@ -133,8 +127,8 @@ TakeToolProgram takeBoltProgram;
             }
             return;
         }
-        if (ballista.getDrawProgress() == 1 && ballista.bolt == null && takeBoltProgram.hasTool(BallistaBolt.class)) {
-            takeBoltProgram.takeToolToMainHand(BallistaBolt.class);
+        if (ballista.getDrawProgress() == 1 && ballista.bolt == null && takeBoltProgram.hasTool(Registry.ITEM_BALLISTA_BOLT.get())) {
+            takeBoltProgram.takeToolToMainHand(Registry.ITEM_BALLISTA_BOLT.get());
             waitTimer++;
             if (waitTimer > 20) {
                 ballista.load();
