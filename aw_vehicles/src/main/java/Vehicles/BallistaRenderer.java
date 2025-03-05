@@ -1,8 +1,6 @@
 package Vehicles;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -16,8 +14,6 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Quaternionf;
-
-import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class BallistaRenderer extends EntityRenderer<Ballista> {
 
@@ -41,8 +37,8 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         double recoilOffset = 0.0;
         double recoilOffset2 = 0.0;
 
-        if(entity.clien_ticksAfterShoot > 0) {
-            double v = (entity.clien_ticksAfterShoot - 1 + partialTick);
+        if(entity.client_ticksAfterShoot > 0) {
+            double v = (entity.client_ticksAfterShoot - 1 + partialTick);
             double timeSinceShot = 1 * Math.PI + v; // Scale time
             double amplitude = 15;  // How much it shakes
             double damping = 0.15;    // How fast it stops shaking
@@ -67,9 +63,9 @@ public class BallistaRenderer extends EntityRenderer<Ballista> {
         main.getChild("armMain").getChild("crankAxle").xRot = -(float) (drawProgress*10);
 
         float yRotDiff = (float) (entity.client_currentYRot - entity.client_lastYRot);
-        float xRotDiff = (float) (entity.client_currentxRot - entity.client_lastxRot);
+        float xRotDiff = (float) (entity.client_currentXRot - entity.client_lastXRot);
         main.getChild("armMain").yRot = (float) ((entity.client_currentYRot + partialTick*yRotDiff) / 180 * Math.PI);
-        main.getChild("armMain").xRot = (float) ((entity.client_currentxRot + partialTick*xRotDiff) / 180 * Math.PI);
+        main.getChild("armMain").xRot = (float) ((entity.client_currentXRot + partialTick*xRotDiff) / 180 * Math.PI);
 
         // ---- APPLY ARM MOVEMENTS ----
         main.getChild("armMain").getChild("armLeftMain").yRot = (float) (a / 180 * Math.PI);

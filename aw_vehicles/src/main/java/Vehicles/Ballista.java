@@ -34,23 +34,24 @@ public class Ballista extends Entity {
 
     float client_drawProgress;
     float client_drawProgressPrev;
-    int clien_ticksAfterShoot = 0;
+    int client_ticksAfterShoot = 0;
     float client_lastYRot = 0;
     float client_currentYRot = 0;
-    float client_lastxRot = 0;
-    float client_currentxRot = 0;
+    float client_lastXRot = 0;
+    float client_currentXRot = 0;
 
-    UUID controllingEntity;
-    BallistaBolt bolt = null;
+    public float targetYRot = 0;
+    public float targetXRot = 0;
 
-    int reloadTicksRemaining = 0;
+    public UUID controllingEntity;
+    public BallistaBolt bolt = null;
+    public int reloadTicksRemaining = 0;
 
     float life = 20;
 
     public Ballista(EntityType<Ballista> entityType, Level level) {
         super(entityType, level);
     }
-
 
     public float getDrawProgress() {
         return getEntityData().get(DRAW_PROGRESS);
@@ -110,7 +111,7 @@ public class Ballista extends Entity {
             } else if (reloadTicksRemaining > 0) {
                 setDrawProgress(getDrawProgress() + 0.02f);
                 reloadTicksRemaining -= 1;
-                if(getDrawProgress() == 1) {
+                if (getDrawProgress() == 1) {
                     reloadTicksRemaining = 0;
                     level().playSound(null, blockPosition(), SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1, 1);
                 }
@@ -121,13 +122,15 @@ public class Ballista extends Entity {
                 if (controller == null || controller.getPosition(0).distanceTo(getPosition(0)) > 4) {
                     controllingEntity = null;
                 } else {
-                    float yRotTarget = controller.getYRot();
-                    float xRotTarget = controller.getXRot();
+                    if(controller instanceof Player){
+                        targetYRot = controller.getYRot();
+                        targetXRot = controller.getXRot();
+                    }
 
                     float yRotCurrent = getYRot();
                     float xRotCurrent = getXRot();
 
-                    float yRotDiff = yRotTarget - yRotCurrent;
+                    float yRotDiff = targetYRot - yRotCurrent;
                     if (Math.abs(yRotDiff - 360) < Math.abs(yRotDiff))
                         yRotDiff -= 360;
                     if (Math.abs(yRotDiff + 360) < Math.abs(yRotDiff))
@@ -135,7 +138,7 @@ public class Ballista extends Entity {
 
                     float toRotateY = Math.clamp(yRotDiff, -1f, 1f);
 
-                    float xRotDiff = xRotTarget - xRotCurrent;
+                    float xRotDiff = targetXRot - xRotCurrent;
                     float toRotateX = Math.clamp(xRotDiff, -5f, 5f);
 
                     setRot(yRotCurrent + toRotateY, xRotCurrent + toRotateX);
@@ -156,26 +159,26 @@ public class Ballista extends Entity {
                 client_lastYRot += 360;
             }
             float yRotDiff = (float) (getYRot() - client_currentYRot);
-            client_currentYRot += (yRotDiff) * 0.3;
+            client_currentYRot += (float) ((yRotDiff) * 0.2);
 
 
-            client_lastxRot = client_currentxRot;
-            if (getXRot() < client_currentxRot - 180) {
-                client_currentxRot -= 360;
-                client_lastxRot -= 360;
+            client_lastXRot = client_currentXRot;
+            if (getXRot() < client_currentXRot - 180) {
+                client_currentXRot -= 360;
+                client_lastXRot -= 360;
             }
-            if (getXRot() > client_currentxRot + 180) {
-                client_currentxRot += 360;
-                client_lastxRot += 360;
+            if (getXRot() > client_currentXRot + 180) {
+                client_currentXRot += 360;
+                client_lastXRot += 360;
             }
-            float xRotDiff = (float) (getXRot() - client_currentxRot);
-            client_currentxRot += (float) ((xRotDiff) * 0.3);
+            float xRotDiff = (float) (getXRot() - client_currentXRot);
+            client_currentXRot += (float) ((xRotDiff) * 0.2);
 
 
             if (getDrawProgress() <= 0)
-                clien_ticksAfterShoot++;
+                client_ticksAfterShoot++;
             else
-                clien_ticksAfterShoot = 0;
+                client_ticksAfterShoot = 0;
 
             client_drawProgressPrev = client_drawProgress; // Store previous value
             if (getDrawProgress() <= 0) {
@@ -186,12 +189,67 @@ public class Ballista extends Entity {
         }
     }
 
-    public boolean isHammerItem(ItemStack item){
+    public boolean isHammerItem(ItemStack item) {
         if (ModList.get().isLoaded("age_of_steam")) {
             return item.getItem() instanceof ItemHammer;
-        }else{
+        } else {
             return item.getItem().equals(Registry.ITEM_WOODEN_HAMMER.get());
         }
+    }
+
+    public void construct() {
+        getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
+        if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17) {
+            if (level() instanceof ServerLevel serverLevel) {
+                serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 1, getZ(),
+                        25, 0.2, 0.2, 0.2, 1);
+            }
+
+        }
+        level().playSound(null, blockPosition(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1, 1);
+    }
+
+    public void destruct() {
+        getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) - 1);
+        if (bolt != null) {
+            Block.popResource(level(), blockPosition(), new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
+            bolt.discard();
+            bolt = null;
+        }
+        if (getEntityData().get(CONSTRUCTION_PROGRESS) <= 0) {
+            ItemStack ballistaStack = new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get());
+            CompoundTag t = new CompoundTag();
+            t.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
+            t.putInt("constructionProgress", getEntityData().get(CONSTRUCTION_PROGRESS));
+            Utils.setStackTag(ballistaStack, t);
+            Block.popResource(level(), blockPosition(), ballistaStack);
+            discard();
+        }
+        level().playSound(null, blockPosition(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1, 1);
+    }
+
+    public void shoot() {
+        if (getDrawProgress() != 1 || bolt == null) return;
+
+        float spreadx = (random.nextFloat() - 0.5f) * 0.04f;
+        float spready = (random.nextFloat() - 0.5f) * 0.04f;
+        float spreadz = (random.nextFloat() - 0.5f) * 0.04f;
+        bolt.setDeltaMovement(getLookAngle().add(new Vec3(spreadx, spready, spreadz)).normalize().scale(8));
+        bolt.setNoGravity(false);
+        bolt = null;
+        setDrawProgress(-1);
+        level().playSound(null, blockPosition(), Registry.SOUND_BALLISTA_LAUNCH.get(), SoundSource.BLOCKS, 1, 1);
+    }
+
+    public void load() {
+        BallistaBolt newBolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
+        newBolt.setPos(position());
+        level().addFreshEntity(newBolt);
+    }
+
+    public void resetReloadTimer() {
+        reloadTicksRemaining = 20;
+        level().playSound(null, blockPosition(), Registry.SOUND_BALLISTA_RELOAD.get(), SoundSource.BLOCKS, 1, 1);
     }
 
     @Override
@@ -199,48 +257,23 @@ public class Ballista extends Entity {
         if (!level().isClientSide) {
             if (isHammerItem(player.getItemInHand(hand)) && player.isShiftKeyDown()) {
                 // deconstruct
-                getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) - 1);
-                if (bolt != null) {
-                    Block.popResource(level(), blockPosition(), new ItemStack(Registry.ITEM_BALLISTA_BOLT.get()));
-                    bolt.discard();
-                    bolt = null;
-                }
-                if (getEntityData().get(CONSTRUCTION_PROGRESS) <= 0) {
-                    ItemStack ballistaStack = new ItemStack(Registry.ITEM_BALLISTA_SPAWN.get());
-                    CompoundTag t = new CompoundTag();
-                    t.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
-                    t.putInt("constructionProgress", getEntityData().get(CONSTRUCTION_PROGRESS));
-                    Utils.setStackTag(ballistaStack, t);
-                    Block.popResource(level(), blockPosition(), ballistaStack);
-                    discard();
-                }
-                level().playSound(null,blockPosition(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS,1,1);
+                destruct();
 
             } else if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17 && !getEntityData().get(IS_BROKEN)) {
                 // use
                 if (!player.isShiftKeyDown()) {
                     if (getDrawProgress() == 1) {
                         if (bolt != null) {
-                            float spreadx = (random.nextFloat()-0.5f) * 0.04f;
-                            float spready = (random.nextFloat()-0.5f) * 0.04f;
-                            float spreadz = (random.nextFloat()-0.5f) * 0.04f;
-                            bolt.setDeltaMovement(getLookAngle().add(new Vec3(spreadx,spready,spreadz)).normalize().scale(8));
-                            bolt.setNoGravity(false);
-                            bolt = null;
-                            setDrawProgress(-1);
-                            level().playSound(null,blockPosition(),Registry.SOUND_BALLISTA_LAUNCH.get(), SoundSource.BLOCKS,1,1);
+                            shoot();
                         } else {
                             if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
                                 player.getItemInHand(hand).shrink(1);
-                                BallistaBolt newBolt = new BallistaBolt(Registry.ENTITY_BALLISTA_BOLT.get(), level());
-                                newBolt.setPos(position());
-                                level().addFreshEntity(newBolt);
+                                load();
                             }
                         }
                     } else {
                         if (player.getItemInHand(hand).isEmpty() && reloadTicksRemaining <= 0 && getDrawProgress() < 1) {
-                            reloadTicksRemaining = 20;
-                            level().playSound(null,blockPosition(),Registry.SOUND_BALLISTA_RELOAD.get(), SoundSource.BLOCKS,1,1);
+                            resetReloadTimer();
                         }
                     }
                 } else {
@@ -255,15 +288,7 @@ public class Ballista extends Entity {
                 if (getEntityData().get(CONSTRUCTION_PROGRESS) < 17) {
                     if (isHammerItem(player.getItemInHand(hand))) {
                         if (!player.isShiftKeyDown()) {
-                            getEntityData().set(CONSTRUCTION_PROGRESS, getEntityData().get(CONSTRUCTION_PROGRESS) + 1);
-                            if (getEntityData().get(CONSTRUCTION_PROGRESS) == 17) {
-                                if (level() instanceof ServerLevel serverLevel) {
-                                    serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 1, getZ(),
-                                            25, 0.2, 0.2, 0.2, 1);
-                                }
-
-                            }
-                            level().playSound(null,blockPosition(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS,1,1);
+                            construct();
                         }
                     }
                 }
@@ -287,7 +312,7 @@ public class Ballista extends Entity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if(!level().isClientSide) {
+        if (!level().isClientSide) {
             if (random.nextFloat() < amount / life) {
                 getEntityData().set(IS_BROKEN, true);
                 controllingEntity = null;

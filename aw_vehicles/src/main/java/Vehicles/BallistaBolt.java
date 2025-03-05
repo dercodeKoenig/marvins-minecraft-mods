@@ -165,7 +165,7 @@ public class BallistaBolt extends Entity {
                 client_lastYRot += 360;
             }
             float yRotDiff = (float) (getYRot() - client_currentYRot);
-            client_currentYRot += (yRotDiff) * 0.3;
+            client_currentYRot += (yRotDiff) * 0.2;
 
 
             client_lastxRot = client_currentxRot;
@@ -178,7 +178,7 @@ public class BallistaBolt extends Entity {
                 client_lastxRot += 360;
             }
             float xRotDiff = (float) (getXRot() - client_currentxRot);
-            client_currentxRot += (xRotDiff) * 0.3;
+            client_currentxRot += (xRotDiff) * 0.2;
         }
     }
 
