@@ -16,11 +16,10 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.*;
 
 import java.util.EnumSet;
+import java.util.Optional;
 
 import static NPCs.Utils.EXIT_FAIL;
 import static NPCs.Utils.EXIT_SUCCESS;
@@ -169,8 +168,21 @@ public class RangedBowAttackProgram extends Goal {
                 } else if (flag) {
                     int i = this.npc.getTicksUsingItem();
                     if (i >= 25) {
-                        EntityHitResult hit = ProjectileUtil.getEntityHitResult(npc.level(), npc, npc.getEyePosition(0), npc.getTarget().getEyePosition(), npc.getBoundingBox().expandTowards(npc.getTarget().getPosition(0).subtract(npc.getPosition(0))).inflate(1), (x) -> x instanceof LivingEntity, 2);
-                        if (hit == null || !HostileEntities.isUnableToAttack(hit.getEntity(), npc)) {
+
+                        double d8 = Double.MAX_VALUE;
+                        Entity hitEntity = null;
+                        for(Entity entity1 : npc.level().getEntities(npc, npc.getBoundingBox().expandTowards(npc.getTarget().position().subtract(npc.position())).inflate(1), (x)->true)) {
+                            AABB aabb = entity1.getBoundingBox().inflate(1);
+                            Optional<Vec3> optional = aabb.clip(npc.getEyePosition(0), npc.getTarget().getEyePosition());
+                            if (optional.isPresent()) {
+                                double d1 = npc.getEyePosition(0).distanceToSqr(optional.get());
+                                if (d1 < d8) {
+                                    hitEntity = entity1;
+                                    d8 = d1;
+                                }
+                            }
+                        }
+                        if (hitEntity != null && !HostileEntities.isUnableToAttack(hitEntity, npc)) {
                             this.npc.stopUsingItem();
                             performRangedAttack(BowItem.getPowerForTime(i));
                             this.attackTime = this.attackIntervalMin;

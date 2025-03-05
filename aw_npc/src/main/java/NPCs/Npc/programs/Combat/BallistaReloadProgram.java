@@ -73,7 +73,7 @@ TakeToolProgram takeBoltProgram;
         List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(128));
         for (Ballista i : sortedEntitiesByDistanceTo(nearbyBallistas,npc.position())) {
             // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
-            List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(16));
+            List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
             boolean canUse = true;
             for (LivingEntity j : entitiesAroundBallista){
                 if(HostileEntities.shouldAttack(j,npc)){
@@ -121,7 +121,7 @@ TakeToolProgram takeBoltProgram;
         lockTargetPosition();
 
 
-        int exit = npc.slowMobNavigation.moveToPosition(ballista.blockPosition(), 3, npc.slowNavigationMaxDistance, npc.slowNavigationMaxNodes, npc.slowNavigationStepPerTick, 1);
+        int exit = npc.slowMobNavigation.moveToPosition(ballista.blockPosition(), 2, npc.slowNavigationMaxDistance, npc.slowNavigationMaxNodes, npc.slowNavigationStepPerTick, 1);
         if (exit == SUCCESS_STILL_RUNNING)
             return;
         if (exit == EXIT_FAIL) {
