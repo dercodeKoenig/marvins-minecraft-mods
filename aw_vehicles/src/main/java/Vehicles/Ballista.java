@@ -102,6 +102,14 @@ public class Ballista extends Entity {
 
         if (level() instanceof ServerLevel serverLevel) {
 
+            // set ghost block for pathfinding
+            if(level().getBlockState(blockPosition()).getBlock() != Registry.BALLISTA_GHOST_BLOCK.get()){
+                level().setBlock(blockPosition(), Registry.BALLISTA_GHOST_BLOCK.get().defaultBlockState(),3);
+            }
+            if(level().getBlockState(blockPosition().above()).getBlock() != Registry.BALLISTA_GHOST_BLOCK.get()){
+                level().setBlock(blockPosition().above(), Registry.BALLISTA_GHOST_BLOCK.get().defaultBlockState(),3);
+            }
+
             applyGravity();
             Vec3 vec3d1 = this.getDeltaMovement();
             this.move(MoverType.SELF, new Vec3(vec3d1.x, vec3d1.y, vec3d1.z));

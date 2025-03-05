@@ -46,6 +46,8 @@ public class Registry {
 
     public static final Supplier<Item> ITEM_BALLISTA_REPAIR = ITEMS.register("ballista_repair", () -> new Item(new Item.Properties().stacksTo(1)));
 
+    public static final Supplier<Block> BALLISTA_GHOST_BLOCK = BLOCKS.register("ballista_ghost", ()-> new BallistaGhostBlock());
+
     public static Supplier<Item> ITEM_WOODEN_HAMMER = null;
     static {
         if(!ModList.get().isLoaded("age_of_steam")){

@@ -181,6 +181,7 @@ public class BallistaAttackProgram extends Goal {
                                 }
                             }
                         }
+                        System.out.println(freeToFire+":");
                         if (freeToFire) {
                             ballista.shoot();
                             attackTime = 0;
