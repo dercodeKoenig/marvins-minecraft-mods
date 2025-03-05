@@ -16,6 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -323,21 +324,6 @@ public class Ballista extends SiegeEngine {
     }
 
     @Override
-    public Iterable<ItemStack> getArmorSlots() {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public ItemStack getItemBySlot(EquipmentSlot equipmentSlot) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public void setItemSlot(EquipmentSlot equipmentSlot, ItemStack itemStack) {
-
-    }
-
-    @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(DRAW_PROGRESS, 0f);
         super.defineSynchedData(builder);
@@ -355,4 +341,7 @@ public class Ballista extends SiegeEngine {
         compoundTag.putFloat("drawProgress", getDrawProgress());
         super.addAdditionalSaveData(compoundTag);
     }
+
+
+
 }

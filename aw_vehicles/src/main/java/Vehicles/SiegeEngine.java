@@ -6,20 +6,24 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.ModList;
+
+import java.util.ArrayList;
+
+// it is a livingentity so that other mobs can attack it
 
 public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCollider  {
 
     public static final EntityDataAccessor<Integer> CONSTRUCTION_PROGRESS = SynchedEntityData.defineId(SiegeEngine.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(SiegeEngine.class, EntityDataSerializers.BOOLEAN);
 
-    public SiegeEngine(EntityType<?> entityType, Level level) {
-        super((EntityType<? extends LivingEntity>) entityType, level);
+    public SiegeEngine(EntityType<? extends LivingEntity> entityType, Level level) {
+        super(entityType, level);
     }
 
 
@@ -39,6 +43,7 @@ public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCo
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(CONSTRUCTION_PROGRESS, 0);
         builder.define(IS_BROKEN, false);
+        super.defineSynchedData(builder);
     }
 
     @Override
@@ -67,7 +72,21 @@ public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCo
         return true;
     }
 
+    @Override
     public boolean isPickable() {
         return !this.isRemoved();
     }
+
+    @Override
+    public Iterable<ItemStack> getArmorSlots() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ItemStack getItemBySlot(EquipmentSlot equipmentSlot) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItemSlot(EquipmentSlot equipmentSlot, ItemStack itemStack) {}
 }

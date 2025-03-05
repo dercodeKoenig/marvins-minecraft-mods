@@ -15,7 +15,7 @@ public class Config {
     public static Config INSTANCE = loadConfig();
     public float ballista_damage = 50f;
     public float ballista_life = 20f;
-    public float ballista_reload_speed = 0.01f;
+    public float ballista_reload_speed = 0.008f;
 
     public Config() {
     }

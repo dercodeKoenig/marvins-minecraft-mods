@@ -1,7 +1,9 @@
 package Vehicles;
 
+import Vehicles.Ballista.Ballista;
 import Vehicles.Ballista.BallistaBoltRenderer;
 import Vehicles.Ballista.BallistaRenderer;
+import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -30,37 +32,15 @@ public class Main {
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::registerNetworkStuff);
         modEventBus.addListener(this::entityAttributeCreation);
-        modEventBus.addListener(this::onClientSetup);
-        modEventBus.addListener(this::registerCapabilities);
 
         Registry.register(modEventBus);
-
-    }
-    public void onClientSetup(FMLClientSetupEvent event) {
-    }
-
-
-    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
-
-    }
-
-
-    private void registerCapabilities(RegisterCapabilitiesEvent e) {
 
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ENTITY_BALLISTA.get(), BallistaRenderer::new);
         event.registerEntityRenderer(ENTITY_BALLISTA_BOLT.get(), BallistaBoltRenderer::new);
-    }
-
-    public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
-    }
-
-    public void entityAttributeCreation(EntityAttributeCreationEvent event) {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
@@ -73,4 +53,11 @@ public class Main {
             }
         }
     }
+
+
+
+    public void entityAttributeCreation(EntityAttributeCreationEvent event) {
+        event.put(ENTITY_BALLISTA.get(), LivingEntity.createLivingAttributes().build());
+    }
+
 }
