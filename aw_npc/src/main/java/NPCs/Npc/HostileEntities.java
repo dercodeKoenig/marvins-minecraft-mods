@@ -17,9 +17,9 @@ import java.util.*;
 
 public class HostileEntities {
 
-    public static class TemporaryHostile{
+    public static class TemporaryHostile {
         public UUID id;
-        public long gameTimeStart=0;
+        public long gameTimeStart = 0;
         public int tickDuration = 300;
     }
 
@@ -54,7 +54,7 @@ public class HostileEntities {
             }
         }
 
-        if(npc.level() instanceof ServerLevel serverLevel) {
+        if (npc.level() instanceof ServerLevel serverLevel) {
             // try to not attack siege engines
             if (e instanceof Ballista b) {
                 if (b.controllingEntity == null || isUnableToAttack(serverLevel.getEntity(b.controllingEntity), npc)) {
@@ -82,7 +82,7 @@ public class HostileEntities {
             return true;
 
         // attack enemy controlled siege engines
-        if(npc.level() instanceof ServerLevel serverLevel) {
+        if (npc.level() instanceof ServerLevel serverLevel) {
             if (e instanceof Ballista b) {
                 if (b.controllingEntity != null && shouldAttack(serverLevel.getEntity(b.controllingEntity), npc)) {
                     return true;
@@ -99,16 +99,16 @@ public class HostileEntities {
                 if (i.gameTimeStart + i.tickDuration < npc.level().getGameTime())
                     temporaryHostiles.remove(i);
             }
-            if(temporaryHostiles.isEmpty()){
+            if (temporaryHostiles.isEmpty()) {
                 hostilesToTownhall.remove(id);
                 break;
             }
         }
-        if(npc.townHall != null){
-            Set<TemporaryHostile> temporaryHostiles = hostilesToTownhall.get(new BlockIdentifier(npc.level(),npc.townHall));
-            if(temporaryHostiles != null){
-                for(TemporaryHostile i : new HashSet<>(temporaryHostiles)){
-                    if(i.id.equals(e.getUUID())){
+        if (npc.townHall != null) {
+            Set<TemporaryHostile> temporaryHostiles = hostilesToTownhall.get(new BlockIdentifier(npc.level(), npc.townHall));
+            if (temporaryHostiles != null) {
+                for (TemporaryHostile i : new HashSet<>(temporaryHostiles)) {
+                    if (i.id.equals(e.getUUID())) {
                         return true;
                     }
                 }
@@ -123,8 +123,10 @@ public class HostileEntities {
             Goal attackGoal1 = new NearestAttackableTargetGoal<>(mob, NPCBase.class, 20, true, true, (entity) -> true);
             ((Monster) e).goalSelector.addGoal(1, attackGoal1);
 
-            Goal attackGoal2 = new NearestAttackableTargetGoal<>(mob, SiegeEngine.class, 20, true, true, (entity) -> true);
-            ((Monster) e).goalSelector.addGoal(1, attackGoal2);
+            Goal attackGoal2 = new NearestAttackableTargetGoal<>(mob, SiegeEngine.class, 20, true, true, (entity) -> {
+                return entity.getEntityData().get(SiegeEngine.IS_BROKEN) == false;
+            });
+            ((Monster) e).goalSelector.addGoal(2, attackGoal2);
         }
     }
 }
