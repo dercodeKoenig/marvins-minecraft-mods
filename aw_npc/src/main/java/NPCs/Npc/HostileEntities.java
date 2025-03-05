@@ -120,8 +120,11 @@ public class HostileEntities {
     public static void onEntityJoin(EntityJoinLevelEvent event) {
         Entity e = event.getEntity();
         if (e instanceof Monster && e instanceof Mob mob && !(e instanceof Creeper)) {
-            Goal attackGoal = new NearestAttackableTargetGoal<NPCBase>(mob, NPCBase.class, 20, true, true, (entity) -> true);
-            ((Monster) e).goalSelector.addGoal(1, attackGoal);
+            Goal attackGoal1 = new NearestAttackableTargetGoal<>(mob, NPCBase.class, 20, true, true, (entity) -> true);
+            ((Monster) e).goalSelector.addGoal(1, attackGoal1);
+
+            Goal attackGoal2 = new NearestAttackableTargetGoal<>(mob, SiegeEngine.class, 20, true, true, (entity) -> true);
+            ((Monster) e).goalSelector.addGoal(1, attackGoal2);
         }
     }
 }
