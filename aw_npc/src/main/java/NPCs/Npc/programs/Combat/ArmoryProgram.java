@@ -81,7 +81,7 @@ public class ArmoryProgram extends Goal {
 
         if (worker.townHall != null) {
             Set<BlockPos> armoryPositions = EntityArmory.knownBlocksForTownhallPosition.getOrDefault(new BlockIdentifier(worker.level(), worker.townHall), Set.of());
-            for (BlockPos p : armoryPositions) {
+            for (BlockPos p : sortBlockPosByDistanceToVec(armoryPositions,worker.position())) {
                 if (isPositionWorkable(p)) {
                     BlockEntity e = worker.level().getBlockEntity(p);
                     if (e instanceof EntityArmory armory) {
@@ -124,7 +124,7 @@ public class ArmoryProgram extends Goal {
                             double distance = Utils.distanceManhattan(p.getCenter(), worker.getOnPos().getCenter());
                             int minRequiredCount = 1;
                             if (distance < 5) {
-                                minRequiredCount = 3;
+                                minRequiredCount = 4;
                             }
 
                             if (arrows < minRequiredCount) {
@@ -205,7 +205,7 @@ public class ArmoryProgram extends Goal {
             double distance = Utils.distanceManhattan(targetPos.getCenter(), worker.getOnPos().getCenter());
             int minRequiredCount = 1;
             if (distance < 5) {
-                minRequiredCount = 3;
+                minRequiredCount = 4;
             }
             if (arrows < minRequiredCount) {
                 exit = takeBallistaBoltProgram.run(Registry.ITEM_BALLISTA_BOLT.get(), targetPos, targetInventory, true);

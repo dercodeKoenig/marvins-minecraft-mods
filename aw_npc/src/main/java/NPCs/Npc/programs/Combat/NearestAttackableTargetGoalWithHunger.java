@@ -31,7 +31,8 @@ public class NearestAttackableTargetGoalWithHunger<T extends LivingEntity> exten
 
     @Override
     public boolean canUse() {
-        return super.canUse() && npc.hunger > npc.maxHunger * 0.05;
+        boolean c=  super.canUse() && npc.hunger > npc.maxHunger * 0.05;
+        return c;
     }
 
     @Override

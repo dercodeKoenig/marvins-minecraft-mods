@@ -2,6 +2,7 @@ package NPCs.Npc;
 
 import ARLib.utils.BlockIdentifier;
 import Vehicles.Ballista.Ballista;
+import Vehicles.SiegeEngine;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;

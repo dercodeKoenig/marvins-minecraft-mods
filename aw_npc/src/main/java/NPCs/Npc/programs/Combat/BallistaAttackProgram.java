@@ -97,7 +97,7 @@ public class BallistaAttackProgram extends Goal {
                 AABB aabb = entity1.getBoundingBox().inflate(1);
                 Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(npc.getTarget().position().subtract(i.bolt.position()).normalize().scale(100)));
                 if (optional.isPresent()) {
-                    if (entity1 != i) {
+                    if(entity1 != i) {
                         if (HostileEntities.isUnableToAttack(entity1, npc)) {
                             //System.out.println(i+":ff");
                             return false;
@@ -110,7 +110,7 @@ public class BallistaAttackProgram extends Goal {
             Vec3 vec31 = new Vec3(npc.getTarget().getX(), npc.getTarget().getEyeY(), npc.getTarget().getZ());
             boolean canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, npc)).getType() == HitResult.Type.MISS;
 
-            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition())  && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
@@ -165,11 +165,14 @@ public class BallistaAttackProgram extends Goal {
             Vec3 lookNoY = new Vec3(look.x, 0.0, look.z);
             Vec3 targetPosition = ballista.position().subtract(lookNoY.normalize().scale(2.0)).add(new Vec3((double) 0.0F, (double) 0.5F, (double) 0.0F));
             distToTarget = npc.position().distanceTo(targetPosition);
-            if (distToTarget > 1) {
+            if (distToTarget > 1 && distToTarget < 2) {
                 if (npc.slowMobNavigation.pathFinder.findPath(new BlockPos(Mth.floor(targetPosition.x), Mth.floor(targetPosition.y), Mth.floor(targetPosition.z)), 5, 0, 10, 1000).exitCode == EXIT_SUCCESS) {
                     npc.getMoveControl().setWantedPosition(targetPosition.x, targetPosition.y, targetPosition.z, 1);
                     return;
                 }
+            }
+            else if (distToTarget >= 2) {
+                npc.slowMobNavigation.moveToPosition(new BlockPos(Mth.floor(targetPosition.x), Mth.floor(targetPosition.y), Mth.floor(targetPosition.z)), 1, 10,10,10, 1);
             } else {
                 npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             }
@@ -203,9 +206,10 @@ public class BallistaAttackProgram extends Goal {
                             AABB aabb = entity1.getBoundingBox().inflate(1);
                             Optional<Vec3> optional = aabb.clip(ballista.bolt.position(), ballista.bolt.position().add(ballista.getLookAngle().normalize().scale(100)));
                             if (optional.isPresent()) {
-                                if (entity1 != ballista) {
+                                if(entity1 != ballista) {
                                     if (HostileEntities.isUnableToAttack(entity1, npc)) {
                                         freeToFire = false;
+                                        ballista = null;
                                         break;
                                     }
                                 }

@@ -77,6 +77,12 @@ public class PickupItemsOnGroundProgram extends Goal {
     @Override
     public void tick() {
 
+        long gametime = npc.level().getGameTime();
+        if (lastScanTime + 20 > gametime) {
+            return;
+        }
+        lastScanTime = gametime;
+
         if (Utils.countEmptySlots(npc) < 1) {
             canUse = false;
             return;

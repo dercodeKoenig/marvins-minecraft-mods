@@ -106,6 +106,7 @@ TakeToolProgram takeBoltProgram;
 
     public void stop() {
         super.stop();
+        ballista = null;
     }
 
     public boolean requiresUpdateEveryTick() {

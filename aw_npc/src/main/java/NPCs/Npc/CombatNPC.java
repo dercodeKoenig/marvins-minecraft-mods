@@ -64,13 +64,13 @@ public class CombatNPC extends NPCBase {
         if (!level().isClientSide) {
             registerGoals();
 
-            if(getEntityData().get(DATA_TEXTURE).isEmpty()) {
+            if (getEntityData().get(DATA_TEXTURE).isEmpty()) {
                 int randomNumber = Math.abs(level().random.nextInt()) % 4 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_soldier_" + randomNumber + ".png");
             }
         }
         super.onAddedToLevel();
-        if(!level().isClientSide){
+        if (!level().isClientSide) {
             takeWeaponProgram.findBestWeaponIndex();
             takeBowWeaponProgram.findBestWeaponIndex();
         }
@@ -79,7 +79,7 @@ public class CombatNPC extends NPCBase {
     @Override
     protected void registerGoals() {
         for (WrappedGoal i : goalSelector.getAvailableGoals()) {
-                i.stop();
+            i.stop();
         }
         goalSelector.getAvailableGoals().clear();
 
@@ -93,17 +93,17 @@ public class CombatNPC extends NPCBase {
             Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
         }
-        if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()){
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()) {
             Goal attackGoal2 = new BallistaAttackProgram(this, 1.2, 10);
             goalSelector.addGoal(priority++, attackGoal2);
 
-            Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20,25);
+            Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20, 25);
             goalSelector.addGoal(priority++, attackGoal0);
 
             Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, false, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
         }
-        if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.siege_engineer.ordinal()){
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.siege_engineer.ordinal()) {
             Goal attackGoal2 = new BallistaAttackProgram(this, 1.2, 10);
             goalSelector.addGoal(priority++, attackGoal2);
 
@@ -120,9 +120,16 @@ public class CombatNPC extends NPCBase {
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
 
         goalSelector.addGoal(priority++, new ArmoryProgram(this));
-        
+
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.siege_engineer.ordinal()) {
+            Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
+            goalSelector.addGoal(priority++, attackGoal0);
+        }
+
         runForHelpProgram = new RunForHelpProgram(this);
-        goalSelector.addGoal(priority++, runForHelpProgram);
+        if (getEntityData().get(DATA_WORKTYPE) != WorkTypes.siege_engineer.ordinal()) {
+            goalSelector.addGoal(priority++, runForHelpProgram);
+        }
 
         goalSelector.addGoal(priority++, new FoodProgramFighter(this));
 
@@ -206,7 +213,7 @@ public class CombatNPC extends NPCBase {
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        if(compound.contains("worktype")) {
+        if (compound.contains("worktype")) {
             getEntityData().set(DATA_WORKTYPE, compound.getInt("worktype"));
         }
         registerGoals();
