@@ -2,11 +2,13 @@ package NPCs.Npc.programs.Combat;
 
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.programs.TakeToolProgram;
+import NPCs.Utils;
 import Vehicles.Ballista;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 import java.util.EnumSet;
@@ -119,6 +121,7 @@ TakeToolProgram takeBoltProgram;
         npc.getLookControl().setLookAt(ballista, 30, 30);
 
         if (ballista.getDrawProgress() < 1) {
+            Utils.moveItemStackToMainHand(ItemStack.EMPTY,npc);
             waitTimer++;
             if (ballista.reloadTicksRemaining == 0 && waitTimer > 20) {
                 ballista.resetReloadTimer();
