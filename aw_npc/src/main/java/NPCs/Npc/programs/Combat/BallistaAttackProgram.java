@@ -27,18 +27,13 @@ public class BallistaAttackProgram extends Goal {
 
     public CombatNPC npc;
     public double speedModifier;
-    public int attackWait;
-    public float attackRadiusSqr;
-    public float attackRadius;
     public long lastCheck;
     public Ballista ballista;
-    int attackTime;
 
 
-    public BallistaAttackProgram(CombatNPC npc, double speedModifier, int attackWait) {
+    public BallistaAttackProgram(CombatNPC npc, double speedModifier) {
         this.npc = npc;
         this.speedModifier = speedModifier;
-        this.attackWait = attackWait;
 
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
@@ -97,7 +92,7 @@ public class BallistaAttackProgram extends Goal {
                 AABB aabb = entity1.getBoundingBox().inflate(1);
                 Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(npc.getTarget().position().subtract(i.bolt.position()).normalize().scale(100)));
                 if (optional.isPresent()) {
-                    if(entity1 != i) {
+                    if (entity1 != i) {
                         if (HostileEntities.isUnableToAttack(entity1, npc)) {
                             //System.out.println(i+":ff");
                             return false;
@@ -110,7 +105,7 @@ public class BallistaAttackProgram extends Goal {
             Vec3 vec31 = new Vec3(npc.getTarget().getX(), npc.getTarget().getEyeY(), npc.getTarget().getZ());
             boolean canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, npc)).getType() == HitResult.Type.MISS;
 
-            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition())  && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
@@ -125,7 +120,6 @@ public class BallistaAttackProgram extends Goal {
 
     public void start() {
         super.start();
-        attackTime = 0;
     }
 
     public void stop() {
@@ -170,9 +164,8 @@ public class BallistaAttackProgram extends Goal {
                     npc.getMoveControl().setWantedPosition(targetPosition.x, targetPosition.y, targetPosition.z, 1);
                     return;
                 }
-            }
-            else if (distToTarget >= 2) {
-                npc.slowMobNavigation.moveToPosition(new BlockPos(Mth.floor(targetPosition.x), Mth.floor(targetPosition.y), Mth.floor(targetPosition.z)), 1, 10,10,10, 1);
+            } else if (distToTarget >= 2) {
+                npc.slowMobNavigation.moveToPosition(new BlockPos(Mth.floor(targetPosition.x), Mth.floor(targetPosition.y), Mth.floor(targetPosition.z)), 1, 10, 10, 10, 1);
             } else {
                 npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             }
@@ -185,45 +178,42 @@ public class BallistaAttackProgram extends Goal {
                 double d1 = livingentity.getZ() - ballista.bolt.getZ();
                 double targetYRot = (Mth.atan2(d1, d0) * (double) 180.0F / (double) (float) Math.PI) - 90.0F;
                 ballista.targetYRot = (float) targetYRot;
-                if (Math.abs((360 + ballista.getYRot()) % 360 - (360 + ballista.targetYRot) % 360) < 0.1) {
-                    double d2 = livingentity.getY(0.5) - (ballista.bolt.getY());
-                    double d3 = Math.sqrt(d0 * d0 + d1 * d1); // Horizontal distance
 
-                    float speed = 8f;
-                    double gravity = 0.05;
-                    double time = d3 / speed;
-                    double vy = (d2 + 0.5 * gravity * time * time) / time;
+                double d2 = livingentity.getY(0.5) - (ballista.bolt.getY());
+                double d3 = Math.sqrt(d0 * d0 + d1 * d1); // Horizontal distance
 
-                    ballista.targetXRot = -(float) (Math.atan(vy / speed) * 180f / Math.PI);
+                float speed = 8f;
+                double gravity = 0.05;
+                double time = d3 / speed;
+                double vy = (d2 + 0.5 * gravity * time * time) / time;
 
-                    attackTime++;
-                    if (Math.abs(ballista.getXRot() - ballista.targetXRot) < 0.05 && attackTime > attackWait) {
+                ballista.targetXRot = -(float) (Math.atan(vy / speed) * 180f / Math.PI);
 
-                        List<Entity> entities = npc.level().getEntities((Entity) null, ballista.getBoundingBox().expandTowards(npc.getTarget().position().subtract(ballista.position())).inflate(1), (Predicate<Entity>) entity -> true);
-                        boolean freeToFire = true;
-                        // scan for friendly entities in area
-                        for (Entity entity1 : entities) {
-                            AABB aabb = entity1.getBoundingBox().inflate(1);
-                            Optional<Vec3> optional = aabb.clip(ballista.bolt.position(), ballista.bolt.position().add(ballista.getLookAngle().normalize().scale(100)));
-                            if (optional.isPresent()) {
-                                if(entity1 != ballista) {
-                                    if (HostileEntities.isUnableToAttack(entity1, npc)) {
-                                        freeToFire = false;
-                                        ballista = null;
-                                        break;
-                                    }
+                if (Math.abs(ballista.getXRot() - ballista.targetXRot) < 0.2 && Math.abs((360 + ballista.getYRot()) % 360 - (360 + ballista.targetYRot) % 360) < 0.2) {
+
+                    List<Entity> entities = npc.level().getEntities((Entity) null, ballista.getBoundingBox().expandTowards(npc.getTarget().position().subtract(ballista.position())).inflate(1), (Predicate<Entity>) entity -> true);
+                    boolean freeToFire = true;
+                    // scan for friendly entities in area
+                    for (Entity entity1 : entities) {
+                        AABB aabb = entity1.getBoundingBox().inflate(1);
+                        Optional<Vec3> optional = aabb.clip(ballista.bolt.position(), ballista.bolt.position().add(ballista.getLookAngle().normalize().scale(100)));
+                        if (optional.isPresent()) {
+                            if (entity1 != ballista) {
+                                if (HostileEntities.isUnableToAttack(entity1, npc)) {
+                                    freeToFire = false;
+                                    ballista = null;
+                                    break;
                                 }
                             }
                         }
-
-                        if (freeToFire && distToTarget <= 1) {
-                            npc.swing(InteractionHand.MAIN_HAND);
-                            ballista.shoot();
-                            attackTime = 0;
-                        }
                     }
 
+                    if (freeToFire && distToTarget <= 1) {
+                        npc.swing(InteractionHand.MAIN_HAND);
+                        ballista.shoot();
+                    }
                 }
+
             }
         } else {
             ballista = null;

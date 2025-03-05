@@ -189,7 +189,7 @@ public class Utils {
     }
     // Helper to compute remaining durability
     public static float getRemainingDurabilityRelative(ItemStack stack) {
-        if(stack.isEmpty()) return 0;
+        if(stack.isEmpty()) return -1;
         if(stack.getMaxDamage() == 0) return 1;
         return stack.isEmpty() ? -1f : (float)(stack.getMaxDamage() - stack.getDamageValue()) / stack.getMaxDamage();
     }

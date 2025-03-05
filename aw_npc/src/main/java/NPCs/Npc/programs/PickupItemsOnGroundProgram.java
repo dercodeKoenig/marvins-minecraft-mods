@@ -2,11 +2,12 @@ package NPCs.Npc.programs;
 
 import NPCs.Npc.NPCBase;
 import NPCs.Utils;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
@@ -17,6 +18,7 @@ public class PickupItemsOnGroundProgram extends Goal {
     long lastScanTime = 0;
     boolean canUse = false;
     int radius;
+    UUID targetItem = null;
 
     public PickupItemsOnGroundProgram(NPCBase npc, int radius) {
         this.npc = npc;
@@ -62,6 +64,10 @@ public class PickupItemsOnGroundProgram extends Goal {
     public void start() {
         canUse = true;
     }
+    @Override
+    public void stop(){
+        targetItem = null;
+    }
 
     public TreeSet<ItemEntity> sortByDistanceTo(Collection<ItemEntity> list) {
         TreeSet<ItemEntity> sorted = new TreeSet<>(new Comparator<ItemEntity>() {
@@ -88,18 +94,35 @@ public class PickupItemsOnGroundProgram extends Goal {
             return;
         }
 
+        if(targetItem != null){
+            Entity e = ((ServerLevel)npc.level()).getEntity(targetItem);
+            if(e instanceof ItemEntity item){
+                int pathFindExit = npc.slowMobNavigation.moveToPosition(
+                        item.getOnPos(),
+                        1,
+                        radius * 6,
+                        128,
+                        npc.slowNavigationStepPerTick
+                );
+                if (pathFindExit == SUCCESS_STILL_RUNNING) {
+                    return;
+                }
+            }
+            targetItem = null;
+        }
         TreeSet<ItemEntity> itemsOnGround = sortByDistanceTo(itemsOnGround());
         for (ItemEntity i : itemsOnGround) {
-            if (Math.abs(i.getDeltaMovement().lengthSqr()) < 0.01) {
+            if (Math.abs(new Vec3(i.getDeltaMovement().x, 0, i.getDeltaMovement().z).lengthSqr()) < 0.01) {
                 if (!npc.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
                     int pathFindExit = npc.slowMobNavigation.moveToPosition(
                             i.getOnPos(),
                             1,
-                            radius*6,
+                            radius * 6,
                             128,
                             npc.slowNavigationStepPerTick
                     );
                     if (pathFindExit == SUCCESS_STILL_RUNNING) {
+                        targetItem = i.getUUID();
                         return;
                     }
                 }

@@ -124,7 +124,7 @@ public class ArmoryProgram extends Goal {
                             double distance = Utils.distanceManhattan(p.getCenter(), worker.getOnPos().getCenter());
                             int minRequiredCount = 1;
                             if (distance < 5) {
-                                minRequiredCount = 4;
+                                minRequiredCount = 32;
                             }
 
                             if (arrows < minRequiredCount) {
@@ -160,6 +160,12 @@ public class ArmoryProgram extends Goal {
         return true;
     }
 
+    @Override
+    public void stop(){
+        super.stop();
+        targetPos = null;
+        targetInventory = null;
+    }
 
     @Override
     public void tick() {
@@ -205,7 +211,7 @@ public class ArmoryProgram extends Goal {
             double distance = Utils.distanceManhattan(targetPos.getCenter(), worker.getOnPos().getCenter());
             int minRequiredCount = 1;
             if (distance < 5) {
-                minRequiredCount = 4;
+                minRequiredCount = 32;
             }
             if (arrows < minRequiredCount) {
                 exit = takeBallistaBoltProgram.run(Registry.ITEM_BALLISTA_BOLT.get(), targetPos, targetInventory, true);

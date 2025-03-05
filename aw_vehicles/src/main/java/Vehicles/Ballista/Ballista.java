@@ -141,7 +141,7 @@ public class Ballista extends SiegeEngine {
                     if (Math.abs(yRotDiff + 360) < Math.abs(yRotDiff))
                         yRotDiff += 360;
 
-                    float toRotateY = Math.clamp(yRotDiff, -1f, 1f);
+                    float toRotateY = Math.clamp(yRotDiff, -3f, 3f);
 
                     float xRotDiff = targetXRot - xRotCurrent;
                     float toRotateX = Math.clamp(xRotDiff, -5f, 5f);

@@ -84,7 +84,7 @@ public class HostileEntities {
         // attack enemy controlled siege engines
         if (npc.level() instanceof ServerLevel serverLevel) {
             if (e instanceof Ballista b) {
-                if (b.controllingEntity != null && shouldAttack(serverLevel.getEntity(b.controllingEntity), npc)) {
+                if (b.controllingEntity != null && shouldAttack(serverLevel.getEntity(b.controllingEntity), npc) && !b.getEntityData().get(SiegeEngine.IS_BROKEN)) {
                     return true;
                 }
             }
