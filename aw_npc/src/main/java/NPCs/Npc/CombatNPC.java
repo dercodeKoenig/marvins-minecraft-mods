@@ -53,7 +53,7 @@ public class CombatNPC extends NPCBase {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 30.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
-                .add(Attributes.FOLLOW_RANGE, 50)
+                .add(Attributes.FOLLOW_RANGE, 64)
                 .add(Attributes.ATTACK_DAMAGE)
                 .add(Attributes.ATTACK_SPEED)
                 .add(Attributes.LUCK)
@@ -99,6 +99,11 @@ public class CombatNPC extends NPCBase {
             goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
         }
         if(getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()){
+            Goal attackGoal2 = new BallistaAttackProgram(this, 1.2, 10);
+            goalSelector.addGoal(priority++, attackGoal2);
+            Goal attackGoal3 = new BallistaReloadProgram(this);
+            goalSelector.addGoal(priority++, attackGoal3);
+
             Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20,25);
             goalSelector.addGoal(priority++, attackGoal0);
 

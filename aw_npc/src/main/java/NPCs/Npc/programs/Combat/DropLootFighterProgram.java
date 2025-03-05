@@ -3,6 +3,7 @@ package NPCs.Npc.programs.Combat;
 import NPCs.Blocks.TownHall.EntityTownHall;
 import NPCs.Npc.CombatNPC;
 import NPCs.Npc.programs.UnloadInventoryProgram;
+import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -59,6 +60,12 @@ public class DropLootFighterProgram extends Goal {
                     continue;
                 }
                 if(canExtract.getItem() instanceof ArrowItem){
+                    continue;
+                }
+            }
+
+            if(worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+                if(canExtract.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())){
                     continue;
                 }
             }

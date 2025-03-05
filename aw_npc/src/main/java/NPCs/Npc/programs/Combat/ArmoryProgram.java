@@ -3,12 +3,15 @@ package NPCs.Npc.programs.Combat;
 import ARLib.utils.BlockIdentifier;
 import NPCs.Blocks.Armory.EntityArmory;
 import NPCs.Npc.CombatNPC;
+import NPCs.Npc.programs.TakeFromInventoryProgram;
 import NPCs.Npc.programs.TakeToolProgram;
 import NPCs.Utils;
+import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -30,6 +33,7 @@ public class ArmoryProgram extends Goal {
 
     TakeArmorProgram takeArmorProgram;
     TakeToolProgram takeToolProgram;
+    TakeFromInventoryProgram takeFromInventoryProgram;
 
     public void lockTargetPosition() {
         long gameTime = worker.level().getGameTime();
@@ -63,6 +67,7 @@ public class ArmoryProgram extends Goal {
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         takeArmorProgram = new TakeArmorProgram(worker);
         takeToolProgram = new TakeToolProgram(worker);
+        takeFromInventoryProgram = new TakeFromInventoryProgram(worker);
     }
 
     @Override
@@ -93,22 +98,22 @@ public class ArmoryProgram extends Goal {
                                 return true;
                             }
                         }
-                        if(worker.getEntityData().get(DATA_WORKTYPE) ==  CombatNPC.WorkTypes.archer.ordinal()) {
+                        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
                             if (worker.takeBowWeaponProgram.swapWeaponFromTarget(armory.inventory, true)) {
                                 targetPos = p;
                                 targetInventory = armory.inventory;
                                 lockTargetPosition();
                                 return true;
                             }
-                            int arrows = Utils.countItems(ArrowItem.class,worker.combinedInventory);
-                            double distance = Utils.distanceManhattan(p.getCenter(),worker.getOnPos().getCenter());
+                            int arrows = Utils.countItems(ArrowItem.class, worker.combinedInventory);
+                            double distance = Utils.distanceManhattan(p.getCenter(), worker.getOnPos().getCenter());
                             int minRequiredCount = 20;
-                            if(distance < 5){
-                                minRequiredCount =  64;
+                            if (distance < 5) {
+                                minRequiredCount = 64;
                             }
 
-                            if(arrows < minRequiredCount){
-                                if(takeToolProgram.pickupToolFromTarget(ArrowItem.class,armory.inventory,true)){
+                            if (arrows < minRequiredCount) {
+                                if (takeToolProgram.pickupToolFromTarget(ArrowItem.class, armory.inventory, true)) {
                                     lockTargetPosition();
                                     targetPos = p;
                                     targetInventory = armory.inventory;
@@ -117,6 +122,20 @@ public class ArmoryProgram extends Goal {
                             }
                         }
 
+
+                        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+                            if (countEmptySlots(worker) > 0 && countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory) < 3) {
+                                for (int j = 0; j < armory.inventory.getSlots(); j++) {
+                                    ItemStack canExtract = armory.inventory.extractItem(j, 1, true);
+                                    if (canExtract.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
+                                        targetPos = p;
+                                        targetInventory = armory.inventory;
+                                        lockTargetPosition();
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
 
                         if (takeArmorProgram.swapArmorFromTarget(armory.inventory, true)) {
                             targetPos = p;
@@ -161,15 +180,15 @@ public class ArmoryProgram extends Goal {
                 return;
             }
 
-            int arrows = Utils.countItems(ArrowItem.class,worker.combinedInventory);
-            double distance = Utils.distanceManhattan(targetPos.getCenter(),worker.getOnPos().getCenter());
+            int arrows = Utils.countItems(ArrowItem.class, worker.combinedInventory);
+            double distance = Utils.distanceManhattan(targetPos.getCenter(), worker.getOnPos().getCenter());
             int minRequiredCount = 20;
-            if(distance < 5){
-                minRequiredCount =  64;
+            if (distance < 5) {
+                minRequiredCount = 64;
             }
-            if(arrows < minRequiredCount){
-                exit = takeToolProgram.run(ArrowItem.class,targetPos,targetInventory,true);
-                if (exit == SUCCESS_STILL_RUNNING ||exit == EXIT_SUCCESS) {
+            if (arrows < minRequiredCount) {
+                exit = takeToolProgram.run(ArrowItem.class, targetPos, targetInventory, true);
+                if (exit == SUCCESS_STILL_RUNNING || exit == EXIT_SUCCESS) {
                     return;
                 }
             }
@@ -178,6 +197,20 @@ public class ArmoryProgram extends Goal {
         int exit = takeArmorProgram.run(targetPos, targetInventory);
         if (exit == SUCCESS_STILL_RUNNING) {
             return;
+        }
+
+
+        if (worker.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.archer.ordinal()) {
+            if (countEmptySlots(worker) > 0 && countItems(Registry.ITEM_BALLISTA_BOLT.get(), worker.combinedInventory) < 3) {
+                for (int j = 0; j < targetInventory.getSlots(); j++) {
+                    ItemStack canExtract = targetInventory.extractItem(j, 1, true);
+                    if (canExtract.getItem().equals(Registry.ITEM_BALLISTA_BOLT.get())) {
+                        exit = takeFromInventoryProgram.run(targetInventory, targetPos, canExtract);
+                        if (exit == SUCCESS_STILL_RUNNING)
+                            return;
+                    }
+                }
+            }
         }
 
         targetPos = null;

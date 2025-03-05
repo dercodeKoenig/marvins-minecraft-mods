@@ -157,7 +157,7 @@ public class RangedBowAttackProgram extends Goal {
                     mob.lookAt(livingentity, 30.0F, 30.0F);
                 }
 
-                this.npc.lookAt(livingentity, 30.0F, 30.0F);
+                //this.npc.lookAt(livingentity, 30.0F, 30.0F); // does this do anything?
                 this.npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             } else {
                 this.npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
