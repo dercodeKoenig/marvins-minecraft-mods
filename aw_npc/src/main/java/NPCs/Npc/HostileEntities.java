@@ -54,6 +54,7 @@ public class HostileEntities {
         }
 
         if(npc.level() instanceof ServerLevel serverLevel) {
+            // try to not attack siege engines
             if (e instanceof Ballista b) {
                 if (b.controllingEntity == null || isUnableToAttack(serverLevel.getEntity(b.controllingEntity), npc)) {
                     return true;
@@ -78,6 +79,15 @@ public class HostileEntities {
             return true;
         if (e instanceof Player)
             return true;
+
+        // attack enemy controlled siege engines
+        if(npc.level() instanceof ServerLevel serverLevel) {
+            if (e instanceof Ballista b) {
+                if (b.controllingEntity != null && shouldAttack(serverLevel.getEntity(b.controllingEntity), npc)) {
+                    return true;
+                }
+            }
+        }
 
 
         // the following attacks temporary hostiles

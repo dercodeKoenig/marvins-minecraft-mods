@@ -118,7 +118,7 @@ public class BallistaAttackProgram extends Goal {
 
     public void tick() {
 
-        if ((ballista.controllingEntity != null && !Objects.equals(npc.getUUID(), ballista.controllingEntity)) || ballista == null || ballista.bolt == null || ballista.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) != 17 || ballista.getEntityData().get(Ballista.IS_BROKEN)) {
+        if (ballista == null || (ballista.controllingEntity != null && !Objects.equals(npc.getUUID(), ballista.controllingEntity)) || ballista.bolt == null || ballista.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) != 17 || ballista.getEntityData().get(Ballista.IS_BROKEN)) {
             ballista = null;
             return;
         }
@@ -127,15 +127,13 @@ public class BallistaAttackProgram extends Goal {
         ballista.controllingEntity = npc.getUUID();
 
         double distToTarget = Utils.distanceManhattan(npc.position(), ballista.position());
-        if (distToTarget > 5.5) {
-            int exit = npc.slowMobNavigation.moveToPosition(ballista.blockPosition(), 4, npc.slowNavigationMaxDistance, npc.slowNavigationMaxNodes, npc.slowNavigationStepPerTick, (float) speedModifier);
+            int exit = npc.slowMobNavigation.moveToPosition(ballista.blockPosition(), 3, npc.slowNavigationMaxDistance, npc.slowNavigationMaxNodes, npc.slowNavigationStepPerTick, (float) speedModifier);
             if (exit == SUCCESS_STILL_RUNNING)
                 return;
             if (exit == EXIT_FAIL) {
                 ballista = null;
                 return;
             }
-        }
 
         LivingEntity livingentity = this.npc.getTarget();
         if (livingentity != null) {
@@ -154,12 +152,12 @@ public class BallistaAttackProgram extends Goal {
             //double distanceToSqr = this.npc.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
             boolean lineOfSight = this.npc.getSensing().hasLineOfSight(livingentity);
             if (lineOfSight) {
-                double d0 = livingentity.getX() - ballista.getX();
-                double d1 = livingentity.getZ() - ballista.getZ();
+                double d0 = livingentity.getX() - ballista.bolt.getX();
+                double d1 = livingentity.getZ() - ballista.bolt.getZ();
                 double targetYRot = (Mth.atan2(d1, d0) * (double) 180.0F / (double) (float) Math.PI) - 90.0F;
                 ballista.targetYRot = (float) targetYRot;
                 if (Math.abs((360+ballista.getYRot()) % 360 - (360 + ballista.targetYRot) % 360) < 0.1) {
-                    double d2 = livingentity.getY(0.5) - ballista.getY();
+                    double d2 = livingentity.getY(0.5) - (ballista.bolt.getY());
                     double d3 = Math.sqrt(d0 * d0 + d1 * d1); // Horizontal distance
 
                     float speed = 8f;
@@ -167,7 +165,7 @@ public class BallistaAttackProgram extends Goal {
                     double time = d3 / speed;
                     double vy = (d2 + 0.5 * gravity * time * time) / time;
 
-                    ballista.targetXRot = (float) Math.atan(vy / d3);
+                    ballista.targetXRot = -(float) (Math.atan(vy / speed) * 180f / Math.PI);
 
                     attackTime++;
                     if (Math.abs(ballista.getXRot() - ballista.targetXRot) < 0.05 && attackTime > attackWait) {

@@ -99,6 +99,14 @@ public class Ballista extends SiegeEngine {
         super.tick();
 
         if (level() instanceof ServerLevel serverLevel) {
+            // set ghost block for pathfinding
+            if (level().getBlockState(blockPosition()).getBlock() != Registry.GHOST_BLOCK.get()) {
+                level().setBlock(blockPosition(), Registry.GHOST_BLOCK.get().defaultBlockState(), 3);
+            }
+            // set ghost block for pathfinding
+            if (level().getBlockState(blockPosition().above()).getBlock() != Registry.GHOST_BLOCK.get()) {
+                level().setBlock(blockPosition().above(), Registry.GHOST_BLOCK.get().defaultBlockState(), 3);
+            }
 
             applyGravity();
             Vec3 vec3d1 = this.getDeltaMovement();

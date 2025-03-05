@@ -32,12 +32,6 @@ public abstract class SiegeEngine extends Entity  implements NoGhostBlockCollide
 
     public void tick(){
         super.tick();
-        if(!level().isClientSide){
-            // set ghost block for pathfinding
-            if (level().getBlockState(blockPosition()).getBlock() != Registry.GHOST_BLOCK.get()) {
-                level().setBlock(blockPosition(), Registry.GHOST_BLOCK.get().defaultBlockState(), 3);
-            }
-        }
     }
 
     @Override
