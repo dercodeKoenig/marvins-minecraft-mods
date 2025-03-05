@@ -141,6 +141,7 @@ public class BallistaAttackProgram extends Goal {
             distToTarget = Utils.distanceManhattan(npc.position(), targetPosition);
             if (distToTarget > 1) {
                 npc.getMoveControl().setWantedPosition(targetPosition.x, targetPosition.y, targetPosition.z, 1);
+                return;
             } else {
                 npc.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             }
