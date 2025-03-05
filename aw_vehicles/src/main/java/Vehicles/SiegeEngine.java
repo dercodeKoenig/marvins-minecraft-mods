@@ -8,17 +8,18 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.ModList;
 
-public abstract class SiegeEngine extends Entity  implements NoGhostBlockCollider  {
+public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCollider  {
 
     public static final EntityDataAccessor<Integer> CONSTRUCTION_PROGRESS = SynchedEntityData.defineId(SiegeEngine.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(SiegeEngine.class, EntityDataSerializers.BOOLEAN);
 
     public SiegeEngine(EntityType<?> entityType, Level level) {
-        super(entityType, level);
+        super((EntityType<? extends LivingEntity>) entityType, level);
     }
 
 
@@ -46,7 +47,7 @@ public abstract class SiegeEngine extends Entity  implements NoGhostBlockCollide
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+    public void readAdditionalSaveData(CompoundTag compoundTag) {
         if (compoundTag.contains("construction")) {
             getEntityData().set(CONSTRUCTION_PROGRESS, compoundTag.getInt("construction"));
         }
@@ -56,7 +57,7 @@ public abstract class SiegeEngine extends Entity  implements NoGhostBlockCollide
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+    public void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putInt("construction", getEntityData().get(CONSTRUCTION_PROGRESS));
         compoundTag.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
     }

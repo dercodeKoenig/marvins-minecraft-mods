@@ -1,5 +1,6 @@
 package Vehicles.Ballista;
 
+import Vehicles.Config;
 import Vehicles.NoGhostBlockCollider;
 import Vehicles.Registry;
 import net.minecraft.core.BlockPos;
@@ -125,7 +126,7 @@ public class BallistaBolt extends Entity implements NoGhostBlockCollider {
                     if (entity != owner && owner != null) {
                         if (!shotEnd && !hitEntities.contains(entity)) {
                             hitEntities.add(entity);
-                            entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), 50);
+                            entity.hurt(new DamageSource(level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.ARROW), null, owner, owner.position()), Config.INSTANCE.ballista_damage);
                             level().playSound(null, blockPosition(), Registry.SOUND_BALLISTA_ENTITY_HIT.get(), SoundSource.BLOCKS, 1, 1);
                             //System.out.println("hit entity");
                         }

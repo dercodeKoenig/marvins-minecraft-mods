@@ -1,5 +1,6 @@
 package Vehicles.Ballista;
 
+import Vehicles.Config;
 import Vehicles.Registry;
 import Vehicles.SiegeEngine;
 import Vehicles.Utils;
@@ -14,15 +15,14 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,8 +44,6 @@ public class Ballista extends SiegeEngine {
     public UUID controllingEntity;
     public BallistaBolt bolt = null;
     public int reloadTicksRemaining = 0;
-
-    float life = 20;
 
     public Ballista(EntityType<Ballista> entityType, Level level) {
         super(entityType, level);
@@ -115,7 +113,7 @@ public class Ballista extends SiegeEngine {
             if (getDrawProgress() < 0) {
                 setDrawProgress(Math.min(getDrawProgress() + 0.05f, 0));
             } else if (reloadTicksRemaining > 0) {
-                setDrawProgress(getDrawProgress() + 0.02f);
+                setDrawProgress(getDrawProgress() + Config.INSTANCE.ballista_reload_speed);
                 reloadTicksRemaining -= 1;
                 if (getDrawProgress() == 1) {
                     reloadTicksRemaining = 0;
@@ -193,6 +191,11 @@ public class Ballista extends SiegeEngine {
                 client_drawProgress += (getDrawProgress() - client_drawProgress) * 0.1f; // Smoothly lerp
             }
         }
+    }
+
+    @Override
+    public HumanoidArm getMainArm() {
+        return null;
     }
 
     public void construct() {
@@ -306,7 +309,7 @@ public class Ballista extends SiegeEngine {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (!level().isClientSide) {
-            if (random.nextFloat() < amount / life) {
+            if (random.nextFloat() < amount / Config.INSTANCE.ballista_life) {
                 getEntityData().set(IS_BROKEN, true);
                 controllingEntity = null;
                 if (bolt != null) {
@@ -319,12 +322,19 @@ public class Ballista extends SiegeEngine {
         return true;
     }
 
-    public Vec3 getPassengerRidingPosition(Entity entity) {
-        Vec3 look = calculateViewVector((float) getX(), (float) client_currentYRot);
-        Vec3 lookNoY = new Vec3(look.x, 0, look.z);
+    @Override
+    public Iterable<ItemStack> getArmorSlots() {
+        return new ArrayList<>();
+    }
 
-        Vec3 targetPos = getPosition(0).subtract(lookNoY.normalize().scale(2)).add(new Vec3(0, 0.5, 0));
-        return targetPos;
+    @Override
+    public ItemStack getItemBySlot(EquipmentSlot equipmentSlot) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItemSlot(EquipmentSlot equipmentSlot, ItemStack itemStack) {
+
     }
 
     @Override
@@ -334,14 +344,14 @@ public class Ballista extends SiegeEngine {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+    public void readAdditionalSaveData(CompoundTag compoundTag) {
         if (compoundTag.contains("drawProgress"))
             setDrawProgress(compoundTag.getFloat("drawProgress"));
         super.readAdditionalSaveData(compoundTag);
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+    public void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("drawProgress", getDrawProgress());
         super.addAdditionalSaveData(compoundTag);
     }
