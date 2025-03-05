@@ -97,7 +97,7 @@ public class BallistaAttackProgram extends Goal {
                 AABB aabb = entity1.getBoundingBox().inflate(1);
                 Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(npc.getTarget().position().subtract(i.bolt.position()).normalize().scale(100)));
                 if (optional.isPresent()) {
-                    if(entity1 != i) {
+                    if (entity1 != i) {
                         if (HostileEntities.isUnableToAttack(entity1, npc)) {
                             //System.out.println(i+":ff");
                             return false;
@@ -110,7 +110,7 @@ public class BallistaAttackProgram extends Goal {
             Vec3 vec31 = new Vec3(npc.getTarget().getX(), npc.getTarget().getEyeY(), npc.getTarget().getZ());
             boolean canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, npc)).getType() == HitResult.Type.MISS;
 
-            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition())  && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
                 ballista = i;
                 lockTargetPosition();
                 return true;
@@ -203,7 +203,7 @@ public class BallistaAttackProgram extends Goal {
                             AABB aabb = entity1.getBoundingBox().inflate(1);
                             Optional<Vec3> optional = aabb.clip(ballista.bolt.position(), ballista.bolt.position().add(ballista.getLookAngle().normalize().scale(100)));
                             if (optional.isPresent()) {
-                                if(entity1 != ballista) {
+                                if (entity1 != ballista) {
                                     if (HostileEntities.isUnableToAttack(entity1, npc)) {
                                         freeToFire = false;
                                         break;
