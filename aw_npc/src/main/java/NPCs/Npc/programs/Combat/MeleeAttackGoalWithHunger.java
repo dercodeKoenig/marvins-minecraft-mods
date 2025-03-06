@@ -12,6 +12,7 @@ import net.minecraft.world.item.SwordItem;
 public class MeleeAttackGoalWithHunger extends MeleeAttackGoal {
 
     CombatNPC npc;
+
     public MeleeAttackGoalWithHunger(CombatNPC npc, double speedModifier, boolean followingTargetEvenIfNotSeen) {
         super(npc, speedModifier, followingTargetEvenIfNotSeen);
         this.npc = npc;
@@ -23,12 +24,12 @@ public class MeleeAttackGoalWithHunger extends MeleeAttackGoal {
     }
 
     @Override
-    public void tick(){
+    public void tick() {
         npc.takeWeaponProgram.takeBestWeaponToMainHand();
         super.tick();
     }
 
-@Override
+    @Override
     protected void checkAndPerformAttack(LivingEntity target) {
         if (this.canPerformAttack(target)) {
             this.resetAttackCooldown();

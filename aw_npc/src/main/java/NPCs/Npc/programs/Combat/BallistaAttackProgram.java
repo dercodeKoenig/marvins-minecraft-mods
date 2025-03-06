@@ -4,6 +4,7 @@ import NPCs.Npc.CombatNPC;
 import NPCs.Npc.HostileEntities;
 import NPCs.Utils;
 import Vehicles.Ballista.Ballista;
+import Vehicles.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -35,7 +36,7 @@ public class BallistaAttackProgram extends Goal {
         this.npc = npc;
         this.speedModifier = speedModifier;
 
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.TARGET));
     }
 
     public void lockTargetPosition() {
@@ -65,54 +66,72 @@ public class BallistaAttackProgram extends Goal {
     }
 
     public boolean canUse() {
-        if (npc.level().getGameTime() < lastCheck + 20 * 1 && npc.getTarget() == null) {
+        if (npc.level().getGameTime() < lastCheck + 20 * 1) {
             return false;
         }
         lastCheck = npc.level().getGameTime();
 
-        boolean c = npc.getTarget() != null && npc.getTarget().isAlive() && npc.hunger > npc.maxHunger * 0.05 && npc.position().distanceTo(npc.getTarget().position()) > 6;
-        if (!c) return false;
+        System.out.println("scan");
 
-        List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(128));
-        for (Ballista i : sortedEntitiesByDistanceTo(nearbyBallistas, npc.position())) {
-            // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
-            List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
-            for (LivingEntity j : entitiesAroundBallista) {
-                if (HostileEntities.shouldAttack(j, npc)) {
-                    //System.out.println(i+":tc");
-                    return false;
-                }
-            }
+        if (!(npc.hunger > npc.maxHunger * 0.05)) return false;
+        TreeSet<Ballista> nearbyBallistas = sortedEntitiesByDistanceTo(npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(64)), npc.position());
+        TreeSet<LivingEntity> nearbyTargets = sortedEntitiesByDistanceTo(npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(npc.blockPosition()).inflate(64), (entity) -> HostileEntities.shouldAttack(entity, npc)), npc.position());
 
-            if (i.bolt == null) return false;
+        for (LivingEntity target : nearbyTargets) {
+            entityTest:
+            {
+                boolean c = target.isAlive() && npc.position().distanceTo(target.position()) > 6;
+                if (!c) break entityTest;
 
-            List<Entity> entities = npc.level().getEntities((Entity) null, i.getBoundingBox().expandTowards(npc.getTarget().position().subtract(i.position())).inflate(1), (Predicate<Entity>) entity -> true);
-            // scan for friendly entities in area
-            for (Entity entity1 : entities) {
-                AABB aabb = entity1.getBoundingBox().inflate(1);
-                Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(npc.getTarget().position().subtract(i.bolt.position()).normalize().scale(100)));
-                if (optional.isPresent()) {
-                    if (entity1 != i) {
-                        if (HostileEntities.isUnableToAttack(entity1, npc)) {
-                            //System.out.println(i+":ff");
-                            return false;
+
+                for (Ballista i : nearbyBallistas) {
+                    // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
+                    // only applies when i am far away so i do not run into enemy lines
+                    if(i.position().distanceTo(npc.position()) > 8) {
+                        List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
+                        for (LivingEntity j : entitiesAroundBallista) {
+                            if (HostileEntities.shouldAttack(j, npc)) {
+                                System.out.println(i + ":" + target + ":tc");
+                                break entityTest;
+                            }
                         }
                     }
+
+                    if (i.bolt == null){
+                        System.out.println(i+":"+target+": no bolt");
+                        break entityTest;
+                    }
+
+                    List<Entity> entities = npc.level().getEntities((Entity) null, i.getBoundingBox().expandTowards(target.position().subtract(i.position())).inflate(1), (Predicate<Entity>) entity -> true);
+                    // scan for friendly entities in area
+                    for (Entity entity1 : entities) {
+                        AABB aabb = entity1.getBoundingBox().inflate(1);
+                        Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(target.position().subtract(i.bolt.position()).normalize().scale(100)));
+                        if (optional.isPresent()) {
+                            if (entity1 != i && entity1 != npc) {
+                                if (HostileEntities.isUnableToAttack(entity1, npc)) {
+                                    System.out.println(i+":"+target+":ff");
+                                    break entityTest;
+                                }
+                            }
+                        }
+                    }
+
+                    boolean canSee = i.hasLineOfSight(target);
+                    if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+                        ballista = i;
+                        lockTargetPosition();
+                        npc.setTarget(target);
+                        return true;
+                    }
+                    System.out.println("no");
                 }
             }
-
-            Vec3 vec3 = new Vec3(i.getX(), i.getEyeY(), i.getZ());
-            Vec3 vec31 = new Vec3(npc.getTarget().getX(), npc.getTarget().getEyeY(), npc.getTarget().getZ());
-            boolean canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, npc)).getType() == HitResult.Type.MISS;
-
-            if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
-                ballista = i;
-                lockTargetPosition();
-                return true;
-            }
         }
+        System.out.println("no work");
         return false;
     }
+
 
     public boolean canContinueToUse() {
         return ballista != null && npc.getTarget() != null && npc.getTarget().isAlive() && npc.hunger > npc.maxHunger * 0.05 && npc.position().distanceTo(npc.getTarget().position()) > 6;
@@ -126,6 +145,7 @@ public class BallistaAttackProgram extends Goal {
         if (ballista != null && Objects.equals(ballista.controllingEntity, npc.getUUID()))
             ballista.controllingEntity = null;
         ballista = null;
+        npc.setTarget(null);
         super.stop();
     }
 
@@ -154,6 +174,7 @@ public class BallistaAttackProgram extends Goal {
         }
 
         LivingEntity livingentity = this.npc.getTarget();
+
         if (livingentity != null) {
             Vec3 look = ballista.calculateViewVector(ballista.getXRot(), ballista.getYRot());
             Vec3 lookNoY = new Vec3(look.x, 0.0, look.z);
@@ -172,22 +193,46 @@ public class BallistaAttackProgram extends Goal {
             ballista.controllingEntity = npc.getUUID();
 
             //double distanceToSqr = this.npc.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
-            boolean lineOfSight = this.npc.getSensing().hasLineOfSight(livingentity);
+            boolean lineOfSight = ballista.hasLineOfSight(livingentity);
             if (lineOfSight) {
-                double d0 = livingentity.getX() - ballista.bolt.getX();
-                double d1 = livingentity.getZ() - ballista.bolt.getZ();
-                double targetYRot = (Mth.atan2(d1, d0) * (double) 180.0F / (double) (float) Math.PI) - 90.0F;
-                ballista.targetYRot = (float) targetYRot;
+                // Calculate differences between the ballista's bolt and the target entity.
+                double dx = livingentity.getX() - ballista.bolt.getX();
+                double dz = livingentity.getZ() - ballista.bolt.getZ();
+// Horizontal distance (x-z plane)
+                double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
 
-                double d2 = livingentity.getY(0.5) - (ballista.bolt.getY());
-                double d3 = Math.sqrt(d0 * d0 + d1 * d1); // Horizontal distance
+// Compute the horizontal (yaw) angle: arctan2 returns the angle relative to the x-axis,
+// so adjust by -90 degrees if necessary (depending on your coordinate system).
+                double targetYaw = Math.toDegrees(Math.atan2(dz, dx)) - 90.0;
+                ballista.targetYRot = (float) targetYaw;
 
-                float speed = 8f;
+// Vertical difference between the target and the bolt.
+                double dy = livingentity.getY(0.5) - ballista.bolt.getY();
+
+                float speed = Config.INSTANCE.ballista_bolt_velocity;
                 double gravity = 0.05;
-                double time = d3 / speed;
-                double vy = (d2 + 0.5 * gravity * time * time) / time;
 
-                ballista.targetXRot = -(float) (Math.atan(vy / speed) * 180f / Math.PI);
+// Precompute some values for clarity.
+                double speedSq = speed * speed;
+
+// Compute the discriminant of the quadratic equation for tan(theta)
+// v^4 - g*(g*d^2 + 2*dy*v^2)
+                double discriminant = speedSq * speedSq - gravity * (gravity * horizontalDistance * horizontalDistance + 2 * dy * speedSq);
+
+                if (discriminant < 0) {
+                    // If the discriminant is negative, the target is unreachable with the given speed.
+                    // Use a default angle (here, -45 degrees) or handle the error as needed.
+                    ballista.targetXRot = -45.0f;
+                } else {
+                    double sqrtDisc = Math.sqrt(discriminant);
+                    // Use the lower trajectory solution (minus sign) for a more direct shot.
+                    double tanTheta = (speedSq - sqrtDisc) / (gravity * horizontalDistance);
+                    double theta = Math.atan(tanTheta);
+
+                    // The targetXRot is set to the negative of the angle in degrees (to match your coordinate system conventions).
+                    ballista.targetXRot = (float) (-Math.toDegrees(theta));
+                }
+
 
                 if (Math.abs(ballista.getXRot() - ballista.targetXRot) < 0.2 && Math.abs((360 + ballista.getYRot()) % 360 - (360 + ballista.targetYRot) % 360) < 0.2) {
 
@@ -198,7 +243,7 @@ public class BallistaAttackProgram extends Goal {
                         AABB aabb = entity1.getBoundingBox().inflate(1);
                         Optional<Vec3> optional = aabb.clip(ballista.bolt.position(), ballista.bolt.position().add(ballista.getLookAngle().normalize().scale(100)));
                         if (optional.isPresent()) {
-                            if (entity1 != ballista) {
+                            if (entity1 != ballista && entity1 != npc) {
                                 if (HostileEntities.isUnableToAttack(entity1, npc)) {
                                     freeToFire = false;
                                     ballista = null;
@@ -211,6 +256,7 @@ public class BallistaAttackProgram extends Goal {
                     if (freeToFire && distToTarget <= 1) {
                         npc.swing(InteractionHand.MAIN_HAND);
                         ballista.shoot();
+                        lastCheck = 0;
                     }
                 }
 

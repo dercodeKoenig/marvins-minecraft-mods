@@ -42,7 +42,7 @@ public class BallistaBoltRenderer extends EntityRenderer<BallistaBolt> {
         //main = createBodyLayer().bakeRoot();
         poseStack.pushPose();
 
-        float scale = 0.2f;
+        float scale = 0.21f;
         poseStack.translate(0,0.125f,0);
         poseStack.scale(scale,scale,scale);
 

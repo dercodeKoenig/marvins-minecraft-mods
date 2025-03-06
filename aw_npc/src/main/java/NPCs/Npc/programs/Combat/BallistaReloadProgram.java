@@ -67,18 +67,22 @@ TakeToolProgram takeBoltProgram;
         }
         lastCheck = npc.level().getGameTime();
 
+        System.out.println("reload scan");
+
         if (npc.hunger > npc.maxHunger * 0.05) {
         } else return false;
 
         List<Ballista> nearbyBallistas = npc.level().getEntitiesOfClass(Ballista.class, new AABB(npc.blockPosition()).inflate(128));
         for (Ballista i : sortedEntitiesByDistanceTo(nearbyBallistas,npc.position())) {
             // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
-            List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
             boolean canUse = true;
-            for (LivingEntity j : entitiesAroundBallista){
-                if(HostileEntities.shouldAttack(j,npc)){
-                    canUse = false;
-                    break;
+            if(i.position().distanceTo(npc.position()) > 8) {
+                List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
+                for (LivingEntity j : entitiesAroundBallista) {
+                    if (HostileEntities.shouldAttack(j, npc)) {
+                        canUse = false;
+                        break;
+                    }
                 }
             }
             if (canUse && isPositionWorkable(i.blockPosition()) && i.getDrawProgress() < 1 && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {

@@ -1,14 +1,13 @@
 package Vehicles;
 
 import AgeOfSteam.Items.Hammer.ItemHammer;
-import Vehicles.Ballista.Ballista;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.ModList;
@@ -65,6 +64,11 @@ public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCo
     public void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putInt("construction", getEntityData().get(CONSTRUCTION_PROGRESS));
         compoundTag.putBoolean("isBroken", getEntityData().get(IS_BROKEN));
+    }
+
+    @Override
+    public float getHealth() {
+        return getEntityData().get(IS_BROKEN) ? 0 : 20;
     }
 
     @Override

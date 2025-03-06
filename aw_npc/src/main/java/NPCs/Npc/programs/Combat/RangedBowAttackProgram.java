@@ -171,8 +171,8 @@ public class RangedBowAttackProgram extends Goal {
 
                         double d8 = Double.MAX_VALUE;
                         Entity hitEntity = null;
-                        for(Entity entity1 : npc.level().getEntities(npc, npc.getBoundingBox().expandTowards(npc.getTarget().position().subtract(npc.position())).inflate(1), (x)->true)) {
-                            AABB aabb = entity1.getBoundingBox().inflate(1);
+                        for(Entity entity1 : npc.level().getEntities(npc, npc.getBoundingBox().expandTowards(npc.getTarget().position().subtract(npc.position())).inflate(2), (x)->true)) {
+                            AABB aabb = entity1.getBoundingBox().inflate(2);
                             Optional<Vec3> optional = aabb.clip(npc.getEyePosition(0), npc.getTarget().getEyePosition());
                             if (optional.isPresent()) {
                                 double d1 = npc.getEyePosition(0).distanceToSqr(optional.get());

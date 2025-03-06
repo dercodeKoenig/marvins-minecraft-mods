@@ -90,7 +90,7 @@ public class CombatNPC extends NPCBase {
             Goal attackGoal0 = new MeleeAttackGoalWithHunger(this, 1.2, true);
             goalSelector.addGoal(priority++, attackGoal0);
 
-            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, false, true, (entity) -> HostileEntities.shouldAttack(entity, this));
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, true, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()) {
@@ -100,21 +100,17 @@ public class CombatNPC extends NPCBase {
             Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20, 25);
             goalSelector.addGoal(priority++, attackGoal0);
 
-            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, false, false, (entity) -> HostileEntities.shouldAttack(entity, this));
+            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, true, false, (entity) -> HostileEntities.shouldAttack(entity, this));
             goalSelector.addGoal(priority++, attackGoal1);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.siege_engineer.ordinal()) {
             Goal attackGoal2 = new BallistaAttackProgram(this, 1.2);
             goalSelector.addGoal(priority++, attackGoal2);
 
-            Goal attackGoal1 = new NearestAttackableTargetGoalWithHunger<>(this, LivingEntity.class, 10, false, true, (entity) -> HostileEntities.shouldAttack(entity, this));
-            goalSelector.addGoal(priority++, attackGoal1);
-
             Goal attackGoal3 = new BallistaReloadProgram(this);
             goalSelector.addGoal(priority++, attackGoal3);
         }
 
-        // this is in case there is no townhall to manage temporal enemies
         goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));

@@ -34,13 +34,4 @@ public class NearestAttackableTargetGoalWithHunger<T extends LivingEntity> exten
         boolean c=  super.canUse() && npc.hunger > npc.maxHunger * 0.05;
         return c;
     }
-
-    @Override
-    protected double getFollowDistance() {
-        // npc is null on first tick for whatever reason
-        if(npc!=null && npc.getEntityData().get(DATA_WORKTYPE) == CombatNPC.WorkTypes.siege_engineer.ordinal())
-            return 128;
-        else
-            return this.mob.getAttributeValue(Attributes.FOLLOW_RANGE);
-    }
 }

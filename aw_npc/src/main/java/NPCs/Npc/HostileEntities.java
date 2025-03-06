@@ -124,7 +124,7 @@ public class HostileEntities {
             ((Monster) e).goalSelector.addGoal(1, attackGoal1);
 
             Goal attackGoal2 = new NearestAttackableTargetGoal<>(mob, SiegeEngine.class, 20, true, true, (entity) -> {
-                return entity.getEntityData().get(SiegeEngine.IS_BROKEN) == false;
+                return !entity.getEntityData().get(SiegeEngine.IS_BROKEN);
             });
             ((Monster) e).goalSelector.addGoal(2, attackGoal2);
         }

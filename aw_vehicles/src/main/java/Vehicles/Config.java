@@ -16,6 +16,8 @@ public class Config {
     public float ballista_damage = 50f;
     public float ballista_life = 20f;
     public float ballista_reload_speed = 0.008f;
+    public float ballista_turn_rate = 3f;
+    public float ballista_bolt_velocity = 3f;
 
     public Config() {
     }

@@ -67,7 +67,8 @@ public class Ballista extends SiegeEngine {
 
     public void setBoltPosition() {
         if (bolt != null) {
-            bolt.setPos(getPosition(0).add(0, 1, 0));
+            Vec3 look = getLookAngle().normalize();
+            bolt.setPos(getPosition(0).add(0, 1.02, 0));
             bolt.setXRot(-getXRot());
             bolt.setYRot(getYRot() - 180);
         }
@@ -141,10 +142,10 @@ public class Ballista extends SiegeEngine {
                     if (Math.abs(yRotDiff + 360) < Math.abs(yRotDiff))
                         yRotDiff += 360;
 
-                    float toRotateY = Math.clamp(yRotDiff, -3f, 3f);
+                    float toRotateY = Math.clamp(yRotDiff, -Config.INSTANCE.ballista_turn_rate, Config.INSTANCE.ballista_turn_rate);
 
                     float xRotDiff = targetXRot - xRotCurrent;
-                    float toRotateX = Math.clamp(xRotDiff, -5f, 5f);
+                    float toRotateX = Math.clamp(xRotDiff, -Config.INSTANCE.ballista_turn_rate, Config.INSTANCE.ballista_turn_rate);
 
                     setRot(yRotCurrent + toRotateY, xRotCurrent + toRotateX);
                 }
@@ -236,7 +237,7 @@ public class Ballista extends SiegeEngine {
         float spreadx = (random.nextFloat() - 0.5f) * 0.04f;
         float spready = (random.nextFloat() - 0.5f) * 0.04f;
         float spreadz = (random.nextFloat() - 0.5f) * 0.04f;
-        bolt.setDeltaMovement(getLookAngle().add(new Vec3(spreadx, spready, spreadz)).normalize().scale(8));
+        bolt.setDeltaMovement(getLookAngle().add(new Vec3(spreadx, spready, spreadz)).normalize().scale(Config.INSTANCE.ballista_bolt_velocity));
         bolt.setNoGravity(false);
         bolt = null;
         setDrawProgress(-1);
