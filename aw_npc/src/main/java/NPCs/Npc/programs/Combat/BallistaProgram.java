@@ -117,7 +117,7 @@ public class BallistaProgram extends Goal {
                 for (LivingEntity target : nearbyTargets) {
                     entityTest:
                     {
-                        boolean c = target.isAlive() && npc.position().distanceTo(target.position()) > 6;
+                        boolean c = target.isAlive() && npc.position().distanceTo(target.position()) > 4;
                         if (!c) break entityTest;
 
                         List<Entity> entities = npc.level().getEntities((Entity) null, i.getBoundingBox().expandTowards(target.position().subtract(i.position())).inflate(1), (Predicate<Entity>) entity -> true);
@@ -246,7 +246,7 @@ public class BallistaProgram extends Goal {
             }
         }
 
-        if (noFriendlyInLine && canSee && npc.position().distanceTo(npc.getTarget().position()) > 6 && ballista.bolt != null) {
+        if (noFriendlyInLine && canSee && npc.position().distanceTo(npc.getTarget().position()) > 4 && ballista.bolt != null) {
             Vec3 look = ballista.calculateViewVector(ballista.getXRot(), ballista.getYRot());
             Vec3 lookNoY = new Vec3(look.x, 0.0, look.z);
             Vec3 targetPosition = ballista.position().subtract(lookNoY.normalize().scale(2.0)).add(new Vec3((double) 0.0F, (double) 0.5F, (double) 0.0F));
