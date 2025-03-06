@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -24,7 +25,6 @@ import java.util.*;
 
 public class TownHallData {
     private static HashMap<String, HashMap<BlockPos, TownHallData>> staticData = new HashMap<>();
-    private static boolean hasChanges = false;
 
     public static class TOClientReceiver implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
         public static TOClientReceiver INSTANCE = new TOClientReceiver();
@@ -64,7 +64,17 @@ public class TownHallData {
     }
 
     public static void setChanged() {
-        hasChanges = true;
+        Path worldDir = ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT);
+        String filename = "townHallData.json";
+        Path filePath = worldDir.resolve(filename);
+        try {
+            if (!Files.exists(filePath)) {
+                Files.createFile(filePath);
+            }
+            Files.writeString(filePath, TownHallData.toJson());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         syncData();
     }
 
@@ -156,27 +166,9 @@ public class TownHallData {
         createStaticMap(map);
     }
 
-    public static void onLevelSave(LevelEvent.Save event) {
-        if (event.getLevel().isClientSide()) return;
-        if (hasChanges) {
-            Path configDir = Paths.get(FMLPaths.GAMEDIR.get().toString()).resolve(event.getLevel().getServer().getWorldPath(LevelResource.ROOT));
-            String filename = "townHallData.json";
-            Path filePath = configDir.resolve(filename);
-            try {
-                if (!Files.exists(filePath)) {
-                    Files.createFile(filePath);
-                }
-                Files.writeString(filePath, TownHallData.toJson());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        hasChanges = false;
-    }
-
     public static void onLevelLoad(LevelEvent.Load event) {
         if (event.getLevel().isClientSide()) return;
-        Path configDir = Paths.get(FMLPaths.GAMEDIR.get().toString()).resolve(event.getLevel().getServer().getWorldPath(LevelResource.ROOT));
+        Path configDir = ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT);
         String filename = "townHallData.json";
         Path filePath = configDir.resolve(filename);
         if (Files.exists(filePath)) {

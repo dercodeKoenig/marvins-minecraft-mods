@@ -41,11 +41,9 @@ public class Main {
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerNetworkStuff);
         modEventBus.addListener(this::entityAttributeCreation);
-        modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
-        NeoForge.EVENT_BUS.addListener(TownHallData::onLevelSave);
         NeoForge.EVENT_BUS.addListener(TownHallData::onLevelLoad);
 
         NeoForge.EVENT_BUS.addListener(HostileEntities::onEntityJoin);
@@ -54,8 +52,6 @@ public class Main {
 
         SimpleNetworkPacket.registerReceiver("to_sync", TownHallData.TOClientReceiver.INSTANCE);
 
-    }
-    public void onClientSetup(FMLClientSetupEvent event) {
     }
 
 

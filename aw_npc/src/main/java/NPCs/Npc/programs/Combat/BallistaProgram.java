@@ -19,6 +19,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.antlr.v4.runtime.tree.Tree;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -70,6 +71,64 @@ public class BallistaProgram extends Goal {
         return true;
     }
 
+    public boolean canUseBallista(Ballista i, TreeSet<LivingEntity> nearbyTargets){
+        // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
+        // only applies when i am far away so i do not run into enemy lines
+        if (i.position().distanceTo(npc.position()) > 16) {
+            List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
+            for (LivingEntity j : entitiesAroundBallista) {
+                if (HostileEntities.shouldAttack(j, npc)) {
+                    //System.out.println(i + ":" + target + ":tc");
+                    return false;
+                }
+            }
+        }
+
+        if (isPositionWorkable(i.blockPosition()) && i.getDrawProgress() < 1 && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            return true;
+        }
+        if (isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(Registry.ITEM_BALLISTA_BOLT.get()) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+            return true;
+        }
+
+        if (i.bolt == null) {
+            //System.out.println(i+":"+target+": no bolt");
+            return false;
+        }
+
+        for (LivingEntity target : nearbyTargets) {
+            entityTest:
+            {
+                boolean c = target.isAlive() && npc.position().distanceTo(target.position()) > 1.5;
+                if (!c) break entityTest;
+
+                List<Entity> entities = npc.level().getEntities((Entity) null, i.getBoundingBox().expandTowards(target.position().subtract(i.position())).inflate(1), (Predicate<Entity>) entity -> true);
+                // scan for friendly entities in area
+                for (Entity entity1 : entities) {
+                    AABB aabb = entity1.getBoundingBox().inflate(1);
+                    Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(target.position().subtract(i.bolt.position()).normalize().scale(100)));
+                    if (optional.isPresent()) {
+                        if (entity1 != i && entity1 != npc) {
+                            if (HostileEntities.isUnableToAttack(entity1, npc)) {
+                                //System.out.println(i+":"+target+":ff");
+                                break entityTest;
+                            }
+                        }
+                    }
+                }
+                Vec3 vec3 = new Vec3(i.bolt.getX(), i.bolt.getEyeY(), i.bolt.getZ());
+                Vec3 vec31 = new Vec3(target.getX(), target.getEyeY(), target.getZ());
+                boolean canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, i.bolt)).getType() == HitResult.Type.MISS;
+                if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
+                    npc.setTarget(target);
+                    return true;
+                }
+            }
+        }
+        npc.setTarget(null);
+        return false;
+    }
+
     public boolean canUse() {
         if (npc.level().getGameTime() < lastCheck + 20 * 1) {
             return false;
@@ -83,68 +142,10 @@ public class BallistaProgram extends Goal {
         TreeSet<LivingEntity> nearbyTargets = sortedEntitiesByDistanceTo(npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(npc.blockPosition()).inflate(64), (entity) -> HostileEntities.shouldAttack(entity, npc) || entity instanceof Creeper), npc.position());
 
         for (Ballista i : nearbyBallistas) {
-            ballistaTest:
-            {
-
-                // do not work this ballista when other hostile creatures are around. consider it a enemy ballista
-                // only applies when i am far away so i do not run into enemy lines
-                if (i.position().distanceTo(npc.position()) > 16) {
-                    List<LivingEntity> entitiesAroundBallista = npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(i.blockPosition()).inflate(8));
-                    for (LivingEntity j : entitiesAroundBallista) {
-                        if (HostileEntities.shouldAttack(j, npc)) {
-                            //System.out.println(i + ":" + target + ":tc");
-                            break ballistaTest;
-                        }
-                    }
-                }
-
-                if (isPositionWorkable(i.blockPosition()) && i.getDrawProgress() < 1 && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
-                    ballista = i;
-                    lockTargetPosition();
-                    return true;
-                }
-                if (isPositionWorkable(i.blockPosition()) && takeBoltProgram.hasTool(Registry.ITEM_BALLISTA_BOLT.get()) && i.getDrawProgress() == 1 && i.bolt == null && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
-                    ballista = i;
-                    lockTargetPosition();
-                    return true;
-                }
-
-                if (i.bolt == null) {
-                    //System.out.println(i+":"+target+": no bolt");
-                    break ballistaTest;
-                }
-
-                for (LivingEntity target : nearbyTargets) {
-                    entityTest:
-                    {
-                        boolean c = target.isAlive() && npc.position().distanceTo(target.position()) > 4;
-                        if (!c) break entityTest;
-
-                        List<Entity> entities = npc.level().getEntities((Entity) null, i.getBoundingBox().expandTowards(target.position().subtract(i.position())).inflate(1), (Predicate<Entity>) entity -> true);
-                        // scan for friendly entities in area
-                        for (Entity entity1 : entities) {
-                            AABB aabb = entity1.getBoundingBox().inflate(1);
-                            Optional<Vec3> optional = aabb.clip(i.bolt.position(), i.bolt.position().add(target.position().subtract(i.bolt.position()).normalize().scale(100)));
-                            if (optional.isPresent()) {
-                                if (entity1 != i && entity1 != npc) {
-                                    if (HostileEntities.isUnableToAttack(entity1, npc)) {
-                                        //System.out.println(i+":"+target+":ff");
-                                        break entityTest;
-                                    }
-                                }
-                            }
-                        }
-                        Vec3 vec3 = new Vec3(i.bolt.getX(), i.bolt.getEyeY(), i.bolt.getZ());
-                        Vec3 vec31 = new Vec3(target.getX(), target.getEyeY(), target.getZ());
-                        boolean canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, i.bolt)).getType() == HitResult.Type.MISS;
-                        if (canSee && (i.controllingEntity == null || Objects.equals(i.controllingEntity, npc.getUUID())) && isPositionWorkable(i.blockPosition()) && i.getEntityData().get(Ballista.CONSTRUCTION_PROGRESS) == 17 && !i.getEntityData().get(Ballista.IS_BROKEN)) {
-                            ballista = i;
-                            lockTargetPosition();
-                            npc.setTarget(target);
-                            return true;
-                        }
-                    }
-                }
+            if(canUseBallista(i, nearbyTargets)){
+                ballista = i;
+                lockTargetPosition();
+                return true;
             }
         }
         //System.out.println("no work");
@@ -225,7 +226,7 @@ public class BallistaProgram extends Goal {
 
         boolean canSee = false;
         boolean noFriendlyInLine = true;
-        if (livingentity != null && livingentity.isAlive()) {
+        if (livingentity != null && livingentity.isAlive() && ballista.bolt != null) {
             Vec3 vec3 = new Vec3(ballista.bolt.getX(), ballista.bolt.getEyeY(), ballista.bolt.getZ());
             Vec3 vec31 = new Vec3(livingentity.getX(), livingentity.getEyeY(), livingentity.getZ());
             canSee = npc.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, ballista.bolt)).getType() == HitResult.Type.MISS;
@@ -246,7 +247,7 @@ public class BallistaProgram extends Goal {
             }
         }
 
-        if (noFriendlyInLine && canSee && npc.position().distanceTo(npc.getTarget().position()) > 4 && ballista.bolt != null) {
+        if (noFriendlyInLine && canSee && npc.position().distanceTo(npc.getTarget().position()) > 1.5) {
             Vec3 look = ballista.calculateViewVector(ballista.getXRot(), ballista.getYRot());
             Vec3 lookNoY = new Vec3(look.x, 0.0, look.z);
             Vec3 targetPosition = ballista.position().subtract(lookNoY.normalize().scale(2.0)).add(new Vec3((double) 0.0F, (double) 0.5F, (double) 0.0F));
@@ -263,28 +264,28 @@ public class BallistaProgram extends Goal {
             ballista.controllingEntity = npc.getUUID();
 
 
-                // Calculate differences between the ballista's bolt and the target entity.
+            // Calculate differences between the ballista's bolt and the target entity.
             double dx = livingentity.getX() - ballista.bolt.getX();
             double dz = livingentity.getZ() - ballista.bolt.getZ();
-                // Horizontal distance (x-z plane)
+            // Horizontal distance (x-z plane)
             double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
 
-                // Compute the horizontal (yaw) angle: arctan2 returns the angle relative to the x-axis,
-                // so adjust by -90 degrees if necessary (depending on your coordinate system).
+            // Compute the horizontal (yaw) angle: arctan2 returns the angle relative to the x-axis,
+            // so adjust by -90 degrees if necessary (depending on your coordinate system).
             double targetYaw = Math.toDegrees(Math.atan2(dz, dx)) - 90.0;
             ballista.targetYRot = (float) targetYaw;
 
-                // Vertical difference between the target and the bolt.
+            // Vertical difference between the target and the bolt.
             double dy = livingentity.getY(0.5) - ballista.bolt.getY();
 
             float speed = Config.INSTANCE.ballista_bolt_velocity;
             double gravity = 0.05;
 
-                // Precompute some values for clarity.
+            // Precompute some values for clarity.
             double speedSq = speed * speed;
 
-                // Compute the discriminant of the quadratic equation for tan(theta)
-                // v^4 - g*(g*d^2 + 2*dy*v^2)
+            // Compute the discriminant of the quadratic equation for tan(theta)
+            // v^4 - g*(g*d^2 + 2*dy*v^2)
             double discriminant = speedSq * speedSq - gravity * (gravity * horizontalDistance * horizontalDistance + 2 * dy * speedSq);
 
             if (discriminant < 0) {
@@ -314,10 +315,18 @@ public class BallistaProgram extends Goal {
             return;
 
         }
-        lastCheck = 0;
-        stop();
-        if(canUse())
-            start();
+        if(ballista != null){
+            TreeSet<LivingEntity> nearbyTargets = sortedEntitiesByDistanceTo(npc.level().getEntitiesOfClass(LivingEntity.class, new AABB(npc.blockPosition()).inflate(64), (entity) -> HostileEntities.shouldAttack(entity, npc) || entity instanceof Creeper), npc.position());
+            if(!canUseBallista(ballista, nearbyTargets)){
+                waitTimer++;
+                if (waitTimer > 60) {
+                    lastCheck = 0;
+                    stop();
+                    if (canUse())
+                        start();
+                }
+            }
+        }
     }
 }
 
