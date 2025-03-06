@@ -138,7 +138,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Farmer.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 7 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_worker_farmer_" + randomNumber + ".png");
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Farmer"));
                 return InteractionResult.SUCCESS;
@@ -148,7 +148,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Miner.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 5 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_worker_miner_" + randomNumber + ".png");
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Miner"));
                 return InteractionResult.SUCCESS;
@@ -158,7 +158,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Lumberjack.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 2 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_worker_lumberjack_" + randomNumber + ".png");
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Lumberjack"));
                 return InteractionResult.SUCCESS;
@@ -168,7 +168,7 @@ public     MainLumberjackProgram lumberjackProgram; // because the sawmillprogra
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.Courier.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 1 + 1;
                 getEntityData().set(DATA_TEXTURE, "po_courier_" + randomNumber + ".png");
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Deliveryman"));
                 return InteractionResult.SUCCESS;

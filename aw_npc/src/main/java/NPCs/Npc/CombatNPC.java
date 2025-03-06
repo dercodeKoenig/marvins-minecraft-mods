@@ -161,7 +161,7 @@ public class CombatNPC extends NPCBase {
         if (!level().isClientSide && isFriendlyTo(player)) {
             if (player.getItemInHand(hand).getItem().equals(Items.BOW)) {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.archer.ordinal());
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Archer"));
                 int randomNumber = Math.abs(level().random.nextInt()) % 4 + 1;
@@ -171,7 +171,7 @@ public class CombatNPC extends NPCBase {
 
             if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_SWORD)) {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.fighter.ordinal());
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Fighter"));
                 int randomNumber = Math.abs(level().random.nextInt()) % 4 + 1;
@@ -181,7 +181,7 @@ public class CombatNPC extends NPCBase {
 
             if (player.getItemInHand(hand).getItem().equals(Registry.ITEM_WOODEN_HAMMER.get())) {
                 getEntityData().set(DATA_WORKTYPE, WorkTypes.siege_engineer.ordinal());
-                player.setItemInHand(hand, ItemStack.EMPTY);
+                player.getItemInHand(hand).shrink(1);
                 registerGoals();
                 setCustomName(Component.literal("Siege Engineer"));
                 int randomNumber = Math.abs(level().random.nextInt()) % 1 + 1;
