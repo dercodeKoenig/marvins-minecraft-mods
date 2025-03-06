@@ -94,7 +94,7 @@ public class CombatNPC extends NPCBase {
             goalSelector.addGoal(priority++, attackGoal1);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.archer.ordinal()) {
-            Goal attackGoal2 = new BallistaAttackProgram(this, 1.2);
+            Goal attackGoal2 = new BallistaProgram(this, 1.2);
             goalSelector.addGoal(priority++, attackGoal2);
 
             Goal attackGoal0 = new RangedBowAttackProgram(this, 1.2, 20, 25);
@@ -104,11 +104,8 @@ public class CombatNPC extends NPCBase {
             goalSelector.addGoal(priority++, attackGoal1);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.siege_engineer.ordinal()) {
-            Goal attackGoal2 = new BallistaAttackProgram(this, 1.2);
-            goalSelector.addGoal(priority++, attackGoal2);
-
-            Goal attackGoal3 = new BallistaReloadProgram(this);
-            goalSelector.addGoal(priority++, attackGoal3);
+            Goal ballistaProgram = new BallistaProgram(this, 1.2);
+            goalSelector.addGoal(priority++, ballistaProgram);
         }
 
         goalSelector.addGoal(priority++, new NPCHurtByTargetProgram(this, true, true));

@@ -72,6 +72,12 @@ public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCo
     }
 
     @Override
+    public boolean isDeadOrDying() {
+        // because it would despawn 
+        return false;
+    }
+
+    @Override
     public boolean canBeCollidedWith() {
         return true;
     }
