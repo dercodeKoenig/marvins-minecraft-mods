@@ -5,6 +5,7 @@ import AOSWorkshopExpansion.Sieve.SieveConfig;
 import AOSWorkshopExpansion.SpinningWheel.SpinningWheelConfig;
 import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
 import ARLib.holoProjector.itemHoloProjector;
+import ARLib.network.SimpleNetworkPacket;
 import ARMachines.lathe.EntityLathe;
 import ARMachines.lathe.LatheConfig;
 import ARMachines.rollingMachine.EntityRollingMachine;
@@ -39,15 +40,14 @@ public class ARMachines {
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
         if (login.getEntity() instanceof ServerPlayer p) {
-            LatheConfig.INSTANCE.SyncConfig(p);
+            LatheConfig.SyncConfig(p);
         }
     }
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         MultiblockRegistry.registerRenderers(event);
     }
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
-        LatheConfig.PacketConfigSync.register(registrar);
+        SimpleNetworkPacket.registerReceiver("latheConfigSync", new LatheConfig.configReceiver());
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

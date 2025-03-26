@@ -120,6 +120,7 @@ public class EntityLathe extends EntityMultiblockMachineMaster {
     // it will also be called onLoad() if the structure is scanned & completed OR on client side, if the structure is completed (blockstate value checked)
     public void onStructureComplete() {
         super.onStructureComplete();
+
         // create a empty guiHandler
         guiHandler = new GuiHandlerBlockEntity(this);
 
@@ -254,9 +255,10 @@ public class EntityLathe extends EntityMultiblockMachineMaster {
                 // it will automatically scan for recipes and process them
                 // it will return true if it is working and false if it has no work or is unable to work
                 setIsRunning(recipeManager.update());
+
+                if (recipeManager.currentRecipe != null)
+                    progressBar6px.setProgressAndSync((double) recipeManager.progress / recipeManager.currentRecipe.ticksRequired);
             }
-            if(isRunning)
-                progressBar6px.setProgressAndSync((double) recipeManager.progress / recipeManager.currentRecipe.ticksRequired);
         }
 
         if (level.isClientSide) {

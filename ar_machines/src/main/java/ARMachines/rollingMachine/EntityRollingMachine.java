@@ -13,6 +13,7 @@ import ARLib.obj.WavefrontObject;
 import ARLib.utils.ItemFluidStacks;
 import ARLib.utils.MachineRecipe;
 import ARLib.utils.MultiblockMachineRecipeManager;
+import ARMachines.lathe.EntityLathe;
 import ARMachines.lathe.LatheConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -151,7 +152,8 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
 
     @Override
     public void onStructureComplete() {
-        // create a empty guiHandler
+        super.onStructureComplete();
+
         guiHandler = new GuiHandlerBlockEntity(this);
 
         guiModuleEnergy energyBar = new guiModuleEnergy(17, level.isClientSide ? null : this.energyInTiles.get(0), guiHandler, 10, 10);
@@ -262,8 +264,7 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
         info.putLong("time", System.currentTimeMillis());
     }
 
-    // used on serverside, will notify the client that the machine is running or not
-    // and sends the recipe time and current progress.
+
     void setIsRunning(boolean isrunning) {
         if (this.isRunning != isrunning) {
             this.isRunning = isrunning;
@@ -274,18 +275,14 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
     }
 
     @Override
-    // incoming nbt from network to server will be received here
     public void readServer(CompoundTag tag, ServerPlayer player) {
-        // dont forget to pass the tag to the guiHandler as it uses the same interface to update the gui elements
         guiHandler.readServer(tag);
-
+        super.readServer(tag, player);
         if (tag.contains("client_onload")) {
             CompoundTag info = new CompoundTag();
             getUpdateTag(info);
             PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, info));
         }
-
-        //super.readServer(tag); // <- not needed here
     }
 
     long lastUpdateTime = 0; // because network packets can come in different order from what they are sent
@@ -329,27 +326,31 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
         }
     }
 
-    // this is the tick method
-    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
-        EntityRollingMachine t1 = (EntityRollingMachine) t;
+    public void tick(){
         if (!level.isClientSide) {
             // update the guiHandler, it checks if anything has changed in the gui and sends changes to the clients tracking the gui
-            t1.guiHandler.serverTick();
-            if (t1.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
+            guiHandler.serverTick();
+
+            if (getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 // if the machine is complete, let the recipe manager do it's job.
                 // it will automatically scan for recipes and process them
                 // it will return true if it is working and false if it has no work or is unable to work
-                t1.setIsRunning(t1.recipeManager.update());
-                if(t1.isRunning)
-                    t1.progressBar6px.setProgressAndSync((double) t1.recipeManager.progress / t1.recipeManager.currentRecipe.ticksRequired);
+                setIsRunning(recipeManager.update());
+
+                if (recipeManager.currentRecipe != null)
+                    progressBar6px.setProgressAndSync((double) recipeManager.progress / recipeManager.currentRecipe.ticksRequired);
             }
         }
-
 
         if (level.isClientSide) {
-            if (t1.isRunning) {
-                t1.client_recipeProgress++;
+            if (isRunning) {
+                client_recipeProgress++;
             }
         }
+    }
+
+    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+        EntityRollingMachine t1 = (EntityRollingMachine) t;
+        t1.tick();
     }
 }

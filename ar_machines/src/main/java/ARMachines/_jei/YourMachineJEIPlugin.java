@@ -36,7 +36,7 @@ public class YourMachineJEIPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         IJeiRuntime runtime = jeiRuntime;
-        LatheConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+        LatheConfig.jeiRunnableOnConfigLoad = new Runnable() {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(Lathe.MACHINE_RECIPE_TYPE, LatheConfig.INSTANCE.recipes);
