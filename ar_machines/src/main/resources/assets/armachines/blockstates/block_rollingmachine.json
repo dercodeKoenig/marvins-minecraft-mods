@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "facing=north,state=false": { "model": "armachines:block/block_rollingmachine" },
+        "facing=south,state=false": { "model": "armachines:block/block_rollingmachine", "y": 180 },
+        "facing=west,state=false": { "model": "armachines:block/block_rollingmachine", "y": 270 },
+        "facing=east,state=false": { "model": "armachines:block/block_rollingmachine", "y": 90 },
+        "facing=north,state=true": { "model": "minecraft:block/air" },
+        "facing=south,state=true": { "model": "minecraft:block/air", "y": 180 },
+        "facing=west,state=true": { "model": "minecraft:block/air", "y": 270 },
+        "facing=east,state=true": { "model": "minecraft:block/air", "y": 90 }
+    }
+}

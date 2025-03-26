@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "facing=north,state=false": { "model": "armachines:block/block_electrolyzer" },
+        "facing=south,state=false": { "model": "armachines:block/block_electrolyzer", "y": 180 },
+        "facing=west,state=false": { "model": "armachines:block/block_electrolyzer", "y": 270 },
+        "facing=east,state=false": { "model": "armachines:block/block_electrolyzer", "y": 90 },
+        "facing=north,state=true": { "model": "minecraft:block/air" },
+        "facing=south,state=true": { "model": "minecraft:block/air", "y": 180 },
+        "facing=west,state=true": { "model": "minecraft:block/air", "y": 270 },
+        "facing=east,state=true": { "model": "minecraft:block/air", "y": 90 }
+    }
+}

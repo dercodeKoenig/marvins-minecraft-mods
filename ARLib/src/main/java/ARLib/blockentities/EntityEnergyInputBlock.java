@@ -86,6 +86,7 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
     @Override
     public void readClient(CompoundTag tagIn) {
         this.guiHandler.readClient(tagIn);
+
         if(tagIn.contains("openGui")){
             openGui();
         }

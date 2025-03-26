@@ -1,0 +1,8 @@
+{
+    "parent": "minecraft:block/orientable",
+    "textures": {
+        "top": "armachines:block/machinegeneric",
+        "front": "armachines:block/controlpanel",
+        "side": "armachines:block/machinegeneric"
+    }
+}
