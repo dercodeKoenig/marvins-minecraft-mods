@@ -299,7 +299,7 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
 
         // this are the commands I use in communication
         if (tag.contains("openGui")) {
-            this.guiHandler.openGui(176, 165,true);
+            this.guiHandler.openGui(200, 210,true);
         }
         if (tag.contains("time") && tag.getLong("time") > lastUpdateTime) {
             lastUpdateTime = tag.getLong("time");
