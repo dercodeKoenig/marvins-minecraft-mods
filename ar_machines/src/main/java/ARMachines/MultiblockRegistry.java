@@ -109,6 +109,6 @@ public class MultiblockRegistry {
     }
 
     public static void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(BLOCK_ROLLINGMACHINE.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(BLOCK_CRYSTALLIZER.get(), RenderType.cutout());
     }
 }
