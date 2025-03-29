@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "armachines:models/block/crystallizer_multiblock.obj",
+  "mtl_override": "armachines:models/block/crystallizer_multiblock.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "armachines:block/crystallizer"
+  }
+}

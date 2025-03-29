@@ -41,7 +41,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallizer> {
 
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/crystallizer.png");
+    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/crystallizer.png");
     static ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/crystallizer.obj");
     static WavefrontObject model;
     static {
@@ -118,8 +118,10 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
             }
 
 
+
             Vector3f Yaxis = new Vector3f(0, 1, 0);
 
+/*
             model.resetTransformations("Hull");
             model.translateWorldSpace("Hull", new Vector3f(0.5f, 0, 0.5f));
             model.rotateWorldSpace("Hull", Yaxis, angle);
@@ -127,7 +129,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
             model.translateWorldSpace("Hull", new Vector3f(0f, 0, -1f));
             model.applyTransformations("Hull");
             model.renderPart("Hull", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
-
+*/
 
             double maxtranslate = 0.7;
 

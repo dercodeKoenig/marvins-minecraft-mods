@@ -6,10 +6,12 @@ import AOSWorkshopExpansion.SpinningWheel.SpinningWheelConfig;
 import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
 import ARLib.holoProjector.itemHoloProjector;
 import ARLib.network.SimpleNetworkPacket;
+import ARMachines.crystallizer.CrystallizerConfig;
 import ARMachines.crystallizer.EntityCrystallizer;
 import ARMachines.lathe.EntityLathe;
 import ARMachines.lathe.LatheConfig;
 import ARMachines.rollingMachine.EntityRollingMachine;
+import ARMachines.rollingMachine.RollingMachineConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -49,6 +51,8 @@ public class ARMachines {
     }
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         SimpleNetworkPacket.registerReceiver("latheConfigSync", new LatheConfig.configReceiver());
+        SimpleNetworkPacket.registerReceiver("rollingmachineConfigSync", new RollingMachineConfig.configReceiver());
+        SimpleNetworkPacket.registerReceiver("crystallizerConfigSync", new CrystallizerConfig.configReceiver());
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

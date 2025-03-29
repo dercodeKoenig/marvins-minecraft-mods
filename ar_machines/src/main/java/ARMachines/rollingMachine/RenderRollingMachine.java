@@ -28,7 +28,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderRollingMachine implements BlockEntityRenderer<EntityRollingMachine> {
 
-    ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/rollingmachine.png");
+    ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/rollingmachine.png");
 
 
     public int getViewDistance() {

@@ -24,7 +24,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderLathe implements BlockEntityRenderer<EntityLathe> {
 
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/lathe.png");
+    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/lathe.png");
     static WavefrontObject model;
 
     static {

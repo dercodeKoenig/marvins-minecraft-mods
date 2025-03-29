@@ -9,4 +9,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 1
-map_Kd C:/Users/Dr-Hc/Desktop/project_steam/src/main/resources/assets/age_of_steam/textures/block/andesite_casing.png
+map_Kd age_of_steam:block/andesite_casing
