@@ -44,7 +44,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
     public static Map<Integer, String> buttonIdToMachineName = new HashMap<>();
     static int id = 0;
 
-    public static void registerMultiblock(String name, Object[][][] structure, HashMap<Character, List<Block>> charMapping) {
+    public static synchronized void registerMultiblock(String name, Object[][][] structure, HashMap<Character, List<Block>> charMapping) {
         List<BlockInfo> blockInfoList = new ArrayList<>();
         for (int y = 0; y < structure.length; y++) {
             for (int z = 0; z < structure[y].length; z++) {
@@ -59,6 +59,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
                 }
             }
         }
+        System.out.println("register multiblock in holo projector:"+id+":"+name);
         structureBlocks.put(name, blockInfoList);
         buttonIdToMachineName.put(id, name);
         id += 1;

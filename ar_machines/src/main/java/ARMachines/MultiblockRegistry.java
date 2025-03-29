@@ -1,6 +1,9 @@
 package ARMachines;
 
 
+import ARMachines.crystallizer.BlockCrystallizer;
+import ARMachines.crystallizer.EntityCrystallizer;
+import ARMachines.crystallizer.RenderCrystallizer;
 import ARMachines.lathe.BlockLathe;
 import ARMachines.lathe.EntityLathe;
 import ARMachines.lathe.RenderLathe;
@@ -48,7 +51,7 @@ public class MultiblockRegistry {
             "entity_rollingmachine",
             () -> BlockEntityType.Builder.of(EntityRollingMachine::new, BLOCK_ROLLINGMACHINE.get()).build(null)
     );
-/*
+
     // crystallizer
     public static final DeferredHolder<Block, Block> BLOCK_CRYSTALLIZER = BLOCKS.register(
             "block_crystallizer",
@@ -58,7 +61,7 @@ public class MultiblockRegistry {
             "entity_crystallizer",
             () -> BlockEntityType.Builder.of(EntityCrystallizer::new, BLOCK_CRYSTALLIZER.get()).build(null)
     );
-
+/*
     // electrolyzer
     public static final DeferredHolder<Block, Block> BLOCK_ELECTROLYZER = BLOCKS.register(
             "block_electrolyzer",
@@ -75,7 +78,7 @@ public class MultiblockRegistry {
     public static void register(IEventBus modBus) {
         registerBlockItem("block_lathe", BLOCK_LATHE);
         registerBlockItem("block_rollingmachine", BLOCK_ROLLINGMACHINE);
-        //registerBlockItem("block_crystallizer", BLOCK_CRYSTALLIZER);
+        registerBlockItem("block_crystallizer", BLOCK_CRYSTALLIZER);
         //registerBlockItem("block_electrolyzer", BLOCK_ELECTROLYZER);
 
         BLOCKS.register(modBus);
@@ -86,7 +89,7 @@ public class MultiblockRegistry {
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_LATHE.get(), RenderLathe::new);
         event.registerBlockEntityRenderer(ENTITY_ROLLINGMACHINE.get(), RenderRollingMachine::new);
-        //event.registerBlockEntityRenderer(ENTITY_CRYSTALLIZER.get(), RenderCrystallizer::new);
+        event.registerBlockEntityRenderer(ENTITY_CRYSTALLIZER.get(), RenderCrystallizer::new);
         //event.registerBlockEntityRenderer(ENTITY_ELECTROLYZER.get(), RenderElectrolyzer::new);
     }
 
@@ -94,7 +97,7 @@ public class MultiblockRegistry {
         if (e.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS){
             e.accept(BLOCK_LATHE.get());
             e.accept(BLOCK_ROLLINGMACHINE.get());
-            //e.accept(BLOCK_CRYSTALLIZER.get());
+            e.accept(BLOCK_CRYSTALLIZER.get());
             //e.accept(BLOCK_ELECTROLYZER.get());
         }
     }

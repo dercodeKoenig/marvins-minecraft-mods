@@ -6,6 +6,7 @@ import AOSWorkshopExpansion.SpinningWheel.SpinningWheelConfig;
 import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
 import ARLib.holoProjector.itemHoloProjector;
 import ARLib.network.SimpleNetworkPacket;
+import ARMachines.crystallizer.EntityCrystallizer;
 import ARMachines.lathe.EntityLathe;
 import ARMachines.lathe.LatheConfig;
 import ARMachines.rollingMachine.EntityRollingMachine;
@@ -58,7 +59,7 @@ public class ARMachines {
 
         itemHoloProjector.registerMultiblock("Lathe", EntityLathe.structure, EntityLathe.charMapping);
         itemHoloProjector.registerMultiblock("Rolling Machine", EntityRollingMachine.structure, EntityRollingMachine.charMapping);
-        //itemHoloProjector.registerMultiblock("Crystallizer", EntityCrystallizer.structure, EntityCrystallizer.charMapping);
+        itemHoloProjector.registerMultiblock("Crystallizer", EntityCrystallizer.structure, EntityCrystallizer.charMapping);
         //itemHoloProjector.registerMultiblock("Electrolyzer", EntityElectrolyzer.structure, EntityElectrolyzer.charMapping);
     }
 }

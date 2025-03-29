@@ -1,7 +1,9 @@
 package ARMachines.crystallizer;
 
 
+import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.obj.GroupObject;
+import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import ARMachines.lathe.EntityLathe;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -24,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -35,10 +38,40 @@ import static ARLib.obj.GroupObject.POSITION_COLOR_OVERLAY_LIGHT_NORMAL;
 import static ARLib.obj.GroupObject.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-/*
+
 public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallizer> {
 
-    ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/crystallizer.png");
+    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/crystallizer.png");
+    static ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/crystallizer.obj");
+    static WavefrontObject model;
+    static {
+        try {
+            model = new WavefrontObject(modelsrc);
+        } catch (
+                ModelFormatException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
+    static RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
+            .setShaderState(RENDERTYPE_ENTITY_CUTOUT_NO_CULL_SHADER)
+            .setOverlayState(OVERLAY)
+            .setLightmapState(LIGHTMAP)
+            .setCullState(NO_CULL)
+            //.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+            .setTextureState(new TextureStateShard(tex, false, false))
+            .createCompositeState(false);
+
+    static RenderType.CompositeState  compositeStateTank = RenderType.CompositeState.builder()
+            .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+            .setLightmapState(LIGHTMAP)
+            .setOverlayState(OVERLAY)
+            .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+            .setTextureState(new TextureStateShard(InventoryMenu.BLOCK_ATLAS,false,true))
+            .setOutputState(ITEM_ENTITY_TARGET)
+            .createCompositeState(true);
+
 
     public int getViewDistance() {
         return 256;
@@ -64,21 +97,10 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
     // - packedOverlay: The current overlay value of the block entity, usually OverlayTexture.NO_OVERLAY.
     @Override
     public void render(EntityCrystallizer tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-
-        WavefrontObject model = tile.model;
-        if (tile.isMultiblockFormed()) {
-            VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-            RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-                    .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-                    .setOverlayState(OVERLAY)
-                    .setLightmapState(LIGHTMAP)
-                    .setCullState(NO_CULL)
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                    .setTextureState(new TextureStateShard(tex, false, false))
-                    .createCompositeState(false);
+        if (tile.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
 
             // Get the facing direction of the block
-            Direction facing = tile.getFacing();
+            Direction facing = tile.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
             float angle = 0;
             switch (facing) {
                 case NORTH:
@@ -126,6 +148,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                     fluidTranslation = (float) (-(relativeProgress - 0.1) / 9 * 10);
                 }
 
+
                 if (tile.tank1.client_nextConsumedStacks.fluidStacks.size() == 1) {
 
                     IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(tile.tank1.client_nextConsumedStacks.fluidStacks.get(0).getFluid());
@@ -135,16 +158,6 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                             .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                             .apply(fluidtexture);
 
-                    VertexFormat vertexFormatTank = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-                    RenderType.CompositeState compositeStateTank = RenderType.CompositeState.builder()
-                            .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-                            .setLightmapState(LIGHTMAP)
-                            .setOverlayState(OVERLAY)
-                            .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                            .setTextureState(new TextureStateShard(sprite.atlasLocation(),false,true))
-                            .setOutputState(ITEM_ENTITY_TARGET)
-                            .createCompositeState(true);
-
                     model.scaleUV("Liquid",sprite.getU0(),sprite.getV0(),sprite.getU1(),sprite.getV1());
                     model.resetTransformations("Liquid");
                     model.translateWorldSpace("Liquid", new Vector3f(0.5f, 0, 0.5f));
@@ -152,7 +165,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                     model.translateWorldSpace("Liquid", new Vector3f(-0.5f, 0, -0.5f));
                     model.translateWorldSpace("Liquid", new Vector3f(0f, fluidTranslation * (float) maxtranslate, -1f));
                     model.applyTransformations("Liquid");
-                    model.renderPart("Liquid", stack, bufferSource, vertexFormatTank, compositeStateTank, packedLight, packedOverlay, color);
+                    model.renderPart("Liquid", stack, bufferSource, vertexFormat, compositeStateTank, packedLight, packedOverlay, color);
                 }
 
                 stack.pushPose();
@@ -203,16 +216,6 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                             .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                             .apply(fluidtexture);
 
-                    VertexFormat vertexFormatTank = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-                    RenderType.CompositeState compositeStateTank = RenderType.CompositeState.builder()
-                            .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-                            .setLightmapState(LIGHTMAP)
-                            .setOverlayState(OVERLAY)
-                            .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                            .setTextureState(new TextureStateShard(sprite.atlasLocation(),false,true))
-                            .setOutputState(ITEM_ENTITY_TARGET)
-                            .createCompositeState(true);
-
                     model.scaleUV("Liquid.002",sprite.getU0(),sprite.getV0(),sprite.getU1(),sprite.getV1());
                     model.resetTransformations("Liquid.002");
                     model.translateWorldSpace("Liquid.002", new Vector3f(0.5f, 0, 0.5f));
@@ -220,7 +223,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                     model.translateWorldSpace("Liquid.002", new Vector3f(-0.5f, 0, -0.5f));
                     model.translateWorldSpace("Liquid.002", new Vector3f(0f, fluidTranslation*(float)maxtranslate, -1f));
                     model.applyTransformations("Liquid.002");
-                    model.renderPart("Liquid.002", stack, bufferSource, vertexFormatTank, compositeStateTank, packedLight, packedOverlay,color);
+                    model.renderPart("Liquid.002", stack, bufferSource, vertexFormat, compositeStateTank, packedLight, packedOverlay,color);
                 }
 
                 stack.pushPose();
@@ -274,16 +277,6 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                             .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                             .apply(fluidtexture);
 
-                    VertexFormat vertexFormatTank = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-                    RenderType.CompositeState compositeStateTank = RenderType.CompositeState.builder()
-                            .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-                            .setLightmapState(LIGHTMAP)
-                            .setOverlayState(OVERLAY)
-                            .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                            .setTextureState(new TextureStateShard(sprite.atlasLocation(),false,true))
-                            .setOutputState(ITEM_ENTITY_TARGET)
-                            .createCompositeState(true);
-
                     model.scaleUV("Liquid.001",sprite.getU0(),sprite.getV0(),sprite.getU1(),sprite.getV1());
                     model.resetTransformations("Liquid.001");
                     model.translateWorldSpace("Liquid.001", new Vector3f(0.5f, 0, 0.5f));
@@ -291,7 +284,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                     model.translateWorldSpace("Liquid.001", new Vector3f(-0.5f, 0, -0.5f));
                     model.translateWorldSpace("Liquid.001", new Vector3f(0f, fluidTranslation*(float)maxtranslate, -1f));
                     model.applyTransformations("Liquid.001");
-                    model.renderPart("Liquid.001", stack, bufferSource, vertexFormatTank, compositeStateTank, packedLight, packedOverlay,color);
+                    model.renderPart("Liquid.001", stack, bufferSource, vertexFormat, compositeStateTank, packedLight, packedOverlay,color);
                 }
 
                 stack.pushPose();
@@ -317,5 +310,4 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
     }
 }
 
- */
 

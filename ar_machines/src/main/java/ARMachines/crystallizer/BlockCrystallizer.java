@@ -1,6 +1,18 @@
 package ARMachines.crystallizer;
 
-/*
+
+import ARLib.multiblockCore.BlockMultiblockMaster;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+
+import javax.annotation.Nullable;
+
+import static ARMachines.MultiblockRegistry.ENTITY_CRYSTALLIZER;
+
 public class BlockCrystallizer extends BlockMultiblockMaster {
 
     public BlockCrystallizer(Properties properties) {super(properties);}
@@ -15,5 +27,3 @@ public class BlockCrystallizer extends BlockMultiblockMaster {
         return EntityCrystallizer::tick;
     }
 }
-
- */
