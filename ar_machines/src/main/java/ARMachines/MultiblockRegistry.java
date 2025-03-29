@@ -10,6 +10,8 @@ import ARMachines.lathe.RenderLathe;
 import ARMachines.rollingMachine.BlockRollingMachine;
 import ARMachines.rollingMachine.EntityRollingMachine;
 import ARMachines.rollingMachine.RenderRollingMachine;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -18,9 +20,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
+
+import static AgeOfSteam.Registry.*;
+import static AgeOfSteam.Registry.WOODEN_AXLE_ENCASED;
 
 public class MultiblockRegistry {
     public static final net.neoforged.neoforge.registries.DeferredRegister<Block> BLOCKS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK, ARMachines.MODID);
@@ -100,5 +106,9 @@ public class MultiblockRegistry {
             e.accept(BLOCK_CRYSTALLIZER.get());
             //e.accept(BLOCK_ELECTROLYZER.get());
         }
+    }
+
+    public static void onClientSetup(FMLClientSetupEvent event) {
+        ItemBlockRenderTypes.setRenderLayer(BLOCK_ROLLINGMACHINE.get(), RenderType.cutout());
     }
 }

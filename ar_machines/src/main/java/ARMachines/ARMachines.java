@@ -12,10 +12,13 @@ import ARMachines.lathe.EntityLathe;
 import ARMachines.lathe.LatheConfig;
 import ARMachines.rollingMachine.EntityRollingMachine;
 import ARMachines.rollingMachine.RollingMachineConfig;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -23,6 +26,9 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+import static AgeOfSteam.Registry.*;
+import static AgeOfSteam.Registry.WOODEN_AXLE_ENCASED;
 
 @Mod(ARMachines.MODID)
 public class ARMachines {
@@ -34,6 +40,7 @@ public class ARMachines {
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::registerEntityRenderers);
+        modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerNetworkStuff);
         MultiblockRegistry.register(modEventBus);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
@@ -45,6 +52,11 @@ public class ARMachines {
         if (login.getEntity() instanceof ServerPlayer p) {
             LatheConfig.SyncConfig(p);
         }
+    }
+
+
+    public void onClientSetup(FMLClientSetupEvent event) {
+        MultiblockRegistry.onClientSetup(event);
     }
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         MultiblockRegistry.registerRenderers(event);

@@ -54,14 +54,6 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
     }
 
     static VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-    static RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-            .setShaderState(RENDERTYPE_ENTITY_CUTOUT_NO_CULL_SHADER)
-            .setOverlayState(OVERLAY)
-            .setLightmapState(LIGHTMAP)
-            .setCullState(NO_CULL)
-            //.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-            .setTextureState(new TextureStateShard(tex, false, false))
-            .createCompositeState(false);
 
     static RenderType.CompositeState  compositeStateTank = RenderType.CompositeState.builder()
             .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
@@ -120,16 +112,6 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
 
 
             Vector3f Yaxis = new Vector3f(0, 1, 0);
-
-/*
-            model.resetTransformations("Hull");
-            model.translateWorldSpace("Hull", new Vector3f(0.5f, 0, 0.5f));
-            model.rotateWorldSpace("Hull", Yaxis, angle);
-            model.translateWorldSpace("Hull", new Vector3f(-0.5f, 0, -0.5f));
-            model.translateWorldSpace("Hull", new Vector3f(0f, 0, -1f));
-            model.applyTransformations("Hull");
-            model.renderPart("Hull", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
-*/
 
             double maxtranslate = 0.7;
 
