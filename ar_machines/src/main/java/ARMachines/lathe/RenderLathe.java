@@ -93,14 +93,14 @@ public class RenderLathe implements BlockEntityRenderer<EntityLathe> {
 
 
             Vector3f Yaxis = new Vector3f(0, 1, 0);
-
+/*
             model.resetTransformations("Hull");
             model.translateWorldSpace("Hull", new Vector3f(0.5f, 0, 0.5f));
             model.rotateWorldSpace("Hull", Yaxis, angle);
             model.translateWorldSpace("Hull", new Vector3f(-0.5f, 0, -0.5f));
             model.applyTransformations("Hull");
             model.renderPart("Hull", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
-
+*/
 
             double maxTranslate = -1.12;
             double translation = relativeProgress;

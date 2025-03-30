@@ -51,6 +51,8 @@ public class ARMachines {
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
         if (login.getEntity() instanceof ServerPlayer p) {
             LatheConfig.SyncConfig(p);
+            CrystallizerConfig.SyncConfig(p);
+            RollingMachineConfig.SyncConfig(p);
         }
     }
 

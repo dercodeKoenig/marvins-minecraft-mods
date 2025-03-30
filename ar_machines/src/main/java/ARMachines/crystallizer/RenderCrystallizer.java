@@ -41,7 +41,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallizer> {
 
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/crystallizer.png");
+    //static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/crystallizer.png");
     static ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/crystallizer.obj");
     static WavefrontObject model;
     static {

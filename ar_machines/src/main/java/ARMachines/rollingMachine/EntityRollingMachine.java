@@ -125,7 +125,7 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
     // this gui module is not sync-able, it uses a set() method to set the value so we need to keep an instance of it
     guiModuleProgressBarHorizontal6px progressBar6px;
 
-    WavefrontObject model;
+
 
     public EntityRollingMachine(BlockPos pos, BlockState state) {
         super(ENTITY_ROLLINGMACHINE.get(), pos, state);
@@ -141,12 +141,7 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
         guiHandler = new GuiHandlerBlockEntity(this);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/rollingmachine_new.obj");
-            try {
-                model = new WavefrontObject(modelsrc);
-            } catch (ModelFormatException e) {
-                throw new RuntimeException(e);
-            }
+
         }
     }
 

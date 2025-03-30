@@ -28,7 +28,25 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderRollingMachine implements BlockEntityRenderer<EntityRollingMachine> {
 
-    ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/rollingmachine.png");
+    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/rollingmachine.png");
+    static WavefrontObject model;
+    static ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/rollingmachine_new.obj");
+    static{
+        try {
+            model = new WavefrontObject(modelsrc);
+        } catch (ModelFormatException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
+    static RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
+            .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
+            .setOverlayState(OVERLAY)
+            .setLightmapState(LIGHTMAP)
+            .setTransparencyState(NO_TRANSPARENCY)
+            .setTextureState(new TextureStateShard(tex, false, false))
+            .createCompositeState(false);
 
 
     public int getViewDistance() {
@@ -49,18 +67,9 @@ public class RenderRollingMachine implements BlockEntityRenderer<EntityRollingMa
 
     @Override
     public void render(EntityRollingMachine tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        WavefrontObject model = tile.model;
+
         if (tile.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
             {
-                VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-                RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-                        .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
-                        .setOverlayState(OVERLAY)
-                        .setLightmapState(LIGHTMAP)
-                        .setTransparencyState(NO_TRANSPARENCY)
-                        .setTextureState(new TextureStateShard(tex, false, false))
-                        .createCompositeState(false);
-
 
                 int progress = tile.client_recipeProgress;
                 int maxTime = tile.client_recipeMaxTime;
@@ -92,13 +101,15 @@ public class RenderRollingMachine implements BlockEntityRenderer<EntityRollingMa
 
 
                 Vector3f Yaxis = new Vector3f(0, 1, 0);
+
+                /*
                 model.resetTransformations("Hull");
                 model.translateWorldSpace("Hull",new Vector3f(0.5f,0,0.5f));
                 model.rotateWorldSpace("Hull",Yaxis,angle);
                 model.translateWorldSpace("Hull",new Vector3f(-0.5f,0,-0.5f));
                 model.applyTransformations("Hull");
                 model.renderPart("Hull", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
-
+*/
 
 
                 Vector3f a = new Vector3f(1, 0, 0);

@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "armachines:models/block/lathe_multiblock.obj",
+  "mtl_override": "armachines:models/block/lathe_multiblock.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "armachines:block/lathe"
+  }
+}
