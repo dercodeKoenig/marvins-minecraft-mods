@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "advRocketry.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MixinOverworldEffects",
+    "MixinWorldEffects"
+
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
