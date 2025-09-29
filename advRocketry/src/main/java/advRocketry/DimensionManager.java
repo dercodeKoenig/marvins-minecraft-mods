@@ -15,6 +15,10 @@ public class DimensionManager {
 
     private HashMap<ResourceLocation, DimensionProperties> dimensions = new HashMap<>();
 
+    public DimensionManager(){
+        registerDimensions();
+    }
+
 
     public void serverTick(ServerTickEvent.Post event){
         for(DimensionProperties i : dimensions.values()){
@@ -31,5 +35,10 @@ public class DimensionManager {
 
     public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
+    }
+
+
+    public void registerDimensions(){
+        DimensionProperties overworld = new DimensionProperties();
     }
 }

@@ -196,7 +196,7 @@ public class skyrenderer {
         NO_TRANSPARENCY.clearRenderState();
         LIGHTMAP.clearRenderState();
 
-        RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); 
+        RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
     }
 }

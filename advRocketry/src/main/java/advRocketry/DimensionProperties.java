@@ -1,5 +1,6 @@
 package advRocketry;
 
+import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -16,11 +17,11 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 public class DimensionProperties {
 
     ResourceLocation dimensionId;
-    double scale;
-    double mass;
+    double size = 100;
+    double mass = 100;
     Vec3 position;
-    Vec3 rotationAxis;
-    int targetDayLength = 6000;
+    Vec3 rotationAxis = new Vec3(0,1,0);
+    int targetDayLength = 24000;
     double orbitalDistanceToParent;
     double selfRotationDegrees;
     double orbitAngleDegrees;
@@ -29,8 +30,8 @@ public class DimensionProperties {
 
     ResourceLocation planetTexture;
 
-    Vec3 skyColor;
-    Vec3 fogColor;
+    Vec3 skyColor  = new Vec3(0.471, 0.655, 1.0);
+    Vec3 fogColor = skyColor ;
 
     float atmosphereDensity = 1;
 
