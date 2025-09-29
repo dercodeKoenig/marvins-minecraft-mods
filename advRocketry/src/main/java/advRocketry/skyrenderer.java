@@ -63,7 +63,6 @@ public class skyrenderer {
         });
     }
 
-    public ResourceLocation moonTexture = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/moon.png");
 
     void createPlanetBuffer(){
         WavefrontObject planetModel;
@@ -165,28 +164,43 @@ public class skyrenderer {
         shader.clear();
         VertexBuffer.unbind();
 
-
-        Matrix4f m1 = new Matrix4f(view);
-        Vec3 myPos = new Vec3(0,0,0);
-        Vec3 moonPos = new Vec3(10,0,0);
-        Vec3 myAxis = new Vec3(0,1,0);
-        Vec3 direction = CelestialUtils.getBodyDirectionLocal(myPos, moonPos, myAxis,360*Minecraft.getInstance().level.getTimeOfDay(0),0).scale (10);
-        m1.translate((float)direction.x,(float)direction.y,(float)direction.z);
-        RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
         LEQUAL_DEPTH_TEST.setupRenderState();
         NO_TRANSPARENCY.setupRenderState();
         LIGHTMAP.setupRenderState();
 
-        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-        texturemanager.getTexture(moonTexture).setFilter(true, true);
-        RenderSystem.setShaderTexture(0, moonTexture);
 
-        shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, proj, Minecraft.getInstance().getWindow());
-        shader.apply();
+        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
 
-        vertexBufferPlanet.bind();
-        vertexBufferPlanet.draw();
+
+        DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
+
+
+        for (DimensionProperties planet : DimensionManager.INSTANCE.dimensions.values()) {
+
+            if (planet.dimensionId.equals(myPlanet.dimensionId))continue;
+
+            Matrix4f m1 = new Matrix4f(view);
+            Vec3 direction = CelestialUtils.getBodyDirectionLocal(myPlanet.position, planet.position, myPlanet.rotationAxis,myPlanet.selfRotationDegrees,50).scale(50);
+            m1.translate((float)direction.x,(float)direction.y,(float)direction.z);
+
+            double scale = planet.size / myPlanet.position.distanceTo(planet.position);
+            m1.scale((float) scale);
+
+            RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
+
+            TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+            texturemanager.getTexture(planet.texture).setFilter(true, true);
+            RenderSystem.setShaderTexture(0, planet.texture);
+
+            shader = RenderSystem.getShader();
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, proj, Minecraft.getInstance().getWindow());
+            shader.apply();
+
+            vertexBufferPlanet.bind();
+            vertexBufferPlanet.draw();
+
+        }
+
 
 
         shader.clear();

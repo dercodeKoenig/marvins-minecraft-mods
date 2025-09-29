@@ -13,7 +13,7 @@ import java.util.HashMap;
 public class DimensionManager {
     public static DimensionManager INSTANCE = new DimensionManager();
 
-    private HashMap<ResourceLocation, DimensionProperties> dimensions = new HashMap<>();
+    public HashMap<ResourceLocation, DimensionProperties> dimensions = new HashMap<>();
 
     public DimensionManager(){
         registerDimensions();
@@ -29,16 +29,35 @@ public class DimensionManager {
 
     }
 
-    public DimensionProperties getDimensionProperties(ResourceLocation dimensionId){
-        return dimensions.get(dimensionId);
-    }
-
     public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
 
     public void registerDimensions(){
-        DimensionProperties overworld = new DimensionProperties();
+
+        DimensionProperties sun = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"));
+        sun.mass = 200;
+        sun.size = 200;
+        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        dimensions.put(sun.dimensionId, sun);
+
+
+        DimensionProperties overworld = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
+        overworld.parentDimensionId = sun.dimensionId;
+        overworld.LightSourceDimensionId = sun.dimensionId;
+        overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
+        dimensions.put(overworld.dimensionId,overworld);
+
+
+        DimensionProperties moon = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"));
+        moon.parentDimensionId = overworld.dimensionId;
+        moon.LightSourceDimensionId = sun.dimensionId;
+        moon.orbitalDistanceToParent = 20;
+        moon.size = 20;
+        moon.mass = 20;
+        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon.png");
+        dimensions.put(moon.dimensionId,moon);
+
     }
 }
