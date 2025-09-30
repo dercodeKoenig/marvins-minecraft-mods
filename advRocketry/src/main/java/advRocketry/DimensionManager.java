@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -26,7 +27,9 @@ public class DimensionManager {
         }
     }
     public void clientTick(ClientTickEvent.Post event){
-
+        for(DimensionProperties i : dimensions.values()){
+            i.tick();
+        }
     }
 
     public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
@@ -47,6 +50,7 @@ public class DimensionManager {
         overworld.parentDimensionId = sun.dimensionId;
         overworld.LightSourceDimensionId = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
+        overworld.rotationAxis = new Vec3(0,1,0);
         dimensions.put(overworld.dimensionId,overworld);
 
 
@@ -54,8 +58,10 @@ public class DimensionManager {
         moon.parentDimensionId = overworld.dimensionId;
         moon.LightSourceDimensionId = sun.dimensionId;
         moon.orbitalDistanceToParent = 20;
+        moon.orbitAxis = new Vec3(0,1,0);
         moon.size = 20;
         moon.mass = 20;
+        moon.targetDayLength = 3000;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon.png");
         dimensions.put(moon.dimensionId,moon);
 

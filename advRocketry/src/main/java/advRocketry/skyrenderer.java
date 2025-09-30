@@ -19,6 +19,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.util.Set;
 
+import static advRocketry.CelestialUtils.getBodyOrientationMatrix;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
@@ -179,12 +180,20 @@ public class skyrenderer {
 
             if (planet.dimensionId.equals(myPlanet.dimensionId))continue;
 
-            Matrix4f m1 = new Matrix4f(view);
-            Vec3 direction = CelestialUtils.getBodyDirectionLocal(myPlanet.position, planet.position, myPlanet.rotationAxis,myPlanet.selfRotationDegrees,50).scale(50);
-            m1.translate((float)direction.x,(float)direction.y,(float)direction.z);
+            float lat = 90;
 
+            Vec3 direction = CelestialUtils.getBodyDirectionLocal(myPlanet.position, planet.position, myPlanet.rotationAxis,myPlanet.selfRotationDegrees,lat).normalize().scale(20);
+           Matrix4f rotation =  getBodyOrientationMatrix(myPlanet.rotationAxis, myPlanet.selfRotationDegrees, lat, planet.rotationAxis);
             double scale = planet.size / myPlanet.position.distanceTo(planet.position);
-            m1.scale((float) scale);
+
+            // Combine into full model matrix
+            Matrix4f modelMatrix = new Matrix4f(view);
+            modelMatrix.translate((float) direction.x, (float) direction.y, (float) direction.z);
+            //modelMatrix.mul(rotation);
+            System.out.println((float) direction.x+":"+ (float) direction.y+":"+ (float) direction.z);
+            modelMatrix.scale((float)scale);
+
+
 
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
 
@@ -193,7 +202,7 @@ public class skyrenderer {
             RenderSystem.setShaderTexture(0, planet.texture);
 
             shader = RenderSystem.getShader();
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, proj, Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelMatrix, proj, Minecraft.getInstance().getWindow());
             shader.apply();
 
             vertexBufferPlanet.bind();
