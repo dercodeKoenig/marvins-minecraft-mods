@@ -20,6 +20,8 @@ import org.lwjgl.opengl.GL30;
 import java.lang.Math;
 import java.util.Set;
 
+import static advRocketry.shaderUtils.POSITION;
+import static advRocketry.shaderUtils.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
@@ -76,7 +78,6 @@ public class skyrenderer {
         }
 
         // the obj renderer expects all this values
-       VertexFormat POSITION_COLOR_TEXTURE_NORMAL_LIGHT = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("Color", VertexFormatElement.COLOR).add("UV0", VertexFormatElement.UV0).add("UV1", VertexFormatElement.UV1).add("UV2", VertexFormatElement.UV2).add("Normal", VertexFormatElement.NORMAL).build();
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(8192*2);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
         for (Face i : planetModel.groupObjects.get("Icosphere").faces) {
@@ -92,11 +93,9 @@ public class skyrenderer {
         vertexBufferSkyBox = new VertexBuffer(VertexBuffer.Usage.STATIC);
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        VertexFormat vertexFormat = VertexFormat.builder()
-                .add("Position", VertexFormatElement.POSITION)
-                .build();
 
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, vertexFormat);
+
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION);
 
         b.addVertex(100, 100, -100);
         b.addVertex(100, 100, 100);
@@ -148,16 +147,16 @@ public class skyrenderer {
 
     static skyrenderer INSTANCE = new skyrenderer();
 
-    public void renderSkyBox(PoseStack poseStack, Matrix4f proj, Matrix4f view) {
+    public void renderSkyBox(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
         if (!finishedLoading)return;
 
         ShaderInstance shader;
 
         // render skybox
-        RenderSystem.setShader(GameRenderer::getPositionShader);
+        RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.QUADS, view, proj, Minecraft.getInstance().getWindow());
-        Uniform color = shader.getUniform("ColorModulator");
+        Uniform color = shader.getUniform("Color");
         color.set(0.1f,0.1f,0.2f,1f);
         shader.apply();
         vertexBufferSkyBox.bind();
@@ -172,7 +171,7 @@ public class skyrenderer {
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
 
-        double lat = 30;
+        double lat = 85;
 
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
@@ -196,7 +195,7 @@ public class skyrenderer {
         // 2. Determine Observer's position on the planet using latitude and the CURRENT spin angle (longitude).
         double latRad = Math.toRadians(lat);
         // The spin angle directly controls the observer's longitude.
-        double lonRad = Math.toRadians(-myPlanet.selfRotationDegrees + 90);
+        double lonRad = Math.toRadians(-myPlanet.getSelfRotationDegrees(partialtick));
 
         // These vectors represent the observer's orientation in the planet's simple, tilted coordinate system.
         // As lonRad changes, these vectors "spin" around the planet's axis.
@@ -218,6 +217,8 @@ public class skyrenderer {
                 observerUpWorld.toVector3f()
         );
         // --- End of per-frame calculation ---
+
+
 
         for (DimensionProperties planet : DimensionManager.INSTANCE.dimensions.values()) {
             if (planet.dimensionId.equals(myPlanet.dimensionId)) continue;
@@ -242,7 +243,7 @@ public class skyrenderer {
             } else if (modelUp.dot(targetNorth) < 0) {
                 planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1,0,0).toVector3f(),180f));
             }
-            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.selfRotationDegrees));
+            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.getSelfRotationDegrees(partialtick)));
 
             // Calculate apparent size and scale the model.
             double distance = myPlanet.position.distanceTo(planet.position);
@@ -255,6 +256,7 @@ public class skyrenderer {
             // A vertex is transformed by the planet's model matrix (put into the sky).
             // Then, the whole sky is rotated by the observer's view matrix.
             // Finally, the player's camera rotation is applied.
+
             Matrix4f modelViewMatrix = new Matrix4f(view)
                     .mul(observerViewMatrix)
                     .mul(planetModelMatrix);
@@ -268,6 +270,45 @@ public class skyrenderer {
 
             shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelViewMatrix, proj, Minecraft.getInstance().getWindow());
+
+            DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
+            if (star != null){
+
+                Vec3 lightWorld = star.position.subtract(planet.position); // Direction FROM planet TO star
+
+// 2. The combined view matrix is correct. It transforms from World Space to View Space.
+// V_final = V_player * V_observer
+                Matrix4f finalViewMatrix = new Matrix4f(view)
+                        .mul(observerViewMatrix);
+
+// 3. Transform the direction vector from World to View Space.
+// Create a new Vector4f to avoid modifying any existing vectors.
+                Vector4f lightView4 = new Vector4f(
+                        (float)lightWorld.x,
+                        (float)lightWorld.y,
+                        (float)lightWorld.z,
+                        0.0F // W=0 for a direction vector is correct!
+                );
+
+// --- THIS IS THE FIX ---
+// Apply the transformation using the matrix's transform method.
+// This performs the operation: lightView4 = finalViewMatrix * lightView4
+                finalViewMatrix.transform(lightView4);
+
+// 4. Extract the Vec3, normalize it, and set it for the shader.
+// The direction needs to be normalized for lighting calculations.
+                Vec3 lightView = new Vec3(lightView4.x(), lightView4.y(), lightView4.z()).normalize();
+// Note: Shaders expect the vector to point TOWARDS the light source.
+// Your original lightWorld vector (star.pos - planet.pos) already does this.
+// The scale(-1) you had before was for when you calculated planet.pos - star.pos.
+// Let's keep the vector pointing towards the light, as is standard.
+
+                shader.LIGHT0_DIRECTION.set((float) lightView.x, (float) lightView.y, (float) lightView.z);
+                shader.LIGHT1_DIRECTION.set((float) lightView.x, (float) lightView.y, (float) lightView.z);
+
+                //System.out.println((float) lightView.x+":"+ (float) lightView.y+":"+ (float) lightView.z);
+            }
+
             shader.apply();
 
             vertexBufferPlanet.bind();

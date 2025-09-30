@@ -13,10 +13,13 @@ import net.minecraft.world.level.storage.ServerLevelData;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.joml.Matrix4f;
+
+import java.io.IOException;
 
 import static advRocketry.skyrenderer.CUSTOM_SKY_DIMENSIONS;
 
@@ -32,6 +35,8 @@ public static final String MODID ="adv_rocketry";
         NeoForge.EVENT_BUS.addListener(this::onWorldLoad);
         NeoForge.EVENT_BUS.addListener(DimensionManager.INSTANCE::serverTick);
         NeoForge.EVENT_BUS.addListener(DimensionManager.INSTANCE::clientTick);
+
+        modEventBus.addListener(this::loadShaders);
     }
 
     public void onWorldLoad(LevelEvent.Load event) {
@@ -45,6 +50,18 @@ public static final String MODID ="adv_rocketry";
         Matrix4f proj = event.getProjectionMatrix();
         Matrix4f view = event.getModelViewMatrix();
 
-        skyrenderer.INSTANCE.renderSkyBox(poseStack,proj,view);
+        skyrenderer.INSTANCE.renderSkyBox(poseStack,proj,view,event.getPartialTick().getGameTimeDeltaPartialTick(false));
+    }
+
+    private void loadShaders(RegisterShadersEvent event){
+        // 3. Register the shader and set the static field in the callback
+        try {
+            ShaderInstance atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"),shaderUtils.POSITION);
+            event.registerShader(atmosphereShader,atmosphereShaderInstance -> {
+               shaderUtils.atmosphereShader = atmosphereShaderInstance;
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

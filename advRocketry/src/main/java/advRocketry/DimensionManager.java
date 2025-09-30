@@ -49,15 +49,16 @@ public class DimensionManager {
 
         DimensionProperties overworld = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
         overworld.parentDimensionId = sun.dimensionId;
-        overworld.LightSourceDimensionId = sun.dimensionId;
+        overworld.lightSourceDimensionId = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
         overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
+        overworld.targetDayLength = 6000;
         dimensions.put(overworld.dimensionId,overworld);
 
 
         DimensionProperties moon = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"));
         moon.parentDimensionId = overworld.dimensionId;
-        moon.LightSourceDimensionId = sun.dimensionId;
+        moon.lightSourceDimensionId = sun.dimensionId;
         moon.orbitalDistanceToParent = 20;
         moon.orbitAxis = new Vec3(0,1,0);
         moon.size = 20;

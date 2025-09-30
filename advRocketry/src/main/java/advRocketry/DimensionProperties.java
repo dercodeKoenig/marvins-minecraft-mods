@@ -6,7 +6,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 
 public class DimensionProperties {
@@ -17,15 +16,14 @@ public class DimensionProperties {
     Vec3 position = new Vec3(0, 0, 0);
     Vec3 rotationAxis = new Vec3(0, 1, 0);
     int targetDayLength = 24000;
-    double selfRotationDegrees;
-
+    double rotationDegrees;
 
     ResourceLocation parentDimensionId;
     Vec3 orbitAxis = new Vec3(0, 1, 0);
     double orbitalDistanceToParent = 100;
     double orbitAngleDegrees = 0;
 
-    ResourceLocation LightSourceDimensionId;
+    ResourceLocation lightSourceDimensionId;
 
     ResourceLocation texture;
 
@@ -40,29 +38,44 @@ public class DimensionProperties {
 
     double currentGameTime;
 
+    // TODO delta tick stuff!!
+    public double getSelfRotationDegrees(double deltatick){
+        double d = getDayTimeDeltaPerTick() * deltatick;
+        return (d+currentGameTime) / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 90;
+    }
+    public double getOrbitDegrees(double deltatick){
+        double d = getOrbitDeltaPerTick();
+        return orbitAngleDegrees + d;
+    }
+    public double getDayTimeDeltaPerTick(){
+        return (double) Level.TICKS_PER_DAY / (double) targetDayLength;
+    }
+    public double getOrbitDeltaPerTick(){
+        DimensionProperties parent = DimensionManager.INSTANCE.dimensions.get(parentDimensionId);
+        if (parent == null)return 0;
+        return 360d / CelestialUtils.calculateOrbitalPeriodTicks(mass, parent.mass, orbitalDistanceToParent);
+    }
+
     void tick() {
-        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength;
+        currentGameTime += getDayTimeDeltaPerTick();
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
         }
-        //currentGameTime = 2000;
-        selfRotationDegrees = currentGameTime / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 180;
-        if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
-            //System.out.println(selfRotationDegrees+":"+orbitAngleDegrees);
-        }
+        if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
+            currentGameTime = 2000;
 
         if (parentDimensionId != null) {
 
             DimensionProperties parent = DimensionManager.INSTANCE.dimensions.get(parentDimensionId);
-
-
             // TODO: add inverse orbits
-            double parentMass = parent.mass;
-            double rotationIncrement = CelestialUtils.calculateOrbitalPeriodTicks(mass, parentMass, orbitalDistanceToParent);
-            orbitAngleDegrees += 360d / rotationIncrement;
+            orbitAngleDegrees += getOrbitDeltaPerTick();
             if (orbitAngleDegrees > 360d)
                 orbitAngleDegrees -= 360d;
-            //orbitAngleDegrees = 0;
+
+            orbitAngleDegrees = 0;
+            if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
+                orbitAngleDegrees = 90;
+            }
 
             // 1. Define a simple, non-zero vector to use for the cross-product
             // This is an arbitrary direction, often chosen to align with a major axis.
@@ -99,6 +112,18 @@ public class DimensionProperties {
         MinecraftServer server = event.getServer();
         ServerLevel level = DimensionManager.getServerLevel(server, dimensionId);
         if (level == null) return;
-        level.setDayTime((long) currentGameTime);
+
+
+        // detect and adjust if the time changes by command or sleep or overwrite time
+        long defaultGameTime = level.getDayTime() % Level.TICKS_PER_DAY;
+        double directDiff = Math.abs(currentGameTime - defaultGameTime);
+        double wrapAroundDiff = Level.TICKS_PER_DAY - directDiff;
+        double smallestDifference = Math.min(directDiff, wrapAroundDiff);
+        if (smallestDifference > 10* Math.max(1, getDayTimeDeltaPerTick())) {
+            System.out.println("adjust current time to "+defaultGameTime+" from "+currentGameTime);
+            currentGameTime = defaultGameTime;
+        }
+        else
+            level.setDayTime((long) currentGameTime);
     }
 }
