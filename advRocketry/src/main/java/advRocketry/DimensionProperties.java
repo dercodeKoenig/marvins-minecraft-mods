@@ -61,8 +61,9 @@ public class DimensionProperties {
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
         }
-        if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
-            currentGameTime = 2000;
+        if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
+            currentGameTime = 6000;
+        }
 
         if (parentDimensionId != null) {
 
@@ -75,6 +76,12 @@ public class DimensionProperties {
             orbitAngleDegrees = 0;
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
                 orbitAngleDegrees = 90;
+            }
+            if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))){
+                orbitAngleDegrees = 40;
+            }
+            if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
+                orbitAngleDegrees = 180;
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product

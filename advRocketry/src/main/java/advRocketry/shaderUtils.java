@@ -26,4 +26,9 @@ public class shaderUtils {
     public static ShaderInstance getAtmosphereShader() {
         return atmosphereShader;
     }
+
+    public static ShaderInstance planetShader;
+    public static ShaderInstance getPlanetShader() {
+        return planetShader;
+    }
 }

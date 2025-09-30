@@ -58,7 +58,12 @@ public static final String MODID ="adv_rocketry";
         try {
             ShaderInstance atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"),shaderUtils.POSITION);
             event.registerShader(atmosphereShader,atmosphereShaderInstance -> {
-               shaderUtils.atmosphereShader = atmosphereShaderInstance;
+                shaderUtils.atmosphereShader = atmosphereShaderInstance;
+            });
+
+            ShaderInstance planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"),shaderUtils.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            event.registerShader(planetShader,planetShaderInstance -> {
+                shaderUtils.planetShader = planetShaderInstance;
             });
         } catch (IOException e) {
             throw new RuntimeException(e);

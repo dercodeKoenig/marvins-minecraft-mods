@@ -67,5 +67,17 @@ public class DimensionManager {
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         dimensions.put(moon.dimensionId,moon);
 
+
+        DimensionProperties moon2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"));
+        moon2.parentDimensionId = overworld.dimensionId;
+        moon2.lightSourceDimensionId = sun.dimensionId;
+        moon2.orbitalDistanceToParent = 30;
+        moon2.orbitAxis = new Vec3(0.1,1,0).normalize();
+        moon2.size = 20;
+        moon2.mass = 30;
+        moon2.targetDayLength = 4000;
+        moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
+        dimensions.put(moon2.dimensionId,moon2);
+
     }
 }
