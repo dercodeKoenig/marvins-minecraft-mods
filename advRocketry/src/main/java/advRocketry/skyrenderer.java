@@ -172,7 +172,7 @@ public class skyrenderer {
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
 
-        double lat = 90;
+        double lat = 50;
 
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
@@ -183,44 +183,50 @@ public class skyrenderer {
         gameViewRotationOnly.m31(0); // Erase translation Y component
         gameViewRotationOnly.m32(0); // Erase translation Z component
 
-// --- This part is calculated ONCE outside the loop ---
+// --- This part is calculated ONCE PER FRAME outside the planet-drawing loop ---
 // It represents the orientation of the entire sky based on the observer's home planet.
 
-// Calculate myPlanet's World Space Rotation Matrix (R_planet).
-        Matrix4f rotationMatrixPlanet = new Matrix4f();
+// 1. Calculate myPlanet's AXIAL TILT Matrix.
+// This matrix ONLY aligns the planet's axis. The spin is handled separately.
+        Matrix4f tiltMatrix = new Matrix4f();
         Vec3 mymodelUp = new Vec3(0, 1, 0);
         Vec3 mytargetNorth = myPlanet.rotationAxis.normalize();
         Vec3 myrotAxis = mymodelUp.cross(mytargetNorth);
         if (myrotAxis.length() > 1e-9) {
             double myrotAngleRad = Math.asin(myrotAxis.length());
-            rotationMatrixPlanet.rotate(new Quaternionf().fromAxisAngleRad(myrotAxis.toVector3f(), (float) myrotAngleRad));
+            tiltMatrix.rotate(new Quaternionf().fromAxisAngleRad(myrotAxis.toVector3f(), (float) myrotAngleRad));
         } else if (mymodelUp.dot(mytargetNorth) < 0) {
-            rotationMatrixPlanet.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
+            tiltMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
         }
-        rotationMatrixPlanet.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) myPlanet.selfRotationDegrees));
 
-// Determine Observer's Local Vectors in World Space.
+// 2. Determine Observer's position on the planet using latitude and the CURRENT spin angle (longitude).
         double latRad = Math.toRadians(lat);
-        double lonRad = Math.toRadians(myPlanet.selfRotationDegrees - 90); // Offset for standard spherical coords
+// The spin angle directly controls the observer's longitude.
+        double lonRad = Math.toRadians(myPlanet.selfRotationDegrees - 90);
 
+// These vectors represent the observer's orientation in the planet's simple, tilted coordinate system.
+// As lonRad changes, these vectors "spin" around the planet's axis.
         Vec3 localUp = new Vec3(Math.cos(latRad) * Math.cos(lonRad), Math.sin(latRad), Math.cos(latRad) * Math.sin(lonRad));
         Vec3 localForward = new Vec3(-Math.sin(latRad) * Math.cos(lonRad), Math.cos(latRad), -Math.sin(latRad) * Math.sin(lonRad));
 
-        Vector4f upWorld4 = rotationMatrixPlanet.transform(new Vector4f((float)localUp.x, (float)localUp.y, (float)localUp.z, 0.0f));
-        Vector4f forwardWorld4 = rotationMatrixPlanet.transform(new Vector4f((float)localForward.x, (float)localForward.y, (float)localForward.z, 0.0f));
+// 3. Transform these spinning local vectors by the tiltMatrix to get their final world orientation.
+        Vector4f upWorld4 = tiltMatrix.transform(new Vector4f((float)localUp.x, (float)localUp.y, (float)localUp.z, 0.0f));
+        Vector4f forwardWorld4 = tiltMatrix.transform(new Vector4f((float)localForward.x, (float)localForward.y, (float)localForward.z, 0.0f));
 
         Vec3 observerUpWorld = new Vec3(upWorld4.x, upWorld4.y, upWorld4.z).normalize();
         Vec3 observerForwardWorld = new Vec3(forwardWorld4.x, forwardWorld4.y, forwardWorld4.z).normalize();
 
-// This is the view matrix for a stationary observer on the planet.
-// It orients the entire celestial sphere.
+// 4. Create the final view matrix for the observer.
+// As selfRotationDegrees changes, this matrix will now rotate the entire sky.
         Matrix4f observerViewMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
                 observerForwardWorld.toVector3f(),
                 observerUpWorld.toVector3f()
         );
-// --- End of pre-calculation ---
+// --- End of per-frame calculation ---
 
+// Your for loop that draws each planet goes here...
+// The logic inside the loop does not need to change.
 
         for (DimensionProperties planet : DimensionManager.INSTANCE.dimensions.values()) {
             if (planet.dimensionId.equals(myPlanet.dimensionId)) continue;
