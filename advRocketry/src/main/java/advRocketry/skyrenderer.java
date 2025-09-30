@@ -202,7 +202,7 @@ public class skyrenderer {
 // 2. Determine Observer's position on the planet using latitude and the CURRENT spin angle (longitude).
         double latRad = Math.toRadians(lat);
 // The spin angle directly controls the observer's longitude.
-        double lonRad = Math.toRadians(myPlanet.selfRotationDegrees - 90);
+        double lonRad = Math.toRadians(-myPlanet.selfRotationDegrees + 90);
 
 // These vectors represent the observer's orientation in the planet's simple, tilted coordinate system.
 // As lonRad changes, these vectors "spin" around the planet's axis.

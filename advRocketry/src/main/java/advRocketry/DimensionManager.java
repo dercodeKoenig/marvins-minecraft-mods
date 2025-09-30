@@ -51,7 +51,7 @@ public class DimensionManager {
         overworld.parentDimensionId = sun.dimensionId;
         overworld.LightSourceDimensionId = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
-        overworld.rotationAxis = new Vec3(0,1,0);
+        overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
         dimensions.put(overworld.dimensionId,overworld);
 
 

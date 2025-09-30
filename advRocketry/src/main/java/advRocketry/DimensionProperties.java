@@ -41,12 +41,13 @@ public class DimensionProperties {
     double currentGameTime;
 
     void tick() {
-        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength * 1;
+        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength * 10;
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
         }
         //if (!dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-        selfRotationDegrees = currentGameTime / Level.TICKS_PER_DAY * 360;
+        selfRotationDegrees = currentGameTime / Level.TICKS_PER_DAY * 360 ;
+        selfRotationDegrees = -orbitAngleDegrees;
         //}
 
         if (parentDimensionId != null) {
@@ -57,10 +58,10 @@ public class DimensionProperties {
             // TODO: add inverse orbits
             double parentMass = parent.mass;
             double rotationIncrement = CelestialUtils.calculateOrbitalPeriodTicks(mass, parentMass, orbitalDistanceToParent);
-            orbitAngleDegrees += 360d / rotationIncrement;
+            orbitAngleDegrees += 360d / rotationIncrement * 100;
             if (orbitAngleDegrees > 360d)
                 orbitAngleDegrees -= 360d;
-            orbitAngleDegrees = 180;
+            //orbitAngleDegrees = 0;
 
             // 1. Define a simple, non-zero vector to use for the cross-product
             // This is an arbitrary direction, often chosen to align with a major axis.
