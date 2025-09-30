@@ -147,6 +147,7 @@ public class skyrenderer {
 
     static skyrenderer INSTANCE = new skyrenderer();
 
+    
     public void renderSkyBox(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
         if (!finishedLoading)return;
 
