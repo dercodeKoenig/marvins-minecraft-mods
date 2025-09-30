@@ -41,11 +41,11 @@ public class DimensionProperties {
     double currentGameTime;
 
     void tick() {
-        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength * 10;
+        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength;
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
         }
-        //currentGameTime = 6000;
+        //currentGameTime = 2000;
         selfRotationDegrees = currentGameTime / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 180;
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
             //System.out.println(selfRotationDegrees+":"+orbitAngleDegrees);
@@ -59,7 +59,7 @@ public class DimensionProperties {
             // TODO: add inverse orbits
             double parentMass = parent.mass;
             double rotationIncrement = CelestialUtils.calculateOrbitalPeriodTicks(mass, parentMass, orbitalDistanceToParent);
-            orbitAngleDegrees += 360d / rotationIncrement * 50;
+            orbitAngleDegrees += 360d / rotationIncrement;
             if (orbitAngleDegrees > 360d)
                 orbitAngleDegrees -= 360d;
             //orbitAngleDegrees = 0;

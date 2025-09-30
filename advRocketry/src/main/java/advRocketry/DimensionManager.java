@@ -63,7 +63,7 @@ public class DimensionManager {
         moon.size = 20;
         moon.mass = 20;
         moon.targetDayLength = 3000;
-        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon.png");
+        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         dimensions.put(moon.dimensionId,moon);
 
     }
