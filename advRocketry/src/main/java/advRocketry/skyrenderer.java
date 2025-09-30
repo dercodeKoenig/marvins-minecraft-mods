@@ -14,12 +14,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ViewportEvent;
-import org.joml.Matrix4f;
+import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
+import java.lang.Math;
 import java.util.Set;
 
-import static advRocketry.CelestialUtils.getBodyOrientationMatrix;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
@@ -172,40 +172,109 @@ public class skyrenderer {
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
 
+        double lat = 90;
 
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
+        // The 'view' matrix passed to this function is the game's main camera view matrix.
+// For the sky, we only want the camera's rotation, not its position/translation.
+        Matrix4f gameViewRotationOnly = new Matrix4f(view);
+        gameViewRotationOnly.m30(0); // Erase translation X component
+        gameViewRotationOnly.m31(0); // Erase translation Y component
+        gameViewRotationOnly.m32(0); // Erase translation Z component
+
+// --- This part is calculated ONCE outside the loop ---
+// It represents the orientation of the entire sky based on the observer's home planet.
+
+// Calculate myPlanet's World Space Rotation Matrix (R_planet).
+        Matrix4f rotationMatrixPlanet = new Matrix4f();
+        Vec3 mymodelUp = new Vec3(0, 1, 0);
+        Vec3 mytargetNorth = myPlanet.rotationAxis.normalize();
+        Vec3 myrotAxis = mymodelUp.cross(mytargetNorth);
+        if (myrotAxis.length() > 1e-9) {
+            double myrotAngleRad = Math.asin(myrotAxis.length());
+            rotationMatrixPlanet.rotate(new Quaternionf().fromAxisAngleRad(myrotAxis.toVector3f(), (float) myrotAngleRad));
+        } else if (mymodelUp.dot(mytargetNorth) < 0) {
+            rotationMatrixPlanet.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
+        }
+        rotationMatrixPlanet.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) myPlanet.selfRotationDegrees));
+
+// Determine Observer's Local Vectors in World Space.
+        double latRad = Math.toRadians(lat);
+        double lonRad = Math.toRadians(myPlanet.selfRotationDegrees - 90); // Offset for standard spherical coords
+
+        Vec3 localUp = new Vec3(Math.cos(latRad) * Math.cos(lonRad), Math.sin(latRad), Math.cos(latRad) * Math.sin(lonRad));
+        Vec3 localForward = new Vec3(-Math.sin(latRad) * Math.cos(lonRad), Math.cos(latRad), -Math.sin(latRad) * Math.sin(lonRad));
+
+        Vector4f upWorld4 = rotationMatrixPlanet.transform(new Vector4f((float)localUp.x, (float)localUp.y, (float)localUp.z, 0.0f));
+        Vector4f forwardWorld4 = rotationMatrixPlanet.transform(new Vector4f((float)localForward.x, (float)localForward.y, (float)localForward.z, 0.0f));
+
+        Vec3 observerUpWorld = new Vec3(upWorld4.x, upWorld4.y, upWorld4.z).normalize();
+        Vec3 observerForwardWorld = new Vec3(forwardWorld4.x, forwardWorld4.y, forwardWorld4.z).normalize();
+
+// This is the view matrix for a stationary observer on the planet.
+// It orients the entire celestial sphere.
+        Matrix4f observerViewMatrix = new Matrix4f().lookAt(
+                new Vector3f(0, 0, 0),
+                observerForwardWorld.toVector3f(),
+                observerUpWorld.toVector3f()
+        );
+// --- End of pre-calculation ---
+
 
         for (DimensionProperties planet : DimensionManager.INSTANCE.dimensions.values()) {
+            if (planet.dimensionId.equals(myPlanet.dimensionId)) continue;
 
-            if (planet.dimensionId.equals(myPlanet.dimensionId))continue;
+            // 1. Create the other planet's MODEL matrix.
+            // This places the planet in our celestial sphere, tilts it, spins it, and scales it.
+            // IMPORTANT: It starts from an identity matrix, NOT from the game's view matrix.
+            Matrix4f planetModelMatrix = new Matrix4f();
 
-            float lat = 0;
+            // Position relative to the observer's planet. Scale to a large, fixed distance for the sky.
+            Vec3 relativePos = planet.position.subtract(myPlanet.position).normalize().scale(10.0f);
+            planetModelMatrix.translate((float)relativePos.x, (float)relativePos.y, (float)relativePos.z);
 
-            Vec3 direction = CelestialUtils.getBodyDirectionLocal(myPlanet.position, planet.position, myPlanet.rotationAxis,myPlanet.selfRotationDegrees,lat).normalize().scale(20);
-            Matrix4f rotation =  getBodyOrientationMatrix(myPlanet.rotationAxis, myPlanet.selfRotationDegrees, lat, planet.rotationAxis,planet.selfRotationDegrees);
-            double scale = planet.size / myPlanet.position.distanceTo(planet.position);
+            // Create the planet's self-rotation (spin) and axial tilt.
+            // This is your original, working logic for tilting/spinning the *other* planet.
+            Vec3 modelUp = new Vec3(0, 1, 0);
+            Vec3 targetNorth = planet.rotationAxis.normalize();
+            Vec3 rotAxis = modelUp.cross(targetNorth);
+            if (rotAxis.length() > 1e-9) {
+                double rotAngleRad = Math.asin(rotAxis.length());
+                planetModelMatrix.rotate(new Quaternionf().fromAxisAngleRad(rotAxis.toVector3f(),(float)rotAngleRad));
+            } else if (modelUp.dot(targetNorth) < 0) {
+                planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1,0,0).toVector3f(),180f));
+            }
+            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.selfRotationDegrees));
 
-            // Combine into full model matrix
-            Matrix4f modelMatrix = new Matrix4f(view);
-            modelMatrix.translate((float) direction.x, (float) direction.y, (float) direction.z);
-            modelMatrix.mul(rotation);
-            modelMatrix.scale((float)scale);
+            // Calculate apparent size and scale the model.
+            double distance = myPlanet.position.distanceTo(planet.position);
+            double scale = planet.size / distance;
+            planetModelMatrix.scale((float)scale);
 
 
+            // 2. Combine all matrices for the final ModelView matrix.
+            // The transformation order (read right-to-left) is:
+            // A vertex is transformed by the planet's model matrix (put into the sky).
+            // Then, the whole sky is rotated by the observer's view matrix.
+            // Finally, the player's camera rotation is applied.
+            Matrix4f modelViewMatrix = new Matrix4f(gameViewRotationOnly)
+                    .mul(observerViewMatrix)
+                    .mul(planetModelMatrix);
+
+
+            // 3. Set shader uniforms and draw.
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
-
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(planet.texture).setFilter(true, true);
             RenderSystem.setShaderTexture(0, planet.texture);
 
             shader = RenderSystem.getShader();
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelMatrix, proj, Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelViewMatrix, proj, Minecraft.getInstance().getWindow());
             shader.apply();
 
             vertexBufferPlanet.bind();
             vertexBufferPlanet.draw();
-
         }
 
 

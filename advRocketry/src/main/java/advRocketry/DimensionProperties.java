@@ -41,7 +41,7 @@ public class DimensionProperties {
     double currentGameTime;
 
     void tick() {
-        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength * 10;
+        currentGameTime += (double) Level.TICKS_PER_DAY / (double) targetDayLength * 1;
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
         }

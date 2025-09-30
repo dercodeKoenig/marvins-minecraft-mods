@@ -42,6 +42,7 @@ public class DimensionManager {
         DimensionProperties sun = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"));
         sun.mass = 200;
         sun.size = 200;
+        sun.rotationAxis = new Vec3(0,1,0.5).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
         dimensions.put(sun.dimensionId, sun);
 

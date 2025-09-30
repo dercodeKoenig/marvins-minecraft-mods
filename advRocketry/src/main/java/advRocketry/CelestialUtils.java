@@ -5,8 +5,18 @@ import org.joml.Matrix4f;
 
 import java.util.Locale;
 
+/**
+ * A utility class for celestial mechanics calculations, specifically for converting
+ * world-space coordinates into an observer's local sky frame for rendering.
+ */
 public class CelestialUtils {
 
+    /**
+     * Creates a rotation matrix from an axis and an angle in degrees.
+     * @param axis The axis of rotation.
+     * @param angleDeg The angle of rotation in degrees.
+     * @return A Matrix4f representing the rotation.
+     */
     public static Matrix4f fromAxisAngle(Vec3 axis, double angleDeg) {
         double angleRad = Math.toRadians(angleDeg);
         double c = Math.cos(angleRad);
@@ -49,180 +59,82 @@ public class CelestialUtils {
     }
 
     /**
-     * Helper function to build a robust observer reference frame.
-     * Returns an array of 3 vectors: [East, Zenith, North].
+     * Helper function to build a robust observer reference frame on a planet's surface.
+     * The frame is right-handed: +X = East, +Y = Zenith (Up), +Z = North.
+     * @return An array of 3 vectors: [East, Zenith, North].
      */
     private static Vec3[] getObserverFrame(Vec3 planetAxis, double timeOfDayAngle, double observerLatitude) {
         Vec3 planetNorth = planetAxis.normalize();
 
-        // Find a vector perpendicular to the planet's axis to serve as a reference on the equator.
-        // This is more robust than using a fixed vector like (1,0,0).
         Vec3 worldReference = new Vec3(0, 1, 0);
         if (Math.abs(worldReference.dot(planetNorth)) > 0.99) {
-            worldReference = new Vec3(1, 0, 0); // Use a different reference if axis is aligned
+            worldReference = new Vec3(1, 0, 0);
         }
-
         Vec3 equatorRef = planetNorth.cross(worldReference).normalize();
-
-        // This vector points from the planet center to the observer's longitude on the equator plane.
         Vec3 obsLongitudeVec = rotate(equatorRef, planetNorth, timeOfDayAngle);
 
-        // Handle the poles as a special case to avoid gimbal lock and undefined directions.
         if (Math.abs(observerLatitude) > 89.999) {
-            // At the pole, Zenith is aligned with the planet's axis.
             Vec3 observerZenith = planetNorth.scale(Math.signum(observerLatitude));
-
-            // "North" along the surface is ambiguous. We define it as pointing opposite
-            // to the observer's longitude vector to provide a stable reference direction.
-            // For the South Pole, it points along the longitude vector.
             Vec3 observerNorth = obsLongitudeVec.scale(-Math.signum(observerLatitude));
-
-            // East is perpendicular to Zenith and North, forming a right-handed system (E = Z x N).
             Vec3 observerEast = observerZenith.cross(observerNorth);
-
             return new Vec3[]{observerEast, observerZenith, observerNorth};
         }
 
-        // For non-polar latitudes, calculate the frame normally.
-        // The observer's "Up" (Zenith) is found using spherical coordinate interpolation.
-        // This is more direct and stable than the previous rotation method.
         double latRad = Math.toRadians(observerLatitude);
         Vec3 observerZenith = obsLongitudeVec.scale(Math.cos(latRad)).add(planetNorth.scale(Math.sin(latRad))).normalize();
-
-        // The observer's "North" on the tangent plane is the component of the planet's North axis
-        // that is perpendicular to the Zenith.
         Vec3 observerNorth = planetNorth.subtract(observerZenith.scale(planetNorth.dot(observerZenith))).normalize();
-
-        // The observer's "East" is perpendicular to Zenith and North (E = Z x N).
         Vec3 observerEast = observerZenith.cross(observerNorth);
-
         return new Vec3[]{observerEast, observerZenith, observerNorth};
     }
 
-
     /**
-     * [REVISED] Calculates the direction vector of a celestial body from the
-     * perspective of an observer on a rotating planet. This version is more robust.
+     * [NEW] Creates a view matrix that transforms world coordinates into the observer's
+     * local sky frame, also incorporating the player's head rotation.
+     * This matrix should be used as the 'view' matrix for rendering celestial bodies.
      *
-     * @param bodyPos The position of the celestial body in world coordinates.
-     * @param planetPos The position of the planet in world coordinates.
-     * @param planetAxis The rotational axis of the planet (e.g., from South to North pole).
-     * @param timeOfDayAngle The rotation of the planet in degrees.
-     * @param observerLatitude The latitude of the observer on the planet's surface in degrees.
-     * @return A normalized Vec3 representing the body's direction in the observer's
-     * local coordinate system (x=East, y=Up/Zenith, z=North).
-     */
-    public static Vec3 getBodyDirectionLocal(Vec3 bodyPos, Vec3 planetPos, Vec3 planetAxis, double timeOfDayAngle, double observerLatitude) {
-        // Step 1: Get the direction to the body in the fixed world frame.
-        Vec3 bodyDirWorld = bodyPos.subtract(planetPos).normalize();
-
-        // Step 2: Get the observer's local coordinate system (East, Zenith, North) in world space.
-        Vec3[] frame = getObserverFrame(planetAxis, timeOfDayAngle, observerLatitude);
-        Vec3 observerEast = frame[0];
-        Vec3 observerZenith = frame[1];
-        Vec3 observerNorth = frame[2];
-
-        // Step 3: Project the world direction onto the observer’s local frame axes.
-        double eastComp = bodyDirWorld.dot(observerEast);
-        double upComp = bodyDirWorld.dot(observerZenith);
-        double northComp = bodyDirWorld.dot(observerNorth);
-
-        // Final sun direction in local sky coordinates.
-        return new Vec3(eastComp, upComp, northComp).normalize();
-    }
-
-    /**
-     * [NEW & FIXED] Calculates the orientation matrix for a target planet as seen from an observer's local sky.
-     *
-     * @param planetAxis The observer's planet's rotational axis.
+     * @param playerViewMatrix The original view matrix from the game's camera.
+     * @param planetAxis The rotational axis of the observer's planet.
      * @param timeOfDayAngle The rotation of the observer's planet in degrees.
      * @param observerLatitude The latitude of the observer in degrees.
-     * @param targetPlanetAxis The rotational axis of the target planet in world coordinates.
-     * @param targetPlanetSelfRotation The self-rotation of the target planet around its axis in degrees.
-     * @return A Matrix4f representing the rotation of the target planet in the observer's local sky frame.
+     * @return A Matrix4f representing the combined sky view transformation.
      */
-    public static Matrix4f getBodyOrientationMatrix(Vec3 planetAxis, double timeOfDayAngle, double observerLatitude, Vec3 targetPlanetAxis, double targetPlanetSelfRotation) {
-        // Step 1: Get the observer's local coordinate system (East, Zenith, North) in world space.
+    public static Matrix4f createSkyViewMatrix(Matrix4f playerViewMatrix, Vec3 planetAxis, double timeOfDayAngle, double observerLatitude) {
+        // 1. Get the player's head rotation by removing the translation from the view matrix.
+        Matrix4f playerHeadRotation = new Matrix4f(playerViewMatrix);
+        playerHeadRotation.setTranslation(0, 0, 0);
+
+        // 2. Get the observer's local coordinate system (East, Zenith, North) in world space.
         Vec3[] frame = getObserverFrame(planetAxis, timeOfDayAngle, observerLatitude);
-        Vec3 observerEast = frame[0];
-        Vec3 observerZenith = frame[1];
-        Vec3 observerNorth = frame[2];
+        Vec3 east = frame[0];
+        Vec3 zenith = frame[1];
+        Vec3 north = frame[2];
 
-        // Step 2: Create a rotation matrix that transforms from world space to the observer's local sky space.
-        // This coordinate system must be consistent with getBodyDirectionLocal.
-        // We define the local axes as: X -> East, Y -> Zenith(Up), Z -> North.
-        // This is a right-handed system because Zenith.cross(North) = East, which corresponds to Y x Z = X.
-        Matrix4f worldToSkyRotation = new Matrix4f();
-        // Row 0 (local X axis = East)
-        worldToSkyRotation.set(0, 0, (float)observerEast.x);
-        worldToSkyRotation.set(0, 1, (float)observerEast.y);
-        worldToSkyRotation.set(0, 2, (float)observerEast.z);
-        // Row 1 (local Y axis = Zenith)
-        worldToSkyRotation.set(1, 0, (float)observerZenith.x);
-        worldToSkyRotation.set(1, 1, (float)observerZenith.y);
-        worldToSkyRotation.set(1, 2, (float)observerZenith.z);
-        // Row 2 (local Z axis = North)
-        worldToSkyRotation.set(2, 0, (float)observerNorth.x);
-        worldToSkyRotation.set(2, 1, (float)observerNorth.y);
-        worldToSkyRotation.set(2, 2, (float)observerNorth.z);
+        // 3. Create the view matrix, which is the inverse of the observer's frame transformation matrix.
+        // Since the frame is an orthonormal basis (a pure rotation), the inverse is simply the transpose.
+        // This matrix transforms FROM world space TO the observer's static sky frame.
+        Matrix4f worldToObserverFrame = new Matrix4f();
+        worldToObserverFrame.set(0, 0, (float)east.x); worldToObserverFrame.set(0, 1, (float)east.y); worldToObserverFrame.set(0, 2, (float)east.z);
+        worldToObserverFrame.set(1, 0, (float)zenith.x); worldToObserverFrame.set(1, 1, (float)zenith.y); worldToObserverFrame.set(1, 2, (float)zenith.z);
+        worldToObserverFrame.set(2, 0, (float)north.x); worldToObserverFrame.set(2, 1, (float)north.y); worldToObserverFrame.set(2, 2, (float)north.z);
 
-        // Step 3: Create the target planet's complete orientation in world space.
-        // This is a combination of its axial tilt and its own rotation around that axis.
-
-        // 3a. First, create the rotation for the planet's own spin around its default model axis (e.g., Y-axis).
-        Matrix4f selfRotation = fromAxisAngle(new Vec3(0, 1, 0), targetPlanetSelfRotation);
-
-        // 3b. Then, create the rotation to perform the axial tilt. This aligns the model's default pole
-        // with the target planet's actual rotation axis in world space.
-        Vec3 modelUp = new Vec3(0, 1, 0);
-        Vec3 targetNorth = targetPlanetAxis.normalize();
-        Vec3 rotAxis = modelUp.cross(targetNorth);
-
-        Matrix4f axisTilt = new Matrix4f(); // Identity
-        if (rotAxis.length() > 1e-9) {
-            double rotAngleRad = Math.asin(rotAxis.length());
-            axisTilt = fromAxisAngle(rotAxis.normalize(), Math.toDegrees(rotAngleRad));
-        } else if (modelUp.dot(targetNorth) < 0) { // Handle 180-degree case (anti-parallel)
-            axisTilt = fromAxisAngle(new Vec3(1,0,0), 180);
-        }
-
-        // 3c. Combine them: transformations apply right-to-left, so we first spin, then tilt.
-        Matrix4f targetWorldRotation = axisTilt.mul(selfRotation);
-
-        // Step 4: Combine the matrices.
-        // The final orientation is the target's world orientation transformed into the observer's sky space.
-        return worldToSkyRotation.mul(targetWorldRotation);
+        // 4. Combine the player's head rotation with the observer frame transformation.
+        // The final view takes a point in the world, moves it into the static observer frame,
+        // and then rotates it according to where the player is looking.
+        return playerHeadRotation.mul(worldToObserverFrame);
     }
 
-    // custom set Gravitational constant2
+    // --- Other physics calculations ---
     public static final double G = 1;
 
-    /**
-     * Calculates real distance from value where 100 = 1 astronomical unit
-     * @param value 100 equals 1 astronomical unit
-     * @return real distance in m
-     */
-    public static  double getRealDistanceFromValue(double value){
+    public static double getRealDistanceFromValue(double value){
         return value / 100f * 1.496 * Math.pow(10, 11);
     }
 
-    /**
-     * Calculates real mass from value where 100 = 1 earth mass
-     * @param value 100 = 1 earth mass
-     * @return real math in kg
-     */
     public static double getRealMassFromValue(double value){
-        double massEarth = 5.972 * Math.pow(10, 24); // kg
+        double massEarth = 5.972 * Math.pow(10, 24);
         return value / 100f * massEarth;
     }
 
-    /**
-     * Calculate the orbital period of two bodies in seconds
-     * @param mass1 Mass of the first body (kg)
-     * @param mass2 Mass of the second body (kg)
-     * @param distance Distance between the centers of the two bodies (meters)
-     * @return Orbital period in seconds
-     */
     public static double calculateOrbitalPeriodTicks(double mass1, double mass2, double distance) {
         double combinedMass = getRealMassFromValue(mass1)  + getRealDistanceFromValue(mass2);
         return 2 * Math.PI * Math.sqrt(Math.pow(getRealDistanceFromValue(distance), 3) / (G * combinedMass)) * 20;
