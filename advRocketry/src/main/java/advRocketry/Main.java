@@ -1,15 +1,8 @@
 package advRocketry;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.storage.LevelData;
-import net.minecraft.world.level.storage.PrimaryLevelData;
-import net.minecraft.world.level.storage.ServerLevelData;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -20,8 +13,6 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import org.joml.Matrix4f;
 
 import java.io.IOException;
-
-import static advRocketry.skyrenderer.CUSTOM_SKY_DIMENSIONS;
 
 @Mod(Main.MODID)
 public class Main {

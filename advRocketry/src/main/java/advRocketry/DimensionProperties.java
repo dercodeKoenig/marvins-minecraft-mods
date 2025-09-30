@@ -16,7 +16,6 @@ public class DimensionProperties {
     Vec3 position = new Vec3(0, 0, 0);
     Vec3 rotationAxis = new Vec3(0, 1, 0);
     int targetDayLength = 24000;
-    double rotationDegrees;
 
     ResourceLocation parentDimensionId;
     Vec3 orbitAxis = new Vec3(0, 1, 0);
@@ -38,10 +37,10 @@ public class DimensionProperties {
 
     double currentGameTime;
 
-    // TODO delta tick stuff!!
     public double getSelfRotationDegrees(double deltatick){
         double d = getDayTimeDeltaPerTick() * deltatick;
-        return (d+currentGameTime) / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 90;
+        double result = (d+currentGameTime) / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 90;
+        return result;
     }
     public double getOrbitDegrees(double deltatick){
         double d = getOrbitDeltaPerTick();
@@ -58,11 +57,15 @@ public class DimensionProperties {
 
     void tick() {
         currentGameTime += getDayTimeDeltaPerTick();
+        if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
+            //
+        }
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
         }
+
         if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            currentGameTime = 6000;
+            //currentGameTime = 6000;
         }
 
         if (parentDimensionId != null) {
@@ -73,9 +76,9 @@ public class DimensionProperties {
             if (orbitAngleDegrees > 360d)
                 orbitAngleDegrees -= 360d;
 
-            orbitAngleDegrees = 0;
+            //orbitAngleDegrees = 0;
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
-                orbitAngleDegrees = 90;
+                orbitAngleDegrees = 80;
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))){
                 orbitAngleDegrees = 40;
@@ -109,12 +112,15 @@ public class DimensionProperties {
 
             // 6. Add parent's position to get global position
             position = parent.position.add(rotatedOffset);
-            //System.out.println(dimensionId+":"+position.x+":"+position.y+":"+position.z);
+
         }
     }
 
+    // TODO: split every variable in server and client variable, use a special client tick to adjust client variables.
+    // otherwise it shares variables between server and client thread and this will cause problems
+
     public void serverTick(ServerTickEvent event) {
-        tick();
+        //tick();
 
         MinecraftServer server = event.getServer();
         ServerLevel level = DimensionManager.getServerLevel(server, dimensionId);

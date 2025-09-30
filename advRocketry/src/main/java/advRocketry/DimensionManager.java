@@ -52,7 +52,8 @@ public class DimensionManager {
         overworld.lightSourceDimensionId = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
         overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
-        overworld.targetDayLength = 6000;
+        //overworld.targetDayLength = 48000;
+        overworld.targetDayLength = 3000;
         dimensions.put(overworld.dimensionId,overworld);
 
 

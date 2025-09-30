@@ -11,9 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Set;
 
-import static advRocketry.skyrenderer.CUSTOM_SKY_DIMENSIONS;
 
 
 @Mixin(DimensionSpecialEffects.OverworldEffects.class)
@@ -22,11 +20,9 @@ public class MixinOverworldEffects {
     @Inject(method = "getBrightnessDependentFogColor", at = @At("HEAD"), cancellable = true)
     private void modifyHorizonColor(Vec3 fogColor, float brightness,
                                     CallbackInfoReturnable<Vec3> cir) {
-        ResourceLocation loc = Minecraft.getInstance().level.dimension().location();
 
-        // fogColor - default fog, probably biome specific. needs to be adjusted to match sky color
+            // fogColor - default fog, probably biome specific. needs to be adjusted to match sky color maybe ?
 
-        if (CUSTOM_SKY_DIMENSIONS.contains(loc)) {
             // Make it match the sky color (dark blue) or black
             // Option 1: Full black
             //cir.setReturnValue(Vec3.ZERO);
@@ -36,6 +32,6 @@ public class MixinOverworldEffects {
 
             // Option 3: Custom color (e.g., darker blue)
             cir.setReturnValue(fogColor.multiply(brightness,brightness,brightness));
-        }
+
     }
 }

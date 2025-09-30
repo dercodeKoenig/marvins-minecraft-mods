@@ -18,6 +18,7 @@ uniform vec3 Light0_Direction;
 out vec4 vertexColor;
 out vec2 texCoord0;
 
+out vec3 rotatedNormal;
 
 vec4 mix_light(vec3 lightDir0, vec3 normal, vec4 color) {
     float light0 = max(0.0, dot(lightDir0, normal));
@@ -29,7 +30,7 @@ void main() {
 
     // Compute the normal matrix (upper-left 3x3 inverse transpose)
     mat3 normalMatrix = transpose(inverse(mat3(ModelViewMat)));
-    vec3 rotatedNormal = normalize(normalMatrix * Normal);
+    rotatedNormal = normalize(normalMatrix * Normal);
 
     vertexColor = mix_light(Light0_Direction, rotatedNormal, vec4(1,1,1,1));
     texCoord0 = UV0;

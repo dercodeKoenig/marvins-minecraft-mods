@@ -3,6 +3,9 @@ package advRocketry;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -26,48 +29,27 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
 
-
-    public static final Set<ResourceLocation> CUSTOM_SKY_DIMENSIONS = Set.of(
-            BuiltinDimensionTypes.OVERWORLD.location(),
-            ResourceLocation.fromNamespaceAndPath("mymod", "skylands"),
-            ResourceLocation.fromNamespaceAndPath("advrocketry", "space")
-    );
-
     public static void onRenderFog(ViewportEvent.RenderFog event) {
         ResourceLocation dimension = Minecraft.getInstance().level.dimension().location();
-
-        if (CUSTOM_SKY_DIMENSIONS.contains(dimension)) {
-            // Double the fog distance (makes it thinner/further away)
-            //event.setNearPlaneDistance(event.getNearPlaneDistance() * 2.0f);
-            //event.setFarPlaneDistance(event.getFarPlaneDistance() * 2.0f);
-
-            // Or half it (makes it thicker/closer)
-            // event.setNearPlaneDistance(event.getNearPlaneDistance() * 0.5f);
-            // event.setFarPlaneDistance(event.getFarPlaneDistance() * 0.5f);
-
-            // Or make it fully transparent (very far away)
-            event.setNearPlaneDistance(Float.MAX_VALUE);
-            event.setFarPlaneDistance(Float.MAX_VALUE);
-
-            // Cancel to apply custom values
+            event.setNearPlaneDistance(event.getNearPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
+            event.setFarPlaneDistance( event.getFarPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
             event.setCanceled(true);
-        }
     }
-
 
     VertexBuffer vertexBufferSkyBox;
     VertexBuffer vertexBufferPlanet;
     boolean finishedLoading = false;
+
     public skyrenderer() {
         RenderSystem.recordRenderCall(() -> {
             createSkyBoxBuffer();
             createPlanetBuffer();
+            setupRenderTarget();
             finishedLoading = true;
         });
     }
 
-
-    void createPlanetBuffer(){
+    void createPlanetBuffer() {
         WavefrontObject planetModel;
 
         vertexBufferPlanet = new VertexBuffer(VertexBuffer.Usage.STATIC);
@@ -77,11 +59,10 @@ public class skyrenderer {
             throw new RuntimeException(ex);
         }
 
-        // the obj renderer expects all this values
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
         for (Face i : planetModel.groupObjects.get("Icosphere").faces) {
-            i.addFaceForRender(new PoseStack(), b, 0, 0, 0); // light, overlay, color is ignored by the shader that will be used, but the mesh render just wants to add it
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0);
         }
         MeshData meshPlanet = b.build();
         vertexBufferPlanet.bind();
@@ -89,57 +70,49 @@ public class skyrenderer {
         byteBuffer.close();
     }
 
-    void createSkyBoxBuffer(){
+    void createSkyBoxBuffer() {
         vertexBufferSkyBox = new VertexBuffer(VertexBuffer.Usage.STATIC);
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-
-
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION);
 
+        // Top face
         b.addVertex(100, 100, -100);
         b.addVertex(100, 100, 100);
         b.addVertex(-100, 100, 100);
         b.addVertex(-100, 100, -100);
 
-
+        // Bottom face
         b.addVertex(-100, -100, -100);
         b.addVertex(-100, -100, 100);
         b.addVertex(100, -100, 100);
         b.addVertex(100, -100, -100);
 
-
+        // Front face
         b.addVertex(-100, 100, -100);
         b.addVertex(-100, -100, -100);
         b.addVertex(100, -100, -100);
         b.addVertex(100, 100, -100);
 
-
+        // Back face
         b.addVertex(100, 100, 100);
         b.addVertex(100, -100, 100);
         b.addVertex(-100, -100, 100);
         b.addVertex(-100, 100, 100);
 
-
+        // Right face
         b.addVertex(100, 100, -100);
         b.addVertex(100, -100, -100);
         b.addVertex(100, -100, 100);
         b.addVertex(100, 100, 100);
 
-
-        b.addVertex(100, 100, -100);
-        b.addVertex(100, -100, -100);
-        b.addVertex(100, -100, 100);
-        b.addVertex(100, 100, 100);
-
-
+        // Left face (fixed duplicate)
         b.addVertex(-100, 100, 100);
         b.addVertex(-100, -100, 100);
         b.addVertex(-100, -100, -100);
         b.addVertex(-100, 100, -100);
 
         MeshData mesh = b.build();
-
         vertexBufferSkyBox.bind();
         vertexBufferSkyBox.upload(mesh);
         byteBuffer.close();
@@ -147,41 +120,47 @@ public class skyrenderer {
 
     static skyrenderer INSTANCE = new skyrenderer();
 
-    
+    private TextureTarget planetRenderTarget;
+
+    public void setupRenderTarget() {
+        this.planetRenderTarget = new TextureTarget(1000, 1000, true, Minecraft.ON_OSX);
+    }
+
     public void renderSkyBox(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
-        if (!finishedLoading)return;
+        if (!finishedLoading) return;
+
+
+        // Save current viewport dimensions
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+
+        if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
+            planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
+            System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
+        }
 
         ShaderInstance shader;
 
-        // render skybox
+        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
+        DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
+
+        // Render skybox first (to the main framebuffer)
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.QUADS, view, proj, Minecraft.getInstance().getWindow());
         Uniform color = shader.getUniform("Color");
-        color.set(0.1f,0.1f,0.2f,1f);
+        color.set((float)myPlanet.skyColor.x, (float)myPlanet.skyColor.y, (float)myPlanet.skyColor.z, 1f);
+
         shader.apply();
         vertexBufferSkyBox.bind();
         vertexBufferSkyBox.draw();
         shader.clear();
         VertexBuffer.unbind();
 
-        LEQUAL_DEPTH_TEST.setupRenderState();
-        NO_TRANSPARENCY.setupRenderState();
-        LIGHTMAP.setupRenderState();
-
-
-        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
 
         double lat = 85;
 
-        DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
-
-
-        // --- This part is calculated ONCE PER FRAME outside the planet-drawing loop ---
-        // It represents the orientation of the entire sky based on the observer's home planet.
-
-        // 1. Calculate myPlanet's AXIAL TILT Matrix.
-        // This matrix ONLY aligns the planet's axis. The spin is handled separately.
+        // Calculate observer's view matrix
         Matrix4f tiltMatrix = new Matrix4f();
         Vec3 mymodelUp = new Vec3(0, 1, 0);
         Vec3 mytargetNorth = myPlanet.rotationAxis.normalize();
@@ -193,77 +172,65 @@ public class skyrenderer {
             tiltMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
         }
 
-        // 2. Determine Observer's position on the planet using latitude and the CURRENT spin angle (longitude).
         double latRad = Math.toRadians(lat);
-        // The spin angle directly controls the observer's longitude.
-        double lonRad = Math.toRadians(-myPlanet.getSelfRotationDegrees(partialtick));
+        double myPlanetRotation = myPlanet.getSelfRotationDegrees(partialtick);
+        double lonRad = Math.toRadians(-myPlanetRotation);
 
-        // These vectors represent the observer's orientation in the planet's simple, tilted coordinate system.
-        // As lonRad changes, these vectors "spin" around the planet's axis.
         Vec3 localUp = new Vec3(Math.cos(latRad) * Math.cos(lonRad), Math.sin(latRad), Math.cos(latRad) * Math.sin(lonRad));
         Vec3 localForward = new Vec3(-Math.sin(latRad) * Math.cos(lonRad), Math.cos(latRad), -Math.sin(latRad) * Math.sin(lonRad));
 
-        // 3. Transform these spinning local vectors by the tiltMatrix to get their final world orientation.
-        Vector4f upWorld4 = tiltMatrix.transform(new Vector4f((float)localUp.x, (float)localUp.y, (float)localUp.z, 0.0f));
-        Vector4f forwardWorld4 = tiltMatrix.transform(new Vector4f((float)localForward.x, (float)localForward.y, (float)localForward.z, 0.0f));
+        Vector4f upWorld4 = tiltMatrix.transform(new Vector4f((float) localUp.x, (float) localUp.y, (float) localUp.z, 0.0f));
+        Vector4f forwardWorld4 = tiltMatrix.transform(new Vector4f((float) localForward.x, (float) localForward.y, (float) localForward.z, 0.0f));
 
         Vec3 observerUpWorld = new Vec3(upWorld4.x, upWorld4.y, upWorld4.z).normalize();
         Vec3 observerForwardWorld = new Vec3(forwardWorld4.x, forwardWorld4.y, forwardWorld4.z).normalize();
 
-        // 4. Create the final view matrix for the observer.
-        // As selfRotationDegrees changes, this matrix will now rotate the entire sky.
         Matrix4f observerViewMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
                 observerForwardWorld.toVector3f(),
                 observerUpWorld.toVector3f()
         );
-        // --- End of per-frame calculation ---
+
+        // Bind FBO for planet rendering
+        this.planetRenderTarget.bindWrite(true);
+
+        // Clear with transparent black
+        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+
+        // Setup render states for planets
+        LEQUAL_DEPTH_TEST.setupRenderState();
+        NO_TRANSPARENCY.setupRenderState();
 
 
-
+        // Render planets to FBO
         for (DimensionProperties planet : DimensionManager.INSTANCE.dimensions.values()) {
             if (planet.dimensionId.equals(myPlanet.dimensionId)) continue;
 
-            // 1. Create the other planet's MODEL matrix.
-            // This places the planet in our celestial sphere, tilts it, spins it, and scales it.
-            // IMPORTANT: It starts from an identity matrix, NOT from the game's view matrix.
             Matrix4f planetModelMatrix = new Matrix4f();
 
-            // Position relative to the observer's planet. Scale to a large, fixed distance for the sky.
             Vec3 relativePos = planet.position.subtract(myPlanet.position).normalize().scale(200.0f);
-            planetModelMatrix.translate((float)relativePos.x, (float)relativePos.y, (float)relativePos.z);
+            planetModelMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
-            // Create the planet's self-rotation (spin) and axial tilt.
-            // This is your original, working logic for tilting/spinning the *other* planet.
             Vec3 modelUp = new Vec3(0, 1, 0);
             Vec3 targetNorth = planet.rotationAxis.normalize();
             Vec3 rotAxis = modelUp.cross(targetNorth);
             if (rotAxis.length() > 1e-9) {
                 double rotAngleRad = Math.asin(rotAxis.length());
-                planetModelMatrix.rotate(new Quaternionf().fromAxisAngleRad(rotAxis.toVector3f(),(float)rotAngleRad));
+                planetModelMatrix.rotate(new Quaternionf().fromAxisAngleRad(rotAxis.toVector3f(), (float) rotAngleRad));
             } else if (modelUp.dot(targetNorth) < 0) {
-                planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1,0,0).toVector3f(),180f));
+                planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
             }
             planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.getSelfRotationDegrees(partialtick)));
 
-            // Calculate apparent size and scale the model.
             double distance = myPlanet.position.distanceTo(planet.position);
-            double scale = planet.size / distance*10;
-            planetModelMatrix.scale((float)scale);
-
-
-            // 2. Combine all matrices for the final ModelView matrix.
-            // The transformation order (read right-to-left) is:
-            // A vertex is transformed by the planet's model matrix (put into the sky).
-            // Then, the whole sky is rotated by the observer's view matrix.
-            // Finally, the player's camera rotation is applied.
+            double scale = planet.size / distance * 10;
+            planetModelMatrix.scale((float) scale);
 
             Matrix4f modelViewMatrix = new Matrix4f(view)
                     .mul(observerViewMatrix)
                     .mul(planetModelMatrix);
 
-
-            // 3. Set shader uniforms and draw.
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(planet.texture).setFilter(true, true);
@@ -272,54 +239,51 @@ public class skyrenderer {
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelViewMatrix, proj, Minecraft.getInstance().getWindow());
 
             DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
-            if (star != null){
-
-                Vec3 lightWorld = star.position.subtract(planet.position); // Direction FROM planet TO star
-
-// It transforms from World Space to View Space.
-// V_final = V_player * V_observer
-                Matrix4f finalViewMatrix = new Matrix4f(view)
-                        .mul(observerViewMatrix);
-
-// Transform the direction vector from World to View Space.
-// Create a new Vector4f to avoid modifying any existing vectors.
-                Vector4f lightView4 = new Vector4f(
-                        (float)lightWorld.x,
-                        (float)lightWorld.y,
-                        (float)lightWorld.z,
-                        0.0F // W=0 for a direction vector is correct!
-                );
-
-// Apply the transformation using the matrix's transform method.
-// This performs the operation: lightView4 = finalViewMatrix * lightView4
+            if (star != null) {
+                Vec3 lightWorld = star.position.subtract(planet.position);
+                Matrix4f finalViewMatrix = new Matrix4f(view).mul(observerViewMatrix);
+                Vector4f lightView4 = new Vector4f((float) lightWorld.x, (float) lightWorld.y, (float) lightWorld.z, 0.0f);
                 finalViewMatrix.transform(lightView4);
-
-// Extract the Vec3, normalize it, and set it for the shader.
-// The direction needs to be normalized for lighting calculations.
                 Vec3 lightView = new Vec3(lightView4.x(), lightView4.y(), lightView4.z()).normalize();
-// Note: Shaders expect the vector to point TOWARDS the light source.
-
-                shader.LIGHT0_DIRECTION.set((float) lightView.x, (float) lightView.y, (float) lightView.z);
-
-                //System.out.println((float) lightView.x+":"+ (float) lightView.y+":"+ (float) lightView.z);
+                if (shader.LIGHT0_DIRECTION != null) {
+                    shader.LIGHT0_DIRECTION.set((float) lightView.x, (float) lightView.y, (float) lightView.z);
+                }
             }
 
-            shader.apply();
+            Uniform AtmColor = shader.getUniform("AtmColor");
+            if (AtmColor != null)
+                AtmColor.set(myPlanet.skyColor.toVector3f());
 
+            shader.apply();
             vertexBufferPlanet.bind();
             vertexBufferPlanet.draw();
+            shader.clear();
         }
 
 
-
-        shader.clear();
         VertexBuffer.unbind();
 
+        // Clean up render states
         LEQUAL_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
-        LIGHTMAP.clearRenderState();
 
+        // Switch back to main render target
+        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+
+        // Restore the viewport to the window dimensions
+        RenderSystem.viewport(0, 0, windowWidth, windowHeight);
+
+        // Enable blending for compositing
+        TRANSLUCENT_TRANSPARENCY.setupRenderState();
+
+        // Blit the planet texture onto the screen
+        this.planetRenderTarget.blitToScreen(windowWidth, windowHeight, false);
+
+        TRANSLUCENT_TRANSPARENCY.clearRenderState();
+
+        // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
+
 
     }
 }
