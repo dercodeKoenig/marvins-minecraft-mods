@@ -79,7 +79,7 @@ public class skyrenderer {
        VertexFormat POSITION_COLOR_TEXTURE_NORMAL_LIGHT = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("Color", VertexFormatElement.COLOR).add("UV0", VertexFormatElement.UV0).add("UV1", VertexFormatElement.UV1).add("UV2", VertexFormatElement.UV2).add("Normal", VertexFormatElement.NORMAL).build();
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(8192*2);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : planetModel.groupObjects.get("Sphere").faces) {
+        for (Face i : planetModel.groupObjects.get("Icosphere").faces) {
             i.addFaceForRender(new PoseStack(), b, 0xF000F0, 0, 0xffffffff);
         }
         MeshData meshPlanet = b.build();
