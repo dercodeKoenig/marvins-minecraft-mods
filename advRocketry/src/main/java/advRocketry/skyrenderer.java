@@ -180,19 +180,17 @@ public class skyrenderer {
 
             if (planet.dimensionId.equals(myPlanet.dimensionId))continue;
 
-            float lat = 90;
+            float lat = 0;
 
             Vec3 direction = CelestialUtils.getBodyDirectionLocal(myPlanet.position, planet.position, myPlanet.rotationAxis,myPlanet.selfRotationDegrees,lat).normalize().scale(20);
-           Matrix4f rotation =  getBodyOrientationMatrix(myPlanet.rotationAxis, myPlanet.selfRotationDegrees, lat, planet.rotationAxis);
+            Matrix4f rotation =  getBodyOrientationMatrix(myPlanet.rotationAxis, myPlanet.selfRotationDegrees, lat, planet.rotationAxis,planet.selfRotationDegrees);
             double scale = planet.size / myPlanet.position.distanceTo(planet.position);
 
             // Combine into full model matrix
             Matrix4f modelMatrix = new Matrix4f(view);
             modelMatrix.translate((float) direction.x, (float) direction.y, (float) direction.z);
-            //modelMatrix.mul(rotation);
-            System.out.println((float) direction.x+":"+ (float) direction.y+":"+ (float) direction.z);
+            modelMatrix.mul(rotation);
             modelMatrix.scale((float)scale);
-
 
 
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
