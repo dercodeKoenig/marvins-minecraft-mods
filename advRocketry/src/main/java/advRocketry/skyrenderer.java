@@ -172,7 +172,7 @@ public class skyrenderer {
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
 
-        double lat = 50;
+        double lat = 80;
 
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
