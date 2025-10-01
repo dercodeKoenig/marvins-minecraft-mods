@@ -142,7 +142,7 @@ public class skyrenderer {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
-        Vec3 atmColor = myPlanet.skyColor.scale(1-Minecraft.getInstance().level.getStarBrightness(0));
+        Vec3 atmColor = myPlanet.skyColor.scale(2*(0.5-Minecraft.getInstance().level.getStarBrightness(0)));
 
         // Render skybox first (to the main framebuffer)
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);

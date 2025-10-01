@@ -34,7 +34,8 @@ void main() {
     // The final color for the reflected light component:
     // On the dark side (t=0), this is AtmColor.
     // On the lit side (t=1), this is the fully lit reflected light.
-    vec3 blendedReflectedColor = mix(AtmColor.rgb, reflectedLight, t);
+    //vec3 blendedReflectedColor = mix(AtmColor.rgb, reflectedLight, t);
+    vec3 blendedReflectedColor = AtmColor.rgb+ reflectedLight;
 
     // 4. Calculate the EMITTED LIGHT contribution (The Add)
     // Emitted light is constant across the surface (or based on a separate texture/map)

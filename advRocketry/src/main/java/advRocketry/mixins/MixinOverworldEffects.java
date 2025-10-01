@@ -34,8 +34,8 @@ public class MixinOverworldEffects {
             // Option 3: Custom color (e.g., darker blue)
             //cir.setReturnValue(fogColor.multiply(brightness,brightness,brightness));
         Vec3 color =  DimensionManager.INSTANCE.dimensions.get(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")).skyColor;
-        cir.setReturnValue(color.multiply(brightness,brightness,brightness));
-        //cir.setReturnValue(fogColor.multiply(brightness,brightness,brightness));
+        //cir.setReturnValue(color.multiply(brightness,brightness,brightness));
+        cir.setReturnValue(fogColor.multiply(brightness,brightness,brightness));
 
     }
 }
