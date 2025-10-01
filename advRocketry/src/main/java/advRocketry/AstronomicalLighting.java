@@ -27,16 +27,14 @@ public class AstronomicalLighting {
             Vec3 starToPlanet, Vec3 rotationAxis, double rotationAngle, double observerLatitude) {
 
         // 1. Get the normalized direction of light coming FROM the star.
-        // We negate starToPlanet because it points TO the planet.
         Vec3 lightDirection = starToPlanet.normalize().scale(-1);
 
         // 2. Calculate the observer's surface normal vector in world space.
         // This vector points "straight up" from the surface where the observer is standing.
-        Vec3 observerNormal = calculateObserverNormal(rotationAxis, rotationAngle, observerLatitude);
+        Vec3 observerNormal = calculateObserverNormal(rotationAxis, rotationAngle, observerLatitude, lightDirection);
 
         // 3. The dot product between the light direction and the observer's normal gives the cosine of the angle.
         // This value is a direct measure of how directly the star is shining on the observer.
-        // It ranges from 1.0 (star directly overhead) to -1.0 (star directly underfoot).
         double lightIntensityFactor = observerNormal.dot(lightDirection);
 
         // 4. Create a twilight effect by considering the star to still provide light
@@ -53,22 +51,36 @@ public class AstronomicalLighting {
     }
 
     /**
-     * Calculates the "up" vector for an observer on the planet's surface using spherical coordinates
-     * relative to the planet's rotation axis.
+     * Calculates the "up" vector for an observer on the planet's surface, correctly oriented to the light source.
      */
-    private static Vec3 calculateObserverNormal(Vec3 rotationAxis, double rotationAngle, double observerLatitude) {
-        // First, create a reference vector on the planet's equatorial plane. This vector is
-        // perpendicular to the rotation axis and represents the "prime meridian" (0 longitude).
-        Vec3 equatorialRef = findPerpendicular(rotationAxis);
+    private static Vec3 calculateObserverNormal(Vec3 rotationAxis, double rotationAngle, double observerLatitude, Vec3 lightDirection) {
+        // Project the light direction onto the planet's equatorial plane.
+        // This gives us a vector that points towards the "sub-stellar point" on the equator, our reference for "noon".
+        Vec3 noonDirection = lightDirection.subtract(rotationAxis.scale(lightDirection.dot(rotationAxis)));
 
-        // In the planet's local coordinate system (before rotation), the observer's "up" vector
-        // is calculated using their latitude.
-        Vec3 localNormal = equatorialRef.scale(Math.cos(observerLatitude))
+        // Handle the edge case where the star is directly over a pole.
+        // In this case, the projection is a zero vector, so we pick an arbitrary perpendicular vector.
+        if (noonDirection.lengthSqr() < 1.0E-6) {
+            noonDirection = findPerpendicular(rotationAxis);
+        } else {
+            noonDirection = noonDirection.normalize();
+        }
+
+        // Create a second basis vector on the equatorial plane, perpendicular to the noon vector.
+        // This vector points towards the "morning terminator" (sunrise line).
+        Vec3 morningDirection = rotationAxis.cross(noonDirection);
+
+        // Calculate the observer's position on the equator based on the time of day (rotationAngle).
+        // This is a 2D rotation on the equatorial plane, starting from the noon direction.
+        Vec3 equatorialObserverPos = noonDirection.scale(Math.cos(rotationAngle))
+                .add(morningDirection.scale(Math.sin(rotationAngle)));
+
+        // Finally, incorporate the observer's latitude to get the final normal vector.
+        // This tilts the equatorial position towards the correct pole.
+        Vec3 observerNormal = equatorialObserverPos.scale(Math.cos(observerLatitude))
                 .add(rotationAxis.scale(Math.sin(observerLatitude)));
 
-        // Finally, rotate this local vector around the planet's axis by the current rotation angle
-        // to get the observer's final "up" vector in world space.
-        return rotateVector(localNormal, rotationAxis, rotationAngle);
+        return observerNormal.normalize();
     }
 
     /**
@@ -108,3 +120,4 @@ public class AstronomicalLighting {
         return term1.add(term2).add(term3);
     }
 }
+
