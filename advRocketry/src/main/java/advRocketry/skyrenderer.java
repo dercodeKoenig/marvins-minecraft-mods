@@ -130,8 +130,10 @@ public class skyrenderer {
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
         if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
-            planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
-            System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
+            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
+                planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
+                System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
+            }
         }
 
 
