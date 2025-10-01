@@ -51,7 +51,7 @@ public class DimensionProperties {
     }
     public double getRawSelfRotationDegrees(double deltatick) {
         double d = getDayTimeDeltaPerTick() * deltatick;
-        return (d + dayTime) / Level.TICKS_PER_DAY * 360;
+        return (d + dayTime) / Level.TICKS_PER_DAY * 360+90;
     }
 
 
