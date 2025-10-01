@@ -45,7 +45,7 @@ public class AstronomicalLighting {
         double brightness = (altitudeRad - twilightAltitudeRad) / ((Math.PI / 2.0) - twilightAltitudeRad);
 
 // 5. Clamp
-        System.out.println(brightness);
+        System.out.println(brightness+":"+observerLatitudeDegrees);
         return Mth.clamp((float) brightness, 0.0F, 1.0F);
 
     }
