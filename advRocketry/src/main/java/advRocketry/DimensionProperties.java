@@ -11,29 +11,28 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public class DimensionProperties {
 
-    ResourceLocation dimensionId;
-    double size = 100;
-    double mass = 100;
-    Vec3 position = new Vec3(0, 0, 0);
-    Vec3 rotationAxis = new Vec3(0, 1, 0);
-    int targetDayLength = 24000;
+    public ResourceLocation dimensionId;
+    public double size = 100;
+    public double mass = 100;
+    public Vec3 position = new Vec3(0, 0, 0);
+    public Vec3 rotationAxis = new Vec3(0, 1, 0);
+    public int targetDayLength = 24000;
 
-    ResourceLocation parentDimensionId;
-    Vec3 orbitAxis = new Vec3(0, 1, 0);
-    double orbitalDistanceToParent = 100;
-    double orbitAngleDegrees = 0;
+    public ResourceLocation parentDimensionId;
+    public Vec3 orbitAxis = new Vec3(0, 1, 0);
+    public double orbitalDistanceToParent = 100;
+    public double orbitAngleDegrees = 0;
 
-    ResourceLocation lightSourceDimensionId;
+    public ResourceLocation lightSourceDimensionId;
 
-    ResourceLocation texture;
+    public ResourceLocation texture;
 
-    Vec3 skyColor = new Vec3(0.471, 0.655, 1.0);
-    Vec3 fogColor = skyColor;
+    public Vec3 skyColor = new Vec3(0.471, 0.655, 1.0);
 
-    float reflectivity = 1f;
-    Vec3 emissiveColor = new Vec3(0,0,0);
+    public float reflectivity = 1f;
+    public Vec3 emissiveColor = new Vec3(0,0,0);
 
-    float atmosphereDensity = 1;
+    public float atmosphereDensity = 1;
 
     public DimensionProperties(ResourceLocation dimensionId) {
         this.dimensionId = dimensionId;
