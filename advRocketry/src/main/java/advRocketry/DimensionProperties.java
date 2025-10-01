@@ -121,7 +121,7 @@ public class DimensionProperties {
                 orbitAngleDegrees = 40;
             }
             if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-                orbitAngleDegrees =180;
+                orbitAngleDegrees =0;
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product

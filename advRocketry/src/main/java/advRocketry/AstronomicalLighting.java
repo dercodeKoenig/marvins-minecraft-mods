@@ -10,8 +10,8 @@ public class AstronomicalLighting {
 
         Vec3 axis = rotationAxis.normalize();
 
-// 1. Pick any perpendicular vector to axis
-        Vec3 equatorRef = Math.abs(axis.z) < 0.99 ? new Vec3(0,0,1).cross(axis).normalize() : new Vec3(1,0,0).cross(axis).normalize();
+// 1. Pick the correct perpendicular vector to axis
+        Vec3 equatorRef = Math.abs(axis.z) < 0.99 ? new Vec3(0,0,-1).cross(axis).normalize() : new Vec3(1,0,0).cross(axis).normalize();
 
 // 2. Rotate the equatorRef by raw self-rotation
         Vec3 rotatedEquator = CelestialUtils.rotate(equatorRef, axis, -timeOfDayAngleDegrees);
@@ -29,7 +29,7 @@ public class AstronomicalLighting {
         System.out.printf("lat=%.1f°, alt=%.1f°%n",
                 observerLatitudeDegrees,
                 Math.toDegrees(altitude));
-        System.out.println(brightness);
+        //System.out.println(brightness);
 
         // 7) final clamp and return
         return Mth.clamp((float) brightness, 0.0F, 1.0F);
