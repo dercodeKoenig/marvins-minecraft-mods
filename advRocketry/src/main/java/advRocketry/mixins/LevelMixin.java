@@ -34,7 +34,7 @@ public abstract class LevelMixin {
         Vec3 rotationAxis = myProps.rotationAxis.normalize();
 
         // Get rotation and latitude in DEGREES, as per the new method's requirements
-        double timeOfDayAngle = myProps.getRawSelfRotationDegrees(partialTick);
+        double timeOfDayAngle = myProps.getSelfRotationDegrees(partialTick);
         double observerLatitude = 0.0;
 
         // On the client, get the actual player's latitude for accurate rendering
