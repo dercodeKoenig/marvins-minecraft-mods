@@ -23,29 +23,50 @@ public class AstronomicalLighting {
     public static float calculateAstronomicalBrightness(
             Vec3 lightSourceToPlanet, Vec3 rotationAxis, double timeOfDayAngleDegrees, double observerLatitudeDegrees) {
 
-        // --- 1. Convert Inputs to Radians ---
-        final double latRad = Math.toRadians(observerLatitudeDegrees);
-        // The time of day angle is also known as the Hour Angle in astronomy.
-        // We convert it to the standard astronomical convention where 0 is noon.
-        // 1. Hour Angle: shift so 0° = noon
-        final double hourAngleRad = Math.toRadians(timeOfDayAngleDegrees - 90.0);
+        // Inputs
+        double mcAngleDeg = timeOfDayAngleDegrees;  // 0=sunrise, 90=noon, etc.
+        double mcAngleRad = Math.toRadians(mcAngleDeg);
 
-// 2. Solar declination (same as before)
+// Latitude and declination
+        double latRad = Math.toRadians(observerLatitudeDegrees);
         Vec3 lightDirection = lightSourceToPlanet.normalize();
-        double sinOfDeclination = lightDirection.dot(rotationAxis);
-        double declinationRad = Math.asin(sinOfDeclination);
+        double declinationRad = Math.asin(lightDirection.dot(rotationAxis));
 
-// 3. Sun altitude
-        double sinOfAltitude = Math.sin(latRad) * Math.sin(declinationRad) +
+// Sunrise/sunset hour angle
+        double cosH0 = -Math.tan(latRad) * Math.tan(declinationRad);
+
+// Clamp to [-1,1] for polar cases
+        cosH0 = Mth.clamp(cosH0, -1.0, 1.0);
+        double H0 = Math.acos(cosH0);  // radians
+
+// Map Minecraft angle → true hour angle
+        double hourAngleRad;
+        if (mcAngleDeg <= 180.0) {
+            // Morning → Evening maps [0..180] → [-H0..+H0]
+            hourAngleRad = -H0 + (mcAngleRad / Math.PI) * (2*H0);
+        } else {
+            // Night: map [180..360] → [+H0..(π+H0)] and wrap around
+            hourAngleRad = +H0 + ((mcAngleRad - Math.PI) / Math.PI) * (Math.PI - 2*H0);
+            if (hourAngleRad > Math.PI) {
+                hourAngleRad -= 2*Math.PI; // keep in [-π..+π]
+            }
+        }
+
+// Altitude
+        double sinAlt = Math.sin(latRad) * Math.sin(declinationRad) +
                 Math.cos(latRad) * Math.cos(declinationRad) * Math.cos(hourAngleRad);
-        double altitudeRad = Math.asin(sinOfAltitude);
+        double altitudeRad = Math.asin(sinAlt);
 
-// 4. Map altitude to brightness with twilight
-        final double twilightAltitudeRad = Math.toRadians(-6.0); // more realistic civil twilight
-        double brightness = (altitudeRad - twilightAltitudeRad) / ((Math.PI / 2.0) - twilightAltitudeRad);
+// Brightness
+        final double twilightAlt = Math.toRadians(-6.0);
+        double brightness = (altitudeRad - twilightAlt) / ((Math.PI/2.0) - twilightAlt);
 
-// 5. Clamp
-        System.out.println(brightness+":"+observerLatitudeDegrees);
+
+        System.out.printf("lat=%.1f°, dec=%.1f°, alt=%.1f°%n",
+                observerLatitudeDegrees,
+                Math.toDegrees(declinationRad),
+                Math.toDegrees(altitudeRad));
+System.out.println(brightness);
         return Mth.clamp((float) brightness, 0.0F, 1.0F);
 
     }
