@@ -27,36 +27,26 @@ public class AstronomicalLighting {
         final double latRad = Math.toRadians(observerLatitudeDegrees);
         // The time of day angle is also known as the Hour Angle in astronomy.
         // We convert it to the standard astronomical convention where 0 is noon.
+        // 1. Hour Angle: shift so 0° = noon
         final double hourAngleRad = Math.toRadians(timeOfDayAngleDegrees - 90.0);
 
-        // --- 2. Calculate Solar Declination ---
-        // This is the angle of the sun relative to the planet's equatorial plane.
-        // It's the astronomical equivalent of "latitude" for the sun.
-        // We find it using the dot product between the light direction and the rotation axis.
+// 2. Solar declination (same as before)
         Vec3 lightDirection = lightSourceToPlanet.normalize();
         double sinOfDeclination = lightDirection.dot(rotationAxis);
         double declinationRad = Math.asin(sinOfDeclination);
 
-        // --- 3. Calculate Sun's Altitude ---
-        // This is the core formula to find the sun's angle above the horizon for the observer.
-        // sin(altitude) = sin(latitude) * sin(declination) + cos(latitude) * cos(declination) * cos(hour_angle)
-        double sinOfAltitude = Math.sin(latRad) * sinOfDeclination +
+// 3. Sun altitude
+        double sinOfAltitude = Math.sin(latRad) * Math.sin(declinationRad) +
                 Math.cos(latRad) * Math.cos(declinationRad) * Math.cos(hourAngleRad);
-
-        // The altitude is the angle of the sun above the horizon, from -90 to +90 degrees.
         double altitudeRad = Math.asin(sinOfAltitude);
 
-        // --- 4. Map Altitude to Brightness ---
-        // We get a value from 0.0 (horizon) to 1.0 (directly overhead at 90 degrees).
-        // We also add a twilight effect by allowing the brightness to start when the sun
-        // is slightly below the horizon.
-        final double twilightAltitudeRad = Math.toRadians(-12.0); // Civil twilight starts around -6°, let's give a bit more.
-
-        // Map the altitude range [twilight, 90°] to the brightness range [0, 1]
+// 4. Map altitude to brightness with twilight
+        final double twilightAltitudeRad = Math.toRadians(-6.0); // more realistic civil twilight
         double brightness = (altitudeRad - twilightAltitudeRad) / ((Math.PI / 2.0) - twilightAltitudeRad);
 
+// 5. Clamp
         System.out.println(brightness);
-        // Clamp the result to ensure it's always within the valid [0, 1] range.
         return Mth.clamp((float) brightness, 0.0F, 1.0F);
+
     }
 }

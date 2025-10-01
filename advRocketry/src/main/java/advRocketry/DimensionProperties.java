@@ -49,6 +49,11 @@ public class DimensionProperties {
         double result = (d + dayTime) / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 90;
         return result;
     }
+    public double getRawSelfRotationDegrees(double deltatick) {
+        double d = getDayTimeDeltaPerTick() * deltatick;
+        return (d + dayTime) / Level.TICKS_PER_DAY * 360;
+    }
+
 
     public float getLatitude() {
         Player p = Minecraft.getInstance().player;
@@ -116,7 +121,7 @@ public class DimensionProperties {
                 orbitAngleDegrees = 40;
             }
             if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-                orbitAngleDegrees = 180;
+                orbitAngleDegrees =0;
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product
