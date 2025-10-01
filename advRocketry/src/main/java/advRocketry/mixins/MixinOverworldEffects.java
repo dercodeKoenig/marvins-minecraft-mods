@@ -35,7 +35,5 @@ public class MixinOverworldEffects {
 
             // Option 3: Custom color (e.g., darker blue)
             //cir.setReturnValue(fogColor.multiply(brightness,brightness,brightness));
-
-
     }
 }

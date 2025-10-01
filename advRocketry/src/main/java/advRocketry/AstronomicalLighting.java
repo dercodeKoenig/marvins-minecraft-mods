@@ -1,123 +1,110 @@
 package advRocketry;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * A utility class for calculating lighting based on celestial body positions.
+ * This class contains the core astronomical math, decoupled from game-specific logic.
+ */
 public class AstronomicalLighting {
 
+    // These classes are assumed to exist in your environment (e.g., from Minecraft or a math library)
+    // - Vec3: A 3D vector class with methods like normalize, negate, dot, cross, scale, and add.
+    // - Mth: A math helper class with functions like clamp.
+
     /**
-     * Calculate sky darken value based on astronomical position
+     * Calculates the raw sky brightness based on astronomical parameters.
+     * The calculation determines the angle of the star relative to the observer on the planet's surface.
      *
-     * @param starToPlanet Vector from star to planet (unnormalized)
-     * @param rotationAxis Planet's rotation axis (normalized)
-     * @param rotationAngle Planet's rotation angle in radians (0 to 2π)
-     * @param observerLatitude Observer's latitude in radians (-π/2 to π/2)
-     * @return skyDarken value (0 = bright day, 11 = full night)
+     * @param starToPlanet     A vector pointing from the star to the planet's center.
+     * @param rotationAxis     The planet's axis of rotation (must be a normalized vector).
+     * @param rotationAngle    The current rotation angle of the planet in radians (represents time of day).
+     * @param observerLatitude The latitude of the observer on the planet's surface in radians.
+     * @return A raw brightness value, from 0.0 (complete darkness) to 1.0 (star directly overhead).
      */
-    public static int calculateSkyDarken(
-            Vec3 starToPlanet,
-            Vec3 rotationAxis,
-            double rotationAngle,
-            double observerLatitude) {
+    public static float calculateAstronomicalBrightness(
+            Vec3 starToPlanet, Vec3 rotationAxis, double rotationAngle, double observerLatitude) {
 
-        // 1. Get sun direction (planet to star)
-        Vec3 sunDirection = starToPlanet.normalize().reverse();
+        // 1. Get the normalized direction of light coming FROM the star.
+        // We negate starToPlanet because it points TO the planet.
+        Vec3 lightDirection = starToPlanet.normalize().scale(-1);
 
-        // 2. Calculate observer's position on planet surface
-        Vec3 observerPosition = calculateObserverPosition(
-                rotationAxis, rotationAngle, observerLatitude
-        );
+        // 2. Calculate the observer's surface normal vector in world space.
+        // This vector points "straight up" from the surface where the observer is standing.
+        Vec3 observerNormal = calculateObserverNormal(rotationAxis, rotationAngle, observerLatitude);
 
-        // 3. Calculate solar altitude angle
-        double solarAltitude = calculateSolarAltitude(sunDirection, observerPosition);
+        // 3. The dot product between the light direction and the observer's normal gives the cosine of the angle.
+        // This value is a direct measure of how directly the star is shining on the observer.
+        // It ranges from 1.0 (star directly overhead) to -1.0 (star directly underfoot).
+        double lightIntensityFactor = observerNormal.dot(lightDirection);
 
-        // 4. Convert to sky darken value
-        return solarAltitudeToSkyDarken(solarAltitude);
+        // 4. Create a twilight effect by considering the star to still provide light
+        // when it's slightly below the horizon. -0.2 is a good starting value.
+        final double twilightHorizon = -0.2;
+
+        // 5. Map the intensity factor to a brightness value [0.0, 1.0].
+        // We map the intensity range [twilightHorizon, 1.0] to the brightness range [0.0, 1.0].
+        float brightness = (float) ((lightIntensityFactor - twilightHorizon) / (1.0 - twilightHorizon));
+
+        // 6. Clamp the result to ensure it stays within the valid [0.0, 1.0] range.
+        System.out.println(brightness);
+        return Mth.clamp(brightness, 0.0F, 1.0F);
     }
 
     /**
-     * Calculate observer's position vector on planet surface
+     * Calculates the "up" vector for an observer on the planet's surface using spherical coordinates
+     * relative to the planet's rotation axis.
      */
-    private static Vec3 calculateObserverPosition(
-            Vec3 rotationAxis,
-            double rotationAngle,
-            double observerLatitude) {
+    private static Vec3 calculateObserverNormal(Vec3 rotationAxis, double rotationAngle, double observerLatitude) {
+        // First, create a reference vector on the planet's equatorial plane. This vector is
+        // perpendicular to the rotation axis and represents the "prime meridian" (0 longitude).
+        Vec3 equatorialRef = findPerpendicular(rotationAxis);
 
-        // Start with north pole direction (along rotation axis)
-        Vec3 northPole = rotationAxis.normalize();
+        // In the planet's local coordinate system (before rotation), the observer's "up" vector
+        // is calculated using their latitude.
+        Vec3 localNormal = equatorialRef.scale(Math.cos(observerLatitude))
+                .add(rotationAxis.scale(Math.sin(observerLatitude)));
 
-        // Get perpendicular vector for equator (any perpendicular will do)
-        Vec3 equatorDirection = getPerpendicularVector(northPole);
-
-        // Rotate equator direction by rotation angle around axis
-        Vec3 localEast = rotateAroundAxis(equatorDirection, northPole, rotationAngle);
-
-        // Calculate observer position using latitude
-        double cosLat = Math.cos(observerLatitude);
-        double sinLat = Math.sin(observerLatitude);
-
-        // Observer is at: cosLat * (rotated equator position) + sinLat * (pole direction)
-        return localEast.scale(cosLat).add(northPole.scale(sinLat)).normalize();
+        // Finally, rotate this local vector around the planet's axis by the current rotation angle
+        // to get the observer's final "up" vector in world space.
+        return rotateVector(localNormal, rotationAxis, rotationAngle);
     }
 
     /**
-     * Calculate solar altitude angle
-     * Returns angle in radians: π/2 = directly overhead, 0 = horizon, -π/2 = nadir
+     * A robust method to find a vector that is perpendicular to a given vector.
+     * It avoids issues when the input vector is aligned with the world axes.
      */
-    private static double calculateSolarAltitude(Vec3 sunDirection, Vec3 observerUp) {
-        // Dot product gives us cos(angle from zenith)
-        double cosZenithAngle = sunDirection.dot(observerUp);
-
-        // Solar altitude = π/2 - zenith angle
-        return Math.asin(cosZenithAngle);
-    }
-
-    /**
-     * Convert solar altitude to Minecraft sky darken value
-     */
-    private static int solarAltitudeToSkyDarken(double solarAltitude) {
-        // Solar altitude in degrees for easier understanding
-        double altitudeDegrees = Math.toDegrees(solarAltitude);
-
-        // Minecraft uses 0 (brightest) to 11 (darkest)
-        // Twilight occurs from about -18° to 0° (civil, nautical, astronomical twilight)
-        // Full day is above 0°
-
-        double brightness;
-        if (altitudeDegrees > 0) {
-            // Daytime: full brightness when sun is above horizon
-            brightness = 1.0;
-        } else if (altitudeDegrees > -18) {
-            // Twilight: linear interpolation from 0° to -18°
-            brightness = 1.0 - (Math.abs(altitudeDegrees) / 18.0);
-        } else {
-            // Night: completely dark below -18°
-            brightness = 0.0;
+    private static Vec3 findPerpendicular(Vec3 v) {
+        // If the vector is not aligned with the world's Y-axis, we can use Y-axis for the cross product.
+        if (Math.abs(v.y) < 0.99) {
+            return new Vec3(0, 1, 0).cross(v).normalize();
         }
-
-        // Convert to skyDarken (inverted: 0 = bright, 11 = dark)
-        return (int)Math.round((1.0 - brightness) * 11.0);
+        // Otherwise, it's too close to the Y-axis, so we use the X-axis instead.
+        else {
+            return new Vec3(1, 0, 0).cross(v).normalize();
+        }
     }
 
     /**
-     * Get any vector perpendicular to the given vector
+     * Rotates a vector around an arbitrary axis using Rodrigues' rotation formula.
+     * This is essential for handling planets with tilted axes.
+     *
+     * @param vec   The vector to rotate.
+     * @param axis  The axis of rotation (must be normalized).
+     * @param angle The angle of rotation in radians.
+     * @return The new, rotated vector.
      */
-    private static Vec3 getPerpendicularVector(Vec3 v) {
-        // Choose axis least aligned with v
-        Vec3 axis = Math.abs(v.x) < 0.9 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
-        return v.cross(axis).normalize();
-    }
-
-    /**
-     * Rotate vector around axis by angle (Rodrigues' rotation formula)
-     */
-    private static Vec3 rotateAroundAxis(Vec3 v, Vec3 axis, double angle) {
+    public static Vec3 rotateVector(Vec3 vec, Vec3 axis, double angle) {
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
+        double oneMinusCos = 1 - cos;
 
-        Vec3 vParallel = axis.scale(axis.dot(v));
-        Vec3 vPerp = v.subtract(vParallel);
-        Vec3 w = axis.cross(v);
+        // Rodrigues' formula components
+        Vec3 term1 = vec.scale(cos);
+        Vec3 term2 = axis.cross(vec).scale(sin);
+        Vec3 term3 = axis.scale(axis.dot(vec) * oneMinusCos);
 
-        return vParallel.add(vPerp.scale(cos)).add(w.scale(sin));
+        return term1.add(term2).add(term3);
     }
 }

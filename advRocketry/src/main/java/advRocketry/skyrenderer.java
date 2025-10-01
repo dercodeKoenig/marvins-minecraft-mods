@@ -145,7 +145,7 @@ public class skyrenderer {
 
         NO_CULL.clearRenderState();
 
-        double lat = 70;
+        double lat = myPlanet.getLatitude();
 
         // Calculate observer's view matrix
         Matrix4f tiltMatrix = new Matrix4f();

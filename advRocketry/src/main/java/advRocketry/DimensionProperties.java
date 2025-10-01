@@ -3,6 +3,7 @@ package advRocketry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -50,9 +51,11 @@ public class DimensionProperties {
     }
 
     public float getLatitude() {
-        double z = Minecraft.getInstance().player.position().z;
+        Player p = Minecraft.getInstance().player;
+        double z = p.position().z;
         double s = z / latitude_len;
-        return (float) Math.sin(s * Math.PI * 2) * 90;
+        float lat = (float) Math.sin(s * Math.PI * 2) * 90;
+        return lat;
     }
 
     public double getOrbitDegrees(double deltatick) {
@@ -72,7 +75,9 @@ public class DimensionProperties {
 
     public Vector3f getAtmosphereColor() {
         float brightnessMultiplier = (float) (2 * (0.5 - Minecraft.getInstance().level.getStarBrightness(0)));
-        return new Vector3f(skyColor.x * brightnessMultiplier, skyColor.y * brightnessMultiplier, skyColor.z * brightnessMultiplier);
+        Vec3 minecraftColor =  Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(),0);
+        //return new Vector3f(skyColor.x * brightnessMultiplier, skyColor.y * brightnessMultiplier, skyColor.z * brightnessMultiplier);
+        return minecraftColor.toVector3f();
     }
 
     public Vector3f getFogColor() {
@@ -111,7 +116,7 @@ public class DimensionProperties {
                 orbitAngleDegrees = 40;
             }
             if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-                orbitAngleDegrees = 0;
+                orbitAngleDegrees = 180;
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product
@@ -157,19 +162,22 @@ public class DimensionProperties {
             double wrapAroundDiff = Level.TICKS_PER_DAY - directDiff;
             double smallestDifference = Math.min(directDiff, wrapAroundDiff);
             if (smallestDifference > 5 * Math.max(1, getDayTimeDeltaPerTick())) {
+                System.out.println(dimensionId + " game time adjusted to dimension game time: " + dayTime + "->" + mcDayTime);
                 dayTime = mcDayTime;
             }
         }
     }
 
     public void clientTick(ClientTickEvent event) {
-        keepDayTimeSync(Minecraft.getInstance().level);
+        Level l = Minecraft.getInstance().level;
+        if (l != null && l.dimension().location().equals(dimensionId))
+            keepDayTimeSync(l);
         tick();
     }
 
     public void serverTick(ServerTickEvent event) {
         ServerLevel level = DimensionManager.getServerLevel(event.getServer(), dimensionId);
         keepDayTimeSync(level);
-        tick();
+        //tick();
     }
 }
