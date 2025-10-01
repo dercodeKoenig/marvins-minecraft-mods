@@ -78,13 +78,13 @@ public class DimensionProperties {
 
             //orbitAngleDegrees = 0;
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
-                orbitAngleDegrees = 80;
+                //orbitAngleDegrees = 80;
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))){
-                orbitAngleDegrees = 40;
+                //orbitAngleDegrees = 40;
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
-                orbitAngleDegrees = 180;
+                //orbitAngleDegrees = 180;
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product

@@ -36,7 +36,7 @@ void main() {
     // where the Sun's light dominates, although often it's just added directly.
 
     // For a constant glow (simplest method):
-    vec3 emittedColor = u_emissiveColor * planetColor.rgb;
+    vec3 emittedColor = u_emissiveColor * planetColor.rgb * 3;
 
     // For a glow visible only on the dark side (like city lights):
     // float emittanceFactor = 1.0 - t; // Emissive light fades out as 't' (sunlight) increases
