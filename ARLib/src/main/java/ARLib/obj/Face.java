@@ -10,28 +10,8 @@ import java.lang.Math;
 
 public class Face {
     public Vertex[] vertices;
-    public Vertex faceNormal;
+    public Vertex[] vertexNormals;
     public TextureCoordinate[] textureCoordinates;
-
-    public Vertex[] original_vertices;
-    public Vertex original_faceNormal;
-    public TextureCoordinate[] original_textureCoordinates;
-
-    // Apply transformations to vertices
-    public void applyTransformations(Matrix4f transformationMatrix) {
-        for (int i = 0; i < original_vertices.length; i++) {
-            Vector3f vertexPos = new Vector3f(original_vertices[i].x, original_vertices[i].y, original_vertices[i].z);
-            vertexPos.mulPosition(transformationMatrix); // Apply matrix to the vertex position
-            vertices[i].x = vertexPos.x;
-            vertices[i].y = vertexPos.y;
-            vertices[i].z = vertexPos.z;
-        }
-
-        // Transform face normal
-        Vector3f normalVec = new Vector3f(original_faceNormal.x, original_faceNormal.y, original_faceNormal.z);
-        normalVec.mulDirection(transformationMatrix); // Apply matrix to the normal
-        faceNormal = new Vertex(normalVec.x, normalVec.y, normalVec.z);
-    }
 
     // Recalculate face normal
     public Vertex calculateFaceNormal() {
@@ -46,34 +26,62 @@ public class Face {
         return new Vertex((float) normalVector.x, (float) normalVector.y, (float) normalVector.z);
     }
 
-    // Render logic (unchanged but uses transformed vertices)
     public void addFaceForRender(PoseStack stack, VertexConsumer v, int packedLight, int packedOverlay, int color) {
-        if (faceNormal == null) {
-            faceNormal = this.calculateFaceNormal();
+        // We only render if we have normals to use
+        if (vertexNormals == null || vertexNormals.length == 0) {
+            // Or, you could calculate a flat normal here as a fallback
+           Vertex normal =  calculateFaceNormal();
+            for (int i = 0; i < vertices.length; ++i) {
+                vertexNormals[i] = normal;
+            }
         }
 
         for (int i = 0; i < vertices.length; ++i) {
+            // Get the specific normal for this vertex
+            Vertex normal = vertexNormals[i];
+
             if (textureCoordinates != null && textureCoordinates.length > 0) {
                 v.addVertex(stack.last(), vertices[i].x, vertices[i].y, vertices[i].z)
-                        .setNormal(faceNormal.x, faceNormal.y, faceNormal.z)
+                        // Use the per-vertex normal
+                        .setNormal(normal.x, normal.y, normal.z)
                         .setColor(color)
                         .setLight(packedLight)
                         .setOverlay(packedOverlay)
                         .setUv(textureCoordinates[i].u, textureCoordinates[i].v);
-            }else{
+            } else {
                 v.addVertex(stack.last(), vertices[i].x, vertices[i].y, vertices[i].z)
-                        .setNormal(faceNormal.x, faceNormal.y, faceNormal.z)
+                        // Use the per-vertex normal
+                        .setNormal(normal.x, normal.y, normal.z)
                         .setColor(color)
                         .setLight(packedLight)
                         .setOverlay(packedOverlay);
             }
         }
     }
-    public void scaleUV(float u0, float v0, float u1, float v1){
-        if(original_textureCoordinates != null) {
-            for (int i = 0; i < original_textureCoordinates.length; i++) {
-                textureCoordinates[i].u = u0 + original_textureCoordinates[i].u * (u1 - u0);
-                textureCoordinates[i].v = v0 + original_textureCoordinates[i].v * (v1 - v0);
+
+    public void addFaceForRender(PoseStack stack, VertexConsumer v) {
+        // We only render if we have normals to use
+        if (vertexNormals == null || vertexNormals.length == 0) {
+            // Or, you could calculate a flat normal here as a fallback
+            Vertex normal =  calculateFaceNormal();
+            vertexNormals = new Vertex[vertices.length];
+            for (int i = 0; i < vertices.length; ++i) {
+                vertexNormals[i] = normal;
+            }
+        }
+
+        for (int i = 0; i < vertices.length; ++i) {
+            // Get the specific normal for this vertex
+            Vertex normal = vertexNormals[i];
+
+            if (textureCoordinates != null && textureCoordinates.length > 0) {
+                v.addVertex(stack.last(), vertices[i].x, vertices[i].y, vertices[i].z)
+                        // Use the per-vertex normal
+                        .setNormal(normal.x, normal.y, normal.z)
+                        .setUv(textureCoordinates[i].u, textureCoordinates[i].v);
+            } else {
+                v.addVertex(stack.last(), vertices[i].x, vertices[i].y, vertices[i].z)
+                        .setNormal(normal.x, normal.y, normal.z);
             }
         }
     }

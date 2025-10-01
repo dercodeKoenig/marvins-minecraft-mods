@@ -68,43 +68,4 @@ public class GroupObject {
             }
         }
     }
-
-    public void applyTransformations() {
-        for (Face i : faces)
-            i.applyTransformations(transformationMatrix);
-    }
-
-    // Reset transformations
-    public void resetTransformations() {
-        transformationMatrix.identity();
-    }
-
-    // Translate in world space
-    public void translateWorldSpace(Vector3f translation) {
-        transformationMatrix.translate(translation);
-    }
-
-    // Translate in model space
-    public void translateModelSpace(Vector3f translation) {
-        transformationMatrix.translateLocal(translation);
-    }
-
-    // Rotate around an axis in world space
-    public void rotateWorldSpace(Vector3f axis, float angleDegrees) {
-        transformationMatrix.rotate((float) Math.toRadians(angleDegrees), axis.normalize());
-    }
-
-    // Rotate around an axis in model space
-    public void rotateModelSpace(Vector3f axis, float angleDegrees) {
-        // Create a quaternion from the axis-angle pair
-        Quaternionf quaternion = new Quaternionf().fromAxisAngleDeg(axis.normalize(), angleDegrees);
-
-        // Apply the local rotation directly to the transformation matrix
-        transformationMatrix.rotateLocal(quaternion, transformationMatrix);
-    }
-
-    public void scaleUV(float u0, float v0, float u1, float v1){
-        for (Face i : faces)
-            i.scaleUV(u0,v0,u1,v1);
-    }
 }

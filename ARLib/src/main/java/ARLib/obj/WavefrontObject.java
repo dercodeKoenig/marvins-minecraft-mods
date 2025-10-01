@@ -149,27 +149,6 @@ public class WavefrontObject {
     public void renderPart(String partName, PoseStack stack, MultiBufferSource bufferSource, VertexFormat vertexFormat, RenderType.CompositeState compositeState, int packedLight, int packedOverlay, int color) {
                 groupObjects.get(partName).render(stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay, color);
     }
-    public void rotateWorldSpace(String partName, Vector3f axis, float angleDegrees) {
-        groupObjects.get(partName).rotateWorldSpace(axis,angleDegrees);
-    }
-    public void rotateModelSpace( String partName, Vector3f axis, float angleDegrees) {
-        groupObjects.get(partName).rotateModelSpace(axis,angleDegrees);
-    }
-    public void translateWorldSpace(String partName, Vector3f translation) {
-        groupObjects.get(partName).translateWorldSpace(translation);
-    }
-    public void translateModelSpace(String partName, Vector3f translation) {
-        groupObjects.get(partName).translateModelSpace(translation);
-    }
-    public void applyTransformations(String partName) {
-        groupObjects.get(partName).applyTransformations();
-    }
-    public void resetTransformations(String partName) {
-        groupObjects.get(partName).resetTransformations();
-    }
-    public void scaleUV(String partName, float u0, float v0, float u1, float v1) {
-        groupObjects.get(partName).scaleUV(u0,v0,u1,v1);
-    }
 
     private Vertex parseVertex(String line, int lineCount) throws ModelFormatException {
         if (isValidVertexLine(line)) {
@@ -258,15 +237,15 @@ public class WavefrontObject {
             if (isValidFace_V_VT_VN_Line(line)) {
                 face.vertices = new Vertex[tokens.length];
                 face.textureCoordinates = new TextureCoordinate[tokens.length];
+                face.vertexNormals = new Vertex[tokens.length]; // FIXED: Initialize normal array
 
                 for (int i = 0; i < tokens.length; ++i) {
                     subTokens = tokens[i].split("/");
 
                     face.vertices[i] = vertices.get(Integer.parseInt(subTokens[0]) - 1);
                     face.textureCoordinates[i] = textureCoordinates.get(Integer.parseInt(subTokens[1]) - 1);
+                    face.vertexNormals[i] = vertexNormals.get(Integer.parseInt(subTokens[2]) - 1); // FIXED: Parse and assign normal
                 }
-
-                face.faceNormal = face.calculateFaceNormal();
             }
             // f v1/vt1 v2/vt2 v3/vt3 ...
             else if (isValidFace_V_VT_Line(line)) {
@@ -279,20 +258,18 @@ public class WavefrontObject {
                     face.vertices[i] = vertices.get(Integer.parseInt(subTokens[0]) - 1);
                     face.textureCoordinates[i] = textureCoordinates.get(Integer.parseInt(subTokens[1]) - 1);
                 }
-
-                face.faceNormal = face.calculateFaceNormal();
             }
             // f v1//vn1 v2//vn2 v3//vn3 ...
             else if (isValidFace_V_VN_Line(line)) {
                 face.vertices = new Vertex[tokens.length];
+                face.vertexNormals = new Vertex[tokens.length]; // FIXED: Initialize normal array
 
                 for (int i = 0; i < tokens.length; ++i) {
                     subTokens = tokens[i].split("//");
 
                     face.vertices[i] = vertices.get(Integer.parseInt(subTokens[0]) - 1);
+                    face.vertexNormals[i] = vertexNormals.get(Integer.parseInt(subTokens[1]) - 1); // FIXED: Parse and assign normal
                 }
-
-                face.faceNormal = face.calculateFaceNormal();
             }
             // f v1 v2 v3 ...
             else if (isValidFace_V_Line(line)) {
@@ -301,30 +278,12 @@ public class WavefrontObject {
                 for (int i = 0; i < tokens.length; ++i) {
                     face.vertices[i] = vertices.get(Integer.parseInt(tokens[i]) - 1);
                 }
-
-                face.faceNormal = face.calculateFaceNormal();
             } else {
                 throw new ModelFormatException("Error parsing entry ('" + line + "'" + ", line " + lineCount + ") in file '" + fileName + "' - Incorrect format");
             }
         } else {
             throw new ModelFormatException("Error parsing entry ('" + line + "'" + ", line " + lineCount + ") in file '" + fileName + "' - Incorrect format");
         }
-
-
-        face.original_vertices = new Vertex[face.vertices.length];
-        for (int i = 0; i < face.vertices.length; i++) {
-            face.original_vertices[i] = new Vertex(face.vertices[i].x, face.vertices[i].y, face.vertices[i].z);
-        }
-
-        if(face.textureCoordinates != null) {
-            face.original_textureCoordinates = new TextureCoordinate[face.textureCoordinates.length];
-            for (int i = 0; i < face.textureCoordinates.length; i++) {
-                face.original_textureCoordinates[i] = new TextureCoordinate(face.textureCoordinates[i].u, face.textureCoordinates[i].v, face.textureCoordinates[i].w);
-            }
-        }
-
-        face.original_faceNormal = new Vertex(face.faceNormal.x, face.faceNormal.y, face.faceNormal.z);
-
         return face;
     }
 
