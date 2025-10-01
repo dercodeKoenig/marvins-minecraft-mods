@@ -27,15 +27,11 @@ public class DimensionManager {
     public void serverTick(ServerTickEvent.Post event){
         for(DimensionProperties i : dimensions.values()){
             i.serverTick(event);
-            ServerLevel level = getServerLevel(event.getServer(),i.dimensionId);
-            if(level != null) {
-                level.setDayTimePerTick(i.getDayTimeDeltaPerTick());
-            }
         }
     }
     public void clientTick(ClientTickEvent.Post event){
         for(DimensionProperties i : dimensions.values()){
-            i.tick();
+            i.clientTick(event);
         }
     }
 

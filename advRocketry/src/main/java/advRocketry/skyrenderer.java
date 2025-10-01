@@ -81,7 +81,7 @@ public class skyrenderer {
 
         vertexBufferSkyBox = new VertexBuffer(VertexBuffer.Usage.STATIC);
         try {
-            SkyBoxSphere = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/planet/skybox_sphere.obj"));
+            SkyBoxSphere = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/environment/skybox_sphere.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
@@ -135,7 +135,7 @@ public class skyrenderer {
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, view, proj, Minecraft.getInstance().getWindow());
         Uniform color = shader.getUniform("Color");
-        color.set((float)atmColor.x, (float)atmColor.y, (float)atmColor.z, 1f);
+        color.set(atmColor.x, atmColor.y, atmColor.z, 1f);
 
         shader.apply();
         vertexBufferSkyBox.bind();
@@ -145,7 +145,7 @@ public class skyrenderer {
 
         NO_CULL.clearRenderState();
 
-        double lat = 50;
+        double lat = 70;
 
         // Calculate observer's view matrix
         Matrix4f tiltMatrix = new Matrix4f();
