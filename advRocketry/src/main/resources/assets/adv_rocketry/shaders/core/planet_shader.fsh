@@ -15,7 +15,7 @@ out vec4 fragColor;
 
 void main() {
     // Calculate raw illumination factor:
-    float lightIntensity = dot(rotatedNormal, Light0_Direction);
+    float lightIntensity = dot(rotatedNormal, Light0_Direction) * reflectivity;
 
     // 1. Get the base planet color (texture/vertex color):
     vec3 baseSurfaceColor = (texture(Sampler0, texCoord0)).rgb;
@@ -25,13 +25,10 @@ void main() {
     float reflectedFactor = max(0.0, lightIntensity);
 
     // Scale the surface color by the actual reflected light amount
-    //vec3 reflectedLight = baseSurfaceColor * reflectedFactor* reflectivity;
-    vec3 reflectedLight = baseSurfaceColor * reflectedFactor* 1;
+    vec3 reflectedLight = baseSurfaceColor * reflectedFactor;
 
     // 3. Apply Atmospheric Blending (The Mix)
-    // The blend factor 't' determines where the atmosphere takes over.
-    // It is clamped to [0, 1] and uses the bleed factor for softness.
-    //float t = clamp(lightIntensity - AtmColor.length() + 1, 0.0, 1.0);
+    // The blend factor 't' determines where the atmosphere takes over
     float t = clamp(lightIntensity, 0.0, 1.0);
 
     // The final color for the reflected light component:

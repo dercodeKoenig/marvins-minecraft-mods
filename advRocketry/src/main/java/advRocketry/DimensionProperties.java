@@ -1,5 +1,6 @@
 package advRocketry;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -88,7 +89,8 @@ public class DimensionProperties {
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
                 //orbitAngleDegrees = 180;
-                skyColor = new Vec3(0.3,0.2,0.9).scale(0.1);
+                //skyColor = new Vec3(0.79, 0.89, 1.00);
+                skyColor = new Vec3(0.53, 0.81, 0.92);
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product

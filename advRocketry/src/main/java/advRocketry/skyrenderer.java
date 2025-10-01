@@ -134,17 +134,20 @@ public class skyrenderer {
             System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
         }
 
+
         ShaderInstance shader;
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
+
+        Vec3 atmColor = myPlanet.skyColor.scale(1-Minecraft.getInstance().level.getStarBrightness(0));
 
         // Render skybox first (to the main framebuffer)
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.QUADS, view, proj, Minecraft.getInstance().getWindow());
         Uniform color = shader.getUniform("Color");
-        color.set((float)myPlanet.skyColor.x, (float)myPlanet.skyColor.y, (float)myPlanet.skyColor.z, 1f);
+        color.set((float)atmColor.x, (float)atmColor.y, (float)atmColor.z, 1f);
 
         shader.apply();
         vertexBufferSkyBox.bind();
@@ -246,10 +249,11 @@ public class skyrenderer {
             }
 
             Uniform AtmColor = shader.getUniform("AtmColor");
-            AtmColor.set(myPlanet.skyColor.toVector3f());
+            AtmColor.set(atmColor.toVector3f());
 
             Uniform reflectivity = shader.getUniform("reflectivity");
-            reflectivity.set(planet.reflectivity);
+            if(reflectivity != null)
+                reflectivity.set(planet.reflectivity);
 
             Uniform emissiveColor = shader.getUniform("emissiveColor");
             emissiveColor.set(planet.emissiveColor.toVector3f());
