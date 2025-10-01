@@ -22,7 +22,8 @@ public static final String MODID ="adv_rocketry";
     public Main(IEventBus modEventBus, ModContainer modContaine) {
         //modEventBus.register(this);
         NeoForge.EVENT_BUS.addListener(this::onRenderStage);
-        NeoForge.EVENT_BUS.addListener(skyrenderer::onRenderFog );
+        NeoForge.EVENT_BUS.addListener(skyrenderer::renderFog );
+        NeoForge.EVENT_BUS.addListener(skyrenderer::computeFogColor );
         NeoForge.EVENT_BUS.addListener(this::onWorldLoad);
         NeoForge.EVENT_BUS.addListener(DimensionManager.INSTANCE::serverTick);
         NeoForge.EVENT_BUS.addListener(DimensionManager.INSTANCE::clientTick);
@@ -47,7 +48,7 @@ public static final String MODID ="adv_rocketry";
     private void loadShaders(RegisterShadersEvent event){
         // 3. Register the shader and set the static field in the callback
         try {
-            ShaderInstance atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"),shaderUtils.POSITION);
+            ShaderInstance atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"),shaderUtils.POSITION_NORMAL);
             event.registerShader(atmosphereShader,atmosphereShaderInstance -> {
                 shaderUtils.atmosphereShader = atmosphereShaderInstance;
             });

@@ -18,17 +18,28 @@ import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
 
-import static advRocketry.shaderUtils.POSITION;
-import static advRocketry.shaderUtils.POSITION_TEXTURE_NORMAL;
+import static advRocketry.shaderUtils.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
 
-    public static void onRenderFog(ViewportEvent.RenderFog event) {
+    // can modify fog distance
+    public static void renderFog(ViewportEvent.RenderFog event) {
         ResourceLocation dimension = Minecraft.getInstance().level.dimension().location();
-            event.setNearPlaneDistance(event.getNearPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
-            event.setFarPlaneDistance( event.getFarPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
-            event.setCanceled(true);
+        event.setNearPlaneDistance(event.getNearPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
+        event.setFarPlaneDistance( event.getFarPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
+        event.setCanceled(true);
+    }
+    public static void computeFogColor( ViewportEvent.ComputeFogColor event) {
+        Vector3f color =  DimensionManager.INSTANCE.dimensions.get(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")).getFogColor();
+
+        //System.out.println(event.getRed()+"+"+event.getGreen()+":"+event.getBlue());
+
+        event.setBlue(color.x);
+        event.setGreen(color.y);
+        event.setRed(color.z);
+
+        //System.out.println("post:"+event.getRed()+"+"+event.getGreen()+":"+event.getBlue());
     }
 
     VertexBuffer vertexBufferSkyBox;
@@ -49,7 +60,7 @@ public class skyrenderer {
 
         vertexBufferPlanet = new VertexBuffer(VertexBuffer.Usage.STATIC);
         try {
-            planetModel = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/planet/planet.obj"));
+            planetModel = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/environment/planet.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
@@ -66,52 +77,26 @@ public class skyrenderer {
     }
 
     void createSkyBoxBuffer() {
+        WavefrontObject SkyBoxSphere;
+
         vertexBufferSkyBox = new VertexBuffer(VertexBuffer.Usage.STATIC);
+        try {
+            SkyBoxSphere = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/planet/skybox_sphere.obj"));
+        } catch (ModelFormatException ex) {
+            throw new RuntimeException(ex);
+        }
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION);
-
-        // Top face
-        b.addVertex(100, 100, -100);
-        b.addVertex(100, 100, 100);
-        b.addVertex(-100, 100, 100);
-        b.addVertex(-100, 100, -100);
-
-        // Bottom face
-        b.addVertex(-100, -100, -100);
-        b.addVertex(-100, -100, 100);
-        b.addVertex(100, -100, 100);
-        b.addVertex(100, -100, -100);
-
-        // Front face
-        b.addVertex(-100, 100, -100);
-        b.addVertex(-100, -100, -100);
-        b.addVertex(100, -100, -100);
-        b.addVertex(100, 100, -100);
-
-        // Back face
-        b.addVertex(100, 100, 100);
-        b.addVertex(100, -100, 100);
-        b.addVertex(-100, -100, 100);
-        b.addVertex(-100, 100, 100);
-
-        // Right face
-        b.addVertex(100, 100, -100);
-        b.addVertex(100, -100, -100);
-        b.addVertex(100, -100, 100);
-        b.addVertex(100, 100, 100);
-
-        // Left face (fixed duplicate)
-        b.addVertex(-100, 100, 100);
-        b.addVertex(-100, -100, 100);
-        b.addVertex(-100, -100, -100);
-        b.addVertex(-100, 100, -100);
-
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
+        for (Face i : SkyBoxSphere.groupObjects.get("Icosphere").faces) {
+            i.addFaceForRender(new PoseStack(), b);
+        }
         MeshData mesh = b.build();
         vertexBufferSkyBox.bind();
         vertexBufferSkyBox.upload(mesh);
         byteBuffer.close();
     }
+
 
     static skyrenderer INSTANCE = new skyrenderer();
 
@@ -142,12 +127,13 @@ public class skyrenderer {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
-        Vec3 atmColor = myPlanet.skyColor.scale(2*(0.5-Minecraft.getInstance().level.getStarBrightness(0)));
+        NO_CULL.setupRenderState();
 
-        // Render skybox first (to the main framebuffer)
+        // Render skybox first
+        Vector3f atmColor = myPlanet.getAtmosphereColor();
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.QUADS, view, proj, Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, view, proj, Minecraft.getInstance().getWindow());
         Uniform color = shader.getUniform("Color");
         color.set((float)atmColor.x, (float)atmColor.y, (float)atmColor.z, 1f);
 
@@ -157,6 +143,7 @@ public class skyrenderer {
         shader.clear();
         VertexBuffer.unbind();
 
+        NO_CULL.clearRenderState();
 
         double lat = 50;
 
@@ -250,15 +237,11 @@ public class skyrenderer {
                 }
             }
 
-            Uniform AtmColor = shader.getUniform("AtmColor");
-            AtmColor.set(atmColor.toVector3f());
-
             Uniform reflectivity = shader.getUniform("reflectivity");
-            if(reflectivity != null)
-                reflectivity.set(planet.reflectivity);
+            reflectivity.set(planet.reflectivity);
 
             Uniform emissiveColor = shader.getUniform("emissiveColor");
-            emissiveColor.set(planet.emissiveColor.toVector3f());
+            emissiveColor.set(planet.emissiveColor);
 
             shader.apply();
             vertexBufferPlanet.bind();

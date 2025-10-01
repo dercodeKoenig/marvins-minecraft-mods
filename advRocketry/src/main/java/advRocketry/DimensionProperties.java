@@ -2,11 +2,11 @@ package advRocketry;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 
 public class DimensionProperties {
@@ -27,10 +27,11 @@ public class DimensionProperties {
 
     public ResourceLocation texture;
 
-    public Vec3 skyColor = new Vec3(0.471, 0.655, 1.0);
+    public Vector3f skyColor = new Vector3f(0.471f, 0.655f, 1.0f);
+    public Vector3f fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
 
     public float reflectivity = 1f;
-    public Vec3 emissiveColor = new Vec3(0,0,0);
+    public Vector4f emissiveColor = new Vector4f(0,0,0, 0);
 
     public float atmosphereDensity = 1;
 
@@ -38,37 +39,41 @@ public class DimensionProperties {
         this.dimensionId = dimensionId;
     }
 
-    double currentGameTime;
-
     public double getSelfRotationDegrees(double deltatick){
         double d = getDayTimeDeltaPerTick() * deltatick;
-        double result = (d+currentGameTime) / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 90;
+        double result = (d+Minecraft.getInstance().level.getDayTimeFraction()+Minecraft.getInstance().level.getDayTime()) / Level.TICKS_PER_DAY * 360 + orbitAngleDegrees + 90;
         return result;
     }
     public double getOrbitDegrees(double deltatick){
         double d = getOrbitDeltaPerTick();
         return orbitAngleDegrees + d;
     }
-    public double getDayTimeDeltaPerTick(){
-        return (double) Level.TICKS_PER_DAY / (double) targetDayLength;
+    public float getDayTimeDeltaPerTick(){
+        return (float) Level.TICKS_PER_DAY /  targetDayLength;
     }
     public double getOrbitDeltaPerTick(){
         DimensionProperties parent = DimensionManager.INSTANCE.dimensions.get(parentDimensionId);
         if (parent == null)return 0;
         return 360d / CelestialUtils.calculateOrbitalPeriodTicks(mass, parent.mass, orbitalDistanceToParent);
     }
+    public Vector3f getAtmosphereColor(){
+        float brightnessMultiplier = (float) (2*(0.5-Minecraft.getInstance().level.getStarBrightness(0)));
+        return new Vector3f(skyColor.x*brightnessMultiplier, skyColor.y*brightnessMultiplier, skyColor.z*brightnessMultiplier);
+    }
+    public Vector3f getFogColor(){
+        float brightnessMultiplier = (float) (2*(0.5-Minecraft.getInstance().level.getStarBrightness(0)));
+        return new Vector3f(fogColor.x*brightnessMultiplier, fogColor.y*brightnessMultiplier, fogColor.z*brightnessMultiplier);
+    }
 
     void tick() {
-        currentGameTime += getDayTimeDeltaPerTick();
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
 //            System.out.println(currentGameTime+":"+getSelfRotationDegrees(0));
-        }
-        if (currentGameTime > Level.TICKS_PER_DAY) {
-            currentGameTime -= Level.TICKS_PER_DAY;
         }
 
         if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
             //currentGameTime = 6000;
+            skyColor = new Vector3f(0.5f,0.5f,1);
+            fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
         }
 
         if (parentDimensionId != null) {
@@ -79,17 +84,15 @@ public class DimensionProperties {
             if (orbitAngleDegrees > 360d)
                 orbitAngleDegrees -= 360d;
 
-            //orbitAngleDegrees = 0;
+            orbitAngleDegrees = 0;
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
-                //orbitAngleDegrees = 80;
+                orbitAngleDegrees = 80;
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))){
-                //orbitAngleDegrees = 40;
+                orbitAngleDegrees = 40;
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
-                //orbitAngleDegrees = 180;
-                //skyColor = new Vec3(0.79, 0.89, 1.00);
-                skyColor = new Vec3(0.53, 0.81, 0.92);
+                orbitAngleDegrees = 180;
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product
@@ -126,22 +129,5 @@ public class DimensionProperties {
 
     public void serverTick(ServerTickEvent event) {
         //tick();
-
-        MinecraftServer server = event.getServer();
-        ServerLevel level = DimensionManager.getServerLevel(server, dimensionId);
-        if (level == null) return;
-
-
-        // detect and adjust if the time changes by command or sleep or overwrite time
-        long defaultGameTime = level.getDayTime() % Level.TICKS_PER_DAY;
-        double directDiff = Math.abs(currentGameTime - defaultGameTime);
-        double wrapAroundDiff = Level.TICKS_PER_DAY - directDiff;
-        double smallestDifference = Math.min(directDiff, wrapAroundDiff);
-        if (smallestDifference > 10* Math.max(1, getDayTimeDeltaPerTick())) {
-            System.out.println("adjust current time to "+defaultGameTime+" from "+currentGameTime);
-            currentGameTime = defaultGameTime;
-        }
-        else
-            level.setDayTime((long) currentGameTime);
     }
 }

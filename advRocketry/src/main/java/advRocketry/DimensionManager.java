@@ -1,5 +1,6 @@
 package advRocketry;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -8,6 +9,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.HashMap;
 
@@ -24,6 +27,10 @@ public class DimensionManager {
     public void serverTick(ServerTickEvent.Post event){
         for(DimensionProperties i : dimensions.values()){
             i.serverTick(event);
+            ServerLevel level = getServerLevel(event.getServer(),i.dimensionId);
+            if(level != null) {
+                level.setDayTimePerTick(i.getDayTimeDeltaPerTick());
+            }
         }
     }
     public void clientTick(ClientTickEvent.Post event){
@@ -44,7 +51,7 @@ public class DimensionManager {
         sun.size = 200;
         sun.rotationAxis = new Vec3(0,1,0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
-        sun.emissiveColor = new Vec3(0.8,0.8,0.8);
+        sun.emissiveColor = new Vector4f(0.8f,0.8f,0.8f, 1f);
         sun.reflectivity = 0f;
         dimensions.put(sun.dimensionId, sun);
 
@@ -54,8 +61,8 @@ public class DimensionManager {
         overworld.lightSourceDimensionId = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
         overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
-        overworld.targetDayLength = 4800;
-        //overworld.targetDayLength = 3000;
+        overworld.targetDayLength = 1000;
+        overworld.skyColor = new Vector3f(0.53f, 0.81f, 0.92f);
         dimensions.put(overworld.dimensionId,overworld);
 
 

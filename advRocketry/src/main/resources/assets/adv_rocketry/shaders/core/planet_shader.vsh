@@ -4,9 +4,6 @@ in vec3 Position;
 in vec2 UV0;
 in vec3 Normal;
 
-uniform sampler2D Sampler1;
-uniform sampler2D Sampler2;
-
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
 

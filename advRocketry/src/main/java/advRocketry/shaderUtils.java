@@ -16,6 +16,11 @@ public class shaderUtils {
             .add("Normal", VertexFormatElement.NORMAL)
             .build();
 
+    public static VertexFormat POSITION_NORMAL = VertexFormat.builder()
+            .add("Position", VertexFormatElement.POSITION)
+            .add("Normal", VertexFormatElement.NORMAL)
+            .build();
+
 
     public static ShaderInstance atmosphereShader;
     public static ShaderInstance getAtmosphereShader() {
