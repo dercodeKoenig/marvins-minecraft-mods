@@ -42,7 +42,6 @@ public class Face {
 
             if (textureCoordinates != null && textureCoordinates.length > 0) {
                 v.addVertex(stack.last(), vertices[i].x, vertices[i].y, vertices[i].z)
-                        // Use the per-vertex normal
                         .setNormal(normal.x, normal.y, normal.z)
                         .setColor(color)
                         .setLight(packedLight)
@@ -50,7 +49,6 @@ public class Face {
                         .setUv(textureCoordinates[i].u, textureCoordinates[i].v);
             } else {
                 v.addVertex(stack.last(), vertices[i].x, vertices[i].y, vertices[i].z)
-                        // Use the per-vertex normal
                         .setNormal(normal.x, normal.y, normal.z)
                         .setColor(color)
                         .setLight(packedLight)

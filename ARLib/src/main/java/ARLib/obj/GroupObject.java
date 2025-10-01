@@ -20,25 +20,6 @@ public class GroupObject {
     public String name;
     public ArrayList<Face> faces = new ArrayList<>();
     public VertexFormat.Mode drawMode;
-    private Matrix4f transformationMatrix=new Matrix4f().identity(); // Start with identity; // Stores the current transformation
-
-
-    public static VertexFormat POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL = VertexFormat.builder()
-            .add("Position", VertexFormatElement.POSITION)
-            .add("Color", VertexFormatElement.COLOR)
-            .add("UV0", VertexFormatElement.UV0)
-            .add("UV1", VertexFormatElement.UV1)
-            .add("UV2", VertexFormatElement.UV2)
-            .add("Normal", VertexFormatElement.NORMAL)
-            .build();
-    public static VertexFormat POSITION_COLOR_OVERLAY_LIGHT_NORMAL = VertexFormat.builder()
-            .add("Position", VertexFormatElement.POSITION)
-            .add("Color", VertexFormatElement.COLOR)
-            .add("UV1", VertexFormatElement.UV1)
-            .add("UV2", VertexFormatElement.UV2)
-            .add("Normal", VertexFormatElement.NORMAL)
-            .build();
-
 
     public GroupObject(String name) {
         this(name, VertexFormat.Mode.DEBUG_LINES);

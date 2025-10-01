@@ -3,28 +3,23 @@ package advRocketry;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
-import java.util.Set;
 
 import static advRocketry.shaderUtils.POSITION;
-import static advRocketry.shaderUtils.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static advRocketry.shaderUtils.POSITION_TEXTURE_NORMAL;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
@@ -60,9 +55,9 @@ public class skyrenderer {
         }
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_TEXTURE_NORMAL);
         for (Face i : planetModel.groupObjects.get("Icosphere").faces) {
-            i.addFaceForRender(new PoseStack(), b, 0, 0, 0);
+            i.addFaceForRender(new PoseStack(), b);
         }
         MeshData meshPlanet = b.build();
         vertexBufferPlanet.bind();
@@ -158,7 +153,7 @@ public class skyrenderer {
         VertexBuffer.unbind();
 
 
-        double lat = 85;
+        double lat = 50;
 
         // Calculate observer's view matrix
         Matrix4f tiltMatrix = new Matrix4f();
@@ -251,8 +246,13 @@ public class skyrenderer {
             }
 
             Uniform AtmColor = shader.getUniform("AtmColor");
-            if (AtmColor != null)
-                AtmColor.set(myPlanet.skyColor.toVector3f());
+            AtmColor.set(myPlanet.skyColor.toVector3f());
+
+            Uniform reflectivity = shader.getUniform("reflectivity");
+            reflectivity.set(planet.reflectivity);
+
+            Uniform emissiveColor = shader.getUniform("emissiveColor");
+            emissiveColor.set(planet.emissiveColor.toVector3f());
 
             shader.apply();
             vertexBufferPlanet.bind();

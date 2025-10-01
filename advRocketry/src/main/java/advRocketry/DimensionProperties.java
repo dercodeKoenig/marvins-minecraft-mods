@@ -29,6 +29,9 @@ public class DimensionProperties {
     Vec3 skyColor = new Vec3(0.471, 0.655, 1.0);
     Vec3 fogColor = skyColor;
 
+    float reflectivity = 1f;
+    Vec3 emissiveColor = new Vec3(0,0,0);
+
     float atmosphereDensity = 1;
 
     public DimensionProperties(ResourceLocation dimensionId) {
@@ -58,7 +61,7 @@ public class DimensionProperties {
     void tick() {
         currentGameTime += getDayTimeDeltaPerTick();
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
-            //
+//            System.out.println(currentGameTime+":"+getSelfRotationDegrees(0));
         }
         if (currentGameTime > Level.TICKS_PER_DAY) {
             currentGameTime -= Level.TICKS_PER_DAY;
@@ -85,6 +88,7 @@ public class DimensionProperties {
             }
             if(dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
                 //orbitAngleDegrees = 180;
+                skyColor = new Vec3(0.3,0.2,0.9).scale(0.1);
             }
 
             // 1. Define a simple, non-zero vector to use for the cross-product

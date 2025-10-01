@@ -44,6 +44,8 @@ public class DimensionManager {
         sun.size = 200;
         sun.rotationAxis = new Vec3(0,1,0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        sun.emissiveColor = new Vec3(0.8,0.8,0.8);
+        sun.reflectivity = 0f;
         dimensions.put(sun.dimensionId, sun);
 
 
@@ -52,7 +54,7 @@ public class DimensionManager {
         overworld.lightSourceDimensionId = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
         overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
-        overworld.targetDayLength = 48000;
+        overworld.targetDayLength = 4800;
         //overworld.targetDayLength = 3000;
         dimensions.put(overworld.dimensionId,overworld);
 
@@ -63,7 +65,7 @@ public class DimensionManager {
         moon.orbitalDistanceToParent = 20;
         moon.orbitAxis = new Vec3(0,1,0);
         moon.size = 30;
-        moon.mass = 20;
+        moon.mass = 30;
         moon.targetDayLength = 1000;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         dimensions.put(moon.dimensionId,moon);
@@ -75,7 +77,7 @@ public class DimensionManager {
         moon2.orbitalDistanceToParent = 30;
         moon2.orbitAxis = new Vec3(0.1,1,0).normalize();
         moon2.size = 20;
-        moon2.mass = 30;
+        moon2.mass = 20;
         moon2.targetDayLength = 4000;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         dimensions.put(moon2.dimensionId,moon2);
