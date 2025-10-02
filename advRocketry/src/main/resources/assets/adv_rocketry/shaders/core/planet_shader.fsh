@@ -18,7 +18,7 @@ out vec4 fragColor;
 void main() {
     vec3 baseSurfaceColor = (texture(Sampler0, texcoord)).rgb;
 
-    float Light0Dot =  max(0,dot(rotatedNormal, Light0_Vector_transformed));
+    float Light0Dot =  max(0, dot(normalize(rotatedNormal), normalize(Light0_Vector_transformed)));
     float Light0Distance = length(Light0_Vector_transformed);
     vec3 reflectedLight0 = Light0Dot * reflectivity * baseSurfaceColor * Light0_Color.rgb * Light0_Color.a / (Light0Distance * Light0Distance);
     vec4 reflectedLight = vec4(reflectedLight0, 1.0);

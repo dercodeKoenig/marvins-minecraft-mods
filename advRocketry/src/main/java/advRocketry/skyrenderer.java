@@ -100,8 +100,8 @@ public class skyrenderer {
     private TextureTarget atmosphereRenderTarget;
 
     public void setupRenderTargets() {
-        this.planetRenderTarget = new TextureTarget(1000, 1000, true, false);
-        this.atmosphereRenderTarget = new TextureTarget(1000, 1000, false, false);
+        this.planetRenderTarget = new HDRTextureTarget(1000, 1000, true, false);
+        this.atmosphereRenderTarget = new HDRTextureTarget(1000, 1000, false, false);
     }
 
     public void renderSkyBox(Matrix4f proj, Matrix4f view){
@@ -184,16 +184,21 @@ public class skyrenderer {
                 Vec3 Light0_Vector = planetPosition.subtract(Star0_Pos).scale(-1); //shader uses planet to star for dot product
 
                 shader.getUniform("Light0_Vector").set((float) Light0_Vector.x, (float) Light0_Vector.y, (float) Light0_Vector.z);
-                shader.getUniform("Light0_Color").set(star.emissiveColor.x,star.emissiveColor.y,star.emissiveColor.z,star.emissiveColor.w);
+                Uniform light0Color = shader.getUniform("Light0_Color");
+                if(light0Color != null)
+                    light0Color.set(star.emissiveColor.x,star.emissiveColor.y,star.emissiveColor.z,star.emissiveColor.w);
             }
 
             Uniform reflectivity = shader.getUniform("reflectivity");
+            if(reflectivity != null)
             reflectivity.set(planet.reflectivity);
 
             Uniform skyView = shader.getUniform("skyViewMat");
+            if(skyView!=null)
             skyView.set(skyViewMatrix);
 
             Uniform emissiveColor = shader.getUniform("emissiveColor");
+            if(emissiveColor != null)
             emissiveColor.set(planet.emissiveColor);
 
             shader.apply();
