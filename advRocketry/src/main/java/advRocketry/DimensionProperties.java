@@ -92,10 +92,10 @@ public class DimensionProperties {
             if (true) { // debug / testing
                 orbitAngleDegrees = 0;
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
-                    orbitAngleDegrees = 80;
+                    orbitAngleDegrees = 120;
                 }
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))) {
-                    orbitAngleDegrees = 40;
+                    orbitAngleDegrees = 20;
                 }
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
                     orbitAngleDegrees = 0;
