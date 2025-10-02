@@ -72,7 +72,7 @@ public class DimensionProperties {
 
     public double getRotationAngle(float partialTick) {
         double actualDayTime = dayTime + getDayTimeDeltaPerTick() * partialTick;
-        double rotation = actualDayTime % Level.TICKS_PER_DAY * 360;
+        double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
         return rotation;
     }
 

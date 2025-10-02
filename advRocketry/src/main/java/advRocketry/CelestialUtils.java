@@ -46,7 +46,7 @@ public class CelestialUtils {
         Vec3 rotatedEquator = CelestialUtils.rotate(equatorRef, rotationAxis, myPlanet.getRotationAngle(partialTick));
 
         // 3. Get east vector
-        Vec3 east = rotationAxis.cross(equatorRef).normalize();
+        Vec3 east = rotationAxis.cross(rotatedEquator).normalize();
 
         // 4 rotate equator reference around east by latitude
         double lat = myPlanet.getLatitude();

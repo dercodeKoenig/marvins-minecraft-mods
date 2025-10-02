@@ -106,7 +106,10 @@ public class skyrenderer {
         this.planetRenderTarget = new TextureTarget(1000, 1000, true, Minecraft.ON_OSX);
     }
 
-    public void drawSkyBox(DimensionProperties myPlanet, Matrix4f proj, Matrix4f view, double partialtick){
+    public void renderSkyBox(Matrix4f proj, Matrix4f view){
+        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
+        DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
+
         NO_CULL.setupRenderState();
 
         // Render skybox first
@@ -148,12 +151,22 @@ public class skyrenderer {
 
         CelestialUtils.AxisDirections myGlobalAxis = CelestialUtils.getGlobalAxisDirections(myPlanet, (float) partialtick);
 
-        Matrix4f observerViewMatrix = new Matrix4f().lookAt(
+        // Create the base orientation for our skybox using the planet's axes.
+        // This matrix transforms world coordinates into our tilted planet's reference frame.
+        Matrix4f planetOrientationMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
-                myGlobalAxis.east.toVector3f(),
-                myGlobalAxis.up.toVector3f()
+                myGlobalAxis.east.toVector3f(), // Look direction
+                myGlobalAxis.up.toVector3f()    // Up direction
         );
+        // You might also want to try looking at myGlobalAxis.north instead of east, depending on your desired base orientation.
 
+        Matrix4f finalSkyViewMatrix =  new Matrix4f(view).mul(planetOrientationMatrix);
+        //System.out.println("planetOrientation: "+planetOrientationMatrix);
+        //System.out.println("view: "+view);
+        //System.out.println("final: "+finalSkyViewMatrix);
+
+
+        //System.out.println(myGlobalAxis.up);
 
         // Bind FBO for planet rendering
         this.planetRenderTarget.bindWrite(true);
@@ -187,15 +200,16 @@ public class skyrenderer {
             } else if (modelUp.dot(targetNorth) < 0) {
                 planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
             }
-            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.getRotationAngle((float)partialtick)));
+
+            double planetRotationAngle = planet.getRotationAngle((float)partialtick);
+            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
             double distance = myPlanetPosition.distanceTo(planetPosition);
             double scale = planet.size / distance * 10;
             planetModelMatrix.scale((float) scale);
 
-            Matrix4f modelViewMatrix = new Matrix4f(view)
-                    .mul(observerViewMatrix)
-                    .mul(planetModelMatrix);
+            Matrix4f modelViewMatrix = new Matrix4f(finalSkyViewMatrix).mul(planetModelMatrix);
+
 
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
@@ -207,7 +221,7 @@ public class skyrenderer {
             DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
             if (star != null) {
                 Vec3 lightWorld = star.getPosition((float)partialtick).subtract(planetPosition);
-                Matrix4f finalViewMatrix = new Matrix4f(view).mul(observerViewMatrix);
+                Matrix4f finalViewMatrix = new Matrix4f(finalSkyViewMatrix);
                 Vector4f lightView4 = new Vector4f((float) lightWorld.x, (float) lightWorld.y, (float) lightWorld.z, 0.0f);
                 finalViewMatrix.transform(lightView4);
                 Vec3 lightView = new Vec3(lightView4.x(), lightView4.y(), lightView4.z()).normalize();
@@ -253,7 +267,7 @@ public class skyrenderer {
     public void renderSky(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
         if (!finishedLoading) return;
 
-        renderSky(poseStack, proj, view, partialtick);
+        renderSkyBox(proj, view);
 
         renderSpaceBodies(poseStack, proj, view, partialtick);
 

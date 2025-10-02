@@ -114,7 +114,6 @@ public class DimensionManager{
         @Override
         public void readClient(String data) {
             universalTimeClient = Long.parseLong(data);
-            System.out.println("client sync gametime:"+universalTimeClient);
         }
     }
 
