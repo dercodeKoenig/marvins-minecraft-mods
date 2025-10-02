@@ -124,7 +124,8 @@ public class skyrenderer {
         shader.getUniform("screenWidth").set(atmosphereRenderTarget.width);
         shader.getUniform("screenHeight").set(atmosphereRenderTarget.height);
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y);
-        shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
+        //shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
+        shader.getUniform("renderDistance").set((float) CelestialUtils.getRealRadiusFromValue(myPlanet.size));
 
         shader.apply();
         vertexBufferSkyBox.bind();

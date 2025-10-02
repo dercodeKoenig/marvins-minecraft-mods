@@ -37,7 +37,7 @@ void main() {
     // 4. Apply the artistic curve
     fogFactor = pow(fogFactor, 0.5); // Adjust exponent for feel
 
-    vec4 colorHeightAdjusted = Color * (1000-playerHeight) / 1000;
+    vec4 colorHeightAdjusted = Color * max(0,(10000-playerHeight) / 1000);
 
     // Use this final fogFactor to mix your colors
     vec4 backgroundColor = mix(FogColor, colorHeightAdjusted, fogFactor);
