@@ -123,6 +123,8 @@ public class skyrenderer {
         color.set(atmColor.x, atmColor.y, atmColor.z, 1f);
         shader.getUniform("screenWidth").set(atmosphereRenderTarget.width);
         shader.getUniform("screenHeight").set(atmosphereRenderTarget.height);
+        shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y);
+        shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
 
         shader.apply();
         vertexBufferSkyBox.bind();
