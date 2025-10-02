@@ -59,7 +59,7 @@ public class HDRTextureTarget extends TextureTarget {
             GlStateManager._texParameter(3553, 10242, 33071);
             GlStateManager._texParameter(3553, 10243, 33071);
 
-            // change to GL_RGBA16F
+            // change to GL_RGBA16F and GL11.GL_FLOAT
             GlStateManager._texImage2D(3553, 0, GL30.GL_RGBA16F, this.width, this.height, 0, 6408, GL11.GL_FLOAT, (IntBuffer)null);
             // change end
 
