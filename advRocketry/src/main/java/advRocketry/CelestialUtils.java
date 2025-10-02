@@ -86,5 +86,9 @@ public class CelestialUtils {
         double combinedMass = getRealMassFromValue(mass1) + getRealDistanceFromValue(mass2);
         return 2 * Math.PI * Math.sqrt(Math.pow(getRealDistanceFromValue(distance), 3) / (G * combinedMass)) * 20;
     }
+
+    public static double getRealRadiusFromValue(double radius){
+        return radius / 100 * 6_000_000;
+    }
 }
 

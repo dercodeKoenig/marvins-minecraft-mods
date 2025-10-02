@@ -107,6 +107,19 @@ public class DimensionManager{
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         dimensions.put(moon2.dimensionId,moon2);
 
+
+        DimensionProperties moon3 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon3"));
+        moon3.parentDimensionId = moon2.dimensionId;
+        moon3.lightSourceDimensionId = sun.dimensionId;
+        moon3.orbitalDistanceToParent = 10;
+        moon3.orbitAxis = new Vec3(0,0,1).normalize();
+        moon3.rotationAxis = new Vec3(1,0,0);
+        moon3.size = 10;
+        moon3.mass = 10;
+        moon3.targetDayLength = 1000;
+        moon3.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
+        dimensions.put(moon3.dimensionId,moon3);
+
     }
 
     public class TimeSync implements SimpleNetworkPacket.SimpleNetworkDataReceiver {

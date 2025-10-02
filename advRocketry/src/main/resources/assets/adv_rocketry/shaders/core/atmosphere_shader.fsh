@@ -7,8 +7,8 @@ uniform vec4 FogColor;
 uniform int screenWidth;
 uniform int screenHeight;
 
-in vec3 rotatedNormal;
-
+in vec3 normalViewSpace;
+in vec3 upViewSpace;
 out vec4 fragColor;
 
 vec4 linear_fog(vec4 inColor, float vertexHeight, vec4 fogColor) {
@@ -22,6 +22,14 @@ void main() {
     vec2 uv = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
     vec4 planetframe = texture(planetTexture, uv);
 
-    vec4 color = Color + planetframe;
-    fragColor = color / (1+color);
+    float distanceFactor = max(0,dot(normalize(upViewSpace), -normalize(normalViewSpace)));
+    distanceFactor = pow(distanceFactor, 0.25);
+    vec4 color = Color * (distanceFactor) + FogColor * (1-distanceFactor);
+
+    color = color + planetframe;
+
+    vec4 toneMap = color / (1+color);
+    vec4 gammaCorrected = pow(color, vec4(1.0/2.2));
+    fragColor = gammaCorrected;
+    //fragColor = planetframe;
 }

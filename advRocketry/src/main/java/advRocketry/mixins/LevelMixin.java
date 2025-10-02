@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ClientLevel.class)
 public abstract class LevelMixin {
 
+    // it appears only getSkyDarken needs to be modified because it is used in terrain render
+
     @Inject(method = "getSkyDarken", at = @At("HEAD"), cancellable = true)
     public void getSkyDarken(float partialTick, CallbackInfoReturnable<Float> cir) {
         Level level = (Level)(Object)this;
@@ -28,9 +30,9 @@ public abstract class LevelMixin {
         DimensionProperties lightSourceProps = DimensionManager.INSTANCE.dimensions.get(myProps.lightSourceDimensionId);
         if (lightSourceProps == null) return;
 
-        double astronomicalBrightness = CelestialUtils.getSurfaceDotToPlanet(
+        double astronomicalBrightness = Math.max(0,CelestialUtils.getSurfaceDotToPlanet(
                 myProps, lightSourceProps,partialTick
-        );
+        ));
 
         astronomicalBrightness *= 1.0F - level.getRainLevel(partialTick) * 5.0F / 16.0F;
         astronomicalBrightness *= 1.0F - level.getThunderLevel(partialTick) * 5.0F / 16.0F;

@@ -12,8 +12,8 @@ uniform vec3 Light0_Vector;
 
 out vec2 texcoord;
 
-out vec3 rotatedNormal;
-out vec3 Light0_Vector_transformed;
+out vec3 normalViewSpace;
+out vec3 Light0_Vector_ViewSpace;
 
 vec4 mix_light(vec3 lightDir0, vec3 normal, vec4 color) {
     float light0 = max(0.0, dot(lightDir0, normal));
@@ -21,13 +21,13 @@ vec4 mix_light(vec3 lightDir0, vec3 normal, vec4 color) {
 }
 
 void main() {
-    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+    gl_Position = ProjMat * skyViewMat * ModelViewMat * vec4(Position, 1.0);
 
     // Compute the normal matrix (upper-left 3x3 inverse transpose)
-    mat3 normalMatrix = transpose(inverse(mat3(ModelViewMat)));
-    rotatedNormal = normalize(normalMatrix * Normal);
+    mat3 normalMatrix = transpose(inverse(mat3(skyViewMat * ModelViewMat)));
+    normalViewSpace = normalize(normalMatrix * Normal);
 
-    Light0_Vector_transformed = (skyViewMat * vec4(Light0_Vector, 0.0)).xyz;
+    Light0_Vector_ViewSpace = (skyViewMat * vec4(Light0_Vector, 0.0)).xyz;
 
     texcoord = UV0;
 }

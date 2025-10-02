@@ -33,9 +33,9 @@ public class skyrenderer {
     // can modify fog color
     public static void computeFogColor( ViewportEvent.ComputeFogColor event) {
         Vector3f color =  DimensionManager.INSTANCE.dimensions.get(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")).getFogColor();
-        event.setBlue(color.x);
+        event.setRed(color.x);
         event.setGreen(color.y);
-        event.setRed(color.z);
+        event.setBlue(color.z);
     }
 
     VertexBuffer vertexBufferSkyBox;
@@ -108,7 +108,7 @@ public class skyrenderer {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
-        // Render skybox first
+        // TODO when i increase y it should slowly go out of atmosphere, task for shader...
         Vector3f atmColor = myPlanet.getAtmosphereColor();
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         ShaderInstance shader = RenderSystem.getShader();
@@ -167,15 +167,12 @@ public class skyrenderer {
             double scale = planet.size / distance * 10;
             planetModelMatrix.scale((float) scale);
 
-            Matrix4f modelViewMatrix = new Matrix4f(skyViewMatrix).mul(planetModelMatrix);
-
-
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(planet.texture).setFilter(true, true);
             RenderSystem.setShaderTexture(0, planet.texture);
             ShaderInstance shader = RenderSystem.getShader();
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelViewMatrix, proj, Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, planetModelMatrix, proj, Minecraft.getInstance().getWindow());
 
             // for now use the main star, later use the 3 or 4 brightest stars here
             DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
@@ -224,7 +221,7 @@ public class skyrenderer {
         CelestialUtils.AxisDirections myGlobalAxis = CelestialUtils.getGlobalAxisDirections(myPlanet, (float) partialtick);
 
         // Create the base orientation for our skybox using the planet's axes.
-        // This matrix transforms world coordinates into our tilted planet's reference frame.
+        // This matrix transforms global space coordinates into our local tilted planet's reference frame.
         Matrix4f planetOrientationMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
                 myGlobalAxis.north.toVector3f(),
@@ -233,6 +230,11 @@ public class skyrenderer {
 
         Matrix4f skyViewMatrix =  new Matrix4f(view).mul(planetOrientationMatrix);
 
+
+        // TODO maybe use this for planet rendering?
+        float fovy = 2f * (float)Math.atan(1.0f / proj.get(1,1));
+        float aspect = proj.get(1,1) / proj.get(0,0);
+        Matrix4f newProj = new Matrix4f().perspective(fovy, aspect, 1, 100000);
 
         // adjust frame buffer size for render
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
@@ -248,7 +250,7 @@ public class skyrenderer {
         // Clear with transparent black
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSpaceBodies(poseStack, proj, skyViewMatrix, partialtick);
+        renderSpaceBodies(poseStack, proj, skyViewMatrix, partialtick); // use skyView because it is relative to universe 0,0,0
 
         if(atmosphereRenderTarget.width != windowWidth || atmosphereRenderTarget.height != windowHeight * 2 ){
             if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
@@ -260,7 +262,7 @@ public class skyrenderer {
         // Clear with transparent black
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSkyBox(proj, skyViewMatrix);
+        renderSkyBox(proj, view); // use normal view in skybox because it is relative to player
 
 
         // Switch back to main render target

@@ -89,13 +89,16 @@ public class DimensionProperties {
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(mass, parent.mass, orbitalDistanceToParent);
             double orbitAngleDegrees = (DimensionManager.getGlobalTime() % ticksPerOrbit) * (360.0 / ticksPerOrbit);
 
-            if (true) { // debug / testing
+            if (false) { // debug / testing
                 orbitAngleDegrees = 0;
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
                     orbitAngleDegrees = 120;
                 }
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))) {
-                    orbitAngleDegrees = 20;
+                    orbitAngleDegrees = 90;
+                }
+                if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon3"))) {
+                    orbitAngleDegrees = 180;
                 }
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
                     orbitAngleDegrees = 0;
@@ -132,14 +135,16 @@ public class DimensionProperties {
     }
 
     public Vector3f getAtmosphereColor() {
-        float brightnessMultiplier = (float) (2 * (0.5 - Minecraft.getInstance().level.getStarBrightness(0)));
-        Vec3 minecraftColor = Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(), 0);
-        //return new Vector3f(skyColor.x * brightnessMultiplier, skyColor.y * brightnessMultiplier, skyColor.z * brightnessMultiplier);
-        return minecraftColor.toVector3f();
+        float brightnessMultiplier =        Minecraft.getInstance().level.getSkyDarken(0);
+        return new Vector3f(skyColor.x * brightnessMultiplier, skyColor.y * brightnessMultiplier, skyColor.z * brightnessMultiplier);
+
+        // TODO: make the mixin for the minecraft defaul method and use default method or make a custom copy to adjust for lightning and biome color
+        // Vec3 minecraftColor = Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(), 0);
+        //return minecraftColor.toVector3f();
     }
 
     public Vector3f getFogColor() {
-        float brightnessMultiplier = (float) (2 * (0.5 - Minecraft.getInstance().level.getStarBrightness(0)));
+        float brightnessMultiplier =        Minecraft.getInstance().level.getSkyDarken(0);
         return new Vector3f(fogColor.x * brightnessMultiplier, fogColor.y * brightnessMultiplier, fogColor.z * brightnessMultiplier);
     }
 
