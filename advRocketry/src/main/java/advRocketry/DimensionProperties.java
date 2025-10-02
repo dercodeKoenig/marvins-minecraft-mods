@@ -98,7 +98,7 @@ public class DimensionProperties {
                     orbitAngleDegrees = 40;
                 }
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-                    orbitAngleDegrees = 270;
+                    orbitAngleDegrees = 0;
                 }
             }
 
