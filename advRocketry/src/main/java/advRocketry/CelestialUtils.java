@@ -1,9 +1,7 @@
 package advRocketry;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
-
-import java.util.Locale;
 
 /**
  * A utility class for celestial mechanics calculations, specifically for converting
@@ -28,20 +26,64 @@ public class CelestialUtils {
         return term1.add(term2).add(term3);
     }
 
+    public static class AxisDirections {
+        public AxisDirections(Vec3 north, Vec3 east, Vec3 up){
+            this.north = north;
+            this.up = up;
+            this.east = east;
+        }
+        Vec3 north;
+        Vec3 east;
+        Vec3 up;
+    }
+    public static AxisDirections getGlobalAxisDirections(DimensionProperties myPlanet, float partialTick){
+        // 1. Pick the correct perpendicular vector to axis
+        Vec3 equatorRef = myPlanet.getEquatorReference(partialTick);
+
+        Vec3 rotationAxis = myPlanet.rotationAxis;
+
+        // 2. Rotate the equatorRef by raw self-rotation
+        Vec3 rotatedEquator = CelestialUtils.rotate(equatorRef, rotationAxis, myPlanet.getRotationAngle(partialTick));
+
+        // 3. Get east vector
+        Vec3 east = rotationAxis.cross(equatorRef).normalize();
+
+        // 4 rotate equator reference around east by latitude
+        double lat = myPlanet.getLatitude();
+        Vec3 localUp = CelestialUtils.rotate(rotatedEquator, east, lat).normalize();
+
+        // 5 calculate new north
+        Vec3 north = localUp.cross(east).normalize();
+
+        return new AxisDirections(north, east, localUp);
+    }
+
+    public static float getSunAltitudeDegrees(DimensionProperties myPlanet, DimensionProperties lightSource, float partialTick) {
+        double altitude = Math.asin(getSurfaceDotToPlanet(myPlanet, lightSource, partialTick));
+        return (float) Math.toDegrees(altitude);
+    }
+
+    public static double getSurfaceDotToPlanet(DimensionProperties myPlanet, DimensionProperties targetPlanet, float partialTick){
+        Vec3 localUp = getGlobalAxisDirections(myPlanet, partialTick).up;
+        // 5 Dot with star direction to get altitude
+        Vec3 targetDirection = targetPlanet.getPosition(partialTick).subtract(myPlanet.getPosition(partialTick)).normalize();
+        return localUp.dot(targetDirection);
+    }
+
     // --- Other physics calculations ---
     public static final double G = 1;
 
-    public static double getRealDistanceFromValue(double value){
+    public static double getRealDistanceFromValue(double value) {
         return value / 100f * 1.496 * Math.pow(10, 11);
     }
 
-    public static double getRealMassFromValue(double value){
+    public static double getRealMassFromValue(double value) {
         double massEarth = 5.972 * Math.pow(10, 24);
         return value / 100f * massEarth;
     }
 
     public static double calculateOrbitalPeriodTicks(double mass1, double mass2, double distance) {
-        double combinedMass = getRealMassFromValue(mass1)  + getRealDistanceFromValue(mass2);
+        double combinedMass = getRealMassFromValue(mass1) + getRealDistanceFromValue(mass2);
         return 2 * Math.PI * Math.sqrt(Math.pow(getRealDistanceFromValue(distance), 3) / (G * combinedMass)) * 20;
     }
 }

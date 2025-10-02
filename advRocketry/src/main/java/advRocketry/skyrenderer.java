@@ -106,33 +106,13 @@ public class skyrenderer {
         this.planetRenderTarget = new TextureTarget(1000, 1000, true, Minecraft.ON_OSX);
     }
 
-    public void renderSkyBox(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
-        if (!finishedLoading) return;
-
-
-        // Save current viewport dimensions
-        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
-        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
-
-        if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
-            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
-                planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
-                System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
-            }
-        }
-
-
-        ShaderInstance shader;
-
-        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
-
+    public void drawSkyBox(DimensionProperties myPlanet, Matrix4f proj, Matrix4f view, double partialtick){
         NO_CULL.setupRenderState();
 
         // Render skybox first
         Vector3f atmColor = myPlanet.getAtmosphereColor();
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
-        shader = RenderSystem.getShader();
+        ShaderInstance shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, view, proj, Minecraft.getInstance().getWindow());
         Uniform color = shader.getUniform("Color");
         color.set(atmColor.x, atmColor.y, atmColor.z, 1f);
@@ -144,39 +124,36 @@ public class skyrenderer {
         VertexBuffer.unbind();
 
         NO_CULL.clearRenderState();
+    }
 
-        double lat = myPlanet.getLatitude();
+    public void renderSpaceBodies(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick){
 
-        // Calculate observer's view matrix
-        Matrix4f tiltMatrix = new Matrix4f();
-        Vec3 mymodelUp = new Vec3(0, 1, 0);
-        Vec3 mytargetNorth = myPlanet.rotationAxis.normalize();
-        Vec3 myrotAxis = mymodelUp.cross(mytargetNorth);
-        if (myrotAxis.length() > 1e-9) {
-            double myrotAngleRad = Math.asin(myrotAxis.length());
-            tiltMatrix.rotate(new Quaternionf().fromAxisAngleRad(myrotAxis.toVector3f(), (float) myrotAngleRad));
-        } else if (mymodelUp.dot(mytargetNorth) < 0) {
-            tiltMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
+        // adjust frame buffer size for render
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+
+        if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
+            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
+                planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
+                System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
+            }
         }
+        // adjust frame buffer size for render end
 
-        double latRad = Math.toRadians(lat);
-        double myPlanetRotation = myPlanet.getSelfRotationDegrees(partialtick);
-        double lonRad = Math.toRadians(-myPlanetRotation);
 
-        Vec3 localUp = new Vec3(Math.cos(latRad) * Math.cos(lonRad), Math.sin(latRad), Math.cos(latRad) * Math.sin(lonRad));
-        Vec3 localForward = new Vec3(-Math.sin(latRad) * Math.cos(lonRad), Math.cos(latRad), -Math.sin(latRad) * Math.sin(lonRad));
 
-        Vector4f upWorld4 = tiltMatrix.transform(new Vector4f((float) localUp.x, (float) localUp.y, (float) localUp.z, 0.0f));
-        Vector4f forwardWorld4 = tiltMatrix.transform(new Vector4f((float) localForward.x, (float) localForward.y, (float) localForward.z, 0.0f));
+        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
+        DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
+        Vec3 myPlanetPosition = myPlanet.getPosition((float)partialtick);
 
-        Vec3 observerUpWorld = new Vec3(upWorld4.x, upWorld4.y, upWorld4.z).normalize();
-        Vec3 observerForwardWorld = new Vec3(forwardWorld4.x, forwardWorld4.y, forwardWorld4.z).normalize();
+        CelestialUtils.AxisDirections myGlobalAxis = CelestialUtils.getGlobalAxisDirections(myPlanet, (float) partialtick);
 
         Matrix4f observerViewMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
-                observerForwardWorld.toVector3f(),
-                observerUpWorld.toVector3f()
+                myGlobalAxis.east.toVector3f(),
+                myGlobalAxis.up.toVector3f()
         );
+
 
         // Bind FBO for planet rendering
         this.planetRenderTarget.bindWrite(true);
@@ -196,7 +173,9 @@ public class skyrenderer {
 
             Matrix4f planetModelMatrix = new Matrix4f();
 
-            Vec3 relativePos = planet.position.subtract(myPlanet.position).normalize().scale(200.0f);
+            Vec3 planetPosition = planet.getPosition((float)partialtick);
+
+            Vec3 relativePos = planetPosition.subtract(myPlanetPosition).normalize().scale(200.0f);
             planetModelMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
             Vec3 modelUp = new Vec3(0, 1, 0);
@@ -208,9 +187,9 @@ public class skyrenderer {
             } else if (modelUp.dot(targetNorth) < 0) {
                 planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
             }
-            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.getSelfRotationDegrees(partialtick)));
+            planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planet.getRotationAngle((float)partialtick)));
 
-            double distance = myPlanet.position.distanceTo(planet.position);
+            double distance = myPlanetPosition.distanceTo(planetPosition);
             double scale = planet.size / distance * 10;
             planetModelMatrix.scale((float) scale);
 
@@ -222,12 +201,12 @@ public class skyrenderer {
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(planet.texture).setFilter(true, true);
             RenderSystem.setShaderTexture(0, planet.texture);
-            shader = RenderSystem.getShader();
+            ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelViewMatrix, proj, Minecraft.getInstance().getWindow());
 
             DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
             if (star != null) {
-                Vec3 lightWorld = star.position.subtract(planet.position);
+                Vec3 lightWorld = star.getPosition((float)partialtick).subtract(planetPosition);
                 Matrix4f finalViewMatrix = new Matrix4f(view).mul(observerViewMatrix);
                 Vector4f lightView4 = new Vector4f((float) lightWorld.x, (float) lightWorld.y, (float) lightWorld.z, 0.0f);
                 finalViewMatrix.transform(lightView4);
@@ -269,10 +248,17 @@ public class skyrenderer {
         this.planetRenderTarget.blitToScreen(windowWidth, windowHeight, false);
 
         TRANSLUCENT_TRANSPARENCY.clearRenderState();
+    }
+
+    public void renderSky(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
+        if (!finishedLoading) return;
+
+        renderSky(poseStack, proj, view, partialtick);
+
+        renderSpaceBodies(poseStack, proj, view, partialtick);
+
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
-
-
     }
 }

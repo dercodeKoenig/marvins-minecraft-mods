@@ -42,7 +42,7 @@ public static final String MODID ="adv_rocketry";
         Matrix4f proj = event.getProjectionMatrix();
         Matrix4f view = event.getModelViewMatrix();
 
-        skyrenderer.INSTANCE.renderSkyBox(poseStack,proj,view,event.getPartialTick().getGameTimeDeltaPartialTick(false));
+        skyrenderer.INSTANCE.renderSky(poseStack,proj,view,event.getPartialTick().getGameTimeDeltaPartialTick(false));
     }
 
     private void loadShaders(RegisterShadersEvent event){

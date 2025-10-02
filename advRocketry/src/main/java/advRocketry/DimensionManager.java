@@ -1,38 +1,60 @@
 package advRocketry;
 
-import net.minecraft.client.Minecraft;
+import ARLib.network.SimpleNetworkPacket;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.HashMap;
 
-public class DimensionManager {
+public class DimensionManager{
     public static DimensionManager INSTANCE = new DimensionManager();
+    public static DimensionProperties get(ResourceLocation key){
+        return INSTANCE.dimensions.get(key);
+    }
+    public static long getGlobalTime() {
+        if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
+            return INSTANCE.universalTimeServer;
+        }else{
+            return INSTANCE.universalTimeClient;
+        }
+    }
 
     public HashMap<ResourceLocation, DimensionProperties> dimensions = new HashMap<>();
+    public long universalTimeServer = 0;
+    public long universalTimeClient = 0; // should be synced to client by server
 
     public DimensionManager(){
         registerDimensions();
+        SimpleNetworkPacket.registerReceiver(TimeSync.PACKAGE_ID_SYNCTIME, new TimeSync());
     }
-
 
     public void serverTick(ServerTickEvent.Post event){
         for(DimensionProperties i : dimensions.values()){
             i.serverTick(event);
+        }
+        universalTimeServer += 1;
+        if(universalTimeServer % 200 == 0){
+            PacketDistributor.sendToAllPlayers(new SimpleNetworkPacket(TimeSync.PACKAGE_ID_SYNCTIME,String.valueOf(universalTimeServer)));
         }
     }
     public void clientTick(ClientTickEvent.Post event){
         for(DimensionProperties i : dimensions.values()){
             i.clientTick(event);
         }
+        universalTimeClient += 1;
     }
 
     public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
@@ -86,4 +108,14 @@ public class DimensionManager {
         dimensions.put(moon2.dimensionId,moon2);
 
     }
+
+    public class TimeSync implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+        public static String PACKAGE_ID_SYNCTIME = "DimensionManager_TimeSync";
+        @Override
+        public void readClient(String data) {
+            universalTimeClient = Long.parseLong(data);
+            System.out.println("client sync gametime:"+universalTimeClient);
+        }
+    }
+
 }
