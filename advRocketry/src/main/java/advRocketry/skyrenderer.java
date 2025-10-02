@@ -111,7 +111,8 @@ public class skyrenderer {
 
 
         Matrix4f atmMatrix = new Matrix4f(view);
-        atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance());
+        atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance()); // this prevents bobbing by zooming out
+
         // TODO when i increase y it should slowly go out of atmosphere, task for shader...
         Vector3f atmColor = myPlanet.getAtmosphereColor();
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
