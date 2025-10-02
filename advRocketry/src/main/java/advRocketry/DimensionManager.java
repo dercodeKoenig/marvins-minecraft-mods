@@ -69,7 +69,7 @@ public class DimensionManager{
         sun.size = 200;
         sun.rotationAxis = new Vec3(0,1,0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
-        sun.emissiveColor = new Vector4f(0.8f,0.8f,0.8f, 1f);
+        sun.emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 10000f * 2);
         sun.reflectivity = 0f;
         dimensions.put(sun.dimensionId, sun);
 

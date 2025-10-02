@@ -131,20 +131,6 @@ public class skyrenderer {
 
     public void renderSpaceBodies(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick){
 
-        // adjust frame buffer size for render
-        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
-        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
-
-        if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
-            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
-                planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
-                System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
-            }
-        }
-        // adjust frame buffer size for render end
-
-
-
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
         Vec3 myPlanetPosition = myPlanet.getPosition((float)partialtick);
@@ -161,19 +147,7 @@ public class skyrenderer {
         // You might also want to try looking at myGlobalAxis.north instead of east, depending on your desired base orientation.
 
         Matrix4f finalSkyViewMatrix =  new Matrix4f(view).mul(planetOrientationMatrix);
-        //System.out.println("planetOrientation: "+planetOrientationMatrix);
-        //System.out.println("view: "+view);
-        //System.out.println("final: "+finalSkyViewMatrix);
 
-
-        //System.out.println(myGlobalAxis.up);
-
-        // Bind FBO for planet rendering
-        this.planetRenderTarget.bindWrite(true);
-
-        // Clear with transparent black
-        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
 
         // Setup render states for planets
         LEQUAL_DEPTH_TEST.setupRenderState();
@@ -188,6 +162,7 @@ public class skyrenderer {
 
             Vec3 planetPosition = planet.getPosition((float)partialtick);
 
+            // TODO: make this in real coordinates and setup custom new/far plane to support depth between planets
             Vec3 relativePos = planetPosition.subtract(myPlanetPosition).normalize().scale(200.0f);
             planetModelMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
@@ -218,16 +193,13 @@ public class skyrenderer {
             ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelViewMatrix, proj, Minecraft.getInstance().getWindow());
 
+            // for now use the main star, later use the 3 or 4 brightest stars here
             DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
             if (star != null) {
-                Vec3 lightWorld = star.getPosition((float)partialtick).subtract(planetPosition);
-                Matrix4f finalViewMatrix = new Matrix4f(finalSkyViewMatrix);
-                Vector4f lightView4 = new Vector4f((float) lightWorld.x, (float) lightWorld.y, (float) lightWorld.z, 0.0f);
-                finalViewMatrix.transform(lightView4);
-                Vec3 lightView = new Vec3(lightView4.x(), lightView4.y(), lightView4.z()).normalize();
-                if (shader.LIGHT0_DIRECTION != null) {
-                    shader.LIGHT0_DIRECTION.set((float) lightView.x, (float) lightView.y, (float) lightView.z);
-                }
+                Vec3 Star0_Pos = star.getPosition((float)partialtick);
+                Vec3 Light0_Vector = planetPosition.subtract(Star0_Pos);
+                shader.getUniform("Light0_Vector").set((float) Light0_Vector.x, (float) Light0_Vector.y, (float) Light0_Vector.z);
+                shader.getUniform("Light0_Color").set(star.emissiveColor.x,star.emissiveColor.y,star.emissiveColor.z,star.emissiveColor.w);
             }
 
             Uniform reflectivity = shader.getUniform("reflectivity");
@@ -242,18 +214,44 @@ public class skyrenderer {
             shader.clear();
         }
 
-
-        VertexBuffer.unbind();
-
         // Clean up render states
         LEQUAL_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
 
+        VertexBuffer.unbind();
+    }
+
+    public void renderSky(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
+        if (!finishedLoading) return;
+
+        // adjust frame buffer size for render
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+
+        if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
+            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
+                planetRenderTarget.resize(windowWidth*2, windowHeight*2, true);
+                System.out.println("planet render framebuffer resized to " + planetRenderTarget.width+":"+planetRenderTarget.height);
+            }
+        }
+        // adjust frame buffer size for render end
+
+
+
+        //renderSkyBox(proj, view);
+
+
+        // Bind FBO for planet rendering
+        this.planetRenderTarget.bindWrite(true);
+
+        // Clear with transparent black
+        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+
+        renderSpaceBodies(poseStack, proj, view, partialtick);
+
         // Switch back to main render target
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-
-        // Restore the viewport to the window dimensions
-        RenderSystem.viewport(0, 0, windowWidth, windowHeight);
 
         // Enable blending for compositing
         TRANSLUCENT_TRANSPARENCY.setupRenderState();
@@ -262,15 +260,6 @@ public class skyrenderer {
         this.planetRenderTarget.blitToScreen(windowWidth, windowHeight, false);
 
         TRANSLUCENT_TRANSPARENCY.clearRenderState();
-    }
-
-    public void renderSky(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
-        if (!finishedLoading) return;
-
-        renderSkyBox(proj, view);
-
-        renderSpaceBodies(poseStack, proj, view, partialtick);
-
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);

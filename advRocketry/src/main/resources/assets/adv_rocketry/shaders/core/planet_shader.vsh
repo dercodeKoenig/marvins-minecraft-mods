@@ -1,18 +1,18 @@
 #version 150
 
 in vec3 Position;
-in vec2 UV0;
 in vec3 Normal;
+in vec2 UV0;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
 
-uniform vec3 Light0_Direction;
+uniform vec3 Light0_Vector;
 
-out vec4 vertexColor;
-out vec2 texCoord0;
+out vec2 texcoord;
 
 out vec3 rotatedNormal;
+out vec3 Light0_Vector_transformed;
 
 vec4 mix_light(vec3 lightDir0, vec3 normal, vec4 color) {
     float light0 = max(0.0, dot(lightDir0, normal));
@@ -26,6 +26,7 @@ void main() {
     mat3 normalMatrix = transpose(inverse(mat3(ModelViewMat)));
     rotatedNormal = normalize(normalMatrix * Normal);
 
-    vertexColor = mix_light(Light0_Direction, rotatedNormal, vec4(1,1,1,1));
-    texCoord0 = UV0;
+    Light0_Vector_transformed = (ModelViewMat * vec4(Light0_Vector, 0.0)).xyz;
+
+    texcoord = UV0;
 }

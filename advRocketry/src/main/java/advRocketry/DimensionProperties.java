@@ -18,27 +18,27 @@ import org.joml.Vector4f;
 public class DimensionProperties {
 
     public ResourceLocation dimensionId = null;             // required
-    public double size = 100;                               // optional with default
-    public double mass = 100;                               // optional with default
-    private Vec3 position = new Vec3(0, 0, 0);       // optional with default
-    public Vec3 rotationAxis = new Vec3(0, 1, 0);   // optional with default
-    public int targetDayLength = 24000;                     // optional with default
+    public double size = 100;
+    public double mass = 100;
+    private Vec3 position = new Vec3(0, 0, 0);
+    public Vec3 rotationAxis = new Vec3(0, 1, 0);
+    public int targetDayLength = 24000;
 
     public ResourceLocation parentDimensionId = null;       // optional, overwrites position
-    public Vec3 orbitAxis = new Vec3(0, 1, 0);      // optional with default
-    public double orbitalDistanceToParent = 100;            // optional with default
+    public Vec3 orbitAxis = new Vec3(0, 1, 0);
+    public double orbitalDistanceToParent = 100;
 
     public ResourceLocation lightSourceDimensionId = null;  // required (reference for day start)
 
     public ResourceLocation texture = null;                 // required (planet texture)
 
-    public Vector3f skyColor = new Vector3f(0.471f, 0.655f, 1.0f);  // optional with default
-    public Vector3f fogColor = new Vector3f(0.8f, 0.98f, 1.0f);     // optional with default
-    public float reflectivity = 1f;                                         // optional with default
-    public Vector4f emissiveColor = new Vector4f(0, 0, 0, 0);    // optional with default
-    public float atmosphereDensity = 1;                                     // optional with default
+    public Vector3f skyColor = new Vector3f(0.471f, 0.655f, 1.0f);
+    public Vector3f fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
+    public Vector4f emissiveColor = new Vector4f(0, 0, 0, 0);
+    public float reflectivity = 1f;
+    public float atmosphereDensity = 1;
 
-    public int latitude_len = 200000;                                        // optional with default, how much you have to move in z direction to "go around the planet"
+    public int latitude_len = 200000;                                        // how much you have to move in z direction to "go around the planet"
 
     public float dayTime;
 
