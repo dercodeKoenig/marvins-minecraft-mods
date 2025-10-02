@@ -22,5 +22,6 @@ void main() {
     vec2 uv = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
     vec4 planetframe = texture(planetTexture, uv);
 
-    fragColor = Color + planetframe;
+    vec4 color = Color + planetframe;
+    fragColor = color / (1+color);
 }

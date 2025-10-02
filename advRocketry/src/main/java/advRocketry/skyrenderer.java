@@ -262,7 +262,7 @@ public class skyrenderer {
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
 
         // Blit the planet texture onto the screen, no blending, overwrite whatever exists (nothing exists)
-        this.planetRenderTarget.blitToScreen(windowWidth, windowHeight, true);
+        this.atmosphereRenderTarget.blitToScreen(windowWidth, windowHeight, true);
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
