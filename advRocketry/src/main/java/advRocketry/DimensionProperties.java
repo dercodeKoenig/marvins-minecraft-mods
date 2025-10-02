@@ -50,7 +50,7 @@ public class DimensionProperties {
         // use main light source as reference for day start
         DimensionProperties mainLightSource = DimensionManager.get(lightSourceDimensionId);
         Vec3 lightToPlanet = getPosition(partialTick).subtract(mainLightSource.getPosition(partialTick));
-        Vec3 equatorReference = lightToPlanet.cross(rotationAxis);
+        Vec3 equatorReference = lightToPlanet.cross(rotationAxis).scale(-1);
         return equatorReference;
     }
 

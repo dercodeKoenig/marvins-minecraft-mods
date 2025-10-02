@@ -155,7 +155,7 @@ public class skyrenderer {
         // This matrix transforms world coordinates into our tilted planet's reference frame.
         Matrix4f planetOrientationMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
-                myGlobalAxis.east.toVector3f(), // Look direction
+                myGlobalAxis.north.toVector3f(),
                 myGlobalAxis.up.toVector3f()    // Up direction
         );
         // You might also want to try looking at myGlobalAxis.north instead of east, depending on your desired base orientation.
