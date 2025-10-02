@@ -152,7 +152,7 @@ public class DimensionProperties {
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
             //currentGameTime = 6000;
             skyColor = new Vector3f(0.5f, 0.5f, 1);
-            fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
+            fogColor = new Vector3f(0.8f, 0.98f, 1.0f).mul(0.8f);
         }
     }
 

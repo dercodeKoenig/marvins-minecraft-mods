@@ -108,12 +108,16 @@ public class skyrenderer {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
+
+
+        Matrix4f atmMatrix = new Matrix4f(view);
+        atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance());
         // TODO when i increase y it should slowly go out of atmosphere, task for shader...
         Vector3f atmColor = myPlanet.getAtmosphereColor();
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         ShaderInstance shader = RenderSystem.getShader();
         shader.setSampler("planetTexture", planetRenderTarget.getColorTextureId());
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, view, proj, Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, atmMatrix, proj, Minecraft.getInstance().getWindow());
         Uniform color = shader.getUniform("Color");
         color.set(atmColor.x, atmColor.y, atmColor.z, 1f);
         shader.getUniform("screenWidth").set(atmosphereRenderTarget.width);
