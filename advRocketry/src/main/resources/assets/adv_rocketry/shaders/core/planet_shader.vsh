@@ -5,6 +5,7 @@ in vec3 Normal;
 in vec2 UV0;
 
 uniform mat4 ModelViewMat;
+uniform mat4 skyViewMat;
 uniform mat4 ProjMat;
 
 uniform vec3 Light0_Vector;
@@ -26,7 +27,7 @@ void main() {
     mat3 normalMatrix = transpose(inverse(mat3(ModelViewMat)));
     rotatedNormal = normalize(normalMatrix * Normal);
 
-    Light0_Vector_transformed = (ModelViewMat * vec4(Light0_Vector, 0.0)).xyz;
+    Light0_Vector_transformed = (skyViewMat * vec4(Light0_Vector, 0.0)).xyz;
 
     texcoord = UV0;
 }

@@ -1,18 +1,17 @@
 #version 150
 
 in vec3 Position;
+in vec3 Normal;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
 
-uniform vec3 Light0_Direction;
-
-out float vertexHeight;
+out vec3 rotatedNormal;
 
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
 
-    vec4 viewPos = ModelViewMat * vec4(Position, 1.0);
-    vertexHeight = Position.y;
+    mat3 normalMatrix = transpose(inverse(mat3(ModelViewMat)));
+    rotatedNormal = normalize(normalMatrix * Normal);
 
 }

@@ -1,8 +1,14 @@
 #version 150
 
+uniform sampler2D planetTexture; // rendered planets / stars
+
 uniform vec4 Color;
 uniform vec4 FogColor;
-in float vertexHeight;
+uniform int screenWidth;
+uniform int screenHeight;
+
+in vec3 rotatedNormal;
+
 out vec4 fragColor;
 
 vec4 linear_fog(vec4 inColor, float vertexHeight, vec4 fogColor) {
@@ -11,6 +17,10 @@ vec4 linear_fog(vec4 inColor, float vertexHeight, vec4 fogColor) {
 }
 
 void main() {
-    fragColor = linear_fog(Color, clamp(vertexHeight, 0,1), FogColor);
-    //fragColor = vec4(vertexPosition.x,vertexPosition.y,vertexPosition.z,1);
+    //fragColor = linear_fog(Color, clamp(vertexHeight, 0,1), FogColor);
+
+    vec2 uv = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
+    vec4 planetframe = texture(planetTexture, uv);
+
+    fragColor = Color + planetframe;
 }
