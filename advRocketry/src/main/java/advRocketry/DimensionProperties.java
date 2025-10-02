@@ -23,7 +23,6 @@ public class DimensionProperties {
     private Vec3 position = new Vec3(0, 0, 0);       // optional with default
     public Vec3 rotationAxis = new Vec3(0, 1, 0);   // optional with default
     public int targetDayLength = 24000;                     // optional with default
-    public float dayTime;
 
     public ResourceLocation parentDimensionId = null;       // optional, overwrites position
     public Vec3 orbitAxis = new Vec3(0, 1, 0);      // optional with default
@@ -41,6 +40,8 @@ public class DimensionProperties {
 
     public int latitude_len = 200000;                                        // optional with default, how much you have to move in z direction to "go around the planet"
 
+    public float dayTime;
+
 
     public DimensionProperties(ResourceLocation dimensionId) {
         this.dimensionId = dimensionId;
@@ -57,8 +58,10 @@ public class DimensionProperties {
     @OnlyIn(Dist.CLIENT)
     public float getLatitude() {
         if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
-            return 0; // server uses always equator
+            // server uses always equator
+            return 0;
         }
+        // player uses latitude based on location on planet
         Player p = Minecraft.getInstance().player;
         double z = p.position().z;
         double s = z / latitude_len;
@@ -66,12 +69,12 @@ public class DimensionProperties {
         return lat;
     }
 
-    public float getDayTimeDeltaPerTick() {
+    public float getDayTimePerTick() {
         return (float) Level.TICKS_PER_DAY / targetDayLength;
     }
 
     public double getRotationAngle(float partialTick) {
-        double actualDayTime = dayTime + getDayTimeDeltaPerTick() * partialTick;
+        double actualDayTime = dayTime + getDayTimePerTick() * partialTick;
         double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
         return rotation;
     }
@@ -148,34 +151,28 @@ public class DimensionProperties {
         }
     }
 
-    // TODO: split every variable in server and client variable, use a special client tick to adjust client variables.
-    // otherwise it shares variables between server and client thread and this will cause problems
-
-
-    public void keepDayTimeSync(Level level) {
-        if (level != null) {
-            level.setDayTimePerTick(getDayTimeDeltaPerTick());
-            float mcDayTime = level.getDayTime() + level.getDayTimeFraction();
-            dayTime = mcDayTime;
-        } else {
-            dayTime += getDayTimeDeltaPerTick();
-            dayTime = dayTime % Level.TICKS_PER_DAY;
-        }
+    public void trackDayTimeNormal(){
+        dayTime += getDayTimePerTick();
+        dayTime = dayTime % Level.TICKS_PER_DAY;
     }
 
     public void clientTick(ClientTickEvent event) {
-        Level l = Minecraft.getInstance().level;
-        if (l != null && l.dimension().location().equals(dimensionId))
-            keepDayTimeSync(l);
-        else keepDayTimeSync(null);
-
+        Level level = Minecraft.getInstance().level;
+        if (level!=null && dimensionId.equals(level.dimension().location())){
+            dayTime =level.getDayTime();
+        }else{
+            trackDayTimeNormal();
+        }
         tick();
     }
 
     public void serverTick(ServerTickEvent event) {
         ServerLevel level = DimensionManager.getServerLevel(event.getServer(), dimensionId);
-        keepDayTimeSync(level);
-        ///  TODO: server has a master clock for orbit calculations and will sync this to client
-        //tick();
+        if (level != null) {
+            level.setDayTimePerTick(getDayTimePerTick());
+            dayTime = level.getDayTime();
+        }else{
+            trackDayTimeNormal();
+        }
     }
 }
