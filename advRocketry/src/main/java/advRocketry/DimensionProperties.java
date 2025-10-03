@@ -91,8 +91,7 @@ public class DimensionProperties {
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(earthMassMultiplier), fromEarthMasses(parent.earthMassMultiplier), fromAU(orbitalDistanceToParent));
             double orbitAngleDegrees = (DimensionManager.getGlobalTime() % ticksPerOrbit) * (360.0 / ticksPerOrbit);
 
-            //reflectivity = 0.3f;
-            if (true) { // debug / testing
+            if (false) { // debug / testing
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
                     orbitAngleDegrees = 60;
                 }
@@ -152,13 +151,10 @@ public class DimensionProperties {
 
     void tick() {
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            //currentGameTime = 6000;
-            skyColor = new Vector3f(0.5f, 0.5f, 1);
-            fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
+            //skyColor = new Vector3f(0.5f, 0.5f, 1);
+            //fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
         }
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            //currentGameTime = 6000;
-            emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 1f);
         }
     }
 
