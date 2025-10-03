@@ -14,6 +14,8 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.*;
+
 import static advRocketry.CelestialUtils.*;
 
 
@@ -45,6 +47,7 @@ public class DimensionProperties {
 
     public float dayTime;
 
+    public LinkedHashMap<ResourceLocation, Double> cachedLightSources = new LinkedHashMap<>();
 
     public DimensionProperties(ResourceLocation dimensionId) {
         this.dimensionId = dimensionId;
@@ -136,25 +139,9 @@ public class DimensionProperties {
         return position;
     }
 
-    public Vector3f getAtmosphereColor() {
-        float brightnessMultiplier =        (Minecraft.getInstance().level.getSkyDarken(0) - 0.2f) / 0.8f;
-        return new Vector3f(skyColor.x * brightnessMultiplier, skyColor.y * brightnessMultiplier, skyColor.z * brightnessMultiplier);
-
-        // TODO: make the mixin for the minecraft default method and use default method or make a custom copy to adjust for lightning and biome color
-        // Vec3 minecraftColor = Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(), 0);
-        //return minecraftColor.toVector3f();
-    }
-    public Vector3f getSunriseColor() {
-        float brightnessMultiplier = 1;
-        return new Vector3f(sunRiseColor.x * brightnessMultiplier, sunRiseColor.y * brightnessMultiplier, sunRiseColor.z * brightnessMultiplier);
-
-        // TODO: make the mixin for the minecraft defaul method and use default method or make a custom copy to adjust for lightning and biome color
-        // Vec3 minecraftColor = Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(), 0);
-        //return minecraftColor.toVector3f();
-    }
 
     public Vector3f getFogColor() {
-        float brightnessMultiplier =        Minecraft.getInstance().level.getSkyDarken(0);
+        float brightnessMultiplier = Minecraft.getInstance().level.getSkyDarken(0);
         return new Vector3f(fogColor.x * brightnessMultiplier, fogColor.y * brightnessMultiplier, fogColor.z * brightnessMultiplier);
     }
 
@@ -163,25 +150,36 @@ public class DimensionProperties {
             skyColor = new Vector3f(0.53f, 0.81f, 0.98f);
             fogColor = new Vector3f(0.8f, 0.95f, 1.0f);
             sunRiseColor = new Vector3f(1.0f, 0.81f, 0.5f);
-
         }
+
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
+            emissiveColor = new Vector4f(1,1,1f,1);
+            reflectivity = 0;
+        }
+        if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
+            //emissiveColor = new Vector4f(1,1,1f,1);
+            reflectivity = 0;
+        }
+        if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
+            //emissiveColor = new Vector4f(1,1,1f,1);
+            reflectivity = 0;
         }
     }
 
-    public void trackDayTimeNormal(){
+    public void trackDayTimeNormal() {
         dayTime += getDayTimePerTick();
         dayTime = dayTime % Level.TICKS_PER_DAY;
     }
 
     public void clientTick(ClientTickEvent event) {
         Level level = Minecraft.getInstance().level;
-        if (level!=null && dimensionId.equals(level.dimension().location())){
-            dayTime =level.getDayTime();
-        }else{
+        if (level != null && dimensionId.equals(level.dimension().location())) {
+            dayTime = level.getDayTime();
+        } else {
             trackDayTimeNormal();
         }
         tick();
+        updateCachedLightSourcesStep();
     }
 
     public void serverTick(ServerTickEvent event) {
@@ -189,8 +187,69 @@ public class DimensionProperties {
         if (level != null) {
             level.setDayTimePerTick(getDayTimePerTick());
             dayTime = level.getDayTime();
-        }else{
+        } else {
             trackDayTimeNormal();
+        }
+    }
+
+
+    private Iterator<DimensionProperties> dimIterator;
+    private final int MAX_LIGHTSOURCES = 2;
+
+    // updates the cached light sources that are considered for lighting calculations
+    // for simplicity, only self emitted light is considered. if a moon reflects a lot of light, this would be ignored.
+    public void updateCachedLightSourcesStep() {
+        if (dimIterator == null || !dimIterator.hasNext()) {
+            // Restart once we've gone through all dimensions
+            dimIterator = DimensionManager.INSTANCE.dimensions.values().iterator();
+        }
+
+        if (dimIterator.hasNext()) {
+            DimensionProperties props = dimIterator.next();
+            ResourceLocation id = props.dimensionId;
+
+            // skip if it is my id
+            if (id.equals(dimensionId)) {
+                return;
+            }
+
+            // Skip if it's already in the top list
+            if (cachedLightSources.containsKey(id)) {
+                return;
+            }
+
+            // skip if no color is emitted
+            double emissiveBrightness = props.emissiveColor.w;
+            if (emissiveBrightness <= 0) {
+                return;
+            }
+
+            Vec3 myPos = getPosition(0);
+            Vec3 targetPosition = props.getPosition(0);
+            double distance = myPos.distanceTo(targetPosition);
+            double brightness = emissiveBrightness / (distance * distance);
+
+            // If we still have room, just add it
+            if (cachedLightSources.size() < MAX_LIGHTSOURCES) {
+                cachedLightSources.put(id, brightness);
+            } else {
+                // Find the dimmest currently stored and maybe replace it
+                ResourceLocation weakestId = null;
+                double weakestBrightness = Double.MAX_VALUE;
+
+                for (Map.Entry<ResourceLocation, Double> entry : cachedLightSources.entrySet()) {
+                    if (entry.getValue() < weakestBrightness) {
+                        weakestBrightness = entry.getValue();
+                        weakestId = entry.getKey();
+                    }
+                }
+
+                // Replace if the new one is brighter
+                if (brightness > weakestBrightness && weakestId != null) {
+                    cachedLightSources.remove(weakestId);
+                    cachedLightSources.put(id, brightness);
+                }
+            }
         }
     }
 }

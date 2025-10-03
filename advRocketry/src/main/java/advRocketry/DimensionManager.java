@@ -43,7 +43,7 @@ public class DimensionManager{
         for(DimensionProperties i : dimensions.values()){
             i.serverTick(event);
         }
-        //universalTimeServer = 0;
+        universalTimeServer = 0;
         universalTimeServer += 1;
         if(universalTimeServer % 200 == 0){
             PacketDistributor.sendToAllPlayers(new SimpleNetworkPacket(TimeSync.PACKAGE_ID_SYNCTIME,String.valueOf(universalTimeServer)));
@@ -53,7 +53,7 @@ public class DimensionManager{
         for(DimensionProperties i : dimensions.values()){
             i.clientTick(event);
         }
-        //universalTimeClient = 0;
+        universalTimeClient = 0;
         universalTimeClient += 1;
     }
 
@@ -63,6 +63,8 @@ public class DimensionManager{
 
 
     public void registerDimensions(){
+
+        dimensions.clear();
 
         DimensionProperties sun = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"));
         sun.earthMassMultiplier = 200;
@@ -119,6 +121,30 @@ public class DimensionManager{
         moon3.targetDayLength = 1000;
         moon3.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         dimensions.put(moon3.dimensionId,moon3);
+
+
+
+        DimensionProperties sun1 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"));
+        sun1.earthMassMultiplier = 200;
+        sun1.earthRadiusMultiplier = 100;
+        sun1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        sun1.emissiveColor = new Vector4f(0.9f,0.9f,0f, 1f);
+        sun1.reflectivity = 0f;
+        sun1.setPosition(new Vec3(0,0,2));
+        dimensions.put(sun1.dimensionId, sun1);
+
+        DimensionProperties sun2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"));
+        sun2.earthMassMultiplier = 200;
+        sun2.earthRadiusMultiplier = 100;
+        sun2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        sun2.emissiveColor = new Vector4f(0f,0.9f,0.9f, 1f);
+        sun2.reflectivity = 0f;
+        sun2.setPosition(new Vec3(1,0,1));
+        dimensions.put(sun2.dimensionId, sun2);
+
+
+
+
 
     }
 

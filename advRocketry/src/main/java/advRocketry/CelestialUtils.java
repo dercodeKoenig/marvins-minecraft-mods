@@ -1,7 +1,10 @@
 package advRocketry;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+
+import javax.annotation.Nullable;
 
 /**
  * A utility class for celestial mechanics calculations, specifically for converting
@@ -59,16 +62,34 @@ public class CelestialUtils {
     }
 
     public static float getSunAltitudeDegrees(DimensionProperties myPlanet, DimensionProperties lightSource, float partialTick) {
-        double altitude = Math.asin(getSurfaceDotToPlanet(myPlanet, lightSource, partialTick));
+        double altitude = Math.asin(getSurfaceDotToPlanet(myPlanet, lightSource, partialTick, null, null));
         return (float) Math.toDegrees(altitude);
     }
 
-    public static double getSurfaceDotToPlanet(DimensionProperties myPlanet, DimensionProperties targetPlanet, float partialTick){
+    public static double getSurfaceDotToPlanet(DimensionProperties myPlanet, DimensionProperties targetPlanet, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition){
         Vec3 localUp = getGlobalAxisDirections(myPlanet, partialTick).up;
-        // 5 Dot with star direction to get altitude
-        Vec3 targetDirection = targetPlanet.getPosition(partialTick).subtract(myPlanet.getPosition(partialTick)).normalize();
+
+        if (targetPosition == null)targetPosition = targetPlanet.getPosition(partialTick);
+        if(myPlanetPosition == null)myPlanetPosition =  myPlanet.getPosition(partialTick);
+
+        Vec3 targetDirection = targetPosition.subtract(myPlanetPosition).normalize();
         double dot = localUp.dot(targetDirection);
         return dot;
+    }
+
+    public static double getAccumulatedBrightness(ResourceLocation dimensionId, float partialTick) {
+        DimensionProperties myProps = DimensionManager.INSTANCE.dimensions.get(dimensionId);
+        // Exit if this dimension is not managed by the mod
+        if (myProps == null) return 1;
+
+        Vec3 myPosition = myProps.getPosition(0);
+
+        double astronomicalBrightness = 0;
+        for (ResourceLocation targetId : myProps.cachedLightSources.keySet()) {
+            DimensionProperties targetProps = DimensionManager.get(targetId);
+            astronomicalBrightness += Math.max(0, CelestialUtils.getSurfaceDotToPlanet(myProps, targetProps, partialTick, myPosition, null));
+        }
+        return astronomicalBrightness;
     }
 
     // --- Other physics calculations ---

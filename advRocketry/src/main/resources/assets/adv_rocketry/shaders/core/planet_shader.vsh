@@ -8,26 +8,27 @@ uniform mat4 ModelViewMat;
 uniform mat4 skyViewMat;
 uniform mat4 ProjMat;
 
-uniform vec3 Light0_Vector;
+// Light arrays
+#define MAX_LIGHTS 4
+uniform vec3 LightVectors[MAX_LIGHTS];
+
+uniform int LightCount; // how many lights are actually in use
 
 out vec2 texcoord;
-
 out vec3 normalViewSpace;
-out vec3 Light0_Vector_ViewSpace;
-
-vec4 mix_light(vec3 lightDir0, vec3 normal, vec4 color) {
-    float light0 = max(0.0, dot(lightDir0, normal));
-    return vec4(color.rgb * light0, color.a);
-}
+out vec3 LightVectors_ViewSpace[MAX_LIGHTS];
 
 void main() {
     gl_Position = ProjMat * skyViewMat * ModelViewMat * vec4(Position, 1.0);
 
-    // Compute the normal matrix (upper-left 3x3 inverse transpose)
+    // Normal matrix (for transforming normals into view space)
     mat3 normalMatrix = transpose(inverse(mat3(skyViewMat * ModelViewMat)));
     normalViewSpace = normalize(normalMatrix * Normal);
 
-    Light0_Vector_ViewSpace = (skyViewMat * vec4(Light0_Vector, 0.0)).xyz;
+    // Transform each light vector into view space
+    for (int i = 0; i < LightCount; i++) {
+        LightVectors_ViewSpace[i] = (skyViewMat * vec4(LightVectors[i], 0.0)).xyz;
+    }
 
     texcoord = UV0;
 }

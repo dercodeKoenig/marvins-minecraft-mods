@@ -1,32 +1,41 @@
 #version 150
 
-uniform sampler2D Sampler0; // texture
+uniform sampler2D Sampler0; // surface texture
 
-uniform vec4 Light0_Color; // r,g,b + intensity
+// Light arrays
+#define MAX_LIGHTS 4
+uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
+uniform int LightCount;
 
-uniform float reflectivity; // how much the planet reflects other stars light
-uniform vec4 emissiveColor; // the light that this planet or star emits, rgb + intensity
+uniform float reflectivity;  // reflection factor
+uniform vec4 emissiveColor;  // planet's self-emission (rgb + intensity)
 
-in vec3 Light0_Vector_ViewSpace; // vector star to planet
-
-in vec2 texcoord; // texture
-in vec3 normalViewSpace; // adjusted normal
-
+in vec3 LightVectors_ViewSpace[MAX_LIGHTS];
+in vec2 texcoord;
+in vec3 normalViewSpace;
 
 out vec4 fragColor;
 
 void main() {
-    vec3 baseSurfaceColor = (texture(Sampler0, texcoord)).rgb;
+    vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
 
-    float Light0Dot =  max(0, dot(normalize(normalViewSpace), normalize(Light0_Vector_ViewSpace)));
-    float Light0Distance = length(Light0_Vector_ViewSpace);
-    vec3 reflectedLight0 = Light0Dot * reflectivity * baseSurfaceColor * Light0_Color.rgb * Light0_Color.a / (Light0Distance * Light0Distance);
-    vec4 reflectedLight = vec4(reflectedLight0, 1.0);
+    vec3 totalReflectedLight = vec3(0.0);
 
+    for (int i = 0; i < LightCount; i++) {
+        float NdotL = max(0.0, dot(normalize(normalViewSpace), normalize(LightVectors_ViewSpace[i])));
+        float distance = length(LightVectors_ViewSpace[i]);
 
-    // Emitted light is constant across the surface (or based on a separate texture/map)
-    // We can multiply the emissive value by the surface color to color the emission.
-    vec4 emittedLight = vec4(emissiveColor.rgb * baseSurfaceColor.rgb * emissiveColor.a, 1);
+        vec3 reflected = NdotL * reflectivity * baseSurfaceColor
+        * LightColors[i].rgb * LightColors[i].a
+        / (distance * distance);
+
+        totalReflectedLight += reflected;
+    }
+
+    vec4 reflectedLight = vec4(totalReflectedLight, 1.0);
+
+    // Emission: surface color * emissive strength
+    vec4 emittedLight = vec4(emissiveColor.rgb * baseSurfaceColor.rgb * max(0.0, emissiveColor.a), 1.0);
 
     fragColor = reflectedLight + emittedLight;
 }
