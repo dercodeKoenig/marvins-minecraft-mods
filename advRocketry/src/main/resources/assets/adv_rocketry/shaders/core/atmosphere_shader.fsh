@@ -35,7 +35,7 @@ void main() {
     fogFactor = clamp(fogFactor, 0.0, 1.0);
 
     // 4. Apply the artistic curve
-    fogFactor = pow(fogFactor, 0.5); // Adjust exponent for feel
+    fogFactor = pow(fogFactor, 1.0); // Adjust exponent for feel
 
     vec4 colorHeightAdjusted = Color * max(0,(10000-playerHeight) / 10000);
 
