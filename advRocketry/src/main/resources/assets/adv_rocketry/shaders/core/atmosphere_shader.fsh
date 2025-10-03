@@ -38,8 +38,15 @@ void main() {
     float sunDot = -dot(StarDir0ViewSpace, normalViewSpace);
     sunDot = (sunDot+1) / 2;
 
+    // how much is the sun aligned with my up vector (how much it is up in the sky)
+    // if the sun is below 0 (below the horizon) the sunset should fade out quick to bring darkness
+    float sunBelowHorizon = max(0,-dot(StarDir0ViewSpace, upViewSpace));
+    float sunsetFactor = 1-pow(sunBelowHorizon, 0.1);
+    //smoothstep(0,0.5,0.5-sunHeight);
+
+
     vec3 targetSkyColor = SkyColor.xyz;
-    targetSkyColor = mix(targetSkyColor, SunriseColor, sunDot * horizonFactor);
+    targetSkyColor = mix(targetSkyColor, SunriseColor, sunsetFactor * sunDot * horizonFactor);
 
 
 
