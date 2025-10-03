@@ -1,6 +1,6 @@
 package advRocketry.mixins;
 
-import advRocketry.DimensionManager;
+import advRocketry.Dimension.DimensionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.resources.ResourceLocation;

@@ -1,4 +1,4 @@
-package advRocketry;
+package advRocketry.Render;
 
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -12,7 +12,9 @@ import org.lwjgl.opengl.GL30;
 
 import java.nio.IntBuffer;
 
-
+/**
+ * a copy of the builtin TextureTarget, but with HDR support
+ */
 @OnlyIn(Dist.CLIENT)
 public class HDRTextureTarget extends TextureTarget {
     public HDRTextureTarget(int width, int height, boolean useDepth, boolean clearError) {

@@ -1,4 +1,4 @@
-package advRocketry;
+package advRocketry.Dimension;
 
 import ARLib.network.SimpleNetworkPacket;
 import net.minecraft.core.registries.Registries;
@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 public class DimensionManager{
     public static DimensionManager INSTANCE = new DimensionManager();
-    public static DimensionProperties get(ResourceLocation key){
+    public static Dimension get(ResourceLocation key){
         return INSTANCE.dimensions.get(key);
     }
     public static long getGlobalTime() {
@@ -30,7 +30,7 @@ public class DimensionManager{
         }
     }
 
-    public HashMap<ResourceLocation, DimensionProperties> dimensions = new HashMap<>();
+    public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
     public long universalTimeServer = 0;
     public long universalTimeClient = 0; // should be synced to client by server
 
@@ -40,7 +40,7 @@ public class DimensionManager{
     }
 
     public void serverTick(ServerTickEvent.Post event){
-        for(DimensionProperties i : dimensions.values()){
+        for(Dimension i : dimensions.values()){
             i.serverTick(event);
         }
         universalTimeServer = 0;
@@ -50,7 +50,7 @@ public class DimensionManager{
         }
     }
     public void clientTick(ClientTickEvent.Post event){
-        for(DimensionProperties i : dimensions.values()){
+        for(Dimension i : dimensions.values()){
             i.clientTick(event);
         }
         universalTimeClient = 0;
@@ -73,7 +73,7 @@ public class DimensionManager{
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
         sun.emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 1f);
         sun.reflectivity = 0f;
-        dimensions.put(sun.dimensionId, sun);
+        dimensions.put(sun.dimensionId, new Dimension(sun));
 
 
         DimensionProperties overworld = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
@@ -83,7 +83,7 @@ public class DimensionManager{
         overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
         overworld.targetDayLength = 12000;
         overworld.skyColor = new Vector3f(0.53f, 0.81f, 0.92f);
-        dimensions.put(overworld.dimensionId,overworld);
+        dimensions.put(overworld.dimensionId,new Dimension(overworld));
 
 
         DimensionProperties moon = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"));
@@ -95,7 +95,7 @@ public class DimensionManager{
         moon.earthMassMultiplier = 0.3;
         moon.targetDayLength = 1000;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
-        dimensions.put(moon.dimensionId,moon);
+        dimensions.put(moon.dimensionId,new Dimension(moon));
 
 
         DimensionProperties moon2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"));
@@ -107,7 +107,7 @@ public class DimensionManager{
         moon2.earthMassMultiplier = 0.2;
         moon2.targetDayLength = 4000;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
-        dimensions.put(moon2.dimensionId,moon2);
+        dimensions.put(moon2.dimensionId,new Dimension(moon2));
 
 
         DimensionProperties moon3 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon3"));
@@ -120,7 +120,7 @@ public class DimensionManager{
         moon3.earthMassMultiplier = 0.1;
         moon3.targetDayLength = 1000;
         moon3.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
-        dimensions.put(moon3.dimensionId,moon3);
+        dimensions.put(moon3.dimensionId,new Dimension(moon3));
 
 
 
@@ -130,8 +130,8 @@ public class DimensionManager{
         sun1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
         sun1.emissiveColor = new Vector4f(0.9f,0.9f,0f, 1f);
         sun1.reflectivity = 0f;
-        sun1.setPosition(new Vec3(0,0,2));
-        dimensions.put(sun1.dimensionId, sun1);
+        sun1.position = new Vec3(0,0,2);
+        dimensions.put(sun1.dimensionId, new Dimension(sun1));
 
         DimensionProperties sun2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"));
         sun2.earthMassMultiplier = 200;
@@ -139,8 +139,8 @@ public class DimensionManager{
         sun2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
         sun2.emissiveColor = new Vector4f(0f,0.9f,0.9f, 1f);
         sun2.reflectivity = 0f;
-        sun2.setPosition(new Vec3(1,0,1));
-        dimensions.put(sun2.dimensionId, sun2);
+        sun2.position = new Vec3(1,0,1);
+        dimensions.put(sun2.dimensionId, new Dimension(sun2));
 
 
 

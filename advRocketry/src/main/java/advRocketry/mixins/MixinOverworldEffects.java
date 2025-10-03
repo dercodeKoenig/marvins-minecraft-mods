@@ -1,14 +1,7 @@
 package advRocketry.mixins;
 
-import advRocketry.DimensionManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.ViewportEvent;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(DimensionSpecialEffects.OverworldEffects.class)
 public class MixinOverworldEffects {
     // This controls the horizon fog color
+    // TODO: maybe use toneMapping here together with the atmosphere shader?
     @Inject(method = "getBrightnessDependentFogColor", at = @At("HEAD"), cancellable = false)
     private void modifyHorizonColor(Vec3 fogColor, float brightness,
                                     CallbackInfoReturnable<Vec3> cir) {

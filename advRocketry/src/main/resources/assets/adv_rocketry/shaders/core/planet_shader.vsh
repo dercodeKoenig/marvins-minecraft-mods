@@ -11,7 +11,6 @@ uniform mat4 ProjMat;
 // Light arrays
 #define MAX_LIGHTS 4
 uniform vec3 LightVectors[MAX_LIGHTS];
-
 uniform int LightCount; // how many lights are actually in use
 
 out vec2 texcoord;

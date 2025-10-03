@@ -1,0 +1,6 @@
+    /////////// toneMap the rendered planets / stars
+    vec2 uv = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
+    vec4 planetColorHDR = texture(planetTexture, uv);
+    vec4 planetColorLDR = planetColorHDR / (1.0 + planetColorHDR);
+    planetColorLDR = pow(planetColorLDR, vec4(1.0 / 2.2));
+
