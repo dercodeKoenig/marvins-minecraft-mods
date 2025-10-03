@@ -26,7 +26,7 @@ void main() {
 
     // Emitted light is constant across the surface (or based on a separate texture/map)
     // We can multiply the emissive value by the surface color to color the emission.
-    vec4 emittedLight = vec4(emissiveColor.rgb * baseSurfaceColor.rgb, emissiveColor.a);
+    vec4 emittedLight = vec4(emissiveColor.rgb * baseSurfaceColor.rgb * emissiveColor.a, 1);
 
     fragColor = reflectedLight + emittedLight;
 }

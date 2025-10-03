@@ -156,6 +156,10 @@ public class DimensionProperties {
             skyColor = new Vector3f(0.5f, 0.5f, 1);
             fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
         }
+        if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
+            //currentGameTime = 6000;
+            emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 10f);
+        }
     }
 
     public void trackDayTimeNormal(){
