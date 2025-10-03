@@ -4,7 +4,6 @@ import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -18,7 +17,6 @@ import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
 
-import static advRocketry.CelestialUtils.*;
 import static advRocketry.shaderUtils.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
@@ -215,7 +213,7 @@ public class skyrenderer {
             shader.getUniform("emissiveColor").set(planet.emissiveColor);
 
             int totalLights = 0;
-            for (ResourceLocation lightSourceId : planet.cachedLightSources.keySet()){
+            for (ResourceLocation lightSourceId : planet.significantLightSourcesCache.keySet()){
                 DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(lightSourceId);
                 Vec3 StarPos = star.getPosition((float) partialtick);
                 Vec3 LightVector = planetPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product

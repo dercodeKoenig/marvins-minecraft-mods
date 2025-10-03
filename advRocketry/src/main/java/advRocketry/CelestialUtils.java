@@ -1,7 +1,6 @@
 package advRocketry;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -85,7 +84,7 @@ public class CelestialUtils {
         Vec3 myPosition = myProps.getPosition(0);
 
         double astronomicalBrightness = 0;
-        for (ResourceLocation targetId : myProps.cachedLightSources.keySet()) {
+        for (ResourceLocation targetId : myProps.significantLightSourcesCache.keySet()) {
             DimensionProperties targetProps = DimensionManager.get(targetId);
             astronomicalBrightness += Math.max(0, CelestialUtils.getSurfaceDotToPlanet(myProps, targetProps, partialTick, myPosition, null));
         }

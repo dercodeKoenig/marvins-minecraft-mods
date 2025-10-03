@@ -47,8 +47,6 @@ public class DimensionProperties {
 
     public float dayTime;
 
-    public LinkedHashMap<ResourceLocation, Double> cachedLightSources = new LinkedHashMap<>();
-
     public DimensionProperties(ResourceLocation dimensionId) {
         this.dimensionId = dimensionId;
     }
@@ -192,12 +190,14 @@ public class DimensionProperties {
         }
     }
 
-
+    public LinkedHashMap<ResourceLocation, Double> significantLightSourcesCache = new LinkedHashMap<>();
     private Iterator<DimensionProperties> dimIterator;
     private final int MAX_LIGHTSOURCES = 2;
 
     // updates the cached light sources that are considered for lighting calculations
     // for simplicity, only self emitted light is considered. if a moon reflects a lot of light, this would be ignored.
+    // TODO: (MAYBE) keep a map of brightness from ALL stars and planets, implement getTotalEmissiveLight() to return the sum of reflectedlight
+    // TODO: over many steps reflected light can be seen as emitted light
     public void updateCachedLightSourcesStep() {
         if (dimIterator == null || !dimIterator.hasNext()) {
             // Restart once we've gone through all dimensions
@@ -214,7 +214,7 @@ public class DimensionProperties {
             }
 
             // Skip if it's already in the top list
-            if (cachedLightSources.containsKey(id)) {
+            if (significantLightSourcesCache.containsKey(id)) {
                 return;
             }
 
@@ -230,14 +230,14 @@ public class DimensionProperties {
             double brightness = emissiveBrightness / (distance * distance);
 
             // If we still have room, just add it
-            if (cachedLightSources.size() < MAX_LIGHTSOURCES) {
-                cachedLightSources.put(id, brightness);
+            if (significantLightSourcesCache.size() < MAX_LIGHTSOURCES) {
+                significantLightSourcesCache.put(id, brightness);
             } else {
                 // Find the dimmest currently stored and maybe replace it
                 ResourceLocation weakestId = null;
                 double weakestBrightness = Double.MAX_VALUE;
 
-                for (Map.Entry<ResourceLocation, Double> entry : cachedLightSources.entrySet()) {
+                for (Map.Entry<ResourceLocation, Double> entry : significantLightSourcesCache.entrySet()) {
                     if (entry.getValue() < weakestBrightness) {
                         weakestBrightness = entry.getValue();
                         weakestId = entry.getKey();
@@ -246,8 +246,8 @@ public class DimensionProperties {
 
                 // Replace if the new one is brighter
                 if (brightness > weakestBrightness && weakestId != null) {
-                    cachedLightSources.remove(weakestId);
-                    cachedLightSources.put(id, brightness);
+                    significantLightSourcesCache.remove(weakestId);
+                    significantLightSourcesCache.put(id, brightness);
                 }
             }
         }
