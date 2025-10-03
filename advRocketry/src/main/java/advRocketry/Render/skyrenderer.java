@@ -283,7 +283,7 @@ public class skyrenderer {
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
         RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA.value, GlStateManager.SourceFactor.ONE.value);
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE.value, GlStateManager.SourceFactor.ONE.value);
 
         renderSpaceBodies(poseStack, proj, skyViewMatrix, partialtick); // use skyView because it is relative to universe 0,0,0
 
