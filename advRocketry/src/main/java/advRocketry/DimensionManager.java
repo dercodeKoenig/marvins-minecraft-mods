@@ -45,7 +45,8 @@ public class DimensionManager{
         for(DimensionProperties i : dimensions.values()){
             i.serverTick(event);
         }
-        universalTimeServer += 1;
+        //universalTimeServer = 0;
+        universalTimeServer += 100;
         if(universalTimeServer % 200 == 0){
             PacketDistributor.sendToAllPlayers(new SimpleNetworkPacket(TimeSync.PACKAGE_ID_SYNCTIME,String.valueOf(universalTimeServer)));
         }
@@ -54,7 +55,8 @@ public class DimensionManager{
         for(DimensionProperties i : dimensions.values()){
             i.clientTick(event);
         }
-        universalTimeClient += 1;
+        //universalTimeClient = 0;
+        universalTimeClient += 100;
     }
 
     public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
