@@ -70,7 +70,7 @@ public class DimensionManager{
         sun.earthMassMultiplier = 200;
         sun.earthRadiusMultiplier = 100;
         sun.rotationAxis = new Vec3(0,1,0).normalize();
-        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         sun.emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 1f);
         sun.reflectivity = 0f;
         dimensions.put(sun.dimensionId, new Dimension(sun));
@@ -127,7 +127,7 @@ public class DimensionManager{
         DimensionProperties sun1 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"));
         sun1.earthMassMultiplier = 200;
         sun1.earthRadiusMultiplier = 100;
-        sun1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        sun1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         sun1.emissiveColor = new Vector4f(0.9f,0.9f,0f, 1f);
         sun1.reflectivity = 0f;
         sun1.position = new Vec3(0,0,2);
@@ -136,7 +136,7 @@ public class DimensionManager{
         DimensionProperties sun2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"));
         sun2.earthMassMultiplier = 200;
         sun2.earthRadiusMultiplier = 100;
-        sun2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_sun.png");
+        sun2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         sun2.emissiveColor = new Vector4f(0f,0.9f,0.9f, 1f);
         sun2.reflectivity = 0f;
         sun2.position = new Vec3(1,0,1);

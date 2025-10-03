@@ -18,7 +18,7 @@ public class PlanetRenderCache {
     // updates the cached light sources that are considered for lighting calculations
     // for simplicity, only self emitted light is considered. if a moon reflects a lot of light, this would be ignored.
     public void updateSignificantLightSourcesCache(Dimension myDimension) {
-        System.out.println(myDimension.getDimensionId()+":"+significantLightSourcesCache.size());
+
         if (dimIterator == null || !dimIterator.hasNext()) {
             // Restart once we've gone through all dimensions
             dimIterator = DimensionManager.INSTANCE.dimensions.values().iterator();
