@@ -35,7 +35,8 @@ public class DimensionProperties {
     public ResourceLocation texture = null;                 // required (planet texture)
 
     public Vector3f skyColor = new Vector3f(0.471f, 0.655f, 1.0f);
-    public Vector3f fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
+    public Vector3f sunRiseColor = new Vector3f(0.471f, 0.655f, 0.2f);
+    public Vector3f fogColor = new Vector3f(1.0f, 1.0f, 1.0f);
     public Vector4f emissiveColor = new Vector4f(0, 0, 0, 0);
     public float reflectivity = 1f;
     public float atmosphereDensity = 1;
@@ -136,8 +137,16 @@ public class DimensionProperties {
     }
 
     public Vector3f getAtmosphereColor() {
-        float brightnessMultiplier =        Minecraft.getInstance().level.getSkyDarken(0);
+        float brightnessMultiplier =        (Minecraft.getInstance().level.getSkyDarken(0) - 0.2f) / 0.8f;
         return new Vector3f(skyColor.x * brightnessMultiplier, skyColor.y * brightnessMultiplier, skyColor.z * brightnessMultiplier);
+
+        // TODO: make the mixin for the minecraft default method and use default method or make a custom copy to adjust for lightning and biome color
+        // Vec3 minecraftColor = Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(), 0);
+        //return minecraftColor.toVector3f();
+    }
+    public Vector3f getSunriseColor() {
+        float brightnessMultiplier = 1;
+        return new Vector3f(sunRiseColor.x * brightnessMultiplier, sunRiseColor.y * brightnessMultiplier, sunRiseColor.z * brightnessMultiplier);
 
         // TODO: make the mixin for the minecraft defaul method and use default method or make a custom copy to adjust for lightning and biome color
         // Vec3 minecraftColor = Minecraft.getInstance().level.getSkyColor(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition(), 0);
@@ -151,8 +160,10 @@ public class DimensionProperties {
 
     void tick() {
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            //skyColor = new Vector3f(0.5f, 0.5f, 1);
-            //fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
+            skyColor = new Vector3f(0.53f, 0.81f, 0.98f);
+            fogColor = new Vector3f(0.8f, 0.95f, 1.0f);
+            sunRiseColor = new Vector3f(1.0f, 0.81f, 0.5f);
+
         }
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
         }

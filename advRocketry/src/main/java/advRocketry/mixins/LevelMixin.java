@@ -15,8 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ClientLevel.class)
 public abstract class LevelMixin {
 
-    // it appears only getSkyDarken needs to be modified because it is used in terrain render
-
+    // getSkyDarken is used by the built-in terrain shader. It has to use a mixin to overwrite terrain color based on current brightness
     @Inject(method = "getSkyDarken", at = @At("HEAD"), cancellable = true)
     public void getSkyDarken(float partialTick, CallbackInfoReturnable<Float> cir) {
         Level level = (Level)(Object)this;

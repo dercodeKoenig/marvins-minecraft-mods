@@ -106,7 +106,7 @@ public class skyrenderer {
         this.atmosphereRenderTarget = new HDRTextureTarget(1000, 1000, false, false);
     }
 
-    public void renderSkyBox(Matrix4f proj, Matrix4f view) {
+    public void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f skyView, float partialTick) {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
 
@@ -115,17 +115,34 @@ public class skyrenderer {
         atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance()); // this prevents bobbing by zooming out
 
         // TODO when i increase y it should slowly go out of atmosphere, task for shader..., also render the planet below
-        Vector3f atmColor = myPlanet.getAtmosphereColor();
+
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         ShaderInstance shader = RenderSystem.getShader();
         shader.setSampler("planetTexture", planetRenderTarget.getColorTextureId());
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, atmMatrix, proj, Minecraft.getInstance().getWindow());
-        Uniform color = shader.getUniform("Color");
-        color.set(atmColor.x, atmColor.y, atmColor.z, 1f);
+
+        shader.getUniform("ModelViewMat").set(atmMatrix);
+        shader.getUniform("ProjMat").set(proj);
+        shader.getUniform("skyViewMat").set(skyView); // so it can transform universe global coordinates into view space
+
         shader.getUniform("screenWidth").set(atmosphereRenderTarget.width);
         shader.getUniform("screenHeight").set(atmosphereRenderTarget.height);
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
         shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
+
+
+        Vec3 starPos0 = DimensionManager.get(myPlanet.lightSourceDimensionId).getPosition(partialTick);
+        Vec3 starDir0 = starPos0.subtract(myPlanet.getPosition(partialTick)).normalize();
+        shader.getUniform("StarDir0").set((float) starDir0.x, (float) starDir0.y, (float) starDir0.z);
+
+        Vector3f SkyColor = myPlanet.getAtmosphereColor();
+        Vector3f SunriseColor = myPlanet.getSunriseColor();
+        shader.getUniform("SkyColor").set(SkyColor.x,SkyColor.y,SkyColor.z);
+        shader.getUniform("SunriseColor").set(SunriseColor.x, SunriseColor.y, SunriseColor.z);
+
+        float[] fogColor = RenderSystem.getShaderFogColor(); // this is probably using custom overwrite anyway but this is where it is supposed to get the fog color from
+        shader.getUniform("FogColor").set(fogColor[0], fogColor[1], fogColor[2]);
+
+
         // using the real planet radius looks bad because the terrain is not rendered.
         //TODO maybe render the planet sphere below??
         //shader.getUniform("renderDistance").set((float) CelestialUtils.getRealRadiusFromValue(myPlanet.size));
@@ -231,7 +248,7 @@ public class skyrenderer {
         VertexBuffer.unbind();
     }
 
-    public void renderSky(PoseStack poseStack, Matrix4f proj, Matrix4f view, double partialtick) {
+    public void renderSky(PoseStack poseStack, Matrix4f proj, Matrix4f view, float partialtick) {
         if (!finishedLoading) return;
 
 
@@ -247,7 +264,8 @@ public class skyrenderer {
                 myGlobalAxis.north.toVector3f(),
                 myGlobalAxis.up.toVector3f()    // Up direction
         );
-
+        // normal view matrix transforms world global coordinates into view space
+        // this matrix can transform universe global coordinates into view space
         Matrix4f skyViewMatrix = new Matrix4f(view).mul(planetOrientationMatrix);
 
         // adjust frame buffer size for render
@@ -276,7 +294,7 @@ public class skyrenderer {
         // Clear with transparent black
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSkyBox(proj, view); // use normal view in skybox because it is relative to player
+        renderSkyBox(proj, view, skyViewMatrix, partialtick); // use normal view in skybox because it is relative to player
 
 
         // Switch back to main render target

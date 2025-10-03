@@ -2,8 +2,9 @@
 
 uniform sampler2D planetTexture; // HDR planets/stars texture
 
-uniform vec4 Color;      // LDR sky color from the game
-uniform vec4 FogColor;   // LDR fog color from the game
+uniform vec3 SkyColor;
+uniform vec3 SunriseColor;
+uniform vec3 FogColor;
 uniform int screenWidth;
 uniform int screenHeight;
 uniform float playerHeight;
@@ -11,13 +12,40 @@ uniform float renderDistance;
 
 in vec3 normalViewSpace;
 in vec3 upViewSpace;
+
+in vec3 StarDir0ViewSpace;
+
 out vec4 fragColor;
 
 void main() {
-    // 1. Get texture coordinates and the HDR color of the planet/star
+
+    /////////// toneMap the rendered planets / stars
     vec2 uv = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
     vec4 planetColorHDR = texture(planetTexture, uv);
+    vec4 planetColorLDR = planetColorHDR / (1.0 + planetColorHDR);
+    planetColorLDR = pow(planetColorLDR, vec4(1.0 / 2.2));
 
+
+
+
+
+    ///////////// sunrise / sunset calculations
+    // how much is the fragment at the horizon
+    float upDot = dot(normalViewSpace, upViewSpace);
+    float horizonFactor = pow(1-abs(upDot), 3);
+
+    // how much is the sun aligned with the fragments normal, note that the skybox normals point towards inside
+    float sunDot = -dot(StarDir0ViewSpace, normalViewSpace);
+    sunDot = (sunDot+1) / 2;
+
+    vec3 targetSkyColor = SkyColor.xyz;
+    targetSkyColor = mix(targetSkyColor, SunriseColor, sunDot * horizonFactor);
+
+
+
+
+
+    //////////// blend with terrain fog
     // 1. Get the base vertical factor
     float verticalDot = dot(normalize(upViewSpace), -normalize(normalViewSpace));
 
@@ -37,18 +65,14 @@ void main() {
     // 4. Apply the artistic curve
     fogFactor = pow(fogFactor, 1.0); // Adjust exponent for feel
 
-    vec4 colorHeightAdjusted = Color * max(0,(10000-playerHeight) / 10000);
-
     // Use this final fogFactor to mix your colors
-    vec4 backgroundColor = mix(FogColor, colorHeightAdjusted, fogFactor);
+    targetSkyColor = mix(FogColor, targetSkyColor, fogFactor);
 
-    // 4. Tonemap and gamma correct the HDR planet color separately
-    // This brings the bright planet values down into the visible [0, 1] LDR range.
-    vec4 planetColorLDR = planetColorHDR / (1.0 + planetColorHDR);
-    planetColorLDR = pow(planetColorLDR, vec4(1.0 / 2.2));
 
-    // 5. Add the LDR planet color to the LDR background color
-    // Additive blending makes the planets appear luminous against the sky. Because you're adding
-    // it to the final fogged background, the planet will still be visible at the horizon.
-    fragColor = backgroundColor + planetColorLDR;
+    // adjust for player height, black it out when player is very high
+    targetSkyColor = targetSkyColor * max(0,(10000-playerHeight) / 10000);
+
+
+    fragColor = vec4(targetSkyColor,1) + planetColorLDR;
+    //fragColor = vec4(horizonTint, 1)*0.0001 + vec4(sunsetFactor) + planetColorLDR*0.0001;
 }
