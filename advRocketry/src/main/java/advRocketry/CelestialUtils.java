@@ -67,28 +67,32 @@ public class CelestialUtils {
         Vec3 localUp = getGlobalAxisDirections(myPlanet, partialTick).up;
         // 5 Dot with star direction to get altitude
         Vec3 targetDirection = targetPlanet.getPosition(partialTick).subtract(myPlanet.getPosition(partialTick)).normalize();
-        return localUp.dot(targetDirection);
+        double dot = localUp.dot(targetDirection);
+        return dot;
     }
 
     // --- Other physics calculations ---
     public static final double G = 1;
+    public static final double ASTRONOMICAL_UNIT = 1.496 * Math.pow(10, 11);
+    public static final double EARTH_MASS = 5.972 * Math.pow(10, 24);
+    public static final double EARTH_RADIUS = 6_000_000;
 
-    public static double getRealDistanceFromValue(double value) {
-        return value / 100f * 1.496 * Math.pow(10, 11);
+    public static double fromEarthMasses(double earthMassMultiplier){
+        return EARTH_MASS * earthMassMultiplier;
     }
-
-    public static double getRealMassFromValue(double value) {
-        double massEarth = 5.972 * Math.pow(10, 24);
-        return value / 100f * massEarth;
+    public static double fromAU(double AUMultiplier){
+        return AUMultiplier * ASTRONOMICAL_UNIT;
+    }
+    public static double toAU(double distance){
+        return distance / ASTRONOMICAL_UNIT;
+    }
+    public static double fromEarthRadius(double earthRadiusMultiplier){
+        return earthRadiusMultiplier * EARTH_RADIUS;
     }
 
     public static double calculateOrbitalPeriodTicks(double mass1, double mass2, double distance) {
-        double combinedMass = getRealMassFromValue(mass1) + getRealDistanceFromValue(mass2);
-        return 2 * Math.PI * Math.sqrt(Math.pow(getRealDistanceFromValue(distance), 3) / (G * combinedMass)) * 20;
-    }
-
-    public static double getRealRadiusFromValue(double radius){
-        return radius / 100 * 6_000_000;
+        double combinedMass = mass1 + mass2;
+        return 2 * Math.PI * Math.sqrt(Math.pow(distance, 3) / (G * combinedMass)) * 20;
     }
 }
 

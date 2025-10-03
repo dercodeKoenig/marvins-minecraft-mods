@@ -14,19 +14,21 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import static advRocketry.CelestialUtils.*;
+
 
 public class DimensionProperties {
 
     public ResourceLocation dimensionId = null;             // required
-    public double size = 100;
-    public double mass = 100;
+    public double earthRadiusMultiplier = 1;
+    public double earthMassMultiplier = 1;
     private Vec3 position = new Vec3(0, 0, 0);
     public Vec3 rotationAxis = new Vec3(0, 1, 0);
     public int targetDayLength = 24000;
 
     public ResourceLocation parentDimensionId = null;       // optional, overwrites position
     public Vec3 orbitAxis = new Vec3(0, 1, 0);
-    public double orbitalDistanceToParent = 100;
+    public double orbitalDistanceToParent = 1;
 
     public ResourceLocation lightSourceDimensionId = null;  // required (reference for day start)
 
@@ -86,13 +88,13 @@ public class DimensionProperties {
     public Vec3 getPosition(float partialTick) {
         if (parentDimensionId != null) {
             DimensionProperties parent = DimensionManager.INSTANCE.dimensions.get(parentDimensionId);
-            double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(mass, parent.mass, orbitalDistanceToParent);
+            double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(earthMassMultiplier), fromEarthMasses(parent.earthMassMultiplier), fromAU(orbitalDistanceToParent));
             double orbitAngleDegrees = (DimensionManager.getGlobalTime() % ticksPerOrbit) * (360.0 / ticksPerOrbit);
 
-            if (false) { // debug / testing
-                orbitAngleDegrees = 0;
+            //reflectivity = 0.3f;
+            if (true) { // debug / testing
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
-                    orbitAngleDegrees = 120;
+                    orbitAngleDegrees = 60;
                 }
                 if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))) {
                     orbitAngleDegrees = 90;
@@ -151,7 +153,7 @@ public class DimensionProperties {
     void tick() {
         if (dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
             //currentGameTime = 6000;
-            skyColor = new Vector3f(0.5f, 0.5f, 1).mul(0.5f);
+            skyColor = new Vector3f(0.5f, 0.5f, 1);
             fogColor = new Vector3f(0.8f, 0.98f, 1.0f);
         }
     }

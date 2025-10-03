@@ -18,6 +18,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
 
+import static advRocketry.CelestialUtils.*;
 import static advRocketry.shaderUtils.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
@@ -27,12 +28,13 @@ public class skyrenderer {
     public static void renderFog(ViewportEvent.RenderFog event) {
         ResourceLocation dimension = Minecraft.getInstance().level.dimension().location();
         event.setNearPlaneDistance(event.getNearPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
-        event.setFarPlaneDistance( event.getFarPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
+        event.setFarPlaneDistance(event.getFarPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
         event.setCanceled(true);
     }
+
     // can modify fog color
-    public static void computeFogColor( ViewportEvent.ComputeFogColor event) {
-        Vector3f color =  DimensionManager.INSTANCE.dimensions.get(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")).getFogColor();
+    public static void computeFogColor(ViewportEvent.ComputeFogColor event) {
+        Vector3f color = DimensionManager.INSTANCE.dimensions.get(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")).getFogColor();
         event.setRed(color.x);
         event.setGreen(color.y);
         event.setBlue(color.z);
@@ -104,16 +106,15 @@ public class skyrenderer {
         this.atmosphereRenderTarget = new HDRTextureTarget(1000, 1000, false, false);
     }
 
-    public void renderSkyBox(Matrix4f proj, Matrix4f view){
+    public void renderSkyBox(Matrix4f proj, Matrix4f view) {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
-
 
 
         Matrix4f atmMatrix = new Matrix4f(view);
         atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance()); // this prevents bobbing by zooming out
 
-        // TODO when i increase y it should slowly go out of atmosphere, task for shader...
+        // TODO when i increase y it should slowly go out of atmosphere, task for shader..., also render the planet below
         Vector3f atmColor = myPlanet.getAtmosphereColor();
         RenderSystem.setShader(shaderUtils::getAtmosphereShader);
         ShaderInstance shader = RenderSystem.getShader();
@@ -123,7 +124,7 @@ public class skyrenderer {
         color.set(atmColor.x, atmColor.y, atmColor.z, 1f);
         shader.getUniform("screenWidth").set(atmosphereRenderTarget.width);
         shader.getUniform("screenHeight").set(atmosphereRenderTarget.height);
-        shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y);
+        shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
         shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
         // using the real planet radius looks bad because the terrain is not rendered.
         //TODO maybe render the planet sphere below??
@@ -136,12 +137,17 @@ public class skyrenderer {
         VertexBuffer.unbind();
     }
 
-    public void renderSpaceBodies(PoseStack poseStack, Matrix4f proj, Matrix4f skyViewMatrix, double partialtick){
+    public void renderSpaceBodies(PoseStack poseStack, Matrix4f proj, Matrix4f skyViewMatrix, double partialtick) {
 
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         DimensionProperties myPlanet = DimensionManager.INSTANCE.dimensions.get(myId);
-        Vec3 myPlanetPosition = myPlanet.getPosition((float)partialtick);
+        Vec3 myPlanetPosition = myPlanet.getPosition((float) partialtick);
+
+        // use custom near / far for rendering
+        float fovy = 2f * (float) Math.atan(1.0f / proj.get(1, 1));
+        float aspect = proj.get(1, 1) / proj.get(0, 0);
+        Matrix4f newProj = new Matrix4f().perspective(fovy, aspect, 0.0001f, 10_00);
 
         // Setup render states for planets
         LEQUAL_DEPTH_TEST.setupRenderState();
@@ -154,10 +160,9 @@ public class skyrenderer {
 
             Matrix4f planetModelMatrix = new Matrix4f();
 
-            Vec3 planetPosition = planet.getPosition((float)partialtick);
+            Vec3 planetPosition = planet.getPosition((float) partialtick);
 
-            // TODO: make this in real coordinates and setup custom new/far plane to support depth between planets
-            Vec3 relativePos = planetPosition.subtract(myPlanetPosition).normalize().scale(200.0f);
+            Vec3 relativePos = planetPosition.subtract(myPlanetPosition); // in Astronomical units
             planetModelMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
             Vec3 modelUp = new Vec3(0, 1, 0);
@@ -170,43 +175,48 @@ public class skyrenderer {
                 planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
             }
 
-            double planetRotationAngle = planet.getRotationAngle((float)partialtick);
+            double planetRotationAngle = planet.getRotationAngle((float) partialtick);
             planetModelMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
-            double distance = myPlanetPosition.distanceTo(planetPosition);
-            double scale = planet.size / distance * 10;
-            planetModelMatrix.scale((float) scale);
+            // to scale correctly we need to convert the radius (in earth radius multiplier) to astronomical units
+            double trueRadius = CelestialUtils.fromEarthRadius(planet.earthRadiusMultiplier);
+            double scaleAU = CelestialUtils.toAU(trueRadius);
+            planetModelMatrix.scale((float) scaleAU);
+            planetModelMatrix.scale(10f); // true size is too small, so apply a fixed scale
 
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(planet.texture).setFilter(true, true);
             RenderSystem.setShaderTexture(0, planet.texture);
             ShaderInstance shader = RenderSystem.getShader();
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, planetModelMatrix, proj, Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, planetModelMatrix, newProj, Minecraft.getInstance().getWindow());
 
             // for now use the main star, later use the 3 or 4 brightest stars here
             DimensionProperties star = DimensionManager.INSTANCE.dimensions.get(planet.lightSourceDimensionId);
             if (star != null) {
-                Vec3 Star0_Pos = star.getPosition((float)partialtick);
+                Vec3 Star0_Pos = star.getPosition((float) partialtick);
                 Vec3 Light0_Vector = planetPosition.subtract(Star0_Pos).scale(-1); //shader uses planet to star for dot product
+                if (planet.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
+                    //System.out.println(Light0_Vector.length());
+                }
 
                 shader.getUniform("Light0_Vector").set((float) Light0_Vector.x, (float) Light0_Vector.y, (float) Light0_Vector.z);
                 Uniform light0Color = shader.getUniform("Light0_Color");
-                if(light0Color != null)
-                    light0Color.set(star.emissiveColor.x,star.emissiveColor.y,star.emissiveColor.z,star.emissiveColor.w);
+                if (light0Color != null)
+                    light0Color.set(star.emissiveColor.x, star.emissiveColor.y, star.emissiveColor.z, star.emissiveColor.w);
             }
 
             Uniform reflectivity = shader.getUniform("reflectivity");
-            if(reflectivity != null)
-            reflectivity.set(planet.reflectivity);
+            if (reflectivity != null)
+                reflectivity.set(planet.reflectivity);
 
             Uniform skyView = shader.getUniform("skyViewMat");
-            if(skyView!=null)
-            skyView.set(skyViewMatrix);
+            if (skyView != null)
+                skyView.set(skyViewMatrix);
 
             Uniform emissiveColor = shader.getUniform("emissiveColor");
-            if(emissiveColor != null)
-            emissiveColor.set(planet.emissiveColor);
+            if (emissiveColor != null)
+                emissiveColor.set(planet.emissiveColor);
 
             shader.apply();
             vertexBufferPlanet.bind();
@@ -238,21 +248,15 @@ public class skyrenderer {
                 myGlobalAxis.up.toVector3f()    // Up direction
         );
 
-        Matrix4f skyViewMatrix =  new Matrix4f(view).mul(planetOrientationMatrix);
-
-
-        // TODO maybe use this for planet rendering?
-        float fovy = 2f * (float)Math.atan(1.0f / proj.get(1,1));
-        float aspect = proj.get(1,1) / proj.get(0,0);
-        Matrix4f newProj = new Matrix4f().perspective(fovy, aspect, 1, 100000);
+        Matrix4f skyViewMatrix = new Matrix4f(view).mul(planetOrientationMatrix);
 
         // adjust frame buffer size for render
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        if(planetRenderTarget.width != windowWidth * 2 ||planetRenderTarget.height != windowHeight * 2 ){
-            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
-                planetRenderTarget.resize(windowWidth*2, windowHeight*2, false);
+        if (planetRenderTarget.width != windowWidth * 2 || planetRenderTarget.height != windowHeight * 2) {
+            if (windowWidth * windowHeight > 20000) { // small screen / minimized could cause crashes otherwise
+                planetRenderTarget.resize(windowWidth * 2, windowHeight * 2, false);
             }
         }
         // Bind FBO for planet rendering
@@ -262,8 +266,8 @@ public class skyrenderer {
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         renderSpaceBodies(poseStack, proj, skyViewMatrix, partialtick); // use skyView because it is relative to universe 0,0,0
 
-        if(atmosphereRenderTarget.width != windowWidth || atmosphereRenderTarget.height != windowHeight * 2 ){
-            if(windowWidth * windowHeight > 20000){ // small screen / minimized could cause crashes otherwise
+        if (atmosphereRenderTarget.width != windowWidth || atmosphereRenderTarget.height != windowHeight * 2) {
+            if (windowWidth * windowHeight > 20000) { // small screen / minimized could cause crashes otherwise
                 atmosphereRenderTarget.resize(windowWidth, windowHeight, false);
             }
         }
