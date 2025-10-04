@@ -202,22 +202,23 @@ public class Dimension {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
             properties.skyColor = new Vector3f(0.33f, 0.5f, 2.2f);
             properties.fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
-            properties.sunRiseColor = new Vector3f(5.0f, 0.81f, 0.5f);
+            //properties.sunRiseColor = new Vector3f(5.0f, 0.81f, 0.5f);
+            properties.sunRiseColor = new Vector3f(5.0f, 0.1f, 0.1f);
             properties.rotationAxis = new Vec3(0.2,1,1);
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            //properties.emissiveColor = new Vector4f(1,0.0f,0f,1f);
+            properties.emissiveColor = new Vector4f(2,1.9f,0.8f,1f);
             properties.reflectivity = 0;
             properties.targetDayLength = 1000;
             properties.earthRadiusMultiplier = 200;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(0.0f,0.0f,1f, 0.06f);
+            properties.emissiveColor = new Vector4f(0.0f,0.0f,1f, 0.9f);
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0f,1f,0f, 0.06f);
+            properties.emissiveColor = new Vector4f(0f,1f,0f, 0.8f);
             properties.reflectivity = 0;
         }
     }

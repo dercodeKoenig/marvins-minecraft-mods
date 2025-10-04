@@ -20,7 +20,7 @@ out vec4 fragColor;
 
 void main() {
 
-    vec3 SkyColorHeightAdjusted = SkyColor * max(0,(10000-playerHeight) / 10000);
+    float brightnessModifierPlayerAltitude = max(0,(10000-playerHeight) / 10000);
 
     // 1. Get the base vertical factor
     float verticalDot = dot(normalize(upViewSpace), -normalize(normalViewSpace));
@@ -60,7 +60,7 @@ void main() {
         float sunUp = dot(starDir, upViewSpace);
 
         // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
-        float brightness = (max(0, sunUp)+0.01)/1.01 * starColor.a / (starDistance*starDistance);
+        float brightness = (max(0, sunUp)+0.01)/1.01 * starColor.a / (starDistance*starDistance) * brightnessModifierPlayerAltitude;
 
         // how much the sun is at horizon
         float sunAtHorizon = 1 - abs(sunUp);
@@ -75,11 +75,14 @@ void main() {
         float upDot = dot(normalViewSpace, upViewSpace);
         float horizonFactor = pow(1-abs(upDot), 6);
 
-        // mix with distance fog color
-        vec3 foggedSkyColor = mix(FogColor, SkyColorHeightAdjusted, fogFactor);
+        // glowing sunrise color to be added to the base color
+        vec3 sunriseGlow = SunriseColor * starColor.rgb * sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor;
 
-        // blend sunrise color in
-        vec3 skyColorOut = mix(foggedSkyColor * brightness, SunriseColor * starColor.rgb * brightness, sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor);
+        // mix with distance fog color
+        vec3 foggedSkyColor = mix(FogColor, SkyColor, fogFactor);
+
+        // brightness adjustment and glow add
+        vec3 skyColorOut = (foggedSkyColor + sunriseGlow)  * brightness;
 
         // add
         cumulativeSkyColor = cumulativeSkyColor + skyColorOut;

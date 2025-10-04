@@ -38,15 +38,18 @@ void main() {
 
     vec4 reflectedLight = vec4(totalReflectedLight, 1.0);
 
-    // this is just simple approximation, real value would have to be computated by actual atm density towards the target vector
-    float starUp = dot(upViewSpace, normalize(TargetVectorViewSpace));
-    float horizonFactor = pow(1-max(0,starUp), 6);
-    float sunsetModifier = horizonFactor * AtmDensity / (1+AtmDensity);
-    float starDarkenMultiplier = 1 - sunsetModifier;
-    vec3 heightAdjustedEmissiveColor = mix(emissiveColor.rgb, LocalSunriseColor, sunsetModifier);
+    //// this following code is an approximation to tint the star during sunrise and sunset
+    float starUp = dot(upViewSpace, normalize(TargetVectorViewSpace)); // how much the star is above me
+    float atmthicknessModifier = pow(1-max(0,starUp), 3)*0.9+0.1; // create a base atm thickness when above and larger thickness towards horizon
+    atmthicknessModifier = atmthicknessModifier * AtmDensity / (1+AtmDensity); // scale it with the planets atm density / thickness modifier
+    vec3 starSunriseColor = pow(LocalSunriseColor * emissiveColor.rgb, vec3(3)); // during sunrise the star should be tinted in the atmosphere sunrise color, but significantly amplified
+    vec3 atmAdjustedEmissiveColor = mix(emissiveColor.rgb, starSunriseColor, atmthicknessModifier); // mix between base color and the tinted color based on the atmosphere thickness
+
+    float starBrightnessMultiplier = 1 - atmthicknessModifier; // also make the star a bit darker because light is scattered away in the atmosphere
+    float starBrightness = max(0.0, emissiveColor.a) * starBrightnessMultiplier;
 
     // Emission: surface color * emissive strength
-    vec4 emittedLight = vec4(heightAdjustedEmissiveColor * baseSurfaceColor.rgb *  max(0.0, emissiveColor.a)*starDarkenMultiplier, 1.0);
+    vec4 emittedLight = vec4(atmAdjustedEmissiveColor * baseSurfaceColor.rgb *  starBrightness, 1.0);
 
     fragColor = reflectedLight + emittedLight;
 }
