@@ -211,9 +211,10 @@ public class Dimension {
 
     void tick() {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            properties.skyColor = new Vector3f(0.33f, 0.5f, 1.2f);
+            properties.skyColor = new Vector3f(0.33f, 0.5f, 2.2f);
             properties.fogColor = new Vector3f(0.8f, 0.95f, 1.0f);
-            properties.sunRiseColor = new Vector3f(2.0f, 0.81f, 0.5f);
+            properties.sunRiseColor = new Vector3f(5.0f, 0.81f, 0.5f);
+            properties.rotationAxis = new Vec3(0.2,1,1);
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {

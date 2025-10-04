@@ -14,10 +14,13 @@ import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
@@ -173,8 +176,7 @@ public class skyrenderer {
         VertexBuffer.unbind();
     }
 
-    public void renderSpaceBodies(PoseStack poseStack, Matrix4f proj, Matrix4f skyViewMatrix, float partialtick) {
-
+    public void renderSpaceBodies( Matrix4f proj, Matrix4f skyViewMatrix, float partialtick) {
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myPlanet = DimensionManager.get(myId);
@@ -183,11 +185,13 @@ public class skyrenderer {
         // use custom near / far for rendering planets and stars, depth precision error should not be significant as space objects are sparsely distributed
         float fovy = 2f * (float) Math.atan(1.0f / proj.get(1, 1));
         float aspect = proj.get(1, 1) / proj.get(0, 0);
-        Matrix4f newProj = new Matrix4f().perspective(fovy, aspect, 0.0001f, 100_00);
+        Matrix4f newProj = new Matrix4f().perspective(fovy, aspect, 0.0001f, 1000);
 
         // Setup render states for planets
         LEQUAL_DEPTH_TEST.setupRenderState();
         NO_TRANSPARENCY.setupRenderState();
+
+
 
 
         // Render planets / stars
@@ -227,6 +231,7 @@ public class skyrenderer {
             texturemanager.getTexture(otherDimension.getTexture()).setFilter(true, true);
             RenderSystem.setShaderTexture(0, otherDimension.getTexture());
             ShaderInstance shader = RenderSystem.getShader();
+
 
             shader.getUniform("ModelViewMat").set(planetModelMatrix);
             shader.getUniform("ProjMat").set(newProj);
@@ -300,7 +305,7 @@ public class skyrenderer {
 
         this.PlanetsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSpaceBodies(poseStack, proj, skyViewMatrix, partialtick);
+        renderSpaceBodies(proj, skyViewMatrix, partialtick);
 
         this.AtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
