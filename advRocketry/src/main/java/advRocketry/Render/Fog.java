@@ -23,7 +23,21 @@ public class Fog {
         Level currentLevel = Minecraft.getInstance().level;
         ResourceLocation dimensionId = currentLevel.dimension().location();
         Vector3f color = DimensionManager.INSTANCE.dimensions.get(dimensionId).getBrightnessAdjustedFogColor();
-        // TODO: if using hdr in atmosphere shader, also apply tonemapping to the fog here?
+
+
+        // Apply Reinhard tonemap per channel
+        color.x = color.x / (1.0f + color.x);
+        color.y = color.y / (1.0f + color.y);
+        color.z = color.z / (1.0f + color.z);
+
+        // Apply gamma correction (approx. sRGB)
+        float gamma = 2.2f;
+        float invGamma = 1.0f / gamma;
+        color.x = (float)Math.pow(color.x, invGamma);
+        color.y = (float)Math.pow(color.y, invGamma);
+        color.z = (float)Math.pow(color.z, invGamma);
+
+
         event.setRed(color.x);
         event.setGreen(color.y);
         event.setBlue(color.z);

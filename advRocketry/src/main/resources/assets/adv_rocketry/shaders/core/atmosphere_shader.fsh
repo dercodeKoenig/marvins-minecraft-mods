@@ -23,21 +23,17 @@ void main() {
 
     for (int i = 0; i < LightCount; i++) {
 
-        ///////////// sunrise / sunset calculations
-        // how much is the fragment at the horizon
-        // float upDot = dot(normalViewSpace, upViewSpace);
-        // float horizonFactor = pow(1-abs(upDot), 3);
-
         vec3 starVector = LightVectors_ViewSpace[i];
         vec4 starColor = LightColors[i];
         vec3 starDir = normalize(starVector);
-
+        float starDistance = length(starVector);
 
         // how much is the sun aligned with my up vector (how much it is up in the sky)
         float sunUp = dot(starDir, upViewSpace);
 
         // how bright the sky should be
-        float brightness = max(0, sunUp);
+
+        float brightness = max(0, sunUp) * starColor.a / (starDistance*starDistance);
         vec3 skyColorOut = SkyColor * brightness;
 
         // if the sun is below 0 (below the horizon) the sunset should fade out quick to bring darkness
@@ -49,9 +45,14 @@ void main() {
 
         // how much is the sun aligned with the fragments normal, note that the skybox normals point towards inside
         float sunDot = -dot(starDir, normalViewSpace);
-        float sunDot_0_1 = (sunDot+1) / 2;// transform -1 - 1 to 0 - 1
+        float sunDot_adjusted = (sunDot+1) / 2;// transform -1 - 1 to 0 - 1
+        sunDot_adjusted = (sunDot_adjusted+0.1)/1.1;// add some base value
 
-        skyColorOut = mix(skyColorOut, SunriseColor, sunDot_0_1 * sunAtHorizon);
+        // how much is the fragment at the horizon, can be used to scale sunrise color vertically
+        float upDot = dot(normalViewSpace, upViewSpace);
+        float horizonFactor = pow(1-abs(upDot), 5);
+
+        skyColorOut = mix(skyColorOut, SunriseColor, sunDot_adjusted * sunAtHorizon * horizonFactor);
 
         cumulativeSkyColor = cumulativeSkyColor + vec4(skyColorOut, 1);
     }

@@ -156,7 +156,7 @@ public class skyrenderer {
         shader.getUniform("LightCount").set(totalLights);
 
         shader.getUniform("SkyColor").set(myPlanet.getSkyColor().x, myPlanet.getSkyColor().y, myPlanet.getSkyColor().z);
-        shader.getUniform("SunriseColor").set(myPlanet.getSkyColor().x, myPlanet.getSkyColor().y, myPlanet.getSkyColor().z);
+        shader.getUniform("SunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
 
         float[] fogColor = RenderSystem.getShaderFogColor(); // this is probably using custom overwrite anyway but this is where it is supposed to get the fog color from
         //shader.getUniform("FogColor").set(fogColor[0], fogColor[1], fogColor[2]);

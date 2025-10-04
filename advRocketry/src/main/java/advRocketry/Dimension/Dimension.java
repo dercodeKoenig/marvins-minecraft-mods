@@ -191,6 +191,8 @@ public class Dimension {
             Dimension target = DimensionManager.get(targetId);
             astronomicalBrightness += Math.max(0, getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null));
         }
+        astronomicalBrightness =  astronomicalBrightness / (1+astronomicalBrightness);
+        astronomicalBrightness = Math.pow(astronomicalBrightness, 1/2.2);
         return astronomicalBrightness;
     }
 
@@ -209,21 +211,21 @@ public class Dimension {
 
     void tick() {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            properties.skyColor = new Vector3f(0.53f, 0.81f, 0.98f);
+            properties.skyColor = new Vector3f(0.33f, 0.5f, 1.2f);
             properties.fogColor = new Vector3f(0.8f, 0.95f, 1.0f);
-            properties.sunRiseColor = new Vector3f(1.0f, 0.81f, 0.5f);
+            properties.sunRiseColor = new Vector3f(2.0f, 0.81f, 0.5f);
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(1,1,1f,1);
+            properties.emissiveColor = new Vector4f(1,0.5f,0f,1);
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            //emissiveColor = new Vector4f(1,1,1f,1);
+            properties.emissiveColor = new Vector4f(0.9f,0.9f,0f, 0.002f);
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            //emissiveColor = new Vector4f(1,1,1f,1);
+            properties.emissiveColor = new Vector4f(0f,0.9f,0.9f, 0.005f);
             properties.reflectivity = 0;
         }
     }
