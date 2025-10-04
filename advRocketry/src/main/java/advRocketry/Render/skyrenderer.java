@@ -140,7 +140,7 @@ public class skyrenderer {
 
         shader.getUniform("ModelViewMat").set(atmMatrix);
         shader.getUniform("ProjMat").set(proj);
-        shader.getUniform("skyViewMat").set(skyView); // so it can transform universe global coordinates into view space
+        shader.getUniform("skyViewMat").set(skyView); // so it can transform universe global coordinates into view space, shader uses it for the light vector
 
         //shader.getUniform("screenWidth").set(skyRenderTarget.width);
         //shader.getUniform("screenHeight").set(skyRenderTarget.height);
