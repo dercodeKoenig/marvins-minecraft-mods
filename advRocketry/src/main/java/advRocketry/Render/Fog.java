@@ -22,20 +22,22 @@ public class Fog {
     public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
         Level currentLevel = Minecraft.getInstance().level;
         ResourceLocation dimensionId = currentLevel.dimension().location();
-        Vector3f color = DimensionManager.INSTANCE.dimensions.get(dimensionId).getBrightnessAdjustedFogColor();
+        Vector3f color = DimensionManager.INSTANCE.dimensions.get(dimensionId).getBrightnessAdjustedFogColor((float) event.getPartialTick());
 
 
-        // Apply Reinhard tonemap per channel
+        // Apply Reinhard tonemap per channel, fog can be > 1
         color.x = color.x / (1.0f + color.x);
         color.y = color.y / (1.0f + color.y);
         color.z = color.z / (1.0f + color.z);
 
-        // Apply gamma correction (approx. sRGB)
+        //  !!!do not Apply gamma correction, fog should not be made brighter when it gets dark!!!
+        /*
         float gamma = 2.2f;
         float invGamma = 1.0f / gamma;
         color.x = (float)Math.pow(color.x, invGamma);
         color.y = (float)Math.pow(color.y, invGamma);
         color.z = (float)Math.pow(color.z, invGamma);
+         */
 
 
         event.setRed(color.x);

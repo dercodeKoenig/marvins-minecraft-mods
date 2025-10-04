@@ -135,8 +135,9 @@ public class Dimension {
     }
 
 
-    public Vector3f getBrightnessAdjustedFogColor() {
-        float brightnessMultiplier = Minecraft.getInstance().level.getSkyDarken(0);
+    public Vector3f getBrightnessAdjustedFogColor(float partialTick) {
+        float brightnessMultiplier = (float)getAccumulatedBrightness(partialTick, null) + 0.05f;
+        //return new Vector3f(properties.fogColor.x * brightnessMultiplier, properties.fogColor.y * brightnessMultiplier, properties.fogColor.z * brightnessMultiplier);
         return new Vector3f(properties.fogColor.x * brightnessMultiplier, properties.fogColor.y * brightnessMultiplier, properties.fogColor.z * brightnessMultiplier);
     }
 
@@ -189,10 +190,8 @@ public class Dimension {
         double astronomicalBrightness = 0;
         for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
             Dimension target = DimensionManager.get(targetId);
-            astronomicalBrightness += Math.max(0, getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null));
+            astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.1f) / 1.1f);
         }
-        astronomicalBrightness =  astronomicalBrightness / (1+astronomicalBrightness);
-        astronomicalBrightness = Math.pow(astronomicalBrightness, 1/2.2);
         return astronomicalBrightness;
     }
 
