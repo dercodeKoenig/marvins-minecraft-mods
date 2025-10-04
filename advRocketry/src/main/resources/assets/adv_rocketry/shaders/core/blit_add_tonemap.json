@@ -1,0 +1,10 @@
+{
+    "vertex": "adv_rocketry:blit_add_tonemap",
+    "fragment": "adv_rocketry:blit_add_tonemap",
+    "samplers": [
+        { "name": "SpaceBackground" },
+        { "name": "Atmosphere" }
+    ],
+    "uniforms": [
+    ]
+}

@@ -61,6 +61,11 @@ public static final String MODID ="adv_rocketry";
             event.registerShader(planetShader,planetShaderInstance -> {
                 shaderUtils.planetShader = planetShaderInstance;
             });
+
+            ShaderInstance blitAddTonemapShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add_tonemap"), shaderUtils.POSITION);
+            event.registerShader(blitAddTonemapShader,blitAddTonemapShaderInstance -> {
+                shaderUtils.blitAddTonemapShader = blitAddTonemapShader;
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
