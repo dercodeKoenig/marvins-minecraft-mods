@@ -1,0 +1,11 @@
+{
+    "vertex": "adv_rocketry:blit",
+    "fragment": "adv_rocketry:blit_blur",
+    "samplers": [
+        { "name": "image" }
+    ],
+    "uniforms": [
+        { "name": "horizontal", "type": "int", "count": 1, "values": [1] },
+        { "name": "resolution", "type": "int", "count": 1, "values": [1] }
+    ]
+}

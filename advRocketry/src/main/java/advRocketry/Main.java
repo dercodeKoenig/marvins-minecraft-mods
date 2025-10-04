@@ -60,20 +60,21 @@ public static final String MODID ="adv_rocketry";
     private void loadShaders(RegisterShadersEvent event){
         // 3. Register the shader and set the static field in the callback
         try {
-            ShaderInstance atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
-            event.registerShader(atmosphereShader,atmosphereShaderInstance -> {
-                shaderUtils.atmosphereShader = atmosphereShaderInstance;
-            });
+            shaderUtils.atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
+            event.registerShader(shaderUtils.atmosphereShader,x -> {});
 
-            ShaderInstance planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"),shaderUtils.POSITION_TEXTURE_NORMAL);
-            event.registerShader(planetShader,planetShaderInstance -> {
-                shaderUtils.planetShader = planetShaderInstance;
-            });
+            shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"),shaderUtils.POSITION_TEXTURE_NORMAL);
+            event.registerShader(shaderUtils.planetShader,x -> {});
 
-            ShaderInstance blitAddTonemapShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add_tonemap"), shaderUtils.POSITION);
-            event.registerShader(blitAddTonemapShader,blitAddTonemapShaderInstance -> {
-                shaderUtils.blitAddTonemapShader = blitAddTonemapShader;
-            });
+            shaderUtils.blitAddTonemapShader= new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add_tonemap"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitAddTonemapShader,x -> {});
+
+            shaderUtils.blitExtractBright = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_extract_bright"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitExtractBright,x -> {});
+
+            shaderUtils.blitBlur = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_blur"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitBlur,x -> {});
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

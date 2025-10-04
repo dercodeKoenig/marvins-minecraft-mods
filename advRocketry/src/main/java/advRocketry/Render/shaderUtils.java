@@ -36,4 +36,11 @@ public class shaderUtils {
     public static ShaderInstance getBlitAddTonemapShader() {
         return blitAddTonemapShader;
     }
+
+    public static ShaderInstance blitExtractBright;
+    public static ShaderInstance getBlitExtractBrightShader() {
+        return blitExtractBright;
+    }
+    public static ShaderInstance blitBlur;
+    public static ShaderInstance getBlitBlurShader() {return blitBlur;}
 }

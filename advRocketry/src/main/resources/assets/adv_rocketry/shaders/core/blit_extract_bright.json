@@ -1,0 +1,10 @@
+{
+    "vertex": "adv_rocketry:blit",
+    "fragment": "adv_rocketry:blit_extract_bright",
+    "samplers": [
+        { "name": "frame" }
+    ],
+    "uniforms": [
+        { "name": "threshold", "type": "float", "count": 1, "values": [1] }
+    ]
+}

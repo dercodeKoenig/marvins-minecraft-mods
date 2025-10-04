@@ -55,8 +55,8 @@ public class HDRTextureTarget extends TextureTarget {
             }
 
             //this.setFilterMode(9728, true); // <- has private access
-            // equivalent to setFilterMode(9728, true)
-            this.filterMode = 9728;
+            // equivalent to setFilterMode(xxx, true)
+            this.filterMode = GL11.GL_LINEAR;
             GlStateManager._bindTexture(this.colorTextureId);
             GlStateManager._texParameter(3553, 10241, filterMode);
             GlStateManager._texParameter(3553, 10240, filterMode);

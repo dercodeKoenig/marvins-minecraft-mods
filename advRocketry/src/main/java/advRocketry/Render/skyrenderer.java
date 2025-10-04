@@ -6,7 +6,6 @@ import ARLib.obj.WavefrontObject;
 import advRocketry.*;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -14,13 +13,10 @@ import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
@@ -112,16 +108,16 @@ public class skyrenderer {
 
     private TextureTarget PlanetsTarget;
     private TextureTarget AtmosphereTarget;
-    private TextureTarget bloomLowTarget;
-    private TextureTarget bloomHighTarget;
-    private TextureTarget bloomBlurTarget;
+    private TextureTarget bloomBrightTarget;
+    private TextureTarget bloomBlurTarget1;
+    private TextureTarget bloomBlurTarget2;
 
     public void setupRenderTargets() {
         this.PlanetsTarget = new HDRTextureTarget(1000, 1000, true, false);
         this.AtmosphereTarget = new HDRTextureTarget(1000, 1000, false, false);
-        this.bloomLowTarget = new HDRTextureTarget(1000, 1000, false, false);
-        this.bloomHighTarget = new HDRTextureTarget(1000, 1000, false, false);
-        this.bloomBlurTarget = new HDRTextureTarget(1000, 1000, false, false);
+        this.bloomBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
+        this.bloomBlurTarget1 = new HDRTextureTarget(1000, 1000, false, false);
+        this.bloomBlurTarget2 = new HDRTextureTarget(1000, 1000, false, false);
     }
 
     public void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
@@ -286,7 +282,7 @@ public class skyrenderer {
     public void adjustRenderTargetSize(RenderTarget renderTarget, int w, int h, float multiplier){
         int targetW = (int) (w  *multiplier);
         int targetH = (int) (h  *multiplier);
-        if (renderTarget.width != targetW || renderTarget.height != targetH * 2) {
+        if (renderTarget.width != targetW || renderTarget.height != targetH) {
             if (w * h > 20000) { // small screen / minimized could cause crashes otherwise
                 renderTarget.resize(targetW, targetH, false);
             }
@@ -314,8 +310,8 @@ public class skyrenderer {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 1);
-        adjustRenderTargetSize(AtmosphereTarget,windowWidth,windowHeight, 1);
+        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 2f);
+        adjustRenderTargetSize(AtmosphereTarget,windowWidth,windowHeight, 0.25f);
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
 
@@ -327,22 +323,70 @@ public class skyrenderer {
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         renderSkyBox(proj, view, worldMatrix, partialtick);
 
-        // Switch back to main render target
-        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
 
-        GlStateManager._disableDepthTest();
-        GlStateManager._depthMask(false);
-        RenderSystem.setShader(shaderUtils:: getBlitAddTonemapShader);
-        ShaderInstance shader = RenderSystem.getShader();
-        shader.setSampler("SpaceBackground", PlanetsTarget.getColorTextureId());
-        shader.setSampler("Atmosphere", AtmosphereTarget.getColorTextureId());
-        shader.apply();
+        ShaderInstance shader;
+
+        // post processing
+
+        NO_DEPTH_TEST.setupRenderState();
+
         vertexBufferSquare.bind();
+
+        float bloomWindowSizeMultiplier = 1f;
+        adjustRenderTargetSize(bloomBlurTarget1,480,270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBlurTarget2,480,270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBrightTarget,480,270, bloomWindowSizeMultiplier);
+
+        // blit extract bright regions
+        bloomBrightTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        RenderSystem.setShader(shaderUtils:: getBlitExtractBrightShader);
+        shader = RenderSystem.getShader();
+        shader.setSampler("frame", PlanetsTarget.getColorTextureId());
+        shader.getUniform("threshold").set(1.0f);
+        shader.apply();
         vertexBufferSquare.draw();
         shader.clear();
+
+        // blit blur
+        RenderSystem.setShader(shaderUtils::getBlitBlurShader);
+        shader = RenderSystem.getShader();
+
+        bloomBlurTarget1.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        shader.setSampler("image", bloomBrightTarget.getColorTextureId());
+        shader.getUniform("resolution").set(bloomBrightTarget.width);
+        shader.getUniform("horizontal").set(1);
+        shader.apply();
+        vertexBufferSquare.draw();
+        shader.clear();
+
+        bloomBlurTarget2.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        shader.setSampler("image", bloomBlurTarget1.getColorTextureId());
+        shader.getUniform("resolution").set(bloomBlurTarget1.height);
+        shader.getUniform("horizontal").set(0);
+        shader.apply();
+        vertexBufferSquare.draw();
+        shader.clear();
+
+
+        // Switch back to main render target, combine framebuffers
+        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+        RenderSystem.setShader(shaderUtils:: getBlitAddTonemapShader);
+        shader = RenderSystem.getShader();
+        shader.setSampler("SpaceBackground", PlanetsTarget.getColorTextureId());
+        shader.setSampler("SpaceBackgroundBloom", bloomBlurTarget2.getColorTextureId());
+        shader.setSampler("Atmosphere", AtmosphereTarget.getColorTextureId());
+        shader.getUniform("bloomIntensity").set(1f);
+        shader.apply();
+        vertexBufferSquare.draw();
+        shader.clear();
+
+
         VertexBuffer.unbind();
-        GlStateManager._enableDepthTest();
-        GlStateManager._depthMask(true);
+        NO_DEPTH_TEST.clearRenderState();
+
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
     }
