@@ -212,9 +212,9 @@ public class Dimension {
 
     void tick() {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            properties.skyColor = new Vector3f(0.33f, 0.5f, 2.2f);
-            properties.fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
-            properties.sunRiseColor = new Vector3f(10.0f, 4.0f, 1.0f);
+            properties.skyColor = new Vector3f(0.43f, 0.6f, 4.5f);
+            properties.fogColor = new Vector3f(0.89f*4, 0.95f*4, 1.0f*4);
+            properties.sunRiseColor = new Vector3f(30.0f, 8.0f, 2.0f);
             properties.rotationAxis = new Vec3(0.2,1,1);
             // TODO: add random variation of sunrise color per day to make diverse sunsets
         }

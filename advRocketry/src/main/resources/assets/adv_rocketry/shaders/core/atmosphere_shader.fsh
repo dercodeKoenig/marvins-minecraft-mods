@@ -49,7 +49,7 @@ void main() {
         // how much is the sun aligned with my up vector (how much it is up in the sky)
         float sunUp = dot(starDir, upUniverseSpace);
 
-        float perStarBrightnessMultiplier = (max(0, sunUp) + 0.0001) / 1.0001 * starColor.a / (starDistance * starDistance);
+        float perStarBrightnessMultiplier = (max(0, (sunUp+0.2)/1.2) + 0.0001) / 1.0001 * starColor.a / (starDistance * starDistance);
 
         // how much the sun is at horizon
         float sunAtHorizon = 1 - max(0,sunUp);
