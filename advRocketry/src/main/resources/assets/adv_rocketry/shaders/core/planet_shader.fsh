@@ -41,7 +41,7 @@ void main() {
 
     //// this following code is an approximation to tint the star during sunrise and sunset
     float starUp = dot(upUniverseSpace, normalize(TargetVector)); // how much the star is above me
-    float atmthicknessModifier = pow(1-max(0,starUp), 3)*0.9+0.1; // create a base atm thickness when above and larger thickness towards horizon
+    float atmthicknessModifier = pow(1-max(0,starUp), 2)*0.9+0.1; // create a base atm thickness when above and larger thickness towards horizon
     atmthicknessModifier = atmthicknessModifier * AtmDensity / (1+AtmDensity); // scale it with the planets atm density / thickness modifier
     vec3 starSunriseColor = pow(LocalSunriseColor * emissiveColor.rgb, vec3(3)); // during sunrise the star should be tinted in the atmosphere sunrise color, but significantly amplified
     vec3 atmAdjustedEmissiveColor = mix(emissiveColor.rgb, starSunriseColor, atmthicknessModifier); // mix between base color and the tinted color based on the atmosphere thickness

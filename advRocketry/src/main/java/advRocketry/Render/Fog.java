@@ -26,7 +26,7 @@ public class Fog {
         Dimension dimension = DimensionManager.get(dimensionId);
 
         Vector3f fogColor  = dimension.getFogColor();
-        double brightnessMultiplier = dimension.getAccumulatedTerrainBrightness((float)event.getPartialTick(), null)+0.1;
+        double brightnessMultiplier = dimension.getAccumulatedTerrainBrightness((float)event.getPartialTick(), null)+0.01;
 
         fogColor = fogColor.mul((float) brightnessMultiplier);
 

@@ -27,6 +27,10 @@ public class Dimension {
         planetRenderCache = new PlanetRenderCache();
     }
 
+    // TODO:
+    //  on random tick, choose new target sky and fog colors and slowly interpolate between them to make diverse sky effects
+    //  maybe adjust colors +-up to 10% of the original color channel value?
+
     public ResourceLocation getDimensionId(){
         return properties.dimensionId;
     }
@@ -166,7 +170,11 @@ public class Dimension {
         double astronomicalBrightness = 0;
         for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
             Dimension target = DimensionManager.get(targetId);
-            astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.1f) / 1.1f);
+            Vec3 targetPosition = target.getPosition(partialTick);
+            double distance = targetPosition.distanceTo(myPlanetPosition);
+            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + 0.1f) / 1.1f);
+            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance*distance);
+            astronomicalBrightness += brightness;
         }
         return astronomicalBrightness;
     }
@@ -180,7 +188,11 @@ public class Dimension {
         double astronomicalBrightness = 0;
         for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
             Dimension target = DimensionManager.get(targetId);
-            astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.5f) / 1.5f);
+            Vec3 targetPosition = target.getPosition(partialTick);
+            double distance = targetPosition.distanceTo(myPlanetPosition);
+            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + 0.3f) / 1.3f);
+            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance*distance);
+            astronomicalBrightness += brightness;
         }
         return astronomicalBrightness;
     }
@@ -208,17 +220,17 @@ public class Dimension {
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(2f,1.9f,0.8f,0.1f);
+            properties.emissiveColor = new Vector4f(1.2f,1.5f,0.6f,1f);
             properties.reflectivity = 0;
             properties.targetDayLength = 1000;
             properties.earthRadiusMultiplier = 200;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(0.0f,0.0f,1f, 0.9f);
+            properties.emissiveColor = new Vector4f(0.2f,1.0f,8f, 0f); // it appears bright but not contribute too much to brightness
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0f,1f,0f, 0.8f);
+            properties.emissiveColor = new Vector4f(0.1f,3f,0.1f, 0f);
             properties.reflectivity = 0;
         }
     }
