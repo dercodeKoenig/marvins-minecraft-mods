@@ -1,6 +1,7 @@
 package advRocketry.Dimension;
 
 import ARLib.network.SimpleNetworkPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -50,7 +51,7 @@ public class DimensionManager{
     }
     public void clientTick(ClientTickEvent.Post event){
         for(Dimension i : dimensions.values()){
-            i.clientTick(event);
+            i.clientTick();
         }
         universalTimeClient += 1;
     }
@@ -72,7 +73,6 @@ public class DimensionManager{
         sun.emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 1f);
         sun.reflectivity = 0f;
         dimensions.put(sun.dimensionId, new Dimension(sun));
-
 
         DimensionProperties overworld = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
         overworld.parentDimensionId = sun.dimensionId;
@@ -126,7 +126,7 @@ public class DimensionManager{
         sun1.earthMassMultiplier = 200;
         sun1.earthRadiusMultiplier = 100;
         sun1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun1.emissiveColor = new Vector4f(0.9f,0.9f,0f, 1f);
+        sun1.emissiveColor = new Vector4f(0.9f,0.5f,0f, 1f);
         sun1.reflectivity = 0f;
         sun1.position = new Vec3(0,0,2);
         dimensions.put(sun1.dimensionId, new Dimension(sun1));
@@ -135,7 +135,7 @@ public class DimensionManager{
         sun2.earthMassMultiplier = 200;
         sun2.earthRadiusMultiplier = 100;
         sun2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun2.emissiveColor = new Vector4f(0f,0.9f,0.9f, 1f);
+        sun2.emissiveColor = new Vector4f(0f,0.5f,0.9f, 1f);
         sun2.reflectivity = 0f;
         sun2.position = new Vec3(1,0,1);
         dimensions.put(sun2.dimensionId, new Dimension(sun2));

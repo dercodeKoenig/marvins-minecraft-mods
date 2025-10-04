@@ -3,7 +3,6 @@
   "package": "advRocketry.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "MixinOverworldEffects",
     "MixinWorldEffects",
     "LevelMixin"
 

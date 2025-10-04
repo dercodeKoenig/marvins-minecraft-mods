@@ -33,6 +33,8 @@ void main() {
 
     float horizonDip = sqrt(2.0 * R * h + h * h) / R_plus_h;
 
+    horizonDip = horizonDip*0.00001; // DEBUG / TEST
+
     // 3. Remap the vertical factor to account for the new horizon
     // The logic remains the same: shift and rescale the range.
     float fogFactor = (verticalDot + horizonDip) / (1.0 + horizonDip);
@@ -57,8 +59,8 @@ void main() {
         // how much is the sun aligned with my up vector (how much it is up in the sky)
         float sunUp = dot(starDir, upViewSpace);
 
-        // how bright the sky should be
-        float brightness = (max(0, sunUp)+0.05)/1.05 * starColor.a / (starDistance*starDistance);
+        // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
+        float brightness = (max(0, sunUp)+0.01)/1.01 * starColor.a / (starDistance*starDistance);
 
         // how much the sun is at horizon
         float sunAtHorizon = 1 - abs(sunUp);

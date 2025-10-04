@@ -3,16 +3,11 @@ package advRocketry.Dimension;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -59,15 +54,18 @@ public class Dimension {
     public Vector3f getSunRiseColor(){
         return properties.sunRiseColor;
     }
+    public Vector3f getFogColor() {
+        return properties.fogColor;
+    }
+    public float getAtmosphereDensity(){
+        return properties.atmosphereDensity;
+    }
 
-    @OnlyIn(Dist.CLIENT)
     public float getLatitude() {
-        if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
-            // server uses always equator
-            return 0;
-        }
+        if (FMLLoader.getDist().isDedicatedServer())return 0;
+
         // player uses latitude based on location on planet
-        Player p = Minecraft.getInstance().player;
+        net.minecraft.world.entity.player.Player p = net.minecraft.client.Minecraft.getInstance().player;
         double z = p.position().z;
         double s = z / properties.latitude_len;
         float lat = (float) Math.sin(s * Math.PI * 2) * 90;
@@ -120,13 +118,6 @@ public class Dimension {
     }
 
 
-    public Vector3f getBrightnessAdjustedFogColor(float partialTick) {
-        float brightnessMultiplier = (float)getAccumulatedBrightness(partialTick, null) + 0.05f;
-        //return new Vector3f(properties.fogColor.x * brightnessMultiplier, properties.fogColor.y * brightnessMultiplier, properties.fogColor.z * brightnessMultiplier);
-        return new Vector3f(properties.fogColor.x * brightnessMultiplier, properties.fogColor.y * brightnessMultiplier, properties.fogColor.z * brightnessMultiplier);
-    }
-
-
 
     /** calculates universe global coordinates for the local north east up coordinates of the planet
      */
@@ -168,7 +159,7 @@ public class Dimension {
 
     /** computes the accumulated brightness by relevant stars to be used for terrain shading
      */
-    public double getAccumulatedBrightness(float partialTick, @Nullable Vec3 myPlanetPosition) {
+    public double getAccumulatedTerrainBrightness(float partialTick, @Nullable Vec3 myPlanetPosition) {
 
         if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
 
@@ -177,7 +168,21 @@ public class Dimension {
             Dimension target = DimensionManager.get(targetId);
             astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.1f) / 1.1f);
         }
-        return astronomicalBrightness;
+        return astronomicalBrightness / (1+astronomicalBrightness); // hdr -> ldr;
+    }
+
+    /** computes the accumulated brightness by relevant stars to be used for cloud shading
+     */
+    public double getAccumulatedCloudBrightness(float partialTick, @Nullable Vec3 myPlanetPosition) {
+
+        if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
+
+        double astronomicalBrightness = 0;
+        for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
+            Dimension target = DimensionManager.get(targetId);
+            astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.2f) / 1.2f);
+        }
+        return astronomicalBrightness / (1+astronomicalBrightness); // hdr -> ldr;
     }
 
     /** returns a reference vector for the equator, orthogonal to the rotation axis and the reference space object for day start
@@ -196,23 +201,23 @@ public class Dimension {
     void tick() {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
             properties.skyColor = new Vector3f(0.33f, 0.5f, 2.2f);
-            properties.fogColor = new Vector3f(0.8f, 0.95f, 1.0f);
+            properties.fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
             properties.sunRiseColor = new Vector3f(5.0f, 0.81f, 0.5f);
             properties.rotationAxis = new Vec3(0.2,1,1);
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(1,0.0f,0f,1f);
+            //properties.emissiveColor = new Vector4f(1,0.0f,0f,1f);
             properties.reflectivity = 0;
             properties.targetDayLength = 1000;
             properties.earthRadiusMultiplier = 200;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(0.0f,0.0f,1f, 0.2f);
+            properties.emissiveColor = new Vector4f(0.0f,0.0f,1f, 0.06f);
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0f,1f,0f, 0.5f);
+            properties.emissiveColor = new Vector4f(0f,1f,0f, 0.06f);
             properties.reflectivity = 0;
         }
     }
@@ -222,8 +227,10 @@ public class Dimension {
         properties.dayTime = properties.dayTime % Level.TICKS_PER_DAY;
     }
 
-    public void clientTick(ClientTickEvent event) {
-        Level level = Minecraft.getInstance().level;
+    public void clientTick() {
+        if(FMLLoader.getDist().isDedicatedServer())return;
+
+        Level level = net.minecraft.client.Minecraft.getInstance().level;
         if (level != null && properties.dimensionId.equals(level.dimension().location())) {
             properties.dayTime = level.getDayTime();
         } else {

@@ -237,6 +237,14 @@ public class skyrenderer {
 
             shader.getUniform("reflectivity").set(otherDimension.getReflectivity());
             shader.getUniform("emissiveColor").set(otherDimension.getEmissiveColor());
+            //shader.getUniform("AtmDensity").set(otherDimension.getAtmosphereDensity());
+            shader.getUniform("AtmDensity").set(1f);
+            AxisDirections myGlobalAxis = myPlanet.getGlobalAxisDirections(partialtick);
+            Vector3f upInUniverseSpace = myGlobalAxis.up.toVector3f();
+            shader.getUniform("LocalUpUniverseSpace").set(upInUniverseSpace.x,upInUniverseSpace.y,upInUniverseSpace.z);
+            shader.getUniform("LocalSunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
+
+            shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherDimension.planetRenderCache.significantLightSourcesCache.keySet()){

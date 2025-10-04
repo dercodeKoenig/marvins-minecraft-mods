@@ -2,7 +2,6 @@ package advRocketry.Render;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 

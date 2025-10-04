@@ -1,21 +1,9 @@
 package advRocketry.Dimension;
 
-import advRocketry.utils.CelestialUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-
-import static advRocketry.utils.CelestialUtils.*;
 
 
 public class DimensionProperties {

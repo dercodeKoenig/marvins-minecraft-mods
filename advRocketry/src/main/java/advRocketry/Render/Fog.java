@@ -1,5 +1,6 @@
 package advRocketry.Render;
 
+import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -22,26 +23,13 @@ public class Fog {
     public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
         Level currentLevel = Minecraft.getInstance().level;
         ResourceLocation dimensionId = currentLevel.dimension().location();
-        Vector3f color = DimensionManager.INSTANCE.dimensions.get(dimensionId).getBrightnessAdjustedFogColor((float) event.getPartialTick());
+        Dimension dimension = DimensionManager.get(dimensionId);
 
+        Vector3f fogColor  = dimension.getFogColor();
+        double brightnessMultiplier = dimension.getAccumulatedTerrainBrightness((float)event.getPartialTick(), null)+0.1;
 
-        // Apply Reinhard tonemap per channel, fog can be > 1
-        color.x = color.x / (1.0f + color.x);
-        color.y = color.y / (1.0f + color.y);
-        color.z = color.z / (1.0f + color.z);
-
-        //  !!!do not Apply gamma correction, fog should not be made brighter when it gets dark!!! ( i did not forget about it, i choose to not do it )
-        /*
-        float gamma = 2.2f;
-        float invGamma = 1.0f / gamma;
-        color.x = (float)Math.pow(color.x, invGamma);
-        color.y = (float)Math.pow(color.y, invGamma);
-        color.z = (float)Math.pow(color.z, invGamma);
-         */
-
-
-        event.setRed(color.x);
-        event.setGreen(color.y);
-        event.setBlue(color.z);
+        event.setRed((float) (fogColor.x*brightnessMultiplier));
+        event.setGreen((float) (fogColor.y*brightnessMultiplier));
+        event.setBlue((float) (fogColor.z*brightnessMultiplier));
     }
 }
