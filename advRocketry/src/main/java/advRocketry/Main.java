@@ -47,13 +47,12 @@ public static final String MODID ="adv_rocketry";
 
     private void onRenderStage(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
-            PoseStack poseStack = event.getPoseStack();
             Matrix4f proj = event.getProjectionMatrix();
             Matrix4f view = event.getModelViewMatrix();
-            skyrenderer.INSTANCE.renderSky(poseStack,proj,view,event.getPartialTick().getGameTimeDeltaPartialTick(false));
+            skyrenderer.INSTANCE.renderSky(proj,view,event.getPartialTick().getGameTimeDeltaPartialTick(false));
         }
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            // cloud come now, disable stupid fog
+            // clouds will render next, disable stupid fog
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY,999990,false,0);
         }
     }

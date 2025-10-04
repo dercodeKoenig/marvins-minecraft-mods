@@ -5,40 +5,30 @@ uniform vec3 SunriseColor;
 uniform vec3 FogColor;
 
 uniform float playerHeight;
-uniform float renderDistance;
 
-in vec3 normalViewSpace;
-in vec3 upViewSpace;
+in vec3 normalUniverseSpace;
+in vec3 upUniverseSpace;
 
 #define MAX_LIGHTS 4
 uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
+uniform vec3 LightVectors[MAX_LIGHTS];
 uniform int LightCount;
-
-in vec3 LightVectors_ViewSpace[MAX_LIGHTS];
 
 out vec4 fragColor;
 
+//TODO: to render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings
+
 void main() {
+    // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
+    float brightnessModifierPlayerAltitude = clamp((10000-playerHeight) / 10000, 0, 1);
+    vec3 heightAdjustedSkyColor = brightnessModifierPlayerAltitude * SkyColor;
 
-    float brightnessModifierPlayerAltitude = max(0,(10000-playerHeight) / 10000);
+    float verticalDot = dot(upUniverseSpace, -normalUniverseSpace);
 
-    // 1. Get the base vertical factor
-    float verticalDot = dot(normalize(upViewSpace), -normalize(normalViewSpace));
+    // i want fog to blend in at the horizon and below
+    // i also want it to be lower when the player is high up
+    float   fogFactor = max(0,(-verticalDot - 0.5*(1-brightnessModifierPlayerAltitude)));
 
-    // 2. Calculate the horizon dip based on planet curvature
-    // This is the more precise formula.
-    float h = playerHeight;
-    float R = renderDistance;
-    float R_plus_h = R + h;
-
-    float horizonDip = sqrt(2.0 * R * h + h * h) / R_plus_h;
-
-    horizonDip = horizonDip*0.00001; // DEBUG / TEST
-
-    // 3. Remap the vertical factor to account for the new horizon
-    // The logic remains the same: shift and rescale the range.
-    float fogFactor = (verticalDot + horizonDip) / (1.0 + horizonDip);
-    fogFactor = clamp(fogFactor, 0.0, 1.0);
 
     // 4. Apply the artistic curve
     fogFactor = pow(fogFactor, 1.0); // Adjust exponent for feel
@@ -51,38 +41,36 @@ void main() {
 
     for (int i = 0; i < LightCount; i++) {
 
-        vec3 starVector = LightVectors_ViewSpace[i];
-        vec4 starColor = LightColors[i];
+        vec3 starVector = vec3(LightVectors[i]);
+        vec4 starColor = vec4(LightColors[i]);
         vec3 starDir = normalize(starVector);
         float starDistance = length(starVector);
 
         // how much is the sun aligned with my up vector (how much it is up in the sky)
-        float sunUp = dot(starDir, upViewSpace);
+        float sunUp = dot(starDir, upUniverseSpace);
 
-        // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
-        float brightness = (max(0, sunUp)+0.01)/1.01 * starColor.a / (starDistance*starDistance) * brightnessModifierPlayerAltitude;
+        float brightness = (max(0, sunUp)+0.01)/1.01 * starColor.a / (starDistance*starDistance);
 
         // how much the sun is at horizon
         float sunAtHorizon = 1 - abs(sunUp);
         float sunAtHorizon_adjusted = pow(sunAtHorizon, 4);
 
         // how much is the sun aligned with the fragments normal, note that the skybox normals point towards inside
-        float sunDot = -dot(starDir, normalViewSpace);
+        float sunDot = -dot(starDir, normalUniverseSpace);
         float sunDot_adjusted = (sunDot+1) / 2;// transform -1 - 1 to 0 - 1
         sunDot_adjusted = (sunDot_adjusted+0.1)/1.1;// add some base value for sunset glow all around the horizon
 
         // how much is the fragment at the horizon, can be used to scale sunrise color vertically
-        float upDot = dot(normalViewSpace, upViewSpace);
-        float horizonFactor = pow(1-abs(upDot), 6);
+        float horizonFactor = pow(1-abs(verticalDot), 6);
 
         // glowing sunrise color to be added to the base color
         vec3 sunriseGlow = SunriseColor * starColor.rgb * sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor;
 
         // mix with distance fog color
-        vec3 foggedSkyColor = mix(FogColor, SkyColor, fogFactor);
+        vec3 foggedSkyColor = mix( heightAdjustedSkyColor, FogColor, fogFactor);
 
         // brightness adjustment and glow add
-        vec3 skyColorOut = (foggedSkyColor + sunriseGlow)  * brightness;
+        vec3 skyColorOut = (foggedSkyColor + sunriseGlow*brightnessModifierPlayerAltitude)  * brightness;
 
         // add
         cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
