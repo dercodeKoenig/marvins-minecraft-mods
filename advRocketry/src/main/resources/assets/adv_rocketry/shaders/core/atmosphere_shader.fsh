@@ -79,7 +79,7 @@ void main() {
         // blend sunrise color in
         vec3 skyColorOut = mix(foggedSkyColor * brightness, SunriseColor * starColor.rgb * brightness, sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor);
 
-        // add  
+        // add
         cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
     }
 

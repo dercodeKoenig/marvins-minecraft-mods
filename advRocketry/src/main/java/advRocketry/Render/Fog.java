@@ -30,7 +30,7 @@ public class Fog {
         color.y = color.y / (1.0f + color.y);
         color.z = color.z / (1.0f + color.z);
 
-        //  !!!do not Apply gamma correction, fog should not be made brighter when it gets dark!!!
+        //  !!!do not Apply gamma correction, fog should not be made brighter when it gets dark!!! ( i did not forget about it, i choose to not do it )
         /*
         float gamma = 2.2f;
         float invGamma = 1.0f / gamma;
