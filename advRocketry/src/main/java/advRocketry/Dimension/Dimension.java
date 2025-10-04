@@ -90,21 +90,6 @@ public class Dimension {
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(properties.earthMassMultiplier), fromEarthMasses(parent.properties.earthMassMultiplier), fromAU(properties.orbitalDistanceToParent));
             double orbitAngleDegrees = (DimensionManager.getGlobalTime() % ticksPerOrbit) * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;
 
-            if (false) { // debug / testing
-                if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
-                    orbitAngleDegrees = 60;
-                }
-                if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"))) {
-                    orbitAngleDegrees = 90;
-                }
-                if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon3"))) {
-                    orbitAngleDegrees = 180;
-                }
-                if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-                    orbitAngleDegrees = 0;
-                }
-            }
-
             // 1. Define a simple, non-zero vector to use for the cross-product
             // This is an arbitrary direction, often chosen to align with a major axis.
             Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
@@ -217,15 +202,17 @@ public class Dimension {
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(1,0.5f,0f,1);
+            properties.emissiveColor = new Vector4f(1,0.0f,0f,0.5f);
             properties.reflectivity = 0;
+            properties.targetDayLength = 1000;
+            properties.earthRadiusMultiplier = 200;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(0.9f,0.9f,0f, 0.002f);
+            properties.emissiveColor = new Vector4f(0.0f,0.0f,1f, 0.2f);
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0f,0.9f,0.9f, 0.005f);
+            properties.emissiveColor = new Vector4f(0f,1f,0f, 0.5f);
             properties.reflectivity = 0;
         }
     }

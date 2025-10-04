@@ -13,7 +13,7 @@ import java.util.Map;
 public class PlanetRenderCache {
     public LinkedHashMap<ResourceLocation, Double> significantLightSourcesCache = new LinkedHashMap<>();
     private Iterator<Dimension> dimIterator;
-    private final int MAX_LIGHTSOURCES = 2;
+    private final int MAX_LIGHTSOURCES = 4;
 
     // updates the cached light sources that are considered for lighting calculations
     // for simplicity, only self emitted light is considered. if a moon reflects a lot of light, this would be ignored.
