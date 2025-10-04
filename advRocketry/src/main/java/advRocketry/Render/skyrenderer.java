@@ -159,8 +159,7 @@ public class skyrenderer {
         shader.getUniform("SkyColor").set(myPlanet.getSkyColor().x, myPlanet.getSkyColor().y, myPlanet.getSkyColor().z);
         shader.getUniform("SunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
 
-        float[] fogColor = RenderSystem.getShaderFogColor(); // this is probably using custom overwrite anyway but this is where it is supposed to get the fog color from
-        shader.getUniform("FogColor").set(fogColor[0], fogColor[1], fogColor[2]);
+        shader.getUniform("FogColor").set(myPlanet.getFogColor().x,myPlanet.getFogColor().y,myPlanet.getFogColor().z);
 
 
         // using the real planet radius looks bad because the terrain is not rendered.

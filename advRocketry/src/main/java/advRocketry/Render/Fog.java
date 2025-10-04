@@ -28,8 +28,15 @@ public class Fog {
         Vector3f fogColor  = dimension.getFogColor();
         double brightnessMultiplier = dimension.getAccumulatedTerrainBrightness((float)event.getPartialTick(), null)+0.1;
 
-        event.setRed((float) (fogColor.x*brightnessMultiplier));
-        event.setGreen((float) (fogColor.y*brightnessMultiplier));
-        event.setBlue((float) (fogColor.z*brightnessMultiplier));
+        fogColor = fogColor.mul((float) brightnessMultiplier);
+
+        // (i do not want the bright gamma corection for my fog)
+        fogColor.x = (float) Math.pow(fogColor.x / (1+fogColor.x), 1f/1.2f);
+        fogColor.y = (float) Math.pow(fogColor.y / (1+fogColor.y), 1f/1.2f);
+        fogColor.z = (float) Math.pow(fogColor.z / (1+fogColor.z), 1f/1.2f);
+
+        event.setRed((float) (fogColor.x));
+        event.setGreen((float) (fogColor.y));
+        event.setBlue((float) (fogColor.z));
     }
 }

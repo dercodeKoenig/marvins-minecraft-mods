@@ -24,6 +24,7 @@ public abstract class LevelMixin {
         Dimension dimension = DimensionManager.get(dimensionId);
 
         double brightness = dimension.getAccumulatedTerrainBrightness(partialTick, null);
+        brightness = Math.pow(brightness / (1+brightness), 1f/2.2f);
 
         brightness *= 1.0F - level.getRainLevel(partialTick) * 5.0F / 16.0F;
         brightness *= 1.0F - level.getThunderLevel(partialTick) * 5.0F / 16.0F;
@@ -43,6 +44,7 @@ public abstract class LevelMixin {
         Dimension dimension = DimensionManager.get(dimensionId);
 
         double brightness = dimension.getAccumulatedCloudBrightness(partialTick, null);
+        brightness = Math.pow(brightness / (1+brightness), 1f/2.2f);
 
         float f1 = (float)brightness;
         f1 = Mth.clamp(f1, 0.0F, 1.0F);

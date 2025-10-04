@@ -49,13 +49,13 @@ public class Dimension {
         return properties.reflectivity;
     }
     public Vector3f getSkyColor(){
-        return properties.skyColor;
+        return new Vector3f(properties.skyColor);
     }
     public Vector3f getSunRiseColor(){
-        return properties.sunRiseColor;
+        return new Vector3f(properties.sunRiseColor);
     }
     public Vector3f getFogColor() {
-        return properties.fogColor;
+        return new Vector3f(properties.fogColor);
     }
     public float getAtmosphereDensity(){
         return properties.atmosphereDensity;
@@ -160,7 +160,7 @@ public class Dimension {
     /** computes the accumulated brightness by relevant stars to be used for terrain shading
      */
     public double getAccumulatedTerrainBrightness(float partialTick, @Nullable Vec3 myPlanetPosition) {
-
+//if(true)return 1;
         if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
 
         double astronomicalBrightness = 0;
@@ -168,7 +168,7 @@ public class Dimension {
             Dimension target = DimensionManager.get(targetId);
             astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.1f) / 1.1f);
         }
-        return astronomicalBrightness / (1+astronomicalBrightness); // hdr -> ldr;
+        return astronomicalBrightness;
     }
 
     /** computes the accumulated brightness by relevant stars to be used for cloud shading
@@ -180,9 +180,9 @@ public class Dimension {
         double astronomicalBrightness = 0;
         for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
             Dimension target = DimensionManager.get(targetId);
-            astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.2f) / 1.2f);
+            astronomicalBrightness += Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, null) + 0.5f) / 1.5f);
         }
-        return astronomicalBrightness / (1+astronomicalBrightness); // hdr -> ldr;
+        return astronomicalBrightness;
     }
 
     /** returns a reference vector for the equator, orthogonal to the rotation axis and the reference space object for day start
