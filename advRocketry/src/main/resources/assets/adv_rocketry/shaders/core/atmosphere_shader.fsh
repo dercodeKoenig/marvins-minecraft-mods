@@ -79,7 +79,7 @@ void main() {
 
         vec3 foggedSkyColor = mix(FogColor, SkyColorHeightAdjusted, fogFactor);
 
-        vec3 skyColorOut = mix(foggedSkyColor * brightness, SunriseColor * brightness, sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor);
+        vec3 skyColorOut = mix(foggedSkyColor * brightness, SunriseColor * starColor.rgb * brightness, sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor);
 
         cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
     }

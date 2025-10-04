@@ -202,7 +202,7 @@ public class Dimension {
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(1,0.0f,0f,0.5f);
+            properties.emissiveColor = new Vector4f(1,0.0f,0f,1f);
             properties.reflectivity = 0;
             properties.targetDayLength = 1000;
             properties.earthRadiusMultiplier = 200;

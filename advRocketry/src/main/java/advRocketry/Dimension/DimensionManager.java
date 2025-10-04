@@ -43,7 +43,6 @@ public class DimensionManager{
         for(Dimension i : dimensions.values()){
             i.serverTick(event);
         }
-        universalTimeServer = 0;
         universalTimeServer += 1;
         if(universalTimeServer % 200 == 0){
             PacketDistributor.sendToAllPlayers(new SimpleNetworkPacket(TimeSync.PACKAGE_ID_SYNCTIME,String.valueOf(universalTimeServer)));
@@ -53,7 +52,6 @@ public class DimensionManager{
         for(Dimension i : dimensions.values()){
             i.clientTick(event);
         }
-        universalTimeClient = 0;
         universalTimeClient += 1;
     }
 
