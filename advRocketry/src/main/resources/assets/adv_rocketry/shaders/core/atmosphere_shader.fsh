@@ -3,6 +3,7 @@
 uniform vec3 SkyColor;
 uniform vec3 SunriseColor;
 uniform vec3 FogColor;
+
 uniform float playerHeight;
 uniform float renderDistance;
 
@@ -19,7 +20,32 @@ out vec4 fragColor;
 
 void main() {
 
-    vec4 cumulativeSkyColor = vec4(0);
+    vec3 SkyColorHeightAdjusted = SkyColor * max(0,(10000-playerHeight) / 10000);
+
+    // 1. Get the base vertical factor
+    float verticalDot = dot(normalize(upViewSpace), -normalize(normalViewSpace));
+
+    // 2. Calculate the horizon dip based on planet curvature
+    // This is the more precise formula.
+    float h = playerHeight;
+    float R = renderDistance;
+    float R_plus_h = R + h;
+
+    float horizonDip = sqrt(2.0 * R * h + h * h) / R_plus_h;
+
+    // 3. Remap the vertical factor to account for the new horizon
+    // The logic remains the same: shift and rescale the range.
+    float fogFactor = (verticalDot + horizonDip) / (1.0 + horizonDip);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+
+    // 4. Apply the artistic curve
+    fogFactor = pow(fogFactor, 1.0); // Adjust exponent for feel
+
+
+
+
+
+    vec3 cumulativeSkyColor = vec3(0);
 
     for (int i = 0; i < LightCount; i++) {
 
@@ -32,7 +58,7 @@ void main() {
         float sunUp = dot(starDir, upViewSpace);
 
         // how bright the sky should be
-        float brightness = max(0, sunUp) * starColor.a / (starDistance*starDistance);
+        float brightness = (max(0, sunUp)+0.05)/1.05 * starColor.a / (starDistance*starDistance);
 
         // if the sun is below 0 (below the horizon) the sunset should fade out quick to bring darkness
         //float sunBelowHorizon = max(0,-sunUp);
@@ -51,11 +77,13 @@ void main() {
         float upDot = dot(normalViewSpace, upViewSpace);
         float horizonFactor = pow(1-abs(upDot), 6);
 
-        vec3 skyColorOut = mix(SkyColor * brightness, SunriseColor * brightness, sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor);
+        vec3 foggedSkyColor = mix(FogColor, SkyColorHeightAdjusted, fogFactor);
 
-        cumulativeSkyColor = cumulativeSkyColor + vec4(skyColorOut, 1);
+        vec3 skyColorOut = mix(foggedSkyColor * brightness, SunriseColor * brightness, sunDot_adjusted * sunAtHorizon_adjusted * horizonFactor);
+
+        cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
     }
 
-    fragColor = cumulativeSkyColor / (vec4(1) + cumulativeSkyColor);
+    fragColor = vec4(cumulativeSkyColor,1);
 
 }

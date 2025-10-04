@@ -142,10 +142,8 @@ public class skyrenderer {
         shader.getUniform("ProjMat").set(proj);
         shader.getUniform("skyViewMat").set(skyView); // so it can transform universe global coordinates into view space, shader uses it for the light vector
 
-        //shader.getUniform("screenWidth").set(skyRenderTarget.width);
-        //shader.getUniform("screenHeight").set(skyRenderTarget.height);
-        //shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
-        //shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
+        shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
+        shader.getUniform("renderDistance").set(Minecraft.getInstance().gameRenderer.getRenderDistance());
 
         int totalLights = 0;
         for (ResourceLocation lightSourceId : myPlanet.planetRenderCache.significantLightSourcesCache.keySet()){
@@ -162,7 +160,7 @@ public class skyrenderer {
         shader.getUniform("SunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
 
         float[] fogColor = RenderSystem.getShaderFogColor(); // this is probably using custom overwrite anyway but this is where it is supposed to get the fog color from
-        //shader.getUniform("FogColor").set(fogColor[0], fogColor[1], fogColor[2]);
+        shader.getUniform("FogColor").set(fogColor[0], fogColor[1], fogColor[2]);
 
 
         // using the real planet radius looks bad because the terrain is not rendered.
