@@ -71,12 +71,16 @@ public class SimpleNetworkPacket implements CustomPacketPayload {
     public static void readClient(final SimpleNetworkPacket data, final IPayloadContext context) {
         if(receivers.containsKey(data.getId())){
             receivers.get(data.getId()).readClient(data.data);
+        }else{
+            System.out.println("for packet with id "+data.getId()+" is no receiver registered");
         }
     }
 
     public static void readServer(final SimpleNetworkPacket data, final IPayloadContext context) {
         if(receivers.containsKey(data.getId())){
             receivers.get(data.getId()).readServer(data.data, (ServerPlayer) context.player());
+        }else{
+            System.out.println("for packet with id "+data.getId()+" is no receiver registered");
         }
     }
 

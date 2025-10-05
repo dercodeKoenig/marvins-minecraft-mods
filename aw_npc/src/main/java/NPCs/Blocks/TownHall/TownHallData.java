@@ -22,7 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-
+// TODO: this has to be reworked, does not work on client. also move save&load to server stop and start events
+//        do not cycle all levels as this will not work on client.  make easier searialization by setting the level id in the townhall data and save / load it all as a simple list
 public class TownHallData {
     private static HashMap<String, HashMap<BlockPos, TownHallData>> staticData = new HashMap<>();
 
@@ -138,7 +139,6 @@ public class TownHallData {
         }
         return map;
     }
-
     public static void createStaticMap(HashMap<String, List<TownHallData>> map) {
         staticData = new HashMap<>();
         for (Level l : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
