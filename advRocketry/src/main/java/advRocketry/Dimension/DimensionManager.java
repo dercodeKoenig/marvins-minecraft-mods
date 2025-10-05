@@ -33,7 +33,7 @@ public class DimensionManager{
 
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
     public long universalTimeServer = 0;
-    public long universalTimeClient = 0; // should be synced to client by server
+    public long universalTimeClient = 0; // should be synced to client by server, also add a float to track and interpolate away difference
 
     public DimensionManager(){
         registerDimensions();

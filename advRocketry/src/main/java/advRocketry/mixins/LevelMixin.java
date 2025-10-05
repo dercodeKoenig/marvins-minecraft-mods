@@ -23,8 +23,10 @@ public abstract class LevelMixin {
         ResourceLocation dimensionId = level.dimension().location();
         Dimension dimension = DimensionManager.get(dimensionId);
 
-        double brightness = dimension.getAccumulatedTerrainBrightness(partialTick, null);
-        brightness = Math.pow(brightness / (1+brightness), 1f/2.2f);
+        double brightness = dimension.getAccumulatedWorldBrightness(partialTick,0.2f, null);
+
+        // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
+        brightness = Math.clamp(Math.pow(brightness, 0.8)*2, 0,1);
 
         brightness *= 1.0F - level.getRainLevel(partialTick) * 5.0F / 16.0F;
         brightness *= 1.0F - level.getThunderLevel(partialTick) * 5.0F / 16.0F;
@@ -43,8 +45,10 @@ public abstract class LevelMixin {
         ResourceLocation dimensionId = level.dimension().location();
         Dimension dimension = DimensionManager.get(dimensionId);
 
-        double brightness = dimension.getAccumulatedCloudBrightness(partialTick, null);
-        brightness = Math.pow(brightness / (1+brightness), 1f/2.2f);
+        double brightness = dimension.getAccumulatedWorldBrightness(partialTick,0.4f, null);
+
+        // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
+        brightness = Math.clamp(Math.pow(brightness, 0.8)*2, 0,1);
 
         float f1 = (float)brightness;
         f1 = Mth.clamp(f1, 0.0F, 1.0F);

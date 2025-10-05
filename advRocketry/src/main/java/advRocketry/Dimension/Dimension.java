@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
+import static java.lang.Math.pow;
 
 public class Dimension {
     private DimensionProperties properties;
@@ -163,7 +164,7 @@ public class Dimension {
 
     /** computes the accumulated brightness by relevant stars to be used for terrain shading
      */
-    public double getAccumulatedTerrainBrightness(float partialTick, @Nullable Vec3 myPlanetPosition) {
+    public double getAccumulatedWorldBrightness(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
 //if(true)return 1;
         if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
 
@@ -172,25 +173,7 @@ public class Dimension {
             Dimension target = DimensionManager.get(targetId);
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
-            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + 0.1f) / 1.1f);
-            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance*distance);
-            astronomicalBrightness += brightness;
-        }
-        return astronomicalBrightness;
-    }
-
-    /** computes the accumulated brightness by relevant stars to be used for cloud shading
-     */
-    public double getAccumulatedCloudBrightness(float partialTick, @Nullable Vec3 myPlanetPosition) {
-
-        if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
-
-        double astronomicalBrightness = 0;
-        for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
-            Dimension target = DimensionManager.get(targetId);
-            Vec3 targetPosition = target.getPosition(partialTick);
-            double distance = targetPosition.distanceTo(myPlanetPosition);
-            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + 0.3f) / 1.3f);
+            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1+dotOffset));
             double brightness = dotMultiplier * target.getEmissiveColor().w / (distance*distance);
             astronomicalBrightness += brightness;
         }
@@ -208,19 +191,23 @@ public class Dimension {
     }
 
 
-
+    float hdr(float ldr){
+        float ldr_lin = (float) pow(ldr, 2.2);
+        //float hdr = ldr_lin/(1.0001f-ldr_lin);
+        return ldr_lin;
+    }
 
     void tick() {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            properties.skyColor = new Vector3f(0.43f, 0.6f, 4.5f);
-            properties.fogColor = new Vector3f(0.89f*4, 0.95f*4, 1.0f*4);
-            properties.sunRiseColor = new Vector3f(30.0f, 8.0f, 2.0f);
+            properties.skyColor = new Vector3f(hdr(0.45f), hdr(0.7f), hdr(1f));
+            properties.fogColor = new Vector3f(hdr(0.89f), hdr(0.95f), hdr(1.0f));
+            properties.sunRiseColor = new Vector3f(hdr(3f), hdr(2f), hdr(0.1f));
             properties.rotationAxis = new Vec3(0.2,1,1);
-            // TODO: add random variation of sunrise color per day to make diverse sunsets
+            // TODO: add random variation of sunrise color per day to make diverse sunsets, maybe +-20%
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(1.2f,1.5f,0.6f,1f);
+            properties.emissiveColor = new Vector4f(hdr(1f),hdr(0.8f),hdr(0.5f),1f);
             properties.reflectivity = 0;
             properties.targetDayLength = 1000;
             properties.earthRadiusMultiplier = 200;

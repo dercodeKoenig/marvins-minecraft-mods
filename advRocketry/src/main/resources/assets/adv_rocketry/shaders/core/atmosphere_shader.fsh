@@ -27,9 +27,9 @@ void main() {
 
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
-    float fogFactor = max(0, (-verticalDot+0.0)/1. - 0.5 * (1 - brightnessModifierPlayerAltitude));
+    float fogFactor = max(0, (-verticalDot+0.1)/1.1 - 0.5 * (1 - brightnessModifierPlayerAltitude));
     // 4. Apply the artistic curve
-    fogFactor = pow(fogFactor, 0.8); // Adjust exponent for feel
+    fogFactor = pow(fogFactor, 0.7); // Adjust exponent for feel
 
     vec3 finalFogColor = FogColor * fogFactor * globalBrightnessModifiew;
 
@@ -49,7 +49,7 @@ void main() {
         // how much is the sun aligned with my up vector (how much it is up in the sky)
         float sunUp = dot(starDir, upUniverseSpace);
 
-        float perStarBrightnessMultiplier = (max(0, (sunUp+0.2)/1.2) + 0.0001) / 1.0001 * starColor.a / (starDistance * starDistance);
+        float perStarBrightnessMultiplier = (pow(max(0, (sunUp+0.4)/1.4), 1) + 0.0001) / 1.0001 * starColor.a / (starDistance * starDistance);
 
         // how much the sun is at horizon
         float sunAtHorizon = 1 - max(0,sunUp);
@@ -61,7 +61,7 @@ void main() {
         sunDot_adjusted = (sunDot_adjusted + 0.1) / 1.1;// add some base value for sunset glow all around the horizon
 
         // how much is the fragment at the horizon, can be used to scale sunrise color vertically
-        float horizonFactor = pow(1 - max(0,verticalDot), 6);
+        float horizonFactor = pow(1 - max(0,verticalDot), 8);
 
         // glowing sunrise color to be added to the base color
         vec3 sunriseGlow =

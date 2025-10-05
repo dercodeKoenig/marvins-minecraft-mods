@@ -115,9 +115,10 @@ configurations {
 }
 
 dependencies {
-    //implementation "curse.maven:library-for-ar-reworked-1038780:5942649"
-    //implementation(files('libs/arlib-1.0.5-deobf.jar'))
+
     implementation fileTree(dir: '../libs', include: ['*.jar'])
+
+    //implementation "curse.maven:distant-horizons-508933:6791190" // only for testing visuals, not required
 
 
 
