@@ -49,6 +49,7 @@ void main() {
         // how much is the sun aligned with my up vector (how much it is up in the sky)
         float sunUp = dot(starDir, upUniverseSpace);
 
+        // a fancy curve based on the height of the star above the horizon (dot product to up vector)
         float perStarBrightnessMultiplier = (pow(max(0, (sunUp+0.4)/1.4), 1) + 0.0001) / 1.0001 * starColor.a / (starDistance * starDistance);
 
         // how much the sun is at horizon
@@ -59,6 +60,10 @@ void main() {
         float sunDot = -dot(starDir, normalUniverseSpace);
         float sunDot_adjusted = (sunDot + 1) / 2;// transform -1 - 1 to 0 - 1
         sunDot_adjusted = (sunDot_adjusted + 0.1) / 1.1;// add some base value for sunset glow all around the horizon
+
+        // if a fragment is closely aligned with the sun, make it more bright so that the area around the sun is brighter
+        // TODO: a great place to multiply by atmosphere thickness
+        float extraBrightness = pow(max(0,sunDot), 10) * 2 + 1;
 
         // how much is the fragment at the horizon, can be used to scale sunrise color vertically
         float horizonFactor = pow(1 - max(0,verticalDot), 8);
@@ -73,7 +78,7 @@ void main() {
         globalBrightnessModifiew;
 
         // brightness adjustment, add fog, sky color and sunrise glow
-        vec3 skyColorOut = (finalFogColor + SkyColorBase + sunriseGlow) * perStarBrightnessMultiplier;
+        vec3 skyColorOut = (finalFogColor + SkyColorBase + sunriseGlow) * perStarBrightnessMultiplier * extraBrightness;
 
         // add
         cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
