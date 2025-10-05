@@ -221,7 +221,7 @@ public class Dimension {
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
-            properties.orbitalBaseOffsetDegrees = 160;
+            properties.orbitalBaseOffsetDegrees = 190;
             properties.orbitAxis = new Vec3(-0.7,1,-1);
         }
     }
