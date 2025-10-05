@@ -11,7 +11,7 @@ import static java.lang.Math.pow;
 public class DimensionProperties {
     public String name = "";
     public PlanetType type = PlanetType.PLANET;
-
+    public boolean hasCustomSky = true;
     public ResourceLocation dimensionId = null;
     public double earthRadiusMultiplier = 1;
     public double earthMassMultiplier = 1;

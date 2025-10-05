@@ -10,7 +10,6 @@ import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -207,6 +206,8 @@ public class skyrenderer {
         for (Dimension otherDimension : DimensionManager.INSTANCE.dimensions.values()) {
             // skip self
             if (otherDimension.getDimensionId().equals(myPlanet.getDimensionId())) continue;
+            // skip if it is a not visible dimension
+            if(!otherDimension.shouldRenderPlanetInSky()) continue;
 
             Matrix4f planetMatrix = new Matrix4f();
 
@@ -250,8 +251,8 @@ public class skyrenderer {
 
             shader.getUniform("reflectivity").set(otherDimension.getReflectivity());
             shader.getUniform("emissiveColor").set(otherDimension.getEmissiveColor());
-            //shader.getUniform("AtmDensity").set(otherDimension.getAtmosphereDensity());
-            shader.getUniform("AtmDensity").set(1f); // TODO: disable after testing
+
+            shader.getUniform("AtmDensity").set(myPlanet.getAtmosphereDensity());
             shader.getUniform("LocalSunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
@@ -292,9 +293,10 @@ public class skyrenderer {
     public void renderSky(Matrix4f proj, Matrix4f view, float partialtick) {
         if (!finishedLoading) return;
 
-
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myPlanet = DimensionManager.get(myId);
+        if(myPlanet == null)  return;
+        if(!myPlanet.hasCustomSky()) return;
 
         AxisDirections myGlobalAxis = myPlanet.getGlobalAxisDirections(partialtick);
 

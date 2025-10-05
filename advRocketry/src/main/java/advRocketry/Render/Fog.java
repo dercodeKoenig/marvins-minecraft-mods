@@ -24,6 +24,7 @@ public class Fog {
         Level currentLevel = Minecraft.getInstance().level;
         ResourceLocation dimensionId = currentLevel.dimension().location();
         Dimension dimension = DimensionManager.get(dimensionId);
+        if(dimension == null) return; // not registered in DimensionManager
 
         Vector3f fogColor  = dimension.getFogColor();
         double brightnessMultiplier = dimension.getAccumulatedWorldBrightness((float)event.getPartialTick(),0.2f, null);

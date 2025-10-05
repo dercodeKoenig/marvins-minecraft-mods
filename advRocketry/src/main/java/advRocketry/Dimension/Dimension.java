@@ -35,7 +35,7 @@ public class Dimension {
         setRequiresSaveProperties();
     }
 
-    public void setRequiresSaveProperties(){
+    public void setRequiresSaveProperties() {
         requiresSaveProperties = true;
     }
 
@@ -92,6 +92,14 @@ public class Dimension {
         else return clientOnly.getLatitude();
     }
 
+    public boolean shouldRenderPlanetInSky() {
+        return properties.type == DimensionProperties.PlanetType.PLANET ||
+                properties.type == DimensionProperties.PlanetType.STAR;
+    }
+    public boolean hasCustomSky(){
+        return properties.hasCustomSky;
+    }
+
     public float getDayTimePerTick() {
         return (float) Level.TICKS_PER_DAY / properties.targetDayLength;
     }
@@ -106,8 +114,8 @@ public class Dimension {
         if (properties.parentDimensionId != null) {
             Dimension parent = DimensionManager.INSTANCE.dimensions.get(properties.parentDimensionId);
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(properties.earthMassMultiplier), fromEarthMasses(parent.properties.earthMassMultiplier), fromAU(properties.orbitalDistanceToParent));
-            double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() %ticksPerOrbit);
-            double orbitAngleDegrees =  orbitalProgress * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;
+            double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
+            double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;
 
             // 1. Define a simple, non-zero vector to use for the cross-product
             // This is an arbitrary direction, often chosen to align with a major axis.
