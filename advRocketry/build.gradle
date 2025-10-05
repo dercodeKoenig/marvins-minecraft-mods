@@ -21,6 +21,13 @@ repositories {
     maven {
         url "https://cursemaven.com"
     }
+    maven {
+//        url = "https://maven.galacticraft.net/repository/maven-releases" // currently offline
+        url = "https://repo.terradevelopment.net/repository/maven-releases"
+    }
+    maven() {
+        url "https://maven.bai.lol"
+    }
 }
 
 base {
@@ -120,7 +127,7 @@ dependencies {
 
     implementation "curse.maven:distant-horizons-508933:6791190" // only for testing visuals, not required
 
-
+    implementation("dev.galacticraft:dynamicdimensions-neoforge:0.9.1+34")
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

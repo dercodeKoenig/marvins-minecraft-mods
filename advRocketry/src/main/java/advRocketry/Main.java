@@ -2,10 +2,11 @@ package advRocketry;
 
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.GlobalTime;
+import advRocketry.Dimension.ModDimensions;
+
 import advRocketry.Render.Fog;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Render.skyrenderer;
-import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -20,8 +21,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
@@ -71,11 +71,14 @@ public class Main {
         GlobalTime.tickClient();
     }
 
-    public void onServerStarting(ServerStartingEvent event) {
+    public void onServerStarting(ServerStartedEvent event) {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: "+worldPath);
         GlobalTime.load();
         DimensionManager.load();
+        ModDimensions.addDimensions("1");
+        ModDimensions.addDimensions("2");
+        ModDimensions.addDimensions("3");
     }
 
     public void onServerStop(ServerStoppingEvent event) {
