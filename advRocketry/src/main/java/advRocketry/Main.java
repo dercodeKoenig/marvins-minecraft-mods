@@ -26,6 +26,7 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -35,6 +36,7 @@ public class Main {
     public static final String MODID = "adv_rocketry";
 
     public static Path worldPath;
+    public static Path myConfigDir;
 
     public Main(IEventBus modEventBus, ModContainer modContaine) {
         //modEventBus.register(this);
@@ -50,6 +52,14 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
 
         modEventBus.addListener(this::loadShaders);
+
+
+        Path configDir = FMLPaths.CONFIGDIR.get();
+        myConfigDir = Path.of(String.valueOf(configDir), Main.MODID);
+        File myConfigDirFile =new File(String.valueOf(myConfigDir));
+        if(!myConfigDirFile.exists()){
+            myConfigDirFile.mkdirs();
+        }
     }
 
     public void onServerTick(ServerTickEvent.Post event){
@@ -65,6 +75,7 @@ public class Main {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: "+worldPath);
         GlobalTime.load();
+        DimensionManager.load();
     }
 
     public void onServerStop(ServerStoppingEvent event) {

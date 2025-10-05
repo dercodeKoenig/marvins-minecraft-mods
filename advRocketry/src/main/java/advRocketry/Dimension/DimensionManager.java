@@ -2,6 +2,7 @@ package advRocketry.Dimension;
 
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Main;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
@@ -21,58 +22,62 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-public class DimensionManager{
+public class DimensionManager {
     public static final String saveFile = "galaxy.json";
 
     public static DimensionManager INSTANCE = new DimensionManager();
-    
+
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
 
-    public DimensionManager(){
-        registerDimensions();
+    public DimensionManager() {
+
     }
 
-    public static Dimension get(ResourceLocation key){
+    public static Dimension get(ResourceLocation key) {
         return INSTANCE.dimensions.get(key);
     }
 
-    public static void serverTick(ServerTickEvent.Post event){
-        for(Dimension i : INSTANCE.dimensions.values()){
+    public static void serverTick(ServerTickEvent.Post event) {
+        for (Dimension i : INSTANCE.dimensions.values()) {
             i.serverTick(event);
         }
     }
-    public static void clientTick(ClientTickEvent.Post event){
-        for(Dimension i : INSTANCE.dimensions.values()){
+
+    public static void clientTick(ClientTickEvent.Post event) {
+        for (Dimension i : INSTANCE.dimensions.values()) {
             i.clientOnly.clientTick();
         }
     }
 
-    public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
+    public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId) {
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
-    public static void save(){
+    public static void save() {
         boolean requiresSave = false;
-        for(Dimension i : INSTANCE.dimensions.values()){
-            if (i.requiresSaveProperties){
+        for (Dimension i : INSTANCE.dimensions.values()) {
+            if (i.requiresSaveProperties) {
                 requiresSave = true;
             }
         }
-        if (requiresSave){
+        if (requiresSave) {
             System.out.println("saving all dimension properties...");
             ArrayList<DimensionProperties> allProperties = new ArrayList<>();
-            for(Dimension i : INSTANCE.dimensions.values()){
+            for (Dimension i : INSTANCE.dimensions.values()) {
                 allProperties.add(i.properties);
             }
             String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
             Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
             try {
-                Files.writeString(saveFile,json, StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
+                Files.writeString(saveFile, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -80,88 +85,40 @@ public class DimensionManager{
         }
     }
 
-    public void registerDimensions(){
+    private static void loadFromString(String galaxyString) {
+        Type listType = new TypeToken<List<DimensionProperties>>() {}.getType();
+        List<DimensionProperties> galaxy = new Gson().fromJson(galaxyString, listType);
+        for (DimensionProperties i : galaxy) {
+            INSTANCE.dimensions.put(i.dimensionId, new Dimension(i));
+        }
+        System.out.println("galaxy loaded with " + galaxy.size() + " objects");
+    }
 
-        dimensions.clear();
+    public static void load() {
+        Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
+        try {
+            loadFromString(Files.readString(saveFile));
+            return;
+        } catch (IOException e) {
+            System.out.println("no galaxy definition found in world path");
+        }
 
-        DimensionProperties sun = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"));
-        sun.earthMassMultiplier = 200;
-        sun.earthRadiusMultiplier = 100;
-        sun.rotationAxis = new Vec3(0,1,0).normalize();
-        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun.emissiveColor = new Vector4f(0.9f,0.9f,0.7f, 1f);
-        sun.reflectivity = 0f;
-        dimensions.put(sun.dimensionId, new Dimension(sun));
+        Path defaultPlanetDef = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveFile);
+        try {
+            loadFromString(Files.readString(defaultPlanetDef));
+            return;
+        } catch (IOException e) {
+            System.out.println("no galaxy definition found in default config");
+        }
 
-        DimensionProperties overworld = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
-        overworld.parentDimensionId = sun.dimensionId;
-        overworld.lightSourceDimensionId = sun.dimensionId;
-        overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/8k_earth_daymap.png");
-        overworld.rotationAxis = new Vec3(0.5,1,0).normalize();
-        overworld.targetDayLength = 12000;
-        overworld.skyColor = new Vector3f(0.53f, 0.81f, 0.92f);
-        dimensions.put(overworld.dimensionId,new Dimension(overworld));
-
-
-        DimensionProperties moon = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"));
-        moon.parentDimensionId = overworld.dimensionId;
-        moon.lightSourceDimensionId = sun.dimensionId;
-        moon.orbitalDistanceToParent = 0.00257;
-        moon.orbitAxis = new Vec3(0,1,0);
-        moon.earthRadiusMultiplier = 0.272;
-        moon.earthMassMultiplier = 0.3;
-        moon.targetDayLength = 1000;
-        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
-        dimensions.put(moon.dimensionId,new Dimension(moon));
-
-
-        DimensionProperties moon2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2"));
-        moon2.parentDimensionId = overworld.dimensionId;
-        moon2.lightSourceDimensionId = sun.dimensionId;
-        moon2.orbitalDistanceToParent = 0.005;
-        moon2.orbitAxis = new Vec3(0.1,1,0).normalize();
-        moon2.earthRadiusMultiplier = 0.2;
-        moon2.earthMassMultiplier = 0.2;
-        moon2.targetDayLength = 4000;
-        moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
-        dimensions.put(moon2.dimensionId,new Dimension(moon2));
-
-
-        DimensionProperties moon3 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon3"));
-        moon3.parentDimensionId = moon2.dimensionId;
-        moon3.lightSourceDimensionId = sun.dimensionId;
-        moon3.orbitalDistanceToParent = 0.001;
-        moon3.orbitAxis = new Vec3(0,0,1).normalize();
-        moon3.rotationAxis = new Vec3(1,0,0);
-        moon3.earthRadiusMultiplier = 0.1;
-        moon3.earthMassMultiplier = 0.1;
-        moon3.targetDayLength = 1000;
-        moon3.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
-        dimensions.put(moon3.dimensionId,new Dimension(moon3));
-
-
-
-        DimensionProperties sun1 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"));
-        sun1.earthMassMultiplier = 200;
-        sun1.earthRadiusMultiplier = 100;
-        sun1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun1.emissiveColor = new Vector4f(0.9f,0.5f,0f, 1f);
-        sun1.reflectivity = 0f;
-        sun1.position = new Vec3(0,0,2);
-        dimensions.put(sun1.dimensionId, new Dimension(sun1));
-
-        DimensionProperties sun2 = new DimensionProperties(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"));
-        sun2.earthMassMultiplier = 200;
-        sun2.earthRadiusMultiplier = 100;
-        sun2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun2.emissiveColor = new Vector4f(0f,0.5f,0.9f, 1f);
-        sun2.reflectivity = 0f;
-        sun2.position = new Vec3(1,0,1);
-        dimensions.put(sun2.dimensionId, new Dimension(sun2));
-
-
-
-
-
+        String defaultGalaxy = DefaultGalaxy.createDefaultGalaxy();
+        System.out.println("default galaxy created");
+        try {
+            Files.writeString(defaultPlanetDef, defaultGalaxy, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            System.out.println("default galaxy saved in config dir");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        loadFromString(defaultGalaxy);
     }
 }

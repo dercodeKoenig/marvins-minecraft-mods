@@ -16,10 +16,8 @@ import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
 
-import static advRocketry.Dimension.DimensionProperties.hdr;
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
-import static java.lang.Math.pow;
 
 public class Dimension {
     boolean requiresSaveProperties;
@@ -205,41 +203,12 @@ public class Dimension {
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
-        Dimension mainLightSource = DimensionManager.get(properties.lightSourceDimensionId);
+        Dimension mainLightSource = DimensionManager.get(properties.dayTimeReference);
         Vec3 lightToPlanet = getPosition(partialTick).subtract(mainLightSource.getPosition(partialTick));
         Vec3 equatorReference = lightToPlanet.cross(properties.rotationAxis).scale(-1);
         return equatorReference;
     }
 
-
-    void tick() {
-        if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-            properties.skyColor = new Vector3f(hdr(0.45f), hdr(0.7f), hdr(1f));
-            properties.fogColor = new Vector3f(hdr(0.89f), hdr(0.95f), hdr(1.0f));
-            properties.sunRiseColor = new Vector3f(hdr(3f), hdr(2f), hdr(0.1f));
-            properties.rotationAxis = new Vec3(0.2, 1, 1);
-            // TODO: add random variation of sunrise color per day to make diverse sunsets, maybe +-20%
-        }
-
-        if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(hdr(1f), hdr(0.8f), hdr(0.5f), 1f);
-            properties.reflectivity = 0;
-            properties.targetDayLength = 1000;
-            properties.earthRadiusMultiplier = 200;
-        }
-        if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(hdr(0.2f), hdr(1f), hdr(8f), 0.0005f); // it appears bright but not contribute too much to brightness
-            properties.reflectivity = 0;
-        }
-        if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0.1f, 3f, 0.1f, 0.0003f);
-            properties.reflectivity = 0;
-        }
-        if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
-            properties.orbitalBaseOffsetDegrees = 190;
-            properties.orbitAxis = new Vec3(-0.7, 1, -1);
-        }
-    }
 
     public void trackDayTimeNormal() {
         properties.dayTime += getDayTimePerTick();
@@ -273,7 +242,6 @@ public class Dimension {
             } else {
                 trackDayTimeNormal();
             }
-            tick();
             planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
         }
     }
