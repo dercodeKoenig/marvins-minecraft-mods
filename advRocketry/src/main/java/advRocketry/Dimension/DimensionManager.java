@@ -1,6 +1,9 @@
 package advRocketry.Dimension;
 
 import ARLib.network.SimpleNetworkPacket;
+import advRocketry.Main;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -9,57 +12,73 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DimensionManager{
-    public static DimensionManager INSTANCE = new DimensionManager();
-    public static Dimension get(ResourceLocation key){
-        return INSTANCE.dimensions.get(key);
-    }
-    public static long getGlobalTime() {
-        if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
-            return INSTANCE.universalTimeServer;
-        }else{
-            return INSTANCE.universalTimeClient;
-        }
-    }
+    public static final String saveFile = "galaxy.json";
 
+    public static DimensionManager INSTANCE = new DimensionManager();
+    
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
-    public long universalTimeServer = 0;
-    public long universalTimeClient = 0; // should be synced to client by server, also add a float to track and interpolate away difference
 
     public DimensionManager(){
         registerDimensions();
-        SimpleNetworkPacket.registerReceiver(TimeSync.PACKAGE_ID_SYNCTIME, new TimeSync());
     }
 
-    public void serverTick(ServerTickEvent.Post event){
-        for(Dimension i : dimensions.values()){
+    public static Dimension get(ResourceLocation key){
+        return INSTANCE.dimensions.get(key);
+    }
+
+    public static void serverTick(ServerTickEvent.Post event){
+        for(Dimension i : INSTANCE.dimensions.values()){
             i.serverTick(event);
         }
-        universalTimeServer += 1;
-        if(universalTimeServer % 200 == 0){
-            PacketDistributor.sendToAllPlayers(new SimpleNetworkPacket(TimeSync.PACKAGE_ID_SYNCTIME,String.valueOf(universalTimeServer)));
-        }
     }
-    public void clientTick(ClientTickEvent.Post event){
-        for(Dimension i : dimensions.values()){
-            i.clientTick();
+    public static void clientTick(ClientTickEvent.Post event){
+        for(Dimension i : INSTANCE.dimensions.values()){
+            i.clientOnly.clientTick();
         }
-        universalTimeClient += 1;
     }
 
     public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId){
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
+    public static void save(){
+        boolean requiresSave = false;
+        for(Dimension i : INSTANCE.dimensions.values()){
+            if (i.requiresSaveProperties){
+                requiresSave = true;
+            }
+        }
+        if (requiresSave){
+            System.out.println("saving all dimension properties...");
+            ArrayList<DimensionProperties> allProperties = new ArrayList<>();
+            for(Dimension i : INSTANCE.dimensions.values()){
+                allProperties.add(i.properties);
+            }
+            String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
+            Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
+            try {
+                Files.writeString(saveFile,json, StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("saved all dimension properties!");
+        }
+    }
 
     public void registerDimensions(){
 
@@ -145,13 +164,4 @@ public class DimensionManager{
 
 
     }
-
-    public class TimeSync implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
-        public static String PACKAGE_ID_SYNCTIME = "DimensionManager_TimeSync";
-        @Override
-        public void readClient(String data) {
-            universalTimeClient = Long.parseLong(data);
-        }
-    }
-
 }

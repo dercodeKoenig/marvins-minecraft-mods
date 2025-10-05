@@ -3,8 +3,10 @@ package advRocketry.Dimension;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLLoader;
@@ -14,67 +16,82 @@ import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
 
+import static advRocketry.Dimension.DimensionProperties.hdr;
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 import static java.lang.Math.pow;
 
 public class Dimension {
-    private DimensionProperties properties;
+    boolean requiresSaveProperties;
+    DimensionProperties properties;
     public PlanetRenderCache planetRenderCache;
+    public ClientOnly clientOnly;
 
 
-    public Dimension(DimensionProperties properties){
+    public Dimension(DimensionProperties properties) {
         this.properties = properties;
-        planetRenderCache = new PlanetRenderCache();
+        if (FMLLoader.getDist().isClient()) {
+            clientOnly = new ClientOnly();
+            planetRenderCache = new PlanetRenderCache();
+        }
+        setRequiresSaveProperties();
+    }
+
+    public void setRequiresSaveProperties(){
+        requiresSaveProperties = true;
     }
 
     // TODO:
     //  on random tick, choose new target sky and fog colors and slowly interpolate between them to make diverse sky effects
     //  maybe adjust colors +-up to 10% of the original color channel value?
 
-    public ResourceLocation getDimensionId(){
+    public ResourceLocation getDimensionId() {
         return properties.dimensionId;
     }
-    public Vector4f getEmissiveColor(){
+
+    public Vector4f getEmissiveColor() {
         return properties.emissiveColor;
     }
-    public Vec3 getRotationAxis(){
+
+    public Vec3 getRotationAxis() {
         return properties.rotationAxis;
     }
-    public double getEarthRadiusMultiplier(){
+
+    public double getEarthRadiusMultiplier() {
         return properties.earthRadiusMultiplier;
     }
-    public double getEarthMassMultiplier(){
+
+    public double getEarthMassMultiplier() {
         return properties.earthMassMultiplier;
     }
-    public ResourceLocation getTexture(){
+
+    public ResourceLocation getTexture() {
         return properties.texture;
     }
-    public float getReflectivity(){
+
+    public float getReflectivity() {
         return properties.reflectivity;
     }
-    public Vector3f getSkyColor(){
+
+    public Vector3f getSkyColor() {
         return new Vector3f(properties.skyColor);
     }
-    public Vector3f getSunRiseColor(){
+
+    public Vector3f getSunRiseColor() {
         return new Vector3f(properties.sunRiseColor);
     }
+
     public Vector3f getFogColor() {
         return new Vector3f(properties.fogColor);
     }
-    public float getAtmosphereDensity(){
+
+    public float getAtmosphereDensity() {
         return properties.atmosphereDensity;
     }
 
     public float getLatitude() {
-        if (FMLLoader.getDist().isDedicatedServer())return 0;
-
-        // player uses latitude based on location on planet
-        net.minecraft.world.entity.player.Player p = net.minecraft.client.Minecraft.getInstance().player;
-        double z = p.position().z;
-        double s = z / properties.latitude_len;
-        float lat = (float) Math.sin(s * Math.PI * 2) * 90;
-        return lat;
+        if (FMLLoader.getDist().isDedicatedServer()) return 0;
+        else return clientOnly.getLatitude();
     }
 
     public float getDayTimePerTick() {
@@ -91,7 +108,8 @@ public class Dimension {
         if (properties.parentDimensionId != null) {
             Dimension parent = DimensionManager.INSTANCE.dimensions.get(properties.parentDimensionId);
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(properties.earthMassMultiplier), fromEarthMasses(parent.properties.earthMassMultiplier), fromAU(properties.orbitalDistanceToParent));
-            double orbitAngleDegrees = (DimensionManager.getGlobalTime() % ticksPerOrbit) * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;
+            double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() %ticksPerOrbit);
+            double orbitAngleDegrees =  orbitalProgress * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;
 
             // 1. Define a simple, non-zero vector to use for the cross-product
             // This is an arbitrary direction, often chosen to align with a major axis.
@@ -123,10 +141,10 @@ public class Dimension {
     }
 
 
-
-    /** calculates universe global coordinates for the local north east up coordinates of the planet
+    /**
+     * calculates universe global coordinates for the local north east up coordinates of the planet
      */
-    public AxisDirections getGlobalAxisDirections(float partialTick){
+    public AxisDirections getGlobalAxisDirections(float partialTick) {
         // 1. Pick the correct perpendicular vector to axis
         Vec3 equatorRef = getEquatorReference(partialTick);
 
@@ -148,39 +166,42 @@ public class Dimension {
         return new AxisDirections(north, east, localUp);
     }
 
-    /** computes the dot product between the surface normal at the observer and the target space object
+    /**
+     * computes the dot product between the surface normal at the observer and the target space object
      * allows to input precomputed positions to avoid recomputation
      */
-    public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition){
+    public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition) {
         Vec3 localUp = getGlobalAxisDirections(partialTick).up;
 
-        if (targetPosition == null)targetPosition = target.getPosition(partialTick);
-        if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
+        if (targetPosition == null) targetPosition = target.getPosition(partialTick);
+        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
 
         Vec3 targetDirection = targetPosition.subtract(myPlanetPosition).normalize();
         double dot = localUp.dot(targetDirection);
         return dot;
     }
 
-    /** computes the accumulated brightness by relevant stars to be used for terrain shading
+    /**
+     * computes the accumulated brightness by relevant stars to be used for terrain shading
      */
     public double getAccumulatedWorldBrightness(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
 //if(true)return 1;
-        if(myPlanetPosition == null)myPlanetPosition =  getPosition(partialTick);
+        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
 
         double astronomicalBrightness = 0;
         for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
             Dimension target = DimensionManager.get(targetId);
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
-            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1+dotOffset));
-            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance*distance);
+            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
+            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance * distance);
             astronomicalBrightness += brightness;
         }
         return astronomicalBrightness;
     }
 
-    /** returns a reference vector for the equator, orthogonal to the rotation axis and the reference space object for day start
+    /**
+     * returns a reference vector for the equator, orthogonal to the rotation axis and the reference space object for day start
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
@@ -191,57 +212,38 @@ public class Dimension {
     }
 
 
-    float hdr(float ldr){
-        float ldr_lin = (float) pow(ldr, 2.2);
-        //float hdr = ldr_lin/(1.0001f-ldr_lin);
-        return ldr_lin;
-    }
-
     void tick() {
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
             properties.skyColor = new Vector3f(hdr(0.45f), hdr(0.7f), hdr(1f));
             properties.fogColor = new Vector3f(hdr(0.89f), hdr(0.95f), hdr(1.0f));
             properties.sunRiseColor = new Vector3f(hdr(3f), hdr(2f), hdr(0.1f));
-            properties.rotationAxis = new Vec3(0.2,1,1);
+            properties.rotationAxis = new Vec3(0.2, 1, 1);
             // TODO: add random variation of sunrise color per day to make diverse sunsets, maybe +-20%
         }
 
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))) {
-            properties.emissiveColor = new Vector4f(hdr(1f),hdr(0.8f),hdr(0.5f),1f);
+            properties.emissiveColor = new Vector4f(hdr(1f), hdr(0.8f), hdr(0.5f), 1f);
             properties.reflectivity = 0;
             properties.targetDayLength = 1000;
             properties.earthRadiusMultiplier = 200;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(hdr(0.2f),hdr(1f),hdr(8f), 0.5f); // it appears bright but not contribute too much to brightness
+            properties.emissiveColor = new Vector4f(hdr(0.2f), hdr(1f), hdr(8f), 0.0005f); // it appears bright but not contribute too much to brightness
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0.1f,3f,0.1f, 0.3f);
+            properties.emissiveColor = new Vector4f(0.1f, 3f, 0.1f, 0.0003f);
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
             properties.orbitalBaseOffsetDegrees = 190;
-            properties.orbitAxis = new Vec3(-0.7,1,-1);
+            properties.orbitAxis = new Vec3(-0.7, 1, -1);
         }
     }
 
     public void trackDayTimeNormal() {
         properties.dayTime += getDayTimePerTick();
         properties.dayTime = properties.dayTime % Level.TICKS_PER_DAY;
-    }
-
-    public void clientTick() {
-        if(FMLLoader.getDist().isDedicatedServer())return;
-
-        Level level = net.minecraft.client.Minecraft.getInstance().level;
-        if (level != null && properties.dimensionId.equals(level.dimension().location())) {
-            properties.dayTime = level.getDayTime();
-        } else {
-            trackDayTimeNormal();
-        }
-        tick();
-        planetRenderCache.updateSignificantLightSourcesCache(this);
     }
 
     public void serverTick(ServerTickEvent event) {
@@ -251,6 +253,28 @@ public class Dimension {
             properties.dayTime = level.getDayTime();
         } else {
             trackDayTimeNormal();
+        }
+    }
+
+    public class ClientOnly {
+        public float getLatitude() {
+            // player uses latitude based on location on planet
+            Player p = Minecraft.getInstance().player;
+            double z = p.position().z;
+            double s = z / properties.latitude_len;
+            float lat = (float) Math.sin(s * Math.PI * 2) * 90;
+            return lat;
+        }
+
+        public void clientTick() {
+            Level level = Minecraft.getInstance().level;
+            if (level != null && properties.dimensionId.equals(level.dimension().location())) {
+                properties.dayTime = level.getDayTime();
+            } else {
+                trackDayTimeNormal();
+            }
+            tick();
+            planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
         }
     }
 }

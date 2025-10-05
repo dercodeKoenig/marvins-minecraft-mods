@@ -5,6 +5,8 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import static java.lang.Math.pow;
+
 
 public class DimensionProperties {
 
@@ -37,5 +39,11 @@ public class DimensionProperties {
 
     public DimensionProperties(ResourceLocation dimensionId) {
         this.dimensionId = dimensionId;
+    }
+
+    public static float hdr(float ldr) {
+        float ldr_lin = (float) pow(ldr, 2.2);
+        //float hdr = ldr_lin/(1.0001f-ldr_lin);
+        return ldr_lin;
     }
 }

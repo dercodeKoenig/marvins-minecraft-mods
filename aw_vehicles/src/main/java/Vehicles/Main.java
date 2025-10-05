@@ -48,9 +48,6 @@ public class Main {
             e.accept(ITEM_BALLISTA_BOLT.get());
             e.accept(ITEM_BALLISTA_SPAWN.get());
             e.accept(ITEM_BALLISTA_REPAIR.get());
-            if (!ModList.get().isLoaded("age_of_steam")) {
-                e.accept(ITEM_WOODEN_HAMMER.get());
-            }
         }
     }
 

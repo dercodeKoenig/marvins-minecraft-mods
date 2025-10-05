@@ -27,6 +27,8 @@ import java.util.*;
 
 import static AgeOfSteam.Static.*;
 
+// TODO: fix velocity goes INF when using redstone with no parts connected!!!
+
 public abstract class EntityClutchBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     public double inertiaPerSide;
@@ -441,8 +443,9 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                 }
                 shouldConnect = true;
                 if(!isFullyConnected) {
-                    double newRotationDiff = Math.signum(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity);
-                    if (lastRotationDiffSign != newRotationDiff || shouldConnectNextTick)
+                    double newRotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;
+                    double newRotationDiffSign = Math.signum(newRotationDiff);
+                    if (lastRotationDiffSign != newRotationDiffSign || shouldConnectNextTick || Math.abs(newRotationDiff) < 0.00001)
                         isFullyConnected = true;
                     else {
                         double rotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;

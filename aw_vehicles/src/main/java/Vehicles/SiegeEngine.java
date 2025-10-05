@@ -27,11 +27,7 @@ public abstract class SiegeEngine extends LivingEntity implements NoGhostBlockCo
 
 
     public boolean isHammerItem(ItemStack item) {
-        if (ModList.get().isLoaded("age_of_steam")) {
-            return item.getItem() instanceof ItemHammer;
-        } else {
-            return item.getItem().equals(Registry.ITEM_WOODEN_HAMMER.get());
-        }
+        return item.getItem() instanceof ItemHammer;
     }
 
     public void tick(){
