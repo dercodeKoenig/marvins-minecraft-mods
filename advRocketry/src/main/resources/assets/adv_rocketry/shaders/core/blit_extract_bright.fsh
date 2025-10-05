@@ -18,7 +18,7 @@ void main() {
         // --- Option A: Simple Pass-Through (Bloom Extraction) ---
         // This passes the full HDR color through. The glow will be based
         // on the original color intensity.
-        fragColor = vec4(hdr_color, 1.0);
+        //fragColor = vec4(hdr_color, 1.0);
 
 
         // --- Option B: Saturate / Excess Brightness Extraction ---
@@ -27,12 +27,12 @@ void main() {
         // to the scene. This can prevent over-blooming.
 
         // Calculate the ratio of excess luminance to total luminance
-        //float excess_luminance_ratio = (luminance - threshold) / luminance;
+        float excess_luminance_ratio = (luminance - threshold) / luminance;
 
         // Scale the color by the excess ratio
-        //vec3 saturated_color = hdr_color * excess_luminance_ratio;
+        vec3 saturated_color = hdr_color * excess_luminance_ratio;
 
-        //fragColor = vec4(saturated_color, 1.0);
+        fragColor = vec4(saturated_color, 1.0);
     }
     else
     {
