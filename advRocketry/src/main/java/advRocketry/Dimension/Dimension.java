@@ -213,12 +213,16 @@ public class Dimension {
             properties.earthRadiusMultiplier = 200;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun1"))) {
-            properties.emissiveColor = new Vector4f(0.2f,1.0f,8f, 0f); // it appears bright but not contribute too much to brightness
+            properties.emissiveColor = new Vector4f(hdr(0.2f),hdr(1f),hdr(8f), 0.5f); // it appears bright but not contribute too much to brightness
             properties.reflectivity = 0;
         }
         if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun2"))) {
-            properties.emissiveColor = new Vector4f(0.1f,3f,0.1f, 0f);
+            properties.emissiveColor = new Vector4f(0.1f,3f,0.1f, 0.3f);
             properties.reflectivity = 0;
+        }
+        if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
+            properties.orbitalBaseOffsetDegrees = 160;
+            properties.orbitAxis = new Vec3(-0.7,1,-1);
         }
     }
 
