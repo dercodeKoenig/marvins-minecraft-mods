@@ -16,10 +16,13 @@ import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
-public class Dimension {
+public class Dimension implements IAdvRocketryDimension {
     boolean requiresSaveProperties;
     DimensionProperties properties;
     public PlanetRenderCache planetRenderCache;
@@ -79,6 +82,14 @@ public class Dimension {
         return new Vector3f(properties.sunRiseColor);
     }
 
+    public Iterable<ResourceLocation> getCurrentMainStars() {
+        return planetRenderCache.significantLightSourcesCache.keySet();
+    }
+
+    public Iterable<ResourceLocation> getPlanetsToRenderInSky() {
+        return DimensionManager.INSTANCE.dimensions.keySet(); // TODO: use cache similar like the light source cache
+    }
+
     public Vector3f getFogColor() {
         return new Vector3f(properties.fogColor);
     }
@@ -92,11 +103,12 @@ public class Dimension {
         else return clientOnly.getLatitude();
     }
 
-    public boolean shouldRenderPlanetInSky() {
+    public boolean shouldRenderInSky() {
         return properties.type == DimensionProperties.PlanetType.PLANET ||
                 properties.type == DimensionProperties.PlanetType.STAR;
     }
-    public boolean hasCustomSky(){
+
+    public boolean hasCustomSky() {
         return properties.hasCustomSky;
     }
 
@@ -112,7 +124,7 @@ public class Dimension {
 
     public Vec3 getPosition(float partialTick) {
         if (properties.parentDimensionId != null) {
-            Dimension parent = DimensionManager.INSTANCE.dimensions.get(properties.parentDimensionId);
+            Dimension parent = (Dimension)DimensionManager.get(properties.parentDimensionId); // you can only orbit dimensions, not space stations
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(properties.earthMassMultiplier), fromEarthMasses(parent.properties.earthMassMultiplier), fromAU(properties.orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
             double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;
@@ -172,47 +184,14 @@ public class Dimension {
         return new AxisDirections(north, east, localUp);
     }
 
-    /**
-     * computes the dot product between the surface normal at the observer and the target space object
-     * allows to input precomputed positions to avoid recomputation
-     */
-    public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition) {
-        Vec3 localUp = getGlobalAxisDirections(partialTick).up;
-
-        if (targetPosition == null) targetPosition = target.getPosition(partialTick);
-        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
-
-        Vec3 targetDirection = targetPosition.subtract(myPlanetPosition).normalize();
-        double dot = localUp.dot(targetDirection);
-        return dot;
-    }
-
-    /**
-     * computes the accumulated brightness by relevant stars to be used for terrain shading
-     */
-    public double getAccumulatedWorldBrightness(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
-//if(true)return 1;
-        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
-
-        double astronomicalBrightness = 0;
-        for (ResourceLocation targetId : planetRenderCache.significantLightSourcesCache.keySet()) {
-            Dimension target = DimensionManager.get(targetId);
-            Vec3 targetPosition = target.getPosition(partialTick);
-            double distance = targetPosition.distanceTo(myPlanetPosition);
-            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
-            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance * distance);
-            astronomicalBrightness += brightness;
-        }
-        return astronomicalBrightness;
-    }
 
     /**
      * returns a reference vector for the equator, orthogonal to the rotation axis and the reference space object for day start
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
-        Dimension mainLightSource = DimensionManager.get(properties.dayTimeReference);
-        Vec3 lightToPlanet = getPosition(partialTick).subtract(mainLightSource.getPosition(partialTick));
+        IAdvRocketryDimension dayReference = DimensionManager.get(properties.dayTimeReference);
+        Vec3 lightToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
         Vec3 equatorReference = lightToPlanet.cross(properties.rotationAxis).scale(-1);
         return equatorReference;
     }

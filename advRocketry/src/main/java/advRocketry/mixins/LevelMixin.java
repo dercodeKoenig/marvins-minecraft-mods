@@ -2,6 +2,7 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.IAdvRocketryDimension;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CubicSampler;
@@ -25,7 +26,7 @@ public abstract class LevelMixin {
         double brightness;
 
         ResourceLocation dimensionId = level.dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
+        IAdvRocketryDimension dimension = DimensionManager.get(dimensionId);
         if (dimension != null) { // not registered in DimensionManager
             brightness = dimension.getAccumulatedWorldBrightness(partialTick, 0.2f, null);
             // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
@@ -53,7 +54,7 @@ public abstract class LevelMixin {
         Level level = (Level) (Object) this;
         double brightness;
         ResourceLocation dimensionId = level.dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
+        IAdvRocketryDimension dimension = DimensionManager.get(dimensionId);
         if (dimension != null) { // not registered in DimensionManager
             brightness = dimension.getAccumulatedWorldBrightness(partialTick, 0.4f, null);
             // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer

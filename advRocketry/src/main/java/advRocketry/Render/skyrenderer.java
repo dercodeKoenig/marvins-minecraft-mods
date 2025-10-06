@@ -6,6 +6,7 @@ import ARLib.obj.WavefrontObject;
 import advRocketry.*;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.IAdvRocketryDimension;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -121,8 +122,8 @@ public class skyrenderer {
 
     public void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myPlanet = DimensionManager.get(myId);
-        Vec3 myPlanetPosition = myPlanet.getPosition(partialTick);
+        IAdvRocketryDimension myCurrentSpaceObject = DimensionManager.get(myId);
+        Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialTick);
 
 
         Matrix4f atmMatrix = new Matrix4f();
@@ -138,20 +139,20 @@ public class skyrenderer {
         shader.getUniform("ModelMat").set(atmMatrix);
 
         int totalLights = 0;
-        for (ResourceLocation lightSourceId : myPlanet.planetRenderCache.significantLightSourcesCache.keySet()){
-            Dimension star = DimensionManager.get(lightSourceId);
+        for (ResourceLocation lightSourceId : myCurrentSpaceObject.getCurrentMainStars()){
+            IAdvRocketryDimension star = DimensionManager.get(lightSourceId);
             Vec3 StarPos = star.getPosition(partialTick);
-            Vec3 LightVector = myPlanetPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
+            Vec3 LightVector = myCurrentPositionInSpace.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
             shader.getUniform("LightVectors["+ totalLights +"]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
             shader.getUniform("LightColors["+ totalLights +"]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getEmissiveColor().w);
             totalLights+=1;
         }
         shader.getUniform("LightCount").set(totalLights);
 
-        shader.getUniform("SkyColor").set(myPlanet.getSkyColor().x, myPlanet.getSkyColor().y, myPlanet.getSkyColor().z);
-        shader.getUniform("SunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
+        shader.getUniform("SkyColor").set(myCurrentSpaceObject.getSkyColor().x, myCurrentSpaceObject.getSkyColor().y, myCurrentSpaceObject.getSkyColor().z);
+        shader.getUniform("SunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
 
-        shader.getUniform("FogColor").set(myPlanet.getFogColor().x,myPlanet.getFogColor().y,myPlanet.getFogColor().z);
+        shader.getUniform("FogColor").set(myCurrentSpaceObject.getFogColor().x,myCurrentSpaceObject.getFogColor().y,myCurrentSpaceObject.getFogColor().z);
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
@@ -173,8 +174,8 @@ public class skyrenderer {
         float distance_multiplier = 100000000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myPlanet = DimensionManager.get(myId);
-        Vec3 myPlanetPosition = myPlanet.getPosition(partialtick);
+        IAdvRocketryDimension myCurrentSpaceObject = DimensionManager.get(myId);
+        Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
 
         // use custom near / far for rendering planets and stars, depth precision error should not be significant as space objects are sparsely distributed
         // note that the minecraft proj matrix has effects like bobbing that needs to be preserved
@@ -203,22 +204,26 @@ public class skyrenderer {
 
         // Render planets / stars
         // TODO: cache what dimensions should be rendered and not render all for efficiency
-        for (Dimension otherDimension : DimensionManager.INSTANCE.dimensions.values()) {
+        for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
             // skip self
-            if (otherDimension.getDimensionId().equals(myPlanet.getDimensionId())) continue;
+            if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
+
+            IAdvRocketryDimension otherDimension = DimensionManager.get(otherDimensionId);
+            if(!(otherDimension instanceof Dimension otherPlanet)) return;
+
             // skip if it is a not visible dimension
-            if(!otherDimension.shouldRenderPlanetInSky()) continue;
+            if(!otherPlanet.shouldRenderInSky()) continue;
 
             Matrix4f planetMatrix = new Matrix4f();
 
-            Vec3 otherPosition = otherDimension.getPosition(partialtick);
+            Vec3 otherPosition = otherPlanet.getPosition(partialtick);
 
-            Vec3 relativePos = otherPosition.subtract(myPlanetPosition); // in Astronomical units
+            Vec3 relativePos = otherPosition.subtract(myCurrentPositionInSpace); // in Astronomical units
             relativePos = relativePos.scale(distance_multiplier);
             planetMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
             Vec3 modelUp = new Vec3(0, 1, 0);
-            Vec3 targetNorth = otherDimension.getRotationAxis().normalize();
+            Vec3 targetNorth = otherPlanet.getRotationAxis().normalize();
             Vec3 rotAxis = modelUp.cross(targetNorth);
             if (rotAxis.length() > 1e-9) {
                 double rotAngleRad = Math.asin(rotAxis.length());
@@ -227,11 +232,11 @@ public class skyrenderer {
                 planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vec3(1, 0, 0).toVector3f(), 180f));
             }
 
-            double planetRotationAngle = otherDimension.getRotationAngle(partialtick);
+            double planetRotationAngle = otherPlanet.getRotationAngle(partialtick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
             // to scale correctly we need to convert the radius (in earth radius multiplier) to astronomical units
-            double trueRadius = CelestialUtils.fromEarthRadius(otherDimension.getEarthRadiusMultiplier());
+            double trueRadius = CelestialUtils.fromEarthRadius(otherPlanet.getEarthRadiusMultiplier());
             double scaleAU = CelestialUtils.toAU(trueRadius);
             planetMatrix.scale((float) scaleAU);
             planetMatrix.scale(distance_multiplier);
@@ -239,8 +244,8 @@ public class skyrenderer {
 
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-            texturemanager.getTexture(otherDimension.getTexture()).setFilter(true, true);
-            RenderSystem.setShaderTexture(0, otherDimension.getTexture());
+            texturemanager.getTexture(otherPlanet.getTexture()).setFilter(true, true);
+            RenderSystem.setShaderTexture(0, otherPlanet.getTexture());
             ShaderInstance shader = RenderSystem.getShader();
 
 
@@ -249,16 +254,16 @@ public class skyrenderer {
             shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
             shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
-            shader.getUniform("reflectivity").set(otherDimension.getReflectivity());
-            shader.getUniform("emissiveColor").set(otherDimension.getEmissiveColor());
+            shader.getUniform("reflectivity").set(otherPlanet.getReflectivity());
+            shader.getUniform("emissiveColor").set(otherPlanet.getEmissiveColor());
 
-            shader.getUniform("AtmDensity").set(myPlanet.getAtmosphereDensity());
-            shader.getUniform("LocalSunriseColor").set(myPlanet.getSunRiseColor().x, myPlanet.getSunRiseColor().y, myPlanet.getSunRiseColor().z);
+            shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
+            shader.getUniform("LocalSunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
             int totalLights = 0;
-            for (ResourceLocation lightSourceId : otherDimension.planetRenderCache.significantLightSourcesCache.keySet()){
-                Dimension star = DimensionManager.get(lightSourceId);
+            for (ResourceLocation lightSourceId : otherPlanet.getCurrentMainStars()){
+                IAdvRocketryDimension star = DimensionManager.get(lightSourceId);
                 Vec3 StarPos = star.getPosition(partialtick);
                 Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
                 shader.getUniform("LightVectors["+ totalLights +"]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
@@ -294,11 +299,11 @@ public class skyrenderer {
         if (!finishedLoading) return;
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myPlanet = DimensionManager.get(myId);
-        if(myPlanet == null)  return;
-        if(!myPlanet.hasCustomSky()) return;
+        IAdvRocketryDimension myCurrentSpaceObject = DimensionManager.get(myId);
+        if(myCurrentSpaceObject == null)  return;
+        if(!myCurrentSpaceObject.hasCustomSky()) return;
 
-        AxisDirections myGlobalAxis = myPlanet.getGlobalAxisDirections(partialtick);
+        AxisDirections myGlobalAxis = myCurrentSpaceObject.getGlobalAxisDirections(partialtick);
 
         // Create the base orientation for our skybox using the planet's axes.
         // This matrix transforms global space coordinates into world coordinates

@@ -1,28 +1,17 @@
 package advRocketry.Dimension;
 
-import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Main;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.*;
@@ -36,13 +25,16 @@ public class DimensionManager {
     public static DimensionManager INSTANCE = new DimensionManager();
 
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
+    public HashMap<ResourceLocation, Dimension> spaceStations = new HashMap<>();
 
     public DimensionManager() {
 
     }
 
-    public static Dimension get(ResourceLocation key) {
-        return INSTANCE.dimensions.get(key);
+    public static IAdvRocketryDimension get(ResourceLocation key) {
+        if(INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
+        if(INSTANCE.spaceStations.containsKey(key)) return INSTANCE.dimensions.get(key);
+        return null;
     }
 
     public static void serverTick(ServerTickEvent.Post event) {
