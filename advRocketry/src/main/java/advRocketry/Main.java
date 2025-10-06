@@ -2,7 +2,6 @@ package advRocketry;
 
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.GlobalTime;
-import advRocketry.Dimension.ModDimensions;
 
 import advRocketry.Render.Fog;
 import advRocketry.Render.shaderUtils;
@@ -76,9 +75,6 @@ public class Main {
         System.out.println("set world path: "+worldPath);
         GlobalTime.load();
         DimensionManager.load();
-        ModDimensions.addDimensions("1");
-        ModDimensions.addDimensions("2");
-        ModDimensions.addDimensions("3");
     }
 
     public void onServerStop(ServerStoppingEvent event) {
