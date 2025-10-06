@@ -18,6 +18,7 @@ public class DimensionProperties {
     public Vec3 position = new Vec3(0, 0, 0);
     public Vec3 rotationAxis = new Vec3(0.2, 1, 0);
     public int targetDayLength = 24000;
+    public int sealevel = 63;
 
     public ResourceLocation parentDimensionId = null;       // optional, overwrites position
     public Vec3 orbitAxis = new Vec3(0, 1, 0);

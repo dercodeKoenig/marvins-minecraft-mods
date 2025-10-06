@@ -4,6 +4,7 @@ import advRocketry.Main;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -38,12 +39,14 @@ public class DimensionManager {
     }
 
     public static void serverTick(ServerTickEvent.Post event) {
+        //if(true)return;
         for (Dimension i : INSTANCE.dimensions.values()) {
             i.serverTick(event);
         }
     }
 
     public static void clientTick(ClientTickEvent.Post event) {
+        //if(true)return;
         for (Dimension i : INSTANCE.dimensions.values()) {
             i.clientOnly.clientTick();
         }
@@ -81,7 +84,8 @@ public class DimensionManager {
         Type listType = new TypeToken<List<DimensionProperties>>() {}.getType();
         List<DimensionProperties> galaxy = new Gson().fromJson(galaxyString, listType);
         for (DimensionProperties i : galaxy) {
-            INSTANCE.dimensions.put(i.dimensionId, new Dimension(i));
+            Dimension dimension = new Dimension(i);
+            INSTANCE.dimensions.put(i.dimensionId, dimension);
         }
         System.out.println("galaxy loaded with " + galaxy.size() + " objects");
     }

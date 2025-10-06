@@ -1,23 +1,25 @@
 package advRocketry.Dimension;
 
+import advRocketry.Main;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.util.LogicalSidedProvider;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-
-import javax.annotation.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
@@ -28,18 +30,37 @@ public class Dimension implements IAdvRocketryDimension {
     public PlanetRenderCache planetRenderCache;
     public ClientOnly clientOnly;
 
-
     public Dimension(DimensionProperties properties) {
         this.properties = properties;
-        if (FMLLoader.getDist().isClient()) {
+        if(FMLEnvironment.dist.isClient()){
             clientOnly = new ClientOnly();
             planetRenderCache = new PlanetRenderCache();
         }
+
+        if(getDimensionId().getNamespace().equals(Main.MODID) && properties.dayTimeReference!=null) {
+            createDimension();
+        }
         setRequiresSaveProperties();
+
     }
 
     public void setRequiresSaveProperties() {
         requiresSaveProperties = true;
+    }
+
+    public void createDimension() {
+System.out.println("creating dimension for "+getDimensionId());
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
+        dynamicDimensionRegistry.createDynamicDimension(
+                properties.dimensionId,
+                PlanetDimensionGeneration.makeChunkGenerator(
+                        Blocks.IRON_ORE.defaultBlockState(),
+                        Blocks.WATER.defaultBlockState(),
+                        40,
+                        PlanetDimensionGeneration.makeHotDryDimensionConfig()
+                ),
+                PlanetDimensionGeneration.makePlanetDimensionType());
     }
 
     // TODO:
@@ -110,6 +131,10 @@ public class Dimension implements IAdvRocketryDimension {
 
     public boolean hasCustomSky() {
         return properties.hasCustomSky;
+    }
+
+    public int getSeaLevel() {
+        return properties.sealevel;
     }
 
     public float getDayTimePerTick() {
@@ -191,8 +216,8 @@ public class Dimension implements IAdvRocketryDimension {
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
         IAdvRocketryDimension dayReference = DimensionManager.get(properties.dayTimeReference);
-        Vec3 lightToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
-        Vec3 equatorReference = lightToPlanet.cross(properties.rotationAxis).scale(-1);
+        Vec3 dayRefToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
+        Vec3 equatorReference = dayRefToPlanet.cross(properties.rotationAxis).scale(-1);
         return equatorReference;
     }
 

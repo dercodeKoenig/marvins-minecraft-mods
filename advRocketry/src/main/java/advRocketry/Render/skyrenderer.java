@@ -297,6 +297,7 @@ public class skyrenderer {
 
     public void renderSky(Matrix4f proj, Matrix4f view, float partialtick) {
         if (!finishedLoading) return;
+        //if(true)return;
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         IAdvRocketryDimension myCurrentSpaceObject = DimensionManager.get(myId);
@@ -317,7 +318,7 @@ public class skyrenderer {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 2f);
+        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 1f);
         adjustRenderTargetSize(AtmosphereTarget,windowWidth,windowHeight, 0.25f);
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);

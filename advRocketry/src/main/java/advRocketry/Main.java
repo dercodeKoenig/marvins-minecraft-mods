@@ -84,6 +84,7 @@ public class Main {
 
     private void onRenderStage(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
+            //if(true)return;
             Matrix4f proj = event.getProjectionMatrix();
             Matrix4f view = event.getModelViewMatrix();
             skyrenderer.INSTANCE.renderSky(proj, view, event.getPartialTick().getGameTimeDeltaPartialTick(false));
