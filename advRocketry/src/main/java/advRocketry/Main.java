@@ -122,11 +122,6 @@ public class Main {
             shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.POSITION_COLOR);
             event.registerShader(shaderUtils.starBackgroundShader, x -> {
             });
-
-            shaderUtils.planetAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_atm_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
-            event.registerShader(shaderUtils.planetAtmosphereShader, x -> {
-            });
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
