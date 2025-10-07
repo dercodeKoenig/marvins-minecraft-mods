@@ -3,6 +3,7 @@
 uniform vec3 SkyColor;
 uniform vec3 SunriseColor;
 uniform vec3 FogColor;
+uniform float AtmDensity;
 
 uniform float playerHeight;
 
@@ -21,7 +22,7 @@ out vec4 fragColor;
 void main() {
     // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
     float brightnessModifierPlayerAltitude = clamp((10000 - playerHeight) / 10000, 0, 1);
-    float globalBrightnessModifiew = brightnessModifierPlayerAltitude;
+    float globalBrightnessModifiew = brightnessModifierPlayerAltitude * (2*AtmDensity/(1+AtmDensity));
 
     float verticalDot = dot(upUniverseSpace, -normalUniverseSpace);
 

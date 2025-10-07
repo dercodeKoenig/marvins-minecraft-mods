@@ -9,7 +9,7 @@ import org.joml.Vector4f;
 public class SpaceStation implements IAdvRocketryDimension {
     @Override
     public boolean hasCustomSky() {
-        return false;
+        return true;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class SpaceStation implements IAdvRocketryDimension {
 
     @Override
     public Vector4f getEmissiveColor() {
-        return null;
+        return new Vector4f(0,0,0,0);
     }
 
     @Override
@@ -39,17 +39,17 @@ public class SpaceStation implements IAdvRocketryDimension {
 
     @Override
     public Vector3f getSkyColor() {
-        return null;
+        return new Vector3f(0,0,0);
     }
 
     @Override
     public Vector3f getFogColor() {
-        return null;
+        return new Vector3f(0,0,0);
     }
 
     @Override
     public Vector3f getSunRiseColor() {
-        return null;
+        return new Vector3f(0,0,0);
     }
 
     @Override
@@ -59,7 +59,11 @@ public class SpaceStation implements IAdvRocketryDimension {
 
     @Override
     public Iterable<ResourceLocation> getPlanetsToRenderInSky() {
-        return null;
+        return DimensionManager.INSTANCE.dimensions.keySet();
     }
-// same as dimensionmanager but for space stations
+
+    @Override
+    public boolean canVisit() {
+        return false;
+    }
 }

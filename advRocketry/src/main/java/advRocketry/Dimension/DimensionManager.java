@@ -57,13 +57,6 @@ public class DimensionManager {
     }
 
     public static void save() {
-        boolean requiresSave = false;
-        for (Dimension i : INSTANCE.dimensions.values()) {
-            if (i.requiresSaveProperties) {
-                requiresSave = true;
-            }
-        }
-        if (requiresSave) {
             System.out.println("saving all dimension properties...");
             ArrayList<DimensionProperties> allProperties = new ArrayList<>();
             for (Dimension i : INSTANCE.dimensions.values()) {
@@ -77,10 +70,10 @@ public class DimensionManager {
                 throw new RuntimeException(e);
             }
             System.out.println("saved all dimension properties!");
-        }
     }
 
     private static void loadFromString(String galaxyString) {
+        INSTANCE.dimensions.clear();
         Type listType = new TypeToken<List<DimensionProperties>>() {}.getType();
         List<DimensionProperties> galaxy = new Gson().fromJson(galaxyString, listType);
         for (DimensionProperties i : galaxy) {
@@ -100,12 +93,14 @@ public class DimensionManager {
         }
 
         Path defaultPlanetDef = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveFile);
+/*
         try {
             loadFromString(Files.readString(defaultPlanetDef));
             return;
         } catch (IOException e) {
             System.out.println("no galaxy definition found in default config");
         }
+ */
 
         String defaultGalaxy = DefaultGalaxy.createDefaultGalaxy();
         System.out.println("default galaxy created");

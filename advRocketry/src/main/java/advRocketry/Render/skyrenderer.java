@@ -151,12 +151,12 @@ public class skyrenderer {
 
         shader.getUniform("SkyColor").set(myCurrentSpaceObject.getSkyColor().x, myCurrentSpaceObject.getSkyColor().y, myCurrentSpaceObject.getSkyColor().z);
         shader.getUniform("SunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
-
         shader.getUniform("FogColor").set(myCurrentSpaceObject.getFogColor().x,myCurrentSpaceObject.getFogColor().y,myCurrentSpaceObject.getFogColor().z);
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
-        // using the real planet radius looks bad because the terrain is not rendered.
+        shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
+
         //TODO maybe render the planet sphere below??
         //shader.getUniform("renderDistance").set((float) CelestialUtils.getRealRadiusFromValue(myPlanet.size));
 
@@ -203,9 +203,8 @@ public class skyrenderer {
 
 
         // Render planets / stars
-        // TODO: cache what dimensions should be rendered and not render all for efficiency
         for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
-            // skip self
+            // skip self TODO: this should be later calculated in myCurrentSpaceObject.getPlanetsToRenderInSky
             if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
 
             IAdvRocketryDimension otherDimension = DimensionManager.get(otherDimensionId);
@@ -254,7 +253,6 @@ public class skyrenderer {
             shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
             shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
-            shader.getUniform("reflectivity").set(otherPlanet.getReflectivity());
             shader.getUniform("emissiveColor").set(otherPlanet.getEmissiveColor());
 
             shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
@@ -318,7 +316,7 @@ public class skyrenderer {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 1f);
+        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 2f);
         adjustRenderTargetSize(AtmosphereTarget,windowWidth,windowHeight, 0.25f);
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);

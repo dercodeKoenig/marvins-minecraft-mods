@@ -15,7 +15,6 @@ out vec3 upUniverseSpace;
 void main() {
     gl_Position = ProjMat * ViewMat * ModelMat * vec4(Position, 1.0);
 
-
     // Get the rotation matrices
     mat3 rotModel = mat3(ModelMat);
     // rotWorldInv transforms vectors from World space to Universe space

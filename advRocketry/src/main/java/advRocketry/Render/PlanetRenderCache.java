@@ -5,9 +5,7 @@ import advRocketry.Dimension.DimensionManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PlanetRenderCache {
     public LinkedHashMap<ResourceLocation, Double> significantLightSourcesCache = new LinkedHashMap<>();
@@ -20,7 +18,7 @@ public class PlanetRenderCache {
 
         if (dimIterator == null || !dimIterator.hasNext()) {
             // Restart once we've gone through all dimensions
-            dimIterator = DimensionManager.INSTANCE.dimensions.values().iterator();
+            dimIterator = new ArrayList<>(DimensionManager.INSTANCE.dimensions.values()).iterator();
         }
 
         if (dimIterator.hasNext()) {

@@ -32,6 +32,8 @@ public interface IAdvRocketryDimension {
 
     Iterable<ResourceLocation> getPlanetsToRenderInSky(); // cache for the space objects to render in the sky
 
+    boolean canVisit();
+
     /**
      * computes the accumulated brightness by relevant stars to be used for terrain shading
      */

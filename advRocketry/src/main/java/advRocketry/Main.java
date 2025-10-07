@@ -20,6 +20,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -47,7 +48,7 @@ public class Main {
         }
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
 
-        NeoForge.EVENT_BUS.addListener(this::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
 
         modEventBus.addListener(this::loadShaders);
@@ -70,7 +71,7 @@ public class Main {
         GlobalTime.tickClient();
     }
 
-    public void onServerStarting(ServerStartedEvent event) {
+    public void onServerStarted(ServerStartedEvent event) {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: "+worldPath);
         GlobalTime.load();

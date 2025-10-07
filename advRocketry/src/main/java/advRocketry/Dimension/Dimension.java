@@ -25,39 +25,33 @@ import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
 public class Dimension implements IAdvRocketryDimension {
-    boolean requiresSaveProperties;
     DimensionProperties properties;
     public PlanetRenderCache planetRenderCache;
     public ClientOnly clientOnly;
 
     public Dimension(DimensionProperties properties) {
         this.properties = properties;
-        if(FMLEnvironment.dist.isClient()){
+        if (FMLEnvironment.dist.isClient()) {
             clientOnly = new ClientOnly();
             planetRenderCache = new PlanetRenderCache();
         }
 
-        if(getDimensionId().getNamespace().equals(Main.MODID) && properties.dayTimeReference!=null) {
+        if (getDimensionId().getNamespace().equals(Main.MODID) && canVisit()) {
             createDimension();
         }
-        setRequiresSaveProperties();
-
-    }
-
-    public void setRequiresSaveProperties() {
-        requiresSaveProperties = true;
     }
 
     public void createDimension() {
-System.out.println("creating dimension for "+getDimensionId());
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+        System.out.println("creating dimension for " + getDimensionId());
         DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
         dynamicDimensionRegistry.createDynamicDimension(
                 properties.dimensionId,
                 PlanetDimensionGeneration.makeChunkGenerator(
                         Blocks.IRON_ORE.defaultBlockState(),
                         Blocks.WATER.defaultBlockState(),
-                        40,
+                        getSeaLevel(),
                         PlanetDimensionGeneration.makeHotDryDimensionConfig()
                 ),
                 PlanetDimensionGeneration.makePlanetDimensionType());
@@ -66,6 +60,12 @@ System.out.println("creating dimension for "+getDimensionId());
     // TODO:
     //  on random tick, choose new target sky and fog colors and slowly interpolate between them to make diverse sky effects
     //  maybe adjust colors +-up to 10% of the original color channel value?
+
+    public boolean canVisit() {
+        return
+                properties.type == DimensionProperties.PlanetType.PLANET &&
+                        properties.dayTimeReference != null;
+    }
 
     public ResourceLocation getDimensionId() {
         return properties.dimensionId;
@@ -89,10 +89,6 @@ System.out.println("creating dimension for "+getDimensionId());
 
     public ResourceLocation getTexture() {
         return properties.texture;
-    }
-
-    public float getReflectivity() {
-        return properties.reflectivity;
     }
 
     public Vector3f getSkyColor() {
@@ -149,7 +145,7 @@ System.out.println("creating dimension for "+getDimensionId());
 
     public Vec3 getPosition(float partialTick) {
         if (properties.parentDimensionId != null) {
-            Dimension parent = (Dimension)DimensionManager.get(properties.parentDimensionId); // you can only orbit dimensions, not space stations
+            Dimension parent = (Dimension) DimensionManager.get(properties.parentDimensionId); // you can only orbit dimensions, not space stations
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(properties.earthMassMultiplier), fromEarthMasses(parent.properties.earthMassMultiplier), fromAU(properties.orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
             double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties.orbitalBaseOffsetDegrees;

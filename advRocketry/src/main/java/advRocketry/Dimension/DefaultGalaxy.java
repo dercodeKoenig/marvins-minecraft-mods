@@ -23,7 +23,6 @@ public class DefaultGalaxy {
         sun.rotationAxis = new Vec3(0, 1, 0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         sun.emissiveColor = new Vector4f(0.9f, 0.9f, 0.7f, 1f);
-        sun.reflectivity = 0f;
         galaxy.add(sun);
 
         DimensionProperties overworld = new DimensionProperties();
@@ -47,6 +46,18 @@ public class DefaultGalaxy {
         moon.atmosphereDensity = 0;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         galaxy.add(moon);
+
+
+
+        DimensionProperties venus = new DimensionProperties();
+        venus.name = "Venus";
+        venus.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        venus.parentDimensionId = sun.dimensionId;
+        venus.dayTimeReference = sun.dimensionId;
+        venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
+        venus.orbitalDistanceToParent = 0.5f;
+        venus.atmosphereDensity = 2;
+        galaxy.add(venus);
 
         return new GsonBuilder().setPrettyPrinting().create().toJson(galaxy);
     }
