@@ -48,6 +48,21 @@ public class DefaultGalaxy {
         galaxy.add(moon);
 
 
+        DimensionProperties moon2 = new DimensionProperties();
+        moon2.name = "moon2";
+        moon2.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
+        moon2.parentDimensionId = overworld.dimensionId;
+        moon2.dayTimeReference = sun.dimensionId;
+        moon2.orbitalDistanceToParent = 0.0032;
+        moon2.orbitAxis = new Vec3(-0.1, 1, 0.2);
+        moon2.earthRadiusMultiplier = 0.3;
+        moon2.earthMassMultiplier = 0.3;
+        moon2.targetDayLength = 8000;
+        moon2.atmosphereDensity = 0;
+        moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
+        galaxy.add(moon2);
+
+
 
         DimensionProperties venus = new DimensionProperties();
         venus.name = "Venus";

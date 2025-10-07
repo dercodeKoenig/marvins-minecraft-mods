@@ -85,6 +85,10 @@ public class DimensionManager {
 
     public static void load() {
         Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
+
+        Path defaultPlanetDef = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveFile);
+/*
+
         try {
             loadFromString(Files.readString(saveFile));
             return;
@@ -92,8 +96,6 @@ public class DimensionManager {
             System.out.println("no galaxy definition found in world path");
         }
 
-        Path defaultPlanetDef = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveFile);
-/*
         try {
             loadFromString(Files.readString(defaultPlanetDef));
             return;
