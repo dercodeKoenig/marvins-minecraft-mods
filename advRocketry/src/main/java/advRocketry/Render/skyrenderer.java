@@ -315,6 +315,7 @@ public class skyrenderer {
             shader.getUniform("LocalSunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
             shader.getUniform("TargetAtmDensity").set(otherPlanet.getAtmosphereDensity());
+            shader.getUniform("TargetSkyColor").set(otherPlanet.getSkyColor().x,otherPlanet.getSkyColor().y,otherPlanet.getSkyColor().z);
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherPlanet.getCurrentMainStars()) {

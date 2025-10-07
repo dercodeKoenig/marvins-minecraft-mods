@@ -12,6 +12,7 @@ uniform float AtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
 uniform vec3 TargetVector;       // from observer to target planet
+uniform vec3 TargetSkyColor;       // from observer to target planet
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
@@ -40,12 +41,12 @@ void main() {
         float lightAngle = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
 
         // rim intensity (thicker with higher TargetAtmDensity)
-        float rim = pow(viewAngle, 2)  // the more at the side the more atmosphere we will see
+        float rim = pow(viewAngle, 4)  // the more at the side the more atmosphere we will see
         * lightAngle  // more away from the sun = darker.
         * TargetAtmDensity; // less atmosphere = less light by atmosphere
 
-        vec3 reflected = (NdotL + rim)
-        * baseSurfaceColor
+        vec3 reflected =
+        (NdotL * baseSurfaceColor + rim * mix(baseSurfaceColor,TargetSkyColor,TargetAtmDensity/(1+TargetAtmDensity)))
         * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);
 
