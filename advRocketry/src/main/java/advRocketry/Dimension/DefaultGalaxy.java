@@ -39,7 +39,7 @@ public class DefaultGalaxy {
         moon.parentDimensionId = overworld.dimensionId;
         moon.dayTimeReference = sun.dimensionId;
         moon.orbitalDistanceToParent = 0.00257;
-        moon.orbitAxis = new Vec3(0.1, 1, 0);
+        moon.orbitAxis = new Vec3(0.1, 1, 0.1);
         moon.earthRadiusMultiplier = 0.272;
         moon.earthMassMultiplier = 0.3;
         moon.targetDayLength = 12000;
