@@ -20,6 +20,12 @@ public class shaderUtils {
             .add("Position", VertexFormatElement.POSITION)
             .add("Normal", VertexFormatElement.NORMAL)
             .build();
+    public static VertexFormat POSITION_COLOR = VertexFormat.builder()
+            .add("Position", VertexFormatElement.POSITION)
+            .add("Color", VertexFormatElement.COLOR)
+            .build();
+
+
 
 
     public static ShaderInstance atmosphereShader;
@@ -43,4 +49,9 @@ public class shaderUtils {
     }
     public static ShaderInstance blitBlur;
     public static ShaderInstance getBlitBlurShader() {return blitBlur;}
+
+    public static ShaderInstance starBackgroundShader;
+    public static ShaderInstance getstarBackgroundShader() {
+        return starBackgroundShader;
+    }
 }

@@ -30,7 +30,7 @@ public abstract class LevelMixin {
         if (dimension != null) { // not registered in DimensionManager
             brightness = dimension.getAccumulatedWorldBrightness(partialTick, 0.2f, null);
             // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-            brightness = Math.clamp(Math.pow(brightness, 0.8) * 2, 0, 1);
+            brightness = Math.clamp(Math.pow(brightness, 0.8) * 1, 0, 1);
         } else {
             // original code
             float f = level.getTimeOfDay(partialTick);
@@ -58,7 +58,7 @@ public abstract class LevelMixin {
         if (dimension != null) { // not registered in DimensionManager
             brightness = dimension.getAccumulatedWorldBrightness(partialTick, 0.4f, null);
             // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-            brightness = Math.clamp(Math.pow(brightness, 0.8) * 2, 0, 1);
+            brightness = Math.clamp(Math.pow(brightness, 0.8) * 1, 0, 1);
         }else{
             float f = level.getTimeOfDay(partialTick);
             brightness = Mth.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.5F;

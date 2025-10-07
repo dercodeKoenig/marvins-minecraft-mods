@@ -56,24 +56,25 @@ public class Main {
 
         Path configDir = FMLPaths.CONFIGDIR.get();
         myConfigDir = Path.of(String.valueOf(configDir), Main.MODID);
-        File myConfigDirFile =new File(String.valueOf(myConfigDir));
-        if(!myConfigDirFile.exists()){
+        File myConfigDirFile = new File(String.valueOf(myConfigDir));
+        if (!myConfigDirFile.exists()) {
             myConfigDirFile.mkdirs();
         }
     }
 
-    public void onServerTick(ServerTickEvent.Post event){
+    public void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.serverTick(event);
         GlobalTime.tickServer();
     }
-    public void onCLientTick(ClientTickEvent.Post event){
+
+    public void onCLientTick(ClientTickEvent.Post event) {
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
     }
 
     public void onServerStarted(ServerStartedEvent event) {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
-        System.out.println("set world path: "+worldPath);
+        System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.load();
     }
@@ -117,6 +118,10 @@ public class Main {
 
             shaderUtils.blitBlur = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_blur"), shaderUtils.POSITION);
             event.registerShader(shaderUtils.blitBlur, x -> {
+            });
+
+            shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.POSITION_COLOR);
+            event.registerShader(shaderUtils.starBackgroundShader, x -> {
             });
 
         } catch (IOException e) {

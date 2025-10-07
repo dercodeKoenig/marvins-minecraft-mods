@@ -11,12 +11,14 @@ import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
@@ -35,6 +37,7 @@ public class skyrenderer {
     VertexBuffer vertexBufferSkyBox;
     VertexBuffer vertexBufferPlanet;
     VertexBuffer vertexBufferSquare;
+    VertexBuffer vertexBufferStarBackground;
     boolean finishedLoading = false;
 
     public skyrenderer() {
@@ -43,11 +46,52 @@ public class skyrenderer {
             createPlanetBuffer();
             createSquareBuffer();
             setupRenderTargets();
+            createStarBackgroundBuffer();
             finishedLoading = true;
         });
     }
 
-    void createSquareBuffer(){
+    void createStarBackgroundBuffer() {
+        int starCount = 1000;
+        vertexBufferStarBackground = new VertexBuffer(VertexBuffer.Usage.STATIC);
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(starCount * 4 * 16);
+        BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR);
+        float radius = 1000;
+        Random random = new Random(42);
+        for (int i = 0; i < starCount; i++) {
+            double theta = random.nextFloat() * 2.0 * Math.PI; // azimuth
+            double phi = Math.acos(2.0 * random.nextFloat() - 1.0); // polar angle
+            double x = Math.sin(phi) * Math.cos(theta);
+            double y = Math.sin(phi) * Math.sin(theta);
+            double z = Math.cos(phi);
+
+            Vec3 position = new Vec3(x, y, z).normalize().scale(radius);
+
+            Vec3 normal1 = position.cross(new Vec3(0, 1, 0)).normalize().scale(1);
+            Vec3 normal2 = normal1.cross(position).normalize().scale(1);
+
+            Vector3f point1 = position.add(normal1.scale(-1)).add(normal2.scale(-1)).toVector3f();
+            Vector3f point2 = position.add(normal1.scale(1)).add(normal2.scale(-1)).toVector3f();
+            Vector3f point3 = position.add(normal1.scale(1)).add(normal2.scale(1)).toVector3f();
+            Vector3f point4 = position.add(normal1.scale(-1)).add(normal2.scale(1)).toVector3f();
+
+            Vector4f color = new Vector4f(0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 1f);
+            color.mul(0.0f+random.nextFloat()*0.5f);
+
+            bufferbuilder.addVertex(point1.x, point1.y, point1.z).setColor(color.x, color.y, color.z, color.w);
+            bufferbuilder.addVertex(point2.x, point2.y, point2.z).setColor(color.x, color.y, color.z, color.w);
+            bufferbuilder.addVertex(point3.x, point3.y, point3.z).setColor(color.x, color.y, color.z, color.w);
+            bufferbuilder.addVertex(point4.x, point4.y, point4.z).setColor(color.x, color.y, color.z, color.w);
+        }
+
+        MeshData mesh = bufferbuilder.build();
+        vertexBufferStarBackground.bind();
+        vertexBufferStarBackground.upload(mesh);
+        byteBuffer.close();
+    }
+
+
+    void createSquareBuffer() {
         vertexBufferSquare = new VertexBuffer(VertexBuffer.Usage.STATIC);
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
         BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION);
@@ -139,19 +183,19 @@ public class skyrenderer {
         shader.getUniform("ModelMat").set(atmMatrix);
 
         int totalLights = 0;
-        for (ResourceLocation lightSourceId : myCurrentSpaceObject.getCurrentMainStars()){
+        for (ResourceLocation lightSourceId : myCurrentSpaceObject.getCurrentMainStars()) {
             IAdvRocketryDimension star = DimensionManager.get(lightSourceId);
             Vec3 StarPos = star.getPosition(partialTick);
             Vec3 LightVector = myCurrentPositionInSpace.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
-            shader.getUniform("LightVectors["+ totalLights +"]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
-            shader.getUniform("LightColors["+ totalLights +"]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getEmissiveColor().w);
-            totalLights+=1;
+            shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+            shader.getUniform("LightColors[" + totalLights + "]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getEmissiveColor().w);
+            totalLights += 1;
         }
         shader.getUniform("LightCount").set(totalLights);
 
         shader.getUniform("SkyColor").set(myCurrentSpaceObject.getSkyColor().x, myCurrentSpaceObject.getSkyColor().y, myCurrentSpaceObject.getSkyColor().z);
         shader.getUniform("SunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
-        shader.getUniform("FogColor").set(myCurrentSpaceObject.getFogColor().x,myCurrentSpaceObject.getFogColor().y,myCurrentSpaceObject.getFogColor().z);
+        shader.getUniform("FogColor").set(myCurrentSpaceObject.getFogColor().x, myCurrentSpaceObject.getFogColor().y, myCurrentSpaceObject.getFogColor().z);
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
@@ -167,7 +211,7 @@ public class skyrenderer {
         VertexBuffer.unbind();
     }
 
-    public void renderSpaceBodies( Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
+    public void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
 
         // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
         // we will scale translation and scale factor by this multiplier
@@ -179,28 +223,41 @@ public class skyrenderer {
 
         // use custom near / far for rendering planets and stars, depth precision error should not be significant as space objects are sparsely distributed
         // note that the minecraft proj matrix has effects like bobbing that needs to be preserved
-        // Clone the original projection
         Matrix4f newProj = new Matrix4f(proj);
-        // Recalculate near/far terms only
-        // In a standard OpenGL projection, these are stored in the 3rd row (index 2, *)
-        // (see glFrustum / perspective matrix structure)
-        // For a right-handed perspective:
-        // proj[2][2] = -(f + n) / (f - n)
-        // proj[3][2] = -(2fn) / (f - n)
-        // Replace with your desired near/far:
-            float n = 0.0001f*distance_multiplier;
-            float f = 1000f*distance_multiplier;
+        float n = 0.0001f * distance_multiplier;
+        float f = 1000f * distance_multiplier;
+        newProj.set(2, 2, -(f + n) / (f - n));
+        newProj.set(3, 2, -(2f * f * n) / (f - n));
 
-            newProj.set(2,2, -(f + n) / (f - n));
-            newProj.set(3,2,-(2f * f * n) / (f - n));
+        Matrix4f newProj2 = new Matrix4f(proj);
+        float n2 = 10f;
+        float f2 = 10000f;
+        newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
+        newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
+
+
+        // render star background first
+        NO_DEPTH_TEST.setupRenderState();
+        GlStateManager._depthMask(false);
+
+        RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
+        ShaderInstance shader = RenderSystem.getShader();
+        shader.getUniform("ViewMat").set(viewMatrix);
+        shader.getUniform("WorldMat").set(worldMatrix);
+        shader.getUniform("ModelMat").set(new Matrix4f());
+        shader.getUniform("ProjMat").set(newProj2);
+        shader.apply();
+        vertexBufferStarBackground.bind();
+        vertexBufferStarBackground.draw();
+        shader.clear();
+
+        GlStateManager._depthMask(true);
+        NO_DEPTH_TEST.clearRenderState();
 
 
         // Setup render states for planets
         LEQUAL_DEPTH_TEST.setupRenderState();
         NO_TRANSPARENCY.setupRenderState();
-
-
-
 
         // Render planets / stars
         for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
@@ -208,10 +265,10 @@ public class skyrenderer {
             if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
 
             IAdvRocketryDimension otherDimension = DimensionManager.get(otherDimensionId);
-            if(!(otherDimension instanceof Dimension otherPlanet)) return;
+            if (!(otherDimension instanceof Dimension otherPlanet)) return;
 
             // skip if it is a not visible dimension
-            if(!otherPlanet.shouldRenderInSky()) continue;
+            if (!otherPlanet.shouldRenderInSky()) continue;
 
             Matrix4f planetMatrix = new Matrix4f();
 
@@ -245,7 +302,7 @@ public class skyrenderer {
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(otherPlanet.getTexture()).setFilter(true, true);
             RenderSystem.setShaderTexture(0, otherPlanet.getTexture());
-            ShaderInstance shader = RenderSystem.getShader();
+            shader = RenderSystem.getShader();
 
 
             shader.getUniform("ProjMat").set(newProj);
@@ -260,13 +317,13 @@ public class skyrenderer {
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
             int totalLights = 0;
-            for (ResourceLocation lightSourceId : otherPlanet.getCurrentMainStars()){
+            for (ResourceLocation lightSourceId : otherPlanet.getCurrentMainStars()) {
                 IAdvRocketryDimension star = DimensionManager.get(lightSourceId);
                 Vec3 StarPos = star.getPosition(partialtick);
                 Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
-                shader.getUniform("LightVectors["+ totalLights +"]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
-                shader.getUniform("LightColors["+ totalLights +"]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getEmissiveColor().w);
-                totalLights+=1;
+                shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+                shader.getUniform("LightColors[" + totalLights + "]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getEmissiveColor().w);
+                totalLights += 1;
             }
             shader.getUniform("LightCount").set(totalLights);
 
@@ -283,9 +340,9 @@ public class skyrenderer {
         VertexBuffer.unbind();
     }
 
-    public void adjustRenderTargetSize(RenderTarget renderTarget, int w, int h, float multiplier){
-        int targetW = (int) (w  *multiplier);
-        int targetH = (int) (h  *multiplier);
+    public void adjustRenderTargetSize(RenderTarget renderTarget, int w, int h, float multiplier) {
+        int targetW = (int) (w * multiplier);
+        int targetH = (int) (h * multiplier);
         if (renderTarget.width != targetW || renderTarget.height != targetH) {
             if (w * h > 20000) { // small screen / minimized could cause crashes otherwise
                 renderTarget.resize(targetW, targetH, false);
@@ -299,8 +356,8 @@ public class skyrenderer {
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         IAdvRocketryDimension myCurrentSpaceObject = DimensionManager.get(myId);
-        if(myCurrentSpaceObject == null)  return;
-        if(!myCurrentSpaceObject.hasCustomSky()) return;
+        if (myCurrentSpaceObject == null) return;
+        if (!myCurrentSpaceObject.hasCustomSky()) return;
 
         AxisDirections myGlobalAxis = myCurrentSpaceObject.getGlobalAxisDirections(partialtick);
 
@@ -311,13 +368,12 @@ public class skyrenderer {
                 myGlobalAxis.north.toVector3f(),
                 myGlobalAxis.up.toVector3f()    // Up direction
         );
-
         // adjust frame buffer size for render
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        adjustRenderTargetSize(PlanetsTarget,windowWidth,windowHeight, 2f);
-        adjustRenderTargetSize(AtmosphereTarget,windowWidth,windowHeight, 0.25f);
+        adjustRenderTargetSize(PlanetsTarget, windowWidth, windowHeight, 2f);
+        adjustRenderTargetSize(AtmosphereTarget, windowWidth, windowHeight, 0.25f);
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
 
@@ -339,17 +395,17 @@ public class skyrenderer {
         vertexBufferSquare.bind();
 
         float bloomWindowSizeMultiplier = 1f;
-        adjustRenderTargetSize(bloomBlurTarget1,480,270, bloomWindowSizeMultiplier);
-        adjustRenderTargetSize(bloomBlurTarget2,480,270, bloomWindowSizeMultiplier);
-        adjustRenderTargetSize(bloomBrightTarget,480,270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBlurTarget1, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBlurTarget2, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBrightTarget, 480, 270, bloomWindowSizeMultiplier);
 
         // blit extract bright regions
         bloomBrightTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        RenderSystem.setShader(shaderUtils:: getBlitExtractBrightShader);
+        RenderSystem.setShader(shaderUtils::getBlitExtractBrightShader);
         shader = RenderSystem.getShader();
         shader.setSampler("frame", PlanetsTarget.getColorTextureId());
-        shader.getUniform("threshold").set(1.0f);
+        shader.getUniform("threshold").set(1f);
         shader.apply();
         vertexBufferSquare.draw();
         shader.clear();
@@ -379,7 +435,7 @@ public class skyrenderer {
 
         // Switch back to main render target, combine framebuffers
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-        RenderSystem.setShader(shaderUtils:: getBlitAddTonemapShader);
+        RenderSystem.setShader(shaderUtils::getBlitAddTonemapShader);
         shader = RenderSystem.getShader();
         shader.setSampler("SpaceBackground", PlanetsTarget.getColorTextureId());
         shader.setSampler("SpaceBackgroundBloom", bloomBlurTarget2.getColorTextureId());

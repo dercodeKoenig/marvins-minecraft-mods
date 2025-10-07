@@ -31,9 +31,9 @@ public class Fog {
         double brightnessMultiplier = dimension.getAccumulatedWorldBrightness((float)event.getPartialTick(),0.2f, null);
 
         // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-        brightnessMultiplier = Math.clamp(Math.pow(brightnessMultiplier, 0.8)*2, 0,1);
+        brightnessMultiplier = Math.clamp(Math.pow(brightnessMultiplier, 0.8), 0,1);
 
-        fogColor = fogColor.mul((float) brightnessMultiplier);
+        fogColor = fogColor.mul((float) brightnessMultiplier).mul(2*dimension.getAtmosphereDensity() / (1+dimension.getAtmosphereDensity()));
 
         // (i do not want the bright gamma corection for my fog)
         fogColor.x = (float) Math.pow(fogColor.x / (1+fogColor.x), 1f/2.2f);

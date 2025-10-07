@@ -21,6 +21,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import static advRocketry.Dimension.DimensionProperties.hdr;
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
@@ -251,6 +252,14 @@ public class Dimension implements IAdvRocketryDimension {
                 trackDayTimeNormal();
             }
             planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
+
+
+            if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))){
+
+            }
+            if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
+
+            }
         }
     }
 }

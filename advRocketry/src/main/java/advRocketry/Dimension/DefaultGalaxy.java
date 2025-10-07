@@ -22,7 +22,7 @@ public class DefaultGalaxy {
         sun.earthRadiusMultiplier = 100;
         sun.rotationAxis = new Vec3(0, 1, 0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun.emissiveColor = new Vector4f(0.9f, 0.9f, 0.7f, 1f);
+        sun.emissiveColor = new Vector4f(0.9f, 0.9f, 0.7f, 2f);
         galaxy.add(sun);
 
         DimensionProperties overworld = new DimensionProperties();
