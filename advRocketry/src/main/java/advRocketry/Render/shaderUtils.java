@@ -28,14 +28,19 @@ public class shaderUtils {
 
 
 
-    public static ShaderInstance atmosphereShader;
-    public static ShaderInstance getAtmosphereShader() {
-        return atmosphereShader;
+    public static ShaderInstance localAtmosphereShader;
+    public static ShaderInstance getLocalAtmosphereShader() {
+        return localAtmosphereShader;
     }
 
     public static ShaderInstance planetShader;
     public static ShaderInstance getPlanetShader() {
         return planetShader;
+    }
+
+    public static ShaderInstance planetAtmosphereShader;
+    public static ShaderInstance getPlanetAtmosphereShader() {
+        return planetAtmosphereShader;
     }
 
     public static ShaderInstance blitAddTonemapShader;

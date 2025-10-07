@@ -18,7 +18,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
@@ -173,7 +172,7 @@ public class skyrenderer {
         Matrix4f atmMatrix = new Matrix4f();
         atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance()); // this prevents bobbing by zooming out
 
-        RenderSystem.setShader(shaderUtils::getAtmosphereShader);
+        RenderSystem.setShader(shaderUtils::getLocalAtmosphereShader);
         ShaderInstance shader = RenderSystem.getShader();
 
 
@@ -298,12 +297,12 @@ public class skyrenderer {
             planetMatrix.scale(distance_multiplier);
             planetMatrix.scale(PLANET_RENDER_SCALE_MULTIPLIER); // true size is too small, so apply a fixed scale
 
+            // first render the planet
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(otherPlanet.getTexture()).setFilter(true, true);
             RenderSystem.setShaderTexture(0, otherPlanet.getTexture());
             shader = RenderSystem.getShader();
-
 
             shader.getUniform("ProjMat").set(newProj);
             shader.getUniform("ViewMat").set(viewMatrix);
@@ -315,6 +314,7 @@ public class skyrenderer {
             shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
             shader.getUniform("LocalSunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
+            shader.getUniform("TargetAtmDensity").set(otherPlanet.getAtmosphereDensity());
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherPlanet.getCurrentMainStars()) {

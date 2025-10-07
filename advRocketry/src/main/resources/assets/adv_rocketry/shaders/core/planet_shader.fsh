@@ -10,6 +10,7 @@ uniform int LightCount;
 
 uniform vec4 emissiveColor;  // planet's self-emission (rgb + intensity)
 uniform float AtmDensity; // atmosphere density on observers planet
+uniform float TargetAtmDensity; // atmosphere density on observers planet
 uniform vec3 LocalSunriseColor; // sunrise color on observer planet to blend star color with
 
 uniform vec3 TargetVector; // from observer to target planet
@@ -25,8 +26,10 @@ void main() {
 
     vec3 totalReflectedLight = vec3(0.0);
 
+    float atmDotOffset = TargetAtmDensity / (1+TargetAtmDensity) * 0.1; // this makes slightly more than 180° of the planet bright when there it atmosphere
     for (int i = 0; i < LightCount; i++) {
-        float NdotL = max(0.0, dot(normalize(normalUniverseSpace), normalize(LightVectors[i])));
+        float NdotL = dot(normalize(normalUniverseSpace), normalize(LightVectors[i]));
+        NdotL = max(0.0, (NdotL+atmDotOffset) / (1+atmDotOffset));
         float distance = length(LightVectors[i]);
 
         vec3 reflected = NdotL * baseSurfaceColor

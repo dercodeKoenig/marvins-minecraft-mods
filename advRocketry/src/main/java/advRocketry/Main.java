@@ -20,7 +20,6 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -100,8 +99,8 @@ public class Main {
     private void loadShaders(RegisterShadersEvent event) {
         // 3. Register the shader and set the static field in the callback
         try {
-            shaderUtils.atmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
-            event.registerShader(shaderUtils.atmosphereShader, x -> {
+            shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
+            event.registerShader(shaderUtils.localAtmosphereShader, x -> {
             });
 
             shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
@@ -122,6 +121,10 @@ public class Main {
 
             shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.POSITION_COLOR);
             event.registerShader(shaderUtils.starBackgroundShader, x -> {
+            });
+
+            shaderUtils.planetAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_atm_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
+            event.registerShader(shaderUtils.planetAtmosphereShader, x -> {
             });
 
         } catch (IOException e) {
