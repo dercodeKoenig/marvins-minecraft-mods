@@ -63,6 +63,47 @@ public class PlanetDimensionGeneration {
         return list;
     }
 
+    public static List<Pair<Climate.ParameterPoint, Holder<Biome>>> makeFrozenDimensionConfig() {
+        List<Pair<Climate.ParameterPoint, Holder<Biome>>> list = new ArrayList<>();
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        RegistryAccess registryAccess = server.registryAccess();
+        Registry<Biome> biomeRegistry = registryAccess.registryOrThrow(Registries.BIOME);
+        list.add(Pair.of(
+                new Climate.ParameterPoint(
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 0),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        0
+                ), biomeRegistry.getHolderOrThrow(Biomes.FROZEN_OCEAN)
+        ));
+        list.add(Pair.of(
+                new Climate.ParameterPoint(
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(0, 1),
+                        Climate.Parameter.span(-1, 0),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        0
+                ), biomeRegistry.getHolderOrThrow(Biomes.ICE_SPIKES)
+        ));
+        list.add(Pair.of(
+                new Climate.ParameterPoint(
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(0, 1),
+                        Climate.Parameter.span(0, 1),
+                        Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 1),
+                        0
+                ), biomeRegistry.getHolderOrThrow(Biomes.SNOWY_PLAINS)
+        ));
+        return list;
+    }
+
     public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, List<Pair<Climate.ParameterPoint, Holder<Biome>>> dimensionConfig) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();

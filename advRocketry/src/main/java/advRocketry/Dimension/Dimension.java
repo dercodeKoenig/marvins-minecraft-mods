@@ -51,7 +51,7 @@ public class Dimension implements IAdvRocketryDimension {
                         Blocks.IRON_ORE.defaultBlockState(),
                         Blocks.WATER.defaultBlockState(),
                         getSeaLevel(),
-                        PlanetDimensionGeneration.makeHotDryDimensionConfig()
+                        PlanetDimensionGeneration.makeFrozenDimensionConfig()
                 ),
                 PlanetDimensionGeneration.makePlanetDimensionType());
     }
