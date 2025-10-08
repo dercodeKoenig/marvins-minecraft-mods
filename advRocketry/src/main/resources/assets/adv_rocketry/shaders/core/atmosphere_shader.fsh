@@ -63,8 +63,7 @@ void main() {
         sunDot_adjusted = (sunDot_adjusted + 0.1) / 1.1;// add some base value for sunset glow all around the horizon
 
         // if a fragment is closely aligned with the sun, make it more bright so that the area around the sun is brighter
-        // TODO: a great place to multiply by atmosphere thickness
-        float extraBrightness = pow(max(0,sunDot), 10) * 2 + 1;
+        float extraBrightness = pow(max(0,sunDot), 10) * 2*AtmDensity + 1;
 
         // how much is the fragment at the horizon, can be used to scale sunrise color vertically
         float horizonFactor = pow(1 - max(0,verticalDot), 8);

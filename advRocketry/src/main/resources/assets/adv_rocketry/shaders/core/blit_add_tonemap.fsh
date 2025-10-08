@@ -17,6 +17,7 @@ void main() {
     textureColor = textureColor + bloomColor;
 
     textureColor = textureColor / (vec3(1)+textureColor);
+
     textureColor = pow(textureColor, vec3(1.0 / 2.2));
 
     fragColor = vec4(textureColor,1);

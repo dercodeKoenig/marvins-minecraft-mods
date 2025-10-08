@@ -75,7 +75,7 @@ public class skyrenderer {
             Vector3f point4 = position.add(normal1.scale(-1)).add(normal2.scale(1)).toVector3f();
 
             Vector4f color = new Vector4f(0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 1f);
-            color.mul(0.0f+random.nextFloat()*0.5f);
+            color.mul(0.0f+random.nextFloat()*0.8f);
 
             bufferbuilder.addVertex(point1.x, point1.y, point1.z).setColor(color.x, color.y, color.z, color.w);
             bufferbuilder.addVertex(point2.x, point2.y, point2.z).setColor(color.x, color.y, color.z, color.w);
