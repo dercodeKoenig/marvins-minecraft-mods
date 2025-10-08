@@ -25,7 +25,20 @@ import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
 public class SpaceDimension implements IAdvRocketryDimension {
+// TODO: every rocket needs to go to its own space dimension because the depth buffer clears after drawin planets
+//      keep 1 or 2 clean dimensions ready for space travel and delete them when no rocket is in them. kill players in space without rocket. kill rockets without destination / autopilot and delete dimension
+//        the rockets dimension should equal the rockets uuid to identify it and if a player looses conection the dimension will keep existing and if the player rejoins he can be added to the rocket instantly
+//            if the player is ever found in a dimension other than where the rocket is, the space dim fir tge rockeet is deleted and the rocket destroyed
+//              space dims should be saved to disk
+//                 if a rocket has NO players, it needs no space dim and should get a virtual arrival counter
+//                 rocket registry with method to add rocket simply with destination and target ticks if a rocket has no players
+//                 or keep for every rocket a dimension, save & load it, if players are inside tp them to where the rocket is incase they leave server and come back late
+//          would need a static map that maps uuid to dimension and blockpos of the rocket
+//          or do not keep any dimension loaded when no rocket inside and use login event to tp players to rockets, in this case it is fine to put empty rocket in its own dimension
+//      or do not keep empty rockets in world and if players rejoin, tp them to the rockets destination
 
+
+// TODO OR: render planets as entities and not as sky objects and avoid the entire shit - but would not allow bloom
     public static ResourceLocation spaceDimId =  ResourceLocation.fromNamespaceAndPath(Main.MODID, "space");
     public static Vec3 to_AU(Vec3 worldPos){
         return worldPos.scale(0.0001).add(new Vec3(0,-100,0));

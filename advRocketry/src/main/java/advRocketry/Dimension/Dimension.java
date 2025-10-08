@@ -29,6 +29,10 @@ public class Dimension implements IAdvRocketryDimension {
     public PlanetRenderCache planetRenderCache;
     public ClientOnly clientOnly;
 
+    float targetsealevel;
+    float temperature;
+    // all the gases need to be added too, gascomposition
+
     public Dimension(DimensionProperties properties) {
         this.properties = properties;
         if (FMLEnvironment.dist.isClient()) {

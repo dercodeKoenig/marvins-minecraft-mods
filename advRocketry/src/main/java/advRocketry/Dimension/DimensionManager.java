@@ -26,7 +26,8 @@ public class DimensionManager {
 
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
     public HashMap<ResourceLocation, Dimension> spaceStations = new HashMap<>();
-    public SpaceDimension spaceDim;
+    public HashMap<ResourceLocation, Dimension> rocketSpaceDimensions = new HashMap<>();
+    public HashMap<ResourceLocation, Dimension> SpaceStationDimensions = new HashMap<>();
 
     public DimensionManager() {
 
@@ -35,7 +36,6 @@ public class DimensionManager {
     public static IAdvRocketryDimension get(ResourceLocation key) {
         if (INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
         if (INSTANCE.spaceStations.containsKey(key)) return INSTANCE.dimensions.get(key);
-        if(key.equals(SpaceDimension.spaceDimId)) return INSTANCE.spaceDim;
         return null;
     }
 
@@ -116,8 +116,5 @@ public class DimensionManager {
         }
         loadFromString(defaultGalaxy);
 
-
-        // create space dimension
-        INSTANCE.spaceDim = new SpaceDimension();
     }
 }
