@@ -84,9 +84,9 @@ public class PlanetDimensionGeneration {
                         Climate.Parameter.span(-1, 1),
                         Climate.Parameter.span(-1, 1),
                         Climate.Parameter.span(0, 1),
-                        Climate.Parameter.span(-1, 0),
                         Climate.Parameter.span(-1, 1),
                         Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(0, 1),
                         0
                 ), biomeRegistry.getHolderOrThrow(Biomes.ICE_SPIKES)
         ));
@@ -95,23 +95,23 @@ public class PlanetDimensionGeneration {
                         Climate.Parameter.span(-1, 1),
                         Climate.Parameter.span(-1, 1),
                         Climate.Parameter.span(0, 1),
-                        Climate.Parameter.span(0, 1),
                         Climate.Parameter.span(-1, 1),
                         Climate.Parameter.span(-1, 1),
+                        Climate.Parameter.span(-1, 0),
                         0
                 ), biomeRegistry.getHolderOrThrow(Biomes.SNOWY_PLAINS)
         ));
         return list;
     }
 
-    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, List<Pair<Climate.ParameterPoint, Holder<Biome>>> dimensionConfig) {
+    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, List<Pair<Climate.ParameterPoint, Holder<Biome>>> dimensionConfig, long seed) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();
 
         NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
 
 
-        ChunkGenerator generator = new NoiseBasedChunkGenerator(
+        ChunkGenerator generator = new CustomSeedNoiseBasedChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(dimensionConfig)),
                 Holder.direct(new NoiseGeneratorSettings(
                         new NoiseSettings(-64, 384, 1, 1),
@@ -125,7 +125,8 @@ public class PlanetDimensionGeneration {
                         true,
                         true,
                         false
-                ))
+                )),
+                seed
         );
 
         return generator;

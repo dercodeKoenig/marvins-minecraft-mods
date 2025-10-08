@@ -17,6 +17,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.joml.Random;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -51,7 +52,8 @@ public class Dimension implements IAdvRocketryDimension {
                         Blocks.IRON_ORE.defaultBlockState(),
                         Blocks.WATER.defaultBlockState(),
                         getSeaLevel(),
-                        PlanetDimensionGeneration.makeFrozenDimensionConfig()
+                        PlanetDimensionGeneration.makeFrozenDimensionConfig(),
+                        Random.newSeed()
                 ),
                 PlanetDimensionGeneration.makePlanetDimensionType());
     }
