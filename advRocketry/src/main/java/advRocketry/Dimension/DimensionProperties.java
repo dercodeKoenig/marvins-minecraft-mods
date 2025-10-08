@@ -29,9 +29,9 @@ public class DimensionProperties {
 
     public ResourceLocation texture = null;
 
-    public Vector3f  skyColor = new Vector3f(hdr(0.45f), hdr(0.7f), hdr(1f));
-    public Vector3f fogColor = new Vector3f(hdr(0.89f), hdr(0.95f), hdr(1.0f));
-    public Vector3f  sunRiseColor = new Vector3f(hdr(3f), hdr(2f), hdr(0.1f));
+    public Vector3f  skyColor = new Vector3f(0.45f, 0.7f, 1f);
+    public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
+    public Vector3f  sunRiseColor = new Vector3f(3f, 2f, 0.1f);
 
     public Vector4f emissiveColor = new Vector4f(0, 0, 0, 0);
     public float atmosphereDensity = 1;
@@ -42,12 +42,6 @@ public class DimensionProperties {
 
     public DimensionProperties() {
 
-    }
-
-    public static float hdr(float ldr) {
-        float ldr_lin = (float) pow(ldr, 2.2);
-        //float hdr = ldr_lin/(1.0001f-ldr_lin);
-        return ldr_lin;
     }
 
     public static enum PlanetType{

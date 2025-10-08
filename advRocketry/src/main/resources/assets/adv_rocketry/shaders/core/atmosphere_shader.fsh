@@ -18,7 +18,9 @@ uniform int LightCount;
 out vec4 fragColor;
 
 //TODO: to render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings
-
+vec3 gamma_reverse(vec3 color){
+    return pow(color, vec3(2.2));
+}
 void main() {
     // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
     float brightnessModifierPlayerAltitude = clamp((10000 - playerHeight) / 10000, 0, 1);
@@ -32,9 +34,9 @@ void main() {
     // 4. Apply the artistic curve
     fogFactor = pow(fogFactor, 0.7); // Adjust exponent for feel
 
-    vec3 finalFogColor = FogColor * fogFactor * globalBrightnessModifiew;
+    vec3 finalFogColor = gamma_reverse(FogColor) * fogFactor * globalBrightnessModifiew;
 
-    vec3 SkyColorBase = globalBrightnessModifiew * SkyColor;
+    vec3 SkyColorBase = globalBrightnessModifiew * gamma_reverse(SkyColor);
 
 
 
@@ -70,8 +72,8 @@ void main() {
 
         // glowing sunrise color to be added to the base color
         vec3 sunriseGlow =
-        SunriseColor *
-        starColor.rgb *
+        gamma_reverse(SunriseColor) *
+        gamma_reverse(starColor.rgb) *
         sunDot_adjusted *
         sunAtHorizon_adjusted *
         horizonFactor *

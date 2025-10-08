@@ -12,14 +12,16 @@ uniform float AtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
 uniform vec3 TargetVector;       // from observer to target planet
-uniform vec3 TargetSkyColor;       // from observer to target planet
+uniform vec3 TargetSkyColor;       // target planets sky color
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
 in vec3 upUniverseSpace;
 
 out vec4 fragColor;
-
+vec3 gamma_reverse(vec3 color){
+    return pow(color, vec3(2.2));
+}
 void main() {
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
     vec3 totalReflectedLight = vec3(0.0);
@@ -38,7 +40,7 @@ void main() {
         // how much of the edge (horizon) we see
         float viewAngle = 1.0 - clamp(dot(N, normalize(TargetVector)), 0.0, 1.0);
         // forward/back scattering relative to light direction
-        float lightAngle = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
+        float lightAngle = clamp(dot(N, L) * 0.7 + 0.3, 0.0, 1.0);
 
         // rim intensity (thicker with higher TargetAtmDensity)
         float rim = pow(viewAngle, 4)  // the more at the side the more atmosphere we will see
@@ -46,15 +48,13 @@ void main() {
         * TargetAtmDensity; // less atmosphere = less light by atmosphere
 
         vec3 reflected =
-        (NdotL * baseSurfaceColor + rim * mix(baseSurfaceColor,TargetSkyColor,TargetAtmDensity/(1+TargetAtmDensity)))
-        * LightColors[i].rgb * LightColors[i].a
+        (NdotL * gamma_reverse(baseSurfaceColor) + rim * mix(gamma_reverse(baseSurfaceColor),gamma_reverse(TargetSkyColor),TargetAtmDensity/(1+TargetAtmDensity)))
+        * gamma_reverse(LightColors[i].rgb) * LightColors[i].a
         / (dist * dist);
 
 
         totalReflectedLight += reflected;
     }
-
-    totalReflectedLight = pow(totalReflectedLight, vec3(2.2)); // (note that later in the rendering gamma correction will apply)
 
     //// --- existing emissive logic preserved ---
 
@@ -62,13 +62,13 @@ void main() {
     float atmThicknessMod = pow(1.0 - max(0.0, starUp), 2.0) * 0.9 + 0.1;
     atmThicknessMod *= AtmDensity / (1.0 + AtmDensity);
 
-    vec3 starSunriseColor = pow(LocalSunriseColor * emissiveColor.rgb, vec3(3.0));
-    vec3 atmAdjustedEmissiveColor = mix(emissiveColor.rgb, starSunriseColor, atmThicknessMod);
+    vec3 starSunriseColor = pow(gamma_reverse(LocalSunriseColor) * gamma_reverse(emissiveColor.rgb), vec3(3.0));
+    vec3 atmAdjustedEmissiveColor = mix(gamma_reverse(emissiveColor.rgb), starSunriseColor, atmThicknessMod);
 
     float starBrightnessMult = 1.0 - atmThicknessMod;
     float starBrightness = max(0.0, emissiveColor.a) * starBrightnessMult;
 
-    vec3 emitted = atmAdjustedEmissiveColor * baseSurfaceColor * starBrightness;
+    vec3 emitted = atmAdjustedEmissiveColor * gamma_reverse(baseSurfaceColor) * starBrightness;
 
     fragColor = vec4(totalReflectedLight + emitted, 1.0);
 }
