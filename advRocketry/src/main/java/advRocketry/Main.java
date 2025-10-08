@@ -1,11 +1,14 @@
 package advRocketry;
 
+import advRocketry.Dimension.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.GlobalTime;
 
 import advRocketry.Render.Fog;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Render.skyrenderer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -27,7 +30,10 @@ import org.joml.Matrix4f;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 
 @Mod(Main.MODID)
 public class Main {
@@ -59,6 +65,42 @@ public class Main {
         if (!myConfigDirFile.exists()) {
             myConfigDirFile.mkdirs();
         }
+
+        BiomeConfig test = new BiomeConfig();
+        BiomeConfig.BiomeDefinition x1 = new BiomeConfig.BiomeDefinition();
+        x1.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "desert");
+        x1.temperaturesList.addAll(List.of(BiomeConfig.BiomeDefinition.temperature.FROZEN,BiomeConfig.BiomeDefinition.temperature.LOW));
+        x1.humidityList.addAll(List.of(BiomeConfig.BiomeDefinition.humidity.DRY,BiomeConfig.BiomeDefinition.humidity.VERY_DRY));
+        x1.continentalnessList.addAll(List.of(BiomeConfig.BiomeDefinition.continentalness.MID_INLAND));
+        x1.erosionList.addAll(List.of(BiomeConfig.BiomeDefinition.erosion.values()));
+        test.biomes.add(x1);
+
+        BiomeConfig.BiomeDefinition x2 = new BiomeConfig.BiomeDefinition();
+        x2.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "ocean");
+        x2.temperaturesList.addAll(List.of(BiomeConfig.BiomeDefinition.temperature.values()));
+        x2.humidityList.addAll(List.of(BiomeConfig.BiomeDefinition.humidity.values()));
+        x2.continentalnessList.addAll(List.of(BiomeConfig.BiomeDefinition.continentalness.values()));
+        x2.erosionList.addAll(List.of(BiomeConfig.BiomeDefinition.erosion.values()));
+        test.biomes.add(x2);
+
+        String configStr = new GsonBuilder().setPrettyPrinting().create().toJson(test);
+
+        try {
+            Files.writeString(Path.of(Main.myConfigDir.toString(),"preset1.json"), configStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        BiomeConfig c = (BiomeConfig)new Gson().fromJson(configStr,BiomeConfig.class);
+
+        String configStr2 = new GsonBuilder().setPrettyPrinting().create().toJson(c);
+
+        try {
+            Files.writeString(Path.of(Main.myConfigDir.toString(),"preset2.json"), configStr2, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void onServerTick(ServerTickEvent.Post event) {

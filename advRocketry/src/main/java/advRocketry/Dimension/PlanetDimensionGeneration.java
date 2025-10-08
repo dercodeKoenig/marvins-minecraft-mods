@@ -112,7 +112,8 @@ public class PlanetDimensionGeneration {
 
 
         ChunkGenerator generator = new CustomSeedNoiseBasedChunkGenerator(
-                MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(dimensionConfig)),
+                //MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(dimensionConfig)),
+                MultiNoiseBiomeSource.createFromList(),
                 Holder.direct(new NoiseGeneratorSettings(
                         new NoiseSettings(-64, 384, 1, 1),
                         defaultBlock,

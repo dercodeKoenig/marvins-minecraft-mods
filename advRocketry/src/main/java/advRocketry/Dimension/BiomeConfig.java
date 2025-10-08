@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BiomeConfig {
-    List<BiomeDefinition> biomes = new ArrayList<>();
+    public List<BiomeDefinition> biomes = new ArrayList<>();
 
     public List<Pair<Climate.ParameterPoint, Holder<Biome>>> createBiomesFor(BiomeDefinition.temperature temp, BiomeDefinition.humidity humidity, BiomeDefinition.erosion erosion, BiomeDefinition.continentalness continentalness) {
         List<BiomeDefinition> matchingDefinitions = new ArrayList<>();
@@ -67,14 +67,13 @@ public class BiomeConfig {
 
 
     public static class BiomeDefinition {
-        ResourceLocation biome;
-        List<temperature> temperaturesList;
-        List<humidity> humidityList;
-        List<continentalness> continentalnessList;
-        List<erosion> erosionList;
-        long offset;
+        public ResourceLocation biome;
+        public List<temperature> temperaturesList = new ArrayList<>();
+        public List<humidity> humidityList = new ArrayList<>();
+        public List<continentalness> continentalnessList = new ArrayList<>();
+        public List<erosion> erosionList = new ArrayList<>();
 
-        public static OverworldBiomeBuilder overworldBiomeBuilder;
+        public static OverworldBiomeBuilder overworldBiomeBuilder = new OverworldBiomeBuilder();
 
         public enum temperature {
             FROZEN(overworldBiomeBuilder.getTemperatureThresholds()[0]),
