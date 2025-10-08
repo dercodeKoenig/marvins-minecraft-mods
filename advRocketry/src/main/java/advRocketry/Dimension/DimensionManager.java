@@ -4,7 +4,6 @@ import advRocketry.Main;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -27,14 +26,16 @@ public class DimensionManager {
 
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
     public HashMap<ResourceLocation, Dimension> spaceStations = new HashMap<>();
+    public SpaceDimension spaceDim;
 
     public DimensionManager() {
 
     }
 
     public static IAdvRocketryDimension get(ResourceLocation key) {
-        if(INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
-        if(INSTANCE.spaceStations.containsKey(key)) return INSTANCE.dimensions.get(key);
+        if (INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
+        if (INSTANCE.spaceStations.containsKey(key)) return INSTANCE.dimensions.get(key);
+        if(key.equals(SpaceDimension.spaceDimId)) return INSTANCE.spaceDim;
         return null;
     }
 
@@ -57,24 +58,25 @@ public class DimensionManager {
     }
 
     public static void save() {
-            System.out.println("saving all dimension properties...");
-            ArrayList<DimensionProperties> allProperties = new ArrayList<>();
-            for (Dimension i : INSTANCE.dimensions.values()) {
-                allProperties.add(i.properties);
-            }
-            String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
-            Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
-            try {
-                Files.writeString(saveFile, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            System.out.println("saved all dimension properties!");
+        System.out.println("saving all dimension properties...");
+        ArrayList<DimensionProperties> allProperties = new ArrayList<>();
+        for (Dimension i : INSTANCE.dimensions.values()) {
+            allProperties.add(i.properties);
+        }
+        String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
+        Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
+        try {
+            Files.writeString(saveFile, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("saved all dimension properties!");
     }
 
     private static void loadFromString(String galaxyString) {
         INSTANCE.dimensions.clear();
-        Type listType = new TypeToken<List<DimensionProperties>>() {}.getType();
+        Type listType = new TypeToken<List<DimensionProperties>>() {
+        }.getType();
         List<DimensionProperties> galaxy = new Gson().fromJson(galaxyString, listType);
         for (DimensionProperties i : galaxy) {
             Dimension dimension = new Dimension(i);
@@ -83,7 +85,7 @@ public class DimensionManager {
         System.out.println("galaxy loaded with " + galaxy.size() + " objects");
     }
 
-    public static void load() {
+    public static void init() {
         Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
 
         Path defaultPlanetDef = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveFile);
@@ -113,5 +115,9 @@ public class DimensionManager {
             throw new RuntimeException(e);
         }
         loadFromString(defaultGalaxy);
+
+
+        // create space dimension
+        INSTANCE.spaceDim = new SpaceDimension();
     }
 }

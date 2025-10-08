@@ -2,6 +2,7 @@ package advRocketry.Render;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.IAdvRocketryDimension;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
@@ -14,7 +15,7 @@ public class PlanetRenderCache {
 
     // updates the cached light sources that are considered for lighting calculations
     // for simplicity, only self emitted light is considered. if a moon reflects a lot of light, this would be ignored.
-    public void updateSignificantLightSourcesCache(Dimension myDimension) {
+    public void updateSignificantLightSourcesCache(IAdvRocketryDimension myDimension) {
 
         if (dimIterator == null || !dimIterator.hasNext()) {
             // Restart once we've gone through all dimensions

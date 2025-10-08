@@ -254,7 +254,8 @@ public class Dimension implements IAdvRocketryDimension {
             planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
 
 
-            if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun"))){
+            if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
+                properties.orbitAxis = new Vec3(0,0,1);
 
             }
             if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){

@@ -51,7 +51,7 @@ public class GlobalTime implements SimpleNetworkPacket.SimpleNetworkDataReceiver
     }
 
     public static void tickServer() {
-        INSTANCE.universalTimeServer++;
+        INSTANCE.universalTimeServer+=1;
         if (INSTANCE.universalTimeServer % syncTimeAfterTicks == 0) {
             PacketDistributor.sendToAllPlayers(
                     new SimpleNetworkPacket(PACKET_ID_SYNCTIME, String.valueOf(INSTANCE.universalTimeServer))
@@ -60,8 +60,8 @@ public class GlobalTime implements SimpleNetworkPacket.SimpleNetworkDataReceiver
     }
 
     public static void tickClient() {
-        INSTANCE.universalTimeClient++;
-        INSTANCE.universalTimeClientTarget++;
+        INSTANCE.universalTimeClient+=1;
+        INSTANCE.universalTimeClientTarget+=1;
 
         // to smoothly interpolate between the time difference
         INSTANCE.universalTimeClient += (int) INSTANCE.universalTimeClientCorrection;

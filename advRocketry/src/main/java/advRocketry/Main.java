@@ -75,7 +75,7 @@ public class Main {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
-        DimensionManager.load();
+        DimensionManager.init();
     }
 
     public void onServerStop(ServerStoppingEvent event) {
