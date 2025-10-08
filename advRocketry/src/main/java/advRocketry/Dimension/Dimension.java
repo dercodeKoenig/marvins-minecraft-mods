@@ -12,6 +12,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
@@ -50,16 +53,26 @@ public class Dimension implements IAdvRocketryDimension {
         if (server == null) return;
         System.out.println("creating dimension for " + getDimensionId());
         DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
-        dynamicDimensionRegistry.createDynamicDimension(
-                properties.dimensionId,
-                PlanetDimensionGeneration.makeChunkGenerator(
-                        Blocks.IRON_ORE.defaultBlockState(),
-                        Blocks.WATER.defaultBlockState(),
-                        getSeaLevel(),
-                        PlanetDimensionGeneration.makeFrozenDimensionConfig(),
-                        Random.newSeed()
-                ),
-                PlanetDimensionGeneration.makePlanetDimensionType());
+
+        ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
+                Blocks.STONE.defaultBlockState(),
+                Blocks.WATER.defaultBlockState(),
+                getSeaLevel(),
+                PlanetDimensionGeneration.makeFrozenDimensionConfig(),
+                 properties.dimensionId.hashCode()
+        );
+        DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType();
+        ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId,generator,type);
+        if(l==null) {
+            dynamicDimensionRegistry.createDynamicDimension(
+                    properties.dimensionId,
+                    generator,
+                    type
+                    );
+            System.out.println("created dimension for "+properties.dimensionId);
+        }else{
+            System.out.println("loaded dimension for "+properties.dimensionId);
+        }
     }
 
     // TODO:

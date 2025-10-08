@@ -4,6 +4,8 @@ import advRocketry.Main;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import dev.galacticraft.dynamicdimensions.api.PlayerRemover;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -11,6 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -62,6 +65,7 @@ public class DimensionManager {
         ArrayList<DimensionProperties> allProperties = new ArrayList<>();
         for (Dimension i : INSTANCE.dimensions.values()) {
             allProperties.add(i.properties);
+            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
         }
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
         Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
