@@ -1,30 +1,24 @@
-package advRocketry.Dimension;
+package advRocketry.experiments;
 
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.worldgen.PlanetDimensionGeneration;
+import advRocketry.worldgen.SpaceDimensionGeneration;
 import advRocketry.Main;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
-import advRocketry.utils.CelestialUtils;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.joml.Random;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import static advRocketry.utils.CelestialUtils.fromAU;
-import static advRocketry.utils.CelestialUtils.fromEarthMasses;
-
-public class SpaceDimension implements IAdvRocketryDimension {
+public class SpaceDimension {
 // TODO: every rocket needs to go to its own space dimension because the depth buffer clears after drawin planets
 //      keep 1 or 2 clean dimensions ready for space travel and delete them when no rocket is in them. kill players in space without rocket. kill rockets without destination / autopilot and delete dimension
 //        the rockets dimension should equal the rockets uuid to identify it and if a player looses conection the dimension will keep existing and if the player rejoins he can be added to the rocket instantly
@@ -130,7 +124,7 @@ public class SpaceDimension implements IAdvRocketryDimension {
         }
 
         public void clientTick() {
-            planetRenderCache.updateSignificantLightSourcesCache(SpaceDimension.this);
+            //planetRenderCache.updateSignificantLightSourcesCache();
         }
     }
 }

@@ -294,7 +294,6 @@ public class skyrenderer {
             planetMatrix.scale(distance_multiplier);
             planetMatrix.scale(PLANET_RENDER_SCALE_MULTIPLIER); // true size is too small, so apply a fixed scale
 
-            // first render the planet
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
             texturemanager.getTexture(otherDimension.getTexture()).setFilter(true, true);

@@ -1,7 +1,8 @@
-package advRocketry.Dimension;
+package advRocketry.worldgen;
 
 import advRocketry.Main;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -10,14 +11,29 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.OverworldBiomeBuilder;
-import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+
+/*
+maybe select like this:
+temperature too hot? -> generate too hot & dry biomes
+pressure too low? -> {
+    is it warm? -> generate low pressure warm biomes
+    is it cold? -> generate low pressure cold biomes
+}
+is it hot and dry?
+is it cold and dry?
+is it warm and humid?
+is it cold and humid
+is it midwarm and dry?
+is it midwarm and humid?
+ */
 
 public class BiomeConfig {
     public List<BiomeDefinition> biomes = new ArrayList<>();
@@ -53,18 +69,18 @@ public class BiomeConfig {
             Holder<Biome> biomeHolder = ServerLifecycleHooks.getCurrentServer().registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(ResourceKey.create(Registries.BIOME, i.biome));
             biomes.add(Pair.of(point, biomeHolder));
             //System.out.println(ServerLifecycleHooks.getCurrentServer().registryAccess().registryOrThrow(Registries.BIOME).getKey(biomeHolder.value()) +":"+weirdnessStepSize+":"+(-1 + weirdnessStepSize * n)+":"+(-1 + weirdnessStepSize * (n + 1)));
-            n+=1;
+            n += 1;
         }
         return biomes;
     }
 
-    public List<Pair<Climate.ParameterPoint, Holder<Biome>>> createBiomeConfig(){
+    public List<Pair<Climate.ParameterPoint, Holder<Biome>>> createBiomeConfig() {
         List<Pair<Climate.ParameterPoint, Holder<Biome>>> biomes = new ArrayList<>();
-        for (temperature temp : temperature.values()){
-            for (BiomeConfig.continentalness continentalness : continentalness.values()){
-                for (BiomeConfig.humidity humidity : humidity.values()){
-                    for (BiomeConfig.erosion erosion : erosion.values()){
-                        biomes.addAll(createBiomesFor(temp,humidity,erosion,continentalness));
+        for (temperature temp : temperature.values()) {
+            for (BiomeConfig.continentalness continentalness : continentalness.values()) {
+                for (BiomeConfig.humidity humidity : humidity.values()) {
+                    for (BiomeConfig.erosion erosion : erosion.values()) {
+                        biomes.addAll(createBiomesFor(temp, humidity, erosion, continentalness));
                     }
                 }
             }
@@ -73,10 +89,11 @@ public class BiomeConfig {
     }
 
 
-    public static BiomeConfig fromConfig(String configStr){
-        return new Gson().fromJson(configStr,BiomeConfig.class);
+    public static BiomeConfig fromConfig(String configStr) {
+        return new Gson().fromJson(configStr, BiomeConfig.class);
     }
-    public static BiomeConfig fromConfig(Path configPath){
+
+    public static BiomeConfig fromConfig(Path configPath) {
         String configStr = null;
         try {
             configStr = Files.readString(configPath);
@@ -85,8 +102,21 @@ public class BiomeConfig {
         }
         return fromConfig(configStr);
     }
-    public static BiomeConfig loadPreset(String presetName){
+
+    public static BiomeConfig loadPreset(String presetName) {
         return BiomeConfig.fromConfig(Path.of(Main.myConfigDir.toString(), presetName));
+    }
+
+    public static void makePresetIfNotExist(String presetName, BiomeConfig biomeConfig) {
+        Path presetPath = Path.of(Main.myConfigDir.toString(), presetName);
+        if (Files.exists(presetPath)) return;
+        String configStr = new GsonBuilder().setPrettyPrinting().create().toJson(biomeConfig);
+        try {
+            Files.writeString(presetPath, configStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (
+                IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public enum erosion {

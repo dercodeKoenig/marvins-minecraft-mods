@@ -1,4 +1,4 @@
-package advRocketry.Dimension;
+package advRocketry.worldgen;
 
 import com.google.common.annotations.VisibleForTesting;
 import net.minecraft.core.BlockPos;
@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.blending.Blender;
-import net.minecraft.world.level.levelgen.structure.StructureCheck;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -23,11 +22,11 @@ import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class CustomSeedNoiseBasedChunkGenerator extends NoiseBasedChunkGenerator {
+public class CustomChunkGenerator extends NoiseBasedChunkGenerator {
     RandomState customRandomState;
     boolean shouldMakeStructures;
 
-    public CustomSeedNoiseBasedChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings, long customSeed, boolean createStructures) {
+    public CustomChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings, long customSeed, boolean createStructures) {
         super(biomeSource, settings);
         customRandomState = RandomState.create(ServerLifecycleHooks.getCurrentServer().registryAccess().asGetterLookup(), NoiseGeneratorSettings.OVERWORLD, customSeed);
         shouldMakeStructures = createStructures;

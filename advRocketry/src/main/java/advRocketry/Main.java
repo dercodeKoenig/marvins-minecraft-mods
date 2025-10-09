@@ -1,13 +1,14 @@
 package advRocketry;
 
-import advRocketry.Dimension.BiomeConfig;
+import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.GlobalTime;
 
 import advRocketry.Render.Fog;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Render.skyrenderer;
-import com.google.gson.Gson;
+import advRocketry.worldgen.presets.HOT_DRY;
+import advRocketry.worldgen.presets.HOT_VERYDRY;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -66,38 +67,8 @@ public class Main {
             myConfigDirFile.mkdirs();
         }
 
-        BiomeConfig test = new BiomeConfig();
-        BiomeConfig.BiomeDefinition x1 = new BiomeConfig.BiomeDefinition();
-        x1.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "desert");
-        x1.temperaturesList.addAll(List.of(BiomeConfig.temperature.FROZEN, BiomeConfig.temperature.LOW));
-        x1.humidityList.addAll(List.of(BiomeConfig.humidity.DRY, BiomeConfig.humidity.VERY_DRY));
-        x1.continentalnessList.addAll(List.of(BiomeConfig.continentalness.MID_INLAND));
-        x1.erosionList.addAll(List.of(BiomeConfig.erosion.values()));
-        test.biomes.add(x1);
-
-        BiomeConfig.BiomeDefinition x2 = new BiomeConfig.BiomeDefinition();
-        x2.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "ocean");
-        x2.temperaturesList.addAll(List.of(BiomeConfig.temperature.values()));
-        x2.humidityList.addAll(List.of(BiomeConfig.humidity.values()));
-        x2.continentalnessList.addAll(List.of(BiomeConfig.continentalness.values()));
-        x2.erosionList.addAll(List.of(BiomeConfig.erosion.values()));
-        test.biomes.add(x2);
-
-        BiomeConfig.BiomeDefinition x3 = new BiomeConfig.BiomeDefinition();
-        x3.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "plains");
-        x3.temperaturesList.addAll(List.of(BiomeConfig.temperature.values()));
-        x3.humidityList.addAll(List.of(BiomeConfig.humidity.values()));
-        x3.continentalnessList.addAll(List.of(BiomeConfig.continentalness.values()));
-        x3.erosionList.addAll(List.of(BiomeConfig.erosion.values()));
-        test.biomes.add(x3);
-
-        String configStr = new GsonBuilder().setPrettyPrinting().create().toJson(test);
-
-        try {
-            Files.writeString(Path.of(Main.myConfigDir.toString(),"preset1.json"), configStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
+        BiomeConfig.makePresetIfNotExist(HOT_VERYDRY.name, HOT_VERYDRY.create());
 
     }
 

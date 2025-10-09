@@ -1,11 +1,13 @@
 package advRocketry.Dimension;
 
-import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Main;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
-import com.google.gson.Gson;
+import advRocketry.worldgen.BiomeConfig;
+import advRocketry.worldgen.PlanetDimensionGeneration;
+import advRocketry.worldgen.presets.HOT_DRY;
+import advRocketry.worldgen.presets.HOT_VERYDRY;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +22,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -63,7 +64,8 @@ public class Dimension {
                 Blocks.WATER.defaultBlockState(),
                 getSeaLevel(),
                 properties.dimensionId.hashCode(),
-                properties.generateStructures
+                properties.generateStructures,
+                BiomeConfig.loadPreset(HOT_VERYDRY.name)
         );
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType();
         ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId, generator, type);
@@ -97,7 +99,7 @@ public class Dimension {
     }
 
     public boolean canRain() {
-        return properties.atmosphereDensity > 0.5f;
+        return getAtmosphereDensity() > 0.5f;
     }
 
     public Vector4f getEmissiveColor() {
@@ -324,12 +326,3 @@ public class Dimension {
         }
     }
 }
-
-
-/*
-    public static float getSunAltitudeDegrees(DimensionProperties myPlanet, DimensionProperties lightSource, float partialTick) {
-        double altitude = Math.asin(getSurfaceDotToPlanet(myPlanet, lightSource, partialTick, null, null));
-        return (float) Math.toDegrees(altitude);
-    }
- */
-

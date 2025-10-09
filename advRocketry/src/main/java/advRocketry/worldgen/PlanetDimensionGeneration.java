@@ -1,4 +1,4 @@
-package advRocketry.Dimension;
+package advRocketry.worldgen;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
@@ -104,15 +104,15 @@ public class PlanetDimensionGeneration {
         return list;
     }
 
-    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, long seed, boolean structuresEnabled) {
+    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, long seed, boolean structuresEnabled, BiomeConfig biomeConfig) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();
 
         NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
 
-        ChunkGenerator generator = new CustomSeedNoiseBasedChunkGenerator(
+        ChunkGenerator generator = new CustomChunkGenerator(
                 //MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(dimensionConfig)),
-                MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(BiomeConfig.loadPreset("preset1.json").createBiomeConfig())),
+                MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeConfig.createBiomeConfig())),
                 Holder.direct(new NoiseGeneratorSettings(
                         new NoiseSettings(-64, 384, 1, 1),
                         defaultBlock,

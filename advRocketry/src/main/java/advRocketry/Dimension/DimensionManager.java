@@ -66,11 +66,10 @@ public class DimensionManager {
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
-    public static String saveToString() {
+    public static String savePropertiesToString() {
         ArrayList<DimensionProperties> allProperties = new ArrayList<>();
         for (Dimension i : INSTANCE.dimensions.values()) {
             allProperties.add(i.properties);
-            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
         }
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
         return json;
@@ -80,18 +79,24 @@ public class DimensionManager {
         System.out.println("saving all dimension properties...");
         Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
         try {
-            Files.writeString(saveFile, saveToString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(saveFile, savePropertiesToString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         System.out.println("saved all dimension properties!");
+        System.out.println("unloading and saving dimensions...");
+        for (Dimension i : INSTANCE.dimensions.values()) {
+            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
+        }
+        System.out.println("saved all dimensions!");
+
     }
 
-    private static void loadFromString(String galaxyString) {
+    private static void createDimensionsFromString(String dimensionProperties) {
         INSTANCE.dimensions.clear();
         Type listType = new TypeToken<List<DimensionProperties>>() {
         }.getType();
-        List<DimensionProperties> galaxy = new Gson().fromJson(galaxyString, listType);
+        List<DimensionProperties> galaxy = new Gson().fromJson(dimensionProperties, listType);
         for (DimensionProperties i : galaxy) {
             Dimension dimension = new Dimension(i);
             INSTANCE.dimensions.put(i.dimensionId, dimension);
@@ -128,7 +133,7 @@ public class DimensionManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        loadFromString(defaultGalaxy);
+        createDimensionsFromString(defaultGalaxy);
 
     }
 
@@ -145,7 +150,7 @@ public class DimensionManager {
             PacketDistributor.sendToAllPlayers(
                     new SimpleNetworkPacket(
                             DimensionClientSync.packetSyncId,
-                            saveToString()
+                            savePropertiesToString()
                     )
             );
         }

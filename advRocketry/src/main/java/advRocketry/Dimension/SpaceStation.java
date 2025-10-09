@@ -1,13 +1,10 @@
 package advRocketry.Dimension;
 
 import advRocketry.utils.AxisDirections;
-import advRocketry.utils.CelestialUtils;
+import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
@@ -23,16 +20,6 @@ public class SpaceStation extends Dimension {
     @Override
     public boolean hasCustomSky() {
         return true;
-    }
-
-    @Override
-    public AxisDirections getGlobalAxisDirections(float partialTick) {
-        return null;
-    }
-
-    @Override
-    public Vec3 getPosition(float partialTick) {
-        return null;
     }
 
     @Override
@@ -66,48 +53,23 @@ public class SpaceStation extends Dimension {
     }
 
     @Override
-    public boolean canVisit() {
-        return true;
-    }
+    public boolean canVisit() {return true;}
 
     @Override
-    public boolean canRain() {
-        return false;
-    }
+    public boolean canRain() {return false;}
 
     @Override
-    public double getEarthRadiusMultiplier() {
-        return 0;
-    }
+    public boolean shouldRenderInSky() {return false;}
+
 
     @Override
-    public double getEarthMassMultiplier() {
-        return 0;
-    }
-
-    @Override
-    public ResourceLocation getTexture() {
+    public AxisDirections getGlobalAxisDirections(float partialTick) {
         return null;
     }
 
     @Override
-    public boolean shouldRenderInSky() {
-        return false;
-    }
-
-    @Override
-    public int getSeaLevel() {
-        return 0;
-    }
-
-    @Override
-    public float getDayTimePerTick() {
-        return 0;
-    }
-
-    @Override
-    public double getRotationAngle(float partialTick) {
-        return 0;
+    public Vec3 getPosition(float partialTick) {
+        return null;
     }
 
     @Override
