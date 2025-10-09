@@ -22,11 +22,20 @@ import java.util.List;
 
 /*
 maybe select like this:
-temperature too hot? -> generate too hot & dry biomes
-pressure too low? -> {
-    is it warm? -> generate low pressure warm biomes
-    is it cold? -> generate low pressure cold biomes
+temperature super heated? -> volcanic biomes
+temperature too hot? -> generate too hot & very dry biomes - no water can exist
+too little co2 / o2 -> {
+    is it warm? -> generate low pressure warm biomes without vegetation
+    is it cold? -> generate low pressure cold biomes without vegetation
 }
+pressure too high? {
+    // like normal pressure but with less vegetation
+    warm + humid?
+    warm + dry?
+    cold? ice spikes and stuff
+}
+is it frozen? -> generate frozen biomes, can have small frozen vegetation
+// normal pressure / temp
 is it hot and dry?
 is it cold and dry?
 is it warm and humid?

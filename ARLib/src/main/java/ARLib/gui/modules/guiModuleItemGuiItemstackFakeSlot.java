@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 
 public class guiModuleItemGuiItemstackFakeSlot extends guiModuleInventorySlotBase {
+    // used for when an item has a fake itemStackHandler (for example a inventory where you can place filter items in)
     public  interface StackBasedItemHandler{
         ItemStack getStackInSlot(ItemStack stack, int slot, RegistryAccess registry);
         ItemStack insertItem(ItemStack stack, int slot, ItemStack stackToInsert, boolean simulate, RegistryAccess registry);
