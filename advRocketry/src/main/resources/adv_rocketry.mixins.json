@@ -2,10 +2,13 @@
   "required": true,
   "package": "advRocketry.mixins",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LevelMixin"
+  ],
   "client": [
     "MixinWorldEffects",
-    "LevelMixin"
-
+    "ClientLevelMixin",
+    "LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

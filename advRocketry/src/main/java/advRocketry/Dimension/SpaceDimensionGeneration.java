@@ -29,7 +29,7 @@ import java.util.OptionalLong;
 public class SpaceDimensionGeneration {
     public static DimensionType makeDimensionType() {
         return new DimensionType(
-                OptionalLong.empty(),
+                OptionalLong.of(6000),
                 false,
                 false,
                 false,
@@ -37,9 +37,9 @@ public class SpaceDimensionGeneration {
                 1.0,
                 false,
                 false,
-                0,
-                1,
-                1,
+                -64,
+                384,
+                384,
                 BlockTags.INFINIBURN_OVERWORLD, // infiniburn
                 ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"),
                 0.0f, // ambientLight
@@ -76,7 +76,7 @@ public class SpaceDimensionGeneration {
         ChunkGenerator generator = new NoiseBasedChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(makeDimensionConfig())),
                 Holder.direct(new NoiseGeneratorSettings(
-                        new NoiseSettings(0, 1, 1, 1),
+                        new NoiseSettings(-64, 384, 1, 1),
                         Blocks.AIR.defaultBlockState(),
                         Blocks.AIR.defaultBlockState(),
                         overworldSettings.noiseRouter(),

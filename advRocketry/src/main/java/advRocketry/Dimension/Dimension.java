@@ -1,9 +1,11 @@
 package advRocketry.Dimension;
 
+import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Main;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import com.google.gson.Gson;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -14,20 +16,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.joml.Random;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+
+import javax.annotation.Nullable;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
-public class Dimension implements IAdvRocketryDimension {
+public class Dimension {
     DimensionProperties properties;
     public PlanetRenderCache planetRenderCache;
     public ClientOnly clientOnly;
@@ -81,13 +84,20 @@ public class Dimension implements IAdvRocketryDimension {
     //  maybe adjust colors +-up to 10% of the original color channel value?
 
     public boolean canVisit() {
-        return
-                properties.type == DimensionProperties.PlanetType.PLANET &&
-                        properties.dayTimeReference != null;
+        if (properties.dayTimeReference == null) {
+            return false;
+        }
+        if (properties.type == DimensionProperties.PlanetType.PLANET)
+            return true;
+        return false;
     }
 
     public ResourceLocation getDimensionId() {
         return properties.dimensionId;
+    }
+
+    public boolean canRain() {
+        return properties.atmosphereDensity > 0.5f;
     }
 
     public Vector4f getEmissiveColor() {
@@ -134,11 +144,6 @@ public class Dimension implements IAdvRocketryDimension {
         return properties.atmosphereDensity;
     }
 
-    public float getLatitude() {
-        if (FMLLoader.getDist().isDedicatedServer()) return 0;
-        else return clientOnly.getLatitude();
-    }
-
     public boolean shouldRenderInSky() {
         return properties.type == DimensionProperties.PlanetType.PLANET ||
                 properties.type == DimensionProperties.PlanetType.STAR;
@@ -160,6 +165,40 @@ public class Dimension implements IAdvRocketryDimension {
         double actualDayTime = properties.dayTime + getDayTimePerTick() * partialTick;
         double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
         return rotation;
+    }
+
+    /**
+     * computes the accumulated brightness by relevant stars to be used for terrain shading
+     */
+    public double getAccumulatedWorldBrightness(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
+//if(true)return 1;
+        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
+
+        double astronomicalBrightness = 0;
+        for (ResourceLocation targetId : getCurrentMainStars()) {
+            Dimension target = DimensionManager.get(targetId);
+            Vec3 targetPosition = target.getPosition(partialTick);
+            double distance = targetPosition.distanceTo(myPlanetPosition);
+            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
+            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance * distance);
+            astronomicalBrightness += brightness;
+        }
+        return astronomicalBrightness;
+    }
+
+    /**
+     * computes the dot product between the surface normal at the observer and the target space object
+     * allows to input precomputed positions to avoid recomputation
+     */
+    public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition) {
+        Vec3 localUp = getGlobalAxisDirections(partialTick).up;
+
+        if (targetPosition == null) targetPosition = target.getPosition(partialTick);
+        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
+
+        Vec3 targetDirection = targetPosition.subtract(myPlanetPosition).normalize();
+        double dot = localUp.dot(targetDirection);
+        return dot;
     }
 
     public Vec3 getPosition(float partialTick) {
@@ -199,6 +238,10 @@ public class Dimension implements IAdvRocketryDimension {
     }
 
 
+    public float getLatitude() {
+        if (FMLLoader.getDist().isDedicatedServer()) return 0;
+        else return clientOnly.getLatitude();
+    }
     /**
      * calculates universe global coordinates for the local north east up coordinates of the planet
      */
@@ -224,13 +267,12 @@ public class Dimension implements IAdvRocketryDimension {
         return new AxisDirections(north, east, localUp);
     }
 
-
     /**
      * returns a reference vector for the equator, orthogonal to the rotation axis and the reference space object for day start
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
-        IAdvRocketryDimension dayReference = DimensionManager.get(properties.dayTimeReference);
+        Dimension dayReference = DimensionManager.get(properties.dayTimeReference);
         Vec3 dayRefToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
         Vec3 equatorReference = dayRefToPlanet.cross(properties.rotationAxis).scale(-1);
         return equatorReference;

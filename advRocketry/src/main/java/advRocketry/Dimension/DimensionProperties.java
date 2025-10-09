@@ -47,7 +47,7 @@ public class DimensionProperties {
     public static enum PlanetType{
         PLANET,
         STAR,
-        ASTEROID,
+        SPACE_STATION,
         DUMMY;
     }
 }

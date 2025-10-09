@@ -2,7 +2,6 @@ package advRocketry.Render;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.IAdvRocketryDimension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -24,7 +23,7 @@ public class Fog {
     public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
         Level currentLevel = Minecraft.getInstance().level;
         ResourceLocation dimensionId = currentLevel.dimension().location();
-        IAdvRocketryDimension dimension = DimensionManager.get(dimensionId);
+        Dimension dimension = DimensionManager.get(dimensionId);
         if(dimension == null) return; // not registered in DimensionManager
 
         Vector3f fogColor  = dimension.getFogColor();

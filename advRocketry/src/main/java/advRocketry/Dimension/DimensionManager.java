@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Main;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -13,6 +14,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.lang.reflect.Type;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class DimensionManager {
@@ -28,30 +31,33 @@ public class DimensionManager {
     public static DimensionManager INSTANCE = new DimensionManager();
 
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
-    public HashMap<ResourceLocation, Dimension> spaceStations = new HashMap<>();
-    public HashMap<ResourceLocation, Dimension> rocketSpaceDimensions = new HashMap<>();
-    public HashMap<ResourceLocation, Dimension> SpaceStationDimensions = new HashMap<>();
 
     public DimensionManager() {
-
+        new DimensionClientSync();
     }
 
-    public static IAdvRocketryDimension get(ResourceLocation key) {
+    public static Dimension get(ResourceLocation key) {
         if (INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
-        if (INSTANCE.spaceStations.containsKey(key)) return INSTANCE.dimensions.get(key);
         return null;
     }
 
     public static void serverTick(ServerTickEvent.Post event) {
         //if(true)return;
-        for (Dimension i : INSTANCE.dimensions.values()) {
+        Iterator<Dimension> dimensionIterator = INSTANCE.dimensions.values().iterator();
+        while (dimensionIterator.hasNext()){
+            Dimension i = dimensionIterator.next();
             i.serverTick(event);
+        }
+        if (GlobalTime.getGlobalTime() % (20 * 60) == 0) {
+            DimensionClientSync.syncDimensions();
         }
     }
 
     public static void clientTick(ClientTickEvent.Post event) {
         //if(true)return;
-        for (Dimension i : INSTANCE.dimensions.values()) {
+        Iterator<Dimension> dimensionIterator = INSTANCE.dimensions.values().iterator();
+        while (dimensionIterator.hasNext()){
+            Dimension i = dimensionIterator.next();
             i.clientOnly.clientTick();
         }
     }
@@ -60,17 +66,21 @@ public class DimensionManager {
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
-    public static void save() {
-        System.out.println("saving all dimension properties...");
+    public static String saveToString() {
         ArrayList<DimensionProperties> allProperties = new ArrayList<>();
         for (Dimension i : INSTANCE.dimensions.values()) {
             allProperties.add(i.properties);
             DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
         }
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(allProperties);
+        return json;
+    }
+
+    public static void save() {
+        System.out.println("saving all dimension properties...");
         Path saveFile = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveFile);
         try {
-            Files.writeString(saveFile, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(saveFile, saveToString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -120,5 +130,56 @@ public class DimensionManager {
         }
         loadFromString(defaultGalaxy);
 
+    }
+
+
+    static class DimensionClientSync implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+
+        public static String packetSyncId = Main.MODID + "_dimensionManager";
+
+        public DimensionClientSync() {
+            SimpleNetworkPacket.registerReceiver(packetSyncId, this);
+        }
+
+        public static void syncDimensions(){
+            PacketDistributor.sendToAllPlayers(
+                    new SimpleNetworkPacket(
+                            DimensionClientSync.packetSyncId,
+                            saveToString()
+                    )
+            );
+        }
+
+        public void readClient(String data) {
+            Type listType = new TypeToken<List<DimensionProperties>>() {
+            }.getType();
+            List<DimensionProperties> newGalaxyConfig = new Gson().fromJson(data, listType);
+            for (DimensionProperties i : newGalaxyConfig) {
+                if (INSTANCE.dimensions.containsKey(i.dimensionId)) {
+                    INSTANCE.dimensions.get(i.dimensionId).properties = i;
+                } else {
+                    Dimension dimension = new Dimension(i);
+                    INSTANCE.dimensions.put(i.dimensionId, dimension);
+                    System.out.println("client created new dimension for "+i.dimensionId);
+                }
+            }
+            List<ResourceLocation> toDelete = new ArrayList<>();
+            for (Dimension d : INSTANCE.dimensions.values()) {
+                boolean stillExists = false;
+                for (DimensionProperties i : newGalaxyConfig) {
+                    if (i.dimensionId.equals(d.getDimensionId())) {
+                        stillExists = true;
+                        break;
+                    }
+                }
+                if (!stillExists) {
+                    toDelete.add(d.getDimensionId());
+                }
+            }
+            for (ResourceLocation i : toDelete) {
+                INSTANCE.dimensions.remove(i);
+                System.out.println("client removed dimension for "+i);
+            }
+        }
     }
 }
