@@ -77,7 +77,7 @@ public static String name="hot_dry.json";
         stony_peaks.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "stony_peaks");
         stony_peaks.temperaturesList.addAll(List.of(BiomeConfig.temperature.values()));
         stony_peaks.humidityList.addAll(List.of(BiomeConfig.humidity.values()));
-        stony_peaks.continentalnessList.addAll(List.of(BiomeConfig.continentalness.FAR_INLAND));
+        stony_peaks.continentalnessList.addAll(List.of(BiomeConfig.continentalness.values()));
         stony_peaks.erosionList.addAll(List.of(BiomeConfig.erosion.VERY_LOW));
         config.biomes.add(stony_peaks);
 
