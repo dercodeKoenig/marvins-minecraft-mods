@@ -59,6 +59,7 @@ public class DefaultGalaxy {
         moon2.earthMassMultiplier = 0.3;
         moon2.targetDayLength = 8000;
         moon2.atmosphereDensity = 0;
+        moon2.sealevel = 50;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         galaxy.add(moon2);
 
