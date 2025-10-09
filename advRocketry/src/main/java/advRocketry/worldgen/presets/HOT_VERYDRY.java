@@ -13,7 +13,7 @@ public static String name="hot_verydry.json";
         BiomeConfig.BiomeDefinition desert = new BiomeConfig.BiomeDefinition();
         desert.biome = ResourceLocation.fromNamespaceAndPath("minecraft", "desert");
         desert.temperaturesList.addAll(List.of(BiomeConfig.temperature.values()));
-        desert.humidityList.addAll(List.of(BiomeConfig.humidity.DRY, BiomeConfig.humidity.VERY_DRY));
+        desert.humidityList.addAll(List.of(BiomeConfig.humidity.MID, BiomeConfig.humidity.DRY, BiomeConfig.humidity.VERY_DRY));
         desert.continentalnessList.addAll(List.of(BiomeConfig.continentalness.OCEAN, BiomeConfig.continentalness.COAST, BiomeConfig.continentalness.NEAR_INLAND, BiomeConfig.continentalness.MID_INLAND, BiomeConfig.continentalness.FAR_INLAND));
         desert.erosionList.addAll(List.of(BiomeConfig.erosion.LOW, BiomeConfig.erosion.HIGH, BiomeConfig.erosion.VERY_HIGH));
         config.biomes.add(desert);
@@ -23,7 +23,7 @@ public static String name="hot_verydry.json";
         badlands.temperaturesList.addAll(List.of(BiomeConfig.temperature.values()));
         badlands.humidityList.addAll(List.of(BiomeConfig.humidity.MID, BiomeConfig.humidity.WET, BiomeConfig.humidity.VERY_WET));
         badlands.continentalnessList.addAll(List.of(BiomeConfig.continentalness.COAST, BiomeConfig.continentalness.NEAR_INLAND, BiomeConfig.continentalness.MID_INLAND, BiomeConfig.continentalness.FAR_INLAND));
-        badlands.erosionList.addAll(List.of(BiomeConfig.erosion.VERY_LOW, BiomeConfig.erosion.LOW, BiomeConfig.erosion.HIGH, BiomeConfig.erosion.VERY_HIGH));
+        badlands.erosionList.addAll(List.of(BiomeConfig.erosion.values()));
         config.biomes.add(badlands);
 
         BiomeConfig.BiomeDefinition eroded_badlands = new BiomeConfig.BiomeDefinition();
@@ -39,7 +39,7 @@ public static String name="hot_verydry.json";
         wooded_badlands.temperaturesList.addAll(List.of(BiomeConfig.temperature.FROZEN, BiomeConfig.temperature.LOW));
         wooded_badlands.humidityList.addAll(List.of(BiomeConfig.humidity.WET, BiomeConfig.humidity.VERY_WET));
         wooded_badlands.continentalnessList.addAll(List.of(BiomeConfig.continentalness.OCEAN, BiomeConfig.continentalness.COAST, BiomeConfig.continentalness.NEAR_INLAND));
-        wooded_badlands.erosionList.addAll(List.of(BiomeConfig.erosion.VERY_LOW, BiomeConfig.erosion.LOW, BiomeConfig.erosion.HIGH, BiomeConfig.erosion.VERY_HIGH));
+        wooded_badlands.erosionList.addAll(List.of(BiomeConfig.erosion.values()));
         config.biomes.add(wooded_badlands);
 
         BiomeConfig.BiomeDefinition stony_peaks = new BiomeConfig.BiomeDefinition();
