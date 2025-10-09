@@ -19,6 +19,7 @@ public class DimensionProperties {
     public Vec3 rotationAxis = new Vec3(0.2, 1, 0);
     public int targetDayLength = 24000;
     public int sealevel = 63;
+    public boolean generateStructures = false;
 
     public ResourceLocation parentDimensionId = null;       // optional, overwrites position
     public Vec3 orbitAxis = new Vec3(0, 1, 0);
@@ -32,11 +33,10 @@ public class DimensionProperties {
     public Vector3f  skyColor = new Vector3f(0.45f, 0.7f, 1f);
     public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
     public Vector3f  sunRiseColor = new Vector3f(3f, 2f, 0.1f);
-
     public Vector4f emissiveColor = new Vector4f(0, 0, 0, 0);
     public float atmosphereDensity = 1;
 
-    public int latitude_len = 400000;                                        // how much you have to move in z direction to "go around the planet"
+    public int latitude_len = 400000;// how much you have to move in z direction to "go around the planet"
 
     public float dayTime;
 

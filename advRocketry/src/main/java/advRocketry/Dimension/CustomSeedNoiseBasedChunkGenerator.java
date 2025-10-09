@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.biome.*;
@@ -11,6 +12,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.structure.StructureCheck;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.mutable.MutableObject;
 
@@ -22,10 +25,12 @@ import java.util.function.Predicate;
 
 public class CustomSeedNoiseBasedChunkGenerator extends NoiseBasedChunkGenerator {
     RandomState customRandomState;
+    boolean shouldMakeStructures;
 
-    public CustomSeedNoiseBasedChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings, long customSeed) {
+    public CustomSeedNoiseBasedChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings, long customSeed, boolean createStructures) {
         super(biomeSource, settings);
         customRandomState = RandomState.create(ServerLifecycleHooks.getCurrentServer().registryAccess().asGetterLookup(), NoiseGeneratorSettings.OVERWORLD, customSeed);
+        shouldMakeStructures = createStructures;
     }
 
 
@@ -51,6 +56,11 @@ public class CustomSeedNoiseBasedChunkGenerator extends NoiseBasedChunkGenerator
 
     public void buildSurface(WorldGenRegion level, StructureManager structureManager, RandomState ignored, ChunkAccess chunk) {
         super.buildSurface(level, structureManager, customRandomState, chunk);
+    }
+
+    public void createStructures(RegistryAccess registryAccess, ChunkGeneratorStructureState structureState, StructureManager structureManager, ChunkAccess chunk, StructureTemplateManager structureTemplateManager) {
+        if (shouldMakeStructures)
+            super.createStructures(registryAccess, structureState, structureManager, chunk, structureTemplateManager);
     }
 
     @VisibleForTesting

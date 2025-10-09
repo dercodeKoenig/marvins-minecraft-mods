@@ -35,6 +35,7 @@ public class Dimension implements IAdvRocketryDimension {
     float targetsealevel;
     float temperature;
     // all the gases need to be added too, gascomposition
+    // maybe gases underground trapped / frozen that can be freed
 
     public Dimension(DimensionProperties properties) {
         this.properties = properties;
@@ -58,20 +59,20 @@ public class Dimension implements IAdvRocketryDimension {
                 Blocks.STONE.defaultBlockState(),
                 Blocks.WATER.defaultBlockState(),
                 getSeaLevel(),
-                PlanetDimensionGeneration.makeFrozenDimensionConfig(),
-                 properties.dimensionId.hashCode()
+                properties.dimensionId.hashCode(),
+                properties.generateStructures
         );
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType();
-        ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId,generator,type);
-        if(l==null) {
+        ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId, generator, type);
+        if (l == null) {
             dynamicDimensionRegistry.createDynamicDimension(
                     properties.dimensionId,
                     generator,
                     type
-                    );
-            System.out.println("created dimension for "+properties.dimensionId);
-        }else{
-            System.out.println("loaded dimension for "+properties.dimensionId);
+            );
+            System.out.println("created dimension for " + properties.dimensionId);
+        } else {
+            System.out.println("loaded dimension for " + properties.dimensionId);
         }
     }
 
@@ -271,11 +272,11 @@ public class Dimension implements IAdvRocketryDimension {
             planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
 
 
-            if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))){
-                properties.orbitAxis = new Vec3(0,0,1);
+            if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
+                properties.orbitAxis = new Vec3(0, 0, 1);
 
             }
-            if(properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))){
+            if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
 
             }
         }

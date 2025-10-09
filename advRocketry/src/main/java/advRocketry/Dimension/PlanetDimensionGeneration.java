@@ -104,7 +104,7 @@ public class PlanetDimensionGeneration {
         return list;
     }
 
-    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, List<Pair<Climate.ParameterPoint, Holder<Biome>>> dimensionConfig, long seed) {
+    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, long seed, boolean structuresEnabled) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();
 
@@ -126,7 +126,8 @@ public class PlanetDimensionGeneration {
                         true,
                         false
                 )),
-                seed
+                seed,
+                structuresEnabled
         );
 
         return generator;

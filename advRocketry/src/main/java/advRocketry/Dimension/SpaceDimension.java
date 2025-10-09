@@ -36,6 +36,8 @@ public class SpaceDimension implements IAdvRocketryDimension {
 //          would need a static map that maps uuid to dimension and blockpos of the rocket
 //          or do not keep any dimension loaded when no rocket inside and use login event to tp players to rockets, in this case it is fine to put empty rocket in its own dimension
 //      or do not keep empty rockets in world and if players rejoin, tp them to the rockets destination
+//  TODO: probably best if 1 space travel dim exists and all rockets share the dim, but  beeing fixed at a position like 0 0 0 or 1000 0 0
+//        and keep the rockets chunk force loaded
 
 
 // TODO OR: render planets as entities and not as sky objects and avoid the entire shit - but would not allow bloom
