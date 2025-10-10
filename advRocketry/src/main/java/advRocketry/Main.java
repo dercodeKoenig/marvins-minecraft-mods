@@ -1,5 +1,6 @@
 package advRocketry;
 
+import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.GlobalTime;
@@ -23,6 +24,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -60,12 +62,14 @@ public class Main {
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::onClientSetup);
+        modEventBus.addListener(this::registerEntityRenderers);
 
 
         Registry.BLOCKS.register(modEventBus);
         Registry.ITEMS.register(modEventBus);
         Registry.BLOCK_ENTITIES.register(modEventBus);
         Registry.CREATIVE_TAB.register(modEventBus);
+        Registry.ENTITIES.register(modEventBus);
 
 
         Path configDir = FMLPaths.CONFIGDIR.get();
@@ -114,6 +118,11 @@ public class Main {
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
         }
     }
+
+    public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
+    }
+
 
     private void loadShaders(RegisterShadersEvent event) {
         // 3. Register the shader and set the static field in the callback

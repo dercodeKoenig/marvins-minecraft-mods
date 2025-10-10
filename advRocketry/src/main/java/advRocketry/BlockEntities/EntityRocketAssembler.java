@@ -1,32 +1,30 @@
 package advRocketry.BlockEntities;
 
+import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Blocks.LaunchPad;
 import advRocketry.Blocks.StructureTower;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
-import com.mojang.datafixers.util.Pair;
-import net.minecraft.client.Minecraft;
+import advRocketry.Registry;
+import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,12 +35,16 @@ import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
-    private static final Logger log = LoggerFactory.getLogger(EntityRocketAssembler.class);
+    GuiHandlerBlockEntity guiHandler;
+
     public BlockPos areaMin;
     public BlockPos areaMax;
 
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+        guiHandler = new GuiHandlerBlockEntity(this);
+        guiModuleDefaultButton scanButton = new guiModuleDefaultButton(0, "scan", guiHandler, 10, 10, 40, 20);
+        guiHandler.modules.add(scanButton);
     }
 
     @Override
@@ -109,7 +111,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
                             // make sure chunk is loaded to scan
                             ChunkPos pos = new ChunkPos(target);
-                            level.getChunk(pos.x,pos.z, ChunkStatus.FULL,true);
+                            level.getChunk(pos.x, pos.z, ChunkStatus.FULL, true);
 
                             Block block = level.getBlockState(target).getBlock();
                             if (!(block instanceof LaunchPad)) {
@@ -168,7 +170,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     }
 
     public void scanArea() {
-        if(level.isClientSide)return;
+        if (level.isClientSide) return;
         //long t0 = System.currentTimeMillis();
         Dimension myDim = DimensionManager.get(level.dimension().location());
         if (myDim != null && myDim.getType() == DimensionProperties.PlanetType.SPACE_STATION) {
@@ -179,8 +181,60 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         broadcastInformationToPlayers(null);
         //long t1 = System.currentTimeMillis();
         //System.out.println("scan complete in " +(t1-t0) +"ms");
-        if(areaMin != null)level.setBlock(areaMin,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
-        if(areaMax != null)level.setBlock(areaMax,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        if (areaMin != null) level.setBlock(areaMin, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        if (areaMax != null) level.setBlock(areaMax, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+    }
+
+    public void scanRocket() {
+        if (areaMin == null) return;
+        if (areaMax == null) return;
+        if (level.isClientSide) return;
+
+
+        int minX = areaMax.getX();
+        int maxX = areaMin.getX();
+        int minY = areaMax.getY();
+        int maxY = areaMin.getY();
+        int minZ = areaMax.getZ();
+        int maxZ = areaMin.getZ();
+        for (int x = areaMin.getX(); x <= areaMax.getX(); x++) {
+            for (int y = areaMin.getY(); y <= areaMax.getY(); y++) {
+                for (int z = areaMin.getZ(); z <= areaMax.getZ(); z++) {
+                    if (level.getBlockState(new BlockPos(x, y, z)) != Blocks.AIR.defaultBlockState()) {
+                        if (minX > x)
+                            minX = x;
+                        if (minY > y)
+                            minY = y;
+                        if (minZ > z)
+                            minZ = z;
+
+                        if (maxX < x)
+                            maxX = x;
+                        if (maxY < y)
+                            maxY = y;
+                        if (maxZ < z)
+                            maxZ = z;
+                    }
+                }
+            }
+        }
+        EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
+
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    BlockState state = level.getBlockState(pos);
+                    rocket.blocks.put(pos.subtract(new BlockPos(minX, minY, minZ)), state);
+                }
+            }
+        }
+        rocket.size = new Vec3i(maxX-minX,maxY-minY, maxZ-minZ);
+
+
+        rocket.moveTo(getBlockPos(), 0, 0);
+        level.addFreshEntity(rocket);
     }
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
@@ -208,6 +262,15 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("ping")) {
             broadcastInformationToPlayers(serverPlayer);
         }
+
+        if (compoundTag.contains("guiButtonClick")) {
+            int id = compoundTag.getInt("guiButtonClick");
+            if (id == 0) {
+                scanRocket();
+            }
+        }
+
+        guiHandler.readServer(compoundTag);
     }
 
     @Override
@@ -223,5 +286,21 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
         //System.out.println(areaMin);
         //System.out.println(areaMax);
+        guiHandler.readClient(compoundTag);
+    }
+
+    public void tick() {
+        if (!level.isClientSide) {
+            guiHandler.serverTick();
+        }
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityRocketAssembler) t).tick();
+    }
+
+    public void openGui() {
+        if (level.isClientSide)
+            guiHandler.openGui(200, 200, true);
     }
 }
