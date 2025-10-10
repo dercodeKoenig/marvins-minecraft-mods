@@ -94,6 +94,10 @@ public class Dimension {
         return false;
     }
 
+    public DimensionProperties.PlanetType getType(){
+        return properties.type;
+    }
+
     public ResourceLocation getDimensionId() {
         return properties.dimensionId;
     }
