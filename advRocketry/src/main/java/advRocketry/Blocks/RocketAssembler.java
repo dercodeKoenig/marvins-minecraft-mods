@@ -16,6 +16,13 @@ import org.jetbrains.annotations.Nullable;
 
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
+// Launchpad area can have 2 modes: normal pad and station docking area. it should scan for the alternative pad in space
+// a rocket can be instructed to go to a specific location. if the block at this location is a rocket assembler, it should go to the launchpad / docking area
+// a rocket should enter space from where the planet is in universe space. this has to be translated in world coordinates. the rocket should navigate to below the docket area and then start the docking
+// the station docking area can not be constructed in a non-space dimension
+// if the assembler has no area, the rocket should enter on a point x blocks in front of the assembler
+
+
 public class RocketAssembler extends Block implements EntityBlock {
     public RocketAssembler() {
         super(Properties.of());
