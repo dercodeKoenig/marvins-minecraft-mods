@@ -181,8 +181,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         broadcastInformationToPlayers(null);
         //long t1 = System.currentTimeMillis();
         //System.out.println("scan complete in " +(t1-t0) +"ms");
-        if (areaMin != null) level.setBlock(areaMin, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
-        if (areaMax != null) level.setBlock(areaMax, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        //if (areaMin != null) level.setBlock(areaMin, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        //if (areaMax != null) level.setBlock(areaMax, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
     }
 
     public void scanRocket() {

@@ -10,8 +10,6 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 
@@ -19,19 +17,11 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RendererRocket extends EntityRenderer<EntityRocket> {
 
-    RenderType r = RenderType.create(
-            "rocket",
-            DefaultVertexFormat.BLOCK,
-            VertexFormat.Mode.QUADS,
-            4194304,
-            true,
-            false,
-            RenderType.CompositeState.builder()
-                    .setLightmapState(LIGHTMAP)
-                    .setShaderState(RENDERTYPE_SOLID_SHADER)
-                    .setTextureState(BLOCK_SHEET_MIPPED)
-                    .setShaderState(RENDERTYPE_CUTOUT_MIPPED_SHADER)
-                    .createCompositeState(true));
+    RenderType r = RenderType.create("rocket", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,4096, RenderType.CompositeState.builder()
+            .setLightmapState(LIGHTMAP)
+            .setShaderState(RENDERTYPE_ENTITY_CUTOUT_SHADER)
+            .setTextureState(BLOCK_SHEET_MIPPED)
+            .createCompositeState(true));
 
     public RendererRocket(EntityRendererProvider.Context context) {
         super(context);
@@ -50,7 +40,9 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
             BlockState state = p_entity.blocks.get(p);
             poseStack.pushPose();
             poseStack.translate(p.getX(), p.getY(), p.getZ());
+
             Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, poseStack, bufferSource, packedLight, 0, ModelData.EMPTY, r);
+
             poseStack.popPose();
         }
         poseStack.popPose();
