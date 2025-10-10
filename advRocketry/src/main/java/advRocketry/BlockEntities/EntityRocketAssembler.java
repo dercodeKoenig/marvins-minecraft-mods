@@ -162,7 +162,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     }
 
     public void scanArea() {
-        long t0 = System.currentTimeMillis();
+        //long t0 = System.currentTimeMillis();
         Dimension myDim = DimensionManager.get(level.dimension().location());
         if (myDim != null && myDim.getType() == DimensionProperties.PlanetType.SPACE_STATION) {
             scanForSpaceDockingArea();
@@ -170,11 +170,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             scanForLaunchPadArea();
         }
         broadcastInformationToPlayers(null);
-        long t1 = System.currentTimeMillis();
-        System.out.println("scan complete in " +(t1-t0) +"ms");
-
-        if(areaMin != null)level.setBlock(areaMin,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
-        if(areaMax != null)level.setBlock(areaMax,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        //long t1 = System.currentTimeMillis();
+        //System.out.println("scan complete in " +(t1-t0) +"ms");
+        //if(areaMin != null)level.setBlock(areaMin,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        //if(areaMax != null)level.setBlock(areaMax,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
     }
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
@@ -215,7 +214,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
 
 
-        System.out.println(areaMin);
-        System.out.println(areaMax);
+        //System.out.println(areaMin);
+        //System.out.println(areaMax);
     }
 }
