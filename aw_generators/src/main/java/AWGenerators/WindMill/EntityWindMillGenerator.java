@@ -121,7 +121,8 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, request));
         }
         if(!level.isClientSide){
-            scanStructure();
+            scanStructure();// the chunks should be force loaded while scanning
+
         }
     }
 

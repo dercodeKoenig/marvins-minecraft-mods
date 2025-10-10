@@ -24,6 +24,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -58,6 +59,13 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
 
         modEventBus.addListener(this::loadShaders);
+        modEventBus.addListener(this::addCreative);
+
+
+        Registry.BLOCKS.register(modEventBus);
+        Registry.ITEMS.register(modEventBus);
+        Registry.BLOCK_ENTITIES.register(modEventBus);
+        Registry.CREATIVE_TAB.register(modEventBus);
 
 
         Path configDir = FMLPaths.CONFIGDIR.get();
@@ -135,6 +143,12 @@ public class Main {
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addCreative(BuildCreativeModeTabContentsEvent e) {
+        if (e.getTab().equals(Registry.CUSTOM_CREATIVE_TAB.get())) {
+            e.accept(Registry.BLOCK_LAUNCHPAD.get());
         }
     }
 }

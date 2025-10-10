@@ -1,0 +1,76 @@
+{
+    "variants": {
+        "east=false,north=false,west=false,south=false": {
+            "model": "adv_rocketry:block/launchpad_main",
+            "y": 0
+        },
+        "east=true,north=false,west=true,south=false": {
+            "model": "adv_rocketry:block/launchpad_cross",
+            "y": 0
+        },
+        "east=false,north=true,west=false,south=true": {
+            "model": "adv_rocketry:block/launchpad_cross",
+            "y": 90
+        },
+        "east=true,north=true,west=true,south=true": {
+            "model": "adv_rocketry:block/launchpad_center",
+            "y": 0
+        },
+
+
+        "east=true,north=false,west=false,south=false": {
+            "model": "adv_rocketry:block/launchpad_doublecorner",
+            "y": 270
+        },
+        "east=false,north=false,west=true,south=false": {
+            "model": "adv_rocketry:block/launchpad_doublecorner",
+            "y": 90
+        },
+        "east=false,north=true,west=false,south=false": {
+            "model": "adv_rocketry:block/launchpad_doublecorner",
+            "y": 180
+        },
+        "east=false,north=false,west=false,south=true": {
+            "model": "adv_rocketry:block/launchpad_doublecorner",
+            "y": 0
+        },
+
+
+        "east=true,north=true,west=false,south=false": {
+            "model": "adv_rocketry:block/launchpad_corner",
+            "y": 270
+        },
+        "east=false,north=true,west=true,south=false": {
+            "model": "adv_rocketry:block/launchpad_corner",
+            "y": 180
+        },
+        "east=false,north=false,west=true,south=true": {
+            "model": "adv_rocketry:block/launchpad_corner",
+            "y": 90
+        },
+        "east=true,north=false,west=false,south=true": {
+            "model": "adv_rocketry:block/launchpad_corner",
+            "y": 0
+        },
+
+
+        "east=false,north=true,west=true,south=true": {
+            "model": "adv_rocketry:block/launchpad_edge",
+            "y": 0
+        },
+        "east=true,north=false,west=true,south=true": {
+            "model": "adv_rocketry:block/launchpad_edge",
+            "y": 270
+        },
+        "east=true,north=true,west=false,south=true": {
+            "model": "adv_rocketry:block/launchpad_edge",
+            "y": 180
+        },
+        "east=true,north=true,west=true,south=false": {
+            "model": "adv_rocketry:block/launchpad_edge",
+            "y": 90
+        }
+
+
+    }
+}
