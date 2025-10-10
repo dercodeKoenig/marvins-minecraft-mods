@@ -232,9 +232,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
         rocket.size = new Vec3i(maxX-minX+1,maxY-minY+1, maxZ-minZ+1);
 
-        double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2;
-        double launchPadCenterY = (double) (areaMax.getY() + areaMin.getY()) / 2;
-        double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2;
+        double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2+0.5;
+        double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2+0.5;
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
@@ -246,7 +245,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
 
 
-        rocket.moveTo(launchPadCenterX,launchPadCenterY,launchPadCenterZ, 0, 0);
+        rocket.moveTo(launchPadCenterX,areaMin.getY(),launchPadCenterZ, 0, 0);
         level.addFreshEntity(rocket);
     }
 
