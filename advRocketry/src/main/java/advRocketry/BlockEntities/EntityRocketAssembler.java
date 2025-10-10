@@ -230,10 +230,23 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 }
             }
         }
-        rocket.size = new Vec3i(maxX-minX,maxY-minY, maxZ-minZ);
+        rocket.size = new Vec3i(maxX-minX+1,maxY-minY+1, maxZ-minZ+1);
+
+        double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2;
+        double launchPadCenterY = (double) (areaMax.getY() + areaMin.getY()) / 2;
+        double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    level.destroyBlock(pos,false);
+                }
+            }
+        }
 
 
-        rocket.moveTo(getBlockPos(), 0, 0);
+        rocket.moveTo(launchPadCenterX,launchPadCenterY,launchPadCenterZ, 0, 0);
         level.addFreshEntity(rocket);
     }
 

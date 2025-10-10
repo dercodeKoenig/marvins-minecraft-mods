@@ -30,6 +30,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
                     .setLightmapState(LIGHTMAP)
                     .setShaderState(RENDERTYPE_SOLID_SHADER)
                     .setTextureState(BLOCK_SHEET_MIPPED)
+                    .setShaderState(RENDERTYPE_CUTOUT_MIPPED_SHADER)
                     .createCompositeState(true));
 
     public RendererRocket(EntityRendererProvider.Context context) {
@@ -43,6 +44,8 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
 
     @Override
     public void render(EntityRocket p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        poseStack.pushPose();
+        poseStack.translate(-(float)p_entity.size.getX() / 2, 0, -(float)p_entity.size.getZ() / 2);
         for (BlockPos p : p_entity.blocks.keySet()) {
             BlockState state = p_entity.blocks.get(p);
             poseStack.pushPose();
@@ -50,5 +53,6 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
             Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, poseStack, bufferSource, packedLight, 0, ModelData.EMPTY, r);
             poseStack.popPose();
         }
+        poseStack.popPose();
     }
 }
