@@ -1,12 +1,14 @@
 package advRocketry;
 
-import advRocketry.Blocks.BlockLaunchPad;
+import advRocketry.BlockEntities.EntityRocketAssembler;
+import advRocketry.Blocks.LaunchPad;
+import advRocketry.Blocks.RocketAssembler;
+import advRocketry.Blocks.StructureTower;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -24,7 +26,17 @@ public class Registry {
         return ITEMS.register(name, () -> new BlockItem(b.get(), new Item.Properties()));
     }
 
-    public static final Supplier<Block> BLOCK_LAUNCHPAD = BLOCKS.register("launchpad", () -> new BlockLaunchPad());
+    public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
+    public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", LAUNCHPAD);
+    ;
 
-    public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", BLOCK_LAUNCHPAD);;
+    public static final Supplier<Block> STRUCTURE_TOWER = BLOCKS.register("structure_tower", () -> new StructureTower());
+
+    public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
+    public static final Supplier<BlockEntityType<?>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
+
+    static {
+        registerBlockItem("structure_tower", STRUCTURE_TOWER);
+        registerBlockItem("rocket_assembler", ROCKET_ASSEMBLER);
+    }
 }

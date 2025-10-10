@@ -1,6 +1,5 @@
 package advRocketry.Blocks;
 
-import it.unimi.dsi.fastutil.booleans.BooleanPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,17 +10,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 
-public class BlockLaunchPad extends Block {
+public class LaunchPad extends Block {
     public static BooleanProperty east = BooleanProperty.create("east");
     public static BooleanProperty west = BooleanProperty.create("west");
     public static BooleanProperty north = BooleanProperty.create("north");
     public static BooleanProperty south = BooleanProperty.create("south");
 
-    public BlockLaunchPad() {
+    public LaunchPad() {
         super(Properties.of());
         BlockState state = getStateDefinition().any();
         state = state.setValue(east, false);
@@ -51,7 +49,7 @@ public class BlockLaunchPad extends Block {
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockState otherBlock = level.getBlockState(neighborPos);
         boolean isConnection = false;
-        if (otherBlock.getBlock() instanceof BlockLaunchPad)
+        if (otherBlock.getBlock() instanceof LaunchPad)
             isConnection = true;
         if (direction.equals(Direction.EAST))
             state = state.setValue(east, isConnection);

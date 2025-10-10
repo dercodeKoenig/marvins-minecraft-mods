@@ -9,15 +9,17 @@ import advRocketry.Render.shaderUtils;
 import advRocketry.Render.skyrenderer;
 import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
-import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -32,10 +34,7 @@ import org.joml.Matrix4f;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
 
 @Mod(Main.MODID)
 public class Main {
@@ -60,6 +59,7 @@ public class Main {
 
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::onClientSetup);
 
 
         Registry.BLOCKS.register(modEventBus);
@@ -146,9 +146,15 @@ public class Main {
         }
     }
 
+    public void onClientSetup(FMLClientSetupEvent event) {
+        ItemBlockRenderTypes.setRenderLayer(Registry.STRUCTURE_TOWER.get(), RenderType.cutout());
+    }
+
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(Registry.CUSTOM_CREATIVE_TAB.get())) {
-            e.accept(Registry.BLOCK_LAUNCHPAD.get());
+            e.accept(Registry.LAUNCHPAD.get());
+            e.accept(Registry.STRUCTURE_TOWER.get());
+            e.accept(Registry.ROCKET_ASSEMBLER.get());
         }
     }
 }

@@ -1,0 +1,45 @@
+package advRocketry.Blocks;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.predicate.BlockStatePredicate;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import org.jetbrains.annotations.Nullable;
+
+import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
+
+public class RocketAssembler extends Block implements EntityBlock {
+    public RocketAssembler() {
+        super(Properties.of());
+        registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(BlockStateProperties.HORIZONTAL_FACING);
+        super.createBlockStateDefinition(builder);
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable LivingEntity placer, ItemStack stack) {
+        state = level.getBlockState(pos);
+        if(placer != null){
+            state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite());
+        }
+        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
+    }
+
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return ENTITY_ROCKET_ASSEMBLER.get().create(blockPos, blockState);
+    }
+}
