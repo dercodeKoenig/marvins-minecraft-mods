@@ -51,14 +51,16 @@ public class RocketAssembler extends Block implements EntityBlock {
     // when a launch pad structure is placed or removed, trigger a rescan of all nearby rocket assembling machines
     public static void propagateScanRequestToMaster(Set<BlockPos> completed, BlockPos current, Level level) {
         if (completed.contains(current)) return;
+        if(level.isClientSide)return;
         completed.add(current);
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
                     BlockPos next = new BlockPos(current.offset(x, y, z));
                     Block nextBlock = level.getBlockState(next).getBlock();
-                    if (nextBlock instanceof LaunchPad ||
-                            nextBlock instanceof StructureTower) {
+                    if (
+                            nextBlock instanceof LaunchPad ||
+                                    nextBlock instanceof StructureTower) {
                         propagateScanRequestToMaster(completed, next, level);
                     }
                     BlockEntity be = level.getBlockEntity(next);
