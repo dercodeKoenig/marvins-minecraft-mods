@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -105,6 +106,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     for (int x = minPos.getX(); x <= maxPos.getX(); x++) {
                         for (int z = minPos.getZ(); z <= maxPos.getZ(); z++) {
                             BlockPos target = new BlockPos(x, startingPos.getY(), z);
+
+                            // make sure chunk is loaded to scan
+                            ChunkPos pos = new ChunkPos(target);
+                            level.getChunk(pos.x,pos.z, ChunkStatus.FULL,true);
+
                             Block block = level.getBlockState(target).getBlock();
                             if (!(block instanceof LaunchPad)) {
                                 isAllValid = false;
@@ -172,8 +178,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         broadcastInformationToPlayers(null);
         //long t1 = System.currentTimeMillis();
         //System.out.println("scan complete in " +(t1-t0) +"ms");
-        //if(areaMin != null)level.setBlock(areaMin,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
-        //if(areaMax != null)level.setBlock(areaMax,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        if(areaMin != null)level.setBlock(areaMin,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
+        if(areaMax != null)level.setBlock(areaMax,Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
     }
 
     public void broadcastInformationToPlayers(ServerPlayer p) {

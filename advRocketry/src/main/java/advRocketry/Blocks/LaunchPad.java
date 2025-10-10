@@ -12,6 +12,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
+
+import static advRocketry.Blocks.RocketAssembler.propagateScanRequestToMaster;
 
 public class LaunchPad extends Block {
     public static BooleanProperty east = BooleanProperty.create("east");
@@ -43,7 +47,15 @@ public class LaunchPad extends Block {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         state = level.getBlockState(pos);
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
+        RocketAssembler.propagateScanRequestToMaster(new HashSet<>(), pos, level);
     }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        super.onRemove(state, level, pos, newState, movedByPiston);
+        RocketAssembler.propagateScanRequestToMaster(new HashSet<>(), pos, level);
+    }
+
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {

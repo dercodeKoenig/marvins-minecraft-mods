@@ -1,5 +1,6 @@
 package advRocketry.Blocks;
 
+import advRocketry.BlockEntities.EntityRocketAssembler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.predicate.BlockStatePredicate;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
@@ -38,12 +41,34 @@ public class RocketAssembler extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable LivingEntity placer, ItemStack stack) {
         state = level.getBlockState(pos);
-        if(placer != null){
+        if (placer != null) {
             state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite());
         }
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 
+
+    // when a launch pad structure is placed or removed, trigger a rescan of all nearby rocket assembling machines
+    public static void propagateScanRequestToMaster(Set<BlockPos> completed, BlockPos current, Level level) {
+        if (completed.contains(current)) return;
+        completed.add(current);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockPos next = new BlockPos(current.offset(x, y, z));
+                    Block nextBlock = level.getBlockState(next).getBlock();
+                    if (nextBlock instanceof LaunchPad ||
+                            nextBlock instanceof StructureTower) {
+                        propagateScanRequestToMaster(completed, next, level);
+                    }
+                    BlockEntity be = level.getBlockEntity(next);
+                    if (be instanceof EntityRocketAssembler rocketAssembler) {
+                        rocketAssembler.scanArea();
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
