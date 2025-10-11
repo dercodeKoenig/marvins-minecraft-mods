@@ -1,0 +1,107 @@
+package advRocketry.BlockEntities;
+
+import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleDefaultButton;
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.network.PacketBlockEntity;
+import advRocketry.Blocks.LaunchPad;
+import advRocketry.Blocks.StructureTower;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.DimensionProperties;
+import advRocketry.Registry;
+import advRocketry.Rocket.EntityRocket;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
+
+public class EntityGuidanceComputer extends BlockEntity implements ARLib.network.INetworkTagReceiver {
+
+    public GuiHandlerBlockEntity guiHandler;
+    public ItemStackHandler itemStackHandler;
+
+    public EntityGuidanceComputer(BlockPos pos, BlockState blockState) {
+        super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+        guiHandler = new GuiHandlerBlockEntity(this);
+        itemStackHandler = new ItemStackHandler(1);
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(0,itemStackHandler,0,0,1,guiHandler,50,20));
+        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,120,1000,1,0,guiHandler)){
+            guiHandler.modules.add(i);
+        }
+        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,50,2000,1,0,guiHandler)){
+            guiHandler.modules.add(i);
+        }
+
+    }
+
+    public void popInventory(){
+        if (level.isClientSide) {
+        } else {
+            for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+                ItemStack stack = itemStackHandler.getStackInSlot(i).copy();
+                ItemEntity stackEntity = new ItemEntity(level,getBlockPos().getX(),getBlockPos().getY()+1,getBlockPos().getZ(),stack);
+                level.addFreshEntity(stackEntity);
+            }
+        }
+    }
+
+
+    @Override
+    public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
+        guiHandler.readServer(compoundTag);
+    }
+
+    @Override
+    public void readClient(CompoundTag compoundTag) {
+        guiHandler.readClient(compoundTag);
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("inventory", itemStackHandler.serializeNBT(registries));
+    }
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
+    }
+
+    public void tick() {
+        if (!level.isClientSide) {
+            guiHandler.serverTick();
+        }
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityGuidanceComputer) t).tick();
+    }
+
+    public void openGui() {
+        if (level.isClientSide)
+            guiHandler.openGui(200, 200, true);
+    }
+}

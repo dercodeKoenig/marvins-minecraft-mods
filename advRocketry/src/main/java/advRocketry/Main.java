@@ -1,5 +1,6 @@
 package advRocketry;
 
+import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
@@ -23,6 +24,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
@@ -63,6 +66,7 @@ public class Main {
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerEntityRenderers);
+        modEventBus.addListener(this::registerCapabilities);
 
 
         Registry.BLOCKS.register(modEventBus);
@@ -123,6 +127,9 @@ public class Main {
         event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
     }
 
+    private void registerCapabilities(RegisterCapabilitiesEvent e) {
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer)x).itemStackHandler));
+    }
 
     private void loadShaders(RegisterShadersEvent event) {
         // 3. Register the shader and set the static field in the callback
@@ -166,6 +173,7 @@ public class Main {
             e.accept(Registry.ROCKET_ASSEMBLER.get());
             e.accept(Registry.ROCKET_MOTOR.get());
             e.accept(Registry.FUEL_TANK.get());
+            e.accept(Registry.GUIDANCE_COMPUTER.get());
         }
     }
 }

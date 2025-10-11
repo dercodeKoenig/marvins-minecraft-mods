@@ -35,16 +35,20 @@ import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
+    EntityRocket currentRocket;
+
     GuiHandlerBlockEntity guiHandler;
+    guiModuleDefaultButton buildButton;
 
     public BlockPos areaMin;
     public BlockPos areaMax;
 
+
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
-        guiModuleDefaultButton scanButton = new guiModuleDefaultButton(0, "scan", guiHandler, 10, 10, 40, 20);
-        guiHandler.modules.add(scanButton);
+        buildButton = new guiModuleDefaultButton(0, "build", guiHandler, 10, 10, 40, 20);
+        guiHandler.modules.add(buildButton);
     }
 
     @Override
@@ -59,9 +63,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
-    public void getRocket(){
+    public EntityRocket getRocket(){
         // scan launchpad are
         // if no launchpad, scan a default area
+        return null;
     }
 
     public void scanForSpaceDockingArea() {
@@ -190,7 +195,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         //if (areaMax != null) level.setBlock(areaMax, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
     }
 
-    public void scanRocket() {
+    public void buildRocket() {
         if (areaMin == null) return;
         if (areaMax == null) return;
         if (level.isClientSide) return;
@@ -283,7 +288,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("guiButtonClick")) {
             int id = compoundTag.getInt("guiButtonClick");
             if (id == 0) {
-                scanRocket();
+                buildRocket();
             }
         }
 

@@ -12,5 +12,8 @@
   "item.adv_rocketry.rocket_motor": "Rocket Engine",
 
   "block.adv_rocketry.fuel_tank": "Fuel Tank",
-  "item.adv_rocketry.fuel_tank": "Fuel Tank"
+  "item.adv_rocketry.fuel_tank": "Fuel Tank",
+
+  "block.adv_rocketry.guidance_computer": "Guidance Computer",
+  "item.adv_rocketry.guidance_computer": "Guidance Computer"
 }
