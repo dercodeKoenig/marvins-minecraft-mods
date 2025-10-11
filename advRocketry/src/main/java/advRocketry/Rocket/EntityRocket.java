@@ -1,9 +1,13 @@
 package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
+import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
+import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -34,10 +38,9 @@ import java.util.Map;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
 
-    public Map<BlockPos, BlockState> blocks = new HashMap<>();
-    public Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
-    public Vec3i size = new Vec3i(0, 0, 0);
-    public ItemStack navigationItem = ItemStack.EMPTY; // the one from the guidance computer
+    public Map<BlockPos, BlockState> blocks;
+    public Map<BlockPos, BlockEntity> blockEntities;
+    public Vec3i size;
     public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
 
     public GuiHandlerEntity guiHandler;
@@ -45,6 +48,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
         guiHandler = new GuiHandlerEntity(this);
+    }
+
+    public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size) {
+        EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
+        rocket.blockEntities = blockEntities;
+        rocket.blocks = blocks;
+        rocket.size = size;
+        rocket.makeGui();
+        return rocket;
     }
 
     @Override
@@ -65,6 +77,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public boolean isInvulnerableTo(DamageSource source) {
         return true; // Rocket cannot be damaged
     }
+    @Override
+    public boolean canBeCollidedWith() {
+        return true;
+    }
+    @Override
+    public boolean isPickable() {return true;}
+
 
     @Override
     public AABB makeBoundingBox() {
@@ -77,6 +96,21 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 position().y + size.getY(),
                 position().z + (double) size.getZ() / 2
         );
+    }
+    public void makeGui(){
+        guiHandler.modules.clear();
+        for (BlockEntity i : blockEntities.values()){
+            if(i instanceof EntityGuidanceComputer computer){
+                guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 50,20);
+                guiHandler.modules.add(chipSlot);
+            }
+        }
+        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,110,1000,1,0,guiHandler)){
+            guiHandler.modules.add(i);
+        }
+        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,50,2000,1,0,guiHandler)){
+            guiHandler.modules.add(i);
+        }
     }
 
     public void openGui() {
@@ -124,8 +158,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             blockEntities.put(p, be);
         }
 
-        if (compoundTag.contains("navigationItem"))
-            navigationItem = ItemStack.parse(registryAccess(), compoundTag.getCompound("navigationItem")).get();
+        makeGui();
     }
 
     @Override
@@ -156,8 +189,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
         compoundTag.put("blockEntities", blockEntityTags);
 
-        if (navigationItem != ItemStack.EMPTY)
-            compoundTag.put("navigationItem", navigationItem.save(registryAccess()));
     }
 
     @Override

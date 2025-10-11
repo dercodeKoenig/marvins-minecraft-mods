@@ -246,7 +246,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     blocks.put(inRocketPos, state);
 
                     if(state.getBlock() instanceof EntityBlock entityBlock){
-                        boolean shouldSaveNbt = true;
+                        boolean shouldSaveNbt = true; // only save for
                         CompoundTag tag = null;
                         if(shouldSaveNbt) {
                             BlockEntity be = level.getBlockEntity(pos);
@@ -271,15 +271,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             return new constuctionInfo(false, "missing guidance computer");
         }
 
-        ItemStack navigationChip =guidanceComputer.itemStackHandler.getStackInSlot(0);
-        guidanceComputer.itemStackHandler.setStackInSlot(0,ItemStack.EMPTY);
-
         if(!simulate) {
-            EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
-            rocket.navigationItem = navigationChip;
-            rocket.blocks = blocks;
-            rocket.blockEntities = blockEntities;
-            rocket.size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+            Vec3i size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+            EntityRocket rocket = EntityRocket.create(level,blocks, blockEntities, size);
             double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2 + 0.5;
             double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2 + 0.5;
             for (int x = minX; x <= maxX; x++) {
