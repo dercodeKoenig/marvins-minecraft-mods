@@ -2,7 +2,9 @@ package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleDefaultButton;
+import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
+import advRocketry.Blocks.GuidanceComputer;
 import advRocketry.Blocks.LaunchPad;
 import advRocketry.Blocks.StructureTower;
 import advRocketry.Dimension.Dimension;
@@ -16,20 +18,19 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
@@ -39,6 +40,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     GuiHandlerBlockEntity guiHandler;
     guiModuleDefaultButton buildButton;
+    guiModuleText statusText;
 
     public BlockPos areaMin;
     public BlockPos areaMax;
@@ -48,7 +50,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
         buildButton = new guiModuleDefaultButton(0, "build", guiHandler, 10, 10, 40, 20);
+        statusText = new guiModuleText(1,"status:",guiHandler,10,30,0x00000000,false);
         guiHandler.modules.add(buildButton);
+        guiHandler.modules.add(statusText);
     }
 
     @Override
@@ -195,11 +199,12 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         //if (areaMax != null) level.setBlock(areaMax, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
     }
 
-    public void buildRocket() {
-        if (areaMin == null) return;
-        if (areaMax == null) return;
-        if (level.isClientSide) return;
+    public constuctionInfo buildRocket(boolean simulate) {
+        if (areaMin == null) return new constuctionInfo(false, "invalid launchpad");
+        if (areaMax == null) return new constuctionInfo(false, "invalid launchpad");
+        if (level.isClientSide) return new constuctionInfo(false, "");;
 
+        EntityGuidanceComputer guidanceComputer = null;
 
         int minX = areaMax.getX();
         int maxX = areaMin.getX();
@@ -228,35 +233,67 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 }
             }
         }
-        EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
 
-
+        Map<BlockPos, BlockState> blocks = new HashMap<>();
+        Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     BlockState state = level.getBlockState(pos);
-                    rocket.blocks.put(pos.subtract(new BlockPos(minX, minY, minZ)), state);
+
+                    BlockPos inRocketPos = pos.subtract(new BlockPos(minX, minY, minZ));
+                    blocks.put(inRocketPos, state);
+
+                    if(state.getBlock() instanceof EntityBlock entityBlock){
+                        boolean shouldSaveNbt = true;
+                        CompoundTag tag = null;
+                        if(shouldSaveNbt) {
+                            BlockEntity be = level.getBlockEntity(pos);
+                            tag = be.saveCustomOnly(level.registryAccess());
+                        }
+                        BlockEntity newEntity = entityBlock.newBlockEntity(inRocketPos, state);
+                        if(shouldSaveNbt) {
+                            newEntity.loadCustomOnly(tag, level.registryAccess());
+                        }
+                        blockEntities.put(inRocketPos,newEntity);
+                    }
+
+                    if(state.getBlock() instanceof GuidanceComputer){
+                        if(guidanceComputer != null)
+                            return new constuctionInfo(false, "multiple guidance computers found");
+                        guidanceComputer = (EntityGuidanceComputer) level.getBlockEntity(pos);
+                    }
                 }
             }
         }
-        rocket.size = new Vec3i(maxX-minX+1,maxY-minY+1, maxZ-minZ+1);
-
-        double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2+0.5;
-        double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2+0.5;
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    level.destroyBlock(pos,false);
-                }
-            }
+        if(guidanceComputer == null){
+            return new constuctionInfo(false, "missing guidance computer");
         }
 
+        ItemStack navigationChip =guidanceComputer.itemStackHandler.getStackInSlot(0);
+        guidanceComputer.itemStackHandler.setStackInSlot(0,ItemStack.EMPTY);
 
-        rocket.moveTo(launchPadCenterX,areaMin.getY(),launchPadCenterZ, 0, 0);
-        level.addFreshEntity(rocket);
+        if(!simulate) {
+            EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
+            rocket.navigationItem = navigationChip;
+            rocket.blocks = blocks;
+            rocket.blockEntities = blockEntities;
+            rocket.size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+            double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2 + 0.5;
+            double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2 + 0.5;
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        BlockPos pos = new BlockPos(x, y, z);
+                        level.destroyBlock(pos, false);
+                    }
+                }
+            }
+            rocket.moveTo(launchPadCenterX, areaMin.getY(), launchPadCenterZ, 0, 0);
+            level.addFreshEntity(rocket);
+        }
+        return new constuctionInfo(true,"");
     }
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
@@ -288,7 +325,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("guiButtonClick")) {
             int id = compoundTag.getInt("guiButtonClick");
             if (id == 0) {
-                buildRocket();
+               constuctionInfo ret = buildRocket(true);
+               statusText.setTextAndSync(ret.info);
+               if(ret.canConstruct){
+                buildRocket(false);
+               }
             }
         }
 
@@ -324,5 +365,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public void openGui() {
         if (level.isClientSide)
             guiHandler.openGui(200, 200, true);
+    }
+
+    public static class constuctionInfo{
+        boolean canConstruct = false;
+        String info = "";
+        constuctionInfo(boolean canConstruct, String info){
+            this.canConstruct = canConstruct;
+            this.info = info;
+        }
     }
 }
