@@ -2020,9 +2020,11 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         LIGHTMAP.setupRenderState();
 
         if (tile.crankShaftSide != null) {
+            // below you will see some complicated transformations to get the pump arm render correctly to the crankshaft
+            // it took some trial and error to get the params right. I originally designed this for the sieve block in my other mod and just copied the logic.
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
             ShaderInstance shader = RenderSystem.getShader();
-            RenderSystem.setShaderTexture(0,ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_connections.png"));
+            RenderSystem.setShaderTexture(0, ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_connections.png"));
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
@@ -2042,10 +2044,10 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             }
             if (tile.crankShaftSide == Direction.DOWN) {
                 BlockState blockBelow = tile.getLevel().getBlockState(tile.getBlockPos().below());
-                if(blockBelow.getBlock() instanceof BlockCrankShaftBase crankShaftBase) {
+                if (blockBelow.getBlock() instanceof BlockCrankShaftBase crankShaftBase) {
                     m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1, 90f));
                     Direction.Axis axis = blockBelow.getValue(BlockCrankShaftBase.ROTATION_AXIS);
-                    if(axis == axis.X){
+                    if (axis == axis.X) {
                         m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0, 90f));
                     }
                 }
@@ -2055,16 +2057,16 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             double targetHeight = 0;
             double armLength = 1;
             float XRotationMultiplier = 1;
-            if(tile.crankShaftSide == Direction.SOUTH) XRotationMultiplier = -1;
-            if(tile.crankShaftSide == Direction.WEST) XRotationMultiplier = -1;
+            if (tile.crankShaftSide == Direction.SOUTH) XRotationMultiplier = -1;
+            if (tile.crankShaftSide == Direction.WEST) XRotationMultiplier = -1;
 
-            XRotationMultiplier*= (tile.crankShaftSide.getAxis() == Direction.Axis.Y ? -1 : 1);
+            XRotationMultiplier *= (tile.crankShaftSide.getAxis() == Direction.Axis.Y ? -1 : 1);
 
             double a = tile.myMechanicalBlock.currentRotation / 180 * Math.PI + tile.myMechanicalBlock.internalVelocity / TPS * partialTick;
             if (tile.crankShaftSide == Direction.DOWN) {
-                a-=Math.PI/2;
+                a -= Math.PI / 2;
             }
-                float translationX = -1 + (float) Math.sin(a) * crankshaftR * XRotationMultiplier;
+            float translationX = -1 + (float) Math.sin(a) * crankshaftR * XRotationMultiplier;
             float translationY = (float) Math.cos(a) * crankshaftR;
             double b = Math.asin((translationY - targetHeight) / armLength);
             m2.translate(translationX, translationY, -0.04f);
@@ -2080,7 +2082,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             m2 = new Matrix4f(m1);
             float pumpCubeTargetX = 0f + (float) (translationX + Math.cos(b) * armLength);
             m2.translate(pumpCubeTargetX, 0, 0);
-            m2.scale(0.98f,0.98f,0.98f);
+            m2.scale(0.98f, 0.98f, 0.98f);
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.apply();
