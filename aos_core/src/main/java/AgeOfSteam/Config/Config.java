@@ -44,9 +44,9 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
     public double wooden_crankshaft_big_max_stress = 600;
 
 
-    public double wooden_crankshaft_small_friction = 0.1;
-    public double wooden_crankshaft_small_inertia = 1;
-    public double wooden_crankshaft_small_max_stress = 300;
+    public double wooden_crankshaft_small_friction = 0.2;
+    public double wooden_crankshaft_small_inertia = 2;
+    public double wooden_crankshaft_small_max_stress = 600;
 
 
     public double wooden_distributor_gearbox_friction = 2;
