@@ -6,5 +6,11 @@
   "item.adv_rocketry.structure_tower": "Structure tower",
 
   "block.adv_rocketry.rocket_assembler": "Rocket Assembler",
-  "item.adv_rocketry.rocket_assembler": "Rocket Assembler"
+  "item.adv_rocketry.rocket_assembler": "Rocket Assembler",
+
+  "block.adv_rocketry.rocket_motor": "Rocket Engine",
+  "item.adv_rocketry.rocket_motor": "Rocket Engine",
+
+  "block.adv_rocketry.fuel_tank": "Fuel Tank",
+  "item.adv_rocketry.fuel_tank": "Fuel Tank"
 }

@@ -1,9 +1,7 @@
 package advRocketry;
 
 import advRocketry.BlockEntities.EntityRocketAssembler;
-import advRocketry.Blocks.LaunchPad;
-import advRocketry.Blocks.RocketAssembler;
-import advRocketry.Blocks.StructureTower;
+import advRocketry.Blocks.*;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
@@ -36,6 +34,10 @@ public class Registry {
 
     public static final Supplier<Block> STRUCTURE_TOWER = BLOCKS.register("structure_tower", () -> new StructureTower());
 
+    public static final Supplier<Block> ROCKET_MOTOR = BLOCKS.register("rocket_motor", () -> new RocketMotor());
+
+    public static final Supplier<Block> FUEL_TANK = BLOCKS.register("fuel_tank", () -> new FuelTank());
+
     public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
     public static final Supplier<BlockEntityType<?>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
 
@@ -48,5 +50,7 @@ public class Registry {
     static {
         registerBlockItem("structure_tower", STRUCTURE_TOWER);
         registerBlockItem("rocket_assembler", ROCKET_ASSEMBLER);
+        registerBlockItem("rocket_motor", ROCKET_MOTOR);
+        registerBlockItem("fuel_tank", FUEL_TANK);
     }
 }

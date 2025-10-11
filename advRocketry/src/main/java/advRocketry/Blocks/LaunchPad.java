@@ -9,6 +9,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import javax.annotation.Nullable;
@@ -18,10 +19,10 @@ import java.util.Set;
 import static advRocketry.Blocks.RocketAssembler.propagateScanRequestToMaster;
 
 public class LaunchPad extends Block {
-    public static BooleanProperty east = BooleanProperty.create("east");
-    public static BooleanProperty west = BooleanProperty.create("west");
-    public static BooleanProperty north = BooleanProperty.create("north");
-    public static BooleanProperty south = BooleanProperty.create("south");
+    public static BooleanProperty east = BlockStateProperties.EAST;
+    public static BooleanProperty west = BlockStateProperties.WEST;
+    public static BooleanProperty north = BlockStateProperties.NORTH;
+    public static BooleanProperty south = BlockStateProperties.SOUTH;
 
     public LaunchPad() {
         super(Properties.of());

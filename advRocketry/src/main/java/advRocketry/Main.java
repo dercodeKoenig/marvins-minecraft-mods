@@ -164,6 +164,8 @@ public class Main {
             e.accept(Registry.LAUNCHPAD.get());
             e.accept(Registry.STRUCTURE_TOWER.get());
             e.accept(Registry.ROCKET_ASSEMBLER.get());
+            e.accept(Registry.ROCKET_MOTOR.get());
+            e.accept(Registry.FUEL_TANK.get());
         }
     }
 }
