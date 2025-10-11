@@ -1986,6 +1986,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
 
         if (tile.requiresMeshUpdate || packedLight != tile.lastLight) {
+
             tile.lastLight = packedLight;
             tile.requiresMeshUpdate = false;
             BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
@@ -2080,7 +2081,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             shader.clear();
 
             m2 = new Matrix4f(m1);
-            float pumpCubeTargetX = 0f + (float) (translationX + Math.cos(b) * armLength);
+            float pumpCubeTargetX = -0.06f + (float) (translationX + Math.cos(b) * armLength);
             m2.translate(pumpCubeTargetX, 0, 0);
             m2.scale(0.98f, 0.98f, 0.98f);
 
