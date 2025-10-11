@@ -7,6 +7,7 @@ import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import AgeOfSteam.Static;
 import BetterPipes.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -30,6 +31,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -83,6 +85,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     boolean tankSouth = false;
 
     Direction crankShaftSide = null;
+
+    double mechanicalResistance = 1;
 
     public EntityPipe(BlockPos pos, BlockState blockState) {
         super(ENTITY_PIPE.get(), pos, blockState);
@@ -181,6 +185,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                     syncTanksToClient(null);
                 }
             }
+            mechanicalResistance = 1;
             for (Direction direction : Direction.allShuffled(level.random)) {
                 PipeConnection conn = connections.get(direction);
                 if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.CONNECTED || state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
@@ -244,15 +249,21 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         }
                     }
 
-                    if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
-                        // extract from a neighbor fluid handler
-                        // this runs every tick
-                        int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * myMechanicalBlock.internalVelocity);
-                        FluidStack drained = conn.neighborFluidHandler().drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
-                        int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
-                        int toTransfer = Math.min(filled, drained.getAmount());
-                        drained = conn.neighborFluidHandler().drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
-                        conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
+                    //if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
+                    if (!(level.getBlockState(getBlockPos().relative(direction)).getBlock() instanceof BlockPipe)) {
+                        IFluidHandler neighbor = conn.neighborFluidHandler();
+                        if(neighbor != null) {
+                            // extract from a neighbor fluid handler
+                            // this runs every tick
+                            int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
+                            FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
+                            int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
+                            int toTransfer = Math.min(filled, drained.getAmount());
+                            drained = neighbor.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
+                            conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
+
+                            mechanicalResistance += drained.getAmount();
+                        }
                     }
                     if (isUpdateTick) {
                         if (lastFill > 0) {
@@ -420,7 +431,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
         @Override
         public double getTorqueResistance(Direction direction) {
-            return 1;
+            return mechanicalResistance;
         }
 
         @Override
