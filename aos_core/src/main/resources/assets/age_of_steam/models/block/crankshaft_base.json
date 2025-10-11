@@ -1,7 +1,7 @@
 {
   "loader": "neoforge:obj",
-  "model": "age_of_steam:models/block/small_crankshaft_base.obj",
-  "mtl_override": "age_of_steam:models/block/small_crankshaft_base.mtl",
+  "model": "age_of_steam:models/block/crankshaft_base.obj",
+  "mtl_override": "age_of_steam:models/block/crankshaft_base.mtl",
   "automatic_culling": false,
   "flip_v": true,
   "emissive_ambient": false,

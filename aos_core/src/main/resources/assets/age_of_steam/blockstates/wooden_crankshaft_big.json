@@ -1,10 +1,10 @@
 {
     "variants": {
         "axis=z": {
-            "model": "age_of_steam:block/crankshaft_base_big"
+            "model": "age_of_steam:block/crankshaft_base"
         },
         "axis=x": {
-            "model": "age_of_steam:block/crankshaft_base_big", "y": 90
+            "model": "age_of_steam:block/crankshaft_base", "y": 90
         }
     }
 }
