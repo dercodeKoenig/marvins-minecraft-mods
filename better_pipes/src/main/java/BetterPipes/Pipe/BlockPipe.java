@@ -1,5 +1,8 @@
 package BetterPipes.Pipe;
 
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
+import AgeOfSteam.Core.IMechanicalBlockProvider;
 import BetterPipes.Tank.BlockTank;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -103,26 +106,26 @@ public class BlockPipe extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3) ;
+        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 
     protected int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
         return 2;
     }
 
-    public void updateTankCons(EntityPipe pipe, BlockState neighborState, Direction direction){
+    public void updateTankCons(EntityPipe pipe, BlockState neighborState, Direction direction) {
         if (neighborState.getBlock() instanceof BlockTank) {
-            if(direction == Direction.EAST)pipe.tankEast = true;
-            if(direction == Direction.WEST)pipe.tankWest = true;
-            if(direction == Direction.NORTH)pipe.tankNorth = true;
-            if(direction == Direction.SOUTH)pipe.tankSouth = true;
+            if (direction == Direction.EAST) pipe.tankEast = true;
+            if (direction == Direction.WEST) pipe.tankWest = true;
+            if (direction == Direction.NORTH) pipe.tankNorth = true;
+            if (direction == Direction.SOUTH) pipe.tankSouth = true;
         } else {
-            if(direction == Direction.EAST)pipe.tankEast = false;
-            if(direction == Direction.WEST)pipe.tankWest = false;
-            if(direction == Direction.NORTH)pipe.tankNorth = false;
-            if(direction == Direction.SOUTH)pipe.tankSouth = false;
+            if (direction == Direction.EAST) pipe.tankEast = false;
+            if (direction == Direction.WEST) pipe.tankWest = false;
+            if (direction == Direction.NORTH) pipe.tankNorth = false;
+            if (direction == Direction.SOUTH) pipe.tankSouth = false;
         }
-pipe.setChanged();
+        pipe.setChanged();
     }
 
     @Override
@@ -137,20 +140,27 @@ pipe.setChanged();
 
         if (fluidHandler != null) {
             ConnectionState current = state.getValue(connections.get(direction));
-            if(current != ConnectionState.CONNECTED && current != ConnectionState.EXTRACTION)
+            if (current != ConnectionState.CONNECTED && current != ConnectionState.EXTRACTION)
                 state = state.setValue(connections.get(direction), ConnectionState.CONNECTED);
         } else {
 
             if (neighborState.isSolidRender(tile.getLevel(), neighborPos)) {
                 state = state.setValue(connections.get(direction), ConnectionState.STRUCTURE);
-            }else{
+            } else {
                 state = state.setValue(connections.get(direction), ConnectionState.NONE);
             }
 
             pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
-            pipe.connections.get(direction).update();
-            pipe.connections.get(direction).syncTanks();
 
+        }
+
+        BlockEntity other = level.getBlockEntity(neighborPos);
+        if(other instanceof EntityCrankShaftBase cs && cs.myType== ICrankShaftConnector.CrankShaftType.LARGE){
+            if(((EntityPipe) tile).crankShaftSide == null)
+                ((EntityPipe) tile).crankShaftSide = direction;
+        }else{
+            if(((EntityPipe) tile).crankShaftSide == direction)
+                ((EntityPipe) tile).crankShaftSide = null;
         }
 
         return state;

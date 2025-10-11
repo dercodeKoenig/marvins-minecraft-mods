@@ -1,8 +1,5 @@
 package BetterPipes;
 
-import BetterPipes.Network.PacketBlockEntity;
-import BetterPipes.Network.PacketFluidAmountUpdate;
-import BetterPipes.Network.PacketFluidUpdate;
 import BetterPipes.Pipe.RenderPipe;
 import BetterPipes.Tank.RenderTank;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -35,7 +32,6 @@ public class BetterPipes {
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::RegisterCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
 
 
@@ -49,13 +45,6 @@ public class BetterPipes {
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_PIPE.get(), RenderPipe::new);
         event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
-    }
-
-    public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
-        PacketBlockEntity.register(registrar);
-        PacketFluidUpdate.register(registrar);
-        PacketFluidAmountUpdate.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

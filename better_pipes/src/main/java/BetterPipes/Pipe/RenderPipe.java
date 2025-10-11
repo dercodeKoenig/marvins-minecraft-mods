@@ -1,17 +1,24 @@
 package BetterPipes.Pipe;
 
+import ARLib.obj.Face;
+import ARLib.obj.ModelFormatException;
+import ARLib.obj.WavefrontObject;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 
+import static AgeOfSteam.Static.TPS;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
@@ -19,7 +26,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     // the order in that you define it is very important!
     // unlike older versions, the order is not linked to .addvertex(...) but has to be like this
     // I dont know why but this is the only way it works
-    private static  VertexFormat        POSITION_COLOR_TEXTURE_NORMAL_LIGHT =
+    private static VertexFormat POSITION_COLOR_TEXTURE_NORMAL_LIGHT =
             VertexFormat.builder()
                     .add("Position", VertexFormatElement.POSITION)
                     .add("Color", VertexFormatElement.COLOR)
@@ -37,7 +44,6 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     public RenderPipe(BlockEntityRendererProvider.Context c) {
         super();
     }
-
 
 
     public static void renderFluidCubeStill(
@@ -629,12 +635,13 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     static float interpolate(float outerStart, float outerEnd, float innerStart, float innerEnd, float value) {
         return ((value - outerStart) / (outerEnd - outerStart)) * (innerEnd - innerStart) + innerStart;
     }
+
     static void renderDownFaceCutOut(
-            float x0,float x1,float z0,float z1,float y0,
+            float x0, float x1, float z0, float z1, float y0,
             float xh0, float xh1, float zh0, float zh1,
-            float u0,float u1,float v0,float v1,
+            float u0, float u1, float v0, float v1,
             VertexConsumer v, int light,
-            int color){
+            int color) {
 
 // Interpolated UVs for the hole
         float uh0 = interpolate(x0, x1, u0, u1, xh0);
@@ -643,52 +650,53 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         float vh1 = interpolate(z0, z1, v0, v1, zh1);
 
 
-        v.addVertex( x0, y0, z0).setColor(color).setUv(u0, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x0, y0, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x0, y0, z0).setColor(color).setUv(u0, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x0, y0, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( xh0, y0, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( xh1, y0, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x1, y0, z0).setColor(color).setUv(u1, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x1, y0, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x1, y0, z0).setColor(color).setUv(u1, v0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x1, y0, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( xh1, y0, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x1, y0, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x1, y0, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x1, y0, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x1, y0, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( xh1, y0, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x1, y0, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x1, y0, z1).setColor(color).setUv(u1, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x1, y0, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x1, y0, z1).setColor(color).setUv(u1, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( xh0, y0, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh1, y0, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh1, y0, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( x0, y0, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x0, y0, z1).setColor(color).setUv(u0, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x0, y0, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x0, y0, z1).setColor(color).setUv(u0, v1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
 
-        v.addVertex( x0, y0, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( xh0, y0, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
-        v.addVertex( x0, y0, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x0, y0, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(xh0, y0, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
+        v.addVertex(x0, y0, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, -1, 0);
     }
+
     static void renderUpFaceCutOut(
-            float x0,float x1,float z0,float z1,float y1,
+            float x0, float x1, float z0, float z1, float y1,
             float xh0, float xh1, float zh0, float zh1,
-            float u0,float u1,float v0,float v1,
+            float u0, float u1, float v0, float v1,
             VertexConsumer v, int light,
-            int color){
+            int color) {
 
 // Interpolated UVs for the hole
         float uh0 = interpolate(x0, x1, u0, u1, xh0);
@@ -697,45 +705,45 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         float vh1 = interpolate(z0, z1, v0, v1, zh1);
 
 
-        v.addVertex( x0, y1, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x0, y1, z0).setColor(color).setUv(u0, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x0, y1, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x0, y1, z0).setColor(color).setUv(u0, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( xh0, y1, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, z0).setColor(color).setUv(uh0, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( xh1, y1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x1, y1, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x1, y1, z0).setColor(color).setUv(u1, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x1, y1, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x1, y1, z0).setColor(color).setUv(u1, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( xh1, y1, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x1, y1, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x1, y1, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x1, y1, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x1, y1, zh0).setColor(color).setUv(u1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( xh1, y1, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x1, y1, z1).setColor(color).setUv(u1, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x1, y1, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x1, y1, z1).setColor(color).setUv(u1, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x1, y1, zh1).setColor(color).setUv(u1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( xh0, y1, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh1, y1, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, z1).setColor(color).setUv(uh1, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh1, y1, zh1).setColor(color).setUv(uh1, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( x0, y1, z1).setColor(color).setUv(u0, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x0, y1, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x0, y1, z1).setColor(color).setUv(u0, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, z1).setColor(color).setUv(uh0, v1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x0, y1, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
 
-        v.addVertex( x0, y1, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( xh0, y1, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
-        v.addVertex( x0, y1, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x0, y1, zh1).setColor(color).setUv(u0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, zh1).setColor(color).setUv(uh0, vh1).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(xh0, y1, zh0).setColor(color).setUv(uh0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
+        v.addVertex(x0, y1, zh0).setColor(color).setUv(u0, vh0).setOverlay(0).setLight(light).setNormal(0, 1, 0);
     }
 
     static void renderEastFaceCutOut(
@@ -791,6 +799,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         v.addVertex(x1, yh1, zh0).setColor(color).setUv(uh1, vh0).setOverlay(0).setLight(light).setNormal(1, 0, 0);
         v.addVertex(x1, yh1, z0).setColor(color).setUv(uh1, v0).setOverlay(0).setLight(light).setNormal(1, 0, 0);
     }
+
     static void renderWestFaceCutOut(
             float z0, float z1, float y0, float y1, float x0,
             float zh0, float zh1, float yh0, float yh1,
@@ -1045,26 +1054,26 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                 float relativeFillUp = (float) tile.connections.get(Direction.UP).tank.getFluidAmount() / tile.connections.get(Direction.UP).tank.getTankCapacity(0);
                 float actualWUp = 0;
-                if(relativeFillUp > e)
+                if (relativeFillUp > e)
                     actualWUp = wMin + (wMax - wMin) * relativeFillUp;
                 float xh2 = -actualWUp;
                 float xh3 = actualWUp;
                 float zh2 = -actualWUp;
                 float zh3 = actualWUp;
-                if(actualWUp+e < actualW){
-                    renderUpFaceCutOut(x0,x1,z0,z1,y1,xh2,xh3,zh2,zh3,u0s,u1s,v0s,v1s,v,light,color);
+                if (actualWUp + e < actualW) {
+                    renderUpFaceCutOut(x0, x1, z0, z1, y1, xh2, xh3, zh2, zh3, u0s, u1s, v0s, v1s, v, light, color);
                 }
 
                 float relativeFillDown = (float) tile.connections.get(Direction.DOWN).tank.getFluidAmount() / tile.connections.get(Direction.DOWN).tank.getTankCapacity(0);
                 float actualWDown = 0;
-                if(relativeFillDown > e)
+                if (relativeFillDown > e)
                     actualWDown = wMin + (wMax - wMin) * relativeFillDown;
                 float xh0 = -actualWDown;
                 float xh1 = actualWDown;
                 float zh0 = -actualWDown;
                 float zh1 = actualWDown;
-                if(actualWDown-e < actualW){
-                    renderDownFaceCutOut(x0,x1,z0,z1,y0,xh0,xh1,zh0,zh1,u0s,u1s,v0s,v1s,v,light,color);
+                if (actualWDown - e < actualW) {
+                    renderDownFaceCutOut(x0, x1, z0, z1, y0, xh0, xh1, zh0, zh1, u0s, u1s, v0s, v1s, v, light, color);
                 }
 
             } else {
@@ -1214,14 +1223,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 y1 = 0.25f;
                                 float relativeFillconn = (float) tile.connections.get(d).tank.getFluidAmount() / tile.connections.get(d).tank.getTankCapacity(0);
                                 float actualWconn = 0;
-                                if(relativeFillconn > e)
+                                if (relativeFillconn > e)
                                     actualWconn = wMin + (wMax - wMin) * actualWconn;
                                 float xh0 = -actualWconn;
                                 float xh1 = actualWconn;
                                 float zh0 = -actualWconn;
                                 float zh1 = actualWconn;
-                                if(actualWconn-e < actualW){
-                                    renderUpFaceCutOut(x0,x1,z0,z1,y1,xh0,xh1,zh0,zh1,u0s,u1s,v0s,v1s,v,light,color);
+                                if (actualWconn - e < actualW) {
+                                    renderUpFaceCutOut(x0, x1, z0, z1, y1, xh0, xh1, zh0, zh1, u0s, u1s, v0s, v1s, v, light, color);
                                 }
                             }
                             if (d == Direction.DOWN) {
@@ -1229,14 +1238,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 y1 = -actualW;
                                 float relativeFillconn = (float) tile.connections.get(d).tank.getFluidAmount() / tile.connections.get(d).tank.getTankCapacity(0);
                                 float actualWconn = 0;
-                                if(relativeFillconn > e)
+                                if (relativeFillconn > e)
                                     actualWconn = wMin + (wMax - wMin) * actualWconn;
                                 float xh0 = -actualWconn;
                                 float xh1 = actualWconn;
                                 float zh0 = -actualWconn;
                                 float zh1 = actualWconn;
-                                if(actualWconn-e < actualW){
-                                    renderDownFaceCutOut(x0,x1,z0,z1,y0,xh0,xh1,zh0,zh1,u0s,u1s,v0s,v1s,v,light,color);
+                                if (actualWconn - e < actualW) {
+                                    renderDownFaceCutOut(x0, x1, z0, z1, y0, xh0, xh1, zh0, zh1, u0s, u1s, v0s, v1s, v, light, color);
                                 }
                             }
                             if (d == Direction.EAST) {
@@ -1244,14 +1253,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 x1 = 0.25f;
                                 float relativeFillconn = (float) tile.connections.get(d).tank.getFluidAmount() / tile.connections.get(d).tank.getTankCapacity(0);
                                 float actualWconn = 0;
-                                if(relativeFillconn > e)
+                                if (relativeFillconn > e)
                                     actualWconn = wMin + (wMax - wMin) * actualWconn;
                                 float zh0 = -actualWconn;
                                 float zh1 = actualWconn;
                                 float yh0 = -actualWconn;
                                 float yh1 = actualWconn;
-                                if(actualWconn-e < actualW){
-                                    renderEastFaceCutOut(z0,z1,y0,y1,x1,zh0,zh1,yh0,yh1,u0s,u1s,v0s,v1s,v,light,color);
+                                if (actualWconn - e < actualW) {
+                                    renderEastFaceCutOut(z0, z1, y0, y1, x1, zh0, zh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                                 }
                             }
                             if (d == Direction.WEST) {
@@ -1259,14 +1268,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 x1 = -actualW;
                                 float relativeFillconn = (float) tile.connections.get(d).tank.getFluidAmount() / tile.connections.get(d).tank.getTankCapacity(0);
                                 float actualWconn = 0;
-                                if(relativeFillconn > e)
+                                if (relativeFillconn > e)
                                     actualWconn = wMin + (wMax - wMin) * actualWconn;
                                 float xh0 = -actualWconn;
                                 float xh1 = actualWconn;
                                 float zh0 = -actualWconn;
                                 float zh1 = actualWconn;
-                                if(actualWconn-e < actualW){
-                                    renderWestFaceCutOut(z0,z1,y0,y1,x0,xh0,xh1,zh0,zh1,u0s,u1s,v0s,v1s,v,light,color);
+                                if (actualWconn - e < actualW) {
+                                    renderWestFaceCutOut(z0, z1, y0, y1, x0, xh0, xh1, zh0, zh1, u0s, u1s, v0s, v1s, v, light, color);
                                 }
                             }
                             if (d == Direction.SOUTH) {
@@ -1274,14 +1283,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 z1 = 0.25f;
                                 float relativeFillconn = (float) tile.connections.get(d).tank.getFluidAmount() / tile.connections.get(d).tank.getTankCapacity(0);
                                 float actualWconn = 0;
-                                if(relativeFillconn > e)
+                                if (relativeFillconn > e)
                                     actualWconn = wMin + (wMax - wMin) * actualWconn;
                                 float yh0 = -actualWconn;
                                 float yh1 = actualWconn;
                                 float xh0 = -actualWconn;
                                 float xh1 = actualWconn;
-                                if(actualWconn-e < actualW){
-                                    renderSouthFaceCutOut(x0,x1,y0,y1,z1,xh0,xh1,yh0,yh1,u0s,u1s,v0s,v1s,v,light,color);
+                                if (actualWconn - e < actualW) {
+                                    renderSouthFaceCutOut(x0, x1, y0, y1, z1, xh0, xh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                                 }
                             }
                             if (d == Direction.NORTH) {
@@ -1289,14 +1298,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 z1 = -actualW;
                                 float relativeFillconn = (float) tile.connections.get(d).tank.getFluidAmount() / tile.connections.get(d).tank.getTankCapacity(0);
                                 float actualWconn = 0;
-                                if(relativeFillconn > e)
+                                if (relativeFillconn > e)
                                     actualWconn = wMin + (wMax - wMin) * actualWconn;
                                 float yh0 = -actualWconn;
                                 float yh1 = actualWconn;
                                 float xh0 = -actualWconn;
                                 float xh1 = actualWconn;
-                                if(actualWconn-e < actualW){
-                                    renderNorthFaceCutOut(x0,x1,y0,y1,z0,xh0,xh1,yh0,yh1,u0s,u1s,v0s,v1s,v,light,color);
+                                if (actualWconn - e < actualW) {
+                                    renderNorthFaceCutOut(x0, x1, y0, y1, z0, xh0, xh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                                 }
                             }
                             if (conn.outputsToInside) {
@@ -1304,14 +1313,14 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                                 inFlow = d;
                                 renderFluidFlowingCentered(
                                         x0, x1, z0, z1, y0, y1,
-                                        u0f, u1f, v0f, v0f+(0.5f-actualW*2)*(v1f-v0f),
+                                        u0f, u1f, v0f, v0f + (0.5f - actualW * 2) * (v1f - v0f),
                                         color, d.getOpposite(), v, light, overlay);
                             } else if (conn.getsInputFromInside) {
                                 numOutputs++;
                                 outFlow = d;
                                 renderFluidFlowingCentered(
                                         x0, x1, z0, z1, y0, y1,
-                                        u0f, u1f, v1f-(0.5f-actualW*2)*(v1f-v0f), v1f,
+                                        u0f, u1f, v1f - (0.5f - actualW * 2) * (v1f - v0f), v1f,
                                         color, d, v, light, overlay);
                             } else {
                                 renderVerticalFluidStill(
@@ -1333,7 +1342,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                         // exactly one output is found, great! use this as flow direction
                         renderFluidFlowingCentered(
                                 x0, x1, z0, z1, y0, y1,
-                                u0f, u1f,  v0f+(0.5f-actualW*2)*(v1f-v0f), v1f-(0.5f-actualW*2)*(v1f-v0f),
+                                u0f, u1f, v0f + (0.5f - actualW * 2) * (v1f - v0f), v1f - (0.5f - actualW * 2) * (v1f - v0f),
                                 color, outFlow, v, light, overlay);
 
                         if (!tile.connections.get(outFlow.getOpposite()).isEnabled(tileState) || tile.connections.get(outFlow.getOpposite()).tank.isEmpty()) {
@@ -1348,7 +1357,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                         // exactly one input is found, great! use this as flow direction
                         renderFluidFlowingCentered(
                                 x0, x1, z0, z1, y0, y1,
-                                u0f, u1f,  v0f+(0.5f-actualW*2)*(v1f-v0f), v1f-(0.5f-actualW*2)*(v1f-v0f),
+                                u0f, u1f, v0f + (0.5f - actualW * 2) * (v1f - v0f), v1f - (0.5f - actualW * 2) * (v1f - v0f),
                                 color, inFlow.getOpposite(), v, light, overlay);
 
                         if (!tile.connections.get(inFlow.getOpposite()).isEnabled(tileState) || tile.connections.get(inFlow.getOpposite()).tank.isEmpty()) {
@@ -1418,26 +1427,26 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                 float relativeFillOut = (float) conn.neighborFluidHandler().getFluidInTank(0).getAmount() / conn.neighborFluidHandler().getTankCapacity(0);
                 float actualWOut = 0;
-                if(relativeFillOut > e)
+                if (relativeFillOut > e)
                     actualWOut = wMin + (wMax - wMin) * relativeFillOut;
                 float xh2 = -actualWOut;
                 float xh3 = actualWOut;
                 float zh2 = -actualWOut;
                 float zh3 = actualWOut;
-                if(actualWOut < actualW){
-                    renderUpFaceCutOut(x0,x1,z0,z1,y1,xh2,xh3,zh2,zh3,u0s,u1s,v0s,v1s,v,light,color);
+                if (actualWOut < actualW) {
+                    renderUpFaceCutOut(x0, x1, z0, z1, y1, xh2, xh3, zh2, zh3, u0s, u1s, v0s, v1s, v, light, color);
                 }
 
                 float relativeFillIn = (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
                 float actualWIn = 0;
-                if(relativeFillIn > e)
+                if (relativeFillIn > e)
                     actualWIn = wMin + (wMax - wMin) * relativeFillIn;
                 float xh0 = -actualWIn;
                 float xh1 = actualWIn;
                 float zh0 = -actualWIn;
                 float zh1 = actualWIn;
-                if(actualWIn < actualW){
-                    renderDownFaceCutOut(x0,x1,z0,z1,y0,xh0,xh1,zh0,zh1,u0s,u1s,v0s,v1s,v,light,color);
+                if (actualWIn < actualW) {
+                    renderDownFaceCutOut(x0, x1, z0, z1, y0, xh0, xh1, zh0, zh1, u0s, u1s, v0s, v1s, v, light, color);
                 }
 
             }
@@ -1491,26 +1500,26 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                 float relativeFillOut = (float) conn.neighborFluidHandler().getFluidInTank(0).getAmount() / conn.neighborFluidHandler().getTankCapacity(0);
                 float actualWOut = 0;
-                if(relativeFillOut > e)
+                if (relativeFillOut > e)
                     actualWOut = wMin + (wMax - wMin) * relativeFillOut;
                 float xh2 = -actualWOut;
                 float xh3 = actualWOut;
                 float zh2 = -actualWOut;
                 float zh3 = actualWOut;
-                if(actualWOut < actualW){
-                    renderDownFaceCutOut(x0,x1,z0,z1,y0,xh2,xh3,zh2,zh3,u0s,u1s,v0s,v1s,v,light,color);
+                if (actualWOut < actualW) {
+                    renderDownFaceCutOut(x0, x1, z0, z1, y0, xh2, xh3, zh2, zh3, u0s, u1s, v0s, v1s, v, light, color);
                 }
 
                 float relativeFillIn = (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
                 float actualWIn = 0;
-                if(relativeFillIn > e)
+                if (relativeFillIn > e)
                     actualWIn = wMin + (wMax - wMin) * relativeFillIn;
                 float xh0 = -actualWIn;
                 float xh1 = actualWIn;
                 float zh0 = -actualWIn;
                 float zh1 = actualWIn;
-                if(actualWIn < actualW){
-                    renderUpFaceCutOut(x0,x1,z0,z1,y1,xh0,xh1,zh0,zh1,u0s,u1s,v0s,v1s,v,light,color);
+                if (actualWIn < actualW) {
+                    renderUpFaceCutOut(x0, x1, z0, z1, y1, xh0, xh1, zh0, zh1, u0s, u1s, v0s, v1s, v, light, color);
                 }
 
             }
@@ -1537,8 +1546,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                 if (!shouldRenderCentered(conn.tank.getFluid().getFluid())) {
                     float x0 = -0.5f;
-                    if(tile.tankWest)
-                        x0 -=0.125f;
+                    if (tile.tankWest)
+                        x0 -= 0.125f;
                     float x1 = -0.25f + e;
                     float z0 = -0.25f + e;
                     float z1 = 0.25f - e;
@@ -1576,8 +1585,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float y0 = -actualW;
                     float y1 = actualW;
                     float x0 = -0.5f;
-                    if(tile.tankWest)
-                        x0 -=0.125f;
+                    if (tile.tankWest)
+                        x0 -= 0.125f;
                     float x1 = -0.25f + e;
                     float z0 = -actualW;
                     float z1 = actualW;
@@ -1601,26 +1610,26 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                     float relativeFillOut = (float) conn.neighborFluidHandler().getFluidInTank(0).getAmount() / conn.neighborFluidHandler().getTankCapacity(0);
                     float actualWOut = 0;
-                    if(relativeFillOut > e)
+                    if (relativeFillOut > e)
                         actualWOut = wMin + (wMax - wMin) * relativeFillOut;
                     float yh2 = -actualWOut;
                     float yh3 = actualWOut;
                     float zh2 = -actualWOut;
                     float zh3 = actualWOut;
-                    if(actualWOut < actualW){
-                        renderWestFaceCutOut(z0,z1,y0,y1,x0,zh2,zh3,yh2,yh3 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWOut < actualW) {
+                        renderWestFaceCutOut(z0, z1, y0, y1, x0, zh2, zh3, yh2, yh3, u0s, u1s, v0s, v1s, v, light, color);
                     }
 
                     float relativeFillIn = (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
                     float actualWIn = 0;
-                    if(relativeFillIn > e)
+                    if (relativeFillIn > e)
                         actualWIn = wMin + (wMax - wMin) * relativeFillIn;
                     float yh0 = -actualWIn;
                     float yh1 = actualWIn;
                     float zh0 = -actualWIn;
                     float zh1 = actualWIn;
-                    if(actualWIn < actualW){
-                        renderEastFaceCutOut(z0,z1,y0,y1,x1,zh0,zh1,yh0,yh1 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWIn < actualW) {
+                        renderEastFaceCutOut(z0, z1, y0, y1, x1, zh0, zh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                     }
                 }
             }
@@ -1648,8 +1657,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                 if (!shouldRenderCentered(conn.tank.getFluid().getFluid())) {
                     float x0 = 0.25f - e;
                     float x1 = 0.5f;
-                    if(tile.tankEast)
-                        x1 +=0.125f;
+                    if (tile.tankEast)
+                        x1 += 0.125f;
                     float z0 = -0.25f + e;
                     float z1 = 0.25f - e;
                     float y0 = -0.25f + e;
@@ -1687,8 +1696,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float y1 = actualW;
                     float x0 = 0.25f - e;
                     float x1 = 0.5f;
-                    if(tile.tankEast)
-                        x1 +=0.125f;
+                    if (tile.tankEast)
+                        x1 += 0.125f;
                     float z0 = -actualW;
                     float z1 = actualW;
 
@@ -1710,29 +1719,28 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     }
 
 
-
                     float relativeFillOut = (float) conn.neighborFluidHandler().getFluidInTank(0).getAmount() / conn.neighborFluidHandler().getTankCapacity(0);
                     float actualWOut = 0;
-                    if(relativeFillOut > e)
+                    if (relativeFillOut > e)
                         actualWOut = wMin + (wMax - wMin) * relativeFillOut;
                     float yh2 = -actualWOut;
                     float yh3 = actualWOut;
                     float zh2 = -actualWOut;
                     float zh3 = actualWOut;
-                    if(actualWOut < actualW){
-                        renderEastFaceCutOut(z0,z1,y0,y1,x1,zh2,zh3,yh2,yh3 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWOut < actualW) {
+                        renderEastFaceCutOut(z0, z1, y0, y1, x1, zh2, zh3, yh2, yh3, u0s, u1s, v0s, v1s, v, light, color);
                     }
 
                     float relativeFillIn = (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
                     float actualWIn = 0;
-                    if(relativeFillIn > e)
+                    if (relativeFillIn > e)
                         actualWIn = wMin + (wMax - wMin) * relativeFillIn;
                     float yh0 = -actualWIn;
                     float yh1 = actualWIn;
                     float zh0 = -actualWIn;
                     float zh1 = actualWIn;
-                    if(actualWIn < actualW){
-                        renderWestFaceCutOut(z0,z1,y0,y1,x0,zh0,zh1,yh0,yh1 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWIn < actualW) {
+                        renderWestFaceCutOut(z0, z1, y0, y1, x0, zh0, zh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                     }
                 }
             }
@@ -1762,8 +1770,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x1 = 0.25f - e;
                     float z0 = 0.25f - e;
                     float z1 = 0.5f;
-                    if(tile.tankSouth)
-                        z1 +=0.125f;
+                    if (tile.tankSouth)
+                        z1 += 0.125f;
                     float y0 = -0.25f + e;
                     float y1 = -0.25f - e + 0.5f * relativeFill;
                     float y0BottomOffsetNorth = y0 - 2 * e + 0.5f * (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
@@ -1802,8 +1810,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x1 = actualW;
                     float z0 = 0.25f - e;
                     float z1 = 0.5f;
-                    if(tile.tankSouth)
-                        z1 +=0.125f;
+                    if (tile.tankSouth)
+                        z1 += 0.125f;
 
                     if (conn.getsInputFromOutside && !conn.getsInputFromInside) {
                         renderFluidFlowingCentered(
@@ -1824,26 +1832,26 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                     float relativeFillOut = (float) conn.neighborFluidHandler().getFluidInTank(0).getAmount() / conn.neighborFluidHandler().getTankCapacity(0);
                     float actualWOut = 0;
-                    if(relativeFillOut > e)
+                    if (relativeFillOut > e)
                         actualWOut = wMin + (wMax - wMin) * relativeFillOut;
                     float yh2 = -actualWOut;
                     float yh3 = actualWOut;
                     float xh2 = -actualWOut;
                     float xh3 = actualWOut;
-                    if(actualWOut < actualW){
-                        renderSouthFaceCutOut(x0,x1,y0,y1,z1,xh2,xh3,yh2,yh3 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWOut < actualW) {
+                        renderSouthFaceCutOut(x0, x1, y0, y1, z1, xh2, xh3, yh2, yh3, u0s, u1s, v0s, v1s, v, light, color);
                     }
 
                     float relativeFillIn = (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
                     float actualWIn = 0;
-                    if(relativeFillIn > e)
+                    if (relativeFillIn > e)
                         actualWIn = wMin + (wMax - wMin) * relativeFillIn;
                     float yh0 = -actualWIn;
                     float yh1 = actualWIn;
                     float xh0 = -actualWIn;
                     float xh1 = actualWIn;
-                    if(actualWIn < actualW){
-                        renderNorthFaceCutOut(x0,x1,y0,y1,z0,xh0,xh1,yh0,yh1 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWIn < actualW) {
+                        renderNorthFaceCutOut(x0, x1, y0, y1, z0, xh0, xh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                     }
                 }
             }
@@ -1872,8 +1880,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x0 = -0.25f + e;
                     float x1 = 0.25f - e;
                     float z0 = -0.5f;
-                    if(tile.tankNorth)
-                        z0 -=0.125f;
+                    if (tile.tankNorth)
+                        z0 -= 0.125f;
                     float z1 = -0.25f + e;
                     float y0 = -0.25f + e;
                     float y1 = -0.25f - e + 0.5f * relativeFill;
@@ -1913,8 +1921,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     float x0 = -actualW;
                     float x1 = actualW;
                     float z0 = -0.5f;
-                    if(tile.tankNorth)
-                        z0 -=0.125f;
+                    if (tile.tankNorth)
+                        z0 -= 0.125f;
                     float z1 = -0.25f + e;
 
                     if (conn.getsInputFromOutside && !conn.getsInputFromInside) {
@@ -1936,84 +1944,156 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
                     float relativeFillOut = (float) conn.neighborFluidHandler().getFluidInTank(0).getAmount() / conn.neighborFluidHandler().getTankCapacity(0);
                     float actualWOut = 0;
-                    if(relativeFillOut > e)
+                    if (relativeFillOut > e)
                         actualWOut = wMin + (wMax - wMin) * relativeFillOut;
                     float yh2 = -actualWOut;
                     float yh3 = actualWOut;
                     float xh2 = -actualWOut;
                     float xh3 = actualWOut;
-                    if(actualWOut < actualW){
-                        renderNorthFaceCutOut(x0,x1,y0,y1,z0,xh2,xh3,yh2,yh3 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWOut < actualW) {
+                        renderNorthFaceCutOut(x0, x1, y0, y1, z0, xh2, xh3, yh2, yh3, u0s, u1s, v0s, v1s, v, light, color);
                     }
 
                     float relativeFillIn = (float) tile.tank.getFluidAmount() / tile.tank.getCapacity();
                     float actualWIn = 0;
-                    if(relativeFillIn > e)
+                    if (relativeFillIn > e)
                         actualWIn = wMin + (wMax - wMin) * relativeFillIn;
                     float yh0 = -actualWIn;
                     float yh1 = actualWIn;
                     float xh0 = -actualWIn;
                     float xh1 = actualWIn;
-                    if(actualWIn < actualW){
-                        renderSouthFaceCutOut(x0,x1,y0,y1,z1,xh0,xh1,yh0,yh1 ,u0s,u1s,v0s,v1s,v,light,color);
+                    if (actualWIn < actualW) {
+                        renderSouthFaceCutOut(x0, x1, y0, y1, z1, xh0, xh1, yh0, yh1, u0s, u1s, v0s, v1s, v, light, color);
                     }
                 }
             }
         }
     }
 
+    static WavefrontObject pumpCrankshaft;
+
+    static {
+        try {
+            pumpCrankshaft = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("betterpipes", "models/block/pipe_pump_cube.obj"));
+        } catch (ModelFormatException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     @Override
-    public void render(EntityPipe tile, float partialTick, PoseStack stack ,MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(EntityPipe tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        if (tile.mesh != null || tile.requiresMeshUpdate) {
 
-            tile.vertexBuffer.bind();
+        if (tile.requiresMeshUpdate || packedLight != tile.lastLight) {
+            tile.lastLight = packedLight;
+            tile.requiresMeshUpdate = false;
+            BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            RenderPipe.renderFluids(tile, bufferBuilder, packedLight, 0);
+            tile.mesh = bufferBuilder.build();
+            if (tile.mesh != null) {
+                tile.vertexBuffer.bind();
+                tile.vertexBuffer.upload(tile.mesh);
+            }
 
-            // I comment out what should be already set
+            ByteBufferBuilder byteBufferBuilder1 = new ByteBufferBuilder(1024);
+            bufferBuilder = new BufferBuilder(byteBufferBuilder1, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            for (Face i : pumpCrankshaft.groupObjects.get("Cube").faces) {
+                i.addFaceForRender(new PoseStack(), bufferBuilder, packedLight, 0, 0xffffffff);
+            }
+            MeshData m1 = bufferBuilder.build();
+            tile.vertexBufferPumpCube.bind();
+            tile.vertexBufferPumpCube.upload(m1);
+            byteBufferBuilder1.close();
+
+            ByteBufferBuilder byteBufferBuilder2 = new ByteBufferBuilder(1024);
+            bufferBuilder = new BufferBuilder(byteBufferBuilder2, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            for (Face i : pumpCrankshaft.groupObjects.get("Arm").faces) {
+                i.addFaceForRender(new PoseStack(), bufferBuilder, packedLight, 0, 0xffffffff);
+            }
+            MeshData m2 = bufferBuilder.build();
+            tile.vertexBufferCrankshaftConnection.bind();
+            tile.vertexBufferCrankshaftConnection.upload(m2);
+            byteBufferBuilder2.close();
+        }
+        LEQUAL_DEPTH_TEST.setupRenderState();
+        LIGHTMAP.setupRenderState();
+
+        if (tile.crankShaftSide != null) {
+            RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
+            ShaderInstance shader = RenderSystem.getShader();
+
+            Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+            m1 = m1.mul(stack.last().pose());
+            m1 = m1.translate(0.5f, 0.5f, 0.5f);
+
+            if (tile.crankShaftSide == Direction.WEST) {
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 0f));
+            }
+            if (tile.crankShaftSide == Direction.EAST) {
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 180f));
+            }
+            if (tile.crankShaftSide == Direction.SOUTH) {
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 90f));
+            }
+            if (tile.crankShaftSide == Direction.NORTH) {
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 270f));
+            }
+            Matrix4f m2 = new Matrix4f(m1);
+            float crankshaftR = 0.11f;
+            double targetHeight = 0;
+            double armLength = 1;
+            float XRotationMultiplier =
+                    (tile.crankShaftSide.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1)
+                            * (tile.crankShaftSide.getAxis() == Direction.Axis.X ? 1 : -1);
+
+            double a = tile.myMechanicalBlock.currentRotation / 180 * Math.PI + tile.myMechanicalBlock.internalVelocity / TPS * partialTick;
+            float translationX = -1 + (float) Math.sin(a) * crankshaftR * XRotationMultiplier;
+            float translationY = (float) Math.cos(a) * crankshaftR;
+            double b = Math.asin((translationY - targetHeight) / armLength);
+            m2.translate(translationX, translationY, -0.04f);
+            m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -(float) b * 180f / (float) Math.PI));
+            m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 180f));
+
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.apply();
+            tile.vertexBufferCrankshaftConnection.bind();
+            tile.vertexBufferCrankshaftConnection.draw();
+            shader.clear();
+
+            m2 = new Matrix4f(m1);
+            float pumpCubeTargetX = 0f + (float) (translationX + Math.cos(b) * armLength);
+            m2.translate(pumpCubeTargetX, 0, 0);
+
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.apply();
+            tile.vertexBufferPumpCube.bind();
+            tile.vertexBufferPumpCube.draw();
+            shader.clear();
+        }
+
+
+        if (tile.mesh != null) {
             RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER.setupRenderState();
-            LIGHTMAP.setupRenderState();
-            LEQUAL_DEPTH_TEST.setupRenderState();
-            //CULL.setupRenderState();
-            //COLOR_DEPTH_WRITE.setupRenderState();
             TRANSLUCENT_TRANSPARENCY.setupRenderState();
             // this should be in the block atlas but shaders change shit around so
             // I just use the flowing texture and if the still texture is not in the same location
             // you are just fucked
             RenderSystem.setShaderTexture(0, tile.renderData.spriteFLowing.atlasLocation());
-            //BLOCK_SHEET_MIPPED.setupRenderState();
-
-
-            if (tile.requiresMeshUpdate || packedLight != tile.lastLight) {
-                tile.lastLight = packedLight;
-                tile.requiresMeshUpdate = false;
-                BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-                RenderPipe.renderFluids(tile, bufferBuilder, packedLight, 0);
-                tile.mesh = bufferBuilder.build();
-                if (tile.mesh != null)
-                    tile.vertexBuffer.upload(tile.mesh);
-            }
-
-            if(tile.mesh != null) {
-                ShaderInstance shader = RenderSystem.getShader();
-                Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
-                Matrix4f m2 = m1.mul(stack.last().pose());
-                m2 = m2.translate(0.5f, 0.5f, 0.5f);
-                shader.setDefaultUniforms(VertexFormat.Mode.QUADS, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-                shader.apply();
-                tile.vertexBuffer.draw();
-                shader.clear();
-            }
-
-            VertexBuffer.unbind();
+            ShaderInstance shader = RenderSystem.getShader();
+            Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+            Matrix4f m2 = m1.mul(stack.last().pose());
+            m2 = m2.translate(0.5f, 0.5f, 0.5f);
+            shader.setDefaultUniforms(VertexFormat.Mode.QUADS, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.apply();
+            tile.vertexBuffer.bind();
+            tile.vertexBuffer.draw();
+            shader.clear();
 
             RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER.clearRenderState();
-            LIGHTMAP.clearRenderState();
-            LEQUAL_DEPTH_TEST.clearRenderState();
-            //CULL.clearRenderState();
-            //COLOR_DEPTH_WRITE.clearRenderState();
             TRANSLUCENT_TRANSPARENCY.clearRenderState();
-            //BLOCK_SHEET.clearRenderState();
-
         }
+        LIGHTMAP.clearRenderState();
+        LEQUAL_DEPTH_TEST.clearRenderState();
+        VertexBuffer.unbind();
     }
 }

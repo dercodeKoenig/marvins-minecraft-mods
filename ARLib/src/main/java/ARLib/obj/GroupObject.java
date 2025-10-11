@@ -49,4 +49,11 @@ public class GroupObject {
             }
         }
     }
+
+
+
+    public void scaleUV(float u0, float v0, float u1, float v1){
+        for (Face i : faces)
+            i.scaleUV(u0,v0,u1,v1);
+    }
 }

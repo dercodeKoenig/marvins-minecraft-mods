@@ -284,6 +284,14 @@ public class WavefrontObject {
         } else {
             throw new ModelFormatException("Error parsing entry ('" + line + "'" + ", line " + lineCount + ") in file '" + fileName + "' - Incorrect format");
         }
+
+        if(face.textureCoordinates != null) {
+            face.original_textureCoordinates = new TextureCoordinate[face.textureCoordinates.length];
+            for (int i = 0; i < face.textureCoordinates.length; i++) {
+                face.original_textureCoordinates[i] = new TextureCoordinate(face.textureCoordinates[i].u, face.textureCoordinates[i].v, face.textureCoordinates[i].w);
+            }
+        }
+
         return face;
     }
 
@@ -422,6 +430,10 @@ public class WavefrontObject {
 
         groupObjectMatcher = groupObjectPattern.matcher(line);
         return groupObjectMatcher.matches();
+    }
+
+    public void scaleUV(String partName, float u0, float v0, float u1, float v1) {
+        groupObjects.get(partName).scaleUV(u0,v0,u1,v1);
     }
 
     public String getType() {

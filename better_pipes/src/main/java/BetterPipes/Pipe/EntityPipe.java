@@ -1,10 +1,13 @@
 package BetterPipes.Pipe;
 
+import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
+import AgeOfSteam.Core.AbstractMechanicalBlock;
+import AgeOfSteam.Core.IMechanicalBlockProvider;
 import BetterPipes.Config;
-import BetterPipes.Network.INetworkTagReceiver;
-import BetterPipes.Network.PacketBlockEntity;
-import BetterPipes.Network.PacketFluidUpdate;
-import BetterPipes.Network.PacketFluidAmountUpdate;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -22,6 +25,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.api.distmarker.Dist;
@@ -31,13 +35,15 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static BetterPipes.Registry.ENTITY_PIPE;
+import static BetterPipes.Registry.register;
 import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
-public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
+public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider, ICrankShaftConnector {
 
     public static int MAX_OUTPUT_RATE = Config.INSTANCE.maxOutputRate;
     public static int REQUIRED_FILL_FOR_MAX_OUTPUT = Config.INSTANCE.mainRequiredFillForMaxOutput;
@@ -51,7 +57,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     public static int FORCE_OUTPUT_AFTER_TICKS = 20;
 
     public Map<Direction, PipeConnection> connections = new HashMap<>();
-    public FluidTank tank = new FluidTank(MAIN_CAPACITY){
+    public FluidTank tank = new FluidTank(MAIN_CAPACITY) {
         @Override
         protected void onContentsChanged() {
             setChanged();
@@ -64,6 +70,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     public FluidRenderData renderData = new FluidRenderData();
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
+    public VertexBuffer vertexBufferCrankshaftConnection;
+    public VertexBuffer vertexBufferPumpCube;
     public boolean requiresMeshUpdate = false;
     public boolean requiresMeshUpdate2 = false;
     public ByteBufferBuilder myByteBuffer;
@@ -74,6 +82,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     boolean tankWest = false;
     boolean tankSouth = false;
 
+    Direction crankShaftSide = null;
+
     public EntityPipe(BlockPos pos, BlockState blockState) {
         super(ENTITY_PIPE.get(), pos, blockState);
         for (Direction i : Direction.values()) {
@@ -83,6 +93,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 myByteBuffer = new ByteBufferBuilder(TRANSIENT_BUFFER_SIZE);
+                vertexBufferCrankshaftConnection = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                vertexBufferPumpCube = new VertexBuffer(VertexBuffer.Usage.STATIC);
             });
         }
     }
@@ -94,9 +106,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     @Override
     public void onLoad() {
         super.onLoad();
-
+        myMechanicalBlock.mechanicalOnload();
         if (level.isClientSide) {
-            UUID from = Minecraft.getInstance().player.getUUID();
             CompoundTag tag = new CompoundTag();
             tag.put("client_onload", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, tag));
@@ -110,8 +121,9 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer.close();
                 myByteBuffer.close();
+                vertexBufferCrankshaftConnection.close();
+                vertexBufferPumpCube.close();
             });
-
         }
         super.setRemoved();
     }
@@ -121,12 +133,15 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
     }
 
     public void tick() {
+        myMechanicalBlock.mechanicalTick();
 
         // this is because for some reason minecraft stops updating the sprite
         // so i do it every tick
-        renderData.updateSprites(tank.getFluid().getFluid());
-        for (Direction i : Direction.values())
-            connections.get(i).renderData.updateSprites(connections.get(i).tank.getFluid().getFluid());
+        if (level.isClientSide) {
+            renderData.updateSprites(tank.getFluid().getFluid());
+            for (Direction i : Direction.values())
+                connections.get(i).renderData.updateSprites(connections.get(i).tank.getFluid().getFluid());
+        }
 
         // to not re-mesh on every packet, re-mesh only once per tick at max
         if (FMLEnvironment.dist == Dist.CLIENT && requiresMeshUpdate2) {
@@ -149,30 +164,21 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
                     connections.get(direction).lastFill = connections.get(direction).tank.getFluidAmount();
                 }
 
-                if (!FluidStack.isSameFluidSameComponents(last_tankFluid, tank.getFluid())) {
-                    if (!tank.getFluid().isEmpty())
-                        PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) getLevel(), new ChunkPos(getBlockPos()), PacketFluidUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluid().getFluid()));
-                }
-                if (last_tankFluid.getAmount() != tank.getFluidAmount()) {
-                    PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) getLevel(), new ChunkPos(getBlockPos()), PacketFluidAmountUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluidAmount()));
+                // check for changes and sync to client
+                boolean requiresUpdate = false;
+                if (!FluidStack.isSameFluidSameComponents(last_tankFluid, tank.getFluid()) || last_tankFluid.getAmount() != tank.getFluidAmount()) {
+                    requiresUpdate = true;
                 }
                 last_tankFluid = tank.getFluid().copy(); // Update the last known tank fluid
 
-                CompoundTag updateTag = new CompoundTag();
-                boolean needsSendUpdate = false;
+                // check connections for changes to sync
                 for (Direction direction : Direction.values()) {
                     PipeConnection conn = connections.get(direction);
-                    if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.CONNECTED || state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
-                        conn.syncTanks();
-                        if (conn.needsSync()) {
-                            updateTag.put(direction.getName(), conn.getUpdateTag(level.registryAccess()));
-                            needsSendUpdate = true;
-                        }
-                    }
+                    if (conn.needsSync())
+                        requiresUpdate = true;
                 }
-                if (needsSendUpdate) {
-                    updateTag.putLong("time", System.nanoTime());
-                    PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, updateTag));
+                if (requiresUpdate) {
+                    syncTanksToClient(null);
                 }
             }
             for (Direction direction : Direction.allShuffled(level.random)) {
@@ -241,27 +247,21 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
                     if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
                         // extract from a neighbor fluid handler
                         // this runs every tick
-                        try {
-                            FluidStack drained = conn.neighborFluidHandler().drain(CONNECTION_MAX_OUTPUT_RATE, IFluidHandler.FluidAction.SIMULATE);
-                            int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
-                            int toTransfer = Math.min(filled, drained.getAmount());
-                            drained = conn.neighborFluidHandler().drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
-                            conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
-                        } catch (Exception e) {
-                            level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
-                            System.out.println(new RuntimeException(e));
-                        }
+                        FluidStack drained = conn.neighborFluidHandler().drain(CONNECTION_MAX_OUTPUT_RATE, IFluidHandler.FluidAction.SIMULATE);
+                        int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
+                        int toTransfer = Math.min(filled, drained.getAmount());
+                        drained = conn.neighborFluidHandler().drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
+                        conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
                     }
                     if (isUpdateTick) {
                         if (lastFill > 0) {
                             //drain main tank into connection, using 2 stage update
                             if (!conn.outputsToInside && state.getValue(BlockPipe.connections.get(direction)) != BlockPipe.ConnectionState.EXTRACTION) {
                                 double transferRateMultiplier = (double) lastFill / REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                int toTransfer = (int) (MAX_OUTPUT_RATE * 2 * transferRateMultiplier);
                                 int target_free = CONNECTION_CAPACITY - CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
                                 int has_free = CONNECTION_CAPACITY - conn.lastFill;
                                 double speedMultiplier = Math.min(1, (float) has_free / target_free);
-                                toTransfer = (int) (MAX_OUTPUT_RATE * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
+                                int toTransfer = (int) (MAX_OUTPUT_RATE * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
 
                                 if (toTransfer == 0 && ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS)
                                     toTransfer = 1;
@@ -292,128 +292,162 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
 
     public void toggleExtractionMode(Direction hitFace) {
         BlockState state = getBlockState();
-        if (state.getValue(BlockPipe.connections.get(hitFace))== BlockPipe.ConnectionState.CONNECTED) {
+        if (state.getValue(BlockPipe.connections.get(hitFace)) == BlockPipe.ConnectionState.CONNECTED) {
             state = state.setValue(BlockPipe.connections.get(hitFace), BlockPipe.ConnectionState.EXTRACTION);
-        }
-        else if (state.getValue(BlockPipe.connections.get(hitFace))== BlockPipe.ConnectionState.EXTRACTION) {
+        } else if (state.getValue(BlockPipe.connections.get(hitFace)) == BlockPipe.ConnectionState.EXTRACTION) {
             state = state.setValue(BlockPipe.connections.get(hitFace), BlockPipe.ConnectionState.CONNECTED);
         }
         level.setBlock(getBlockPos(), state, 3);
     }
 
+    public void syncTanksToClient(ServerPlayer p) {
+        CompoundTag updateTag = new CompoundTag();
+        for (Direction direction : Direction.values()) {
+            PipeConnection conn = connections.get(direction);
+            CompoundTag tag = conn.getUpdateTag(level.registryAccess());
+            updateTag.put(direction.getName(), tag);
+        }
+        updateTag.put("mainTank", getUpdateTag(level.registryAccess()));
+        if (p != null)
+            PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
+        else
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, updateTag));
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer player) {
         if (compoundTag.contains("client_onload")) {
-
-            CompoundTag updateTag = new CompoundTag();
-            for (Direction direction : Direction.values()) {
-                PipeConnection conn = connections.get(direction);
-                CompoundTag tag = conn.getUpdateTag(level.registryAccess());
-                updateTag.put(direction.getName(), tag);
-                conn.sendInitialTankUpdates(player);
-            }
-            updateTag.putLong("time", System.nanoTime());
-            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
-            if (!tank.getFluid().isEmpty()) {
-                PacketDistributor.sendToPlayer(player, PacketFluidUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluid().getFluid()));
-                PacketDistributor.sendToPlayer(player, PacketFluidAmountUpdate.getPacketFluidUpdate(getBlockPos(), null, tank.getFluidAmount()));
-            }
-
+            syncTanksToClient(player);
         }
+        myMechanicalBlock.mechanicalReadServer(compoundTag,player);
     }
-
-    long lastUpdate = 0;
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        if (compoundTag.contains(("time"))) {
-            long updateTime = compoundTag.getLong("time");
-            if (updateTime >= lastUpdate) {
-                lastUpdate = updateTime;
-                for (Direction direction : Direction.values()) {
-                    if (compoundTag.contains(direction.getName())) {
-                        connections.get(direction).handleUpdateTag(compoundTag.getCompound(direction.getName()), level.registryAccess());
-                    }
-                }
-                setRequiresMeshUpdate();
-            }
-            // Detect a server reset by checking for an abnormally large time drop
-            if (updateTime < lastUpdate - 1_000_000_000L) { // 1 second in nanoseconds
-                lastUpdate = Long.MIN_VALUE; // Reset so we start accepting new updates again
+        for (Direction direction : Direction.values()) {
+            if (compoundTag.contains(direction.getName())) {
+                connections.get(direction).handleUpdateTag(compoundTag.getCompound(direction.getName()), level.registryAccess());
             }
         }
+        if(compoundTag.contains("mainTank")) {
+            handleUpdateTag(compoundTag.getCompound("mainTank"), level.registryAccess());
+        }
+        myMechanicalBlock.mechanicalReadClient(compoundTag);
     }
 
     public void setRequiresMeshUpdate() {
         requiresMeshUpdate2 = true;
     }
 
-    long lastFluidInTankUpdate = Long.MIN_VALUE;
-
-    public void setFluidInTank(Fluid f, long time) {
-        if (time > lastFluidInTankUpdate) {
-            lastFluidInTankUpdate = time;
-            tank.setFluid(new FluidStack(f, Math.max(1,tank.getFluidAmount())));
-            setRequiresMeshUpdate();
-        }
-        // Detect a server reset by checking for an abnormally large time drop
-        if (time < lastFluidInTankUpdate - 1_000_000_000L) { // 1 second in nanoseconds
-            lastFluidInTankUpdate = Long.MIN_VALUE; // Reset so we start accepting new updates again
-        }
-    }
-
-    long lastFluidAmountUpdate = Long.MIN_VALUE;
-
-    public void setFluidAmountInTank(int amount, long time) {
-        if (time > lastFluidAmountUpdate) {
-            lastFluidAmountUpdate = time;
-            Fluid myFluid = tank.getFluid().getFluid();
-            if (myFluid == Fluids.EMPTY && amount > 0) myFluid = Fluids.WATER;
-            if (amount <= 0) myFluid = Fluids.EMPTY;
-            tank.setFluid(new FluidStack(myFluid, amount));
-            setRequiresMeshUpdate();
-        }
-        // Detect a server reset by checking for an abnormally large time drop
-        if (time < lastFluidAmountUpdate - 1_000_000_000L) { // 1 second in nanoseconds
-            lastFluidAmountUpdate = Long.MIN_VALUE; // Reset so we start accepting new updates again
-        }
-    }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
 
-        tank.readFromNBT(registries, tag.getCompound("mainTank"));
+        handleUpdateTag(tag.getCompound("main"), registries);
 
         for (Direction direction : Direction.values()) {
             PipeConnection conn = connections.get(direction);
             conn.loadAdditional(registries, tag);
         }
-
-
-        tankEast = tag.getBoolean("tankEast");
-        tankSouth = tag.getBoolean("tankSouth");
-        tankNorth = tag.getBoolean("tankNorth");
-        tankWest = tag.getBoolean("tankWest");
+        myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
 
-        CompoundTag tankTag = new CompoundTag();
-        tank.writeToNBT(registries, tankTag);
-        tag.put("mainTank", tankTag);
+        tag.put("main", getUpdateTag(registries));
 
         for (Direction direction : Direction.values()) {
             PipeConnection conn = connections.get(direction);
             conn.saveAdditional(registries, tag);
         }
+        myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+    }
+
+
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        if (!tank.isEmpty()) {
+            tag.put("fluid", tank.getFluid().save(registries));
+        }
+
+        if(crankShaftSide != null)
+            tag.putInt("crankShaftSide", crankShaftSide.ordinal());
 
         tag.putBoolean("tankNorth", tankNorth);
         tag.putBoolean("tankEast", tankEast);
         tag.putBoolean("tankSouth", tankSouth);
         tag.putBoolean("tankWest", tankWest);
+
+        return tag;
+    }
+
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+
+        FluidStack newFluid = FluidStack.EMPTY;
+        if (tag.contains("fluid")) {
+            newFluid = (FluidStack.parse(registries, tag.getCompound("fluid")).get());
+        }
+        if (!FluidStack.isSameFluidSameComponents(newFluid, tank.getFluid()) || tank.getFluidAmount() != newFluid.getAmount()) {
+            setRequiresMeshUpdate();
+        }
+        tank.setFluid(newFluid);
+
+        crankShaftSide = null;
+        if(tag.contains("crankShaftSide"))
+            crankShaftSide = Direction.values()[tag.getInt("crankShaftSide")];
+
+        tankEast = tag.getBoolean("tankEast");
+        tankSouth = tag.getBoolean("tankSouth");
+        tankNorth = tag.getBoolean("tankNorth");
+        tankWest = tag.getBoolean("tankWest");
+
+    }
+
+    AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMaxStress() {
+            return 9999;
+        }
+
+        @Override
+        public double getInertia(Direction direction) {
+            return 1;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction direction) {
+            return 1;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction direction) {
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@Nullable Direction direction) {
+            return 1;
+        }
+    };
+
+    @Override
+    public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
+        if (crankShaftSide == null) return null;
+        if (direction != crankShaftSide) return null;
+        return myMechanicalBlock;
+    }
+
+    @Override
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
+
+    @Override
+    public List<CrankShaftType> getConnectableCrankshafts() {
+        return List.of(CrankShaftType.SMALL);
     }
 
     public static class FluidRenderData {
@@ -423,7 +457,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver {
         int color;
 
         public FluidRenderData() {
-            if(FMLEnvironment.dist == Dist.CLIENT) {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
                 updateSprites(Fluids.WATER);
             }
         }

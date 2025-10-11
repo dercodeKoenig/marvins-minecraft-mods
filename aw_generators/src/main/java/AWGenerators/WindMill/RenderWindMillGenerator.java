@@ -4,9 +4,9 @@ import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AWGenerators.Main;
-import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -18,7 +18,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -51,11 +50,12 @@ public class RenderWindMillGenerator implements BlockEntityRenderer<EntityWindMi
         for (int p = 0; p < size; p++) {
             for (int n = 0; n < 4; n++) {
                 for (Face i : model.groupObjects.get("blade").faces) {
-                    model.resetTransformations("blade");
-                    model.rotateWorldSpace("blade", new Vector3f(0, 0, 1), 90f * n);
-                    model.translateWorldSpace("blade", new Vector3f(0, 1 * p, 0));
-                    model.applyTransformations("blade");
-                    i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+                    PoseStack poseStack = new PoseStack();
+                    // Apply the equivalent transformations
+                    poseStack.mulPose(Axis.ZP.rotationDegrees(90f * n));  // rotate around Z
+                    poseStack.translate(0.0, 1.0f * p, 0.0);              // move upward by p
+
+                    i.addFaceForRender(poseStack, b, light, 0, 0xffffffff);
                 }
             }
         }
