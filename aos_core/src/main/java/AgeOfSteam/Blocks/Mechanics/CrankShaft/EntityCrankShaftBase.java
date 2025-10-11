@@ -86,8 +86,8 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
 
                 for (Direction i : connections.keySet()) {
                     double rotationToOutside = (currentRotation - rotationoffset * 90) * getRotationMultiplierToOutside(i);
-                    if(connections.get(i).me.getBlockEntity() instanceof ICrankShaftConnector)
-                         rotationToOutside = (currentRotation) * getRotationMultiplierToOutside(i);
+                    if (connections.get(i).me.getBlockEntity() instanceof ICrankShaftConnector)
+                        rotationToOutside = (currentRotation) * getRotationMultiplierToOutside(i);
                     connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }
@@ -116,7 +116,7 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
     }
 
 
-    public void tick(){
+    public void tick() {
         myMechanicalBlock.mechanicalTick();
     }
 
@@ -131,15 +131,21 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
             Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
             if (side.getAxis() == blockAxis) {
                 return myMechanicalBlock;
-            } else if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ICrankShaftConnector icc) {
-                return myMechanicalBlock;
+            } else if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ICrankShaftConnector icc && icc instanceof IMechanicalBlockProvider im) {
+                // the other block needs to confirm that it can actually connect to this crankshaft (getMechanicalBlock(side.getOpposite()) != null)
+                // for example the sieve is a crankShaftConnector but only connects to crankshaft at a very specific direction
+                // usually the interface default should also scan the other block for if it can connect to this block but just to make sure i do it here too
+                if (im.getMechanicalBlock(side.getOpposite()) != null)
+                    return myMechanicalBlock;
             }
         }
         return null;
     }
 
     @Override
-    public BlockEntity getBlockEntity(){return this;}
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
 
 
     public void incRotationOffset() {
