@@ -2,43 +2,20 @@ package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.network.PacketBlockEntity;
-import advRocketry.Blocks.LaunchPad;
-import advRocketry.Blocks.StructureTower;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
-import advRocketry.Registry;
-import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
+import static advRocketry.Registry.ENTITY_GUIDANCE_COMPUTER;
 
 public class EntityGuidanceComputer extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
@@ -46,7 +23,7 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
     public ItemStackHandler itemStackHandler;
 
     public EntityGuidanceComputer(BlockPos pos, BlockState blockState) {
-        super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+        super(ENTITY_GUIDANCE_COMPUTER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
         itemStackHandler = new ItemStackHandler(1);
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0,itemStackHandler,0,0,1,guiHandler,50,20));
