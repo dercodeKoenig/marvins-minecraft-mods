@@ -1,5 +1,6 @@
 package BetterPipes.Pipe;
 
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -155,7 +156,11 @@ public class BlockPipe extends Block implements EntityBlock {
         }
 
         BlockEntity other = level.getBlockEntity(neighborPos);
-        if(other instanceof EntityCrankShaftBase cs && cs.myType== ICrankShaftConnector.CrankShaftType.LARGE){
+        if(other instanceof EntityCrankShaftBase cs &&
+                cs.myType== ICrankShaftConnector.CrankShaftType.LARGE&&
+                cs.getMechanicalBlock(direction.getOpposite()) != null &&
+                cs.getBlockEntity().getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != direction.getAxis()
+        ){
             if(((EntityPipe) tile).crankShaftSide == null)
                 ((EntityPipe) tile).crankShaftSide = direction;
         }else{
