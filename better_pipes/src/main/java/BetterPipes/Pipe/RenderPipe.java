@@ -2054,9 +2054,9 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                 }
             }
             Matrix4f m2 = new Matrix4f(m1);
-            float crankshaftR = 0.11f;
+            float crankshaftR = 0.07f;
             double targetHeight = 0;
-            double armLength = 1;
+            double armLength = 0.8;
             float XRotationMultiplier = 1;
             if (tile.crankShaftSide == Direction.SOUTH) XRotationMultiplier = -1;
             if (tile.crankShaftSide == Direction.WEST) XRotationMultiplier = -1;
@@ -2081,7 +2081,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             shader.clear();
 
             m2 = new Matrix4f(m1);
-            float pumpCubeTargetX = -0.06f + (float) (translationX + Math.cos(b) * armLength);
+            float pumpCubeTargetX = 0.1f + (float) (translationX + Math.cos(b) * armLength);
             m2.translate(pumpCubeTargetX, 0, 0);
             m2.scale(0.98f, 0.98f, 0.98f);
 

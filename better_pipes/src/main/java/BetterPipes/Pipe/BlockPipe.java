@@ -157,7 +157,7 @@ public class BlockPipe extends Block implements EntityBlock {
 
         BlockEntity other = level.getBlockEntity(neighborPos);
         if(other instanceof EntityCrankShaftBase cs &&
-                cs.myType== ICrankShaftConnector.CrankShaftType.LARGE&&
+                cs.myType== ICrankShaftConnector.CrankShaftType.SMALL&&
                 cs.getMechanicalBlock(direction.getOpposite()) != null &&
                 cs.getBlockEntity().getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != direction.getAxis()
         ){

@@ -258,7 +258,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         // extract from a neighbor fluid handler
                         // this runs every tick
                         int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
-                        toDrain = Math.abs(toDrain) * 2;
+                        toDrain = Math.abs(toDrain) * 1;
                         FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
                         int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
                         int toTransfer = Math.min(filled, drained.getAmount());
