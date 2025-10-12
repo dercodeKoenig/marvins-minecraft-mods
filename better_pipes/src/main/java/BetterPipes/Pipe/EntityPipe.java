@@ -153,7 +153,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         if(crankShaftSide != null && hasAnyExtractionConnections){
             double otherRotation = ((IMechanicalBlockProvider)level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
             if(Math.abs(myMechanicalBlock.currentRotation - otherRotation)>0.1){
-                myMechanicalBlock.mechanicalOnload();
+                myMechanicalBlock.currentRotation = otherRotation;
             }
         }
 
