@@ -1,5 +1,6 @@
 package AWGenerators.Config;
 
+import ARLib.network.SimpleNetworkPacket;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -14,7 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
-public class Config {
+public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     public static Config INSTANCE = loadConfig();
 
@@ -40,17 +41,20 @@ public class Config {
     public double windmill_maxStress = 100000;
     public int windmill_maxSize = 18;
 
+    public static String ConfigPacketId = "aw_generators_config_sync";
+
 
     public void SyncConfig(ServerPlayer p) {
         if (p != null) {
-            PacketDistributor.sendToPlayer(p, new PacketConfigSync(new Gson().toJson(this)));
+            PacketDistributor.sendToPlayer(p, new SimpleNetworkPacket(ConfigPacketId, new Gson().toJson(this)));
         }
     }
 
-    public void loadConfig(String configString) {
-        Config.INSTANCE = new Gson().fromJson(configString, Config.class);
-        System.out.println("load config:" + configString);
+    public void readClient(String data) {
+        Config.INSTANCE = new Gson().fromJson(data, Config.class);
+        System.out.println("load config:" + data);
     }
+
 
     public static Config loadConfig() {
         String filename = "aw_generators_main_config.json";
@@ -58,18 +62,17 @@ public class Config {
         Path filePath = configDir.resolve(filename);
         try {
             // Create the config directory if it doesn't exist
+            if (!Files.exists(configDir)) {
+                Files.createDirectories(configDir);
+            }
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
                 Files.write(filePath, new GsonBuilder().setPrettyPrinting().create().toJson(new Config()).getBytes(StandardCharsets.UTF_8));
             }
             // Load JSON from the file
             String jsonContent = Files.readString(filePath);
-            Gson gson = new Gson();
-            return gson.fromJson(jsonContent, Config.class);
-        } catch (JsonSyntaxException e) {
-            System.err.println("Failed to parse config JSON");
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+            return new Gson().fromJson(jsonContent, Config.class);
+        } catch (JsonSyntaxException | IOException e) {
             throw new RuntimeException(e);
         }
     }
