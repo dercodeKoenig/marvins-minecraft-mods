@@ -92,6 +92,9 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
         Path filePath = configDir.resolve(filename);
         try {
             // Create the config directory if it doesn't exist
+            if (!Files.exists(configDir)) {
+                Files.createDirectories(configDir);
+            }
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
                 Files.write(filePath, new GsonBuilder().setPrettyPrinting().create().toJson(new Config()).getBytes(StandardCharsets.UTF_8));
@@ -100,10 +103,7 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
             String jsonContent = Files.readString(filePath);
             Gson gson = new Gson();
             return gson.fromJson(jsonContent, Config.class);
-        } catch (JsonSyntaxException e) {
-            System.err.println("Failed to parse config JSON");
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (JsonSyntaxException | IOException e) {
             throw new RuntimeException(e);
         }
     }

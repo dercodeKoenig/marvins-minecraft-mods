@@ -8,42 +8,5 @@
   "_comment_k": "decrease k to make it work faster in manual mode. very low values(<1) may cause some problems in acceleration calculations",
   "k": 4.0,
   "_comment_clickForce": "The Force that the player will apply to the sieve for 5 ticks after click in manual mode",
-  "clickForce": 50,
-
-
-  "_comment_recipe1": "This config file will load first. You can define recipes and the time/resistance for every mesh-input pair",
-  "_comment_recipe1.1": "Additional recipes from the json files will add the outputs to existing recipes if the mesh-input pair already exists.",
-  "_comment_recipe1.2": "If a recipe for a mesh-input pair already exists, the time and resistance will be ignored and the values from the first loaded recipe will be used.",
-  "_comment_recipe2": "For Outputs you can have as many items as you want where p is the probability to create the output and amount is the number of rolls (if p>=1, amount is the number of outputs)",
-
-  "_comment_recipe3" : "I will just define time/resistance for some inputs now - this will cause it to create recipes with empty outputs, but the other json files will add outputs to the defined inputs:",
-  "_comment_recipe3.1" : "Because I define time/resistance for some input/mesh combinations here, all recipes that use this input/mesh combination will have their time/resistance ignored and the values from this file will be used because it loads first.",
-  "recipes": [
-    {
-      "requiredMesh": "aos_workshop_expansion:string_mesh",
-      "inputItem": {
-        "id": "minecraft:dirt"
-      },
-      "timeRequired": 3.0,
-      "additionalResistance": 15.0
-    },
-
-    {
-      "requiredMesh": "aos_workshop_expansion:string_mesh",
-      "inputItem": {
-        "id": "minecraft:sand"
-      },
-      "timeRequired": 3.0,
-      "additionalResistance": 5.0
-    },
-
-    {
-      "requiredMesh": "aos_workshop_expansion:string_mesh",
-      "inputItem": {
-        "id": "minecraft:gravel"
-      },
-      "timeRequired": 3.0,
-      "additionalResistance": 10.0
-    }
-  ]
+  "clickForce": 50
 }

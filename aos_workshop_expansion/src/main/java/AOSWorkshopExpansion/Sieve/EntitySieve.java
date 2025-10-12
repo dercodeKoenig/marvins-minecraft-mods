@@ -84,26 +84,19 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
     double currentProgress;
     double client_syncedCurrentRecipeTime;
 
-    double click_force = SieveConfig.INSTANCE.clickForce;
-    double k = SieveConfig.INSTANCE.k;
-    int maxStackSizeForSieve = SieveConfig.INSTANCE.inventorySize;
-    int maxStackSizeForSieveHopper = SieveConfig.INSTANCE.inventorySizeHopper;
-
     int ticksRemainingForForce = 0;
-    double myFriction = SieveConfig.INSTANCE.baseResistance;
-    double myInertia = 1;
-    double maxStress = 100;
+    double myFriction = 1;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return 100;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return 1;
         }
 
         @Override
@@ -395,7 +388,7 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
             }
         } else {
             if (ItemStack.isSameItemSameComponents(stack, myInputs)) {
-                int maxStackSize = Math.min(myInputs.getMaxStackSize(), maxStackSizeForSieve);
+                int maxStackSize = Math.min(myInputs.getMaxStackSize(), SieveConfig.INSTANCE.inventorySize);
                 int toAdd = Math.min(maxStackSize - myInputs.getCount(), 1);
                 myInputs.grow(toAdd);
                 stack.shrink(toAdd);
@@ -418,7 +411,7 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
             }
         } else {
             if (ItemStack.isSameItemSameComponents(stack, myHopperInputs)) {
-                int maxStackSize = Math.min(myHopperInputs.getMaxStackSize(), maxStackSizeForSieveHopper);
+                int maxStackSize = Math.min(myHopperInputs.getMaxStackSize(), SieveConfig.INSTANCE.inventorySizeHopper);
                 int toAdd = Math.min(maxStackSize - myHopperInputs.getCount(), 1);
                 myHopperInputs.grow(toAdd);
                 stack.shrink(toAdd);
@@ -477,7 +470,7 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
         if (!level.isClientSide) {
             if (ticksRemainingForForce > 0 && getMechanicalBlock(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) == null) {
                 ticksRemainingForForce--;
-                myForce = click_force - k * myMechanicalBlock.internalVelocity;
+                myForce = SieveConfig.INSTANCE.clickForce - SieveConfig.INSTANCE.k * myMechanicalBlock.internalVelocity;
             } else {
                 myForce = 0;
                 ticksRemainingForForce = 0;

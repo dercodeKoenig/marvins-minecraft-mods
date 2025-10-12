@@ -55,12 +55,11 @@ import static AgeOfSteam.Registry.CASING_SLAB;
 public class EntityWoodMill extends EntityMultiblockMaster implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
-
     public VertexBuffer vertexBuffer_saw;
     public MeshData mesh_saw;
     public VertexBuffer vertexBuffer_arm;
     public MeshData mesh_arm;
-public int lastLight;
+    public int lastLight;
 
     // aw npc compat
     public static Set<BlockIdentifier> knownBlockEntities = new HashSet<>();
@@ -76,21 +75,18 @@ public int lastLight;
 
     public List<workingRecipe> currentWorkingRecipes = new ArrayList<>();
 
-    double myFriction = WoodMillConfig.INSTANCE.baseResistance;
-    double myInertia = 1;
-    double maxStress = WoodMillConfig.INSTANCE.maxStress;
-
+    double myFriction = 1;
     double timeRequired = 50;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return WoodMillConfig.INSTANCE.maxStress;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return 1;
         }
 
         @Override

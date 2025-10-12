@@ -56,20 +56,18 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public GuiHandlerBlockEntity guiHandler;
 
     public int ticksRemainingForForce = 0;
-    double myFriction = SpinningWheelConfig.INSTANCE.baseResistance;
-    double myInertia = 10;
-    double maxStress = 100;
+    double myFriction = 1;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return 100;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return 10;
         }
 
         @Override
