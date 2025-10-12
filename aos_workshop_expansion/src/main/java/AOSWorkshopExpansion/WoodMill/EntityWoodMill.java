@@ -4,6 +4,7 @@ import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ARLib.utils.RecipePartWithProbability;
@@ -62,7 +63,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
 public int lastLight;
 
     // aw npc compat
-    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public static Set<BlockIdentifier> knownBlockEntities = new HashSet<>();
     public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
 
 
@@ -156,7 +157,7 @@ public int lastLight;
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, myOnloadTag));
         }
         if (!level.isClientSide) {
-            knownBlockEntities.add(getBlockPos());
+            knownBlockEntities.add(new BlockIdentifier(level, getBlockPos()));
         }
         super.onLoad();
     }
@@ -164,7 +165,7 @@ public int lastLight;
     @Override
     public void setRemoved() {
         if (!level.isClientSide) {
-            knownBlockEntities.remove(getBlockPos());
+            knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
         }
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {

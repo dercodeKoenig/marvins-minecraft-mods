@@ -50,25 +50,25 @@ public class myPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtime = jeiRuntime;
-        SieveConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+        SieveConfig.jeiRunnableOnConfigLoad = new Runnable() {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(SieveCategory.recipeType, SieveConfig.INSTANCE.recipes);
             }
         };
-        SpinningWheelConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+        SpinningWheelConfig.jeiRunnableOnConfigLoad = new Runnable() {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(SpinningWheelCategory.recipeType, SpinningWheelConfig.INSTANCE.recipes);
             }
         };
-        WoodMillConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+        WoodMillConfig.jeiRunnableOnConfigLoad = new Runnable() {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(WoodMillCategory.recipeType, WoodMillConfig.INSTANCE.recipes);
             }
         };
-        MillStoneConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+        MillStoneConfig.jeiRunnableOnConfigLoad = new Runnable() {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(MillStoneCategory.recipeType, MillStoneConfig.INSTANCE.recipes);
