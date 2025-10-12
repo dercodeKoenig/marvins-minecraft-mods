@@ -1987,8 +1987,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
         if (tile.requiresMeshUpdate || packedLight != tile.lastLight) {
 
-            tile.lastLight = packedLight;
-            tile.requiresMeshUpdate = false;
+            // updae the fluid buffer on light change or fluid change
             BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
             RenderPipe.renderFluids(tile, bufferBuilder, packedLight, 0);
             tile.mesh = bufferBuilder.build();
@@ -1997,35 +1996,40 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                 tile.vertexBuffer.upload(tile.mesh);
             }
 
-            ByteBufferBuilder byteBufferBuilder1 = new ByteBufferBuilder(1024);
-            bufferBuilder = new BufferBuilder(byteBufferBuilder1, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-            for (Face i : pipe_pump_arm.groupObjects.get("Cube").faces) {
-                i.addFaceForRender(new PoseStack(), bufferBuilder, packedLight, 0, 0xffffffff);
-            }
-            MeshData m1 = bufferBuilder.build();
-            tile.vertexBufferPumpCube.bind();
-            tile.vertexBufferPumpCube.upload(m1);
-            byteBufferBuilder1.close();
+            // update the arm only when light changes
+            if (tile.lastLight != packedLight) {
+                ByteBufferBuilder byteBufferBuilder1 = new ByteBufferBuilder(1024);
+                bufferBuilder = new BufferBuilder(byteBufferBuilder1, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+                for (Face i : pipe_pump_arm.groupObjects.get("Cube").faces) {
+                    i.addFaceForRender(new PoseStack(), bufferBuilder, packedLight, 0, 0xffffffff);
+                }
+                MeshData m1 = bufferBuilder.build();
+                tile.vertexBufferPumpCube.bind();
+                tile.vertexBufferPumpCube.upload(m1);
+                byteBufferBuilder1.close();
 
-            ByteBufferBuilder byteBufferBuilder2 = new ByteBufferBuilder(1024);
-            bufferBuilder = new BufferBuilder(byteBufferBuilder2, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-            for (Face i : pipe_pump_arm.groupObjects.get("Arm").faces) {
-                i.addFaceForRender(new PoseStack(), bufferBuilder, packedLight, 0, 0xffffffff);
+                ByteBufferBuilder byteBufferBuilder2 = new ByteBufferBuilder(1024);
+                bufferBuilder = new BufferBuilder(byteBufferBuilder2, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+                for (Face i : pipe_pump_arm.groupObjects.get("Arm").faces) {
+                    i.addFaceForRender(new PoseStack(), bufferBuilder, packedLight, 0, 0xffffffff);
+                }
+                MeshData m2 = bufferBuilder.build();
+                tile.vertexBufferCrankshaftConnection.bind();
+                tile.vertexBufferCrankshaftConnection.upload(m2);
+                byteBufferBuilder2.close();
             }
-            MeshData m2 = bufferBuilder.build();
-            tile.vertexBufferCrankshaftConnection.bind();
-            tile.vertexBufferCrankshaftConnection.upload(m2);
-            byteBufferBuilder2.close();
+            tile.lastLight = packedLight;
+            tile.requiresMeshUpdate = false;
         }
         LEQUAL_DEPTH_TEST.setupRenderState();
         LIGHTMAP.setupRenderState();
 
-        if (tile.crankShaftSide != null) {
+        if (tile.crankShaftSide != null && tile.hasOneOrMoreExtractionConnections()) {
             // below you will see some complicated transformations to get the pump arm render correctly to the crankshaft
             // it took some trial and error to get the params right. I originally designed this for the sieve block in my other mod and just copied the logic.
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
             ShaderInstance shader = RenderSystem.getShader();
-            RenderSystem.setShaderTexture(0, ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_connections.png"));
+            RenderSystem.setShaderTexture(0, ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_structure.png"));
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
@@ -2081,9 +2085,10 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             shader.clear();
 
             m2 = new Matrix4f(m1);
-            float pumpCubeTargetX = 0.085f + (float) (translationX + Math.cos(b) * armLength);
+            float pumpCubeTargetX = -0.05f + (float) (translationX + Math.cos(b) * armLength);
             m2.translate(pumpCubeTargetX, 0, 0);
-            m2.scale(0.98f, 0.98f, 0.98f);
+            //m2.scale(1.15f, 0.98f, 0.98f);
+            m2.scale(1.15f, 0.75f, 0.75f);
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.apply();
