@@ -161,8 +161,9 @@ public class BlockPipe extends Block implements EntityBlock {
                 cs.getMechanicalBlock(direction.getOpposite()) != null &&
                 cs.getBlockEntity().getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != direction.getAxis()
         ){
-            if(((EntityPipe) tile).crankShaftSide == null)
+            if(((EntityPipe) tile).crankShaftSide == null) {
                 ((EntityPipe) tile).crankShaftSide = direction;
+            }
         }else{
             if(((EntityPipe) tile).crankShaftSide == direction)
                 ((EntityPipe) tile).crankShaftSide = null;

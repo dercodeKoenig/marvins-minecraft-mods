@@ -231,21 +231,18 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                                             pipeconn.fill(conn.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
                                         }
                                     } else {
-                                        if (myMechanicalBlock.internalVelocity == 0) {
-                                            // for others, output every tick
-                                            // but do not output if we are powered, powered = extract
-                                            double transferRateMultiplier = (double) conn.lastFill / CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                            int toTransfer = (int) (CONNECTION_MAX_OUTPUT_RATE * transferRateMultiplier);
-                                            if (toTransfer > CONNECTION_MAX_OUTPUT_RATE)
-                                                toTransfer = CONNECTION_MAX_OUTPUT_RATE + (int) (transferRateMultiplier * CONNECTION_MAX_OUTPUT_RATE / 10f);
-                                            if (toTransfer == 0 && conn.ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS / 2)
-                                                toTransfer = 1;
+                                        // for others, output every tick
+                                        double transferRateMultiplier = (double) conn.lastFill / CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
+                                        int toTransfer = (int) (CONNECTION_MAX_OUTPUT_RATE * transferRateMultiplier);
+                                        if (toTransfer > CONNECTION_MAX_OUTPUT_RATE)
+                                            toTransfer = CONNECTION_MAX_OUTPUT_RATE + (int) (transferRateMultiplier * CONNECTION_MAX_OUTPUT_RATE / 10f);
+                                        if (toTransfer == 0 && conn.ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS / 2)
+                                            toTransfer = 1;
 
-                                            FluidStack drained = conn.tank.drain(toTransfer, IFluidHandler.FluidAction.SIMULATE);
-                                            int filled = conn.neighborFluidHandler().fill(drained, IFluidHandler.FluidAction.SIMULATE);
-                                            toTransfer = Math.min(filled, toTransfer);
-                                            conn.neighborFluidHandler().fill(conn.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-                                        }
+                                        FluidStack drained = conn.tank.drain(toTransfer, IFluidHandler.FluidAction.SIMULATE);
+                                        int filled = conn.neighborFluidHandler().fill(drained, IFluidHandler.FluidAction.SIMULATE);
+                                        toTransfer = Math.min(filled, toTransfer);
+                                        conn.neighborFluidHandler().fill(conn.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
                                     }
                                 }
                             }
@@ -255,17 +252,18 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
                     IFluidHandler neighbor = conn.neighborFluidHandler();
                     if (neighbor != null && !(neighbor instanceof PipeConnection)) {
-                        // extract from a neighbor fluid handler
-                        // this runs every tick
-                        int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
-                        toDrain = Math.abs(toDrain) * 1;
-                        FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
-                        int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
-                        int toTransfer = Math.min(filled, drained.getAmount());
-                        drained = neighbor.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
-                        conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
-
-                        mechanicalResistance += drained.getAmount();
+                        if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
+                            // extract from a neighbor fluid handler
+                            // this runs every tick
+                            int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
+                            toDrain = Math.abs(toDrain) * 1;
+                            FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
+                            int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
+                            int toTransfer = Math.min(filled, drained.getAmount());
+                            drained = neighbor.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
+                            conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
+                            mechanicalResistance += drained.getAmount();
+                        }
                     }
 
                     if (isUpdateTick) {
@@ -303,6 +301,16 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                 }
             }
         }
+    }
+
+    public boolean hasOneOrMoreExtractionConnections() {
+        for (Direction i : Direction.values()) {
+            BlockPipe.ConnectionState face = getBlockState().getValue(BlockPipe.connections.get(i));
+            if (face == BlockPipe.ConnectionState.EXTRACTION) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void toggleExtractionMode(Direction hitFace) {
@@ -452,7 +460,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
         if (crankShaftSide == null) return null;
         if (direction != crankShaftSide) return null;
-        return myMechanicalBlock;
+        // we need to have 1 or more connections in extraction mode to use the pump mode
+        if (hasOneOrMoreExtractionConnections())
+            return myMechanicalBlock;
+        return null;
     }
 
     @Override
