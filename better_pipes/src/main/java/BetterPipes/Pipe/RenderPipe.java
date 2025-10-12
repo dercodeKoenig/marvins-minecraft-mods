@@ -2085,10 +2085,10 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             shader.clear();
 
             m2 = new Matrix4f(m1);
-            float pumpCubeTargetX = -0.05f + (float) (translationX + Math.cos(b) * armLength);
+            float pumpCubeTargetX = -0.12f + (float) (translationX + Math.cos(b) * armLength)*0.6f; // this will reduce the movement of the pump cube bc it looks better
             m2.translate(pumpCubeTargetX, 0, 0);
             //m2.scale(1.15f, 0.98f, 0.98f);
-            m2.scale(1.15f, 0.75f, 0.75f);
+            m2.scale(1f, 0.75f, 0.75f);
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.apply();
