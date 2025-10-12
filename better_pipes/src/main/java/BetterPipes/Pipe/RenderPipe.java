@@ -2081,7 +2081,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             shader.clear();
 
             m2 = new Matrix4f(m1);
-            float pumpCubeTargetX = 0.1f + (float) (translationX + Math.cos(b) * armLength);
+            float pumpCubeTargetX = 0.085f + (float) (translationX + Math.cos(b) * armLength);
             m2.translate(pumpCubeTargetX, 0, 0);
             m2.scale(0.98f, 0.98f, 0.98f);
 

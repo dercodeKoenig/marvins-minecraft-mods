@@ -126,17 +126,15 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
+        if(side == Direction.DOWN)return null; // can not connect down
         BlockState myState = getBlockState();
         if (myState.getBlock() instanceof BlockCrankShaftBase) {
             Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
             if (side.getAxis() == blockAxis) {
-                return myMechanicalBlock;
-            } else if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ICrankShaftConnector icc && icc instanceof IMechanicalBlockProvider im) {
-                // the other block needs to confirm that it can actually connect to this crankshaft (getMechanicalBlock(side.getOpposite()) != null)
-                // for example the sieve is a crankShaftConnector but only connects to crankshaft at a very specific direction
-                // usually the interface default should also scan the other block for if it can connect to this block but just to make sure i do it here too
-                if (im.getMechanicalBlock(side.getOpposite()) != null)
-                    return myMechanicalBlock;
+                return myMechanicalBlock; // connectable by axis
+            } else if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ICrankShaftConnector icc) {
+                return myMechanicalBlock; // connectable by crankshaft to crankshaftConnectors
+                // Note: connectable != connected. the other block will also verify if it is actually connected
             }
         }
         return null;
