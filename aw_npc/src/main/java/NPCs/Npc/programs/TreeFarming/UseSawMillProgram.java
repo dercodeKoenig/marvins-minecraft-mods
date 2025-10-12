@@ -3,6 +3,7 @@ package NPCs.Npc.programs.TreeFarming;
 import AOSWorkshopExpansion.WoodMill.EntityWoodMill;
 import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
 import ARLib.multiblockCore.BlockMultiblockMaster;
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePartWithProbability;
 import NPCs.Npc.WorkerNPC;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -270,7 +272,12 @@ public class UseSawMillProgram {
             //System.out.println(takeOutput+":"+canPutInputsFromFarm+":"+canPutInputsFromInventory);
             return hasWork;
         } else {
-            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityWoodMill.knownBlockEntities, farm.getBlockPos().getCenter())) {
+            List<BlockPos> knownSawmills = new ArrayList<>();
+            for(BlockIdentifier identifier : EntityWoodMill.knownBlockEntities){
+                if(identifier.level == worker.level())
+                    knownSawmills.add(identifier.pos);
+            }
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(knownSawmills, farm.getBlockPos().getCenter())) {
                 if (Utils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useWoodmillsInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);

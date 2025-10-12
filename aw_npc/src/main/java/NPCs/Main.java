@@ -44,7 +44,7 @@ public class Main {
         modEventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
-        NeoForge.EVENT_BUS.addListener(TownHallData::onLevelLoad);
+        NeoForge.EVENT_BUS.addListener(TownHallData::onServerStarting);
 
         NeoForge.EVENT_BUS.addListener(HostileEntities::onEntityJoin);
 

@@ -158,12 +158,12 @@ public class TreeFarmingProgram {
             // lock the target so no other worker goes there
             lockTargetPosition();
 
-            // make sure I have a hoe in inventory
-            int takeHoeExit = runTakeAxeFromFarmAnyInventory(farm);
-            if (takeHoeExit == SUCCESS_STILL_RUNNING){
+            // make sure I have a axe in inventory
+            int takeAxeExit = runTakeAxeFromFarmAnyInventory(farm);
+            if (takeAxeExit == SUCCESS_STILL_RUNNING){
                 return SUCCESS_STILL_RUNNING;
             }
-            if (takeHoeExit == EXIT_FAIL) {
+            if (takeAxeExit == EXIT_FAIL) {
                 recalculateHasWork(farm);
                 return EXIT_FAIL;
             }

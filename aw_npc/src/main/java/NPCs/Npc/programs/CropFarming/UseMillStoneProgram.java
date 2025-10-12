@@ -2,7 +2,9 @@ package NPCs.Npc.programs.CropFarming;
 
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.MillStone.MillStoneConfig;
+import AOSWorkshopExpansion.WoodMill.EntityWoodMill;
 import ARLib.multiblockCore.BlockMultiblockMaster;
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.ItemUtils;
 import NPCs.Npc.WorkerNPC;
 import NPCs.Utils;
@@ -14,7 +16,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 import static NPCs.Utils.*;
@@ -259,7 +263,12 @@ public class UseMillStoneProgram {
             }
             return hasWork;
         } else {
-            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(EntityMillStone.knownBlockEntities, farm.getBlockPos().getCenter())) {
+            List<BlockPos> knownMillStones = new ArrayList<>();
+            for(BlockIdentifier identifier : EntityMillStone.knownBlockEntities){
+                if(identifier.level == worker.level())
+                    knownMillStones.add(identifier.pos);
+            }
+            for (BlockPos p : Utils.sortBlockPosByDistanceToVec(knownMillStones, farm.getBlockPos().getCenter())) {
                 if (Utils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useMillStonesInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);
