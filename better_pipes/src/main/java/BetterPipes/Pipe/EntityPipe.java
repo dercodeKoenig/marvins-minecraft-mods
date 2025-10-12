@@ -85,6 +85,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     boolean tankSouth = false;
 
     Direction crankShaftSide = null;
+    boolean hasAnyExtractionConnections = false;
 
     double mechanicalResistance = 1;
 
@@ -138,6 +139,23 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+
+        hasAnyExtractionConnections = false;
+        for (Direction i : Direction.values()) {
+            BlockPipe.ConnectionState face = getBlockState().getValue(BlockPipe.connections.get(i));
+            if (face == BlockPipe.ConnectionState.EXTRACTION) {
+                hasAnyExtractionConnections = true;
+                break;
+            }
+        }
+
+        // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
+        if(crankShaftSide != null && hasAnyExtractionConnections){
+            double otherRotation = ((IMechanicalBlockProvider)level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
+            if(Math.abs(myMechanicalBlock.currentRotation - otherRotation)>0.1){
+                myMechanicalBlock.mechanicalOnload();
+            }
+        }
 
         // this is because for some reason minecraft stops updating the sprite
         // so i do it every tick
@@ -303,16 +321,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
     }
 
-    public boolean hasOneOrMoreExtractionConnections() {
-        for (Direction i : Direction.values()) {
-            BlockPipe.ConnectionState face = getBlockState().getValue(BlockPipe.connections.get(i));
-            if (face == BlockPipe.ConnectionState.EXTRACTION) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void toggleExtractionMode(Direction hitFace) {
         BlockState state = getBlockState();
         if (state.getValue(BlockPipe.connections.get(hitFace)) == BlockPipe.ConnectionState.CONNECTED) {
@@ -458,11 +466,16 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
-        if (crankShaftSide == null) return null;
-        if (direction != crankShaftSide) return null;
+        if (crankShaftSide == null){
+            return null;
+        }
+        if (direction != crankShaftSide){
+            return null;
+        }
         // we need to have 1 or more connections in extraction mode to use the pump mode
-        if (hasOneOrMoreExtractionConnections())
+        if (hasAnyExtractionConnections) {
             return myMechanicalBlock;
+        }
         return null;
     }
 

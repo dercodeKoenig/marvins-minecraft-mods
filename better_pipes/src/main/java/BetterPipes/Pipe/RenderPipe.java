@@ -2024,7 +2024,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         LEQUAL_DEPTH_TEST.setupRenderState();
         LIGHTMAP.setupRenderState();
 
-        if (tile.crankShaftSide != null && tile.hasOneOrMoreExtractionConnections()) {
+        if (tile.crankShaftSide != null && tile.hasAnyExtractionConnections) {
             // below you will see some complicated transformations to get the pump arm render correctly to the crankshaft
             // it took some trial and error to get the params right. I originally designed this for the sieve block in my other mod and just copied the logic.
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
