@@ -162,7 +162,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public float getMass(){
         return 0;
     }
-    public float getAcceleration(){
+    public float getMaxAcceleration(){
         return 0;
     }
 
