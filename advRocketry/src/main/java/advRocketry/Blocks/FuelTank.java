@@ -19,6 +19,10 @@ public class FuelTank extends Block {
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.DOWN, false).setValue(BlockStateProperties.UP, false));
     }
 
+    public int getFuelCapacity(){
+        return 10000;
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.DOWN);

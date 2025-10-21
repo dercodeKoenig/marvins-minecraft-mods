@@ -2,12 +2,14 @@ package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
 import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleFluidTankDisplay;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.Blocks.FuelTank;
 import advRocketry.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -31,6 +33,8 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
@@ -42,12 +46,17 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
     public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
+    public FluidTank fuelTank = null;
 
     public GuiHandlerEntity guiHandler;
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
         guiHandler = new GuiHandlerEntity(this);
+        blocks = new HashMap<>();
+        blockEntities = new HashMap<>();
+        size = new Vec3i(1,1,1);
+        fuelTank = new FluidTank(0);
     }
 
     public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size) {
@@ -55,6 +64,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         rocket.blockEntities = blockEntities;
         rocket.blocks = blocks;
         rocket.size = size;
+        int fuelCapacity = 0;
+        for (BlockState state : rocket.blocks.values()){
+            if(state.getBlock() instanceof FuelTank fuelTank){
+                fuelCapacity += fuelTank.getFuelCapacity();
+            }
+        }
+        rocket.fuelTank = new FluidTank(fuelCapacity);
         rocket.makeGui();
         return rocket;
     }
@@ -99,23 +115,26 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
     public void makeGui(){
         guiHandler.modules.clear();
+        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1,fuelTank,0,guiHandler,155,10);
+        guiHandler.modules.add(fuelDisplay);
         for (BlockEntity i : blockEntities.values()){
             if(i instanceof EntityGuidanceComputer computer){
-                guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 50,20);
+                guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 10,10);
                 guiHandler.modules.add(chipSlot);
             }
         }
-        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,110,1000,1,0,guiHandler)){
+        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,170,1000,1,0,guiHandler)){
             guiHandler.modules.add(i);
         }
-        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,50,2000,1,0,guiHandler)){
+        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,110,2000,1,0,guiHandler)){
             guiHandler.modules.add(i);
         }
     }
 
     public void openGui() {
         if (level().isClientSide) {
-            guiHandler.openGui(200, 200, true);
+            makeGui();
+            guiHandler.openGui(180, 200, true);
         }
     }
 
@@ -137,6 +156,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         CompoundTag sizeTag = compoundTag.getCompound("size");
         size = new Vec3i(sizeTag.getInt("x"), sizeTag.getInt("y"), sizeTag.getInt("z"));
+
+        fuelTank.readFromNBT(level().registryAccess(),compoundTag.getCompound("fuelTank"));
 
         blocks = new HashMap<>();
         ListTag blockTags = compoundTag.getList("blocks", Tag.TAG_COMPOUND);
@@ -168,6 +189,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         sizeTag.putInt("y", size.getY());
         sizeTag.putInt("z", size.getZ());
         compoundTag.put("size", sizeTag);
+
+        compoundTag.put("fuelTank", fuelTank.writeToNBT(level().registryAccess(),new CompoundTag()));
 
         ListTag blockTags = new ListTag(blocks.size());
         for (BlockPos i : blocks.keySet()) {

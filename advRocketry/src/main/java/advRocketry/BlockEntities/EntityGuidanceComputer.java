@@ -25,23 +25,28 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
     public EntityGuidanceComputer(BlockPos pos, BlockState blockState) {
         super(ENTITY_GUIDANCE_COMPUTER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
-        itemStackHandler = new ItemStackHandler(1);
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(0,itemStackHandler,0,0,1,guiHandler,50,20));
-        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,110,1000,1,0,guiHandler)){
+        itemStackHandler = new ItemStackHandler(1) {
+            @Override
+            protected void onContentsChanged(int slot) {
+                setChanged();
+            }
+        };
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 0, 1, guiHandler, 50, 20));
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 110, 1000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
-        for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,50,2000,1,0,guiHandler)){
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 50, 2000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
 
     }
 
-    public void popInventory(){
+    public void popInventory() {
         if (level.isClientSide) {
         } else {
             for (int i = 0; i < itemStackHandler.getSlots(); i++) {
                 ItemStack stack = itemStackHandler.getStackInSlot(i).copy();
-                ItemEntity stackEntity = new ItemEntity(level,getBlockPos().getX(),getBlockPos().getY()+1,getBlockPos().getZ(),stack);
+                ItemEntity stackEntity = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ(), stack);
                 level.addFreshEntity(stackEntity);
             }
         }
@@ -62,6 +67,7 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         tag.put("inventory", itemStackHandler.serializeNBT(registries));
     }
+
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
@@ -79,6 +85,6 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(200, 140, true);
+            guiHandler.openGui(180, 140, true);
     }
 }
