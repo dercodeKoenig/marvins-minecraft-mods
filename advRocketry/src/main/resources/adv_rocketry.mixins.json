@@ -3,7 +3,9 @@
   "package": "advRocketry.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "LevelMixin"
+    "LevelMixin",
+    "LivingEntityMixin",
+    "ItemEntityMixin"
   ],
   "client": [
     "MixinWorldEffects",

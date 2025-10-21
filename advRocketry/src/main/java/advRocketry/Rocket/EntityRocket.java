@@ -10,6 +10,7 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
+import advRocketry.Blocks.RocketMotor;
 import advRocketry.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -47,6 +48,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3i size;
     public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
     public FluidTank fuelTank = null;
+    private float thrust = -1;
 
     public GuiHandlerEntity guiHandler;
 
@@ -133,7 +135,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void openGui() {
         if (level().isClientSide) {
-            makeGui();
+            //makeGui();
             guiHandler.openGui(180, 200, true);
         }
     }
@@ -142,6 +144,26 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public InteractionResult interact(Player player, InteractionHand hand) {
         openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
+    public float getThrust(){
+        if (thrust >= 0)return thrust;
+        thrust = 0;
+        for(BlockState state : blocks.values()){
+            if(state.getBlock() instanceof RocketMotor motor){
+                thrust+=motor.getThrust();
+            }
+        }
+        return thrust;
+    }
+    public int getFuel(){
+        return fuelTank.getFluidAmount();
+    }
+    public float getMass(){
+        return 0;
+    }
+    public float getAcceleration(){
+        return 0;
     }
 
 
