@@ -49,6 +49,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public BlockPos areaMin;
     public BlockPos areaMax;
 
+    public static int maxSize = 20;
 
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
@@ -74,10 +75,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public Vec3 getLandingPos(@Nullable EntityRocket rocket) {
         if (areaMin == null || areaMax == null) {
             // if there is no launchpad area, the rocket should land just behind the assembler
-            int rocketSize = 16; // assume max size by default
+            int rocketSize = maxSize; // assume max size by default
             if (rocket != null)
                 rocketSize = Math.max(rocket.size.getZ(), rocket.size.getX());
-            int offset = rocketSize / 2 + 2;
+            int offset = rocketSize / 2 + 3;
             Direction launchpadDir = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
             BlockPos landingPos = getBlockPos();
             for (int i = 0; i < offset; i++) {
@@ -129,11 +130,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // try all combinations of left & right positions with a min and max distance
         for (BlockPos p1 : side1) {
             for (BlockPos p2 : side2) {
-                if (p1.distManhattan(p2) < 2 || p1.distManhattan(p2) > 16) {
+                if (p1.distManhattan(p2) < 2 || p1.distManhattan(p2) > maxSize) {
                     continue;
                 }
                 // try all possible depth values
-                for (int depth = 2; depth < 16; depth++) {
+                for (int depth = 2; depth < maxSize; depth++) {
                     BlockPos p3 = p1.offset(facing.getOpposite().getStepX() * depth, facing.getOpposite().getStepY() * depth, facing.getOpposite().getStepZ() * depth);
                     int minX = Math.min(Math.min(p1.getX(), p2.getX()), p3.getX());
                     int minZ = Math.min(Math.min(p1.getZ(), p2.getZ()), p3.getZ());
@@ -202,6 +203,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                                 largestAreaVolume = volume;
                                 areaMin = minPos.above();
                                 areaMax = maxPos;
+
+                                // add 1 block padding to area
+                                areaMin = new BlockPos(areaMin.getX()+1,areaMin.getY(),areaMin.getZ()+1);
+                                areaMax = new BlockPos(areaMax.getX()-1,areaMax.getY(),areaMax.getZ()-1);
                             }
                         }
                     }
@@ -328,15 +333,15 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
         CompoundTag info = new CompoundTag();
-        if (areaMin != null) {
+        if (areaMin != null && areaMax != null) {
             info.putInt("minX", areaMin.getX());
             info.putInt("minY", areaMin.getY());
             info.putInt("minZ", areaMin.getZ());
-        }
-        if (areaMax != null) {
             info.putInt("maxX", areaMax.getX());
             info.putInt("maxY", areaMax.getY());
             info.putInt("maxZ", areaMax.getZ());
+        }else{
+            info.put("noArea", new CompoundTag());
         }
         PacketBlockEntity packet = PacketBlockEntity.getBlockEntityPacket(this, info);
         if (p == null) {
@@ -368,11 +373,15 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        areaMin = null;
+        if (compoundTag.contains("noArea")) {
+            areaMin = null;
+            areaMax = null;
+        }
+
         if (compoundTag.contains("minX") && compoundTag.contains("minY") && compoundTag.contains("minZ"))
             areaMin = new BlockPos(compoundTag.getInt("minX"), compoundTag.getInt("minY"), compoundTag.getInt("minZ"));
 
-        areaMax = null;
+
         if (compoundTag.contains("maxX") && compoundTag.contains("maxY") && compoundTag.contains("maxZ"))
             areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
 

@@ -40,10 +40,10 @@ public class Registry {
     public static final Supplier<Block> FUEL_TANK = BLOCKS.register("fuel_tank", () -> new FuelTank());
 
     public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
-    public static final Supplier<BlockEntityType<?>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
+    public static final Supplier<BlockEntityType<EntityRocketAssembler>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
 
     public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
-    public static final Supplier<BlockEntityType<?>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
+    public static final Supplier<BlockEntityType<EntityGuidanceComputer>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
 
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
             "rocket",

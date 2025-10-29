@@ -1,6 +1,7 @@
 package advRocketry;
 
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
@@ -123,12 +124,13 @@ public class Main {
         }
     }
 
-    public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
-    }
-
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer)x).itemStackHandler));
+    }
+
+    public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
+        event.registerBlockEntityRenderer(Registry.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
     }
 
     private void loadShaders(RegisterShadersEvent event) {
