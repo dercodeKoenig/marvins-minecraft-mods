@@ -13,6 +13,7 @@ import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -448,6 +449,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 currentRocket = rockets.getFirst();
             }
         }
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.putInt("buildProgress", buildProgress);
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        buildProgress = tag.getInt("buildProgress");
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {

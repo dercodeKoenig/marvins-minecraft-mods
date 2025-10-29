@@ -2,6 +2,7 @@ package advRocketry;
 
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
+import advRocketry.Dimension.SpaceTravelManager;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
@@ -92,6 +93,9 @@ public class Main {
     public void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.serverTick(event);
         GlobalTime.tickServer();
+        if(GlobalTime.getGlobalTime() % 200 == 59) { // a random number i choose so not everything happens on a 0 tick because most mods use % x == 0
+            SpaceTravelManager.update(); // remove forced chunks
+        }
     }
 
     public void onCLientTick(ClientTickEvent.Post event) {
@@ -104,6 +108,7 @@ public class Main {
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.init();
+        SpaceTravelManager.init();
     }
 
     public void onServerStop(ServerStoppingEvent event) {
