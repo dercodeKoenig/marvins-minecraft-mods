@@ -172,6 +172,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
         }
+        //setRot(getYRot(),getXRot()+0.5f);
+        //setRot(getYRot()+0.5f,getXRot());
+        //setPos(getX(),80,getZ());
     }
 
     @Override
