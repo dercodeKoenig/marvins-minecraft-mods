@@ -25,7 +25,7 @@ import java.util.Random;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RendererRocket extends EntityRenderer<EntityRocket> {
-    
+
     public RendererRocket(EntityRendererProvider.Context context) {
         super(context);
     }

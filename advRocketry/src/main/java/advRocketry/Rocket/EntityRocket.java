@@ -1,14 +1,12 @@
 package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleFluidTankDisplay;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Registry;
@@ -21,6 +19,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -125,6 +124,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 guiHandler.modules.add(chipSlot);
             }
         }
+
+        guiModuleButton deconstructButton = new guiModuleButton(2,"deconstruct",guiHandler,30,10,60,20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID,"textures/gui/gui_button_red.png"),64,20);
+        guiHandler.modules.add(deconstructButton);
+
         for(GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,170,1000,1,0,guiHandler)){
             guiHandler.modules.add(i);
         }
@@ -176,6 +179,26 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         //setRot(getYRot()+0.5f,getXRot());
         //setPos(getX(),80,getZ());
     }
+
+    public void deconstruct(){
+        BlockPos minPos = blockPosition().subtract(new Vec3i(size.getX() / 2, 0, size.getZ() / 2));
+        for (BlockPos pos : blocks.keySet()){
+            BlockState state = blocks.get(pos);
+            BlockPos target = new BlockPos(
+                    minPos.getX() + pos.getX(),
+                    minPos.getY() + pos.getY(),
+                    minPos.getZ() + pos.getZ()
+            );
+            level().setBlock(target, state, 3);
+            if(blockEntities.get(pos) != null){
+                BlockEntity be =blockEntities.get(pos);
+                CompoundTag tag = be.saveCustomOnly(level().registryAccess());
+                level().getBlockEntity(target).loadCustomOnly(tag, level().registryAccess());
+            }
+        }
+        kill();
+    }
+
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
@@ -248,6 +271,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             CompoundTag info = new CompoundTag();
             info.put("additionalSaveData", additionalSaveData);
             PacketDistributor.sendToPlayer(serverPlayer, PacketEntity.getEntityPacket(this, info));
+        }
+
+        if (compoundTag.contains("guiButtonClick")) {
+            int id = compoundTag.getInt("guiButtonClick");
+            if (id == 2) {
+                deconstruct();
+            }
         }
     }
 

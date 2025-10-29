@@ -1,7 +1,7 @@
 package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleDefaultButton;
+import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Blocks.GuidanceComputer;
@@ -10,17 +10,16 @@ import advRocketry.Blocks.StructureTower;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
-import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.EntityGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -46,7 +45,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     EntityRocket currentRocket;
 
     GuiHandlerBlockEntity guiHandler;
-    guiModuleDefaultButton buildButton;
+    guiModuleButton buildButton;
     guiModuleText statusText;
 
     public BlockPos areaMin;
@@ -60,7 +59,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
-        buildButton = new guiModuleDefaultButton(0, "build", guiHandler, 10, 10, 40, 20);
+        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID,"textures/gui/gui_button_red.png"),64,20);
         statusText = new guiModuleText(1, "status:", guiHandler, 10, 30, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
@@ -233,15 +232,12 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         broadcastInformationToPlayers(null);
         //long t1 = System.currentTimeMillis();
         //System.out.println("scan complete in " +(t1-t0) +"ms");
-        //if (areaMin != null) level.setBlock(areaMin, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
-        //if (areaMax != null) level.setBlock(areaMax, Blocks.DIAMOND_BLOCK.defaultBlockState(), 3);
     }
 
     public constuctionInfo buildRocket(boolean simulate) {
         if (areaMin == null) return new constuctionInfo(false, "invalid launchpad");
         if (areaMax == null) return new constuctionInfo(false, "invalid launchpad");
         if (level.isClientSide) return new constuctionInfo(false, "");
-        ;
 
         EntityGuidanceComputer guidanceComputer = null;
 
