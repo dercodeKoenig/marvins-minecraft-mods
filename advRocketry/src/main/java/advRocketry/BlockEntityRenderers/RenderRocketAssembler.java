@@ -46,23 +46,13 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
 
     public void renderScanTowerLeg(VertexConsumer vertexConsumer, PoseStack stack, float x, float z, float y0, float y1, int packedLight, int towerColor) {
         RenderUtils.renderTopFace(vertexConsumer, stack.last(), x - 0.25f, x + 0.25f, z - 0.25f, z + 0.25f, y1 + 0.25f, 0, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-        RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x - 0.25f, x + 0.25f, z - 0.25f, z + 0.25f, y1 + 0.25f, 0, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-
-        RenderUtils.renderTopFace(vertexConsumer, stack.last(), x - 0.25f, x + 0.25f, z - 0.25f, z + 0.25f, y0 - 0.25f, 0, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x - 0.25f, x + 0.25f, z - 0.25f, z + 0.25f, y0 - 0.25f, 0, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
 
         RenderUtils.renderEastFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, z - 0.25f, z + 0.25f, x + 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-        RenderUtils.renderWestFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, z - 0.25f, z + 0.25f, x + 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-
-        RenderUtils.renderEastFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, z - 0.25f, z + 0.25f, x - 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         RenderUtils.renderWestFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, z - 0.25f, z + 0.25f, x - 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
 
         RenderUtils.renderSouthFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, x - 0.25f, x + 0.25f, z + 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-        RenderUtils.renderNorthFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, x - 0.25f, x + 0.25f, z + 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-
-        RenderUtils.renderSouthFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, x - 0.25f, x + 0.25f, z - 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         RenderUtils.renderNorthFace(vertexConsumer, stack.last(), y0 - 0.25f, y1 + 0.25f, x - 0.25f, x + 0.25f, z - 0.25f, 0, 1, 2 * (y1 - y0) + 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-
     }
 
     @Override
@@ -87,9 +77,9 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         float z1 = relativeMaxCenter.z + 1.25f - e;
         float y0 = relativeMinCenter.y - 1.25f + e;
         //float y1 = relativeMaxCenter.y + 1;
-        float y1 = relativeMinCenter.y - 0.25f + e;
+        float y1 = relativeMinCenter.y - 0.25f + e + 2;
 
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutout(girder));
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(girder));
         // render the 4 legs
         renderScanTowerLeg(vertexConsumer, stack, x0, z0, y0, y1, packedLight, towerColor);
         renderScanTowerLeg(vertexConsumer, stack, x0, z1, y0, y1, packedLight, towerColor);
@@ -101,63 +91,48 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         // render the top/bottom faces of the top connections between the 4 legs
         if (myFacingAxis == Direction.Axis.X) {
             RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z0 - 0.25f, z0 + 0.25f, y1 + 0.25f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z0 - 0.25f, z0 + 0.25f, y1 + 0.25f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z0 - 0.25f, z0 + 0.25f, y1 - 0.125f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z0 - 0.25f, z0 + 0.25f, y1 - 0.125f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
 
             RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z1 - 0.25f, z1 + 0.25f, y1 + 0.25f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z1 - 0.25f, z1 + 0.25f, y1 + 0.25f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z1 - 0.25f, z1 + 0.25f, y1 - 0.125f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0 + 0.25f, x1 - 0.25f, z1 - 0.25f, z1 + 0.25f, y1 - 0.125f, 2 * (x1 - x0) + 1, 1, 0, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         }
         if (myFacingAxis == Direction.Axis.Z) {
             RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0 - 0.25f, x0 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 + 0.25f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0 - 0.25f, x0 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 + 0.25f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0 - 0.25f, x0 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 - 0.125f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0 - 0.25f, x0 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 - 0.125f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
 
             RenderUtils.renderTopFace(vertexConsumer, stack.last(), x1 - 0.25f, x1 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 + 0.25f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x1 - 0.25f, x1 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 + 0.25f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderTopFace(vertexConsumer, stack.last(), x1 - 0.25f, x1 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 - 0.125f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x1 - 0.25f, x1 + 0.25f, z0 + 0.25f, z1 - 0.25f, y1 - 0.125f, 0, 1, 2 * (x1 - x0) + 1, 1, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         }
 
-        vertexConsumer = bufferSource.getBuffer(RenderType.entityCutout(grid));
+        vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(grid));
         // render the long side faces of the top connections between the 4 legs
         if (myFacingAxis == Direction.Axis.X) {
             RenderUtils.renderSouthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z0 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderNorthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z0 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderSouthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z0 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderNorthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z0 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
 
             RenderUtils.renderSouthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z1 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderNorthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z1 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderSouthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z1 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderNorthFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, x0 + 0.25f, x1 - 0.25f, z1 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         }
         if (myFacingAxis == Direction.Axis.Z) {
             RenderUtils.renderEastFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x0 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderWestFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x0 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderEastFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x0 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderWestFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x0 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
 
             RenderUtils.renderEastFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x1 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderWestFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x1 + 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
-            RenderUtils.renderEastFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x1 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
             RenderUtils.renderWestFace(vertexConsumer, stack.last(), y1 - 0.25f, y1 + 0.25f, z0 + 0.25f, z1 - 0.25f, x1 - 0.25f, 0, 1, 1, 0, packedLight, OverlayTexture.NO_OVERLAY, towerColor);
         }
 
 
         // render the scanning glowing thing stuff whatever
         vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(round_h));
-        if (myFacingAxis == Direction.Axis.X) {
-            // normal uv
-            RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1, packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
-            RenderUtils.renderBottomFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1, packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
-        }else{
-            // rotate uv by 90° 
-            RenderUtils.renderTopFace2(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1, packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
-            RenderUtils.renderBottomFace2(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1, packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
+
+        if (false) {
+            if (myFacingAxis == Direction.Axis.X) {
+                // normal uv
+                RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1 + (z1 - z0), packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
+            } else {
+                // rotate uv by 90°
+                RenderUtils.renderTopFace2(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1 + (z1 - z0), packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
+            }
         }
     }
 }
