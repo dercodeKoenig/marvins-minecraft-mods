@@ -131,6 +131,7 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         // render the scanning glowing thing stuff whatever
         vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(round_h));
 
+        // render the scanning glowing thing not while it goes up, but only after it went up and activate it while it waits shortly before going back down
         if (entity.buildProgress > -1 && (float)entity.buildProgress / EntityRocketAssembler.buildTimeBase < scanHeightMax+0.5f) {
             if (myFacingAxis == Direction.Axis.X) {
                 // normal uv

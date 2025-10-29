@@ -372,7 +372,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 constuctionInfo ret = buildRocket(true);
                 statusText.setTextAndSync(ret.info);
                 if (ret.canConstruct) {
-                    // add more time for the client structure tower to go up and stay and wait, this is why multiplier
+                    // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
                     buildProgress = (int) (buildTimeBase * (areaMax.getY() - areaMin.getY()+2)*1.5);
                 }
             }
