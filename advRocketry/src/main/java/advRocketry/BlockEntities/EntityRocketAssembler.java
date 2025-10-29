@@ -40,6 +40,9 @@ import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
+    public static int maxSize = 20;
+    public static int buildTimeBase = 20;
+
     EntityRocket currentRocket;
 
     GuiHandlerBlockEntity guiHandler;
@@ -49,7 +52,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public BlockPos areaMin;
     public BlockPos areaMax;
 
-    public static int maxSize = 20;
+    public int buildProgress = -1;
+    public int clientBuildProgress = -1; // used for smooth rendering of the build structure tower animation
+    public float clientBuildDiffPerTick = 0; // used for smooth rendering of the build structure tower animation
+
 
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
@@ -343,6 +349,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }else{
             info.put("noArea", new CompoundTag());
         }
+
+        info.putInt("buildProgress", buildProgress);
+
         PacketBlockEntity packet = PacketBlockEntity.getBlockEntityPacket(this, info);
         if (p == null) {
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), packet);
@@ -363,7 +372,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 constuctionInfo ret = buildRocket(true);
                 statusText.setTextAndSync(ret.info);
                 if (ret.canConstruct) {
-                    buildRocket(false);
+                    // add more time for the client structure tower to go up and stay and wait, this is why multiplier
+                    buildProgress = (int) (buildTimeBase * (areaMax.getY() - areaMin.getY()+2)*1.5);
                 }
             }
         }
@@ -381,10 +391,12 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("minX") && compoundTag.contains("minY") && compoundTag.contains("minZ"))
             areaMin = new BlockPos(compoundTag.getInt("minX"), compoundTag.getInt("minY"), compoundTag.getInt("minZ"));
 
-
         if (compoundTag.contains("maxX") && compoundTag.contains("maxY") && compoundTag.contains("maxZ"))
             areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
 
+        if(compoundTag.contains("buildProgress")){
+            buildProgress = compoundTag.getInt("buildProgress");
+        }
 
         //System.out.println(areaMin);
         //System.out.println(areaMax);
@@ -392,8 +404,35 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     }
 
     public void tick() {
+
+        if(level.isClientSide){
+            if (clientBuildProgress < buildProgress){
+                clientBuildProgress+=2;
+                clientBuildDiffPerTick = 2;
+            }
+            else if(clientBuildProgress > buildProgress){
+                clientBuildProgress--;
+                clientBuildDiffPerTick = -1;
+            }
+            else{
+                clientBuildDiffPerTick = 0;
+            }
+        }
+
         if (!level.isClientSide) {
             guiHandler.serverTick();
+
+            if(buildProgress > -1){
+                if(areaMin != null && areaMax != null) {
+                    buildProgress--;
+                    if (buildProgress == -1) {
+                        buildRocket(false);
+                    }
+                }else{
+                    buildProgress = -1;
+                }
+                broadcastInformationToPlayers(null);
+            }
 
             // remove reference to current rocket if it is removed
             if(currentRocket!=null && currentRocket.isRemoved())

@@ -76,8 +76,14 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         float z0 = relativeMinCenter.z - 1.25f + e;
         float z1 = relativeMaxCenter.z + 1.25f - e;
         float y0 = relativeMinCenter.y - 1.25f + e;
-        //float y1 = relativeMaxCenter.y + 1;
-        float y1 = relativeMinCenter.y - 0.25f + e + 2;
+
+
+        float partialTickOffset = entity.clientBuildDiffPerTick*partialTick;
+        float h = (float) (entity.clientBuildProgress+partialTickOffset) / EntityRocketAssembler.buildTimeBase;
+
+        int scanHeightMax = entity.areaMax.getY()-entity.areaMin.getY()+1;
+
+        float y1 = relativeMinCenter.y - 0.25f + e + Math.clamp(h,0,scanHeightMax);
 
         VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(girder));
         // render the 4 legs
@@ -125,7 +131,7 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         // render the scanning glowing thing stuff whatever
         vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(round_h));
 
-        if (false) {
+        if (entity.buildProgress > -1 && (float)entity.buildProgress / EntityRocketAssembler.buildTimeBase < scanHeightMax+0.5f) {
             if (myFacingAxis == Direction.Axis.X) {
                 // normal uv
                 RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1 + (z1 - z0), packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
