@@ -41,7 +41,7 @@ import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
     public static int maxSize = 20;
-    public static int buildTimeBase = 20;
+    public static int buildTimeBase = 5;//20;
 
     EntityRocket currentRocket;
 
@@ -312,7 +312,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
         if (!simulate) {
             Vec3i size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
-            EntityRocket rocket = EntityRocket.create(level, blocks, blockEntities, size);
+            Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            Vec3 front = new Vec3(facing.getStepX(), 0, facing.getStepZ());
+            EntityRocket rocket = EntityRocket.create(level, blocks, blockEntities, size, front);
             double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2 + 0.5;
             double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2 + 0.5;
             for (int x = minX; x <= maxX; x++) {
@@ -328,7 +330,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     }
                 }
             }
-            rocket.moveTo(launchPadCenterX, areaMin.getY(), launchPadCenterZ, 0, 0);
+            rocket.moveTo(launchPadCenterX, areaMin.getY()+ (double) rocket.size.getY() / 2+0.05, launchPadCenterZ, 0, 0);
             level.addFreshEntity(rocket);
         }
         return new constuctionInfo(true, "");

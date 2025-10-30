@@ -9,6 +9,7 @@ import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Dimension.*;
 import advRocketry.Registry;
+import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +36,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,15 +49,17 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3i size;
     public Vec3 heading = new Vec3(0, 1, 0);
     public Vec3 front = new Vec3(0, 0, 1);
-    public Vec3 targetHeading = new Vec3(0, 1, 0);
+    public Vec3 targetHeading = new Vec3(0, 0, 0);
     public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
     public FluidTank fuelTank = null;
     private float cachedThrust = -1;
 
-    public Vec3 targetPosition = new Vec3(0,0,0); // the target for the rocket to move towards
-    public boolean canUseMainEngines= true; // enables / disables normal controll, disable in space for fine steering / docking
-    public boolean canUseSecondaryEngines= true; // enable in space for breaking and fine steering,
-    public Vec3 defaultTargetHeading = new Vec3(0,1,0); // the default heading when it does not need to rotate for main engine use
+    public Vec3 targetPosition = new Vec3(0, 0, 0); // the target for the rocket to move towards
+    public boolean canUseMainEngines = true; // enables / disables normal controll, disable in space for fine steering / docking
+    public boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
+    public Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
+    public Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
+    public Vec3 initialFront = new Vec3(0,0,1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
 
     public GuiHandlerEntity guiHandler;
 
@@ -67,10 +72,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         fuelTank = new FluidTank(0);
     }
 
-    public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size) {
+    public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size, Vec3 front) {
         EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
         rocket.blockEntities = blockEntities;
         rocket.blocks = blocks;
+        rocket.front = front;
+        rocket.targetFront = front;
+        rocket.initialFront = front;
         rocket.size = size;
         int fuelCapacity = 0;
         for (BlockState state : rocket.blocks.values()) {
@@ -117,13 +125,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public AABB makeBoundingBox() {
         if (size == null)
             return super.makeBoundingBox(); // happens because minecraft calls makeBoundingBox in constructor before the size value is assigned
+
+        double maxW = Math.max(size.getX(), size.getZ());
+
         return new AABB(
-                position().x - (double) size.getX() / 2,
-                position().y,
-                position().z - (double) size.getZ() / 2,
-                position().x + (double) size.getX() / 2,
-                position().y + size.getY(),
-                position().z + (double) size.getZ() / 2
+                position().x - maxW  / 2,
+                position().y - (double) size.getY() / 2,
+                position().z - maxW  / 2,
+                position().x + maxW  / 2,
+                position().y + (double) size.getY() / 2,
+                position().z + maxW  / 2
         );
     }
 
@@ -178,7 +189,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getThrust() {
-        if (cachedThrust >= 0) return cachedThrust;
+        if (cachedThrust > 0) return cachedThrust;
         cachedThrust = 0;
         for (BlockState state : blocks.values()) {
             if (state.getBlock() instanceof RocketMotor motor) {
@@ -197,33 +208,75 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getMaxAcceleration() {
-        return 3f/20;
+        return 3f / 20;
     }
 
+    public Vec3 localToWorld(Vec3 localPos) {
+        // Get the same final rotation you used in rendering
+        Quaternionf q = getCurrentRotation(); // e.g. qRoll * qTilt
+
+        // Convert to JOML Vector3f
+        Vector3f lp = new Vector3f(
+                (float)(localPos.x - size.getX() / 2.0),
+                (float)(localPos.y - size.getY() / 2.0),
+                (float)(localPos.z - size.getZ() / 2.0)
+        );
+
+        // Rotate local position by quaternion
+        q.transform(lp);
+
+        // Translate by entity position
+        return position().add(new Vec3(lp.x, lp.y, lp.z));
+    }
+
+
+
     // client and server use this, server only syncs target heading
-    public void tickHeading() {
+    public void tickRotation() {
         // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
         final double ROTATION_RATE = 0.05 / size.getY() * getThrust() / getMass();
+        // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
         Vec3 rotationCorrection = targetHeading.subtract(heading).scale(ROTATION_RATE);
         heading = heading.add(rotationCorrection).normalize();
+
+        // now try to get the front align more toward the target front
+        // the front is not always valid because of the heading
+        Vec3 targetFrontValid = heading.cross(targetFront.cross(heading)).normalize();
+        if (targetFrontValid.dot(front) < -0.9) // get some movement if it is directly on the other side
+            targetFrontValid = heading.cross(front);
+        rotationCorrection = targetFrontValid.subtract(front).scale(ROTATION_RATE);
+        front = front.add(rotationCorrection).normalize();
+
+
+        // make sure the front is always orthogonal
+        Vec3 right = heading.cross(front).normalize();
+        front = right.cross(heading).normalize();
+
     }
 
     public void setTargetHeading(Vec3 target) {
-        if(!level().isClientSide && targetHeading.subtract(target).length() > 0.0001) {
+        if (!level().isClientSide && targetHeading.subtract(target).length() > 0.0001) {
             CompoundTag headingUpdate = new CompoundTag();
-            headingUpdate.putFloat("headingX", (float) target.x);
-            headingUpdate.putFloat("headingY", (float) target.y);
-            headingUpdate.putFloat("headingZ", (float) target.z);
+            headingUpdate.put("targetHeading", Utils.serializeVec3(target));
             PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, headingUpdate));
         }
         targetHeading = target;
     }
 
+    public void setTargetFront(Vec3 target) {
+        if (!level().isClientSide && targetFront.subtract(target).length() > 0.0001) {
+            CompoundTag headingUpdate = new CompoundTag();
+            headingUpdate.put("targetFront", Utils.serializeVec3(target));
+            PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, headingUpdate));
+        }
+        targetFront = target;
+    }
+
     // pd controller mostly written by gemini should be used to have the rocket spawn at some offset and find its way down to the landing area
     // it should also scan (if no launchpad structure) to land at some area where there is a flat area
-    public void tickController(){
+    public void tickController() {
         // --- Configuration Parameters (Tune these for desired behavior) ---
         // Proportional Gain: How aggressively the rocket tries to close the distance.
         final double K_P = 0.01 / size.getY() * getThrust() / getMass();
@@ -292,7 +345,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             double ThrustMultiplier = (actualThrustAccel * getMass()) / getThrust();
             // TODO: render rocket flame & smoke particles
             // TODO: burn fuel
-        }else{
+        } else {
             setTargetHeading(defaultTargetHeading);
         }
     }
@@ -302,14 +355,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
         }
-        if(!level().isClientSide){
+        if (!level().isClientSide) {
             tickController();
-        }
-        tickHeading();
 
-        targetPosition = new Vec3(0,70,0);
-        canUseMainEngines = true;
-        canUseSecondaryEngines = false;
+            setTargetFront(new Vec3(1, 0, 1));
+
+            targetPosition = new Vec3(20, 70, 0);
+            canUseMainEngines = false;
+            canUseSecondaryEngines = false;
+
+        }
+        tickRotation();
+
+        //targetFront = new Vec3(1,0,0);
 
         if (!level().isClientSide) {
 
@@ -349,18 +407,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         teleportTo(target, targetBlockPos.getX(), targetBlockPos.getY(), targetBlockPos.getZ(), new HashSet<>(), getYRot(), getXRot());
         SpaceTravelManager.keepChunkLoaded(targetPos);
          */
-        moveTo(getX(), getY() + 10000, getZ()); // entry height
-        setDeltaMovement(0, -100, 0); // entry speed
+        moveTo(getX(), getY() + 100, getZ()); // entry height
+        setDeltaMovement(0, 0, 0); // entry speed
     }
 
     public void deconstruct() {
-        BlockPos minPos = blockPosition().subtract(new Vec3i(size.getX() / 2, 0, size.getZ() / 2));
+        Vec3 minPos = position().subtract(new Vec3((double) size.getX() / 2, (double) size.getY() / 2, (double) size.getZ() / 2));
         for (BlockPos pos : blocks.keySet()) {
             BlockState state = blocks.get(pos);
             BlockPos target = new BlockPos(
-                    minPos.getX() + pos.getX(),
-                    minPos.getY() + pos.getY(),
-                    minPos.getZ() + pos.getZ()
+                    (int)Math.round(minPos.x + pos.getX()),
+                    (int)Math.round(minPos.y + pos.getY()),
+                    (int)Math.round(minPos.z + pos.getZ())
             );
             level().setBlock(target, state, 3);
             if (blockEntities.get(pos) != null) {
@@ -375,8 +433,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
-        CompoundTag sizeTag = compoundTag.getCompound("size");
-        size = new Vec3i(sizeTag.getInt("x"), sizeTag.getInt("y"), sizeTag.getInt("z"));
+        size = Utils.deSerializeVec3i(compoundTag.getCompound("size"));
+
+        heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
+        targetHeading = Utils.deSerializeVec3(compoundTag.getCompound("targetHeading"));
+        front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
+        targetFront = Utils.deSerializeVec3(compoundTag.getCompound("targetFront"));
+        initialFront = Utils.deSerializeVec3(compoundTag.getCompound("initialFront"));
 
         fuelTank.readFromNBT(level().registryAccess(), compoundTag.getCompound("fuelTank"));
 
@@ -405,11 +468,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
-        CompoundTag sizeTag = new CompoundTag();
-        sizeTag.putInt("x", size.getX());
-        sizeTag.putInt("y", size.getY());
-        sizeTag.putInt("z", size.getZ());
-        compoundTag.put("size", sizeTag);
+        compoundTag.put("size", Utils.serializeVec3i(size));
+
+        compoundTag.put("heading", Utils.serializeVec3(heading));
+        compoundTag.put("targetHeading", Utils.serializeVec3(targetHeading));
+        compoundTag.put("front", Utils.serializeVec3(front));
+        compoundTag.put("targetFront", Utils.serializeVec3(targetFront));
+        compoundTag.put("initialFront", Utils.serializeVec3(initialFront));
 
         compoundTag.put("fuelTank", fuelTank.writeToNBT(level().registryAccess(), new CompoundTag()));
 
@@ -463,8 +528,67 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (compoundTag.contains("additionalSaveData"))
             readAdditionalSaveData(compoundTag.getCompound("additionalSaveData"));
 
-        if (compoundTag.contains("headingX") && compoundTag.contains("headingY") && compoundTag.contains("headingZ"))
-            setTargetHeading(new Vec3(compoundTag.getFloat("headingX"), compoundTag.getFloat("headingY"), compoundTag.getFloat("headingZ")));
+        if (compoundTag.contains("targetHeading")) {
+            setTargetHeading(Utils.deSerializeVec3(compoundTag.getCompound("targetHeading")));
+        }
+        if (compoundTag.contains("targetFront")) {
+            setTargetFront(Utils.deSerializeVec3(compoundTag.getCompound("targetFront")));
+        }
+    }
 
+
+    public Quaternionf getCurrentRotation(){
+        Vec3 myHeading = heading.normalize();
+        Vec3 desiredFront = front.normalize();
+        Vec3 worldUp = new Vec3(0, 1, 0);
+
+// --- Step A: tilt (worldUp -> heading) ---
+        Vec3 axisTilt = worldUp.cross(myHeading);
+        double axisLen = axisTilt.length();
+        float dot = (float)Math.max(-1.0, Math.min(1.0, worldUp.dot(myHeading)));
+
+        Quaternionf qTilt;
+
+        if (axisLen < 1e-8) {
+            // heading nearly parallel or anti-parallel to up
+            if (dot > 0.9999f) {
+                qTilt = new Quaternionf(); // no tilt
+            } else {
+                // 180° rotation around X (safe fallback axis)
+                qTilt = new Quaternionf().fromAxisAngleRad(1f, 0f, 0f, (float)Math.PI);
+            }
+        } else {
+            axisTilt = axisTilt.scale(1.0 / axisLen); // normalize safely
+            float angleTilt = (float)Math.acos(dot);
+            qTilt = new Quaternionf().fromAxisAngleRad(
+                    (float)axisTilt.x, (float)axisTilt.y, (float)axisTilt.z, angleTilt);
+        }
+
+// --- Step B: roll (align front) ---
+        Vector3f modelForward = initialFront.toVector3f();
+        qTilt.transform(modelForward); // rotated forward after tilt
+        Vec3 rotatedForward = new Vec3(modelForward.x(), modelForward.y(), modelForward.z()).normalize();
+
+// clamp before acos
+        float cosA = (float)Math.max(-1.0, Math.min(1.0, rotatedForward.dot(desiredFront)));
+        float rollAngle = (float)Math.acos(cosA);
+
+// avoid cross on nearly identical or opposite vectors
+        Vec3 cross = rotatedForward.cross(desiredFront);
+        double crossLen = cross.length();
+        float sign = (crossLen < 1e-8) ? 1f : Math.signum((float)cross.dot(myHeading));
+
+        Quaternionf qRoll;
+        if (Math.abs(rollAngle) < 1e-6f) {
+            qRoll = new Quaternionf(); // no roll
+        } else {
+            qRoll = new Quaternionf().fromAxisAngleRad(
+                    (float)myHeading.x, (float)myHeading.y, (float)myHeading.z, rollAngle * sign);
+        }
+
+// --- Final quaternion ---
+        Quaternionf q = new Quaternionf(qRoll).mul(qTilt);
+        q.normalize();
+return q;
     }
 }
