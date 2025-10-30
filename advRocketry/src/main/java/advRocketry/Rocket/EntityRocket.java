@@ -18,7 +18,6 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -28,7 +27,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -39,7 +37,6 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
@@ -48,9 +45,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
     public Vec3 heading = new Vec3(0, 1, 0);
+    public Vec3 front = new Vec3(0, 0, 1);
+    public Vec3 targetHeading = new Vec3(0, 1, 0);
     public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
     public FluidTank fuelTank = null;
     private float cachedThrust = -1;
+
+    public boolean canUseMainEngines= true;
+    public boolean canUseSecondaryEngines= true;
+    public Vec3 targetPosition = new Vec3(0,0,0);
+    public Vec3 defaultTargetHeading = new Vec3(0,1,0);
 
     public GuiHandlerEntity guiHandler;
 
@@ -125,6 +129,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public double getDefaultGravity() {
+        if(true)return 0;
         Dimension dim = DimensionManager.get(level().dimension().location());
         if (dim != null && dim.getType() == DimensionProperties.PlanetType.SPACE_STATION)
             return 0;
@@ -188,11 +193,108 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getMass() {
-        return 1f*blocks.size();
+        return 1f * blocks.size();
     }
 
     public float getMaxAcceleration() {
-        return 0;
+        return 3f/20;
+    }
+
+    // client and server use this, server only syncs target heading
+    public void tickHeading() {
+        // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
+        final double ROTATION_RATE = 0.05 / size.getY() * getThrust() / getMass();
+        // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
+        // This simulates the actual rotational speed limit of the rocket.
+        Vec3 rotationCorrection = targetHeading.subtract(heading).scale(ROTATION_RATE);
+        heading = heading.add(rotationCorrection).normalize();
+    }
+
+    public void setTargetHeading(Vec3 target) {
+        if(!level().isClientSide && targetHeading.subtract(target).length() > 0.0001) {
+            CompoundTag headingUpdate = new CompoundTag();
+            headingUpdate.putFloat("headingX", (float) target.x);
+            headingUpdate.putFloat("headingY", (float) target.y);
+            headingUpdate.putFloat("headingZ", (float) target.z);
+            PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, headingUpdate));
+        }
+        targetHeading = target;
+    }
+
+    // pd controller mostly written by gemini should be used to have the rocket spawn at some offset and find its way down to the landing area
+    // it should also scan (if no launchpad structure) to land at some area where there is a flat area
+    public void tickController(){
+        // --- Configuration Parameters (Tune these for desired behavior) ---
+        // Proportional Gain: How aggressively the rocket tries to close the distance.
+        final double K_P = 0.01 / size.getY() * getThrust() / getMass();
+        // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
+        final double K_D = 0.4;
+        // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
+        final double MAX_STRUCTURAL_ACCEL = getMaxAcceleration();
+        // secondary thruster force
+        final double SECONDARY_THRUSTERS_FORCE = getThrust() / 1000;
+
+        // --- 1. Calculate Required Acceleration (The PD Controller) ---
+
+        // B. Position Error (p_target - p)
+        Vec3 positionError = targetPosition.subtract(getPosition(0));
+
+        // C. Damping (Velocity Error - using current velocity for simplicity)
+        Vec3 currentVelocity = getDeltaMovement();
+
+        // D. Desired Acceleration (a_desired)
+        // Formula: a_desired = (K_P * Position_Error) - (K_D * Current_Velocity)
+        // The result is the absolute acceleration vector the rocket *needs* to follow the path.
+        Vec3 desiredAcceleration = positionError.scale(K_P).subtract(currentVelocity.scale(K_D));
+
+        // NOTE: If you needed to factor in gravity/other external forces, you would
+        // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
+        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(getGravity()));
+
+        // --- 2. Calculate Thrust & Heading ---
+
+        if (canUseSecondaryEngines) {
+            // use secondary thrusters in space for fine controll
+            Vec3 secondaryThrustersForce = desiredAcceleration.scale(getMass());
+            if (secondaryThrustersForce.length() > SECONDARY_THRUSTERS_FORCE) {
+                secondaryThrustersForce = secondaryThrustersForce.normalize().scale(SECONDARY_THRUSTERS_FORCE);
+            }
+            // TODO: render secondaryThrustersForce particles
+            Vec3 secondaryThrustersAcceleration = secondaryThrustersForce.scale(1 / getMass());
+            desiredAcceleration.subtract(secondaryThrustersAcceleration);
+            setDeltaMovement(getDeltaMovement().add(secondaryThrustersAcceleration));
+        }
+
+        if (desiredAcceleration.length() > 0.0001 && canUseMainEngines) {
+            // 1. Max Acceleration the engine can *possibly* deliver.
+            final double MAX_PHYSICAL_ACCEL = getThrust() / getMass();
+            // 2. The absolute maximum acceleration we are allowed to use this frame.
+            // This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
+            final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
+            // The heading the rocket *needs* to point towards to achieve the desired acceleration.
+            Vec3 targetHeading = desiredAcceleration.normalize();
+            setTargetHeading(targetHeading);
+            // Calculate the magnitude of acceleration needed from the PD controller.
+            double neededAcceleration = desiredAcceleration.length();
+            // Cap the needed acceleration by the final allowed limit.
+            // We only need to use the MAX_ALLOWED_ACCEL cap here.
+            double effectiveAcceleration = Math.min(neededAcceleration, MAX_ALLOWED_ACCEL);
+            // The component of the effective acceleration that aligns with the current (limited) heading.
+            // This ensures we only thrust in the direction we are currently pointing.
+            double actualThrustAccel = effectiveAcceleration * Math.max(0, heading.dot(targetHeading) * 3 - 2);
+            // Thrust is applied along the current 'heading' direction.
+            // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
+            Vec3 thrustVector = heading.scale(actualThrustAccel);
+            setDeltaMovement(getDeltaMovement().add(thrustVector));
+            // Calculate the Thrust Multiplier (0.0 to 1.0)
+            // This is the fraction of MAX_THRUST that is needed to achieve the 'effectiveAcceleration'.
+            // Thrust_Multiplier = (Effective_Accel * Mass) / Max_Thrust
+            double ThrustMultiplier = (actualThrustAccel * getMass()) / getThrust();
+            // TODO: render rocket flame & smoke particles
+            // TODO: burn fuel
+        }else{
+            setTargetHeading(defaultTargetHeading);
+        }
     }
 
     @Override
@@ -200,106 +302,28 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
         }
+        if(!level().isClientSide){
+            tickController();
+        }
+        tickHeading();
 
-        // pd controller mostly written by gemini should be used to have the rocket spawn at some offset and find its way down to the landing area
-        // it should also scan (if no launchpad structure) to land at some area where there is a flat area
-        // in space without gravity it would probably just circle around endlessly so we would need to add some artificial break like invisible reverse thrusters. maybe just multiply velocity by 0.9 every tick - we don't consume fuel in space anyway
-        // when moving, don't set the target position to a far away position but slowly approach it or the rocket would want insane acceleration to correct
-
-        //when landing, setting the landing pos as target directly works very well to slowly put the rocket to ground
+        targetPosition = new Vec3(50,70,0);
+        canUseMainEngines = false;
+        canUseSecondaryEngines = true;
 
         if (!level().isClientSide) {
-            // --- Configuration Parameters (Tune these for desired behavior) ---
-            // Proportional Gain: How aggressively the rocket tries to close the distance.
-            final double K_P = 0.01 / size.getY() * getThrust() / getMass();
-            // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
-            final double K_D = 0.4;
-            // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-            final double ROTATION_RATE = 0.05 / size.getY() * getThrust() / getMass();
-            // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
-            final double MAX_STRUCTURAL_ACCEL = 3.0 / 20.0;
-            // --- 1. Calculate Required Acceleration (The PD Controller) ---
 
-            // A. Target Position (p_target)
-            Vec3 targetPos = new Vec3(0, 76, 0);
-
-            // B. Position Error (p_target - p)
-            Vec3 positionError = targetPos.subtract(getPosition(0));
-
-            // C. Damping (Velocity Error - using current velocity for simplicity)
-            Vec3 currentVelocity = getDeltaMovement();
-
-            // D. Desired Acceleration (a_desired)
-            // Formula: a_desired = (K_P * Position_Error) - (K_D * Current_Velocity)
-            // The result is the absolute acceleration vector the rocket *needs* to follow the path.
-            Vec3 desiredAcceleration = positionError.scale(K_P).subtract(currentVelocity.scale(K_D));
-
-            // NOTE: If you needed to factor in gravity/other external forces, you would
-            // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
-            desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(getGravity()));
-
-            // --- 2. Calculate Thrust & Heading ---
-
-            // 1. Max Acceleration the engine can *possibly* deliver.
-            final double MAX_PHYSICAL_ACCEL = getThrust() / getMass();
-
-// 2. The absolute maximum acceleration we are allowed to use this frame.
-// This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
-            final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
-
-// The heading the rocket *needs* to point towards to achieve the desired acceleration.
-            Vec3 targetHeading = desiredAcceleration.normalize();
-
-// Calculate the magnitude of acceleration needed from the PD controller.
-            double neededAcceleration = desiredAcceleration.length();
-
-// Cap the needed acceleration by the final allowed limit.
-// We only need to use the MAX_ALLOWED_ACCEL cap here.
-            double effectiveAcceleration = Math.min(neededAcceleration, MAX_ALLOWED_ACCEL);
-
-
-// Calculate the Thrust Multiplier (0.0 to 1.0)
-// This is the fraction of MAX_THRUST that is needed to achieve the 'effectiveAcceleration'.
-// Thrust_Multiplier = (Effective_Accel * Mass) / Max_Thrust
-            double ThrustMultiplier = (effectiveAcceleration * getMass()) / getThrust();
-
-// We cap at 1.0, though the math should keep it at or below 1.0 since
-// effectiveAcceleration is capped by MAX_PHYSICAL_ACCEL.
-            ThrustMultiplier = Math.min(1.0, ThrustMultiplier);
-
-
-            // --- 3. Update Heading (Rotation) ---
-
-            // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
-            // This simulates the actual rotational speed limit of the rocket.
-            Vec3 rotationCorrection = targetHeading.subtract(heading).scale(ROTATION_RATE);
-            Vec3 newHeading = heading.add(rotationCorrection).normalize();
-            if(!newHeading.equals(heading)) {
-                // the delta movement appears to be synced to client automatically and can be applied with move()
-                // but the heading is my own variable and needs syncing
-                heading = newHeading;
-                CompoundTag headingUpdate = new CompoundTag();
-                headingUpdate.putFloat("headingX", (float) heading.x);
-                headingUpdate.putFloat("headingY", (float) heading.y);
-                headingUpdate.putFloat("headingZ", (float) heading.z);
-                PacketDistributor.sendToPlayersTrackingEntity(this,PacketEntity.getEntityPacket(this, headingUpdate));
-            }
-
-            // The component of the effective acceleration that aligns with the current (limited) heading.
-            // This ensures we only thrust in the direction we are currently pointing.
-            double actualThrustAccel = effectiveAcceleration * heading.dot(targetHeading);
-
-            // --- 4. Apply Movement ---
-
-
-            // Thrust is applied along the current 'heading' direction.
-            // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
-            Vec3 thrustVector = heading.scale(actualThrustAccel);
-
-            setDeltaMovement(getDeltaMovement().add(thrustVector));
-
-            // Ensure you apply gravity *after* thrust for this frame
+            // Ensure you apply gravity
             applyGravity();
+
+            // simulate some air friction
+            float atmDensity = 1;
+            Dimension myDimension = DimensionManager.get(level().dimension().location());
+            if (myDimension != null)
+                atmDensity = myDimension.getAtmosphereDensity();
+            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
+            setDeltaMovement(getDeltaMovement().add(airBreak));
+            //System.out.println(airBreak.length()+":"+getDeltaMovement().length());
         }
 
         // Move the entity based on the new velocity vector (getDeltaMovement)
@@ -325,7 +349,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         teleportTo(target, targetBlockPos.getX(), targetBlockPos.getY(), targetBlockPos.getZ(), new HashSet<>(), getYRot(), getXRot());
         SpaceTravelManager.keepChunkLoaded(targetPos);
          */
-        moveTo(getX(), getY() + 100, getZ());
+        moveTo(getX(), getY() + 10000, getZ()); // entry height
+        setDeltaMovement(0, -100, 0); // entry speed
     }
 
     public void deconstruct() {
@@ -439,7 +464,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             readAdditionalSaveData(compoundTag.getCompound("additionalSaveData"));
 
         if (compoundTag.contains("headingX") && compoundTag.contains("headingY") && compoundTag.contains("headingZ"))
-            heading = new Vec3(compoundTag.getFloat("headingX"), compoundTag.getFloat("headingY"), compoundTag.getFloat("headingZ"));
+            setTargetHeading(new Vec3(compoundTag.getFloat("headingX"), compoundTag.getFloat("headingY"), compoundTag.getFloat("headingZ")));
 
     }
 }
