@@ -51,10 +51,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public FluidTank fuelTank = null;
     private float cachedThrust = -1;
 
-    public boolean canUseMainEngines= true;
-    public boolean canUseSecondaryEngines= true;
-    public Vec3 targetPosition = new Vec3(0,0,0);
-    public Vec3 defaultTargetHeading = new Vec3(0,1,0);
+    public Vec3 targetPosition = new Vec3(0,0,0); // the target for the rocket to move towards
+    public boolean canUseMainEngines= true; // enables / disables normal controll, disable in space for fine steering / docking
+    public boolean canUseSecondaryEngines= true; // enable in space for breaking and fine steering,
+    public Vec3 defaultTargetHeading = new Vec3(0,1,0); // the default heading when it does not need to rotate for main engine use
 
     public GuiHandlerEntity guiHandler;
 
@@ -129,7 +129,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public double getDefaultGravity() {
-        if(true)return 0;
+        //if(true)return 0;
         Dimension dim = DimensionManager.get(level().dimension().location());
         if (dim != null && dim.getType() == DimensionProperties.PlanetType.SPACE_STATION)
             return 0;
@@ -307,9 +307,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
         tickHeading();
 
-        targetPosition = new Vec3(50,70,0);
-        canUseMainEngines = false;
-        canUseSecondaryEngines = true;
+        targetPosition = new Vec3(0,70,0);
+        canUseMainEngines = true;
+        canUseSecondaryEngines = false;
 
         if (!level().isClientSide) {
 
