@@ -1,8 +1,52 @@
 package advRocketry.Rocket;
 
+import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+
+import javax.swing.border.CompoundBorder;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+
 public interface RocketProgram {
-    // the navigation item needs to implement rocketprogram to be valid for guidance computer
-    // something getNextDestination
-    // void onDestinationReached
-    // rocket can be virtualized if it has a program and no players on it
+    class programList {
+        static HashMap<String, Class<?>> programs = new HashMap<>();
+        static {
+            programs.put(ProgramNavigateToPlanetPosition.id, ProgramNavigateToPlanetPosition.class);
+        }
+    }
+
+    void run(EntityRocket rocket);
+
+    void readFromNbt(CompoundTag nbt);
+
+    CompoundTag saveToNbt();
+
+    static RocketProgram createFromNbt(CompoundTag tag) {
+        String name = tag.getString("name");
+        RocketProgram program = null;
+        try {
+            program = (RocketProgram) programList.programs.get(name).getDeclaredConstructor().newInstance();
+            program.readFromNbt(tag.getCompound("data"));
+        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        return program;
+    }
+
+    static CompoundTag saveToNbt(RocketProgram program){
+        CompoundTag data = new CompoundTag();
+        String name = null;
+        for (String entry : programList.programs.keySet()){
+            Class<?> c = programList.programs.get(entry);
+            if(c.isInstance(program)) {
+                name = entry;
+                break;
+            }
+        }
+        data.putString("name", name);
+        data.put("data", program.saveToNbt());
+        return data;
+    }
 }

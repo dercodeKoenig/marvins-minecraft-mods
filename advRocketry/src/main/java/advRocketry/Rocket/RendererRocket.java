@@ -1,5 +1,6 @@
 package advRocketry.Rocket;
 
+import advRocketry.Rocket.RocketUtils.RotationUtils;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -42,7 +43,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
     public void render(EntityRocket p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
 
-        poseStack.rotateAround(p_entity.getCurrentRotation(),
+        poseStack.rotateAround(RotationUtils.getCurrentRotation(p_entity),
                 0,0,0);
 
 
