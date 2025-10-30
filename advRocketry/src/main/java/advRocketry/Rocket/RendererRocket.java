@@ -17,8 +17,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.Random;
 
@@ -40,20 +42,19 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
         poseStack.pushPose();
         poseStack.translate(-(float) p_entity.size.getX() / 2, 0, -(float) p_entity.size.getZ() / 2);
 
-        poseStack.rotateAround(
-                Axis.YP.rotationDegrees(p_entity.getYRot()),
-                (float)p_entity.size.getX() / 2,  // pivot x
-                0,                       // pivot y
-                (float)p_entity.size.getZ() / 2   // pivot z
-        );
+        Vec3 headingNormal = p_entity.heading.cross(new Vec3(0,1,0));
+        double angleDeg = -Math.acos(p_entity.heading.dot(new Vec3(0,1,0))) *180 / Math.PI;
 
-        poseStack.rotateAround(
-                Axis.XP.rotationDegrees(p_entity.getXRot()),
-                (float)p_entity.size.getX() / 2,  // pivot x
-                0,                       // pivot y
-                (float)p_entity.size.getZ() / 2   // pivot z
-        );
-
+        if (headingNormal.length() > 0.000001){
+            poseStack.rotateAround(
+                    new Quaternionf().fromAxisAngleDeg(headingNormal.toVector3f(),(float)angleDeg),
+                    (float)p_entity.size.getX() / 2,  // pivot x
+                    p_entity.size.getY() / 2,                       // pivot y
+                    (float)p_entity.size.getZ() / 2   // pivot z
+            );
+        }else{
+            // 180°? well you are fucked now
+        }
 
         for (BlockPos p : p_entity.blocks.keySet()) {
             BlockState state = p_entity.blocks.get(p);
