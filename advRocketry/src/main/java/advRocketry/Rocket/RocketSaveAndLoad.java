@@ -19,12 +19,11 @@ public class RocketSaveAndLoad {
     public static void readAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
         rocket.shouldEnableMainEngines = compoundTag.getBoolean("shouldEnableMainEngines");
         rocket.mainEnginesBootup = compoundTag.getInt("mainEnginesBootup");
+        rocket.canUseSecondaryEngines = (compoundTag.getBoolean("secondaryEngines"));
 
         rocket.currentThrust = compoundTag.getDouble("currentThrust");
         rocket.currentSecondaryThrust = Utils.deSerializeVec3(compoundTag.getCompound("currentSecondaryThrust"));
 
-        rocket.canUseMainEngines = (compoundTag.getBoolean("mainEngines"));
-        rocket.canUseSecondaryEngines = (compoundTag.getBoolean("secondaryEngines"));
 
         if (compoundTag.contains("rocketProgram")) {
             rocket.currentProgram = RocketProgram.createFromNbt(compoundTag.getCompound("rocketProgram"));
@@ -66,12 +65,10 @@ public class RocketSaveAndLoad {
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
         compoundTag.putBoolean("shouldEnableMainEngines", rocket.shouldEnableMainEngines);
         compoundTag.putInt("mainEnginesBootup", rocket.mainEnginesBootup);
+        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines);
 
         compoundTag.put("currentSecondaryThrust", Utils.serializeVec3(rocket.currentSecondaryThrust));
         compoundTag.putDouble("currentThrust", rocket.currentThrust);
-
-        compoundTag.putBoolean("mainEngines", rocket.canUseMainEngines);
-        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines);
 
         if (rocket.currentProgram != null) {
             compoundTag.put("rocketProgram", RocketProgram.saveToNbt(rocket.currentProgram));

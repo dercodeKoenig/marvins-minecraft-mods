@@ -59,7 +59,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // rocket control
     public BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
     public Vec3 targetPosition = null; // the target for the rocket to move towards
-    boolean canUseMainEngines = true; // enables / disables normal controll, disable in space for fine steering / docking
     boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
     boolean shouldEnableMainEngines = false;
     int mainEnginesBootup = 0;
@@ -200,7 +199,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
-    public float getThrust() {
+    public float getThrustMax() {
         if (cachedThrust < 0) {
             cachedThrust = 0;
             for (BlockState state : blocks.values()) {
@@ -210,6 +209,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         return cachedThrust;
+    }
+    public float getBootTimeThrustMultiplier(){
+        int halfBootTime = ENGINE_BOOT_TIME / 2;
+        if(mainEnginesBootup < halfBootTime) return 0;
+
+        return (float) Math.pow ((float)(mainEnginesBootup - halfBootTime) / halfBootTime, 2);
     }
 
     public int getFuel() {
@@ -256,8 +261,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
     }
 
-    public boolean canUseMainEngines() {
-        return canUseMainEngines;
+    public boolean shouldEnableMainEngines(){
+        return shouldEnableMainEngines;
+    }
+    public int getMainEnginesBootup() {
+        return mainEnginesBootup;
     }
 
     public void enableMainEngines(boolean canUseMainEngines) {
@@ -319,14 +327,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if(shouldEnableMainEngines) {
             if (mainEnginesBootup < ENGINE_BOOT_TIME) {
                 mainEnginesBootup++;
-            }else{
-                canUseMainEngines = true;
             }
         }else{
-            if(mainEnginesBootup > 0){
-                mainEnginesBootup --;
-            }else{
-                canUseMainEngines = false;
+            if(mainEnginesBootup > 0) {
+                mainEnginesBootup--;
             }
         }
 
@@ -342,12 +346,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (level().isClientSide) {
             if (mainEnginesBootup != 0) {
-                float relativeBootTime = (float)mainEnginesBootup / ENGINE_BOOT_TIME;
+                float relativeBootTimeLin = (float)mainEnginesBootup /  ENGINE_BOOT_TIME;
                 for (BlockPos i : getEnginePositions()) {
-                    Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0.1, i.getZ() + 0.5));
+                    Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
                     boolean shouldCreateParticle = mainEnginesBootup == ENGINE_BOOT_TIME;
                     if(!shouldCreateParticle){
-                        shouldCreateParticle = level().random.nextFloat() <= Math.sqrt(relativeBootTime);
+                        shouldCreateParticle = level().random.nextFloat() <= Math.sqrt(relativeBootTimeLin);
                     }
                     if(shouldCreateParticle) {
                         for (int j = 0; j < 2; j++) {
@@ -356,9 +360,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                                     worldPos.x,
                                     worldPos.y,
                                     worldPos.z,
-                                    heading.x * -1 * (currentThrust + 1) * relativeBootTime,
-                                    heading.y * -1 * (currentThrust + 1) * relativeBootTime,
-                                    heading.z * -1 * (currentThrust + 1) * relativeBootTime
+                                    heading.x * -1 * (currentThrust + 1) * relativeBootTimeLin,
+                                    heading.y * -1 * (currentThrust + 1) * relativeBootTimeLin,
+                                    heading.z * -1 * (currentThrust + 1) * relativeBootTimeLin
                             );
                         }
                     }

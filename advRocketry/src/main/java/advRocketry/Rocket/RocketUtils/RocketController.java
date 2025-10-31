@@ -70,7 +70,7 @@ public class RocketController {
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
         // secondary thruster force
-        final double SECONDARY_THRUSTERS_FORCE = rocket.getThrust() / 1000;
+        final double SECONDARY_THRUSTERS_FORCE = rocket.getThrustMax() / 1000;
 
         // --- 1. Calculate Required Acceleration (The PD Controller) ---
 
@@ -105,9 +105,9 @@ public class RocketController {
             rocket.setCurrentSecondaryThrustAndSync(secondaryThrustersForce);
         }
 
-        if (desiredAcceleration.length() > 0.0001 && rocket.canUseMainEngines()) {
-            // 1. Max Acceleration the engine can *possibly* deliver.
-            final double MAX_PHYSICAL_ACCEL = rocket.getThrust() / rocket.getMass();
+        if (desiredAcceleration.length() > 0.0001 && rocket.shouldEnableMainEngines()) {
+            // 1. Max Acceleration the engine can *possibly* deliver. ( including scale for bootup time )
+            final double MAX_PHYSICAL_ACCEL = rocket.getThrustMax() / rocket.getMass() * rocket.getBootTimeThrustMultiplier();
             // 2. The absolute maximum acceleration we are allowed to use this frame.
             // This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
             final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
@@ -127,11 +127,9 @@ public class RocketController {
             Vec3 thrustVector = rocket.heading.scale(actualThrustAccel);
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(thrustVector));
             // Calculate the Thrust Multiplier (0.0 to 1.0)
-            // This is the fraction of MAX_THRUST that is needed to achieve the 'effectiveAcceleration'.
-            // Thrust_Multiplier = (Effective_Accel * Mass) / Max_Thrust
-            double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrust();
+            // This is the current actually delivered thrust relative to the max possible thrust for rendering and fuel consumption
+            double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
             rocket.setCurrentThrustAndSync(ThrustMultiplier);
-            // TODO: render rocket flame & smoke particles
             // TODO: burn fuel
 
         } else {
