@@ -12,12 +12,9 @@ import advRocketry.Registry;
 import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
 import advRocketry.Rocket.RocketUtils.RocketController;
 import advRocketry.Rocket.RocketUtils.RotationUtils;
-import advRocketry.Rocket.RocketUtils.SaveAndLoad;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
@@ -37,7 +34,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,18 +41,28 @@ import java.util.Map;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
 
+    // static variables
+    public static int ENGINE_BOOT_TIME = 100;
+
+    // rocket structure
     public Map<BlockPos, BlockState> blocks;
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
-    public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
     public FluidTank fuelTank = null;
+
+    public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
+
+    // cached values
     private float cachedThrust = -1;
     private ArrayList<BlockPos> cachedEnginePositions = null;
 
+    // rocket control
     public BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
     public Vec3 targetPosition = null; // the target for the rocket to move towards
-    private boolean canUseMainEngines = true; // enables / disables normal controll, disable in space for fine steering / docking
-    private boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
+    boolean canUseMainEngines = true; // enables / disables normal controll, disable in space for fine steering / docking
+    boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
+    boolean shouldEnableMainEngines = false;
+    int mainEnginesBootup = 0;
     public Vec3 heading = new Vec3(0, 1, 0);
     public Vec3 targetHeading = new Vec3(0, 0, 0);
     public Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
@@ -220,7 +226,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public ArrayList<BlockPos> getEnginePositions() {
         if (cachedEnginePositions == null) {
-            if(blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
+            if (blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
             cachedEnginePositions = new ArrayList<>();
             for (BlockPos pos : blocks.keySet()) {
                 BlockState state = blocks.get(pos);
@@ -255,11 +261,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void enableMainEngines(boolean canUseMainEngines) {
-        if (this.canUseMainEngines != canUseMainEngines) {
-            this.canUseMainEngines = canUseMainEngines;
+        if (this.shouldEnableMainEngines != canUseMainEngines) {
+            this.shouldEnableMainEngines = canUseMainEngines;
             if (!level().isClientSide) {
                 CompoundTag tag = new CompoundTag();
-                tag.putBoolean("mainEngines", canUseMainEngines);
+                tag.putBoolean("shouldEnableMainEngines", shouldEnableMainEngines);
+                tag.putInt("mainEnginesBootup", mainEnginesBootup);
                 PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
             }
         }
@@ -307,6 +314,22 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
         }
+
+        // tick engine bootup / shutdown
+        if(shouldEnableMainEngines) {
+            if (mainEnginesBootup < ENGINE_BOOT_TIME) {
+                mainEnginesBootup++;
+            }else{
+                canUseMainEngines = true;
+            }
+        }else{
+            if(mainEnginesBootup > 0){
+                mainEnginesBootup --;
+            }else{
+                canUseMainEngines = false;
+            }
+        }
+
         if (!level().isClientSide) {
             RocketController.tickController(this);
             RocketController.tickRotation(this);
@@ -318,19 +341,26 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
 
         if (level().isClientSide) {
-            if (canUseMainEngines) {
+            if (mainEnginesBootup != 0) {
+                float relativeBootTime = (float)mainEnginesBootup / ENGINE_BOOT_TIME;
                 for (BlockPos i : getEnginePositions()) {
-                    Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0, i.getZ() + 0.5));
-                    for (int j = 0; j < 2; j++) {
-                        level().addParticle(
-                                Registry.ROCKET_FLAME.get(),
-                                worldPos.x,
-                                worldPos.y,
-                                worldPos.z,
-                                heading.x * -1 * (currentThrust+1) * 1,
-                                heading.y * -1 * (currentThrust+1) * 1,
-                                heading.z * -1 * (currentThrust+1) * 1
-                        );
+                    Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0.1, i.getZ() + 0.5));
+                    boolean shouldCreateParticle = mainEnginesBootup == ENGINE_BOOT_TIME;
+                    if(!shouldCreateParticle){
+                        shouldCreateParticle = level().random.nextFloat() <= Math.sqrt(relativeBootTime);
+                    }
+                    if(shouldCreateParticle) {
+                        for (int j = 0; j < 2; j++) {
+                            level().addParticle(
+                                    Registry.ROCKET_FLAME.get(),
+                                    worldPos.x,
+                                    worldPos.y,
+                                    worldPos.z,
+                                    heading.x * -1 * (currentThrust + 1) * relativeBootTime,
+                                    heading.y * -1 * (currentThrust + 1) * relativeBootTime,
+                                    heading.z * -1 * (currentThrust + 1) * relativeBootTime
+                            );
+                        }
                     }
                 }
             }
@@ -409,13 +439,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
-        SaveAndLoad.readAdditionalSaveData(this, compoundTag);
+        RocketSaveAndLoad.readAdditionalSaveData(this, compoundTag);
         this.makeGui();
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
-        SaveAndLoad.addAdditionalSaveData(this, compoundTag);
+        RocketSaveAndLoad.addAdditionalSaveData(this, compoundTag);
     }
 
     @Override
@@ -456,8 +486,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (compoundTag.contains("secondaryEngines"))
             canUseSecondaryEngines = compoundTag.getBoolean("secondaryEngines");
 
-        if (compoundTag.contains("mainEngines"))
-            canUseMainEngines = compoundTag.getBoolean("mainEngines");
+        if (compoundTag.contains("shouldEnableMainEngines"))
+            shouldEnableMainEngines = compoundTag.getBoolean("shouldEnableMainEngines");
+        if (compoundTag.contains("mainEnginesBootup"))
+            mainEnginesBootup = compoundTag.getInt("mainEnginesBootup");
 
         if (compoundTag.contains("currentThrust"))
             currentThrust = compoundTag.getDouble("currentThrust");

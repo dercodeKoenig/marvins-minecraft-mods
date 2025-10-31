@@ -1,7 +1,5 @@
-package advRocketry.Rocket.RocketUtils;
+package advRocketry.Rocket;
 
-import advRocketry.Rocket.EntityRocket;
-import advRocketry.Rocket.RocketProgram;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -15,17 +13,20 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
 
-public class SaveAndLoad {
+public class RocketSaveAndLoad {
 
 
     public static void readAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+        rocket.shouldEnableMainEngines = compoundTag.getBoolean("shouldEnableMainEngines");
+        rocket.mainEnginesBootup = compoundTag.getInt("mainEnginesBootup");
+
         rocket.currentThrust = compoundTag.getDouble("currentThrust");
         rocket.currentSecondaryThrust = Utils.deSerializeVec3(compoundTag.getCompound("currentSecondaryThrust"));
 
-        rocket.enableMainEngines(compoundTag.getBoolean("mainEngines"));
-        rocket.enableSecondaryEngines(compoundTag.getBoolean("secondaryEngines"));
+        rocket.canUseMainEngines = (compoundTag.getBoolean("mainEngines"));
+        rocket.canUseSecondaryEngines = (compoundTag.getBoolean("secondaryEngines"));
 
-        if(compoundTag.contains("rocketProgram")){
+        if (compoundTag.contains("rocketProgram")) {
             rocket.currentProgram = RocketProgram.createFromNbt(compoundTag.getCompound("rocketProgram"));
         }
 
@@ -63,13 +64,16 @@ public class SaveAndLoad {
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+        compoundTag.putBoolean("shouldEnableMainEngines", rocket.shouldEnableMainEngines);
+        compoundTag.putInt("mainEnginesBootup", rocket.mainEnginesBootup);
+
         compoundTag.put("currentSecondaryThrust", Utils.serializeVec3(rocket.currentSecondaryThrust));
         compoundTag.putDouble("currentThrust", rocket.currentThrust);
 
-        compoundTag.putBoolean("mainEngines", rocket.canUseMainEngines());
-        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines());
+        compoundTag.putBoolean("mainEngines", rocket.canUseMainEngines);
+        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines);
 
-        if(rocket.currentProgram != null){
+        if (rocket.currentProgram != null) {
             compoundTag.put("rocketProgram", RocketProgram.saveToNbt(rocket.currentProgram));
         }
 

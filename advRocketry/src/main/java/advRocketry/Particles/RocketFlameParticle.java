@@ -15,13 +15,14 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.SimpleParticleType;
+import org.joml.Random;
 import org.joml.Vector3f;
 
 public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
 
     public RocketFlameParticle(ClientLevel level, double x, double y, double z,
                                double vx, double vy, double vz, SpriteSet spriteSet) {
-        super(level, x, y, z, vx, vy, vz, new DustParticleOptions(new Vector3f(0, 0, 0), 10*new Vector3f((float) vx,(float)vy,(float)vz).length()), spriteSet);
+        super(level, x, y, z, vx, vy, vz, new DustParticleOptions(new Vector3f(0, 0, 0), 10 * new Vector3f((float) vx, (float) vy, (float) vz).length() * (new Random().nextFloat()*0.2f+0.8f)), spriteSet);
 
         boolean isSmoke = random.nextBoolean();
 
@@ -39,15 +40,14 @@ public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
             this.bCol = this.randomizeColor(color.z(), f);
         }
 
+        this.hasPhysics = true;
 
         if (!isSmoke) {
             this.friction = 1;
             this.lifetime = 5;
         } else {
-            this.lifetime = 200;
+            this.lifetime = (int) (200 * new Vector3f((float) vx, (float) vy, (float) vz).length());
         }
-
-        this.hasPhysics = true;
 
 
         this.xd = vx + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
@@ -60,11 +60,11 @@ public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
     @Override
     public void tick() {
         super.tick();
-        if(super.onGround){
+        if (super.onGround) {
             float f = this.random.nextFloat() * 0.5F;
             yd = -yd * f;
-            xd = (this.random.nextFloat()-0.5) * 0.5F;
-            zd = (this.random.nextFloat()-0.5) * 0.5F;
+            xd = (this.random.nextFloat() - 0.5) * 0.5F;
+            zd = (this.random.nextFloat() - 0.5) * 0.5F;
         }
     }
 }
