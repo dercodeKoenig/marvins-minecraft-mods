@@ -454,7 +454,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void deconstruct() {
-        Vec3 minPos = position().subtract(new Vec3((double) size.getX() / 2, (double) size.getY() / 2, (double) size.getZ() / 2));
+        Vec3 minPos = position().subtract(new Vec3((double) size.getX() / 2, 0, (double) size.getZ() / 2));
         for (BlockPos pos : blocks.keySet()) {
             BlockState state = blocks.get(pos);
             BlockPos target = new BlockPos(
