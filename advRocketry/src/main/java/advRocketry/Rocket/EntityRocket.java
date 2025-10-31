@@ -429,13 +429,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 }
             }
         }
-
-
-
-        heading =new Vec3(0,0,1).normalize();
-        setDeltaMovement(0,0,0);
-        setPos(-30, 110, 0);
-
     }
 
     public void launch() {

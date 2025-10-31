@@ -330,7 +330,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     }
                 }
             }
-            rocket.moveTo(launchPadCenterX, areaMin.getY()+ (double) rocket.size.getY() / 2+0.05, launchPadCenterZ, 0, 0);
+            rocket.moveTo(launchPadCenterX, areaMin.getY()+ 0.02, launchPadCenterZ, 0, 0);
             level.addFreshEntity(rocket);
         }
         return new constuctionInfo(true, "");
