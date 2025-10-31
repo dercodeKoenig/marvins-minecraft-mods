@@ -88,7 +88,7 @@ public class DefaultGalaxy {
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         distantStar.emissiveColor = new Vector4f(0.1f, 0.2f, 3f, 1f);
         distantStar.position = new Vec3(10,2,0);
-        //galaxy.add(distantStar);
+        galaxy.add(distantStar);
 
         return new GsonBuilder().setPrettyPrinting().create().toJson(galaxy);
     }

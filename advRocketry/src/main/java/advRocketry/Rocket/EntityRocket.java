@@ -34,6 +34,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -92,17 +93,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         size = new Vec3i(1, 1, 1);
         fuelTank = new FluidTank(0);
 
-        RenderSystem.recordRenderCall(() -> {
-            for (RenderType type : RenderType.chunkBufferLayers()) {
-                RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
-                if (!renderDataMap.containsKey(entityRenderType)) {
-                    RenderData data = new RenderData();
-                    VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                    data.vertexBuffer = vbo;
-                    renderDataMap.put(entityRenderType, data);
+        if(FMLEnvironment.dist.isClient()) {
+            RenderSystem.recordRenderCall(() -> {
+                for (RenderType type : RenderType.chunkBufferLayers()) {
+                    RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
+                    if (!renderDataMap.containsKey(entityRenderType)) {
+                        RenderData data = new RenderData();
+                        VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                        data.vertexBuffer = vbo;
+                        renderDataMap.put(entityRenderType, data);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size, Vec3 front) {
