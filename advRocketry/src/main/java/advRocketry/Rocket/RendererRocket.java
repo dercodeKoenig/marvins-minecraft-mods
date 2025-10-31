@@ -1,6 +1,7 @@
 package advRocketry.Rocket;
 
 import advRocketry.Rocket.RocketUtils.RotationUtils;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
@@ -8,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -98,10 +100,10 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
         poseStack.pushPose();
 
         poseStack.rotateAround(RotationUtils.getCurrentRotation(p_entity),
-                0, 0, 0);
+                0, (float) p_entity.size.getY() / 2, 0);
 
 
-        poseStack.translate(-(float) p_entity.size.getX() / 2, -(float) p_entity.size.getY() / 2, -(float) p_entity.size.getZ() / 2);
+        poseStack.translate(-(float) p_entity.size.getX() / 2, 0, -(float) p_entity.size.getZ() / 2);
 
         if (p_entity.requiresMeshUpdate || p_entity.lastLight != packedLight) {
             makeRenderBuffer(p_entity, packedLight);
@@ -125,7 +127,20 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
             Matrix4f viewMatrix = RenderSystem.getModelViewMatrix();
             Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
             Matrix4f modelViewMatrix = new Matrix4f(viewMatrix).mul(modelMatrix);
-            renderData.vertexBuffer.drawWithShader(modelViewMatrix, projectionMatrix, RenderSystem.getShader());
+
+            ShaderInstance shader = RenderSystem.getShader();
+            shader.setDefaultUniforms(type.mode, modelViewMatrix, projectionMatrix, Minecraft.getInstance().getWindow());
+            Uniform NormalMat = shader.getUniform("NormalMat");
+            if(NormalMat != null) {
+                Matrix3f normalMat = new Matrix3f(modelMatrix); // take upper-left 3x3
+                normalMat.invert().transpose(); // compute normal matrix
+                NormalMat.set(normalMat);
+            }else{
+                throw new RuntimeException(type.name + " has no normal matrix!! Report this issue to Marvin at github or discord");
+            }
+            shader.apply();
+            renderData.vertexBuffer.draw();
+            shader.clear();
 
             type.clearRenderState();
         }

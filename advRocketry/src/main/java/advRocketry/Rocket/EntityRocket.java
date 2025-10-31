@@ -14,6 +14,7 @@ import advRocketry.Rocket.RocketUtils.RocketController;
 import advRocketry.Rocket.RocketUtils.RotationUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -25,9 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -122,6 +121,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
         rocket.fuelTank = new FluidTank(fuelCapacity);
         rocket.makeGui();
+        rocket.refreshDimensions();
         return rocket;
     }
 
@@ -142,11 +142,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             PacketDistributor.sendToServer(PacketEntity.getEntityPacket(this, req));
         }
     }
-    @Override
-    public float getPickRadius() {
-        return (float) size.distManhattan(new Vec3i(0, 0, 0));
-    }
-
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -170,19 +165,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public AABB makeBoundingBox() {
-        if (size == null)
             return super.makeBoundingBox(); // happens because minecraft calls makeBoundingBox in constructor before the size value is assigned
-
-        double maxW = Math.max(size.getX(), size.getZ());
-
-        return new AABB(
-                position().x - maxW / 2,
-                position().y - (double) size.getY() / 2,
-                position().z - maxW / 2,
-                position().x + maxW / 2,
-                position().y + (double) size.getY() / 2,
-                position().z + maxW / 2
-        );
     }
 
     @Override
@@ -228,6 +211,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             guiHandler.openGui(180, 200, true);
         }
     }
+
+    @Override
+    public EntityDimensions getDimensions(Pose pose) {
+        System.out.println("getDimensions");
+        return EntityDimensions.scalable((float)Math.max(size.getX(), size.getZ()), (float)size.getY());
+    }
+
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
@@ -436,6 +426,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 }
             }
         }
+
+
+
+        heading =new Vec3(0,0,1).normalize();
+        setDeltaMovement(0,0,0);
+        setPos(-30, 110, 0);
+
     }
 
     public void launch() {
@@ -519,6 +516,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (compoundTag.contains("additionalSaveData")) {
             readAdditionalSaveData(compoundTag.getCompound("additionalSaveData"));
             requiresMeshUpdate = true;
+            refreshDimensions();
         }
 
         if (compoundTag.contains("heading")) {

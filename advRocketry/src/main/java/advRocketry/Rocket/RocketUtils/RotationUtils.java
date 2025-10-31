@@ -63,21 +63,24 @@ public class RotationUtils {
     }
 
     // also written by gemini. or chatgpt idk.
+    // rotates around the rocket center. the render code also rotates around the center. should be fine
     public static Vec3 localToWorld(EntityRocket rocket, Vec3 localPos) {
-        // Get the same final rotation you used in rendering
-        Quaternionf q = getCurrentRotation(rocket); // e.g. qRoll * qTilt
+        // Get final rotation quaternion
+        Quaternionf q = getCurrentRotation(rocket);
 
-        // Convert to JOML Vector3f
+        // Offset local position to rotate around rocket center
         Vector3f lp = new Vector3f(
                 (float) (localPos.x - rocket.size.getX() / 2.0),
                 (float) (localPos.y - rocket.size.getY() / 2.0),
                 (float) (localPos.z - rocket.size.getZ() / 2.0)
         );
 
-        // Rotate local position by quaternion
+        // Rotate around center
         q.transform(lp);
 
-        // Translate by entity position
-        return rocket.position().add(new Vec3(lp.x, lp.y, lp.z));
+        // Translate to entity position (bottom of rocket)
+        // Add half Y back to move to center if needed for rendering
+        return rocket.position().add(new Vec3(lp.x, lp.y + rocket.size.getY() / 2.0, lp.z));
     }
+
 }

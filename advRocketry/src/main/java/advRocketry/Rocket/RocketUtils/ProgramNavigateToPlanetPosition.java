@@ -46,7 +46,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 rocket.enableSecondaryEngines(true); // help or it swings around too much
 
                 int y = rocket.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
-                double dyi = rocket.position().y- (double) rocket.size.getY() /2 - y;
+                double dyi = rocket.position().y - y;
                 double targetY = rocket.position().y - dyi * 1.2 + distanceToTargetXZ - 1;
                 rocket.setTargetPosition(new Vec3(target.getX(), targetY, target.getZ()));
 
