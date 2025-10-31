@@ -326,7 +326,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         if(level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer1)
                             guidanceComputer1.itemStackHandler.setStackInSlot(0,ItemStack.EMPTY);
 
-                        level.destroyBlock(pos, false);
+                        // ok no idea why but signs and torches will still break and drop as items
+                        level.setBlock(pos,Blocks.AIR.defaultBlockState(),2);
                     }
                 }
             }
