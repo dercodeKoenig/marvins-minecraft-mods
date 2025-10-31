@@ -3,6 +3,7 @@ package advRocketry;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.SpaceTravelManager;
+import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
@@ -28,10 +29,7 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterShadersEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -69,6 +67,7 @@ public class Main {
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(this::registerParticles);
 
 
         Registry.BLOCKS.register(modEventBus);
@@ -76,6 +75,7 @@ public class Main {
         Registry.BLOCK_ENTITIES.register(modEventBus);
         Registry.CREATIVE_TAB.register(modEventBus);
         Registry.ENTITIES.register(modEventBus);
+        Registry.PARTICLES.register(modEventBus);
 
 
         Path configDir = FMLPaths.CONFIGDIR.get();
@@ -171,6 +171,10 @@ public class Main {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(Registry.STRUCTURE_TOWER.get(), RenderType.cutout());
+    }
+
+    public void registerParticles(RegisterParticleProvidersEvent event){
+        event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

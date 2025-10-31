@@ -1,10 +1,13 @@
 package advRocketry.Rocket.RocketUtils;
 
 import ARLib.network.PacketEntity;
+import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +20,7 @@ public class RocketController {
 
     public static void tickRotation(EntityRocket rocket) {
         // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-        final double ROTATION_RATE = 0.05 / rocket.size.getY() * rocket.getThrust() / rocket.getMass();
+        final double ROTATION_RATE = 0.05;// / rocket.size.getY();
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
@@ -53,11 +56,15 @@ public class RocketController {
     // it should also scan (if no launchpad structure) to land at some area where there is a flat area
     public static void tickController(EntityRocket rocket) {
 
-        if(rocket.targetPosition == null) return;
+        if(rocket.targetPosition == null){
+            rocket.enableMainEngines(false);
+            rocket.enableSecondaryEngines(false);
+            return;
+        }
 
         // --- Configuration Parameters (Tune these for desired behavior) ---
         // Proportional Gain: How aggressively the rocket tries to close the distance.
-        final double K_P = 0.01 / rocket.size.getY() * rocket.getThrust() / rocket.getMass();
+        final double K_P = 0.005;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
         final double K_D = 0.4 * rocket.controllerKDMultiplier;
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
@@ -83,8 +90,8 @@ public class RocketController {
         desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity()));
 
         // --- 2. Calculate Thrust & Heading ---
-
-        if (rocket.canUseSecondaryEngines) {
+// TODO: calculate main thrusters first and use the secondary only for part of the force that was not applied ( sideways/ break )
+        if (rocket.canUseSecondaryEngines()) {
             // use secondary thrusters in space for fine controll
             Vec3 secondaryThrustersForce = desiredAcceleration.scale(rocket.getMass());
             if (secondaryThrustersForce.length() > SECONDARY_THRUSTERS_FORCE) {
@@ -94,9 +101,11 @@ public class RocketController {
             Vec3 secondaryThrustersAcceleration = secondaryThrustersForce.scale(1 / rocket.getMass());
             desiredAcceleration.subtract(secondaryThrustersAcceleration);
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(secondaryThrustersAcceleration));
+
+            rocket.setCurrentSecondaryThrustAndSync(secondaryThrustersForce);
         }
 
-        if (desiredAcceleration.length() > 0.0001 && rocket.canUseMainEngines) {
+        if (desiredAcceleration.length() > 0.0001 && rocket.canUseMainEngines()) {
             // 1. Max Acceleration the engine can *possibly* deliver.
             final double MAX_PHYSICAL_ACCEL = rocket.getThrust() / rocket.getMass();
             // 2. The absolute maximum acceleration we are allowed to use this frame.
@@ -121,18 +130,9 @@ public class RocketController {
             // This is the fraction of MAX_THRUST that is needed to achieve the 'effectiveAcceleration'.
             // Thrust_Multiplier = (Effective_Accel * Mass) / Max_Thrust
             double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrust();
+            rocket.setCurrentThrustAndSync(ThrustMultiplier);
             // TODO: render rocket flame & smoke particles
             // TODO: burn fuel
-
-            /*
-            for(BlockPos i : rocket.getEnginePositions()){
-                Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX()+0.5,i.getY()+0.5,i.getZ()+0.5));
-                ServerLevel level = ((ServerLevel)(rocket.level()));
-                for(ServerPlayer player : level.getPlayers((player) -> true)){
-                 level.sendParticles( player, new DustParticleOptions(new Vector3f(0.5f,0.5f,0.5f),2),true,worldPos.x, worldPos.y,worldPos.z, (int) (5*ThrustMultiplier),0,0,0,1);
-                }
-            }
-             */
 
         } else {
             rocket.setTargetHeading(rocket.defaultTargetHeading);

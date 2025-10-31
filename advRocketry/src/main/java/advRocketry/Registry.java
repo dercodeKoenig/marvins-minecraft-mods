@@ -3,7 +3,12 @@ package advRocketry;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Blocks.*;
+import advRocketry.Particles.RocketFlameParticle;
 import advRocketry.Rocket.EntityRocket;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -13,6 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.joml.Vector3f;
 
 import java.util.function.Supplier;
 
@@ -22,6 +28,7 @@ public class Registry {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, Main.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, Main.MODID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Main.MODID);
+    public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, Main.MODID);
 
 
     public static final Supplier<CreativeModeTab> CUSTOM_CREATIVE_TAB = CREATIVE_TAB.register(Main.MODID, () -> new CustomCreativeTab());
@@ -49,6 +56,8 @@ public class Registry {
             "rocket",
             () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).build(Main.MODID+":rocket")
     );
+
+    public static final Supplier<SimpleParticleType> ROCKET_FLAME = PARTICLES.register("rocketflame",() -> new SimpleParticleType(true));
 
 
     static {

@@ -19,6 +19,12 @@ public class SaveAndLoad {
 
 
     public static void readAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+        rocket.currentThrust = compoundTag.getDouble("currentThrust");
+        rocket.currentSecondaryThrust = Utils.deSerializeVec3(compoundTag.getCompound("currentSecondaryThrust"));
+
+        rocket.enableMainEngines(compoundTag.getBoolean("mainEngines"));
+        rocket.enableSecondaryEngines(compoundTag.getBoolean("secondaryEngines"));
+
         if(compoundTag.contains("rocketProgram")){
             rocket.currentProgram = RocketProgram.createFromNbt(compoundTag.getCompound("rocketProgram"));
         }
@@ -57,6 +63,12 @@ public class SaveAndLoad {
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+        compoundTag.put("currentSecondaryThrust", Utils.serializeVec3(rocket.currentSecondaryThrust));
+        compoundTag.putDouble("currentThrust", rocket.currentThrust);
+
+        compoundTag.putBoolean("mainEngines", rocket.canUseMainEngines());
+        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines());
+
         if(rocket.currentProgram != null){
             compoundTag.put("rocketProgram", RocketProgram.saveToNbt(rocket.currentProgram));
         }
