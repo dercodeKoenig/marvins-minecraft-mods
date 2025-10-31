@@ -1,9 +1,8 @@
 package advRocketry.Rocket;
 
 import advRocketry.Rocket.RocketUtils.RotationUtils;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -13,17 +12,24 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -39,35 +45,100 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
         return null;
     }
 
+
+    public void makeRenderBuffer(EntityRocket rocket, int packedLight) {
+
+        for (RenderType type : rocket.renderDataMap.keySet()) {
+            RenderData data = rocket.renderDataMap.get(type);
+            data.byteBufferBuilder = new ByteBufferBuilder(4096);
+            data.bufferBuilder = new BufferBuilder(data.byteBufferBuilder, type.mode, type.format);
+        }
+
+        for (BlockPos pos : rocket.blocks.keySet()) {
+            BlockState state = rocket.blocks.get(pos);
+            BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(state);
+            RandomSource random = RandomSource.create(42L);
+
+            for (RenderType type : model.getRenderTypes(state, random, ModelData.EMPTY)) {
+
+                RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
+
+                if (!rocket.renderDataMap.containsKey(entityRenderType)) {
+                    System.out.println("rendertype not present: " + entityRenderType.name);
+                    continue;
+                }
+
+                RenderData renderData = rocket.renderDataMap.get(entityRenderType);
+
+                int i = Minecraft.getInstance().getBlockColors().getColor(state, rocket.level(), null, 0);
+                float r = (float) (i >> 16 & 255) / 255.0F;
+                float g = (float) (i >> 8 & 255) / 255.0F;
+                float b = (float) (i & 255) / 255.0F;
+
+                PoseStack poseStack = new PoseStack();
+                poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
+                Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(), renderData.bufferBuilder, state, model, r, g, b, packedLight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, entityRenderType);
+            }
+        }
+
+        for (RenderType type : rocket.renderDataMap.keySet()) {
+            RenderData renderData = rocket.renderDataMap.get(type);
+            renderData.mesh = renderData.bufferBuilder.build();
+            if (renderData.mesh != null) {
+                renderData.vertexBuffer.bind();
+                renderData.vertexBuffer.upload(renderData.mesh);
+            }
+            renderData.byteBufferBuilder.close();
+        }
+    }
+
+
     @Override
     public void render(EntityRocket p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
 
         poseStack.rotateAround(RotationUtils.getCurrentRotation(p_entity),
-                0,0,0);
+                0, 0, 0);
 
 
         poseStack.translate(-(float) p_entity.size.getX() / 2, -(float) p_entity.size.getY() / 2, -(float) p_entity.size.getZ() / 2);
 
-
-        for (BlockPos p : p_entity.blocks.keySet()) {
-            BlockState state = p_entity.blocks.get(p);
-            poseStack.pushPose();
-            poseStack.translate(p.getX(), p.getY(), p.getZ());
-
-            RenderShape rendershape = state.getRenderShape();
-            if (rendershape == RenderShape.MODEL) {
-                Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, poseStack, bufferSource, packedLight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
-            }
-            poseStack.popPose();
+        if (p_entity.requiresMeshUpdate || p_entity.lastLight != packedLight) {
+            makeRenderBuffer(p_entity, packedLight);
+            p_entity.lastLight = packedLight;
+            p_entity.requiresMeshUpdate = false;
+            System.out.println(p_entity.lastLight+":"+packedLight);
         }
+
+        for (RenderType type : p_entity.renderDataMap.keySet()) {
+
+            RenderData renderData = p_entity.renderDataMap.get(type);
+
+            if (renderData.mesh == null) continue;
+
+            //System.out.println(type.name);
+
+            type.setupRenderState();
+            renderData.vertexBuffer.bind();
+
+            Matrix4f modelMatrix = poseStack.last().pose();
+            Matrix4f viewMatrix = RenderSystem.getModelViewMatrix();
+            Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
+            Matrix4f modelViewMatrix = new Matrix4f(viewMatrix).mul(modelMatrix);
+            renderData.vertexBuffer.drawWithShader(modelViewMatrix, projectionMatrix, RenderSystem.getShader());
+
+            type.clearRenderState();
+        }
+        VertexBuffer.unbind();
+
+
         for (BlockPos p : p_entity.blockEntities.keySet()) {
             BlockEntity be = p_entity.blockEntities.get(p);
             poseStack.pushPose();
             poseStack.translate(p.getX(), p.getY(), p.getZ());
             BlockEntityRenderer<BlockEntity> blockentityrenderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(be);
             if (blockentityrenderer != null) {
-                blockentityrenderer.render(be,0,poseStack,bufferSource,packedLight, OverlayTexture.NO_OVERLAY);
+                blockentityrenderer.render(be, 0, poseStack, bufferSource, packedLight, OverlayTexture.NO_OVERLAY);
             }
             poseStack.popPose();
         }

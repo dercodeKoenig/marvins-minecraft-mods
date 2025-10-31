@@ -13,6 +13,7 @@ uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
 uniform vec3 TargetVector;       // from observer to target planet
 uniform vec3 TargetSkyColor;       // target planets sky color
+uniform float playerHeight;         // how high the player is to reduce atm tint for star
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
@@ -56,18 +57,27 @@ void main() {
         totalReflectedLight += reflected;
     }
 
-    //// --- existing emissive logic preserved ---
 
+    // atmosphere modifies how the star appears
+    float altitudeAtmThicknessMod = clamp((10000 - playerHeight) / 10000, 0, 1);
     float starUp = dot(upUniverseSpace, normalize(TargetVector));
-    float atmThicknessMod = pow(1.0 - max(0.0, starUp), 2.0) * 0.9 + 0.1;
-    atmThicknessMod *= AtmDensity / (1.0 + AtmDensity);
+    float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
+    atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
+    atmThicknessMod *= altitudeAtmThicknessMod;
 
-    vec3 starSunriseColor = pow(gamma_reverse(LocalSunriseColor) * gamma_reverse(emissiveColor.rgb), vec3(3.0));
-    vec3 atmAdjustedEmissiveColor = mix(gamma_reverse(emissiveColor.rgb), starSunriseColor, atmThicknessMod);
+    // more atm should make the star less bright bc light scatters away
+    float starBrightness = max(0.0, emissiveColor.a) * (1 - atmThicknessMod) ;
 
-    float starBrightnessMult = 1.0 - atmThicknessMod;
-    float starBrightness = max(0.0, emissiveColor.a) * starBrightnessMult;
+    vec3 starColorRGBLinear= gamma_reverse(emissiveColor.rgb);
+    vec3 sunriseLinear = gamma_reverse(LocalSunriseColor);
 
+    // i tint the star slightly in the sunrise color because this is the light that scatters away less
+    vec3 sunRiseTintColor = sunriseLinear;
+
+    // tint based on atm thickness
+    vec3 atmAdjustedEmissiveColor = mix(starColorRGBLinear, sunRiseTintColor, atmThicknessMod);
+
+    // also include the texture for emissive, well it will probably not matter because of bloom but i think this is correct so
     vec3 emitted = atmAdjustedEmissiveColor * gamma_reverse(baseSurfaceColor) * starBrightness;
 
     fragColor = vec4(totalReflectedLight + emitted, 1.0);

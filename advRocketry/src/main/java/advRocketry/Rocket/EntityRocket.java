@@ -13,6 +13,9 @@ import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
 import advRocketry.Rocket.RocketUtils.RocketController;
 import advRocketry.Rocket.RocketUtils.RotationUtils;
 import advRocketry.utils.Utils;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
@@ -32,6 +35,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -73,6 +77,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public double currentThrust = 0;
     public Vec3 currentSecondaryThrust = new Vec3(0, 0, 0);
 
+
+    // render variables
+    public HashMap<RenderType, RenderData> renderDataMap = new HashMap<>();
+    public int lastLight = 0;
+    public boolean requiresMeshUpdate = false;
+
     public GuiHandlerEntity guiHandler;
 
     public EntityRocket(EntityType<?> entityType, Level level) {
@@ -82,6 +92,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         blockEntities = new HashMap<>();
         size = new Vec3i(1, 1, 1);
         fuelTank = new FluidTank(0);
+
+        RenderSystem.recordRenderCall(() -> {
+            for (RenderType type : RenderType.chunkBufferLayers()) {
+                RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
+                if (!renderDataMap.containsKey(entityRenderType)) {
+                    RenderData data = new RenderData();
+                    VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                    data.vertexBuffer = vbo;
+                    renderDataMap.put(entityRenderType, data);
+                }
+            }
+        });
     }
 
     public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size, Vec3 front) {
@@ -103,6 +125,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return rocket;
     }
 
+
+    public void closeVertexBuffer() {
+        RenderSystem.recordRenderCall(() -> {
+            for (RenderData data : renderDataMap.values()) {
+                data.vertexBuffer.close();
+            }
+        });
+    }
+
     @Override
     public void onAddedToLevel() {
         if (level().isClientSide) {
@@ -111,6 +142,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             PacketDistributor.sendToServer(PacketEntity.getEntityPacket(this, req));
         }
     }
+    @Override
+    public float getPickRadius() {
+        return (float) size.distManhattan(new Vec3i(0, 0, 0));
+    }
+
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -210,11 +246,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
         return cachedThrust;
     }
-    public float getBootTimeThrustMultiplier(){
-        int halfBootTime = ENGINE_BOOT_TIME / 2;
-        if(mainEnginesBootup < halfBootTime) return 0;
 
-        return (float) Math.pow ((float)(mainEnginesBootup - halfBootTime) / halfBootTime, 2);
+    public float getBootTimeThrustMultiplier() {
+        int halfBootTime = ENGINE_BOOT_TIME / 2;
+        if (mainEnginesBootup < halfBootTime) return 0;
+
+        return (float) Math.pow((float) (mainEnginesBootup - halfBootTime) / halfBootTime, 2);
     }
 
     public int getFuel() {
@@ -261,9 +298,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
     }
 
-    public boolean shouldEnableMainEngines(){
+    public boolean shouldEnableMainEngines() {
         return shouldEnableMainEngines;
     }
+
     public int getMainEnginesBootup() {
         return mainEnginesBootup;
     }
@@ -317,6 +355,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         setCurrentSecondaryThrustAndSync(new Vec3(0, 0, 0));
     }
 
+
     @Override
     public void tick() {
         if (!level().isClientSide) {
@@ -324,12 +363,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
 
         // tick engine bootup / shutdown
-        if(shouldEnableMainEngines) {
+        if (shouldEnableMainEngines) {
             if (mainEnginesBootup < ENGINE_BOOT_TIME) {
                 mainEnginesBootup++;
             }
-        }else{
-            if(mainEnginesBootup > 0) {
+        } else {
+            if (mainEnginesBootup > 0) {
                 mainEnginesBootup--;
             }
         }
@@ -346,14 +385,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (level().isClientSide) {
             if (mainEnginesBootup != 0) {
-                float relativeBootTimeLin = (float)mainEnginesBootup /  ENGINE_BOOT_TIME;
+                float relativeBootTimeLin = (float) mainEnginesBootup / ENGINE_BOOT_TIME;
                 for (BlockPos i : getEnginePositions()) {
                     Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
                     boolean shouldCreateParticle = mainEnginesBootup == ENGINE_BOOT_TIME;
-                    if(!shouldCreateParticle){
+                    if (!shouldCreateParticle) {
                         shouldCreateParticle = level().random.nextFloat() <= Math.sqrt(relativeBootTimeLin);
                     }
-                    if(shouldCreateParticle) {
+                    if (shouldCreateParticle) {
                         for (int j = 0; j < 2; j++) {
                             level().addParticle(
                                     Registry.ROCKET_FLAME.get(),
@@ -477,8 +516,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
-        if (compoundTag.contains("additionalSaveData"))
+        if (compoundTag.contains("additionalSaveData")) {
             readAdditionalSaveData(compoundTag.getCompound("additionalSaveData"));
+            requiresMeshUpdate = true;
+        }
 
         if (compoundTag.contains("heading")) {
             heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));

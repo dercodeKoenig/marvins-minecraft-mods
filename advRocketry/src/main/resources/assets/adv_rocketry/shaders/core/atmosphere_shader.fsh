@@ -22,7 +22,7 @@ vec3 gamma_reverse(vec3 color){
     return pow(color, vec3(2.2));
 }
 void main() {
-    // how bright the sky should be, TODO: this should also depend on atm density/thickness, weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
+    // how bright the sky should be, TODO: this should also depend on weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
     float brightnessModifierPlayerAltitude = clamp((10000 - playerHeight) / 10000, 0, 1);
     float globalBrightnessModifiew = brightnessModifierPlayerAltitude * (AtmDensity/(1+AtmDensity));
 

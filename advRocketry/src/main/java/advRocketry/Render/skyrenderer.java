@@ -212,7 +212,7 @@ public class skyrenderer {
 
         // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
         // we will scale translation and scale factor by this multiplier
-        float distance_multiplier = 100000000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
+        float distance_multiplier = 100000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myCurrentSpaceObject = DimensionManager.get(myId);
@@ -221,8 +221,8 @@ public class skyrenderer {
         // use custom near / far for rendering planets and stars, depth precision error should not be significant as space objects are sparsely distributed
         // note that the minecraft proj matrix has effects like bobbing that needs to be preserved
         Matrix4f newProj = new Matrix4f(proj);
-        float n = 0.0001f * distance_multiplier;
-        float f = 1000f * distance_multiplier;
+        float n = 0.001f * distance_multiplier;
+        float f = 100f * distance_multiplier;
         newProj.set(2, 2, -(f + n) / (f - n));
         newProj.set(3, 2, -(2f * f * n) / (f - n));
 
@@ -312,6 +312,7 @@ public class skyrenderer {
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
             shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
             shader.getUniform("TargetSkyColor").set(otherDimension.getSkyColor().x, otherDimension.getSkyColor().y, otherDimension.getSkyColor().z);
+            shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {

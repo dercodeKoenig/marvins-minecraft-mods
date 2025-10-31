@@ -4,6 +4,7 @@ import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.SpaceTravelManager;
 import advRocketry.Particles.RocketFlameParticleProvider;
+import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.Dimension.DimensionManager;
@@ -32,6 +33,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -58,9 +60,9 @@ public class Main {
             NeoForge.EVENT_BUS.addListener(this::onCLientTick);
         }
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
-
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
+        NeoForge.EVENT_BUS.addListener(this::onEntityLeaveWorld);
 
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::addCreative);
@@ -128,6 +130,13 @@ public class Main {
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
         }
     }
+
+    public void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
+        if (event.getEntity() instanceof EntityRocket rocket) {
+            rocket.closeVertexBuffer();
+        }
+    }
+
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer)x).itemStackHandler));

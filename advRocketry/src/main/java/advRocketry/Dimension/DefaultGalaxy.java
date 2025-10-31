@@ -75,6 +75,21 @@ public class DefaultGalaxy {
         venus.atmosphereDensity = 2;
         galaxy.add(venus);
 
+
+
+
+        DimensionProperties distantStar = new DimensionProperties();
+        distantStar.name = "Blue Star";
+        distantStar.type = DimensionProperties.PlanetType.STAR;
+        distantStar.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "blue_star");
+        distantStar.earthMassMultiplier = 300;
+        distantStar.earthRadiusMultiplier = 300;
+        distantStar.rotationAxis = new Vec3(0, 1, 0).normalize();
+        distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
+        distantStar.emissiveColor = new Vector4f(0.1f, 0.2f, 3f, 1f);
+        distantStar.position = new Vec3(10,2,0);
+        //galaxy.add(distantStar);
+
         return new GsonBuilder().setPrettyPrinting().create().toJson(galaxy);
     }
 }
