@@ -1,8 +1,8 @@
 {
   "parent": "block/cube",
   "textures": {
-    "down": "adv_rocketry:block/machine_generic",
-    "up": "adv_rocketry:block/machine_generic",
+    "down": "arlib:block/machinegeneric",
+    "up": "arlib:block/machinegeneric",
     "north": "adv_rocketry:block/guidance_computer",
     "south": "adv_rocketry:block/guidance_computer",
     "west": "adv_rocketry:block/guidance_computer",

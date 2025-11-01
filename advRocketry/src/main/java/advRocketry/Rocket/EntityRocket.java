@@ -7,6 +7,7 @@ import ARLib.network.PacketEntity;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
+import advRocketry.Blocks.Seat;
 import advRocketry.Dimension.*;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
@@ -14,12 +15,14 @@ import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -55,6 +58,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // cached values
     private float cachedThrust = -1;
     private ArrayList<BlockPos> cachedEnginePositions = null;
+    private ArrayList<BlockPos> cachedSeatPositions = null;
 
     // rocket control
     private BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
@@ -77,7 +81,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public boolean requiresMeshUpdate = false;
 
     // for space travel
-    public Vec3 universePosition = new Vec3(0,0,0);
+    public Vec3 universePosition = new Vec3(0, 0, 0);
 
     // passenger
     public Map<UUID, BlockPos> passengers = new HashMap<>();
@@ -139,7 +143,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         });
     }
 
-    ////  Entity class overrides ////
+    /// /  Entity class overrides ////
 
     @Override
     public void onAddedToLevel() {
@@ -191,9 +195,51 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (source.getEntity() instanceof Player player) {
+            if (!level().isClientSide) {
+                player.startRiding(this);
+            }
+            return true;
+        }
+        return super.hurt(source, amount);
+    }
 
-   //// get and set methods ////
 
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.passengers.size() < getSeatPositions().size();
+    }
+
+    @Override
+    protected void addPassenger(Entity passenger) {
+        super.addPassenger(passenger);
+        ArrayList<BlockPos> seats = new ArrayList<>(this.getSeatPositions());
+        Collections.shuffle(seats, new Random());
+        for (BlockPos seatPos: seats) {
+            if(!passengers.values().contains(seatPos)){
+                passengers.put(passenger.getUUID(), seatPos);
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        super.removePassenger(passenger);
+        passengers.remove(passenger.getUUID());
+    }
+
+    @Override
+    protected Vec3 getPassengerAttachmentPoint(Entity entity, EntityDimensions dimensions, float partialTick) {
+        UUID entityUUID = entity.getUUID();
+        BlockPos seatPos = passengers.get(entityUUID);
+        if(seatPos == null) return new Vec3(0,0,0); // this should never happen
+        return RotationUtils.localToWorld(this, new Vec3(seatPos.getX(), seatPos.getY()+0.5, seatPos.getZ()));
+    }
+
+    /// / get and set methods ////
 
 
     public void enableMainEngines(boolean canUseMainEngines, boolean syncToClient) {
@@ -210,7 +256,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return canUseMainEngines;
     }
 
-    public void setMainEnginesBootup(int bootup, boolean syncToClient){
+    public void setMainEnginesBootup(int bootup, boolean syncToClient) {
         if (!level().isClientSide && syncToClient && this.mainEnginesBootup != bootup) {
             CompoundTag tag = new CompoundTag();
             tag.putInt("mainEnginesBootup", bootup);
@@ -219,7 +265,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         this.mainEnginesBootup = bootup;
     }
 
-    public int getMainEnginesBootUp(){
+    public int getMainEnginesBootUp() {
         return this.mainEnginesBootup;
     }
 
@@ -245,7 +291,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         lastLaunchPosition = target;
     }
 
-    public  BlockPos getLastLaunchPosition(){
+    public BlockPos getLastLaunchPosition() {
         return lastLaunchPosition;
     }
 
@@ -259,7 +305,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         defaultTargetHeading = target;
     }
 
-    public Vec3 getDefaultTargetHeading(){
+    public Vec3 getDefaultTargetHeading() {
         return defaultTargetHeading;
     }
 
@@ -272,7 +318,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         targetFront = target;
     }
 
-    public Vec3 getTargetFront(){
+    public Vec3 getTargetFront() {
         return targetFront;
     }
 
@@ -298,18 +344,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         currentProgram = program;
     }
 
-    public RocketProgram getCurrentProgram(){
+    public RocketProgram getCurrentProgram() {
         return currentProgram;
     }
 
-    //// main rocket methods ////
-    @Override
-    public Vec3 getPassengerAttachmentPoint(Entity entity, EntityDimensions dimensions, float partialTick) {
-return new Vec3(0,0,0);
-    }
+    /// / main rocket methods ////
 
-
-        public void endProgram() {
+    public void endProgram() {
         currentProgram = null;
         setTargetPosition(null, false);
         enableSecondaryEngines(false, false);
@@ -363,7 +404,7 @@ return new Vec3(0,0,0);
         move(MoverType.SELF, getDeltaMovement());
 
 
-        if(myDimension != null){
+        if (myDimension != null) {
             universePosition = myDimension.getPosition(0);
         }
 
@@ -408,7 +449,7 @@ return new Vec3(0,0,0);
         kill();
     }
 
-    //// save, load and sync ////
+    /// / save, load and sync ////
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
@@ -453,7 +494,7 @@ return new Vec3(0,0,0);
         PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, compoundTag));
     }
 
-//// gui ////
+    /// / gui ////
 
     public void makeGui() {
         guiHandler.modules.clear();
@@ -466,7 +507,12 @@ return new Vec3(0,0,0);
             }
         }
 
-        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
+        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
+            public void onButtonClicked() {
+                super.onButtonClicked();
+                Minecraft.getInstance().setScreen(null);
+            }
+        };
         deconstructButton.color = 0xffffffff;
         guiHandler.modules.add(deconstructButton);
         guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
@@ -489,7 +535,7 @@ return new Vec3(0,0,0);
     }
 
 
-
+    /// / other rocket methods ////
 
     public float getThrustMax() {
         if (cachedThrust < 0) {
@@ -527,6 +573,21 @@ return new Vec3(0,0,0);
             }
         }
         return cachedEnginePositions;
+    }
+
+
+    public ArrayList<BlockPos> getSeatPositions() {
+        if (cachedSeatPositions == null) {
+            if (blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
+            cachedSeatPositions = new ArrayList<>();
+            for (BlockPos pos : blocks.keySet()) {
+                BlockState state = blocks.get(pos);
+                if (state.getBlock() instanceof Seat) {
+                    cachedSeatPositions.add(pos);
+                }
+            }
+        }
+        return cachedSeatPositions;
     }
 
 }

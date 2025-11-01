@@ -52,6 +52,8 @@ public class Registry {
     public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
     public static final Supplier<BlockEntityType<EntityGuidanceComputer>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
 
+    public static final Supplier<Block> SEAT = BLOCKS.register("seat", () -> new Seat());
+
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
             "rocket",
             () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(1000).build(Main.MODID+":rocket")
@@ -66,5 +68,6 @@ public class Registry {
         registerBlockItem("rocket_motor", ROCKET_MOTOR);
         registerBlockItem("fuel_tank", FUEL_TANK);
         registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
+        registerBlockItem("seat", SEAT);
     }
 }
