@@ -7,12 +7,17 @@ import net.minecraft.world.phys.Vec3;
 public class Utils {
     public static CompoundTag serializeVec3(Vec3 v) {
         CompoundTag Tag = new CompoundTag();
-        Tag.putDouble("x", v.x);
-        Tag.putDouble("y", v.y);
-        Tag.putDouble("z", v.z);
+        if(v == null){
+            Tag.putInt("null",0);
+        }else {
+            Tag.putDouble("x", v.x);
+            Tag.putDouble("y", v.y);
+            Tag.putDouble("z", v.z);
+        }
         return Tag;
     }
     public static Vec3 deSerializeVec3(CompoundTag tag) {
+        if(tag.contains("null"))return null;
         return new Vec3(tag.getDouble("x"), tag.getDouble("y"), tag.getDouble("z"));
     }
 

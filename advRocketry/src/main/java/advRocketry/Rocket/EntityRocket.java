@@ -10,12 +10,9 @@ import advRocketry.Blocks.RocketMotor;
 import advRocketry.Dimension.*;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
-import advRocketry.Rocket.RocketUtils.RocketController;
-import advRocketry.Rocket.RocketUtils.RotationUtils;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -33,17 +30,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
 
@@ -63,20 +57,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     private ArrayList<BlockPos> cachedEnginePositions = null;
 
     // rocket control
-    public BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
-    public Vec3 targetPosition = null; // the target for the rocket to move towards
-    boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
-    boolean shouldEnableMainEngines = false;
-    int mainEnginesBootup = 0;
-    public Vec3 heading = new Vec3(0, 1, 0);
-    public Vec3 targetHeading = new Vec3(0, 0, 0);
-    public Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
-    public Vec3 front = new Vec3(0, 0, 1);
-    public Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
-    public Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
-    public RocketProgram currentProgram = null;
-    public double currentThrust = 0;
-    public Vec3 currentSecondaryThrust = new Vec3(0, 0, 0);
+    private BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
+    private Vec3 targetPosition = null; // the target for the rocket to move towards
+    private boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
+    private boolean canUseMainEngines = false;
+    private int mainEnginesBootup = 0;
+    Vec3 heading = new Vec3(0, 1, 0);
+    private Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
+    Vec3 front = new Vec3(0, 0, 1);
+    private Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
+    Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
+    private RocketProgram currentProgram = null;
+    RocketController controller;
 
 
     // render variables
@@ -93,6 +85,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         blockEntities = new HashMap<>();
         size = new Vec3i(1, 1, 1);
         fuelTank = new FluidTank(0);
+
+        controller = new RocketController(this);
 
         if (FMLEnvironment.dist.isClient()) {
             RenderSystem.recordRenderCall(() -> {
@@ -138,6 +132,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         });
     }
 
+    ////  Entity class overrides ////
+
     @Override
     public void onAddedToLevel() {
         if (level().isClientSide) {
@@ -178,45 +174,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
 
-    public void makeGui() {
-        guiHandler.modules.clear();
-        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
-        guiHandler.modules.add(fuelDisplay);
-        for (BlockEntity i : blockEntities.values()) {
-            if (i instanceof EntityGuidanceComputer computer) {
-                guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 10, 10);
-                guiHandler.modules.add(chipSlot);
-            }
-        }
-
-        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
-        deconstructButton.color = 0xffffffff;
-        guiHandler.modules.add(deconstructButton);
-        guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
-        launchButton.color = 0xffffffff;
-        guiHandler.modules.add(launchButton);
-
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 1, 0, guiHandler)) {
-            guiHandler.modules.add(i);
-        }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 110, 2000, 1, 0, guiHandler)) {
-            guiHandler.modules.add(i);
-        }
-    }
-
-    public void openGui() {
-        if (level().isClientSide) {
-            //makeGui();
-            guiHandler.openGui(180, 200, true);
-        }
-    }
-
     @Override
     public EntityDimensions getDimensions(Pose pose) {
-        System.out.println("getDimensions");
         return EntityDimensions.scalable((float) Math.max(size.getX(), size.getZ()), (float) size.getY());
     }
-
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
@@ -224,127 +185,129 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
-    public float getThrustMax() {
-        if (cachedThrust < 0) {
-            cachedThrust = 0;
-            for (BlockState state : blocks.values()) {
-                if (state.getBlock() instanceof RocketMotor motor) {
-                    cachedThrust += motor.getThrust();
-                }
-            }
+   //// get and set methods ////
+
+
+
+    public void enableMainEngines(boolean canUseMainEngines, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && this.canUseMainEngines != canUseMainEngines) {
+            CompoundTag tag = new CompoundTag();
+            tag.putBoolean("canUseMainEngines", canUseMainEngines);
+            tag.putInt("mainEnginesBootup", mainEnginesBootup);
+            sendToClients(tag);
         }
-        return cachedThrust;
+        this.canUseMainEngines = canUseMainEngines;
     }
 
-    public float getBootTimeThrustMultiplier() {
-        int halfBootTime = ENGINE_BOOT_TIME / 2;
-        if (mainEnginesBootup < halfBootTime) return 0;
-
-        return (float) Math.pow((float) (mainEnginesBootup - halfBootTime) / halfBootTime, 2);
+    public boolean canUseMainEngines() {
+        return canUseMainEngines;
     }
 
-    public int getFuel() {
-        return fuelTank.getFluidAmount();
-    }
-
-    public float getMass() {
-        return 3f * blocks.size();
-    }
-
-    public float getMaxAcceleration() {
-        return 3f / 20;
-    }
-
-    public ArrayList<BlockPos> getEnginePositions() {
-        if (cachedEnginePositions == null) {
-            if (blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
-            cachedEnginePositions = new ArrayList<>();
-            for (BlockPos pos : blocks.keySet()) {
-                BlockState state = blocks.get(pos);
-                if (state.getBlock() instanceof RocketMotor motor) {
-                    cachedEnginePositions.add(pos);
-                }
-            }
+    public void setMainEnginesBootup(int bootup, boolean syncToClient){
+        if (!level().isClientSide && syncToClient && this.mainEnginesBootup != bootup) {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("mainEnginesBootup", bootup);
+            sendToClients(tag);
         }
-        return cachedEnginePositions;
+        this.mainEnginesBootup = bootup;
     }
 
-    public void setCurrentThrustAndSync(double thrust) {
-        if (currentThrust != thrust) {
-            currentThrust = thrust;
-            if(!level().isClientSide) {
-                CompoundTag tag = new CompoundTag();
-                tag.putDouble("currentThrust", thrust);
-                PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
-            }
+    public int getMainEnginesBootUp(){
+        return this.mainEnginesBootup;
+    }
+
+    public void enableSecondaryEngines(boolean canUseSecondaryEngines, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && this.canUseSecondaryEngines != canUseSecondaryEngines) {
+            CompoundTag tag = new CompoundTag();
+            tag.putBoolean("secondaryEngines", canUseSecondaryEngines);
+            sendToClients(tag);
         }
-    }
-
-    public void setCurrentSecondaryThrustAndSync(Vec3 thrust) {
-        if (!currentSecondaryThrust.equals(thrust)) {
-            currentSecondaryThrust = thrust;
-            if(!level().isClientSide) {
-                CompoundTag tag = new CompoundTag();
-                tag.put("currentSecondaryThrust", Utils.serializeVec3(thrust));
-                PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
-            }
-        }
-    }
-
-    public boolean shouldEnableMainEngines() {
-        return shouldEnableMainEngines;
-    }
-
-    public int getMainEnginesBootup() {
-        return mainEnginesBootup;
-    }
-
-    public void enableMainEngines(boolean canUseMainEngines) {
-        if (this.shouldEnableMainEngines != canUseMainEngines) {
-            this.shouldEnableMainEngines = canUseMainEngines;
-            if (!level().isClientSide) {
-                CompoundTag tag = new CompoundTag();
-                tag.putBoolean("shouldEnableMainEngines", shouldEnableMainEngines);
-                tag.putInt("mainEnginesBootup", mainEnginesBootup);
-                PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
-            }
-        }
+        this.canUseSecondaryEngines = canUseSecondaryEngines;
     }
 
     public boolean canUseSecondaryEngines() {
         return canUseSecondaryEngines;
     }
 
-    public void enableSecondaryEngines(boolean canUseSecondaryEngines) {
-        if (this.canUseSecondaryEngines != canUseSecondaryEngines) {
-            this.canUseSecondaryEngines = canUseSecondaryEngines;
-            if (!level().isClientSide) {
-                CompoundTag tag = new CompoundTag();
-                tag.putBoolean("secondaryEngines", canUseSecondaryEngines);
-                PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
-            }
+    public void setLastLaunchPosition(BlockPos target, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, lastLaunchPosition)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("lastLaunchPosition", Utils.serializeVec3i(target));
+            sendToClients(tag);
         }
+        lastLaunchPosition = target;
     }
 
-    public void setTargetHeading(Vec3 target) {
-        targetHeading = target;
+    public  BlockPos getLastLaunchPosition(){
+        return lastLaunchPosition;
     }
 
-    public void setTargetFront(Vec3 target) {
+    public void setDefaultTargetHeading(Vec3 target, boolean syncToClient) {
+        target = target.normalize();
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, defaultTargetHeading)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("defaultTargetHeading", Utils.serializeVec3(target));
+            sendToClients(tag);
+        }
+        defaultTargetHeading = target;
+    }
+
+    public Vec3 getDefaultTargetHeading(){
+        return defaultTargetHeading;
+    }
+
+    public void setTargetFront(Vec3 target, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, targetFront)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("targetFront", Utils.serializeVec3(target));
+            sendToClients(tag);
+        }
         targetFront = target;
     }
 
-    public void setTargetPosition(Vec3 target) {
+    public Vec3 getTargetFront(){
+        return targetFront;
+    }
+
+    public void setTargetPosition(@Nullable Vec3 target, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, targetPosition)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("targetPosition", Utils.serializeVec3(target));
+            sendToClients(tag);
+        }
         targetPosition = target;
     }
 
+    public Vec3 getTargetPosition() {
+        return targetPosition;
+    }
+
+    public void setProgramAndSync(RocketProgram program) {
+        if (!level().isClientSide) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("currentProgram", RocketProgram.saveToNbt(program));
+            sendToClients(tag);
+        }
+        currentProgram = program;
+    }
+
+    public RocketProgram getCurrentProgram(){
+        return currentProgram;
+    }
+
+    //// main rocket methods ////
+
     public void endProgram() {
         currentProgram = null;
-        setTargetPosition(null);
-        enableSecondaryEngines(false);
-        enableMainEngines(false);
-        setCurrentThrustAndSync(0);
-        setCurrentSecondaryThrustAndSync(new Vec3(0, 0, 0));
+        setTargetPosition(null, false);
+        enableSecondaryEngines(false, false);
+        enableMainEngines(false, false);
+
+        if (!level().isClientSide) {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("endRocketProgram", 0);
+            sendToClients(tag);
+        }
     }
 
 
@@ -354,8 +317,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             guiHandler.serverTick();
         }
 
+
         // tick engine bootup / shutdown
-        if (shouldEnableMainEngines) {
+        if (canUseMainEngines) {
             if (mainEnginesBootup < ENGINE_BOOT_TIME) {
                 mainEnginesBootup++;
             }
@@ -365,66 +329,24 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
-        if (!level().isClientSide) {
-            RocketController.tickController(this);
-            RocketController.tickRotation(this);
 
-            //setTargetFront(new Vec3(0, 0, 1));
+        controller.tick();
 
-            if (currentProgram != null)
-                currentProgram.run(this);
-        }
+        //setTargetFront(new Vec3(0, 0, 1));
 
-        if (level().isClientSide) {
-            if (mainEnginesBootup != 0) {
-                float relativeBootTimeLin = (float) mainEnginesBootup / ENGINE_BOOT_TIME;
-                int maxParticlesPerTick = 50;
-                int maxParticlePerEngine = 3;
-                for (BlockPos i : getEnginePositions()) {
-                    Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
-                    for (int j = 0; j < maxParticlePerEngine; j++) {
-                        if (mainEnginesBootup != ENGINE_BOOT_TIME) {
-                            if (level().random.nextFloat() > Math.sqrt(relativeBootTimeLin)) {
-                                continue;
-                            }
-                        }
+        if (currentProgram != null)
+            currentProgram.run(this);
 
-                        float engineNumSpeedMultiplier = 1;
-                        if (getEnginePositions().size() * maxParticlePerEngine > maxParticlesPerTick) {
-                            if (level().random.nextFloat() > (float) maxParticlesPerTick / (getEnginePositions().size() * maxParticlePerEngine)) {
-                                continue;
-                            }
-                            engineNumSpeedMultiplier = (float)(getEnginePositions().size() * maxParticlePerEngine) /  maxParticlesPerTick;
-                        }
+        applyGravity();
 
-                        level().addParticle(
-                                Registry.ROCKET_FLAME.get(),
-                                worldPos.x,
-                                worldPos.y,
-                                worldPos.z,
-                                heading.x * -1 * (currentThrust+0.2) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().x,
-                                heading.y * -1 * (currentThrust+0.2) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().y,
-                                heading.z * -1 * (currentThrust+0.2) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().z
-                        );
-                    }
-                }
-                //System.out.println(currentThrust);
-            }
-        }
+        // simulate some air friction
+        float atmDensity = 0;
+        Dimension myDimension = DimensionManager.get(level().dimension().location());
+        if (myDimension != null)
+            atmDensity = myDimension.getAtmosphereDensity();
+        Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
+        setDeltaMovement(getDeltaMovement().add(airBreak));
 
-        if (!level().isClientSide) {
-
-            applyGravity();
-
-            // simulate some air friction
-            float atmDensity = 0;
-            Dimension myDimension = DimensionManager.get(level().dimension().location());
-            if (myDimension != null)
-                atmDensity = myDimension.getAtmosphereDensity();
-            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
-            setDeltaMovement(getDeltaMovement().add(airBreak));
-
-        }
 
         // Move the entity based on the new velocity vector (getDeltaMovement)
         move(MoverType.SELF, getDeltaMovement());
@@ -458,8 +380,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        p.target = new BlockPos((int) (position().x+100),0,0);
-        currentProgram = p;
+        p.target = new BlockPos((int) (position().x + 100), 0, 0);
+        setProgramAndSync(p);
     }
 
     public void deconstruct() {
@@ -481,11 +403,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         kill();
     }
 
+    //// save, load and sync ////
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         RocketSaveAndLoad.readAdditionalSaveData(this, compoundTag);
-        this.makeGui();
     }
 
     @Override
@@ -499,9 +421,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (compoundTag.contains("ping")) {
             CompoundTag additionalSaveData = new CompoundTag();
             addAdditionalSaveData(additionalSaveData);
-            CompoundTag info = new CompoundTag();
-            info.put("additionalSaveData", additionalSaveData);
-            PacketDistributor.sendToPlayer(serverPlayer, PacketEntity.getEntityPacket(this, info));
+            sendToClients(additionalSaveData);
         }
 
         if (compoundTag.contains("guiButtonClick")) {
@@ -518,31 +438,90 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
-        if (compoundTag.contains("additionalSaveData")) {
-            readAdditionalSaveData(compoundTag.getCompound("additionalSaveData"));
-            requiresMeshUpdate = true;
-            refreshDimensions();
-        }
+        readAdditionalSaveData(compoundTag);
 
-        if (compoundTag.contains("heading")) {
-            heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
-        }
-        if (compoundTag.contains("front")) {
-            front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
-        }
-
-        if (compoundTag.contains("secondaryEngines"))
-            canUseSecondaryEngines = compoundTag.getBoolean("secondaryEngines");
-
-        if (compoundTag.contains("shouldEnableMainEngines"))
-            shouldEnableMainEngines = compoundTag.getBoolean("shouldEnableMainEngines");
-        if (compoundTag.contains("mainEnginesBootup"))
-            mainEnginesBootup = compoundTag.getInt("mainEnginesBootup");
-
-        if (compoundTag.contains("currentThrust"))
-            currentThrust = compoundTag.getDouble("currentThrust");
-
-        if (compoundTag.contains("currentSecondaryThrust"))
-            currentSecondaryThrust = Utils.deSerializeVec3(compoundTag.getCompound("currentSecondaryThrust"));
+        if (compoundTag.contains("endRocketProgram"))
+            endProgram();
     }
+
+    public void sendToClients(CompoundTag compoundTag) {
+        PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, compoundTag));
+    }
+
+//// gui ////
+
+    public void makeGui() {
+        guiHandler.modules.clear();
+        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
+        guiHandler.modules.add(fuelDisplay);
+        for (BlockEntity i : blockEntities.values()) {
+            if (i instanceof EntityGuidanceComputer computer) {
+                guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 10, 10);
+                guiHandler.modules.add(chipSlot);
+            }
+        }
+
+        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
+        deconstructButton.color = 0xffffffff;
+        guiHandler.modules.add(deconstructButton);
+        guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
+        launchButton.color = 0xffffffff;
+        guiHandler.modules.add(launchButton);
+
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 1, 0, guiHandler)) {
+            guiHandler.modules.add(i);
+        }
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 110, 2000, 1, 0, guiHandler)) {
+            guiHandler.modules.add(i);
+        }
+    }
+
+    public void openGui() {
+        if (level().isClientSide) {
+            //makeGui();
+            guiHandler.openGui(180, 200, true);
+        }
+    }
+
+
+
+
+    public float getThrustMax() {
+        if (cachedThrust < 0) {
+            cachedThrust = 0;
+            for (BlockState state : blocks.values()) {
+                if (state.getBlock() instanceof RocketMotor motor) {
+                    cachedThrust += motor.getThrust();
+                }
+            }
+        }
+        return cachedThrust;
+    }
+
+    public int getFuel() {
+        return fuelTank.getFluidAmount();
+    }
+
+    public float getMass() {
+        return 3f * blocks.size();
+    }
+
+    public float getMaxAcceleration() {
+        return 3f / 20;
+    }
+
+    public ArrayList<BlockPos> getEnginePositions() {
+        if (cachedEnginePositions == null) {
+            if (blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
+            cachedEnginePositions = new ArrayList<>();
+            for (BlockPos pos : blocks.keySet()) {
+                BlockState state = blocks.get(pos);
+                if (state.getBlock() instanceof RocketMotor motor) {
+                    cachedEnginePositions.add(pos);
+                }
+            }
+        }
+        return cachedEnginePositions;
+    }
+
 }

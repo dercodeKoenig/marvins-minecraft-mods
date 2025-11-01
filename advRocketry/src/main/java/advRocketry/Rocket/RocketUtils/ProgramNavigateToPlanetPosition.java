@@ -2,19 +2,21 @@ package advRocketry.Rocket.RocketUtils;
 
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
+import advRocketry.Rocket.RotationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.joml.Vector3f;
+
+import java.util.Objects;
 
 public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
@@ -26,12 +28,32 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public static double travelHeight = 150;
     public static double maxD = 100; // for pd controller travel target distance so that we dont get too fast
 
+    private int findGroundY(Level level, BlockPos startPos) {
+
+        int x = startPos.getX();
+        int z = startPos.getZ();
+        int minY = level.getMinBuildHeight();
+
+
+        // start a bit above ground to skip air
+        for (int y = startPos.getY(); y >= minY; y--) {
+            BlockPos pos = new BlockPos(x, y, z);
+            if (!level.getBlockState(pos).isAir()) {
+                return y + 1; // return the top air block just above the ground
+            }
+        }
+
+        return minY ;
+    }
+
+
+
     public void run(EntityRocket rocket) {
         travelHeight = 100;
 
         maxD = 100;
 
-        rocket.enableMainEngines(true);
+        rocket.enableMainEngines(true, false);
 
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
             // we are at the correct dimension
@@ -39,7 +61,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double dx = target.getX() - rocket.position().x;
             double dz = target.getZ() - rocket.position().z;
 
-            int y = rocket.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
+            int y = findGroundY(rocket.level(), new BlockPos(target.getX(), rocket.level().getMaxBuildHeight(), target.getZ()));
             double dy = y - rocket.position().y;
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
             double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
@@ -52,27 +74,26 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             Vec3 targetVec3 = new Vec3(target.getX(), targetY, target.getZ());
 
+
             if (distanceToTargetXZ < 50)
-                rocket.enableSecondaryEngines(true); // help or it swings around too much
+                rocket.enableSecondaryEngines(true, false); // help or it swings around too much
             else{
-                int yCurrentBelow = rocket.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
+                rocket.enableSecondaryEngines(false, false);
+
+                int yCurrentBelow  = findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
+
                 if(rocket.position().y - yCurrentBelow < 20){
                     // start / move up
                     targetVec3 = new Vec3(rocket.position().x, targetY, rocket.position().z);
                 }
             }
 
-            rocket.setTargetPosition(targetVec3);
+            rocket.setTargetPosition(targetVec3, false);
 
             // check if landed
             if (rocket.onGround() && distanceToTargetXZ < 5) {
-                rocket.setTargetHeading(new Vec3(0, 1, 0));
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
-                for (BlockPos i : rocket.getEnginePositions()) {
-                    Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX() + 0.5, i.getY() + 0.5, i.getZ() + 0.5));
-                    ((ServerLevel) rocket.level()).sendParticles(new DustParticleOptions(new Vector3f(0.5f, 0.5f, 0.5f), 10), worldPos.x, worldPos.y, worldPos.z, 10, 0, 0, 0, 1);
-                }
             }
         }
     }

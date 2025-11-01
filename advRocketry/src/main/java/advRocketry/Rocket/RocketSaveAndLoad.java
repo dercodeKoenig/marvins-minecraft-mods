@@ -2,6 +2,7 @@ package advRocketry.Rocket;
 
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -17,71 +18,96 @@ public class RocketSaveAndLoad {
 
 
     public static void readAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
-        rocket.shouldEnableMainEngines = compoundTag.getBoolean("shouldEnableMainEngines");
-        rocket.mainEnginesBootup = compoundTag.getInt("mainEnginesBootup");
-        rocket.canUseSecondaryEngines = (compoundTag.getBoolean("secondaryEngines"));
 
-        rocket.currentThrust = compoundTag.getDouble("currentThrust");
-        rocket.currentSecondaryThrust = Utils.deSerializeVec3(compoundTag.getCompound("currentSecondaryThrust"));
+        boolean needsUpdateGuiModules = false;
 
+        if (compoundTag.contains("canUseMainEngines"))
+            rocket.enableMainEngines(compoundTag.getBoolean("canUseMainEngines"),true);
 
-        if (compoundTag.contains("rocketProgram")) {
-            rocket.currentProgram = RocketProgram.createFromNbt(compoundTag.getCompound("rocketProgram"));
+        if (compoundTag.contains("mainEnginesBootup"))
+            rocket.setMainEnginesBootup(compoundTag.getInt("mainEnginesBootup"), true);
+        if (compoundTag.contains("secondaryEngines"))
+            rocket.enableSecondaryEngines(compoundTag.getBoolean("secondaryEngines"), true);
+
+        if (compoundTag.contains("currentProgram")) {
+            rocket.setProgramAndSync(RocketProgram.createFromNbt(compoundTag.getCompound("currentProgram")));
         }
 
-        rocket.lastLaunchPosition = NbtUtils.readBlockPos(compoundTag, "lastLaunchPosition").get();
-
-        rocket.size = Utils.deSerializeVec3i(compoundTag.getCompound("size"));
-
-        rocket.heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
-        rocket.targetHeading = Utils.deSerializeVec3(compoundTag.getCompound("targetHeading"));
-        rocket.front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
-        rocket.targetFront = Utils.deSerializeVec3(compoundTag.getCompound("targetFront"));
-        rocket.initialFront = Utils.deSerializeVec3(compoundTag.getCompound("initialFront"));
-
-        rocket.fuelTank.readFromNBT(rocket.level().registryAccess(), compoundTag.getCompound("fuelTank"));
-
-        rocket.blocks = new HashMap<>();
-        ListTag blockTags = compoundTag.getList("blocks", Tag.TAG_COMPOUND);
-        for (int i = 0; i < blockTags.size(); i++) {
-            CompoundTag blockTag = blockTags.getCompound(i);
-            BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
-            BlockState state = NbtUtils.readBlockState(rocket.level().registryAccess().lookupOrThrow(Registries.BLOCK), blockTag.getCompound("block"));
-            rocket.blocks.put(p, state);
+        if (compoundTag.contains("lastLaunchPosition")) {
+            Vec3i lastLaunchPosition = Utils.deSerializeVec3i(compoundTag.getCompound("lastLaunchPosition"));
+            rocket.setLastLaunchPosition(new BlockPos(lastLaunchPosition.getX(), lastLaunchPosition.getY(), lastLaunchPosition.getZ()), true);
         }
 
-        rocket.blockEntities = new HashMap<>();
-        ListTag blockEntityTags = compoundTag.getList("blockEntities", Tag.TAG_COMPOUND);
-        for (int i = 0; i < blockEntityTags.size(); i++) {
-            CompoundTag blockTag = blockEntityTags.getCompound(i);
-            BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
-            BlockState state = rocket.blocks.get(p);
-            BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
-            be.loadCustomOnly(blockTag.getCompound("blockEntity"), rocket.registryAccess());
-            rocket.blockEntities.put(p, be);
+        if (compoundTag.contains("size")) {
+            rocket.size = Utils.deSerializeVec3i(compoundTag.getCompound("size"));
+            rocket.refreshDimensions();
         }
+
+        if(compoundTag.contains("targetPosition"))
+            rocket.setTargetPosition(Utils.deSerializeVec3(compoundTag.getCompound("targetPosition")), false);
+
+        if (compoundTag.contains("heading"))
+            rocket.heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
+        if (compoundTag.contains("defaultTargetHeading"))
+            rocket.setDefaultTargetHeading(Utils.deSerializeVec3(compoundTag.getCompound("defaultTargetHeading")), true);
+        if (compoundTag.contains("front"))
+            rocket.front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
+        if (compoundTag.contains("targetFront"))
+            rocket.setTargetFront(Utils.deSerializeVec3(compoundTag.getCompound("targetFront")), true);
+        if (compoundTag.contains("initialFront"))
+            rocket.initialFront = Utils.deSerializeVec3(compoundTag.getCompound("initialFront"));
+
+        if (compoundTag.contains("fuelTank"))
+            rocket.fuelTank.readFromNBT(rocket.level().registryAccess(), compoundTag.getCompound("fuelTank"));
+
+        if (compoundTag.contains("blocks")) {
+            rocket.blocks = new HashMap<>();
+            ListTag blockTags = compoundTag.getList("blocks", Tag.TAG_COMPOUND);
+            for (int i = 0; i < blockTags.size(); i++) {
+                CompoundTag blockTag = blockTags.getCompound(i);
+                BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
+                BlockState state = NbtUtils.readBlockState(rocket.level().registryAccess().lookupOrThrow(Registries.BLOCK), blockTag.getCompound("block"));
+                rocket.blocks.put(p, state);
+            }
+            rocket.requiresMeshUpdate = true;
+        }
+
+        if (compoundTag.contains("blockEntities")) {
+            rocket.blockEntities = new HashMap<>();
+            ListTag blockEntityTags = compoundTag.getList("blockEntities", Tag.TAG_COMPOUND);
+            for (int i = 0; i < blockEntityTags.size(); i++) {
+                CompoundTag blockTag = blockEntityTags.getCompound(i);
+                BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
+                BlockState state = rocket.blocks.get(p);
+                BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
+                be.loadCustomOnly(blockTag.getCompound("blockEntity"), rocket.registryAccess());
+                rocket.blockEntities.put(p, be);
+            }
+            needsUpdateGuiModules = true; // gui depends on block entities
+            rocket.requiresMeshUpdate = true;
+        }
+
+        if(needsUpdateGuiModules)
+            rocket.makeGui();
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
-        compoundTag.putBoolean("shouldEnableMainEngines", rocket.shouldEnableMainEngines);
-        compoundTag.putInt("mainEnginesBootup", rocket.mainEnginesBootup);
-        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines);
+        compoundTag.putBoolean("canUseMainEngines", rocket.canUseMainEngines());
+        compoundTag.putInt("mainEnginesBootup", rocket.getMainEnginesBootUp());
+        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines());
 
-        compoundTag.put("currentSecondaryThrust", Utils.serializeVec3(rocket.currentSecondaryThrust));
-        compoundTag.putDouble("currentThrust", rocket.currentThrust);
+        compoundTag.put("currentProgram", RocketProgram.saveToNbt(rocket.getCurrentProgram()));
 
-        if (rocket.currentProgram != null) {
-            compoundTag.put("rocketProgram", RocketProgram.saveToNbt(rocket.currentProgram));
-        }
-
-        compoundTag.put("lastLaunchPosition", NbtUtils.writeBlockPos(rocket.lastLaunchPosition));
+        compoundTag.put("lastLaunchPosition", Utils.serializeVec3i(rocket.getLastLaunchPosition()));
 
         compoundTag.put("size", Utils.serializeVec3i(rocket.size));
 
+        compoundTag.put("targetPosition", Utils.serializeVec3(rocket.getTargetPosition()));
+
         compoundTag.put("heading", Utils.serializeVec3(rocket.heading));
-        compoundTag.put("targetHeading", Utils.serializeVec3(rocket.targetHeading));
+        compoundTag.put("defaultTargetHeading", Utils.serializeVec3(rocket.getDefaultTargetHeading()));
         compoundTag.put("front", Utils.serializeVec3(rocket.front));
-        compoundTag.put("targetFront", Utils.serializeVec3(rocket.targetFront));
+        compoundTag.put("targetFront", Utils.serializeVec3(rocket.getTargetFront()));
         compoundTag.put("initialFront", Utils.serializeVec3(rocket.initialFront));
 
         compoundTag.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));

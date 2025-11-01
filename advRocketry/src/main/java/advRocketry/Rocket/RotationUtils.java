@@ -1,6 +1,5 @@
-package advRocketry.Rocket.RocketUtils;
+package advRocketry.Rocket;
 
-import advRocketry.Rocket.EntityRocket;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;

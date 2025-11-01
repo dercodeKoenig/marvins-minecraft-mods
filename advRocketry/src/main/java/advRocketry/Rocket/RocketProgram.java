@@ -24,6 +24,9 @@ public interface RocketProgram {
     CompoundTag saveToNbt();
 
     static RocketProgram createFromNbt(CompoundTag tag) {
+        if(tag.contains("noProgram")){
+            return null;
+        }
         String name = tag.getString("name");
         RocketProgram program = null;
         try {
@@ -37,16 +40,19 @@ public interface RocketProgram {
 
     static CompoundTag saveToNbt(RocketProgram program){
         CompoundTag data = new CompoundTag();
-        String name = null;
-        for (String entry : programList.programs.keySet()){
-            Class<?> c = programList.programs.get(entry);
-            if(c.isInstance(program)) {
-                name = entry;
-                break;
+        if(program == null) data.putInt("noProgram", 0);
+        else {
+            String name = null;
+            for (String entry : programList.programs.keySet()) {
+                Class<?> c = programList.programs.get(entry);
+                if (c.isInstance(program)) {
+                    name = entry;
+                    break;
+                }
             }
+            data.putString("name", name);
+            data.put("data", program.saveToNbt());
         }
-        data.putString("name", name);
-        data.put("data", program.saveToNbt());
         return data;
     }
 }
