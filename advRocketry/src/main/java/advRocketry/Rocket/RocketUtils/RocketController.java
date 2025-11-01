@@ -20,16 +20,6 @@ import org.joml.Vector3f;
 
 public class RocketController {
 
-    public static double getGravityMultiplier(EntityRocket rocket){
-        ResourceLocation dimensionId = rocket.level().dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
-        double massMultiplier = 1;
-        if (dimension != null) { // registered in DimensionManager
-            massMultiplier = dimension.getEarthMassMultiplier();
-        }
-        return massMultiplier;
-    }
-
     public static void tickRotation(EntityRocket rocket) {
         // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
         final double ROTATION_RATE = 0.05;// / rocket.size.getY();
