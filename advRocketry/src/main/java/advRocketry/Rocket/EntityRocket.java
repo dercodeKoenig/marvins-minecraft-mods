@@ -272,18 +272,22 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void setCurrentThrustAndSync(double thrust) {
         if (currentThrust != thrust) {
             currentThrust = thrust;
-            CompoundTag tag = new CompoundTag();
-            tag.putDouble("currentThrust", thrust);
-            PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
+            if(!level().isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                tag.putDouble("currentThrust", thrust);
+                PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
+            }
         }
     }
 
     public void setCurrentSecondaryThrustAndSync(Vec3 thrust) {
         if (!currentSecondaryThrust.equals(thrust)) {
             currentSecondaryThrust = thrust;
-            CompoundTag tag = new CompoundTag();
-            tag.put("currentSecondaryThrust", Utils.serializeVec3(thrust));
-            PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
+            if(!level().isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                tag.put("currentSecondaryThrust", Utils.serializeVec3(thrust));
+                PacketDistributor.sendToPlayersTrackingEntity(this, PacketEntity.getEntityPacket(this, tag));
+            }
         }
     }
 
