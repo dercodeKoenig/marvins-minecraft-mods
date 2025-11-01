@@ -86,8 +86,8 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
 
                 for (Direction i : connections.keySet()) {
                     double rotationToOutside = (currentRotation - rotationoffset * 90) * getRotationMultiplierToOutside(i);
-                    if(connections.get(i).me.getBlockEntity() instanceof ICrankShaftConnector)
-                         rotationToOutside = (currentRotation) * getRotationMultiplierToOutside(i);
+                    if (connections.get(i).me.getBlockEntity() instanceof ICrankShaftConnector)
+                        rotationToOutside = (currentRotation) * getRotationMultiplierToOutside(i);
                     connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }
@@ -116,7 +116,7 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
     }
 
 
-    public void tick(){
+    public void tick() {
         myMechanicalBlock.mechanicalTick();
     }
 
@@ -126,20 +126,24 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
+        if(side == Direction.DOWN)return null; // can not connect down
         BlockState myState = getBlockState();
         if (myState.getBlock() instanceof BlockCrankShaftBase) {
             Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
             if (side.getAxis() == blockAxis) {
-                return myMechanicalBlock;
+                return myMechanicalBlock; // connectable by axis
             } else if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ICrankShaftConnector icc) {
-                return myMechanicalBlock;
+                return myMechanicalBlock; // connectable by crankshaft to crankshaftConnectors
+                // Note: connectable != connected. the other block will also verify if it is actually connected
             }
         }
         return null;
     }
 
     @Override
-    public BlockEntity getBlockEntity(){return this;}
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
 
 
     public void incRotationOffset() {

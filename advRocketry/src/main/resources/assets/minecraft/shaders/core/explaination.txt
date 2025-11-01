@@ -1,0 +1,4 @@
+minecraft does not supply a normal matrix to its vertex shaders.
+the shaders only use the normals baked into the vertex data.
+the problem: when rotating a model with a transformation matrix (this is required when using vertexbuffers for speed) the normals will not face the correct way
+the solution: overwrite the shaders to accept normal matrix, use this in the vertex shader. set it to identity as default so minecraft can handle it

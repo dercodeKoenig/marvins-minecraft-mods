@@ -2,6 +2,7 @@ package AOSWorkshopExpansion.Sieve;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ARLib.utils.RecipePartWithProbability;
@@ -52,22 +53,20 @@ import static AOSWorkshopExpansion.Registry.SIEVE_HOPPER_UPGRADE;
 public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
-
-    public      VertexBuffer vertexBuffer;
-    public  MeshData mesh;
-    public  VertexBuffer vertexBuffer2;
-    public  MeshData mesh2;
-    public  VertexBuffer vertexBuffer3;
-    public  MeshData mesh3;
+    public VertexBuffer vertexBuffer;
+    public MeshData mesh;
+    public VertexBuffer vertexBuffer2;
+    public MeshData mesh2;
+    public VertexBuffer vertexBuffer3;
+    public MeshData mesh3;
     public VertexBuffer myInputRendererBuffer;
     public VertexBuffer myHopperInputRendererBuffer;
-public int lastLight;
+    public int lastLight;
 
 
     // aw npc compat
-    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public static Set<BlockIdentifier> knownBlockEntities = new HashSet<>();
     public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
-
 
 
     ItemStack lastInputStackForRender = ItemStack.EMPTY;
@@ -85,26 +84,19 @@ public int lastLight;
     double currentProgress;
     double client_syncedCurrentRecipeTime;
 
-    double click_force = SieveConfig.INSTANCE.clickForce;
-    double k = SieveConfig.INSTANCE.k;
-    int maxStackSizeForSieve = SieveConfig.INSTANCE.inventorySize;
-    int maxStackSizeForSieveHopper = SieveConfig.INSTANCE.inventorySizeHopper;
-
     int ticksRemainingForForce = 0;
-    double myFriction = SieveConfig.INSTANCE.baseResistance;
-    double myInertia = 1;
-    double maxStress = 100;
+    double myFriction = 1;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return 100;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return 1;
         }
 
         @Override
@@ -139,7 +131,7 @@ public int lastLight;
         }
 
         if (!level.isClientSide) {
-            knownBlockEntities.add(getBlockPos());
+            knownBlockEntities.add(new BlockIdentifier(level, getBlockPos()));
         }
     }
 
@@ -155,9 +147,9 @@ public int lastLight;
             });
         }
 
-            if (!level.isClientSide) {
-                knownBlockEntities.remove(getBlockPos());
-            }
+        if (!level.isClientSide) {
+            knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
+        }
         super.setRemoved();
     }
 
@@ -205,10 +197,10 @@ public int lastLight;
         myMechanicalBlock.mechanicalReadServer(tag, p);
         if (tag.contains("ping")) {
             CompoundTag info = getMeshUpdateTag();
-            if(currentRecipe!=null){
+            if (currentRecipe != null) {
                 info.putDouble("timeRequired", currentRecipe.timeRequired);
             }
-                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, info));
+            PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, info));
         }
     }
 
@@ -269,10 +261,10 @@ public int lastLight;
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 myInputRendererBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                myHopperInputRendererBuffer= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                myHopperInputRendererBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer2= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer3= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
@@ -329,7 +321,7 @@ public int lastLight;
             ItemEntity i = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ(), new ItemStack(SIEVE_HOPPER_UPGRADE.get(), 1));
             i.setDeltaMovement(0, 0.2, 0);
             level.addFreshEntity(i);
-            if(level.getBlockState(getBlockPos()).getBlock() instanceof BlockSieve)
+            if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockSieve)
                 level.setBlock(getBlockPos(), getBlockState().setValue(BlockSieve.HOPPER_UPGRADE, false), 3);
 
             ItemEntity i2 = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ(), myHopperInputs);
@@ -362,9 +354,9 @@ public int lastLight;
                         ++actual_num;
                     }
                 }
-                ItemStack output = ItemUtils.getItemStackFromIdOrTag(item.id, actual_num,level.registryAccess());
+                ItemStack output = ItemUtils.getItemStackFromIdOrTag(item.id, actual_num, level.registryAccess());
                 for (Direction i : Direction.values()) {
-                    if(i==Direction.UP)continue;
+                    if (i == Direction.UP) continue;
                     IItemHandler inv = level.getCapability(Capabilities.ItemHandler.BLOCK, getBlockPos().relative(i), i.getOpposite());
                     if (inv instanceof IItemHandler) {
                         for (int j = 0; j < inv.getSlots(); j++) {
@@ -385,7 +377,7 @@ public int lastLight;
         myFriction = SieveConfig.INSTANCE.baseResistance;
     }
 
-    public  boolean tryAddElementToSieveInventory(ItemStack stack) {
+    public boolean tryAddElementToSieveInventory(ItemStack stack) {
         if (stack.isEmpty()) return false;
         if (myInputs.isEmpty()) {
             if (getRecipeForInputs(stack) != null) {
@@ -396,7 +388,7 @@ public int lastLight;
             }
         } else {
             if (ItemStack.isSameItemSameComponents(stack, myInputs)) {
-                int maxStackSize = Math.min(myInputs.getMaxStackSize(), maxStackSizeForSieve);
+                int maxStackSize = Math.min(myInputs.getMaxStackSize(), SieveConfig.INSTANCE.inventorySize);
                 int toAdd = Math.min(maxStackSize - myInputs.getCount(), 1);
                 myInputs.grow(toAdd);
                 stack.shrink(toAdd);
@@ -419,7 +411,7 @@ public int lastLight;
             }
         } else {
             if (ItemStack.isSameItemSameComponents(stack, myHopperInputs)) {
-                int maxStackSize = Math.min(myHopperInputs.getMaxStackSize(), maxStackSizeForSieveHopper);
+                int maxStackSize = Math.min(myHopperInputs.getMaxStackSize(), SieveConfig.INSTANCE.inventorySizeHopper);
                 int toAdd = Math.min(maxStackSize - myHopperInputs.getCount(), 1);
                 myHopperInputs.grow(toAdd);
                 stack.shrink(toAdd);
@@ -431,7 +423,7 @@ public int lastLight;
     }
 
     public InteractionResult use(Player player) {
-        if(level.isClientSide)return InteractionResult.SUCCESS_NO_ITEM_USED;
+        if (level.isClientSide) return InteractionResult.SUCCESS_NO_ITEM_USED;
 
         if (!player.isShiftKeyDown()) {
             if (player.getMainHandItem().getItem() instanceof IMesh) {
@@ -478,7 +470,7 @@ public int lastLight;
         if (!level.isClientSide) {
             if (ticksRemainingForForce > 0 && getMechanicalBlock(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) == null) {
                 ticksRemainingForForce--;
-                myForce = click_force - k * myMechanicalBlock.internalVelocity;
+                myForce = SieveConfig.INSTANCE.clickForce - SieveConfig.INSTANCE.k * myMechanicalBlock.internalVelocity;
             } else {
                 myForce = 0;
                 ticksRemainingForForce = 0;
@@ -561,9 +553,11 @@ public int lastLight;
 
 
     static List<CrankShaftType> allowedCrankshaftTypes = new ArrayList();
-    static{
+
+    static {
         allowedCrankshaftTypes.add(CrankShaftType.SMALL);
     }
+
     @Override
     public List<CrankShaftType> getConnectableCrankshafts() {
         return allowedCrankshaftTypes;

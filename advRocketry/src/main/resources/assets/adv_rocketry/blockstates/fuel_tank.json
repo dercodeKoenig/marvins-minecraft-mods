@@ -1,0 +1,17 @@
+{
+    "variants": {
+        "up=false,down=false": {
+            "model": "adv_rocketry:block/fuel_tank"
+        },
+        "up=true,down=true": {
+            "model": "adv_rocketry:block/fuel_tank"
+        },
+        "up=true,down=false": {
+            "model": "adv_rocketry:block/fuel_tank_top"
+        },
+        "up=false,down=true": {
+            "model": "adv_rocketry:block/fuel_tank_top",
+            "x": 180
+        }
+    }
+}

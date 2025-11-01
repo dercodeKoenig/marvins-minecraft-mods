@@ -36,7 +36,7 @@ import static AgeOfSteam.Registry.*;
 @Mod(Main.MODID)
 public class Main {
 
-public static final String MODID ="age_of_steam";
+    public static final String MODID = "age_of_steam";
 
     public Main(IEventBus modEventBus, ModContainer modContaine) {
         //modEventBus.register(this);
@@ -44,19 +44,17 @@ public static final String MODID ="age_of_steam";
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
 
         modEventBus.addListener(this::addCreative);
-        modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::RegisterCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
 
         SimpleNetworkPacket.registerReceiver("aos_config_sync", Config.INSTANCE);
 
     }
 
-    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
-        if(login.getEntity() instanceof ServerPlayer p){
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
+        if (login.getEntity() instanceof ServerPlayer p) {
             Config.INSTANCE.SyncConfig(p);
         }
     }
@@ -84,10 +82,6 @@ public static final String MODID ="age_of_steam";
 
     }
 
-    public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
-    }
-
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(AOS_CREATIVETAB.get())) {
             e.accept(WOODEN_AXLE.get());
@@ -112,8 +106,5 @@ public static final String MODID ="age_of_steam";
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ENTITY_MOTOR.get(), (x, y) -> (x));
-    }
-
-    private void loadComplete(FMLLoadCompleteEvent e) {
     }
 }

@@ -1,0 +1,70 @@
+package advRocketry;
+
+import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntities.EntityRocketAssembler;
+import advRocketry.Blocks.*;
+import advRocketry.Particles.RocketFlameParticle;
+import advRocketry.Rocket.EntityRocket;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import org.joml.Vector3f;
+
+import java.util.function.Supplier;
+
+public class Registry {
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(BuiltInRegistries.BLOCK, Main.MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, Main.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, Main.MODID);
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, Main.MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Main.MODID);
+    public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, Main.MODID);
+
+
+    public static final Supplier<CreativeModeTab> CUSTOM_CREATIVE_TAB = CREATIVE_TAB.register(Main.MODID, () -> new CustomCreativeTab());
+
+    public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {
+        return ITEMS.register(name, () -> new BlockItem(b.get(), new Item.Properties()));
+    }
+
+    public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
+    public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", LAUNCHPAD);
+
+    public static final Supplier<Block> STRUCTURE_TOWER = BLOCKS.register("structure_tower", () -> new StructureTower());
+
+    public static final Supplier<Block> ROCKET_MOTOR = BLOCKS.register("rocket_motor", () -> new RocketMotor());
+
+    public static final Supplier<Block> FUEL_TANK = BLOCKS.register("fuel_tank", () -> new FuelTank());
+
+    public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
+    public static final Supplier<BlockEntityType<EntityRocketAssembler>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
+
+    public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
+    public static final Supplier<BlockEntityType<EntityGuidanceComputer>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
+
+    public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
+            "rocket",
+            () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(1000).build(Main.MODID+":rocket")
+    );
+
+    public static final Supplier<SimpleParticleType> ROCKET_FLAME = PARTICLES.register("rocketflame",() -> new SimpleParticleType(true));
+
+
+    static {
+        registerBlockItem("structure_tower", STRUCTURE_TOWER);
+        registerBlockItem("rocket_assembler", ROCKET_ASSEMBLER);
+        registerBlockItem("rocket_motor", ROCKET_MOTOR);
+        registerBlockItem("fuel_tank", FUEL_TANK);
+        registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
+    }
+}

@@ -43,7 +43,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
 
 
     // aw npc compat
-    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public static Set<BlockIdentifier> knownBlockEntities = new HashSet<>();
     public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
 
 
@@ -56,20 +56,18 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public GuiHandlerBlockEntity guiHandler;
 
     public int ticksRemainingForForce = 0;
-    double myFriction = SpinningWheelConfig.INSTANCE.baseResistance;
-    double myInertia = 10;
-    double maxStress = 100;
+    double myFriction = 1;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return 100;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return 10;
         }
 
         @Override
@@ -135,13 +133,13 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
         if (!level.isClientSide) {
-            knownBlockEntities.add(getBlockPos());
+            knownBlockEntities.add(new BlockIdentifier(level, getBlockPos()));
         }
     }
     @Override
     public void setRemoved(){
         if (!level.isClientSide) {
-            knownBlockEntities.remove(getBlockPos());
+            knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
         }
 
         if (FMLEnvironment.dist == Dist.CLIENT) {

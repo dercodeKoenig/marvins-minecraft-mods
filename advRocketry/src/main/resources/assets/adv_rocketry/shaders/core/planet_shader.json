@@ -1,0 +1,32 @@
+{
+    "vertex": "adv_rocketry:planet_shader",
+    "fragment": "adv_rocketry:planet_shader",
+    "samplers": [
+        { "name": "Sampler0" }
+    ],
+    "uniforms": [
+        { "name": "ViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "WorldMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "ModelMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "emissiveColor", "type": "float", "count": 4, "values": [0.0, 0.0, 0.0, 0.0] },
+        { "name": "TargetVector", "type": "float", "count": 3, "values": [1.0, 0.0, 0.0] },
+        { "name": "LocalSunriseColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+        { "name": "playerHeight", "type": "float", "count": 1, "values": [ 1] },
+        { "name": "AtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
+        { "name": "TargetAtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
+        { "name": "TargetSkyColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+
+        { "name": "LightCount", "type": "int", "count": 1, "values": [0] },
+
+        { "name": "LightVectors[0]", "type": "float", "count": 3, "values": [1.0, 0.0, 0.0] },
+        { "name": "LightVectors[1]", "type": "float", "count": 3, "values": [0.0, 1.0, 0.0] },
+        { "name": "LightVectors[2]", "type": "float", "count": 3, "values": [0.0, 0.0, 1.0] },
+        { "name": "LightVectors[3]", "type": "float", "count": 3, "values": [0.0, 0.0, 1.0] },
+
+        { "name": "LightColors[0]", "type": "float", "count": 4, "values": [1.0, 0.0, 0.0, 1.0] },
+        { "name": "LightColors[1]", "type": "float", "count": 4, "values": [0.0, 1.0, 0.0, 1.0] },
+        { "name": "LightColors[2]", "type": "float", "count": 4, "values": [0.0, 0.0, 1.0, 1.0] },
+        { "name": "LightColors[3]", "type": "float", "count": 4, "values": [0.0, 0.0, 1.0, 1.0] }
+    ]
+}

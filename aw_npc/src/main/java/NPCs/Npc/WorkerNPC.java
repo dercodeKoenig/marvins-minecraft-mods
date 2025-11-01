@@ -1,6 +1,5 @@
 package NPCs.Npc;
 
-import AgeOfSteam.Registry;
 import NPCs.Utils;
 import NPCs.Npc.programs.*;
 import NPCs.Npc.programs.CropFarming.MainFarmingProgram;
@@ -19,7 +18,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 

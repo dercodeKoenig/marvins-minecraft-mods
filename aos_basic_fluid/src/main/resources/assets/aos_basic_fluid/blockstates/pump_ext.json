@@ -14,7 +14,7 @@
         },
         {
             "when": { "facing": "east" },
-            "apply": { "model": "aos_basic_fluid:block/pump_ext", ",y": 180 }
+            "apply": { "model": "aos_basic_fluid:block/pump_ext", "y": 180 }
         }
     ]
 }

@@ -216,7 +216,7 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
                 }
                 RenderSystem.setShaderTexture(0, tile.inputStackTexture);
                 float maxTranslateUp = 0.065f;
-                float translateUp = (float) (((float) tile.myInputs.getCount() - tile.currentProgress / tile.client_syncedCurrentRecipeTime) / tile.maxStackSizeForSieve * maxTranslateUp + 0.001f);
+                float translateUp = (float) (((float) tile.myInputs.getCount() - tile.currentProgress / tile.client_syncedCurrentRecipeTime) / SieveConfig.INSTANCE.inventorySize * maxTranslateUp + 0.001f);
                 m2.translate(0, translateUp, 0);
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
                 shader.apply();
@@ -240,7 +240,7 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
                 RenderSystem.setShaderTexture(0, tile.hopperStackTexture);
                 float baseOffset = 0.37f;
                 float maxTranslateUp = 0.49f - baseOffset;
-                float translateUp = (float) (((float) tile.myHopperInputs.getCount()) / tile.maxStackSizeForSieveHopper * maxTranslateUp + baseOffset);
+                float translateUp = (float) (((float) tile.myHopperInputs.getCount()) / SieveConfig.INSTANCE.inventorySizeHopper * maxTranslateUp + baseOffset);
                 m2 = new Matrix4f(m1);
                 m2.translate(0, translateUp, 0);
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());

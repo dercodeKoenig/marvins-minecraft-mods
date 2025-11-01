@@ -1,7 +1,7 @@
 package BetterPipes.Tank;
 
-import BetterPipes.Network.INetworkTagReceiver;
-import BetterPipes.Network.PacketBlockEntity;
+import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;

@@ -1,0 +1,12 @@
+{
+    "vertex": "adv_rocketry:blit",
+    "fragment": "adv_rocketry:blit_add_tonemap",
+    "samplers": [
+        { "name": "SpaceBackground" },
+        { "name": "SpaceBackgroundBloom" },
+        { "name": "Atmosphere" }
+    ],
+    "uniforms": [
+        { "name": "bloomIntensity", "type": "float", "count": 1, "values": [1.0] }
+    ]
+}

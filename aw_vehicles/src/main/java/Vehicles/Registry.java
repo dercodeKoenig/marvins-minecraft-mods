@@ -51,13 +51,6 @@ public class Registry {
 
     public static final Supplier<Block> GHOST_BLOCK = BLOCKS.register("ballista_ghost", ()-> new GhostBlock());
 
-    public static Supplier<Item> ITEM_WOODEN_HAMMER = null;
-    static {
-        if(!ModList.get().isLoaded("age_of_steam")){
-            ITEM_WOODEN_HAMMER = ITEMS.register("wooden_hammer", () -> new Item(new Item.Properties().stacksTo(1)));
-        }
-    }
-
     public static final Supplier<SoundEvent> SOUND_BALLISTA_RELOAD = SOUND_EVENTS.register("ballista_reload", SoundEvent::createVariableRangeEvent);
     public static final Supplier<SoundEvent> SOUND_BALLISTA_LAUNCH = SOUND_EVENTS.register("ballista_launch", SoundEvent::createVariableRangeEvent);
     public static final Supplier<SoundEvent> SOUND_BALLISTA_ENTITY_HIT = SOUND_EVENTS.register("ballista_bolt_hit_entity", SoundEvent::createVariableRangeEvent);

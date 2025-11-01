@@ -1,0 +1,22 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "main": "adv_rocketry:block/launchpad_main",
+    "edge": "adv_rocketry:block/launchpad_edge",
+    "cross": "adv_rocketry:block/launchpad_cross"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#edge" ,"rotation": 270 },
+        "up": { "texture": "#edge" ,"rotation": 270 },
+        "north": { "texture": "#main" },
+        "south": { "texture": "#main" },
+        "west":  { "texture": "#main"},
+        "east":  { "texture": "#cross" }
+      }
+    }
+  ]
+}

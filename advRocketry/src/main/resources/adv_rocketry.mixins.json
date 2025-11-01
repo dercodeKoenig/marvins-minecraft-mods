@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "package": "advRocketry.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LevelMixin",
+    "AbstractArrowMixin",
+    "FallingBlockEntityMixin",
+    "ItemEntityMixin",
+    "LivingEntityMixin"
+  ],
+  "client": [
+    "MixinWorldEffects",
+    "ClientLevelMixin",
+    "LevelRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

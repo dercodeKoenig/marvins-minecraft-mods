@@ -1,0 +1,12 @@
+{
+  "_comment_inventorySize": "the max stack size that the sieve can hold in its inventory",
+  "inventorySize": 3,
+  "_comment_inventorySizeHopper": "the max stack size that the hopper upgrade can hold in its inventory",
+  "inventorySizeHopper": 64,
+  "_comment_baseResistance": "the base resistance the sieve will put on the network",
+  "baseResistance": 5.0,
+  "_comment_k": "decrease k to make it work faster in manual mode. very low values(<1) may cause some problems in acceleration calculations",
+  "k": 4.0,
+  "_comment_clickForce": "The Force that the player will apply to the sieve for 5 ticks after click in manual mode",
+  "clickForce": 50
+}

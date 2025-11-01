@@ -4,6 +4,7 @@ import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockIdentifier;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ARLib.utils.RecipePartWithProbability;
@@ -54,15 +55,14 @@ import static AgeOfSteam.Registry.CASING_SLAB;
 public class EntityWoodMill extends EntityMultiblockMaster implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
-
     public VertexBuffer vertexBuffer_saw;
     public MeshData mesh_saw;
     public VertexBuffer vertexBuffer_arm;
     public MeshData mesh_arm;
-public int lastLight;
+    public int lastLight;
 
     // aw npc compat
-    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public static Set<BlockIdentifier> knownBlockEntities = new HashSet<>();
     public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
 
 
@@ -75,21 +75,18 @@ public int lastLight;
 
     public List<workingRecipe> currentWorkingRecipes = new ArrayList<>();
 
-    double myFriction = WoodMillConfig.INSTANCE.baseResistance;
-    double myInertia = 1;
-    double maxStress = WoodMillConfig.INSTANCE.maxStress;
-
+    double myFriction = 1;
     double timeRequired = 50;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return WoodMillConfig.INSTANCE.maxStress;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return 1;
         }
 
         @Override
@@ -156,7 +153,7 @@ public int lastLight;
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, myOnloadTag));
         }
         if (!level.isClientSide) {
-            knownBlockEntities.add(getBlockPos());
+            knownBlockEntities.add(new BlockIdentifier(level, getBlockPos()));
         }
         super.onLoad();
     }
@@ -164,7 +161,7 @@ public int lastLight;
     @Override
     public void setRemoved() {
         if (!level.isClientSide) {
-            knownBlockEntities.remove(getBlockPos());
+            knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
         }
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {

@@ -63,14 +63,24 @@ public abstract class BlockAxleBase extends BlockMultiblockPart implements Entit
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockEntity tile = level.getBlockEntity(pos);
         if (tile instanceof IMechanicalBlockProvider provider) {
-            if (provider.getConnectedParts(provider, null).isEmpty()) {
-                BlockEntity neighbor = tile.getLevel().getBlockEntity(tile.getBlockPos().relative(direction));
-                if (neighbor instanceof IMechanicalBlockProvider otherProvider) {
-                    if (otherProvider.getMechanicalBlock(direction.getOpposite()) != null) {
-                        state = state.setValue(ROTATION_AXIS, direction.getAxis());
+            // before checking if we should auto rotate, make sure we are not already connected
+            for (Direction i : Direction.values()) {
+                if (i.getAxis() == state.getValue(ROTATION_AXIS)) {
+                    BlockEntity b1 = level.getBlockEntity(pos.relative(i));
+                    if (b1 instanceof IMechanicalBlockProvider mb1) {
+                        if (mb1.getMechanicalBlock(i.getOpposite()) != null)
+                            return state; // already connected
                     }
                 }
             }
+
+            BlockEntity neighbor = tile.getLevel().getBlockEntity(tile.getBlockPos().relative(direction));
+            if (neighbor instanceof IMechanicalBlockProvider otherProvider) {
+                if (otherProvider.getMechanicalBlock(direction.getOpposite()) != null) {
+                    state = state.setValue(ROTATION_AXIS, direction.getAxis());
+                }
+            }
+
         }
         return state;
     }

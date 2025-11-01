@@ -8,11 +8,13 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -31,29 +33,20 @@ public class TownHallData {
 
         public void readClient(String data) {
             TownHallData.fromJson(data);
-            //System.out.println(data);
         }
     }
 
     public String name = "";
     public boolean aggressive;
     public BlockPos pos;
+    public String levelId;
     public Set<String> owners = new HashSet<>();
 
-    public TownHallData(BlockPos p) {
-        this.pos = p;
+    public TownHallData() {
     }
 
     public static void syncDataToPlayer(ServerPlayer player) {
-        HashMap<String, List<TownHallData>> byLevelMap = getFromStaticMap();
-        for (String dimension : byLevelMap.keySet()) {
-            List<TownHallData> entries = byLevelMap.get(dimension);
-            entries.removeIf((entry) -> {
-                return !entry.owners.contains(player.getName().getString());
-            });
-        }
-        Gson gson = new GsonBuilder().create();
-        String data = gson.toJson(byLevelMap);
+        String data = toJson();
         PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket("to_sync", data));
     }
 
@@ -78,18 +71,18 @@ public class TownHallData {
         syncData();
     }
 
-    public static void verifyExist(Level l, BlockPos p) {
+    public static void verifyExist(Level l) {
         staticData.putIfAbsent(DimensionUtils.getLevelId(l), new HashMap<>());
-        if (p != null)
-            staticData.get(DimensionUtils.getLevelId(l)).putIfAbsent(p, new TownHallData(p));
+    }
+
+    public static void verifyExist(Level l, BlockPos p) {
+        verifyExist(l);
+        staticData.get(DimensionUtils.getLevelId(l)).putIfAbsent(p, new TownHallData());
     }
 
     public static Set<String> getOwners(Level level, BlockPos pos) {
-        if (pos == null) return new HashSet<>();
         verifyExist(level, pos);
-        Set<String> ret = staticData.get(DimensionUtils.getLevelId(level)).get(pos).owners;
-        if (ret == null) ret = new HashSet<>();
-        return ret;
+        return staticData.get(DimensionUtils.getLevelId(level)).get(pos).owners;
     }
 
     public static void addOwner(Level l, BlockPos p, String owner) {
@@ -104,9 +97,7 @@ public class TownHallData {
         setChanged();
     }
 
-
     public static String getName(Level level, BlockPos pos) {
-        if (pos == null) return "";
         verifyExist(level, pos);
         return staticData.get(DimensionUtils.getLevelId(level)).get(pos).name;
     }
@@ -118,56 +109,56 @@ public class TownHallData {
     }
 
     public static void removeEntry(Level l, BlockPos p) {
-        verifyExist(l, null);
+        verifyExist(l);
         staticData.get(DimensionUtils.getLevelId(l)).remove(p);
         setChanged();
     }
 
     public static HashMap<BlockPos, TownHallData> getEntries(Level l) {
-        verifyExist(l, null);
+        verifyExist(l);
         return staticData.get(DimensionUtils.getLevelId(l));
     }
 
-    public static HashMap<String, List<TownHallData>> getFromStaticMap() {
-        HashMap<String, List<TownHallData>> map = new HashMap<>();
+    public static List<TownHallData> toList() {
+        List<TownHallData> list = new ArrayList<>();
         for (String s : staticData.keySet()) {
-            map.put(s, new ArrayList<>());
+            if(s==null)continue;
             for (BlockPos p : staticData.get(s).keySet()) {
-                map.get(s).add(staticData.get(s).get(p));
+                if(p==null)continue;
+                TownHallData c = staticData.get(s).get(p);
+                c.levelId = s;
+                c.pos = p;
+                list.add(c);
             }
         }
-        return map;
+        return list;
     }
 
-    public static void createStaticMap(HashMap<String, List<TownHallData>> map) {
+    public static void createStaticMap(List<TownHallData> list) {
         staticData = new HashMap<>();
-        for (Level l : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
-            staticData.putIfAbsent(DimensionUtils.getLevelId(l), new HashMap<>());
-            if (map.containsKey(DimensionUtils.getLevelId(l))) {
-                for (TownHallData i : map.get(DimensionUtils.getLevelId(l))) {
-                    if (i != null)
-                        staticData.get(DimensionUtils.getLevelId(l)).put(i.pos, i);
-                }
-            }
+        for (TownHallData i : list) {
+            String levelId = i.levelId;
+            BlockPos pos = i.pos;
+            staticData.putIfAbsent(levelId, new HashMap<>());
+            staticData.get(levelId).put(pos, i);
         }
     }
 
     public static String toJson() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String s = gson.toJson(getFromStaticMap());
+        String s = gson.toJson(toList());
         return s;
     }
 
     public static void fromJson(String json) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Type mapType = new TypeToken<HashMap<String, List<TownHallData>>>() {
+        Type mapType = new TypeToken<List<TownHallData>>() {
         }.getType();
-        HashMap<String, List<TownHallData>> map = gson.fromJson(json, mapType);
-        createStaticMap(map);
+        List<TownHallData> list = gson.fromJson(json, mapType);
+        createStaticMap(list);
     }
 
-    public static void onLevelLoad(LevelEvent.Load event) {
-        if (event.getLevel().isClientSide()) return;
+    public static void onServerStarting(ServerStartingEvent event) {
         Path configDir = ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT);
         String filename = "townHallData.json";
         Path filePath = configDir.resolve(filename);

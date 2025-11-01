@@ -64,7 +64,7 @@ public class BlockHandGenerator extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            if(placer.isShiftKeyDown())
+            if(!placer.isShiftKeyDown())
                 level.setBlock(pos, state.setValue(FACING, placer.getDirection()), 3);
             else
                 level.setBlock(pos, state.setValue(FACING, placer.getDirection().getOpposite()), 3);

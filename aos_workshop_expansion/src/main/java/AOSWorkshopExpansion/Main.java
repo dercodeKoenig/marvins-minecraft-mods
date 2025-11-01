@@ -13,12 +13,14 @@ import AOSWorkshopExpansion.SpinningWheel.SpinningWheelConfig;
 import AOSWorkshopExpansion.WoodMill.EntityWoodMill;
 import AOSWorkshopExpansion.WoodMill.RenderWoodMill;
 import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
+import ARLib.network.SimpleNetworkPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -26,10 +28,13 @@ import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static AOSWorkshopExpansion.Registry.*;
 import static AgeOfSteam.Registry.AOS_CREATIVETAB;
@@ -39,35 +44,40 @@ import static AgeOfSteam.Registry.AOS_CREATIVETAB;
 public class Main {
 
     public static final String MODID = "aos_workshop_expansion";
+    public static final Path configDir = Path.of(FMLPaths.CONFIGDIR.get().toString(),Main.MODID);
 
     public Main(IEventBus modEventBus, ModContainer modContaine) throws IOException {
         //modEventBus.register(this);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
+        NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
-        modEventBus.addListener(this::onClientSetup);
-        modEventBus.addListener(this::RegisterCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::loadShaders);
-        modEventBus.addListener(this::registerNetworkStuff);
         modEventBus.addListener(this::registerScreens);
         Registry.register(modEventBus);
+
     }
 
     public void registerScreens(RegisterMenuScreensEvent event) {
         event.register(MENU_MILLSTONE.get(), ScreenMillStone::new);
     }
 
-    public void onClientSetup(FMLClientSetupEvent event) {
+    public void onServerStarting(ServerStartingEvent event) {
+        if(!Files.exists(configDir))
+            DataFiles.copyDataFiles("config/aos_workshop_expansion", configDir);
+        SimpleNetworkPacket.registerReceiver(SieveConfig.packetConfigSyncID, SieveConfig.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(WoodMillConfig.packetConfigSyncID, WoodMillConfig.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(MillStoneConfig.packetConfigSyncID, MillStoneConfig.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(SpinningWheelConfig.packetConfigSyncID, SpinningWheelConfig.INSTANCE);
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
         if (login.getEntity() instanceof ServerPlayer p) {
-            SieveConfig.INSTANCE.SyncConfig(p);
-            SpinningWheelConfig.INSTANCE.SyncConfig(p);
-            WoodMillConfig.INSTANCE.SyncConfig(p);
-            MillStoneConfig.INSTANCE.SyncConfig(p);
+            SieveConfig.SyncConfig(p);
+            SpinningWheelConfig.SyncConfig(p);
+            WoodMillConfig.SyncConfig(p);
+            MillStoneConfig.SyncConfig(p);
         }
     }
 
@@ -76,14 +86,6 @@ public class Main {
         event.registerBlockEntityRenderer(ENTITY_WOODMILL.get(), RenderWoodMill::new);
         event.registerBlockEntityRenderer(ENTITY_SPINNING_WHEEL.get(), RenderSpinningWheel::new);
         event.registerBlockEntityRenderer(ENTITY_MILLSTONE.get(), RenderMillStone::new);
-    }
-
-    public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
-        SieveConfig.PacketConfigSync.register(registrar);
-        SpinningWheelConfig.PacketConfigSync.register(registrar);
-        WoodMillConfig.PacketConfigSync.register(registrar);
-        MillStoneConfig.PacketConfigSync.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
@@ -104,11 +106,6 @@ public class Main {
         }
     }
 
-    private void loadShaders(RegisterShadersEvent e) {
-    }
-
-    private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
-    }
 
     private void loadComplete(FMLLoadCompleteEvent e) {
         itemHoloProjector.registerMultiblock("MillStone", EntityMillStone.structure, EntityMillStone.charMapping);

@@ -1,0 +1,21 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "main": "adv_rocketry:block/launchpad_main",
+    "cross": "adv_rocketry:block/launchpad_cross"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#cross" ,"rotation": 0 },
+        "up": { "texture": "#cross" ,"rotation": 0 },
+        "north": { "texture": "#cross" },
+        "south": { "texture": "#cross" },
+        "west":  { "texture": "#main"},
+        "east":  { "texture": "#main" }
+      }
+    }
+  ]
+}
