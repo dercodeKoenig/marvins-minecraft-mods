@@ -74,6 +74,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     private RocketProgram currentProgram = null;
     RocketController controller;
 
+    // smooth position interpolation when server sends position update
+    private double lerpX, lerpY, lerpZ;
+    private int lerpSteps;
 
     // render variables
     public Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
@@ -239,6 +242,27 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return RotationUtils.localToWorld(this, new Vec3(seatPos.getX()+0.5, seatPos.getY()+0.2, seatPos.getZ()+0.5));
     }
 
+
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+        this.lerpX = x;
+        this.lerpY = y;
+        this.lerpZ = z;
+        this.lerpSteps = steps;
+        this.setRot(yRot, xRot);
+    }
+
+    public double lerpTargetX() {
+        return this.lerpSteps > 0 ? this.lerpX : this.getX();
+    }
+
+    public double lerpTargetY() {
+        return this.lerpSteps > 0 ? this.lerpY : this.getY();
+    }
+
+    public double lerpTargetZ() {
+        return this.lerpSteps > 0 ? this.lerpZ : this.getZ();
+    }
+
     /// / get and set methods ////
 
 
@@ -370,6 +394,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             guiHandler.serverTick();
         }
 
+        if (this.lerpSteps > 0) {
+            this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
+            --this.lerpSteps;
+            System.out.println(lerpSteps+":"+lerpTargetY()+":"+position().y);
+        }
 
         // tick engine bootup / shutdown
         if (canUseMainEngines) {
