@@ -74,7 +74,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3 front = new Vec3(0, 0, 1);
     public Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
     public Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
-    public double controllerKDMultiplier = 1;
     public RocketProgram currentProgram = null;
     public double currentThrust = 0;
     public Vec3 currentSecondaryThrust = new Vec3(0, 0, 0);
@@ -338,7 +337,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void endProgram() {
         currentProgram = null;
         setTargetPosition(null);
-        controllerKDMultiplier = 1;
         enableSecondaryEngines(false);
         enableMainEngines(false);
         setCurrentThrustAndSync(0);
@@ -456,7 +454,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        p.target = new BlockPos(100,0,0);
+        p.target = new BlockPos((int) (position().x+100),0,0);
         currentProgram = p;
     }
 

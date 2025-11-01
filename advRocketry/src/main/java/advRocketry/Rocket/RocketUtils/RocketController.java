@@ -66,9 +66,9 @@ public class RocketController {
 
         // --- Configuration Parameters (Tune these for desired behavior) ---
         // Proportional Gain: How aggressively the rocket tries to close the distance.
-        final double K_P = 0.005;
+        final double K_P = 0.001;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
-        final double K_D = 0.4 * rocket.controllerKDMultiplier;
+        final double K_D = Math.sqrt(K_P) * 2;
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
         // secondary thruster force
@@ -123,7 +123,7 @@ public class RocketController {
             double effectiveAcceleration = Math.min(neededAcceleration, MAX_ALLOWED_ACCEL);
             // The component of the effective acceleration that aligns with the current (limited) heading.
             // This ensures we only thrust in the direction we are currently pointing.
-            double actualThrustAccel = effectiveAcceleration * Math.max(0, rocket.heading.dot(targetHeading) * 3 - 2);
+            double actualThrustAccel = effectiveAcceleration * Math.max(0, rocket.heading.dot(targetHeading) - 0.9)*10;
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
             Vec3 thrustVector = rocket.heading.scale(actualThrustAccel);

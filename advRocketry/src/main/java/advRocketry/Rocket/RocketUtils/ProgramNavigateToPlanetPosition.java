@@ -23,10 +23,13 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public ResourceLocation targetDimensionId;
     public BlockPos target;
 
-    public static double travelHeight = 200;
-    public static double maxD = 100; // for pd controller travel target distance
+    public static double travelHeight = 150;
+    public static double maxD = 100; // for pd controller travel target distance so that we dont get too fast
 
     public void run(EntityRocket rocket) {
+        travelHeight = 100;
+
+        maxD = 100;
 
         rocket.enableMainEngines(true);
 
@@ -37,21 +40,22 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double dz = target.getZ() - rocket.position().z;
 
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
+            double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
 
-            if (distanceToTargetXZ < 50) {
+            if (distanceToTargetXZ < 50 && speedxz < 0.5) {
                 // land
-                rocket.controllerKDMultiplier = 2; // more aggressive breaking
                 rocket.enableSecondaryEngines(true); // help or it swings around too much
 
                 int y = rocket.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
                 double dyi = rocket.position().y - y;
-                double targetY = Math.min(rocket.position().y+5, rocket.position().y - dyi * 1 + distanceToTargetXZ - 1);
-                rocket.setTargetPosition(new Vec3(target.getX(), targetY, target.getZ()));
+                double targetY = Math.min(rocket.position().y + 5, rocket.position().y - dyi * 0.5 + distanceToTargetXZ - 5);
+                double dy = targetY - rocket.position().y;
+                rocket.setTargetPosition(new Vec3(target.getX(), rocket.position().y + Math.clamp(dy, -maxD, maxD), target.getZ()));
 
                 // check if landed
-                if(rocket.onGround()){
+                if (rocket.onGround()) {
                     rocket.setTargetHeading(new Vec3(0, 1, 0));
-                    rocket.setDeltaMovement(0,0,0);
+                    rocket.setDeltaMovement(0, 0, 0);
                     rocket.endProgram();
                     for (BlockPos i : rocket.getEnginePositions()) {
                         Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX() + 0.5, i.getY() + 0.5, i.getZ() + 0.5));
@@ -65,10 +69,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // move to the correct xz coordinates
                 if (rocket.position().y < travelHeight) {
                     // increase y first
-                    rocket.setTargetPosition(new Vec3(rocket.position().x, travelHeight * 2, rocket.position().z));
+                    rocket.setTargetPosition(new Vec3(rocket.position().x, travelHeight + 50, rocket.position().z));
                 } else {
                     // high enough, move to target xz
-                    rocket.setTargetPosition(new Vec3(rocket.position().x + Math.clamp(dx, -maxD, maxD), travelHeight, rocket.position().z + Math.clamp(dz, -maxD, maxD)));
+                    rocket.setTargetPosition(new Vec3(rocket.position().x + Math.clamp(dx, -maxD, maxD), Math.max(travelHeight, rocket.position().y), rocket.position().z + Math.clamp(dz, -maxD, maxD)));
                 }
             }
         }
