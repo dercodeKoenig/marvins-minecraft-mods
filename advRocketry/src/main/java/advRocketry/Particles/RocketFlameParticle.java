@@ -10,6 +10,7 @@ import org.joml.Vector3f;
 public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
 
     private float rotSpeed;
+private float targetSize;
 
     public RocketFlameParticle(ClientLevel level, double x, double y, double z,
                                double vx, double vy, double vz, SpriteSet spriteSet) {
@@ -31,18 +32,31 @@ public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
             this.bCol = this.randomizeColor(color.z(), f);
         }
 
+        float speed = new Vector3f((float) vx, (float) vy, (float) vz).length();
+
         this.hasPhysics = true;
 
         if (!isSmoke) {
             this.lifetime = 20;
         } else {
-            this.lifetime = (int) (200 * new Vector3f((float) vx, (float) vy, (float) vz).length());
+            this.lifetime = (int) (200 * Math.min(1,speed));
+        }
+
+        this.quadSize = this.quadSize * (speed*0.25f+0.75f);
+        this.targetSize = quadSize;
+        quadSize = 0;
+
+        if(speed > 1){
+            Vector3f speedNorm = new Vector3f((float) vx, (float) vy, (float) vz).normalize();
+            vx = speedNorm.x;
+            vy = speedNorm.y;
+            vz = speedNorm.z;
         }
 
 
-        this.xd = vx + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
-        this.yd = vy + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
-        this.zd = vz + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
+        this.xd =1* vx + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F*Math.max(1,speed);
+        this.yd = 1*vy + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F*Math.max(1,speed);
+        this.zd = 1*vz + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F*Math.max(1,speed);
 
         this.rotSpeed = this.random.nextFloat() / 50f;
 
@@ -57,6 +71,11 @@ public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
             yd = -yd * f;
             xd = (this.random.nextFloat() - 0.5) * 0.5F;
             zd = (this.random.nextFloat() - 0.5) * 0.5F;
+        }
+        if(this.lifetime < 20){
+            this.quadSize = targetSize * (float)this.lifetime / 20f;
+        }else{
+            quadSize = targetSize;
         }
 
         this.oRoll = this.roll;

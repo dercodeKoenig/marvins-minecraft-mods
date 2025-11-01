@@ -66,10 +66,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // move to the correct xz coordinates
                 if (rocket.position().y < travelHeight) {
                     // increase y first
-                    rocket.setTargetPosition(new Vec3(rocket.position().x, travelHeight + 50, rocket.position().z));
+                    rocket.setTargetPosition(new Vec3(rocket.position().x, travelHeight + distanceToTargetXZ, rocket.position().z));
                 } else {
                     // high enough, move to target xz
-                    rocket.setTargetPosition(new Vec3(rocket.position().x + Math.clamp(dx, -maxD, maxD), travelHeight + 50, rocket.position().z + Math.clamp(dz, -maxD, maxD)));
+                    double dy =  travelHeight + distanceToTargetXZ - rocket.position().y;
+                    rocket.setTargetPosition(new Vec3(rocket.position().x + Math.clamp(dx, -maxD, maxD), rocket.position().y + Math.clamp(dy, -maxD, maxD), rocket.position().z + Math.clamp(dz, -maxD, maxD)));
                 }
             }
         }

@@ -41,6 +41,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
@@ -79,7 +80,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
 
     // render variables
-    public HashMap<RenderType, RenderData> renderDataMap = new HashMap<>();
+    public Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
     public int lastLight = 0;
     public boolean requiresMeshUpdate = false;
 
@@ -93,7 +94,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         size = new Vec3i(1, 1, 1);
         fuelTank = new FluidTank(0);
 
-        if(FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.dist.isClient()) {
             RenderSystem.recordRenderCall(() -> {
                 for (RenderType type : RenderType.chunkBufferLayers()) {
                     RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
@@ -168,18 +169,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public AABB makeBoundingBox() {
-            return super.makeBoundingBox(); // happens because minecraft calls makeBoundingBox in constructor before the size value is assigned
+        return super.makeBoundingBox(); // happens because minecraft calls makeBoundingBox in constructor before the size value is assigned
     }
 
     @Override
     public double getDefaultGravity() {
-        //if(true)return 0;
-        Dimension dim = DimensionManager.get(level().dimension().location());
-        if (dim != null && dim.getType() == DimensionProperties.PlanetType.SPACE_STATION)
-            return 0;
         if (level().dimension().location().equals(SpaceTravelManager.dimId))
             return 0;
-        return 0.08;
+        return 0.08; // applyGravity mixing should handle, controller needs to self compute gravity multiplier
     }
 
     public void makeGui() {
@@ -218,7 +215,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     public EntityDimensions getDimensions(Pose pose) {
         System.out.println("getDimensions");
-        return EntityDimensions.scalable((float)Math.max(size.getX(), size.getZ()), (float)size.getY());
+        return EntityDimensions.scalable((float) Math.max(size.getX(), size.getZ()), (float) size.getY());
     }
 
 
@@ -252,7 +249,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getMass() {
-        return 1f * blocks.size();
+        return 3f * blocks.size();
     }
 
     public float getMaxAcceleration() {
@@ -379,26 +376,37 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (level().isClientSide) {
             if (mainEnginesBootup != 0) {
                 float relativeBootTimeLin = (float) mainEnginesBootup / ENGINE_BOOT_TIME;
+                int maxParticlesPerTick = 50;
+                int maxParticlePerEngine = 3;
                 for (BlockPos i : getEnginePositions()) {
                     Vec3 worldPos = RotationUtils.localToWorld(this, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
-                    boolean shouldCreateParticle = mainEnginesBootup == ENGINE_BOOT_TIME;
-                    if (!shouldCreateParticle) {
-                        shouldCreateParticle = level().random.nextFloat() <= Math.sqrt(relativeBootTimeLin);
-                    }
-                    if (shouldCreateParticle) {
-                        for (int j = 0; j < 2; j++) {
-                            level().addParticle(
-                                    Registry.ROCKET_FLAME.get(),
-                                    worldPos.x,
-                                    worldPos.y,
-                                    worldPos.z,
-                                    heading.x * -1 * (currentThrust + 1) * relativeBootTimeLin,
-                                    heading.y * -1 * (currentThrust + 1) * relativeBootTimeLin,
-                                    heading.z * -1 * (currentThrust + 1) * relativeBootTimeLin
-                            );
+                    for (int j = 0; j < maxParticlePerEngine; j++) {
+                        if (mainEnginesBootup != ENGINE_BOOT_TIME) {
+                            if (level().random.nextFloat() > Math.sqrt(relativeBootTimeLin)) {
+                                continue;
+                            }
                         }
+
+                        float engineNumSpeedMultiplier = 1;
+                        if (getEnginePositions().size() * maxParticlePerEngine > maxParticlesPerTick) {
+                            if (level().random.nextFloat() > (float) maxParticlesPerTick / (getEnginePositions().size() * maxParticlePerEngine)) {
+                                continue;
+                            }
+                            engineNumSpeedMultiplier = (float)(getEnginePositions().size() * maxParticlePerEngine) /  maxParticlesPerTick;
+                        }
+
+                        level().addParticle(
+                                Registry.ROCKET_FLAME.get(),
+                                worldPos.x,
+                                worldPos.y,
+                                worldPos.z,
+                                heading.x * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier,
+                                heading.y * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier,
+                                heading.z * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier
+                        );
                     }
                 }
+                //System.out.println(currentThrust);
             }
         }
 

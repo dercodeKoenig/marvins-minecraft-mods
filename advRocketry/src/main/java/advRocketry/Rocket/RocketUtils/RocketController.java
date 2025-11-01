@@ -1,6 +1,8 @@
 package advRocketry.Rocket.RocketUtils;
 
 import ARLib.network.PacketEntity;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
 import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.Utils;
@@ -9,6 +11,7 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
@@ -17,6 +20,15 @@ import org.joml.Vector3f;
 
 public class RocketController {
 
+    public static double getGravityMultiplier(EntityRocket rocket){
+        ResourceLocation dimensionId = rocket.level().dimension().location();
+        Dimension dimension = DimensionManager.get(dimensionId);
+        double massMultiplier = 1;
+        if (dimension != null) { // registered in DimensionManager
+            massMultiplier = dimension.getEarthMassMultiplier();
+        }
+        return massMultiplier;
+    }
 
     public static void tickRotation(EntityRocket rocket) {
         // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
@@ -87,7 +99,7 @@ public class RocketController {
 
         // NOTE: If you needed to factor in gravity/other external forces, you would
         // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
-        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity()));
+        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity() * getGravityMultiplier(rocket)));
 
         // --- 2. Calculate Thrust & Heading ---
 // TODO: calculate main thrusters first and use the secondary only for part of the force that was not applied ( sideways/ break )
