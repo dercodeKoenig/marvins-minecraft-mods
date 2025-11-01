@@ -4,7 +4,10 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "LevelMixin",
-    "EntityMixin"
+    "AbstractArrowMixin",
+    "FallingBlockEntityMixin",
+    "ItemEntityMixin",
+    "LivingEntityMixin"
   ],
   "client": [
     "MixinWorldEffects",

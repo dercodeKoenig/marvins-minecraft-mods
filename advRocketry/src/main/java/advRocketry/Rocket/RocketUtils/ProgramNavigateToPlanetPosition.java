@@ -38,14 +38,14 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
 
-            if (distanceToTargetXZ < 10) {
+            if (distanceToTargetXZ < 50) {
                 // land
-                rocket.controllerKDMultiplier = 1; // more aggressive breaking
+                rocket.controllerKDMultiplier = 2; // more aggressive breaking
                 rocket.enableSecondaryEngines(true); // help or it swings around too much
 
                 int y = rocket.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
                 double dyi = rocket.position().y - y;
-                double targetY = rocket.position().y - dyi * 1 + distanceToTargetXZ - 1;
+                double targetY = Math.min(rocket.position().y+5, rocket.position().y - dyi * 1 + distanceToTargetXZ - 1);
                 rocket.setTargetPosition(new Vec3(target.getX(), targetY, target.getZ()));
 
                 // check if landed
@@ -65,11 +65,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // move to the correct xz coordinates
                 if (rocket.position().y < travelHeight) {
                     // increase y first
-                    rocket.setTargetPosition(new Vec3(rocket.position().x, 3*travelHeight + distanceToTargetXZ, rocket.position().z));
+                    rocket.setTargetPosition(new Vec3(rocket.position().x, travelHeight * 2, rocket.position().z));
                 } else {
                     // high enough, move to target xz
-                    double dy =  travelHeight + distanceToTargetXZ - rocket.position().y;
-                    rocket.setTargetPosition(new Vec3(rocket.position().x + Math.clamp(dx, -maxD, maxD), rocket.position().y + Math.clamp(dy, -maxD, maxD), rocket.position().z + Math.clamp(dz, -maxD, maxD)));
+                    rocket.setTargetPosition(new Vec3(rocket.position().x + Math.clamp(dx, -maxD, maxD), travelHeight, rocket.position().z + Math.clamp(dz, -maxD, maxD)));
                 }
             }
         }

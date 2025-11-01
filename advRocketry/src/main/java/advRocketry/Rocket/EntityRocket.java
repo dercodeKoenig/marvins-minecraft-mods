@@ -12,6 +12,7 @@ import advRocketry.Registry;
 import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
 import advRocketry.Rocket.RocketUtils.RocketController;
 import advRocketry.Rocket.RocketUtils.RotationUtils;
+import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -175,7 +176,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public double getDefaultGravity() {
         if (level().dimension().location().equals(SpaceTravelManager.dimId))
             return 0;
-        return 0.08; // applyGravity mixing should handle, controller needs to self compute gravity multiplier
+        return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
 
     public void makeGui() {
@@ -399,9 +400,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                                 worldPos.x,
                                 worldPos.y,
                                 worldPos.z,
-                                heading.x * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().x,
-                                heading.y * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().y,
-                                heading.z * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().z
+                                heading.x * -1 * (currentThrust+0.2) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().x,
+                                heading.y * -1 * (currentThrust+0.2) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().y,
+                                heading.z * -1 * (currentThrust+0.2) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().z
                         );
                     }
                 }
@@ -455,8 +456,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        p.target = new BlockPos((int) position().x, 0, (int) position().z);
-        setPos(position().x, position().y, position().z + 16);
+        p.target = new BlockPos(100,0,0);
         currentProgram = p;
     }
 

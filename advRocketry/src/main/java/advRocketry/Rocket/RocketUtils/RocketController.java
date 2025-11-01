@@ -99,7 +99,7 @@ public class RocketController {
 
         // NOTE: If you needed to factor in gravity/other external forces, you would
         // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
-        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity() * getGravityMultiplier(rocket)));
+        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity()));
 
         // --- 2. Calculate Thrust & Heading ---
 // TODO: calculate main thrusters first and use the secondary only for part of the force that was not applied ( sideways/ break )

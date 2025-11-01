@@ -55,8 +55,8 @@ public class DefaultGalaxy {
         moon2.dayTimeReference = sun.dimensionId;
         moon2.orbitalDistanceToParent = 0.0032;
         moon2.orbitAxis = new Vec3(-0.1, 1, 0.2);
-        moon2.earthRadiusMultiplier = 0.3;
-        moon2.earthMassMultiplier = 0.3;
+        moon2.earthRadiusMultiplier = 0.1;
+        moon2.earthMassMultiplier = 0.1;
         moon2.targetDayLength = 8000;
         moon2.atmosphereDensity = 0;
         moon2.sealevel = 50;
@@ -86,7 +86,7 @@ public class DefaultGalaxy {
         distantStar.earthRadiusMultiplier = 300;
         distantStar.rotationAxis = new Vec3(0, 1, 0).normalize();
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        distantStar.emissiveColor = new Vector4f(0.1f, 0.2f, 3f, 1f);
+        distantStar.emissiveColor = new Vector4f(0.2f, 0.3f, 4f, 1f);
         distantStar.position = new Vec3(20,2,0);
         galaxy.add(distantStar);
 

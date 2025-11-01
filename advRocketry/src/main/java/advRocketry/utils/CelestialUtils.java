@@ -1,8 +1,10 @@
 package advRocketry.utils;
 
+import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -29,6 +31,17 @@ public class CelestialUtils {
         return term1.add(term2).add(term3);
     }
 
+
+    public static double getGravityMultiplier(Object entity){
+        Entity p_entity = (Entity) (Object) entity;
+        ResourceLocation dimensionId = p_entity.level().dimension().location();
+        Dimension dimension = DimensionManager.get(dimensionId);
+        double massMultiplier = 1.0;
+        if (dimension != null) {
+            massMultiplier = dimension.getEarthMassMultiplier();
+        }
+        return massMultiplier;
+    }
 
     // --- Other physics calculations ---
     public static final double G = 0.000001;
