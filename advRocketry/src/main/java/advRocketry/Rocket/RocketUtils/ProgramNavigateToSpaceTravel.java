@@ -87,7 +87,7 @@ public class ProgramNavigateToSpaceTravel {
                 for (UUID passengerUUID : newPassengerPositions.keySet()) {
                     Entity e = (target).getEntity(passengerUUID);
                     if (e != null) {
-                        e.startRiding(rocket);
+                        e.startRiding(newRocket);
                     }
                 }
 
