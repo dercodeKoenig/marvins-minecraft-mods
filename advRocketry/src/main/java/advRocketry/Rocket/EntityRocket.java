@@ -380,7 +380,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        p.target = new BlockPos((int) (position().x + 100), 0, 0);
+        p.target = new BlockPos((int) (position().x + 300), 0, 0);
         setProgramAndSync(p);
     }
 
