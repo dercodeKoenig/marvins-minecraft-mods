@@ -57,12 +57,21 @@ public class ProgramNavigateToSpaceTravel {
                 ChunkPos targetPos = SpaceTravelManager.getNextFreeChunkPos();
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
-
                 DimensionTransition transition = new DimensionTransition(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0), rocket.getYRot(), rocket.getXRot(), false, DimensionTransition.DO_NOTHING);
 
-                // store the passengers to remount them after dimension change
+
+                // the dimension change is like this:
+                // 1: unmount entities, but store where they were seated
+                // 1: teleport every entity to the new dimension and put the new uuid to the new seat map
+                // 2: teleport rocket
+                // 3: find the entities by the new uuid and mount them at random position
+                // 4: fix the seat position
+                // the default rocket.changeDimension does mount the passengers, but the rendering is broken so i do it like this
+
+                // store the passengers to remount them after dimension change at correct positions
                 Map<UUID, BlockPos> newPassengerPositions = new HashMap<>();
 
+                // unmount, teleport and store new uuid
                 for (Entity passenger : rocket.getPassengers()) {
                     if (passenger != null) {
                         BlockPos seatPos = rocket.passengers.get(passenger.getUUID());
@@ -71,8 +80,10 @@ public class ProgramNavigateToSpaceTravel {
                     }
                 }
 
+                // teleport rocket
                 EntityRocket newRocket = (EntityRocket) rocket.changeDimension(transition);
 
+                // remount passengers
                 for (UUID passengerUUID : newPassengerPositions.keySet()) {
                     Entity e = (target).getEntity(passengerUUID);
                     if (e != null) {
