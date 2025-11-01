@@ -3,6 +3,7 @@ package advRocketry.Rocket.RocketUtils;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
 import advRocketry.Rocket.RotationUtils;
+import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
@@ -28,25 +29,6 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public static double travelHeight = 150;
     public static double maxD = 100; // for pd controller travel target distance so that we dont get too fast
 
-    private int findGroundY(Level level, BlockPos startPos) {
-
-        int x = startPos.getX();
-        int z = startPos.getZ();
-        int minY = level.getMinBuildHeight();
-
-
-        // start a bit above ground to skip air
-        for (int y = startPos.getY(); y >= minY; y--) {
-            BlockPos pos = new BlockPos(x, y, z);
-            if (!level.getBlockState(pos).isAir()) {
-                return y + 1; // return the top air block just above the ground
-            }
-        }
-
-        return minY ;
-    }
-
-
 
     public void run(EntityRocket rocket) {
         travelHeight = 100;
@@ -61,7 +43,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double dx = target.getX() - rocket.position().x;
             double dz = target.getZ() - rocket.position().z;
 
-            int y = findGroundY(rocket.level(), new BlockPos(target.getX(), rocket.level().getMaxBuildHeight(), target.getZ()));
+            int y = Utils.findGroundY(rocket.level(), new BlockPos(target.getX(), rocket.level().getMaxBuildHeight(), target.getZ()));
             double dy = y - rocket.position().y;
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
             double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
@@ -80,7 +62,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             else{
                 rocket.enableSecondaryEngines(false, false);
 
-                int yCurrentBelow  = findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
+                int yCurrentBelow  = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
 
                 if(rocket.position().y - yCurrentBelow < 20){
                     // start / move up
@@ -96,6 +78,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             if (rocket.onGround() && distanceToTargetXZ < 5) {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
+            }
+        }else{
+            // we are not at target dim, move to space!
+            if(ProgramNavigateToSpaceTravel.run(rocket)){
+                // we are in space, navigate to the target planet
             }
         }
     }

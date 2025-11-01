@@ -352,7 +352,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         move(MoverType.SELF, getDeltaMovement());
 
         if (GlobalTime.getGlobalTime() % 100 == 0) {
-            System.out.println(level().isClientSide + ":  still ticking");
+            System.out.println(level().isClientSide + ":  still ticking at " + blockPosition());
 
             if (!level().isClientSide) {
                 if (level() == DimensionManager.getServerLevel(level().getServer(), SpaceTravelManager.dimId)) {
@@ -364,23 +364,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void launch() {
-        /*
-        ServerLevel target = DimensionManager.getServerLevel(level().getServer(), SpaceTravelManager.dimId);
-        ChunkPos targetPos = SpaceTravelManager.getNextFreeChunkPos();
-        BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
-        teleportTo(target, targetBlockPos.getX(), targetBlockPos.getY(), targetBlockPos.getZ(), new HashSet<>(), getYRot(), getXRot());
-        SpaceTravelManager.keepChunkLoaded(targetPos);
-         */
-
-
-        /*
-        moveTo(getX(), getY() + 100, getZ()); // entry height
-        setDeltaMovement(0, 0, 0); // entry speed
-        */
-
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        p.target = new BlockPos((int) (position().x + 300), 0, 0);
+        //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
+        p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        p.target = new BlockPos((int) position().x + random.nextInt() % 10 - 5, 0, (int) position().z + random.nextInt() % 10 - 5);
         setProgramAndSync(p);
     }
 

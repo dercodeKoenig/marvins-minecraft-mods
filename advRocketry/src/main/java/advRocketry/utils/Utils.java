@@ -1,7 +1,9 @@
 package advRocketry.utils;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class Utils {
@@ -31,4 +33,25 @@ public class Utils {
     public static Vec3i deSerializeVec3i(CompoundTag tag) {
         return new Vec3i(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
     }
+
+
+    public static int findGroundY(Level level, BlockPos startPos) {
+
+        int x = startPos.getX();
+        int z = startPos.getZ();
+        int minY = level.getMinBuildHeight();
+
+
+        // start a bit above ground to skip air
+        for (int y = startPos.getY(); y >= minY; y--) {
+            BlockPos pos = new BlockPos(x, y, z);
+            if (!level.getBlockState(pos).isAir()) {
+                return y + 1; // return the top air block just above the ground
+            }
+        }
+
+        return minY ;
+    }
+
+
 }
