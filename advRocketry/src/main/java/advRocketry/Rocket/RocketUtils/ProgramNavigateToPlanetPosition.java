@@ -22,7 +22,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
     public ResourceLocation targetDimensionId;
     public BlockPos target;
-    
+
     public static double travelHeight = 200;
     public static double maxD = 100; // for pd controller travel target distance
 
@@ -65,7 +65,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // move to the correct xz coordinates
                 if (rocket.position().y < travelHeight) {
                     // increase y first
-                    rocket.setTargetPosition(new Vec3(rocket.position().x, travelHeight + distanceToTargetXZ, rocket.position().z));
+                    rocket.setTargetPosition(new Vec3(rocket.position().x, 3*travelHeight + distanceToTargetXZ, rocket.position().z));
                 } else {
                     // high enough, move to target xz
                     double dy =  travelHeight + distanceToTargetXZ - rocket.position().y;

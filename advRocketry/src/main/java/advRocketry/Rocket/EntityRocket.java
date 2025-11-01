@@ -399,9 +399,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                                 worldPos.x,
                                 worldPos.y,
                                 worldPos.z,
-                                heading.x * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier,
-                                heading.y * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier,
-                                heading.z * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier
+                                heading.x * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().x,
+                                heading.y * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().y,
+                                heading.z * -1 * (1) * relativeBootTimeLin*engineNumSpeedMultiplier + getDeltaMovement().z
                         );
                     }
                 }
@@ -456,7 +456,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
         p.target = new BlockPos((int) position().x, 0, (int) position().z);
-        setPos(position().x, position().y, position().z + 160);
+        setPos(position().x, position().y, position().z + 16);
         currentProgram = p;
     }
 
