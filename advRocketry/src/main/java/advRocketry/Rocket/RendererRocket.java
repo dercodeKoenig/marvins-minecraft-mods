@@ -94,7 +94,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
             makeRenderBuffer(p_entity, packedLight);
             p_entity.lastLight = packedLight;
             p_entity.requiresMeshUpdate = false;
-            System.out.println(p_entity.lastLight+":"+packedLight);
+            System.out.println("packed light update:" + p_entity.lastLight+"->"+packedLight);
         }
 
         for (RenderType type : p_entity.renderDataMap.keySet()) {

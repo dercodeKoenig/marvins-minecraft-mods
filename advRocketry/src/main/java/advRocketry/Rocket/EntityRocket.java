@@ -260,7 +260,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         this.lerpX = x;
         this.lerpY = y;
         this.lerpZ = z;
-        this.lerpSteps = steps;
+        this.lerpSteps = steps * 10; // interpolate slower
         this.setRot(yRot, xRot);
     }
 
@@ -441,7 +441,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             if (myDimension != null)
                 atmDensity = myDimension.getAtmosphereDensity();
             Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
-            setDeltaMovement(getDeltaMovement().add(airBreak));
+            if(airBreak.length() > getDeltaMovement().length()){
+                setDeltaMovement(0,0,0);
+            }else{
+                setDeltaMovement(getDeltaMovement().add(airBreak));
+            }
         }
 
 
@@ -639,6 +643,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
                 if (Minecraft.getInstance().options.keyUse.isDown()) {
                     rocket.openGui();
+                    Minecraft.getInstance().options.keyUse.consumeClick();
                 }
             }
         }

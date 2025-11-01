@@ -86,7 +86,7 @@ public class DefaultGalaxy {
         distantStar.earthRadiusMultiplier = 300;
         distantStar.rotationAxis = new Vec3(0, 1, 0).normalize();
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        distantStar.emissiveColor = new Vector4f(0.2f, 0.3f, 4f, 1f);
+        distantStar.emissiveColor = new Vector4f(0.5f, 0.8f, 4f, 1f);
         distantStar.position = new Vec3(20,2,0);
         galaxy.add(distantStar);
 
