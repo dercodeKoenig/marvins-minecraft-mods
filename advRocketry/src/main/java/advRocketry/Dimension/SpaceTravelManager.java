@@ -30,9 +30,9 @@ public class SpaceTravelManager {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             ServerLevel level = DimensionManager.getServerLevel(server, dimId);
             level.setChunkForced(pos.x, pos.z, true);
-            System.out.println("set chunk force loaded:" + pos.x + ":" + pos.z);
             System.out.println("there are " + level.getForcedChunks().size() + " chunk force loaded in space travel dimension");
         }
+        System.out.println("set chunk force loaded:" + pos.x + ":" + pos.z);
         usedChunksMap.put(pos, GlobalTime.getGlobalTime());
     }
 
@@ -56,9 +56,9 @@ public class SpaceTravelManager {
         Iterator<Long> it = level.getForcedChunks().stream().iterator();
         while (it.hasNext()) {
             ChunkPos pos = new ChunkPos(it.next());
-            Long currentTime = GlobalTime.getGlobalTime();
+            long currentTime = GlobalTime.getGlobalTime();
             usedChunksMap.putIfAbsent(pos, currentTime);
-            if (usedChunksMap.get(pos) + 20 * 30 < currentTime) {
+            if (usedChunksMap.get(pos) + 20 * 120 < currentTime) {
                 level.setChunkForced(pos.x, pos.z, false);
                 System.out.println("remove forced chunk at " + pos.x + ":" + pos.z);
                 usedChunksMap.remove(pos);

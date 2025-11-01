@@ -41,7 +41,7 @@ public class SpaceDimensionGeneration {
                 384,
                 BlockTags.INFINIBURN_OVERWORLD, // infiniburn
                 ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"),
-                0.0f, // ambientLight
+                1f, // ambientLight
                 new DimensionType.MonsterSettings(false, false, UniformInt.of(0, 0), 0)
         );
     }

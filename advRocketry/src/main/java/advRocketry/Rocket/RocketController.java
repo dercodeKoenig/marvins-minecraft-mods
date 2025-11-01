@@ -12,7 +12,7 @@ public class RocketController {
 
     EntityRocket rocket;
 
-    Vec3 targetHeading = new Vec3(0, 0, 0);
+    Vec3 targetHeading = new Vec3(0, 1, 0);
     double currentThrust;
     Vec3 currentSecondaryThrust;
 
@@ -21,8 +21,8 @@ public class RocketController {
     }
 
     public void tick(){
-        tickRotation();
         tickController();
+        tickRotation();
         makeThrustParticles();
     }
 

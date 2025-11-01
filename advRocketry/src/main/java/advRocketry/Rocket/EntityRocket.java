@@ -33,6 +33,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
@@ -88,7 +89,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // passenger
     public Map<UUID, BlockPos> passengers = new HashMap<>();
-    public int forceRemountTimeout = 0;
 
     public GuiHandlerEntity guiHandler;
 
@@ -198,6 +198,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
+
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (source.getEntity() instanceof Player player) {
@@ -220,8 +221,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         super.addPassenger(passenger);
         ArrayList<BlockPos> seats = new ArrayList<>(this.getSeatPositions());
         Collections.shuffle(seats, new Random());
-        for (BlockPos seatPos: seats) {
-            if(!passengers.values().contains(seatPos)){
+        for (BlockPos seatPos : seats) {
+            if (!passengers.values().contains(seatPos)) {
                 passengers.put(passenger.getUUID(), seatPos);
                 break;
             }
@@ -238,8 +239,20 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3 getPassengerRidingPosition(Entity entity) {
         UUID entityUUID = entity.getUUID();
         BlockPos seatPos = passengers.get(entityUUID);
-        if(seatPos == null) return new Vec3(0,0,0); // this should never happen
-        return RotationUtils.localToWorld(this, new Vec3(seatPos.getX()+0.5, seatPos.getY()+0.2, seatPos.getZ()+0.5));
+        if (seatPos == null) return new Vec3(0, 0, 0); // this should never happen
+        return RotationUtils.localToWorld(this, new Vec3(seatPos.getX() + 0.5, seatPos.getY() + 0.2, seatPos.getZ() + 0.5));
+    }
+
+    public void fixPassengerPositions(Map<UUID, BlockPos> targetPassengers){
+        System.out.println("fixing passenger positions");
+        for (UUID uuid : targetPassengers.keySet()) {
+            BlockPos targetPos = targetPassengers.get(uuid);
+            System.out.println(uuid + " should sit at " +targetPos);
+            if(passengers.containsKey(uuid)){
+                passengers.put(uuid, targetPos);
+                System.out.println(uuid + " set to " +targetPos);
+            }
+        }
     }
 
 
@@ -410,7 +423,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
-
         controller.tick();
 
         //setTargetFront(new Vec3(0, 0, 1));
@@ -420,17 +432,20 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         applyGravity();
 
-        // simulate some air friction
-        float atmDensity = 0;
+
         Dimension myDimension = DimensionManager.get(level().dimension().location());
-        if (myDimension != null)
-            atmDensity = myDimension.getAtmosphereDensity();
-        Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
-        setDeltaMovement(getDeltaMovement().add(airBreak));
 
-        // Move the entity based on the new velocity vector (getDeltaMovement)
+        // simulate some air friction
+        if(getDeltaMovement().length() > 0.01) { // you really dont want to normalize 0 vector. velocity will become like (NaN, Infinity, NaN) and the game freezes forever. took me 2 hours to realize this
+            float atmDensity = 0;
+            if (myDimension != null)
+                atmDensity = myDimension.getAtmosphereDensity();
+            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
+            setDeltaMovement(getDeltaMovement().add(airBreak));
+        }
+
+
         move(MoverType.SELF, getDeltaMovement());
-
 
         if (myDimension != null) {
             universePosition = myDimension.getPosition(0);
@@ -452,8 +467,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void launch() {
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
-        p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
+        //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         p.target = new BlockPos((int) position().x + random.nextInt() % 10 - 5, 0, (int) position().z + random.nextInt() % 10 - 5);
         setProgramAndSync(p);
     }
@@ -582,7 +597,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getMass() {
-        return 3f * blocks.size();
+        return 3f * blocks.size() + 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
     }
 
     public float getMaxAcceleration() {
