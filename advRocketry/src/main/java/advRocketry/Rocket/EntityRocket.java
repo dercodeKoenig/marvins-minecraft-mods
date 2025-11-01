@@ -397,7 +397,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (this.lerpSteps > 0) {
             this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
             --this.lerpSteps;
-            System.out.println(lerpSteps+":"+lerpTargetY()+":"+position().y);
         }
 
         // tick engine bootup / shutdown
