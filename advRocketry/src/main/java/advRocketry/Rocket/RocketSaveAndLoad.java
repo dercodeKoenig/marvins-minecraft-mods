@@ -21,6 +21,9 @@ public class RocketSaveAndLoad {
 
         boolean needsUpdateGuiModules = false;
 
+        if(compoundTag.contains("universePosition"))
+            rocket.universePosition =  Utils.deSerializeVec3(compoundTag.getCompound("universePosition"));
+
         if (compoundTag.contains("canUseMainEngines"))
             rocket.enableMainEngines(compoundTag.getBoolean("canUseMainEngines"),true);
 
@@ -92,6 +95,8 @@ public class RocketSaveAndLoad {
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+        compoundTag.put("universePosition", Utils.serializeVec3(rocket.universePosition));
+
         compoundTag.putBoolean("canUseMainEngines", rocket.canUseMainEngines());
         compoundTag.putInt("mainEnginesBootup", rocket.getMainEnginesBootUp());
         compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines());

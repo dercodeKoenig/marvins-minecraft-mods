@@ -37,6 +37,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
         rocket.enableMainEngines(true, false);
 
+        // if rocket.hasSatellites && shouldDeploySatellites: move to space first
+
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
             // we are at the correct dimension
 

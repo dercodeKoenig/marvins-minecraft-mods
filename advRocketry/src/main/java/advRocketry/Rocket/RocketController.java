@@ -52,9 +52,9 @@ public class RocketController {
     public void tickController() {
 
         if(rocket.getTargetPosition() == null){
-            rocket.enableMainEngines(false, false);
-            rocket.enableSecondaryEngines(false, false);
             targetHeading = rocket.getDefaultTargetHeading();
+            currentThrust = 0;
+            currentSecondaryThrust = new Vec3(0,0,0);
             return;
         }
 

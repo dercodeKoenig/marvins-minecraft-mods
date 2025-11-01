@@ -76,6 +76,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public int lastLight = 0;
     public boolean requiresMeshUpdate = false;
 
+    // for space travel
+    public Vec3 universePosition = new Vec3(0,0,0);
+
+    // passenger
+    public Map<UUID, BlockPos> passengers = new HashMap<>();
+    public int forceRemountTimeout = 0;
+
     public GuiHandlerEntity guiHandler;
 
     public EntityRocket(EntityType<?> entityType, Level level) {
@@ -296,8 +303,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     //// main rocket methods ////
+    @Override
+    public Vec3 getPassengerAttachmentPoint(Entity entity, EntityDimensions dimensions, float partialTick) {
+return new Vec3(0,0,0);
+    }
 
-    public void endProgram() {
+
+        public void endProgram() {
         currentProgram = null;
         setTargetPosition(null, false);
         enableSecondaryEngines(false, false);
@@ -347,9 +359,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
         setDeltaMovement(getDeltaMovement().add(airBreak));
 
-
         // Move the entity based on the new velocity vector (getDeltaMovement)
         move(MoverType.SELF, getDeltaMovement());
+
+
+        if(myDimension != null){
+            universePosition = myDimension.getPosition(0);
+        }
+
 
         if (GlobalTime.getGlobalTime() % 100 == 0) {
             System.out.println(level().isClientSide + ":  still ticking at " + blockPosition());
