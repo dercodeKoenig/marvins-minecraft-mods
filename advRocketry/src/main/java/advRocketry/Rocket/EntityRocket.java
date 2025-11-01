@@ -245,6 +245,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void fixPassengerPositions(Map<UUID, BlockPos> targetPassengers){
         System.out.println("fixing passenger positions");
+        // force re-sync mount
+        for (UUID uuid : targetPassengers.keySet()) {
+            Entity passenger = ((ServerLevel)level()).getEntity(uuid);
+            if (passenger != null) {
+                passenger.stopRiding();
+                passenger.startRiding(this);
+            }
+        }
+
         for (UUID uuid : targetPassengers.keySet()) {
             BlockPos targetPos = targetPassengers.get(uuid);
             System.out.println(uuid + " should sit at " +targetPos);

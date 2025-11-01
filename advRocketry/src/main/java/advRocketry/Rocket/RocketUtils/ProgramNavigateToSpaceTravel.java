@@ -34,36 +34,54 @@ public class ProgramNavigateToSpaceTravel {
         rocket.enableSecondaryEngines(false, false);
 
         Dimension myDim = DimensionManager.get(rocket.level().dimension().location());
-        if(myDim != null && myDim.getType() == DimensionProperties.PlanetType.SPACE_STATION){
+        if (myDim != null && myDim.getType() == DimensionProperties.PlanetType.SPACE_STATION) {
             // logic for space station
             // undock from station and move to launchpos.y-50, then thrust away
-        }else {
+        } else {
             // normal logic; just fly high up!
             rocket.enableMainEngines(true, false);
             rocket.enableSecondaryEngines(false, false);
-            rocket.setTargetPosition(new Vec3(rocket.position().x, orbitHeight+500, rocket.position().z), false);
+            rocket.setTargetPosition(new Vec3(rocket.position().x, orbitHeight + 500, rocket.position().z), false);
 
             orbitHeight = 400;
-            if(rocket.position().y > orbitHeight && rocket.level() instanceof ServerLevel serverLevel){
+            if (rocket.position().y > orbitHeight && rocket.level() instanceof ServerLevel serverLevel) {
                 // teleport to space travel dimension
 
                 // first stop rocket movement because all future movement is virtual
                 // and the rocket should not fly out of the force loaded chunk
-                rocket.setDeltaMovement(0,0,0);
-                rocket.setTargetPosition(null,false);
+                rocket.setDeltaMovement(0, 0, 0);
+                rocket.setTargetPosition(null, false);
 
                 // get the teleportation target
                 ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), SpaceTravelManager.dimId);
                 ChunkPos targetPos = SpaceTravelManager.getNextFreeChunkPos();
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
-                // store the passengers to remount them after dimension change
-                Map<UUID, BlockPos> passengersCopy = new HashMap<>(rocket.passengers);
 
-                EntityRocket newRocket = (EntityRocket)rocket.changeDimension(new DimensionTransition(target, targetBlockPos.getCenter(), new Vec3(0,0,0), rocket.getYRot(), rocket.getXRot(), false, DimensionTransition.DO_NOTHING));
+                DimensionTransition transition = new DimensionTransition(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0), rocket.getYRot(), rocket.getXRot(), false, DimensionTransition.DO_NOTHING);
+
+                // store the passengers to remount them after dimension change
+                Map<UUID, BlockPos> newPassengerPositions = new HashMap<>();
+
+                for (Entity passenger : rocket.getPassengers()) {
+                    if (passenger != null) {
+                        BlockPos seatPos = rocket.passengers.get(passenger.getUUID());
+                        Entity newEntity = passenger.changeDimension(transition);
+                        newPassengerPositions.put(newEntity.getUUID(), seatPos);
+                    }
+                }
+
+                EntityRocket newRocket = (EntityRocket) rocket.changeDimension(transition);
+
+                for (UUID passengerUUID : newPassengerPositions.keySet()) {
+                    Entity e = (target).getEntity(passengerUUID);
+                    if (e != null) {
+                        e.startRiding(rocket);
+                    }
+                }
 
                 // fix passengers positions
-                newRocket.fixPassengerPositions(passengersCopy);
+                newRocket.fixPassengerPositions(newPassengerPositions);
 
 
                 // initial command to force load the chunk so that the rocket starts ticking
