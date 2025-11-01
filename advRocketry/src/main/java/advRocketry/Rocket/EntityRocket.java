@@ -232,11 +232,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     @Override
-    protected Vec3 getPassengerAttachmentPoint(Entity entity, EntityDimensions dimensions, float partialTick) {
+    public Vec3 getPassengerRidingPosition(Entity entity) {
         UUID entityUUID = entity.getUUID();
         BlockPos seatPos = passengers.get(entityUUID);
         if(seatPos == null) return new Vec3(0,0,0); // this should never happen
-        return RotationUtils.localToWorld(this, new Vec3(seatPos.getX(), seatPos.getY()+0.5, seatPos.getZ()));
+        return RotationUtils.localToWorld(this, new Vec3(seatPos.getX()+0.5, seatPos.getY()+0.2, seatPos.getZ()+0.5));
     }
 
     /// / get and set methods ////
