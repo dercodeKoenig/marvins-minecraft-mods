@@ -8,7 +8,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -44,7 +43,7 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
                     InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_LSHIFT) ||
                             InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_RSHIFT);
 
-            if (client_isMouseOver(mx, my, onGuiX, onGuiY, w, h)) {
+            if (isMouseOver(mx, my, onGuiX, onGuiY, w, h)) {
                 CompoundTag tag = new CompoundTag();
                 CompoundTag myTag = new CompoundTag();
 
@@ -97,7 +96,7 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
             guiGraphics.blit(slot_background, onGuiX, onGuiY, 0f, 0f, w, h, slot_bg_w, slot_bg_h);
             ModularScreen.renderItemStack(guiGraphics, onGuiX, onGuiY, client_getItemStackToRender());
 
-            if (!client_getItemStackToRender().isEmpty() && client_isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
+            if (!client_getItemStackToRender().isEmpty() && isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
                 guiGraphics.fill(onGuiX, onGuiY, w + onGuiX, h + onGuiY, 0x30FFFFFF); // Semi-transparent white
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, client_getItemStackToRender(), mouseX, mouseY);
             }

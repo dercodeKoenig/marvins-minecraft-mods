@@ -24,7 +24,7 @@ public class guiModuleTextInput extends GuiModuleBase {
     }
 
     public void client_onMouseCLick(double x, double y, int button) {
-        if (client_isMouseOver(x, y, onGuiX, onGuiY, w, h)) {
+        if (isMouseOver(x, y, onGuiX, onGuiY, w, h)) {
             isSelected = true;
         } else {
             isSelected = false;

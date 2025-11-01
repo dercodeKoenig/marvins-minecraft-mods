@@ -75,7 +75,7 @@ public class guiModuleVerticalProgressBar extends GuiModuleBase {
             int v_offset_tex = (int) (((double) 1.0F - progress) * (double) 44.0F);
             guiGraphics.blit(this.background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, 14, 54, 14, 54);
             guiGraphics.blit(this.bar, this.onGuiX + 1, this.onGuiY + v_offset + 1, 12, 52 - v_offset, 0.0F, 0.0F + (float) v_offset_tex, 6, 44 - v_offset_tex, 6, 44);
-            if (this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, 14, 54)) {
+            if (this.isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, 14, 54)) {
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(info), mouseX, mouseY);
             }
         }

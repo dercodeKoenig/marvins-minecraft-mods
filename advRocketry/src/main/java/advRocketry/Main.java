@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -103,6 +104,7 @@ public class Main {
     public void onCLientTick(ClientTickEvent.Post event) {
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
+        EntityRocket.clientOnly.onClientTickEvent();
     }
 
     public void onServerStarted(ServerStartedEvent event) {

@@ -1,14 +1,11 @@
 package ARLib.gui.modules;
 
 import ARLib.gui.IGuiHandler;
-import ARLib.gui.modules.GuiModuleBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Objects;
 
@@ -82,7 +79,7 @@ public class guiModuleProgressBarHorizontal6px extends GuiModuleBase {
         if(isEnabled) {
             guiGraphics.blit(background, onGuiX, onGuiY, 0, 0, 54, 6, 54, 6);
             guiGraphics.fill(onGuiX + 1, onGuiY + 1, onGuiX + (int) (52 * progress) + 1, onGuiY + 4 + 1, color);
-            if (this.client_isMouseOver((double)mouseX, (double)mouseY, this.onGuiX, this.onGuiY, 54, 6)) {
+            if (this.isMouseOver((double)mouseX, (double)mouseY, this.onGuiX, this.onGuiY, 54, 6)) {
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(info), mouseX, mouseY);
             }
         }

@@ -111,7 +111,7 @@ public class ModularScreen extends Screen {
         for (int i = 0; i < c.getModules().size(); i++) {
             if (!(i < c.getModules().size())) break;
             GuiModuleBase m = c.getModules().get(i);
-            m.client_setGuiOffset(leftOffset, topOffset);
+            m.setGuiOffset(leftOffset, topOffset);
         }
     }
 

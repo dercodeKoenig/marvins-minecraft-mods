@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -26,6 +27,9 @@ public class GuiHandlerEntity implements IGuiHandler {
     public Entity parentE;
     public Object screen; // this will hold modularScreen in case you need to access it but server shits itself when loading the class so i use object
 
+    public float maxDistance = 8;
+
+
     public GuiHandlerEntity(Entity parentEntity) {
         this.playersTrackingGui = new HashMap<>();
         modules = new ArrayList<>();
@@ -42,7 +46,7 @@ public class GuiHandlerEntity implements IGuiHandler {
         // fix for not syncing in creative mode, player should never be null bc this is called on client
         if (Minecraft.getInstance().player != null)
             Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
-        screen = new ModularScreen(this, w, h,renderBackground);
+        screen = new ModularScreen(this, w, h, renderBackground);
         Minecraft.getInstance().setScreen((Screen) screen);
     }
 
@@ -100,6 +104,14 @@ public class GuiHandlerEntity implements IGuiHandler {
             }
         }
     }
+
+    @Override
+    public void readClient(CompoundTag tag) {
+        IGuiHandler.super.readClient(tag);
+        if (tag.contains("closeGui"))
+            Minecraft.getInstance().setScreen(null);
+    }
+
     @Override
     public void serverTick() {
         IGuiHandler.super.serverTick();
@@ -111,6 +123,13 @@ public class GuiHandlerEntity implements IGuiHandler {
                 playersTrackingGui.put(uid, playersTrackingGui.get(uid) + 1);
                 if (playersTrackingGui.get(uid) > 200) {
                     removePlayerFromGui(uid);
+                }
+                Entity entity = ((ServerLevel) parentE.level()).getEntity(uid);
+                if (entity instanceof ServerPlayer player && entity.position().distanceTo(parentE.position()) > maxDistance) {
+                    removePlayerFromGui(uid);
+                    CompoundTag closeGuiTag = new CompoundTag();
+                    closeGuiTag.putInt("closeGui", 0);
+                    PacketDistributor.sendToPlayer(player, PacketEntity.getEntityPacket(parentE, closeGuiTag));
                 }
             }
         }
@@ -124,7 +143,8 @@ public class GuiHandlerEntity implements IGuiHandler {
             sendPing();
         }
     }
-    public void sendPing(){
+
+    public void sendPing() {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("guiPing", Minecraft.getInstance().player.getUUID());
         sendToServer(tag);

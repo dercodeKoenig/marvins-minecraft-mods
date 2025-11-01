@@ -154,7 +154,7 @@ public class guiModuleFluidTankDisplay extends GuiModuleBase {
 
             guiGraphics.blit(fluid_bar_grading, onGuiX, onGuiY, 0, 0, w, h, fluid_bar_background_tw, fluid_bar_background_th);
 
-            if (client_isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
+            if (isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
                 String info = "0/" + maxCapacity + "mb)";
                 if (!client_myFluidStack.isEmpty()) {
                     info = client_myFluidStack.getHoverName().getString() + ":" + client_myFluidStack.getAmount() + "/" + maxCapacity + "mb";

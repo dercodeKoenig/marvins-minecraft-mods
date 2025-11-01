@@ -29,16 +29,12 @@ public interface IGuiHandler {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     void sendToServer(CompoundTag tag);
 
-    @OnlyIn(Dist.CLIENT)
     void onGuiClientTick(Player player);
 
-    @OnlyIn(Dist.CLIENT)
     default void onGuiClose() {}
 
-    @OnlyIn(Dist.CLIENT)
     default void readClient(CompoundTag tag) {
         for (GuiModuleBase m : getModules()) {
             m.client_handleDataSyncedToClient(tag);

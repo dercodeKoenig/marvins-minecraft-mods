@@ -618,4 +618,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return cachedSeatPositions;
     }
 
+    public static class clientOnly { // wrap in extra class or server shits itself trying to find client side classes
+        public static void onClientTickEvent() {
+            Player player = Minecraft.getInstance().player;
+            if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
+                if (Minecraft.getInstance().options.keyUse.isDown()) {
+                    rocket.openGui();
+                }
+            }
+        }
+    }
+
 }

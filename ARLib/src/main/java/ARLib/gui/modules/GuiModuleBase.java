@@ -3,7 +3,6 @@ package ARLib.gui.modules;
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 
 public class GuiModuleBase {
 
@@ -40,12 +39,12 @@ public class GuiModuleBase {
         }
     }
 
-    public void client_setGuiOffset(int left, int top){
+    public void setGuiOffset(int left, int top){
         onGuiX = x+left;
         onGuiY = y+top;
     }
 
-    public boolean client_isMouseOver(double mouseX, double mouseY, int x, int y, int w, int h) {
+    public boolean isMouseOver(double mouseX, double mouseY, int x, int y, int w, int h) {
         if(!isEnabled)return false;
         return mouseX >= x &&
                 mouseX <= x + w &&

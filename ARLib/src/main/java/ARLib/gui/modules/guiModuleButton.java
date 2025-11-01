@@ -25,7 +25,7 @@ public class guiModuleButton extends GuiModuleBase {
     @Override
     public void client_onMouseCLick(double x, double y, int button) {
         if (isEnabled) {
-            if (client_isMouseOver(x, y, onGuiX, onGuiY, w, h) && button == 0) {
+            if (isMouseOver(x, y, onGuiX, onGuiY, w, h) && button == 0) {
                 onButtonClicked();
             }
         }

@@ -23,7 +23,7 @@ public class guiModuleDefaultButton extends guiModuleButton {
             float partialTick
     ) {
         if (isEnabled) {
-            if(this.client_isMouseOver(mouseX,mouseY,onGuiX,onGuiY,w,h)){
+            if(this.isMouseOver(mouseX,mouseY,onGuiX,onGuiY,w,h)){
                 guiGraphics.blit(button_highlight, onGuiX, onGuiY, w, h, 0f, 0f, textureW, textureH, textureW, textureH);
             }else {
                 guiGraphics.blit(button, onGuiX, onGuiY, w, h, 0f, 0f, textureW, textureH, textureW, textureH);

@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 public class guiModuleScrollContainer extends GuiModuleBase {
 
@@ -39,7 +38,7 @@ public class guiModuleScrollContainer extends GuiModuleBase {
 
     @Override
     public void client_onMouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (client_isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
+        if (isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
             this.top_extra_offset += scrollY * 10;
         }
         this.top_extra_offset = Math.min(0, this.top_extra_offset);
@@ -50,10 +49,10 @@ public class guiModuleScrollContainer extends GuiModuleBase {
             maxY = Math.max(maxY, i.y);
         }
         this.top_extra_offset = Math.max(-maxY, this.top_extra_offset);
-        client_setGuiOffset(left, top);
+        setGuiOffset(left, top);
     }
 
-    public void client_setGuiOffset(int left, int top) {
+    public void setGuiOffset(int left, int top) {
         this.left = left;
         this.top = top;
         onGuiX = x + left;
@@ -61,7 +60,7 @@ public class guiModuleScrollContainer extends GuiModuleBase {
         for (int n = 0; n <modules.size(); n++) {
             if (!(n < modules.size())) break;
             GuiModuleBase i = modules.get(n);
-            i.client_setGuiOffset(left+x, (int) (top +y+ top_extra_offset));
+            i.setGuiOffset(left+x, (int) (top +y+ top_extra_offset));
         }
     }
 

@@ -4,9 +4,6 @@ import ARLib.gui.IGuiHandler;
 import ARLib.gui.ModularScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class guiModuleItemPreview extends GuiModuleBase {
@@ -27,7 +24,7 @@ public class guiModuleItemPreview extends GuiModuleBase {
     ) {
         if(isEnabled) {
             ModularScreen.renderItemStack(guiGraphics,onGuiX,onGuiY,itemStack);
-            if(client_isMouseOver(mouseX,mouseY,onGuiX,onGuiY,18,18)){
+            if(isMouseOver(mouseX,mouseY,onGuiX,onGuiY,18,18)){
                 guiGraphics.renderTooltip(Minecraft.getInstance().font,itemStack,mouseX,mouseY);
             }
         }

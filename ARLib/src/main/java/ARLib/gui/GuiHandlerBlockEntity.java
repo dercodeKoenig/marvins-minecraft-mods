@@ -7,10 +7,13 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -21,53 +24,52 @@ import java.util.*;
 
 /**
  * How to use a GuiHandler on a BlockEntity
+ * <p>
+ * <p>
+ * - create a GuiHandlerBlockEntity instance in you BlockEntity class:
+ * IGuiHandler guiHandler = new GuiHandlerBlockEntity(this);
+ * <p>
+ * <p>
+ * - register gui modules:
+ * guiHandler.registerModule(
+ * new guiModuleEnergy(0,[your_IEnergyStorage_object],guiHandler,10,10)
+ * );
+ * <p>
+ * - implement INetworkTagReceiver in your BlockEntity class
+ * This IGuiHandler uses PacketBlockEntity to send data to your BlockEntity.
+ * You need to forward this data to the IGuiHandler:
+ * <p>
+ * in  readServer(CompoundTag tag) call guiHandler.readServer(CompoundTag tag)
+ * in  readClient(CompoundTag tag) call guiHandler.readClient(CompoundTag tag)
+ * <p>
+ * - register your BlockEntity to have a tick() method
+ * In IGuiHandler.serverTick(...), the server scans for changes in the gui data if one or more clients watch the gui.
+ * You need to call guiHandler.serverTick([your_gui_handler_instance]) on server side every tick to allow data sync.
+ * If no clients watch the gui, serverTick will instantly return to keep the code efficient and not waste time.
+ * <p>
+ * example to use for your Block class:
  *
- *
- *  - create a GuiHandlerBlockEntity instance in you BlockEntity class:
- *                 IGuiHandler guiHandler = new GuiHandlerBlockEntity(this);
- *
- *
- *  - register gui modules:
- *                  guiHandler.registerModule(
- *                      new guiModuleEnergy(0,[your_IEnergyStorage_object],guiHandler,10,10)
- *                  );
- *
- *  - implement INetworkTagReceiver in your BlockEntity class
- *    This IGuiHandler uses PacketBlockEntity to send data to your BlockEntity.
- *    You need to forward this data to the IGuiHandler:
- *
- *          in  readServer(CompoundTag tag) call guiHandler.readServer(CompoundTag tag)
- *          in  readClient(CompoundTag tag) call guiHandler.readClient(CompoundTag tag)
- *
- *  - register your BlockEntity to have a tick() method
- *    In IGuiHandler.serverTick(...), the server scans for changes in the gui data if one or more clients watch the gui.
- *    You need to call guiHandler.serverTick([your_gui_handler_instance]) on server side every tick to allow data sync.
- *    If no clients watch the gui, serverTick will instantly return to keep the code efficient and not waste time.
- *
- *    example to use for your Block class:
- *     @Override
- *     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
- *         return EntityLathe::tick;
- *     }
- *    example to use for your BlockEntity class:
- *     public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
- *         if(!level.isClientSide)
- *             ((EntityLathe)t).guiHandler.serverTick();
- *     }
- *
- *
- *  - open your gui from anywhere using [your_gui_handler_instance].openGui(), for example on block click.
- *    example:
- *     @Override
- *     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
- *         BlockEntity e = world.getBlockEntity(pos);
- *         if (e instanceof EntityLathe ee) {
- *             if (world.isClientSide) {
- *                 ee.guiHandler.openGui();
- *             }
- *         }
- *         return InteractionResult.SUCCESS;
- *     }
+ * @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+ * return EntityLathe::tick;
+ * }
+ * example to use for your BlockEntity class:
+ * public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+ * if(!level.isClientSide)
+ * ((EntityLathe)t).guiHandler.serverTick();
+ * }
+ * <p>
+ * <p>
+ * - open your gui from anywhere using [your_gui_handler_instance].openGui(), for example on block click.
+ * example:
+ * @Override public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+ * BlockEntity e = world.getBlockEntity(pos);
+ * if (e instanceof EntityLathe ee) {
+ * if (world.isClientSide) {
+ * ee.guiHandler.openGui();
+ * }
+ * }
+ * return InteractionResult.SUCCESS;
+ * }
  */
 public class GuiHandlerBlockEntity implements IGuiHandler {
 
@@ -76,6 +78,8 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
     public int last_ping = 0;
     public BlockEntity parentBE;
     public Object screen; // this will hold modularScreen in case you need to access it but server shits itself when loading the class so i use object
+
+    public float maxDistance = 8;
 
     public GuiHandlerBlockEntity(BlockEntity parentBlockEntity) {
         this.playersTrackingGui = new HashMap<>();
@@ -93,7 +97,7 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
         // fix for not syncing in creative mode, player should never be null bc this is called on client
         if (Minecraft.getInstance().player != null)
             Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
-        screen = new ModularScreen(this, w, h,renderBackground);
+        screen = new ModularScreen(this, w, h, renderBackground);
         Minecraft.getInstance().setScreen((Screen) screen);
     }
 
@@ -151,6 +155,14 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
             }
         }
     }
+
+    @Override
+    public void readClient(CompoundTag tag) {
+        IGuiHandler.super.readClient(tag);
+        if (tag.contains("closeGui"))
+            Minecraft.getInstance().setScreen(null);
+    }
+
     @Override
     public void serverTick() {
         IGuiHandler.super.serverTick();
@@ -162,6 +174,13 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
                 playersTrackingGui.put(uid, playersTrackingGui.get(uid) + 1);
                 if (playersTrackingGui.get(uid) > 200) {
                     removePlayerFromGui(uid);
+                }
+                Entity entity = ((ServerLevel) parentBE.getLevel()).getEntity(uid);
+                if (entity instanceof ServerPlayer player && entity.position().distanceTo(parentBE.getBlockPos().getCenter()) > maxDistance) {
+                    removePlayerFromGui(uid);
+                    CompoundTag closeGuiTag = new CompoundTag();
+                    closeGuiTag.putInt("closeGui", 0);
+                    PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(parentBE, closeGuiTag));
                 }
             }
         }
@@ -175,7 +194,8 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
             sendPing();
         }
     }
-    public void sendPing(){
+
+    public void sendPing() {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("guiPing", Minecraft.getInstance().player.getUUID());
         sendToServer(tag);
