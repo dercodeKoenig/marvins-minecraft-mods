@@ -91,6 +91,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             rocket.setTargetPosition(targetVec3, false);
 
             // check if landed
+            // WARNING: onGround() appears to only work server side - endProgram will sync to client
+
             if (rocket.onGround() && distanceToTargetXZ < 5) {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
