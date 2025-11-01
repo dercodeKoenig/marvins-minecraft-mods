@@ -54,7 +54,7 @@ public class Registry {
 
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
             "rocket",
-            () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).build(Main.MODID+":rocket")
+            () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(300).build(Main.MODID+":rocket")
     );
 
     public static final Supplier<SimpleParticleType> ROCKET_FLAME = PARTICLES.register("rocketflame",() -> new SimpleParticleType(true));

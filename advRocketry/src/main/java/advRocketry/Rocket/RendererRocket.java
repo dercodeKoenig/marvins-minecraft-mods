@@ -47,7 +47,6 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
         return null;
     }
 
-
     public void makeRenderBuffer(EntityRocket rocket, int packedLight) {
 
         for (RenderType type : rocket.renderDataMap.keySet()) {

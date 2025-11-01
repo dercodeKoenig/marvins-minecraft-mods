@@ -166,10 +166,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return true;
     }
 
-
     @Override
-    public AABB makeBoundingBox() {
-        return super.makeBoundingBox(); // happens because minecraft calls makeBoundingBox in constructor before the size value is assigned
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return true;
     }
 
     @Override
@@ -457,7 +456,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
         p.target = new BlockPos((int) position().x, 0, (int) position().z);
-        setPos(position().x, position().y, position().z + 60);
+        setPos(position().x, position().y, position().z + 160);
         currentProgram = p;
     }
 

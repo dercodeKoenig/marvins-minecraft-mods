@@ -22,11 +22,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
     public ResourceLocation targetDimensionId;
     public BlockPos target;
-
-    Vec3 lastRocketPosition = new Vec3(0, 0, 0);
-
-    public static double travelHeight = 100;
-    public static double maxD = 50; // for pd controller travel target distance
+    
+    public static double travelHeight = 200;
+    public static double maxD = 100; // for pd controller travel target distance
 
     public void run(EntityRocket rocket) {
 
@@ -47,7 +45,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
                 int y = rocket.level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
                 double dyi = rocket.position().y - y;
-                double targetY = rocket.position().y - dyi * 1.2 + distanceToTargetXZ - 1;
+                double targetY = rocket.position().y - dyi * 1 + distanceToTargetXZ - 1;
                 rocket.setTargetPosition(new Vec3(target.getX(), targetY, target.getZ()));
 
                 // check if landed
@@ -62,6 +60,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 }
             } else {
                 rocket.enableSecondaryEngines(false);
+
 
                 // move to the correct xz coordinates
                 if (rocket.position().y < travelHeight) {
