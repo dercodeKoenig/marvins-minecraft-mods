@@ -15,6 +15,7 @@ import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -225,6 +226,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     protected void addPassenger(Entity passenger) {
         super.addPassenger(passenger);
+        if(level().isClientSide) {
+            if (passenger == Minecraft.getInstance().player) {
+                Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            }
+        }
         if (!level().isClientSide) {
             if (passengers.keySet().contains(passenger.getUUID())) return;
             ArrayList<BlockPos> seats = new ArrayList<>(this.getSeatPositions());
@@ -242,6 +248,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
+        if(level().isClientSide) {
+            if (passenger == Minecraft.getInstance().player) {
+                Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
+            }
+        }
         if (!level().isClientSide) {
             passengers.remove(passenger.getUUID());
             setPassengersPositions(passengers);
@@ -420,10 +431,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public void tick() {
-
-        // TODO: client delays tick and is always slightly behind server
-        //       maybe sync and lerp the universe position and rotations ?
-
+        
         if (!level().isClientSide) {
             guiHandler.serverTick();
         }
