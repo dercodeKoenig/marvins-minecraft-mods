@@ -13,6 +13,7 @@
         { "name": "TargetVector", "type": "float", "count": 3, "values": [1.0, 0.0, 0.0] },
         { "name": "LocalSunriseColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
         { "name": "playerHeight", "type": "float", "count": 1, "values": [ 1] },
+        { "name": "planetSkyHeight", "type": "float", "count": 1, "values": [ 1] },
         { "name": "AtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
         { "name": "TargetAtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
         { "name": "TargetSkyColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },

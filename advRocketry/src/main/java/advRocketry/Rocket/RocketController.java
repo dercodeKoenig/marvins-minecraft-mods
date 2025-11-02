@@ -32,7 +32,12 @@ public class RocketController {
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
-        Vec3 rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE);
+        Vec3 rotationCorrection;
+        if(targetHeading.dot(rocket.heading) > -0.99)
+            rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE);
+        else
+            rotationCorrection = rocket.front.subtract(rocket.heading).scale(ROTATION_RATE);
+
         rocket.heading = rocket.heading.add(rotationCorrection).normalize();
 
         // now try to get the front align more toward the target front

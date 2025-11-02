@@ -14,6 +14,7 @@ uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
 uniform vec3 TargetVector;       // from observer to target planet
 uniform vec3 TargetSkyColor;       // target planets sky color
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
+uniform float planetSkyHeight;
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
@@ -59,7 +60,7 @@ void main() {
 
 
     // atmosphere modifies how the star appears
-    float altitudeAtmThicknessMod = clamp((10000 - playerHeight) / 10000, 0, 1);
+    float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
     float starUp = dot(upUniverseSpace, normalize(TargetVector));
     float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
     atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;

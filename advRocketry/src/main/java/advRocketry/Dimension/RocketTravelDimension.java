@@ -45,13 +45,18 @@ public class RocketTravelDimension extends Dimension {
         return DimensionProperties.PlanetType.DUMMY;
     }
 
-    @Override
-    public AxisDirections getGlobalAxisDirections(float partialTick) {
+    public AxisDirections getDefaultAxisDirections() {
         return new AxisDirections(
                 new Vec3(0, 0, -1),
                 new Vec3(1, 0, 0),
                 new Vec3(0, 1, 0)
         );
+    }
+
+    @Override
+    public AxisDirections getGlobalAxisDirections(float partialTick) {
+        if(FMLEnvironment.dist.isClient()) return clientOnly.getGlobalAxisDirections();
+        return getDefaultAxisDirections();
     }
 
     @Override
@@ -62,18 +67,8 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public double getAccumulatedWorldBrightness(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
-        if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
-        double astronomicalBrightness = 0;
-        for (ResourceLocation targetId : getCurrentMainStars()) {
-            Dimension target = DimensionManager.get(targetId);
-            Vec3 targetPosition = target.getPosition(partialTick);
-            double distance = targetPosition.distanceTo(myPlanetPosition);
-            double dotMultiplier = 1;
-            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance * distance);
-            astronomicalBrightness += brightness;
-        }
-        return astronomicalBrightness;
+    public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition) {
+        return 1;
     }
 
     public class ClientOnly {
@@ -84,10 +79,24 @@ public class RocketTravelDimension extends Dimension {
                 if (vehicle instanceof EntityRocket rocket) {
                     return rocket.universePosition;
                 }else{
-                    return player.position().scale(0.001); // for debug flying around in creative
+                    return player.position().scale(0.01); // for debug flying around in creative
                 }
             }
             return  new Vec3(0,0,0);
+        }
+        public AxisDirections getGlobalAxisDirections(){
+            Player player = Minecraft.getInstance().player;
+            if(player != null) {
+                Entity vehicle = player.getVehicle();
+                if (vehicle instanceof EntityRocket rocket) {
+                    return new AxisDirections(
+                            rocket.universeHeading,
+                            rocket.universeHeading.cross(rocket.universeFront),
+                            rocket.universeFront
+                    );
+                }
+            }
+            return getDefaultAxisDirections();
         }
         public void clientTick(){
             planetRenderCache.updateSignificantLightSourcesCache(RocketTravelDimension.this);

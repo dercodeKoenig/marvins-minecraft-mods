@@ -196,6 +196,8 @@ public class skyrenderer {
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
+        shader.getUniform("planetSkyHeight").set((float)Config.INSTANCE.planetSkyHeight);
+
         shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
         //TODO maybe render the planet sphere below??
@@ -251,7 +253,7 @@ public class skyrenderer {
 
         // Render planets / stars
         for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
-            // skip self TODO: this should be later calculated in myCurrentSpaceObject.getPlanetsToRenderInSky
+
             if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
 
             Dimension otherDimension = DimensionManager.get(otherDimensionId);
@@ -295,8 +297,8 @@ public class skyrenderer {
 
             // custom proj matrix for every draw because of high potential distance range
             Matrix4f newProj = new Matrix4f(proj);
-            float n = (float) (relativePos.length() / 100);
-            float f = (float) (relativePos.length() * 100);
+            float n = (float) (relativePos.length() / 1000);
+            float f = (float) (relativePos.length() * 1000);
             newProj.set(2, 2, -(f + n) / (f - n));
             newProj.set(3, 2, -(2f * f * n) / (f - n));
 
@@ -313,6 +315,7 @@ public class skyrenderer {
             shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
             shader.getUniform("TargetSkyColor").set(otherDimension.getSkyColor().x, otherDimension.getSkyColor().y, otherDimension.getSkyColor().z);
             shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
+            shader.getUniform("planetSkyHeight").set((float)Config.INSTANCE.planetSkyHeight);
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {

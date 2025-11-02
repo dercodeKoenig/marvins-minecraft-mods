@@ -6,7 +6,6 @@ import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.worldgen.PlanetDimensionGeneration;
-import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
@@ -27,6 +26,8 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
+
+import java.util.Optional;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
@@ -94,7 +95,7 @@ public class Dimension {
         return false;
     }
 
-    public DimensionProperties.PlanetType getType(){
+    public DimensionProperties.PlanetType getType() {
         return properties.type;
     }
 
@@ -207,6 +208,7 @@ public class Dimension {
         return dot;
     }
 
+
     public Vec3 getPosition(float partialTick) {
         if (properties.parentDimensionId != null) {
             Dimension parent = (Dimension) DimensionManager.get(properties.parentDimensionId); // you can only orbit dimensions, not space stations
@@ -243,16 +245,25 @@ public class Dimension {
         return properties.position;
     }
 
+    public float getLatitudeFromZPosition(double z) {
+        double s = z / properties.latitude_len;
+        float lat = (float) Math.sin(s * Math.PI * 2) * 90;
+        return lat;
+    }
 
     public float getLatitude() {
         if (FMLLoader.getDist().isDedicatedServer()) return 0;
-        // TODO: for correct rocket spawning in space, create getLatitide(Vec3 position) so that we know the rockets latitude
         else return clientOnly.getLatitude();
     }
+
     /**
      * calculates universe global coordinates for the local north east up coordinates of the planet
      */
     public AxisDirections getGlobalAxisDirections(float partialTick) {
+        return getGlobalAxisDirections(partialTick, Optional.empty());
+    }
+
+    public AxisDirections getGlobalAxisDirections(float partialTick, Optional<Double> z) {
         // 1. Pick the correct perpendicular vector to axis
         Vec3 equatorRef = getEquatorReference(partialTick);
 
@@ -265,7 +276,9 @@ public class Dimension {
         Vec3 east = rotationAxis.cross(rotatedEquator).normalize();
 
         // 4 rotate equator reference around east by latitude
-        double lat = getLatitude();
+        double lat;
+        if (z.isEmpty()) lat = getLatitude();
+        else lat = getLatitudeFromZPosition(z.get());
         Vec3 localUp = CelestialUtils.rotate(rotatedEquator, east, lat).normalize();
 
         // 5 calculate new north
@@ -305,10 +318,7 @@ public class Dimension {
         public float getLatitude() {
             // player uses latitude based on location on planet
             Player p = Minecraft.getInstance().player;
-            double z = p.position().z;
-            double s = z / properties.latitude_len;
-            float lat = (float) Math.sin(s * Math.PI * 2) * 90;
-            return lat;
+            return getLatitudeFromZPosition(p.position().z);
         }
 
         public void clientTick() {

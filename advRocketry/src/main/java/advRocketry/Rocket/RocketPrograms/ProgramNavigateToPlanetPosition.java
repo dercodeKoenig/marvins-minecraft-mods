@@ -1,23 +1,13 @@
-package advRocketry.Rocket.RocketUtils;
+package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
-import advRocketry.Rocket.RotationUtils;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
-
-import java.util.Objects;
 
 public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
@@ -35,11 +25,15 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
         maxD = 100;
 
-        rocket.enableMainEngines(true, false);
+
 
         // if rocket.hasSatellites && shouldDeploySatellites: move to space first
 
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
+
+            rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
+            rocket.enableMainEngines(true, false);
+
             // we are at the correct dimension
 
             double dx = target.getX() - rocket.position().x;
@@ -54,19 +48,19 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double xzDistanceHeightMultiplier = 1; // target height increases as we move more away from the target position in xz direction
             double speedHeightMultiplier = 20; // if we move fast, target is higher. we will only land if the movement in xz is close to 0
             double yOffset = -2; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
-            double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz*speedHeightMultiplier;
+            double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
 
             Vec3 targetVec3 = new Vec3(target.getX(), targetY, target.getZ());
 
 
             if (distanceToTargetXZ < 50)
                 rocket.enableSecondaryEngines(true, false); // help or it swings around too much
-            else{
+            else {
                 rocket.enableSecondaryEngines(false, false);
 
-                int yCurrentBelow  = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
+                int yCurrentBelow = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
 
-                if(rocket.position().y - yCurrentBelow < 20){
+                if (rocket.position().y - yCurrentBelow < 20) {
                     // start / move up
                     targetVec3 = new Vec3(rocket.position().x, targetY, rocket.position().z);
                 }
@@ -81,10 +75,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
             }
-        }else{
+        } else {
             // we are not at target dim, move to space!
-            if(ProgramNavigateToSpaceTravel.run(rocket)){
-                // we are in space, navigate to the target planet
+            if (NavigateToSpaceTravelDimension.run(rocket)) {
+                // we are in space, navigate to the target planet, the program will teleport the rocket to target dim
+                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId);
             }
         }
     }

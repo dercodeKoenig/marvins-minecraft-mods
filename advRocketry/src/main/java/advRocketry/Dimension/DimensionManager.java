@@ -43,7 +43,6 @@ public class DimensionManager {
     }
 
     public static void serverTick(ServerTickEvent.Post event) {
-        //if(true)return;
         Iterator<Dimension> dimensionIterator = INSTANCE.dimensions.values().iterator();
         while (dimensionIterator.hasNext()){
             Dimension i = dimensionIterator.next();

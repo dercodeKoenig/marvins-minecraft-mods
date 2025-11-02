@@ -54,6 +54,10 @@ public class RocketSaveAndLoad {
 
         if(compoundTag.contains("universePosition"))
             rocket.universePosition =  Utils.deSerializeVec3(compoundTag.getCompound("universePosition"));
+        if(compoundTag.contains("universeFront"))
+            rocket.universeFront =  Utils.deSerializeVec3(compoundTag.getCompound("universeFront"));
+        if(compoundTag.contains("universeHeading"))
+            rocket.universeHeading =  Utils.deSerializeVec3(compoundTag.getCompound("universeHeading"));
 
         if (compoundTag.contains("canUseMainEngines"))
             rocket.enableMainEngines(compoundTag.getBoolean("canUseMainEngines"),true);
@@ -129,6 +133,8 @@ public class RocketSaveAndLoad {
         compoundTag.put("passengers", savePassengerPositions(rocket.passengers));
 
         compoundTag.put("universePosition", Utils.serializeVec3(rocket.universePosition));
+        compoundTag.put("universeFront", Utils.serializeVec3(rocket.universeFront));
+        compoundTag.put("universeHeading", Utils.serializeVec3(rocket.universeHeading));
 
         compoundTag.putBoolean("canUseMainEngines", rocket.canUseMainEngines());
         compoundTag.putInt("mainEnginesBootup", rocket.getMainEnginesBootUp());

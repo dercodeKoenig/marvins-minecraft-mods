@@ -1,6 +1,6 @@
 package advRocketry.Rocket;
 
-import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
+import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import net.minecraft.nbt.CompoundTag;
 
 import java.lang.reflect.InvocationTargetException;

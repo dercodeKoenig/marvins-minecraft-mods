@@ -4,6 +4,7 @@ uniform vec3 SkyColor;
 uniform vec3 SunriseColor;
 uniform vec3 FogColor;
 uniform float AtmDensity;
+uniform float planetSkyHeight;
 
 uniform float playerHeight;
 
@@ -23,7 +24,7 @@ vec3 gamma_reverse(vec3 color){
 }
 void main() {
     // how bright the sky should be, TODO: this should also depend on weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
-    float brightnessModifierPlayerAltitude = clamp((10000 - playerHeight) / 10000, 0, 1);
+    float brightnessModifierPlayerAltitude = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
     float globalBrightnessModifiew = brightnessModifierPlayerAltitude * (AtmDensity/(1+AtmDensity));
 
     float verticalDot = dot(upUniverseSpace, -normalUniverseSpace);

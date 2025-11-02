@@ -10,7 +10,7 @@ import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
 import advRocketry.Dimension.*;
 import advRocketry.Registry;
-import advRocketry.Rocket.RocketUtils.ProgramNavigateToPlanetPosition;
+import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -22,6 +22,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -32,6 +33,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
@@ -84,6 +86,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
+    public Vec3 universeHeading = new Vec3(0, 1, 0);
+    public Vec3 universeTargetHeading = new Vec3(0, 1, 0);
+    public Vec3 universeFront = new Vec3(0, 0, 1);
 
     // passenger
     Map<UUID, BlockPos> passengers = new HashMap<>();
@@ -274,6 +279,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / get and set methods ////
 
+    public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front){
+        this.defaultTargetHeading = heading;
+        this.heading = heading;
+        this.front = front;
+    }
+
     public void setPassengersPositions(Map<UUID, BlockPos> passengers) {
         this.passengers = passengers;
         CompoundTag tag = new CompoundTag();
@@ -443,13 +454,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         controller.tick();
 
-        //setTargetFront(new Vec3(0, 0, 1));
-
         if (currentProgram != null)
             currentProgram.run(this);
 
         applyGravity();
-
 
         Dimension myDimension = DimensionManager.get(level().dimension().location());
 
@@ -481,8 +489,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void launch() {
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
-        p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
-        //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
+        p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         p.target = new BlockPos((int) position().x, 0, (int) position().z);
         setProgramAndSync(p);
     }
@@ -504,6 +512,51 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         kill();
+    }
+
+    public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos){
+
+        setDeltaMovement(0, 0, 0);
+        setTargetPosition(null, false); // position is probably invalid because dimension change
+
+        // the dimension change is like this:
+        // 1: unmount entities, but store where they were seated
+        // 1: teleport every entity to the new dimension and put the new uuid to the new seat map
+        // 2: teleport rocket
+        // 3: find the entities by the new uuid and mount them at random position
+        // 4: fix the seat position
+        // 5: on client side: trigger remount on first tick because minecraft fails to sync correctly
+
+        // store the passengers to remount them after dimension change at correct positions
+        Map<UUID, BlockPos> newPassengerPositions = new HashMap<>();
+
+        // unmount, teleport and store new uuid
+        for (Entity passenger : getPassengers()) {
+            if (passenger != null) {
+                DimensionTransition transition = new DimensionTransition(target, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+                BlockPos seatPos = getPassengersPositions().get(passenger.getUUID());
+                passenger.stopRiding();
+                Entity newEntity = passenger.changeDimension(transition);
+                newPassengerPositions.put(newEntity.getUUID(), seatPos);
+            }
+        }
+
+        // teleport rocket
+        DimensionTransition transition = new DimensionTransition(target, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+        EntityRocket newRocket = (EntityRocket) changeDimension(transition);
+
+        // remount passengers
+        for (UUID passengerUUID : newPassengerPositions.keySet()) {
+            Entity e = (target).getEntity(passengerUUID);
+            if (e != null) {
+                e.startRiding(newRocket);
+            }
+        }
+
+        // fix passengers positions
+        newRocket.setPassengersPositions(newPassengerPositions);
+
+        return newRocket;
     }
 
     /// / save, load and sync ////
