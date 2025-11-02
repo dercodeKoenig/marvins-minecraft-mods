@@ -198,6 +198,7 @@ public class Main {
             e.accept(Registry.ROCKET_MOTOR.get());
             e.accept(Registry.FUEL_TANK.get());
             e.accept(Registry.GUIDANCE_COMPUTER.get());
+            e.accept(Registry.SEAT.get());
         }
     }
 }
