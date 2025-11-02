@@ -440,7 +440,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     /// / main rocket methods ////
 
     public void endProgram() {
-        currentProgram = null;
+        setProgramAndSync(null);
         setTargetPosition(null, false);
         enableSecondaryEngines(false, false);
         enableMainEngines(false, false);
@@ -449,6 +449,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public void tick() {
+
+        super.tick();
 
         if (!level().isClientSide) {
             guiHandler.serverTick();

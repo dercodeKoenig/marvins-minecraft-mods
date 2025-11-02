@@ -8,6 +8,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidType;
 
 public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
@@ -75,8 +77,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             // check if landed
             // WARNING: onGround() appears to only work server side - it appears the server syncs it for 1 tick to client
-            // this is not very good for landing because it might trigger while client side rocket is still in air
-            if (rocket.onGround() || rocket.isInWater() && distanceToTargetXZ < 10) {
+            if ((rocket.onGround() || rocket.isInLiquid()) && distanceToTargetXZ < 10) {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
             }
