@@ -5,15 +5,10 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Dimension.SpaceTravelManager;
 import advRocketry.Rocket.EntityRocket;
-import advRocketry.Rocket.RocketProgram;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 
@@ -57,8 +52,6 @@ public class ProgramNavigateToSpaceTravel {
                 ChunkPos targetPos = SpaceTravelManager.getNextFreeChunkPos();
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
-                DimensionTransition transition = new DimensionTransition(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0), rocket.getYRot(), rocket.getXRot(), false, DimensionTransition.DO_NOTHING);
-
 
                 // the dimension change is like this:
                 // 1: unmount entities, but store where they were seated
@@ -66,7 +59,7 @@ public class ProgramNavigateToSpaceTravel {
                 // 2: teleport rocket
                 // 3: find the entities by the new uuid and mount them at random position
                 // 4: fix the seat position
-                // the default rocket.changeDimension does mount the passengers, but the rendering is broken so i do it like this
+                // 5: on client side: trigger remount on first tick because minecraft fails to sync correctly
 
                 // store the passengers to remount them after dimension change at correct positions
                 Map<UUID, BlockPos> newPassengerPositions = new HashMap<>();
@@ -74,13 +67,16 @@ public class ProgramNavigateToSpaceTravel {
                 // unmount, teleport and store new uuid
                 for (Entity passenger : rocket.getPassengers()) {
                     if (passenger != null) {
-                        BlockPos seatPos = rocket.passengers.get(passenger.getUUID());
+                        DimensionTransition transition = new DimensionTransition(target, targetBlockPos.getCenter().add(0,100,0), new Vec3(0, 0, 0), rocket.getYRot(), rocket.getXRot(), false, DimensionTransition.DO_NOTHING);
+                        BlockPos seatPos = rocket.getPassengersPositions().get(passenger.getUUID());
+                        passenger.stopRiding();
                         Entity newEntity = passenger.changeDimension(transition);
                         newPassengerPositions.put(newEntity.getUUID(), seatPos);
                     }
                 }
 
                 // teleport rocket
+                DimensionTransition transition = new DimensionTransition(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0), rocket.getYRot(), rocket.getXRot(), false, DimensionTransition.DO_NOTHING);
                 EntityRocket newRocket = (EntityRocket) rocket.changeDimension(transition);
 
                 // remount passengers
@@ -92,11 +88,13 @@ public class ProgramNavigateToSpaceTravel {
                 }
 
                 // fix passengers positions
-                newRocket.fixPassengerPositions(newPassengerPositions);
+                newRocket.setPassengersPositions(newPassengerPositions);
 
 
                 // initial command to force load the chunk so that the rocket starts ticking
                 SpaceTravelManager.keepChunkLoaded(targetPos);
+
+                newRocket.endProgram();
             }
         }
 

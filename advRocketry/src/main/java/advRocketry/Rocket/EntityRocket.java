@@ -22,7 +22,6 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -33,7 +32,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
@@ -88,7 +86,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3 universePosition = new Vec3(0, 0, 0);
 
     // passenger
-    public Map<UUID, BlockPos> passengers = new HashMap<>();
+    Map<UUID, BlockPos> passengers = new HashMap<>();
+    private boolean firstTick = true; // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
 
     public GuiHandlerEntity guiHandler;
 
@@ -154,6 +153,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             CompoundTag req = new CompoundTag();
             req.putInt("ping", 0);
             PacketDistributor.sendToServer(PacketEntity.getEntityPacket(this, req));
+            firstTick = true;
         }
     }
 
@@ -219,20 +219,27 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     protected void addPassenger(Entity passenger) {
         super.addPassenger(passenger);
-        ArrayList<BlockPos> seats = new ArrayList<>(this.getSeatPositions());
-        Collections.shuffle(seats, new Random());
-        for (BlockPos seatPos : seats) {
-            if (!passengers.values().contains(seatPos)) {
-                passengers.put(passenger.getUUID(), seatPos);
-                break;
+        if (!level().isClientSide) {
+            if (passengers.keySet().contains(passenger.getUUID())) return;
+            ArrayList<BlockPos> seats = new ArrayList<>(this.getSeatPositions());
+            Collections.shuffle(seats, new Random());
+            for (BlockPos seatPos : seats) {
+                if (!passengers.values().contains(seatPos)) {
+                    passengers.put(passenger.getUUID(), seatPos);
+                    break;
+                }
             }
+            setPassengersPositions(passengers);
         }
     }
 
     @Override
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
-        passengers.remove(passenger.getUUID());
+        if (!level().isClientSide) {
+            passengers.remove(passenger.getUUID());
+            setPassengersPositions(passengers);
+        }
     }
 
     @Override
@@ -241,27 +248,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         BlockPos seatPos = passengers.get(entityUUID);
         if (seatPos == null) return new Vec3(0, 0, 0); // this should never happen
         return RotationUtils.localToWorld(this, new Vec3(seatPos.getX() + 0.5, seatPos.getY() + 0.2, seatPos.getZ() + 0.5));
-    }
-
-    public void fixPassengerPositions(Map<UUID, BlockPos> targetPassengers){
-        System.out.println("fixing passenger positions");
-        // force re-sync mount
-        for (UUID uuid : targetPassengers.keySet()) {
-            Entity passenger = ((ServerLevel)level()).getEntity(uuid);
-            if (passenger != null) {
-                passenger.stopRiding();
-                passenger.startRiding(this);
-            }
-        }
-
-        for (UUID uuid : targetPassengers.keySet()) {
-            BlockPos targetPos = targetPassengers.get(uuid);
-            System.out.println(uuid + " should sit at " +targetPos);
-            if(passengers.containsKey(uuid)){
-                passengers.put(uuid, targetPos);
-                System.out.println(uuid + " set to " +targetPos);
-            }
-        }
     }
 
 
@@ -287,6 +273,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / get and set methods ////
 
+    public void setPassengersPositions(Map<UUID, BlockPos> passengers) {
+        this.passengers = passengers;
+        CompoundTag tag = new CompoundTag();
+        tag.put("passengers", RocketSaveAndLoad.savePassengerPositions(passengers));
+        sendToClients(tag);
+    }
+
+    public Map<UUID, BlockPos> getPassengersPositions() {
+        return passengers;
+    }
 
     public void enableMainEngines(boolean canUseMainEngines, boolean syncToClient) {
         if (!level().isClientSide && syncToClient && this.canUseMainEngines != canUseMainEngines) {
@@ -416,6 +412,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             guiHandler.serverTick();
         }
 
+        if (firstTick) {
+            firstTick = false;
+            // fix the out of sync bug where the player is not where the rocket is
+            if (level().isClientSide) {
+                if (Minecraft.getInstance().player.getVehicle() == this) {
+                    Minecraft.getInstance().player.stopRiding();
+                    Minecraft.getInstance().player.startRiding(this, true);
+                    System.out.println("remounting player at rocket for sync");
+                }
+            }
+        }
+
         if (this.lerpSteps > 0) {
             this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
             --this.lerpSteps;
@@ -445,14 +453,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Dimension myDimension = DimensionManager.get(level().dimension().location());
 
         // simulate some air friction
-        if(getDeltaMovement().length() > 0.01) { // you really dont want to normalize 0 vector. velocity will become like (NaN, Infinity, NaN) and the game freezes forever. took me 2 hours to realize this
+        if (getDeltaMovement().length() > 0.01) { // you really dont want to normalize 0 vector. velocity will become like (NaN, Infinity, NaN) and the game freezes forever. took me 2 hours to realize this
             float atmDensity = 0;
             if (myDimension != null)
                 atmDensity = myDimension.getAtmosphereDensity();
             Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
-            if(airBreak.length() > getDeltaMovement().length()){
-                setDeltaMovement(0,0,0);
-            }else{
+            if (airBreak.length() > getDeltaMovement().length()) {
+                setDeltaMovement(0, 0, 0);
+            } else {
                 setDeltaMovement(getDeltaMovement().add(airBreak));
             }
         }
@@ -466,11 +474,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
 
         if (GlobalTime.getGlobalTime() % 100 == 0) {
-            System.out.println(level().isClientSide + ":  still ticking at " + blockPosition());
-
             if (!level().isClientSide) {
                 if (level() == DimensionManager.getServerLevel(level().getServer(), SpaceTravelManager.dimId)) {
-                    System.out.println("i am in space! " + blockPosition());
                     SpaceTravelManager.keepChunkLoaded(chunkPosition());
                 }
             }
@@ -482,7 +487,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         p.targetDimensionId = level().dimension().location();
         p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
         //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        p.target = new BlockPos((int) position().x + random.nextInt() % 10 - 5, 0, (int) position().z + random.nextInt() % 10 - 5);
+        p.target = new BlockPos((int) position().x, 0, (int) position().z);
         setProgramAndSync(p);
     }
 

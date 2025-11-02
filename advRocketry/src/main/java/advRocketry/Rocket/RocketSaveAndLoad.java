@@ -1,6 +1,7 @@
 package advRocketry.Rocket;
 
 import advRocketry.utils.Utils;
+import it.unimi.dsi.fastutil.Hash;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
@@ -13,13 +14,43 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class RocketSaveAndLoad {
+
+    public static ListTag savePassengerPositions(Map<UUID, BlockPos > passengers){
+        ListTag list = new ListTag();
+        for (UUID uuid : passengers.keySet()){
+            BlockPos pos = passengers.get(uuid);
+            CompoundTag tag = new CompoundTag();
+            tag.put("pos", Utils.serializeVec3i(pos));
+            tag.putUUID("uuid", uuid);
+            list.add(tag);
+        }
+        return list;
+    }
+
+    public static HashMap<UUID, BlockPos >  readPassengerPositions(ListTag list){
+        HashMap<UUID, BlockPos > passengers = new HashMap<>();
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag tag = list.getCompound(i);
+            Vec3i pos = Utils.deSerializeVec3i(tag.getCompound("pos"));
+            BlockPos blockPos = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
+            UUID uuid = tag.getUUID("uuid");
+            passengers.put(uuid, blockPos);
+        }
+        return passengers;
+    }
 
 
     public static void readAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
 
         boolean needsUpdateGuiModules = false;
+
+        if(compoundTag.contains("passengers")){
+            rocket.passengers = readPassengerPositions(compoundTag.getList("passengers", Tag.TAG_COMPOUND));
+        }
 
         if(compoundTag.contains("universePosition"))
             rocket.universePosition =  Utils.deSerializeVec3(compoundTag.getCompound("universePosition"));
@@ -95,6 +126,8 @@ public class RocketSaveAndLoad {
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+        compoundTag.put("passengers", savePassengerPositions(rocket.passengers));
+
         compoundTag.put("universePosition", Utils.serializeVec3(rocket.universePosition));
 
         compoundTag.putBoolean("canUseMainEngines", rocket.canUseMainEngines());
