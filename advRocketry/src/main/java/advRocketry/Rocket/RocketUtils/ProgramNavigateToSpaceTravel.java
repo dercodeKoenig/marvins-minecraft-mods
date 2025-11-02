@@ -93,8 +93,6 @@ public class ProgramNavigateToSpaceTravel {
 
                 // initial command to force load the chunk so that the rocket starts ticking
                 SpaceTravelManager.keepChunkLoaded(targetPos);
-
-                newRocket.endProgram();
             }
         }
 

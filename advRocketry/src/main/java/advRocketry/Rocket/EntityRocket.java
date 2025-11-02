@@ -415,11 +415,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (firstTick) {
             firstTick = false;
             // fix the out of sync bug where the player is not where the rocket is
+            // unmounting and remounting will trigger some syncing again and make the player at the correct position
             if (level().isClientSide) {
                 if (Minecraft.getInstance().player.getVehicle() == this) {
                     Minecraft.getInstance().player.stopRiding();
                     Minecraft.getInstance().player.startRiding(this, true);
-                    System.out.println("remounting player at rocket for sync");
                 }
             }
         }
