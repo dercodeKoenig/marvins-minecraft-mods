@@ -51,7 +51,6 @@ private float targetSize;
 
         this.roll = this.random.nextFloat();
 
-        tick();
     }
 
     @Override

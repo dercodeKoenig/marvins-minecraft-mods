@@ -491,6 +491,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void launch() {
+        setLastLaunchPosition(blockPosition(), true);
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
         //p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
