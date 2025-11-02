@@ -41,7 +41,7 @@ public class NavigateToSpaceTravelDimension {
                 // teleport to space travel dimension
 
                 if (myDim != null) {
-                    double r = CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier);
+                    double r = CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.1 + Config.INSTANCE.planetSkyHeight * 10);
                     Vec3 planetUp = myDim.getGlobalAxisDirections(0, Optional.of(rocket.position().z)).up;
                     rocket.universePosition = myDim.getPosition(0).add(planetUp.scale(r));
                     rocket.universeHeading = planetUp.normalize();
@@ -56,7 +56,7 @@ public class NavigateToSpaceTravelDimension {
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
 
-                rocket.teleportTo(target, targetBlockPos.getCenter());
+                rocket.teleportTo(target, targetBlockPos.getCenter(), new Vec3(0,0,0));
 
 
                 // initial command to force load the chunk so that the rocket starts ticking

@@ -14,7 +14,6 @@ public class NavigateInSpaceToTargetDimension {
 
     // copied from rocketcontroller
     public static void tickUniverseRotation(EntityRocket rocket) {
-        final double ROTATION_RATE = 0.01;
 
         // todo shouldnt this be normalized before scale?
         Vec3 rotationCorrection;
@@ -70,13 +69,12 @@ public class NavigateInSpaceToTargetDimension {
             ServerLevel targetLevel = DimensionManager.getServerLevel(serverLevel.getServer(), target);
             Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planetSkyHeight, rocket.getLastLaunchPosition().getZ());
 
-            EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos);
-
-            newRocket.setDeltaMovement(
-                    newRocket.getRandom().nextDouble() * 2 - 1,
+            Vec3 entrySpeed = new Vec3 (
+                    rocket.getRandom().nextDouble() * 2 - 1,
                     Config.INSTANCE.rocketPlanetEntrySpeedY,
-                    newRocket.getRandom().nextDouble() * 2 - 1
-            );
+                    rocket.getRandom().nextDouble() * 2 - 1);
+
+            EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
         }
 
 

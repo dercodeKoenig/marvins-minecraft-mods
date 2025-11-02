@@ -19,6 +19,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public static double travelHeight = 150;
     public static double maxD = 100; // for pd controller travel target distance so that we dont get too fast
 
+    double lastVy;
 
     public void run(EntityRocket rocket) {
         travelHeight = 100;
@@ -26,12 +27,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         maxD = 100;
 
 
-
         // if rocket.hasSatellites && shouldDeploySatellites: move to space first
 
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
 
-            rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
+            rocket.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
             rocket.enableMainEngines(true, false);
 
             // we are at the correct dimension
@@ -51,7 +51,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
 
             double maxDiffY = 1000;
-            if ( rocket.position().y - targetY > maxDiffY){
+            if (rocket.position().y - targetY > maxDiffY) {
                 targetY = rocket.position().y - maxDiffY;
             }
 
@@ -74,12 +74,13 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             rocket.setTargetPosition(targetVec3, false);
 
             // check if landed
-            // WARNING: onGround() appears to only work server side - endProgram will sync to client
-
-            if (rocket.onGround() && distanceToTargetXZ < 5) {
+            // WARNING: onGround() appears to only work server side - it appears the server syncs it for 1 tick to client
+            // this is not very good for landing because it might trigger while client side rocket is still in air
+            if (rocket.onGround() || rocket.isInWater() && distanceToTargetXZ < 10) {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
             }
+            lastVy = rocket.getDeltaMovement().y;
         } else {
             // we are not at target dim, move to space!
             if (NavigateToSpaceTravelDimension.run(rocket)) {

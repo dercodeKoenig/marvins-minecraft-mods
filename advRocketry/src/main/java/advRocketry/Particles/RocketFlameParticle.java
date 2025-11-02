@@ -1,5 +1,6 @@
 package advRocketry.Particles;
 
+import advRocketry.Dimension.SpaceTravelManager;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.DustParticleBase;
 import net.minecraft.client.particle.SpriteSet;
@@ -17,6 +18,17 @@ private float targetSize;
         super(level, x, y, z, vx, vy, vz, new DustParticleOptions(new Vector3f(0, 0, 0), 10), spriteSet);
 
         boolean isSmoke = random.nextBoolean();
+
+        if(level.dimension().location().equals(SpaceTravelManager.dimId)) {
+            if (isSmoke) {
+                // no smoke in space, looks strange
+                this.remove();
+            }
+            // thrust is 0 in space but because we fly fast, add velocity
+            vx *= 10;
+            vy *= 10;
+            vz *= 10;
+        }
 
         if (isSmoke) {
             float f = this.random.nextFloat() * 0.5F + 0.2F;
@@ -51,6 +63,7 @@ private float targetSize;
 
         this.roll = this.random.nextFloat();
 
+        tick(); // initial position correction
     }
 
     @Override

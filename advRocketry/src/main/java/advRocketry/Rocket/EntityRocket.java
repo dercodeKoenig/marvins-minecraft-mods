@@ -78,7 +78,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // smooth position interpolation when server sends position update
     private double lerpX, lerpY, lerpZ;
-    private int lerpSteps;
+    int lerpSteps;
+    private Vec3 lerpDeltaMovement;
+    int lerpDeltaMovementSteps;
 
     // render variables
     public Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
@@ -163,6 +165,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             req.putInt("ping", 0);
             PacketDistributor.sendToServer(PacketEntity.getEntityPacket(this, req));
             firstTick = true;
+            lerpSteps = -1;
+            lerpDeltaMovementSteps = -1;
         }
     }
 
@@ -270,11 +274,29 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
 
+    // we need slow movement but also the correct initial positions / movements when the entity loads, for example after dimension change
+    public void lerpMotion(double x, double y, double z) {
+        if (lerpDeltaMovementSteps < 0) {
+            setDeltaMovement(x,y,z);
+            lerpDeltaMovementSteps = 0;
+        }else {
+            this.lerpDeltaMovement = new Vec3(x, y, z);
+            this.lerpDeltaMovementSteps = 20 * 120;
+        }
+    }
+
     public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
-        this.lerpX = x;
-        this.lerpY = y;
-        this.lerpZ = z;
-        this.lerpSteps = steps * 10; // interpolate slower
+        if(lerpSteps < 0){
+            setPos(x,y,z);
+            lerpSteps = 0;
+        }else {
+            this.lerpX = x;
+            this.lerpY = y;
+            this.lerpZ = z;
+            float distance = (float) position().distanceTo(new Vec3(x,y,z));
+            this.lerpSteps = (int) (20 + distance * 10); // dynamic time, fast sync for little correction, slow sync for large correction
+
+        }
         this.setRot(yRot, xRot);
     }
 
@@ -422,12 +444,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         setTargetPosition(null, false);
         enableSecondaryEngines(false, false);
         enableMainEngines(false, false);
-
-        if (!level().isClientSide) {
-            CompoundTag tag = new CompoundTag();
-            tag.putInt("endRocketProgram", 0);
-            sendToClients(tag);
-        }
     }
 
 
@@ -453,6 +469,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (this.lerpSteps > 0) {
             this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
             --this.lerpSteps;
+        }
+        if (this.lerpDeltaMovementSteps > 0) {
+            this.addDeltaMovement(new Vec3((this.lerpDeltaMovement.x - this.getDeltaMovement().x) / (double)this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.y - this.getDeltaMovement().y) / (double)this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.z - this.getDeltaMovement().z) / (double)this.lerpDeltaMovementSteps));
+            --this.lerpDeltaMovementSteps;
         }
 
         // tick engine bootup / shutdown
@@ -532,9 +552,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         kill();
     }
 
-    public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos){
+    public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos, Vec3 velocity){
 
-        setDeltaMovement(0, 0, 0);
         setTargetPosition(null, false); // position is probably invalid because dimension change
 
         // the dimension change is like this:
@@ -560,7 +579,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
 
         // teleport rocket
-        DimensionTransition transition = new DimensionTransition(target, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+        DimensionTransition transition = new DimensionTransition(target, targetPos, velocity, getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
         EntityRocket newRocket = (EntityRocket) changeDimension(transition);
 
         // remount passengers
@@ -613,9 +632,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
         readAdditionalSaveData(compoundTag);
-
-        if (compoundTag.contains("endRocketProgram"))
-            endProgram();
     }
 
     public void sendToClients(CompoundTag compoundTag) {

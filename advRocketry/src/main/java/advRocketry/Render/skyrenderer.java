@@ -224,7 +224,7 @@ public class skyrenderer {
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
-        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight - 500);
 
         shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
@@ -287,8 +287,8 @@ public class skyrenderer {
                         myCurrentSpaceObject.getEarthRadiusMultiplier()
                                 * CelestialUtils.EARTH_RADIUS
                                 * Config.INSTANCE.planetRenderScaleMultiplier
-                                * 1.1
-                                + Minecraft.getInstance().player.position().y * 10
+                                * 1.0
+                                + Minecraft.getInstance().player.position().y * 100
                 ));
 
         // Render planets / stars
@@ -367,7 +367,7 @@ public class skyrenderer {
             shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
             shader.getUniform("TargetSkyColor").set(otherDimension.getSkyColor().x, otherDimension.getSkyColor().y, otherDimension.getSkyColor().z);
             shader.getUniform("playerHeight").set(playerHeightAboveSea);
-            shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+            shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight - 500);
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {

@@ -2,6 +2,7 @@ package advRocketry.Rocket;
 
 import advRocketry.utils.Utils;
 import it.unimi.dsi.fastutil.Hash;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
@@ -48,9 +49,19 @@ public class RocketSaveAndLoad {
 
         boolean needsUpdateGuiModules = false;
 
-        if(compoundTag.contains("passengers")){
-            rocket.passengers = readPassengerPositions(compoundTag.getList("passengers", Tag.TAG_COMPOUND));
+        // it does not correctly sync movement / position after dimension change, so i do it myself
+        if(compoundTag.contains("deltaMovement")) {
+            rocket.setDeltaMovement(Utils.deSerializeVec3(compoundTag.getCompound("deltaMovement")));
+            rocket.lerpDeltaMovementSteps = 0;
         }
+        if(compoundTag.contains("position")) {
+            rocket.setPos(Utils.deSerializeVec3(compoundTag.getCompound("position")));
+            rocket.lerpSteps = 0;
+        }
+
+
+        if(compoundTag.contains("passengers"))
+            rocket.passengers = readPassengerPositions(compoundTag.getList("passengers", Tag.TAG_COMPOUND));
 
         if(compoundTag.contains("universePosition"))
             rocket.universePosition =  Utils.deSerializeVec3(compoundTag.getCompound("universePosition"));
@@ -130,6 +141,11 @@ public class RocketSaveAndLoad {
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
+
+        // it does not correctly sync movement / position after dimension change, so i do it myself
+        compoundTag.put("deltaMovement", Utils.serializeVec3(rocket.getDeltaMovement()));
+        compoundTag.put("position", Utils.serializeVec3(rocket.position()));
+
         compoundTag.put("passengers", savePassengerPositions(rocket.passengers));
 
         compoundTag.put("universePosition", Utils.serializeVec3(rocket.universePosition));
