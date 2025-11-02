@@ -2,6 +2,7 @@ package advRocketry;
 
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
+import advRocketry.Dimension.RocketTravelDimension;
 import advRocketry.Dimension.SpaceTravelManager;
 import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Rocket.EntityRocket;
@@ -105,6 +106,7 @@ public class Main {
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
         EntityRocket.clientOnly.onClientTickEvent();
+        SpaceTravelManager.rocketTravelDimension.clientOnly.clientTick();
     }
 
     public void onServerStarted(ServerStartedEvent event) {

@@ -21,6 +21,9 @@ import java.util.Iterator;
 public class SpaceTravelManager {
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
+    public static RocketTravelDimension rocketTravelDimension = new RocketTravelDimension(new DimensionProperties());
+    ;
+
     // a rocket should every tick or every few ticks update its chunkpos with the current global time
     // when the travel manager updates, it will remove force loaded chunks where the time was not reset for a few seconds
     static HashMap<ChunkPos, Long> usedChunksMap = new HashMap<>();
@@ -53,15 +56,15 @@ public class SpaceTravelManager {
     public static void update() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-        Iterator<Long> it = level.getForcedChunks().stream().iterator();
-        while (it.hasNext()) {
-            ChunkPos pos = new ChunkPos(it.next());
+        for (long i : level.getForcedChunks()) {
+            ChunkPos pos = new ChunkPos(i);
             long currentTime = GlobalTime.getGlobalTime();
             usedChunksMap.putIfAbsent(pos, currentTime);
             if (usedChunksMap.get(pos) + 20 * 120 < currentTime) {
                 level.setChunkForced(pos.x, pos.z, false);
                 System.out.println("remove forced chunk at " + pos.x + ":" + pos.z);
                 usedChunksMap.remove(pos);
+                break; // prevent  exceptions
             }
         }
     }

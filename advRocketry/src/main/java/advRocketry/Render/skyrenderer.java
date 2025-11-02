@@ -220,8 +220,10 @@ public class skyrenderer {
 
         // use custom near / far for rendering planets and stars, depth precision error should not be significant as space objects are sparsely distributed
         // note that the minecraft proj matrix has effects like bobbing that needs to be preserved
+        // TODO: this is still not enough to view planets close up - implement custom depth sorting?
+        //      or new proj matrix for every planet draw
         Matrix4f newProj = new Matrix4f(proj);
-        float n = 0.001f * distance_multiplier;
+        float n = 0.0001f * distance_multiplier;
         float f = 100f * distance_multiplier;
         newProj.set(2, 2, -(f + n) / (f - n));
         newProj.set(3, 2, -(2f * f * n) / (f - n));

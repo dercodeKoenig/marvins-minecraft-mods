@@ -89,7 +89,7 @@ public class Dimension {
         if (properties.dayTimeReference == null) {
             return false;
         }
-        if (properties.type == DimensionProperties.PlanetType.PLANET)
+        if (getType() == DimensionProperties.PlanetType.PLANET)
             return true;
         return false;
     }
@@ -151,8 +151,8 @@ public class Dimension {
     }
 
     public boolean shouldRenderInSky() {
-        return properties.type == DimensionProperties.PlanetType.PLANET ||
-                properties.type == DimensionProperties.PlanetType.STAR;
+        return getType() == DimensionProperties.PlanetType.PLANET ||
+                getType() == DimensionProperties.PlanetType.STAR;
     }
 
     public boolean hasCustomSky() {
@@ -318,15 +318,6 @@ public class Dimension {
                 trackDayTimeNormal();
             }
             planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
-
-
-            if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"))) {
-                properties.orbitAxis = new Vec3(0, 0, 1);
-
-            }
-            if (properties.dimensionId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) {
-
-            }
         }
     }
 }

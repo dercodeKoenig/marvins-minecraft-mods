@@ -5,6 +5,7 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Dimension.SpaceTravelManager;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.utils.CelestialUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -46,6 +47,12 @@ public class ProgramNavigateToSpaceTravel {
                 // and the rocket should not fly out of the force loaded chunk
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.setTargetPosition(null, false);
+
+                if(myDim != null) {
+                    double r = 20 * CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS);
+                    rocket.universePosition = myDim.getPosition(0).add(myDim.getGlobalAxisDirections(0).up.scale(r));
+                    System.out.println(rocket.universePosition);
+                }
 
                 // get the teleportation target
                 ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), SpaceTravelManager.dimId);
@@ -93,6 +100,9 @@ public class ProgramNavigateToSpaceTravel {
 
                 // initial command to force load the chunk so that the rocket starts ticking
                 SpaceTravelManager.keepChunkLoaded(targetPos);
+
+                // TODO: enabled for testing
+                newRocket.endProgram();
             }
         }
 

@@ -16,9 +16,7 @@ import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
-import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import net.minecraft.world.level.levelgen.NoiseSettings;
+import net.minecraft.world.level.levelgen.*;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
@@ -69,8 +67,27 @@ public class SpaceDimensionGeneration {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();
 
-        NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
+        DensityFunction zero = DensityFunctions.constant(-100);
 
+        NoiseRouter emptyRouter = new NoiseRouter(
+                zero, // barrierNoise
+                zero, // fluidLevelFloodednessNoise
+                zero, // fluidLevelSpreadNoise
+                zero, // lavaNoise
+                zero, // temperature
+                zero, // vegetation
+                zero, // continents
+                zero, // erosion
+                zero, // depth
+                zero, // ridges
+                zero, // initialDensityWithoutJaggedness
+                zero, // finalDensity
+                zero, // veinToggle
+                zero, // veinRidged
+                zero  // veinGap
+        );
+
+        SurfaceRules.RuleSource airSurfaceRule = SurfaceRules.state(Blocks.AIR.defaultBlockState());
 
         ChunkGenerator generator = new NoiseBasedChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(makeDimensionConfig())),
@@ -78,9 +95,9 @@ public class SpaceDimensionGeneration {
                         new NoiseSettings(-64, 384, 1, 1),
                         Blocks.AIR.defaultBlockState(),
                         Blocks.AIR.defaultBlockState(),
-                        overworldSettings.noiseRouter(),
-                        overworldSettings.surfaceRule(),
-                        overworldSettings.spawnTarget(),
+                        emptyRouter,
+                        airSurfaceRule,
+                        List.of(),
                         0,
                         true,
                         false,
