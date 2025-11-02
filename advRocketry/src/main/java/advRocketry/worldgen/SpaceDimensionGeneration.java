@@ -17,10 +17,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.*;
+import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalLong;
 
 public class SpaceDimensionGeneration {
@@ -44,67 +46,14 @@ public class SpaceDimensionGeneration {
         );
     }
 
-    public static List<Pair<Climate.ParameterPoint, Holder<Biome>>> makeDimensionConfig() {
-        List<Pair<Climate.ParameterPoint, Holder<Biome>>> list = new ArrayList<>();
+    public static ChunkGenerator makeChunkGenerator() {
+
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();
         Registry<Biome> biomeRegistry = registryAccess.registryOrThrow(Registries.BIOME);
-        list.add(Pair.of(
-                new Climate.ParameterPoint(
-                        Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(-1, 1),
-                        0
-                ), biomeRegistry.getHolderOrThrow(Biomes.THE_VOID)
+
+        return new FlatLevelSource(new FlatLevelGeneratorSettings(
+           Optional.empty(),biomeRegistry.getHolderOrThrow(Biomes.THE_VOID),new ArrayList<>()
         ));
-        return list;
-    }
-
-    public static ChunkGenerator makeChunkGenerator() {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        RegistryAccess registryAccess = server.registryAccess();
-
-        DensityFunction zero = DensityFunctions.constant(-100);
-
-        NoiseRouter emptyRouter = new NoiseRouter(
-                zero, // barrierNoise
-                zero, // fluidLevelFloodednessNoise
-                zero, // fluidLevelSpreadNoise
-                zero, // lavaNoise
-                zero, // temperature
-                zero, // vegetation
-                zero, // continents
-                zero, // erosion
-                zero, // depth
-                zero, // ridges
-                zero, // initialDensityWithoutJaggedness
-                zero, // finalDensity
-                zero, // veinToggle
-                zero, // veinRidged
-                zero  // veinGap
-        );
-
-        SurfaceRules.RuleSource airSurfaceRule = SurfaceRules.state(Blocks.AIR.defaultBlockState());
-
-        ChunkGenerator generator = new NoiseBasedChunkGenerator(
-                MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(makeDimensionConfig())),
-                Holder.direct(new NoiseGeneratorSettings(
-                        new NoiseSettings(-64, 384, 1, 1),
-                        Blocks.AIR.defaultBlockState(),
-                        Blocks.AIR.defaultBlockState(),
-                        emptyRouter,
-                        airSurfaceRule,
-                        List.of(),
-                        0,
-                        true,
-                        false,
-                        false,
-                        false
-                ))
-        );
-        return generator;
     }
 }

@@ -431,7 +431,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public void tick() {
-        
+
         if (!level().isClientSide) {
             guiHandler.serverTick();
         }
