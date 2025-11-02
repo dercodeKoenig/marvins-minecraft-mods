@@ -19,23 +19,31 @@ public class Fog {
 //        event.setCanceled(true);
     }
 
-    // can modify fog color, apparently used for terrain shading
-    public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
+
+    public static Vector3f computeFogColor(float partialTick) {
         Level currentLevel = Minecraft.getInstance().level;
         ResourceLocation dimensionId = currentLevel.dimension().location();
         Dimension dimension = DimensionManager.get(dimensionId);
-        if(dimension == null) return; // not registered in DimensionManager
+        if (dimension == null) return null; // not registered in DimensionManager
 
-        Vector3f fogColor  = dimension.getFogColor();
-        double brightnessMultiplier = dimension.getAccumulatedWorldBrightness((float)event.getPartialTick(),0.2f, null);
+        Vector3f fogColor = dimension.getFogColor();
+        double brightnessMultiplier = dimension.getAccumulatedWorldBrightness(partialTick, 0.2f, null);
 
         // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-        brightnessMultiplier = Math.clamp(Math.pow(brightnessMultiplier, 0.8), 0,1);
+        brightnessMultiplier = Math.clamp(Math.pow(brightnessMultiplier, 0.8), 0, 1);
 
-        fogColor = fogColor.mul((float) brightnessMultiplier).mul(dimension.getAtmosphereDensity() / (1+dimension.getAtmosphereDensity()));
+        fogColor = fogColor.mul((float) brightnessMultiplier).mul(dimension.getAtmosphereDensity() / (1 + dimension.getAtmosphereDensity()));
 
-        event.setRed((float) (fogColor.x));
-        event.setGreen((float) (fogColor.y));
-        event.setBlue((float) (fogColor.z));
+        return fogColor;
+    }
+
+    // can modify fog color, apparently used for terrain shading
+    public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
+        Vector3f fogColor = computeFogColor((float) event.getPartialTick());
+        if (fogColor != null) {
+            event.setRed((float) (fogColor.x));
+            event.setGreen((float) (fogColor.y));
+            event.setBlue((float) (fogColor.z));
+        }
     }
 }
