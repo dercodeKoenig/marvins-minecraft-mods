@@ -246,6 +246,7 @@ public class Dimension {
 
     public float getLatitude() {
         if (FMLLoader.getDist().isDedicatedServer()) return 0;
+        // TODO: for correct rocket spawning in space, create getLatitide(Vec3 position) so that we know the rockets latitude
         else return clientOnly.getLatitude();
     }
     /**
