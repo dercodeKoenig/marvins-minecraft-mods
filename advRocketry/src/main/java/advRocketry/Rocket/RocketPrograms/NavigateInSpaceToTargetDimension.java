@@ -18,16 +18,16 @@ public class NavigateInSpaceToTargetDimension {
         // todo shouldnt this be normalized before scale?
         Vec3 rotationCorrection;
         if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.9)
-            rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading).scale(ROTATION_RATE);
+            rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
         else
-            rotationCorrection = rocket.universeFront.subtract(rocket.universeHeading).scale(ROTATION_RATE);
+            rotationCorrection = rocket.universeFront.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
 
         rocket.universeHeading = rocket.universeHeading.add(rotationCorrection).normalize();
 
         Vec3 targetFrontValid = rocket.universeHeading.cross(rocket.universeFront.cross(rocket.universeHeading)).normalize();
         if (targetFrontValid.dot(rocket.universeFront) < -0.9) // get some movement if it is directly on the other side
             targetFrontValid = rocket.universeHeading.cross(rocket.universeFront);
-        rotationCorrection = targetFrontValid.subtract(rocket.universeFront).scale(ROTATION_RATE);
+        rotationCorrection = targetFrontValid.subtract(rocket.universeFront).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
         Vec3 newFront = rocket.universeFront.add(rotationCorrection).normalize();
 
         Vec3 right = rocket.universeHeading.cross(newFront).normalize();

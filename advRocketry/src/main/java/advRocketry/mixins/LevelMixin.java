@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Level.class)
 public abstract class LevelMixin {
 
+    // TODO: THIS DOES NOT WORK!!!
+
     @Inject(method = "isRaining", at = @At("HEAD"), cancellable = true)
     public void isRaining(CallbackInfoReturnable<Boolean> cir){
         Level level = (Level) (Object) this;
