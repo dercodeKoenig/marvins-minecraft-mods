@@ -5,4 +5,8 @@ public class Config {
     public double planetSkyHeight = 10000;
     public double rocketSpaceTravelSpeedBase = 0.00001;
     public double rocketPlanetEntrySpeedY = -30;
+
+    // true scale is way too small, for example earth would only cover 8px on a 1080p screen.
+    // solution: artificially scale up planet size for rendering
+    public double planetRenderScaleMultiplier = 10;
 }

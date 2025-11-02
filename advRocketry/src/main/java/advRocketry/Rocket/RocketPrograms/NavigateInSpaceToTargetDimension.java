@@ -63,8 +63,7 @@ public class NavigateInSpaceToTargetDimension {
         final double speed = Config.INSTANCE.rocketSpaceTravelSpeedBase * Math.max(0, rocket.universeHeading.dot(targetDirectiop)); // in AU per tick
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(speed));
 
-        double entryRadiusMultiplier = 10;
-        if (rocket.level() instanceof ServerLevel serverLevel && targetPositionRelative.length() < CelestialUtils.toAU(targetDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * entryRadiusMultiplier)) {
+        if (rocket.level() instanceof ServerLevel serverLevel && targetPositionRelative.length() < CelestialUtils.toAU(targetDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier)) {
             // TODO: ifrocket.hasSatellites && shouldDeployThem -> deploy satellites shortly before dimension jump
 
             // get the teleportation target

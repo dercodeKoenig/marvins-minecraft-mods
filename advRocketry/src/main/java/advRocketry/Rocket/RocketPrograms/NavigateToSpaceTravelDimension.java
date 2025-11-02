@@ -17,8 +17,6 @@ import java.util.*;
 // just a helper program, is not actually a real full program
 public class NavigateToSpaceTravelDimension {
 
-    public static double spawnRadiusMultiplier = 11; // the renderer 10x planets, so we need to spawn at 10x the radius + some offset
-
     public static boolean run(EntityRocket rocket) {
 
         if (rocket.level().dimension().location().equals(SpaceTravelManager.dimId)) {
@@ -43,7 +41,7 @@ public class NavigateToSpaceTravelDimension {
                 // teleport to space travel dimension
 
                 if (myDim != null) {
-                    double r = CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * spawnRadiusMultiplier);
+                    double r = CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier);
                     Vec3 planetUp = myDim.getGlobalAxisDirections(0, Optional.of(rocket.position().z)).up;
                     rocket.universePosition = myDim.getPosition(0).add(planetUp.scale(r));
                     rocket.universeHeading = planetUp.normalize();

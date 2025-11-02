@@ -27,9 +27,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class skyrenderer {
 
-    // true scale is way too small, for example earth would only cover 8px on a 1080p screen.
-    // solution: artificially scale up planet size for rendering
-    static final float PLANET_RENDER_SCALE_MULTIPLIER = 10f;
+
 
     VertexBuffer vertexBufferSkyBox;
     VertexBuffer vertexBufferPlanet;
@@ -219,6 +217,10 @@ public class skyrenderer {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myCurrentSpaceObject = DimensionManager.get(myId);
         Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
+        // to correctly render the planet below, we need to add the up vector * radius * render multiplier to get the players location and not the planet center
+        Vec3 localUp =myCurrentSpaceObject.getGlobalAxisDirections(0).up;
+        myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(CelestialUtils.toAU(myCurrentSpaceObject.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier)));
+        myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(CelestialUtils.toAU(Minecraft.getInstance().player.position().y * 1000)));
 
         // for star background
         Matrix4f newProj2 = new Matrix4f(proj);
@@ -254,7 +256,7 @@ public class skyrenderer {
         // Render planets / stars
         for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
 
-            if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
+            //if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
 
             Dimension otherDimension = DimensionManager.get(otherDimensionId);
 
@@ -287,7 +289,7 @@ public class skyrenderer {
             double scaleAU = CelestialUtils.toAU(trueRadius);
             planetMatrix.scale((float) scaleAU);
             planetMatrix.scale(distance_multiplier);
-            planetMatrix.scale(PLANET_RENDER_SCALE_MULTIPLIER); // true size is too small, so apply a fixed scale
+            planetMatrix.scale((float)Config.INSTANCE.planetRenderScaleMultiplier); // true size is too small, so apply a fixed scale
 
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
