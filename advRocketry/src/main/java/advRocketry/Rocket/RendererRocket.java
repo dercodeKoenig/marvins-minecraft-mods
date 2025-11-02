@@ -91,10 +91,9 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
         poseStack.translate(-(float) p_entity.size.getX() / 2, 0, -(float) p_entity.size.getZ() / 2);
 
         if (p_entity.requiresMeshUpdate || p_entity.lastLight != packedLight) {
-            makeRenderBuffer(p_entity, packedLight);
-            p_entity.lastLight = packedLight;
             p_entity.requiresMeshUpdate = false;
-            System.out.println("packed light update:" + p_entity.lastLight+"->"+packedLight);
+            p_entity.lastLight = packedLight;
+            makeRenderBuffer(p_entity, packedLight);
         }
 
         for (RenderType type : p_entity.renderDataMap.keySet()) {

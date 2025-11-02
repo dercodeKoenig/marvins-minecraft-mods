@@ -412,11 +412,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             guiHandler.serverTick();
         }
 
-        if(level().isClientSide && level().getGameTime() % 100 == 0){
-            if(Minecraft.getInstance().player.getVehicle() == this)
-            System.out.println("universe pos " + universePosition);
-        }
-
         if (firstTick) {
             firstTick = false;
             // fix the out of sync bug where the player is not where the rocket is

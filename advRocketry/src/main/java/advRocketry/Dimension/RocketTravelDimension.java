@@ -83,6 +83,8 @@ public class RocketTravelDimension extends Dimension {
                 Entity vehicle = player.getVehicle();
                 if (vehicle instanceof EntityRocket rocket) {
                     return rocket.universePosition;
+                }else{
+                    return player.position().scale(0.001); // for debug flying around in creative
                 }
             }
             return  new Vec3(0,0,0);
