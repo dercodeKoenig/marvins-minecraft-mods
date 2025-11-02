@@ -49,7 +49,7 @@ public class ProgramNavigateToSpaceTravel {
                 rocket.setTargetPosition(null, false);
 
                 if(myDim != null) {
-                    double r = 20 * CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS);
+                    double r = 11 * CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS);
                     rocket.universePosition = myDim.getPosition(0).add(myDim.getGlobalAxisDirections(0).up.scale(r));
                     System.out.println(rocket.universePosition);
                 }

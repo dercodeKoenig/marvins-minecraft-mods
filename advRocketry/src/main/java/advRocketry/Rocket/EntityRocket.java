@@ -112,6 +112,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                         renderDataMap.put(entityRenderType, data);
                     }
                 }
+                requiresMeshUpdate = true;
             });
         }
     }

@@ -295,8 +295,8 @@ public class skyrenderer {
 
             // custom proj matrix for every draw because of high potential distance range
             Matrix4f newProj = new Matrix4f(proj);
-            float n = (float) (relativePos.length() / 10);
-            float f = (float) (relativePos.length() * 10);
+            float n = (float) (relativePos.length() / 100);
+            float f = (float) (relativePos.length() * 100);
             newProj.set(2, 2, -(f + n) / (f - n));
             newProj.set(3, 2, -(2f * f * n) / (f - n));
 
