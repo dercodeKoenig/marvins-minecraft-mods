@@ -5,6 +5,7 @@ import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import advRocketry.*;
 import advRocketry.Dimension.*;
+import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -28,9 +29,9 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class skyrenderer {
 
 
-
     VertexBuffer vertexBufferSkyBox;
     VertexBuffer vertexBufferPlanet;
+    VertexBuffer vertexBufferCircle;
     VertexBuffer vertexBufferSquare;
     VertexBuffer vertexBufferStarBackground;
     boolean finishedLoading = false;
@@ -42,9 +43,38 @@ public class skyrenderer {
             createSquareBuffer();
             setupRenderTargets();
             createStarBackgroundBuffer();
+            createCircleBuffer();
             finishedLoading = true;
         });
     }
+
+    void createCircleBuffer() {
+        int segments = 20; // smoothness of the circle
+        vertexBufferCircle = new VertexBuffer(VertexBuffer.Usage.STATIC);
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(segments * 6 * 16);
+        BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
+
+        for (int i = 0; i < segments; i++) {
+            double angle1 = 2 * Math.PI * i / segments;
+            double angle2 = 2 * Math.PI * (i + 1) / segments;
+
+            float x1 = (float) Math.cos(angle1);
+            float z1 = (float) Math.sin(angle1);
+            float x2 = (float) Math.cos(angle2);
+            float z2 = (float) Math.sin(angle2);
+
+            // Center is at origin (0,0,0), facing +Y
+            bufferbuilder.addVertex(0, 0, 0).setNormal(0, 1, 0);
+            bufferbuilder.addVertex(x2, 0, z2).setNormal(0, 1, 0);
+            bufferbuilder.addVertex(x1, 0, z1).setNormal(0, 1, 0);
+        }
+
+        MeshData mesh = bufferbuilder.build();
+        vertexBufferCircle.bind();
+        vertexBufferCircle.upload(mesh);
+        byteBuffer.close();
+    }
+
 
     void createStarBackgroundBuffer() {
         int starCount = 1000;
@@ -194,7 +224,7 @@ public class skyrenderer {
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
-        shader.getUniform("planetSkyHeight").set((float)Config.INSTANCE.planetSkyHeight);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
 
         shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
@@ -210,17 +240,14 @@ public class skyrenderer {
 
     public void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
 
+
         // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
         // we will scale translation and scale factor by this multiplier
-        float distance_multiplier = 100000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
+        float distance_multiplier = 1000000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
+
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myCurrentSpaceObject = DimensionManager.get(myId);
-        Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
-        // to correctly render the planet below, we need to add the up vector * radius * render multiplier to get the players location and not the planet center
-        Vec3 localUp =myCurrentSpaceObject.getGlobalAxisDirections(0).up;
-        myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(CelestialUtils.toAU(myCurrentSpaceObject.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier)));
-        myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(CelestialUtils.toAU(Minecraft.getInstance().player.position().y * 1000)));
 
         // for star background
         Matrix4f newProj2 = new Matrix4f(proj);
@@ -253,10 +280,31 @@ public class skyrenderer {
         LEQUAL_DEPTH_TEST.setupRenderState();
         NO_TRANSPARENCY.setupRenderState();
 
+        float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
+
+        float playerHeightAboveMyPlanetCenterAU =
+                (float) (CelestialUtils.toAU(
+                        myCurrentSpaceObject.getEarthRadiusMultiplier()
+                                * CelestialUtils.EARTH_RADIUS
+                                * Config.INSTANCE.planetRenderScaleMultiplier
+                                * 1.1
+                                + Minecraft.getInstance().player.position().y * 10
+                ));
+
         // Render planets / stars
         for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
 
-            //if (otherDimensionId.equals(myCurrentSpaceObject.getDimensionId())) continue;
+            Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
+
+            boolean isMyPlanet = otherDimensionId.equals(Minecraft.getInstance().level.dimension().location());
+            if (isMyPlanet && playerHeightAboveSea < 350) continue; // use a simplified render
+
+            if (isMyPlanet) {
+                // to correctly render the planet below, we need to add the up vector * radius * render multiplier to get the players location and not the planet center
+                Vec3 localUp = myCurrentSpaceObject.getGlobalAxisDirections(0).up;
+                myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(playerHeightAboveMyPlanetCenterAU));
+            }
+
 
             Dimension otherDimension = DimensionManager.get(otherDimensionId);
 
@@ -271,6 +319,7 @@ public class skyrenderer {
             relativePos = relativePos.scale(distance_multiplier);
             planetMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
+
             Vec3 modelUp = new Vec3(0, 1, 0);
             Vec3 targetNorth = otherDimension.getRotationAxis().normalize();
             Vec3 rotAxis = modelUp.cross(targetNorth);
@@ -284,12 +333,13 @@ public class skyrenderer {
             double planetRotationAngle = otherDimension.getRotationAngle(partialtick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
+
             // to scale correctly we need to convert the radius (in earth radius multiplier) to astronomical units
             double trueRadius = CelestialUtils.fromEarthRadius(otherDimension.getEarthRadiusMultiplier());
             double scaleAU = CelestialUtils.toAU(trueRadius);
             planetMatrix.scale((float) scaleAU);
             planetMatrix.scale(distance_multiplier);
-            planetMatrix.scale((float)Config.INSTANCE.planetRenderScaleMultiplier); // true size is too small, so apply a fixed scale
+            planetMatrix.scale((float) Config.INSTANCE.planetRenderScaleMultiplier); // true size is too small, so apply a fixed scale
 
             RenderSystem.setShader(shaderUtils::getPlanetShader);
             TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
@@ -300,7 +350,7 @@ public class skyrenderer {
             // custom proj matrix for every draw because of high potential distance range
             Matrix4f newProj = new Matrix4f(proj);
             float n = (float) (relativePos.length() / 1000);
-            float f = (float) (relativePos.length() * 1000);
+            float f = (float) (relativePos.length() * 2);
             newProj.set(2, 2, -(f + n) / (f - n));
             newProj.set(3, 2, -(2f * f * n) / (f - n));
 
@@ -316,8 +366,8 @@ public class skyrenderer {
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
             shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
             shader.getUniform("TargetSkyColor").set(otherDimension.getSkyColor().x, otherDimension.getSkyColor().y, otherDimension.getSkyColor().z);
-            shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
-            shader.getUniform("planetSkyHeight").set((float)Config.INSTANCE.planetSkyHeight);
+            shader.getUniform("playerHeight").set(playerHeightAboveSea);
+            shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
@@ -330,14 +380,62 @@ public class skyrenderer {
             }
             shader.getUniform("LightCount").set(totalLights);
 
+            if (isMyPlanet) {
+                shader.getUniform("fastPlanetDraw").set(1);
+                shader.getUniform("fastDrawFogColor").set(Fog.computeFogColor(0));
+            } else {
+                shader.getUniform("fastPlanetDraw").set(0);
+            }
+
             shader.apply();
             vertexBufferPlanet.bind();
             vertexBufferPlanet.draw();
+
             shader.clear();
         }
 
         // Clean up render states
         LEQUAL_DEPTH_TEST.clearRenderState();
+
+
+        // if the player is below some y, we do not render the sphere because it creates fps lag
+        // just render a flat circle
+        // also only do this when we are on a rocket, or else do not render anything special to reduce fps lag
+        NO_DEPTH_TEST.setupRenderState();
+        if(myCurrentSpaceObject.shouldRenderInSky() && playerHeightAboveSea < 350 && Minecraft.getInstance().player.getVehicle() instanceof EntityRocket){
+            // render my planet as a simple fog color circle below
+            Matrix4f planetMatrix = new Matrix4f();
+            float yrelative = (float) CelestialUtils.fromAU(playerHeightAboveMyPlanetCenterAU);
+            planetMatrix.translate(0, -yrelative, 0);
+
+            double trueRadius = CelestialUtils.fromEarthRadius(myCurrentSpaceObject.getEarthRadiusMultiplier());
+            planetMatrix.scale((float) (trueRadius * Config.INSTANCE.planetRenderScaleMultiplier));
+            planetMatrix.scale(2); // some extra scaling to try to match the sphere radius more
+
+            RenderSystem.setShader(shaderUtils::getPlanetShader);
+            shader = RenderSystem.getShader();
+
+            // custom proj matrix for every draw because of high potential distance range
+            Matrix4f newProj = new Matrix4f(proj);
+            float n = (float) (yrelative / 100);
+            float f = (float) (yrelative * 100);
+            newProj.set(2, 2, -(f + n) / (f - n));
+            newProj.set(3, 2, -(2f * f * n) / (f - n));
+
+            shader.getUniform("ProjMat").set(newProj);
+            shader.getUniform("ViewMat").set(viewMatrix);
+            shader.getUniform("WorldMat").set(new Matrix4f()); // so it can transform universe space to world space
+            shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
+
+            shader.getUniform("fastPlanetDraw").set(1);
+            shader.getUniform("fastDrawFogColor").set(Fog.computeFogColor(0));
+
+            shader.apply();
+            vertexBufferCircle.bind();
+            vertexBufferCircle.draw();
+            shader.clear();
+        }
+        NO_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
 
         VertexBuffer.unbind();

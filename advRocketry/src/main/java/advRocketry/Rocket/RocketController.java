@@ -175,9 +175,9 @@ public class RocketController {
                                 worldPos.x,
                                 worldPos.y,
                                 worldPos.z,
-                                rocket.heading.x * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().x,
-                                rocket.heading.y * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().y,
-                                rocket.heading.z * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().z
+                                rocket.heading.x * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().x/2,
+                                rocket.heading.y * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().y/2,
+                                rocket.heading.z * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().z/2
                         );
                     }
                 }
