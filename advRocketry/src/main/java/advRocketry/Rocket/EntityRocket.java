@@ -145,11 +145,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
 
     public void closeVertexBuffer() {
-        RenderSystem.recordRenderCall(() -> {
-            for (RenderData data : renderDataMap.values()) {
-                data.vertexBuffer.close();
-            }
-        });
+        if(FMLEnvironment.dist.isClient()) {
+            RenderSystem.recordRenderCall(() -> {
+                for (RenderData data : renderDataMap.values()) {
+                    data.vertexBuffer.close();
+                }
+            });
+        }
     }
 
     /// /  Entity class overrides ////
