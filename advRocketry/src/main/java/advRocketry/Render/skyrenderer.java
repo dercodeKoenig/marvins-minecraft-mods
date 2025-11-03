@@ -347,7 +347,7 @@ public class skyrenderer {
             shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
             shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
-            shader.getUniform("emissiveColor").set(otherDimension.getEmissiveColor());
+            shader.getUniform("emissiveColor").set(new Vector4f(otherDimension.getEmissiveColor().x, otherDimension.getEmissiveColor().y, otherDimension.getEmissiveColor().z, otherDimension.getRadiationIntensity()) );
 
             shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
             shader.getUniform("LocalSunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);

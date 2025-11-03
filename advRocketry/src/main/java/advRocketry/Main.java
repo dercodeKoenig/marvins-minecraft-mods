@@ -7,6 +7,7 @@ import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Render.PlanetRenderCache;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
+import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.BiomeConfig;
 
 import advRocketry.Render.Fog;
@@ -109,6 +110,8 @@ public class Main {
     }
 
     public void onClientTick(ClientTickEvent.Post event) {
+        if(ClientUtils.getPlayerLevel() == null)return; // my stuff is only for when playing
+
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
         RocketTravelDimension.INSTANCE.clientTick();
@@ -121,6 +124,7 @@ public class Main {
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.init();
+        RocketTravelDimension.init();
     }
 
     public void onServerStop(ServerStoppingEvent event) {

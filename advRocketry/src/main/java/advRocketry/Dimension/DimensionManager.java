@@ -147,6 +147,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             for (String s : defaultGalaxy) {
                 loadDimensionFromString(s);
             }
+            // TODO: save default files
         }
     }
 

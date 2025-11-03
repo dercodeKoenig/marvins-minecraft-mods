@@ -26,15 +26,21 @@ public class RocketTravelDimension extends Dimension {
 
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
-    public static RocketTravelDimension INSTANCE = new RocketTravelDimension(new DimensionProperties());
+    public static RocketTravelDimension INSTANCE;
 
     // a rocket should every tick or every few ticks update its chunkpos with the current global time
     // when the travel manager updates, it will remove force loaded chunks where the time was not reset for a few seconds
-    HashMap<ChunkPos, Long> usedChunksMap = new HashMap<>();
+    HashMap<ChunkPos, Long> usedChunksMap;
 
     public RocketTravelDimension(DimensionProperties properties) {
         super(properties);
+        usedChunksMap = new HashMap<>();
     }
+
+    public static void init() {
+        INSTANCE = new RocketTravelDimension(new DimensionProperties());
+    }
+
 
     public void keepChunkLoaded(ChunkPos pos) {
         if (!usedChunksMap.containsKey(pos)) {
@@ -90,7 +96,7 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public ResourceLocation getDimensionId(){
+    public ResourceLocation getDimensionId() {
         return dimId;
     }
 
@@ -116,7 +122,7 @@ public class RocketTravelDimension extends Dimension {
 
     @Override
     public Vector3f getCloudColor(float partialTick) {
-        return new Vector3f(0,0,0);
+        return new Vector3f(0, 0, 0);
     }
 
     @Override
@@ -126,32 +132,33 @@ public class RocketTravelDimension extends Dimension {
 
     @Override
     public float getGravitationalMultiplier() {
-        return 0.2f;}
+        return 0.2f;
+    }
 
     @Override
     public Vector3f getEmissiveColor() {
-        return new Vector3f(0,0,0);
+        return new Vector3f(0, 0, 0);
     }
 
     @Override
     public Vector3f getSkyColor() {
-        return new Vector3f(0,0,0);
+        return new Vector3f(0, 0, 0);
     }
 
     @Override
     public Vector3f getSunRiseColor() {
-        return new Vector3f(0,0,0);
+        return new Vector3f(0, 0, 0);
     }
 
     @Override
     public Vector3f getFogColor() {
-        return new Vector3f(0,0,0);
+        return new Vector3f(0, 0, 0);
     }
 
     @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         Player player = ClientUtils.getSinglePlayer();
-        if(player != null) {
+        if (player != null) {
             Entity vehicle = player.getVehicle();
             if (vehicle instanceof EntityRocket rocket) {
                 return new AxisDirections(
@@ -169,15 +176,15 @@ public class RocketTravelDimension extends Dimension {
     @Override
     public Vec3 getPosition(float partialTick) {
         Player player = ClientUtils.getSinglePlayer();
-        if(player != null) {
+        if (player != null) {
             Entity vehicle = player.getVehicle();
             if (vehicle instanceof EntityRocket rocket) {
                 return rocket.universePosition;
-            }else{
+            } else {
                 return player.position().scale(0.001); // for debug flying around in creative
             }
         }
-        return  new Vec3(0,0,0);
+        return new Vec3(0, 0, 0);
     }
 
 
@@ -201,7 +208,7 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public void clientTick(){
+    public void clientTick() {
         super.tickStarCache();
     }
 }

@@ -62,6 +62,7 @@ public class PlanetDimension extends Dimension {
         );
 
         OptionalLong fixedTime = properties().targetDayLength <= 0 ? OptionalLong.of(-properties().targetDayLength) : OptionalLong.empty();
+        System.out.println("fixed time for "+getDimensionId()+":"+fixedTime);
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType(fixedTime);
         ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(getDimensionId(), generator, type);
         if (l == null) {
@@ -315,7 +316,7 @@ public class PlanetDimension extends Dimension {
             if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
                 level.setDayTimePerTick(getDayTimePerTick());
             }
-            properties().dayTime = level.getDayTime();
+            properties().dayTime = level.getTimeOfDay(0);
         } else {
             trackDayTimeNormal();
         }
@@ -335,7 +336,7 @@ public class PlanetDimension extends Dimension {
         tick();
         Level level = ClientUtils.getPlayerLevel();
         if (level != null && getDimensionId() != null && getDimensionId().equals(level.dimension().location())) {
-            properties().dayTime = level.getDayTime();
+            properties().dayTime = level.getTimeOfDay(0);
         } else {
             trackDayTimeNormal();
         }
