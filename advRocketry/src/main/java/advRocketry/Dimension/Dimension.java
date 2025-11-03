@@ -307,7 +307,7 @@ public class Dimension {
     }
 
     public void serverTick(ServerTickEvent event) {
-        ServerLevel level = DimensionManager.getServerLevel(event.getServer(), properties.dimensionId);
+        ServerLevel level = DimensionManager.getServerLevel(event.getServer(), getDimensionId());
         if (level != null) {
             level.setDayTimePerTick(getDayTimePerTick());
             properties.dayTime = level.getDayTime();
@@ -317,6 +317,7 @@ public class Dimension {
 
         if (level != null) {
             if (!canRain()) {
+                // TODO: dynamic dimension currently uses derived level data, this does not work!
                 level.setWeatherParameters(100, 0, false, false);
             }
         }
