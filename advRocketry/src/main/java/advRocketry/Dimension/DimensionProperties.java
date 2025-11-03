@@ -9,6 +9,7 @@ import static java.lang.Math.pow;
 
 
 public class DimensionProperties {
+    // TODO: add always rain / always thunder values or custom rain times
     public String name = "";
     public PlanetType type = PlanetType.PLANET;
     public boolean hasCustomSky = true;
@@ -17,7 +18,7 @@ public class DimensionProperties {
     public double earthMassMultiplier = 1;
     public Vec3 position = new Vec3(0, 0, 0);
     public Vec3 rotationAxis = new Vec3(0.2, 1, 0);
-    public int targetDayLength = 24000;
+    public int targetDayLength = 24000; // set negative for fixed time
     public int sealevel = 63;
     public boolean generateStructures = false;
 

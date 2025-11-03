@@ -4,7 +4,7 @@ import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
-import advRocketry.Dimension.RocketSpaceTravelManager;
+import advRocketry.Dimension.RocketTravelDimension;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.CelestialUtils;
 import net.minecraft.core.BlockPos;
@@ -19,7 +19,7 @@ public class NavigateToSpaceTravelDimension {
 
     public static boolean run(EntityRocket rocket) {
 
-        if (rocket.level().dimension().location().equals(RocketSpaceTravelManager.dimId)) {
+        if (rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
             return true;
         }
 
@@ -51,8 +51,8 @@ public class NavigateToSpaceTravelDimension {
                 }
 
                 // get the teleportation target
-                ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), RocketSpaceTravelManager.dimId);
-                ChunkPos targetPos = RocketSpaceTravelManager.getNextFreeChunkPos();
+                ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), RocketTravelDimension.dimId);
+                ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
 
@@ -60,7 +60,7 @@ public class NavigateToSpaceTravelDimension {
 
 
                 // initial command to force load the chunk so that the rocket starts ticking
-                RocketSpaceTravelManager.keepChunkLoaded(targetPos);
+                RocketTravelDimension.keepChunkLoaded(targetPos);
 
                 // newRocket.endProgram();
             }

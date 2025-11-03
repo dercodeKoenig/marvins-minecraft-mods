@@ -57,7 +57,7 @@ public class DefaultGalaxy {
         moon2.orbitAxis = new Vec3(-0.1, 1, 0.2);
         moon2.earthRadiusMultiplier = 0.1;
         moon2.earthMassMultiplier = 0.1;
-        moon2.targetDayLength = 8000;
+        moon2.targetDayLength = -1000;
         moon2.atmosphereDensity = 0;
         moon2.sealevel = 50;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");

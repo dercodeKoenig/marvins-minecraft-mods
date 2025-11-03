@@ -23,7 +23,7 @@ public abstract class ClientLevelMixin {
         Dimension dimension = DimensionManager.get(dimensionId);
         double brightness;
         if (dimension != null) { // registered in DimensionManager
-            brightness = dimension.getAccumulatedWorldBrightness(partialTick, 0.2f, null);
+            brightness = dimension.getAccumulatedStarIntensity(partialTick, 0.2f, null);
             // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
             brightness = Math.clamp(Math.pow(brightness, 0.8) * 1, 0, 1);
         } else {
@@ -51,7 +51,7 @@ public abstract class ClientLevelMixin {
         Dimension dimension = DimensionManager.get(dimensionId);
         double brightness;
         if (dimension != null) { // registered in DimensionManager
-            brightness = dimension.getAccumulatedWorldBrightness(partialTick, 0.4f, null);
+            brightness = dimension.getAccumulatedStarIntensity(partialTick, 0.4f, null);
             // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
             brightness = Math.clamp(Math.pow(brightness, 0.8) * 1, 0, 1);
         }else{

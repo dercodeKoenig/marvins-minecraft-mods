@@ -38,7 +38,7 @@ public class DimensionManager {
 
     public static Dimension get(ResourceLocation key) {
         if (INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
-        if(key.equals(RocketSpaceTravelManager.dimId))return RocketSpaceTravelManager.rocketTravelDimension;
+        if(key.equals(RocketTravelDimension.dimId))return RocketTravelDimension.rocketTravelDimension;
         return null;
     }
 

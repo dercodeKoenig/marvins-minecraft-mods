@@ -1,6 +1,6 @@
 package advRocketry.Particles;
 
-import advRocketry.Dimension.RocketSpaceTravelManager;
+import advRocketry.Dimension.RocketTravelDimension;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.DustParticleBase;
 import net.minecraft.client.particle.SpriteSet;
@@ -18,7 +18,7 @@ private float targetSize;
 
         boolean isSmoke = random.nextBoolean();
 
-        if(level.dimension().location().equals(RocketSpaceTravelManager.dimId)) {
+        if(level.dimension().location().equals(RocketTravelDimension.dimId)) {
             if (isSmoke) {
                 // no smoke in space, looks strange
                 this.remove();

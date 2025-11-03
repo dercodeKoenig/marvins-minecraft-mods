@@ -58,8 +58,12 @@ public class NavigateInSpaceToTargetDimension {
         rocket.universeTargetHeading = targetDirectiop;
         tickUniverseRotation(rocket);
 
+        if(rocket.level().getGameTime() % 20 == 0)
+            System.out.println(targetPositionRelative);
+
         // move forward
-        final double speed = Config.INSTANCE.rocketSpaceTravelSpeedBase * Math.max(0, rocket.universeHeading.dot(targetDirectiop)); // in AU per tick
+        double speed = Config.INSTANCE.rocketSpaceTravelSpeedBase * Math.max(0, rocket.universeHeading.dot(targetDirectiop)); // in AU per tick
+        speed *= targetPositionRelative.length()*1000; // todo: better acceleration calculations
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(speed));
 
         if (rocket.level() instanceof ServerLevel serverLevel && targetPositionRelative.length() < CelestialUtils.toAU(targetDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier)) {

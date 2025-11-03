@@ -2,13 +2,11 @@ package advRocketry;
 
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
-import advRocketry.Dimension.RocketSpaceTravelManager;
+import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.GlobalTime;
 
 import advRocketry.Render.Fog;
 import advRocketry.Render.shaderUtils;
@@ -57,7 +55,7 @@ public class Main {
             NeoForge.EVENT_BUS.addListener(this::onRenderStage);
             NeoForge.EVENT_BUS.addListener(Fog::renderFogEvent);
             NeoForge.EVENT_BUS.addListener(Fog::computeFogColorEvent);
-            NeoForge.EVENT_BUS.addListener(this::onCLientTick);
+            NeoForge.EVENT_BUS.addListener(this::onClientTick);
         }
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
@@ -95,16 +93,15 @@ public class Main {
     public void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.serverTick(event);
         GlobalTime.tickServer();
-        if(GlobalTime.getGlobalTime() % 200 == 59) { // a random number i choose so not everything happens on a 0 tick because most mods use % x == 0
-            RocketSpaceTravelManager.update(); // remove forced chunks
-        }
+        RocketTravelDimension.rocketTravelDimension.serverTick(event);
     }
 
-    public void onCLientTick(ClientTickEvent.Post event) {
+    public void onClientTick(ClientTickEvent.Post event) {
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
         EntityRocket.clientOnly.onClientTickEvent();
-        RocketSpaceTravelManager.rocketTravelDimension.clientOnly.clientTick();
+        RocketTravelDimension.rocketTravelDimension.clientOnly.clientTick();
+        PlanetCache.updatePlanetsToRenderInSky();
     }
 
     public void onServerStarted(ServerStartedEvent event) {
@@ -112,7 +109,7 @@ public class Main {
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.init();
-        RocketSpaceTravelManager.init();
+        RocketTravelDimension.init();
     }
 
     public void onServerStop(ServerStoppingEvent event) {

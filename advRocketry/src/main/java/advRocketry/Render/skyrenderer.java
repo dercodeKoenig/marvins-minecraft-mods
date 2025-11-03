@@ -241,11 +241,6 @@ public class skyrenderer {
     public void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
 
 
-        // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
-        // we will scale translation and scale factor by this multiplier
-        float distance_multiplier = 1000000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
-
-
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myCurrentSpaceObject = DimensionManager.get(myId);
 
@@ -256,9 +251,9 @@ public class skyrenderer {
         newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
         newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
-
         // render star background first
-        NO_DEPTH_TEST.setupRenderState();
+        NO_DEPTH_TEST.setupRenderState(); // i do manual depth sort for planets for precision errors reason
+        NO_TRANSPARENCY.setupRenderState();
         GlStateManager._depthMask(false);
 
         RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
@@ -272,13 +267,10 @@ public class skyrenderer {
         vertexBufferStarBackground.draw();
         shader.clear();
 
-        GlStateManager._depthMask(true);
-        NO_DEPTH_TEST.clearRenderState();
 
-
-        // Setup render states for planets
-        LEQUAL_DEPTH_TEST.setupRenderState();
-        NO_TRANSPARENCY.setupRenderState();
+        // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
+        // we will scale translation and scale factor by this multiplier
+        float distance_multiplier = 1000000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
 
         float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
 
@@ -292,11 +284,11 @@ public class skyrenderer {
                 ));
 
         // Render planets / stars
-        for (ResourceLocation otherDimensionId : myCurrentSpaceObject.getPlanetsToRenderInSky()) {
+        for (Dimension otherDimension : PlanetCache.getPlanetsToRenderInSky()) {
 
             Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
 
-            boolean isMyPlanet = otherDimensionId.equals(Minecraft.getInstance().level.dimension().location());
+            boolean isMyPlanet = otherDimension.equals(myCurrentSpaceObject);
             if (isMyPlanet && playerHeightAboveSea < 350) continue; // use a simplified render
 
             if (isMyPlanet) {
@@ -304,9 +296,6 @@ public class skyrenderer {
                 Vec3 localUp = myCurrentSpaceObject.getGlobalAxisDirections(0).up;
                 myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(playerHeightAboveMyPlanetCenterAU));
             }
-
-
-            Dimension otherDimension = DimensionManager.get(otherDimensionId);
 
             // skip if it is a not visible dimension
             if (!otherDimension.shouldRenderInSky()) continue;
@@ -390,18 +379,12 @@ public class skyrenderer {
             shader.apply();
             vertexBufferPlanet.bind();
             vertexBufferPlanet.draw();
-
             shader.clear();
         }
-
-        // Clean up render states
-        LEQUAL_DEPTH_TEST.clearRenderState();
-
 
         // if the player is below some y, we do not render the sphere because it creates fps lag
         // just render a flat circle
         // also only do this when we are on a rocket, or else do not render anything special to reduce fps lag
-        NO_DEPTH_TEST.setupRenderState();
         if(myCurrentSpaceObject.shouldRenderInSky() && playerHeightAboveSea < 350 && Minecraft.getInstance().player.getVehicle() instanceof EntityRocket){
             // render my planet as a simple fog color circle below
             Matrix4f planetMatrix = new Matrix4f();
@@ -435,8 +418,10 @@ public class skyrenderer {
             vertexBufferCircle.draw();
             shader.clear();
         }
+
         NO_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
+        GlStateManager._depthMask(true);
 
         VertexBuffer.unbind();
     }
@@ -466,7 +451,7 @@ public class skyrenderer {
         // This matrix transforms global space coordinates into world coordinates
         Matrix4f worldMatrix = new Matrix4f().lookAt(
                 new Vector3f(0, 0, 0),
-                myGlobalAxis.north.toVector3f(),
+                myGlobalAxis.front.toVector3f(),
                 myGlobalAxis.up.toVector3f()    // Up direction
         );
         // adjust frame buffer size for render

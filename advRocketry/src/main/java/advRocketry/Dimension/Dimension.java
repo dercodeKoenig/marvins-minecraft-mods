@@ -1,35 +1,24 @@
 package advRocketry.Dimension;
 
 import advRocketry.Main;
-import advRocketry.Render.PlanetRenderCache;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.worldgen.PlanetDimensionGeneration;
 import advRocketry.worldgen.presets.HOT_DRY;
-import advRocketry.worldgen.presets.HOT_VERYDRY;
-import com.mojang.serialization.Lifecycle;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.levelgen.WorldOptions;
-import net.minecraft.world.level.storage.DerivedLevelData;
-import net.minecraft.world.level.storage.PrimaryLevelData;
-import net.minecraft.world.level.storage.ServerLevelData;
-import net.minecraft.world.level.storage.WorldData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
@@ -38,15 +27,13 @@ import org.joml.Vector4f;
 import javax.annotation.Nullable;
 
 import java.util.Optional;
-import java.util.Random;
-import java.util.function.BooleanSupplier;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
 public class Dimension {
     DimensionProperties properties;
-    public PlanetRenderCache planetRenderCache;
+    public PlanetCache planetRenderCache;
     public ClientOnly clientOnly;
 
     float targetsealevel;
@@ -56,9 +43,9 @@ public class Dimension {
 
     public Dimension(DimensionProperties properties) {
         this.properties = properties;
+        planetRenderCache = new PlanetCache();
         if (FMLEnvironment.dist.isClient()) {
             clientOnly = new ClientOnly();
-            planetRenderCache = new PlanetRenderCache();
         }
 
         if (getDimensionId().getNamespace().equals(Main.MODID) && canVisit()) {
@@ -154,10 +141,6 @@ public class Dimension {
         return planetRenderCache.significantLightSourcesCache.keySet();
     }
 
-    public Iterable<ResourceLocation> getPlanetsToRenderInSky() {
-        return DimensionManager.INSTANCE.dimensions.keySet(); // TODO: use cache similar like the light source cache
-    }
-
     public Vector3f getFogColor() {
         return new Vector3f(properties.fogColor);
     }
@@ -179,9 +162,6 @@ public class Dimension {
         return properties.sealevel;
     }
 
-    public float getDayTimePerTick() {
-        return (float) Level.TICKS_PER_DAY / properties.targetDayLength;
-    }
 
     public double getRotationAngle(float partialTick) {
         double actualDayTime = properties.dayTime + getDayTimePerTick() * partialTick;
@@ -191,21 +171,22 @@ public class Dimension {
 
     /**
      * computes the accumulated brightness by relevant stars to be used for terrain shading
+     * ignores the star color and only uses its intensity
      */
-    public double getAccumulatedWorldBrightness(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
-//if(true)return 1;
+    public double getAccumulatedStarIntensity(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
+
         if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
 
-        double astronomicalBrightness = 0;
+        double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
             Dimension target = DimensionManager.get(targetId);
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
             double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
-            double brightness = dotMultiplier * target.getEmissiveColor().w / (distance * distance);
-            astronomicalBrightness += brightness;
+            double intensity = dotMultiplier * target.getEmissiveColor().w / (distance * distance);
+            totalStarIntensity += intensity;
         }
-        return astronomicalBrightness;
+        return totalStarIntensity;
     }
 
     /**
@@ -299,7 +280,7 @@ public class Dimension {
         // 5 calculate new north
         Vec3 north = localUp.cross(east).normalize();
 
-        return new AxisDirections(north, east, localUp);
+        return new AxisDirections(north, localUp);
     }
 
     /**
@@ -313,6 +294,12 @@ public class Dimension {
         return equatorReference;
     }
 
+    public float getDayTimePerTick() {
+        if(properties.targetDayLength <= 0) {
+            return 0;
+        }
+            return (float) Level.TICKS_PER_DAY / properties.targetDayLength;
+    }
 
     public void trackDayTimeNormal() {
         properties.dayTime += getDayTimePerTick();
@@ -322,6 +309,9 @@ public class Dimension {
     public void serverTick(ServerTickEvent event) {
         ServerLevel level = DimensionManager.getServerLevel(event.getServer(), getDimensionId());
         if (level != null) {
+            if(properties.targetDayLength <= 0) {
+                level.setDayTime(-properties.targetDayLength);
+            }
             level.setDayTimePerTick(getDayTimePerTick());
             properties.dayTime = level.getDayTime();
         } else {
@@ -333,8 +323,11 @@ public class Dimension {
                 level.setWeatherParameters(100, 0, false, false);
             }else{
                 //level.setWeatherParameters(0, 100, true, false);
+                // TODO: custom weather logic
             }
         }
+        // TODO: currently not used but later for temperature calculations
+        planetRenderCache.updateSignificantLightSourcesCache(Dimension.this);
     }
 
     public class ClientOnly {
@@ -346,9 +339,8 @@ public class Dimension {
 
         public void clientTick() {
             Level level = Minecraft.getInstance().level;
-            if (level != null && properties.dimensionId.equals(level.dimension().location())) {
+            if (level != null && properties.dimensionId != null && properties.dimensionId.equals(level.dimension().location())) {
                 properties.dayTime = level.getDayTime();
-                //System.out.println(level.isClientSide+":"+ level.getDayTimePerTick()+":"+properties.dayTime+":"+getDimensionId());
             } else {
                 trackDayTimeNormal();
             }

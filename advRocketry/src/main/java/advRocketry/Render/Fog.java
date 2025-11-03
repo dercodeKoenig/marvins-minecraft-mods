@@ -27,7 +27,7 @@ public class Fog {
         if (dimension == null) return null; // not registered in DimensionManager
 
         Vector3f fogColor = dimension.getFogColor();
-        double brightnessMultiplier = dimension.getAccumulatedWorldBrightness(partialTick, 0.2f, null);
+        double brightnessMultiplier = dimension.getAccumulatedStarIntensity(partialTick, 0.2f, null);
 
         // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
         brightnessMultiplier = Math.clamp(Math.pow(brightnessMultiplier, 0.8), 0, 1);
