@@ -12,6 +12,7 @@ import advRocketry.Dimension.*;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.utils.CelestialUtils;
+import advRocketry.utils.ClientUtils;
 import advRocketry.utils.Utils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -147,7 +148,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
 
     public void closeVertexBuffer() {
-        if(FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.dist.isClient()) {
             RenderSystem.recordRenderCall(() -> {
                 for (RenderData data : renderDataMap.values()) {
                     data.vertexBuffer.close();
@@ -232,7 +233,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     protected void addPassenger(Entity passenger) {
         super.addPassenger(passenger);
-        if(level().isClientSide) {
+        if (level().isClientSide) {
             if (passenger == Minecraft.getInstance().player) {
                 Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK);
             }
@@ -254,7 +255,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
-        if(level().isClientSide) {
+        if (level().isClientSide) {
             if (passenger == Minecraft.getInstance().player) {
                 Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
             }
@@ -277,23 +278,23 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // we need slow movement but also the correct initial positions / movements when the entity loads, for example after dimension change
     public void lerpMotion(double x, double y, double z) {
         if (lerpDeltaMovementSteps < 0) {
-            setDeltaMovement(x,y,z);
+            setDeltaMovement(x, y, z);
             lerpDeltaMovementSteps = 0;
-        }else {
+        } else {
             this.lerpDeltaMovement = new Vec3(x, y, z);
             this.lerpDeltaMovementSteps = 20 * 120;
         }
     }
 
     public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
-        if(lerpSteps < 0){
-            setPos(x,y,z);
+        if (lerpSteps < 0) {
+            setPos(x, y, z);
             lerpSteps = 0;
-        }else {
+        } else {
             this.lerpX = x;
             this.lerpY = y;
             this.lerpZ = z;
-            float distance = (float) position().distanceTo(new Vec3(x,y,z));
+            float distance = (float) position().distanceTo(new Vec3(x, y, z));
             this.lerpSteps = (int) (20 + distance * 10); // dynamic time, fast sync for little correction, slow sync for large correction
 
         }
@@ -314,7 +315,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / get and set methods ////
 
-    public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front){
+    public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front) {
         this.defaultTargetHeading = heading;
         this.heading = heading;
         this.front = front;
@@ -473,7 +474,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             --this.lerpSteps;
         }
         if (this.lerpDeltaMovementSteps > 0) {
-            this.addDeltaMovement(new Vec3((this.lerpDeltaMovement.x - this.getDeltaMovement().x) / (double)this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.y - this.getDeltaMovement().y) / (double)this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.z - this.getDeltaMovement().z) / (double)this.lerpDeltaMovementSteps));
+            this.addDeltaMovement(new Vec3((this.lerpDeltaMovement.x - this.getDeltaMovement().x) / (double) this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.y - this.getDeltaMovement().y) / (double) this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.z - this.getDeltaMovement().z) / (double) this.lerpDeltaMovementSteps));
             --this.lerpDeltaMovementSteps;
         }
 
@@ -516,7 +517,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (GlobalTime.getGlobalTime() % 100 == 0) {
             if (!level().isClientSide) {
                 if (level() == DimensionManager.getServerLevel(level().getServer(), RocketTravelDimension.dimId)) {
-                    RocketTravelDimension.keepChunkLoaded(chunkPosition());
+                    RocketTravelDimension.INSTANCE.keepChunkLoaded(chunkPosition());
                 }
             }
         }
@@ -527,10 +528,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
         p.targetDimensionId = level().dimension().location();
 
-        if(level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
+        if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
             p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
         else
-                p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         p.target = new BlockPos((int) position().x, 0, (int) position().z);
         setProgramAndSync(p);
     }
@@ -554,7 +555,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         kill();
     }
 
-    public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos, Vec3 velocity){
+    public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos, Vec3 velocity) {
 
         setTargetPosition(null, false); // position is probably invalid because dimension change
 
@@ -736,16 +737,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return cachedSeatPositions;
     }
 
-    public static class clientOnly { // wrap in extra class or server shits itself trying to find client side classes
-        public static void onClientTickEvent() {
-            Player player = Minecraft.getInstance().player;
-            if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
-                if (Minecraft.getInstance().options.keyUse.isDown()) {
-                    rocket.openGui();
-                    Minecraft.getInstance().options.keyUse.consumeClick();
-                }
+
+    public static void onClientTickEvent() {
+        Player player = ClientUtils.getSinglePlayer();
+        if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
+            if (Minecraft.getInstance().options.keyUse.isDown()) {
+                rocket.openGui();
+                Minecraft.getInstance().options.keyUse.consumeClick();
             }
         }
     }
-
 }

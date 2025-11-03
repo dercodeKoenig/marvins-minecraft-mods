@@ -4,6 +4,7 @@ import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketFlameParticleProvider;
+import advRocketry.Render.PlanetRenderCache;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.worldgen.BiomeConfig;
@@ -93,15 +94,15 @@ public class Main {
     public void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.serverTick(event);
         GlobalTime.tickServer();
-        RocketTravelDimension.rocketTravelDimension.serverTick(event);
+        RocketTravelDimension.INSTANCE.serverTick(event);
     }
 
     public void onClientTick(ClientTickEvent.Post event) {
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
-        EntityRocket.clientOnly.onClientTickEvent();
-        RocketTravelDimension.rocketTravelDimension.clientOnly.clientTick();
-        PlanetCache.updatePlanetsToRenderInSky();
+        RocketTravelDimension.INSTANCE.clientTick();
+        EntityRocket.onClientTickEvent();
+        PlanetRenderCache.updatePlanetsToRenderInSky();
     }
 
     public void onServerStarted(ServerStartedEvent event) {
@@ -109,7 +110,6 @@ public class Main {
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.init();
-        RocketTravelDimension.init();
     }
 
     public void onServerStop(ServerStoppingEvent event) {

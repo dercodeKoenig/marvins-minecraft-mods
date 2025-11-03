@@ -3,10 +3,10 @@ package advRocketry.Dimension;
 import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.AxisDirections;
+import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -16,24 +16,27 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.joml.Vector3f;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 
 public class RocketTravelDimension extends Dimension {
 
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
-    public static RocketTravelDimension rocketTravelDimension = new RocketTravelDimension(new DimensionProperties());
+    public static RocketTravelDimension INSTANCE = new RocketTravelDimension(new DimensionProperties());
 
     // a rocket should every tick or every few ticks update its chunkpos with the current global time
     // when the travel manager updates, it will remove force loaded chunks where the time was not reset for a few seconds
-    static HashMap<ChunkPos, Long> usedChunksMap = new HashMap<>();
+    HashMap<ChunkPos, Long> usedChunksMap = new HashMap<>();
 
-    public static void keepChunkLoaded(ChunkPos pos) {
+    public RocketTravelDimension(DimensionProperties properties) {
+        super(properties);
+    }
+
+    public void keepChunkLoaded(ChunkPos pos) {
         if (!usedChunksMap.containsKey(pos)) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             ServerLevel level = DimensionManager.getServerLevel(server, dimId);
@@ -44,7 +47,7 @@ public class RocketTravelDimension extends Dimension {
         usedChunksMap.put(pos, GlobalTime.getGlobalTime());
     }
 
-    public static ChunkPos getNextFreeChunkPos() {
+    public ChunkPos getNextFreeChunkPos() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         ServerLevel level = DimensionManager.getServerLevel(server, dimId);
         int x = 0;
@@ -76,24 +79,14 @@ public class RocketTravelDimension extends Dimension {
         }
     }
 
-    public static void init() {
-        // create the dimension
-       rocketTravelDimension.createDimension();
-
-        usedChunksMap = new HashMap<>();
-
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-        System.out.println("there are " + level.getForcedChunks().size() + " chunk force loaded in space travel dimension");
+    @Override
+    public boolean canVisit() {
+        return true;
     }
 
-    public ClientOnly clientOnly;
-
-    public RocketTravelDimension(DimensionProperties properties) {
-        super(properties);
-        if (FMLEnvironment.dist.isClient()) {
-            clientOnly = new ClientOnly();
-        }
+    @Override
+    public boolean canRain() {
+        return false;
     }
 
     @Override
@@ -107,39 +100,93 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public double getEarthMassMultiplier() {
-        return 0.2;
+    public float getRadiationIntensity() {
+        return 0;
     }
 
     @Override
-    public float getDayTimePerTick() { return 0; }
+    public boolean hasCustomSky() {
+        return true;
+    }
 
-        public DimensionProperties.PlanetType getType() {
-        return DimensionProperties.PlanetType.DUMMY;
+    @Override
+    public double getTerrainBrightness() {
+        return 0; // we use ambient light in space
+    }
+
+    @Override
+    public Vector3f getCloudColor() {
+        return new Vector3f(0,0,0);
+    }
+
+    @Override
+    public Vector3f computeTerrainFogColor() {
+        return getFogColor();
+    }
+
+    @Override
+    public float getGravitationalMultiplier() {
+        return 0.2f;}
+
+    @Override
+    public Vector3f getEmissiveColor() {
+        return new Vector3f(0,0,0);
+    }
+
+    @Override
+    public Vector3f getSkyColor() {
+        return new Vector3f(0,0,0);
+    }
+
+    @Override
+    public Vector3f getSunRiseColor() {
+        return new Vector3f(0,0,0);
+    }
+
+    @Override
+    public Vector3f getFogColor() {
+        return new Vector3f(0,0,0);
     }
 
     @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
-        if(FMLEnvironment.dist.isClient()) return clientOnly.getGlobalAxisDirections();
-        return null;
+        Player player = ClientUtils.getSinglePlayer();
+        if(player != null) {
+            Entity vehicle = player.getVehicle();
+            if (vehicle instanceof EntityRocket rocket) {
+                return new AxisDirections(
+                        rocket.universeHeading,
+                        rocket.universeFront
+                );
+            }
+        }
+        return new AxisDirections(
+                new Vec3(0, 0, -1),
+                new Vec3(0, 1, 0)
+        );
     }
 
     @Override
     public Vec3 getPosition(float partialTick) {
-        if(FMLEnvironment.dist.isClient())
-            return clientOnly.getPosition();
-        else return null;
+        Player player = ClientUtils.getSinglePlayer();
+        if(player != null) {
+            Entity vehicle = player.getVehicle();
+            if (vehicle instanceof EntityRocket rocket) {
+                return rocket.universePosition;
+            }else{
+                return player.position().scale(0.001); // for debug flying around in creative
+            }
+        }
+        return  new Vec3(0,0,0);
     }
 
-    // not sure if this is even used anywhere because we have no terrain, nothing
-    @Override
-    public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition) {
-        return 1;
+    public void tick(){
+        super.tickStarCache();
     }
 
     @Override
     public void serverTick(ServerTickEvent event) {
-        super.serverTick(event);
+        tick();
         if (GlobalTime.getGlobalTime() % 200 == 59) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             ServerLevel level = DimensionManager.getServerLevel(server, dimId);
@@ -157,37 +204,8 @@ public class RocketTravelDimension extends Dimension {
         }
     }
 
-    public class ClientOnly {
-        public Vec3 getPosition() {
-            Player player = Minecraft.getInstance().player;
-            if(player != null) {
-                Entity vehicle = player.getVehicle();
-                if (vehicle instanceof EntityRocket rocket) {
-                    return rocket.universePosition;
-                }else{
-                    return player.position().scale(0.001); // for debug flying around in creative
-                }
-            }
-            return  new Vec3(0,0,0);
-        }
-        public AxisDirections getGlobalAxisDirections(){
-            Player player = Minecraft.getInstance().player;
-            if(player != null) {
-                Entity vehicle = player.getVehicle();
-                if (vehicle instanceof EntityRocket rocket) {
-                    return new AxisDirections(
-                            rocket.universeHeading,
-                            rocket.universeFront
-                    );
-                }
-            }
-            return new AxisDirections(
-                    new Vec3(0, 0, -1),
-                    new Vec3(0, 1, 0)
-            );
-        }
-        public void clientTick(){
-            RocketTravelDimension.super.clientOnly.clientTick();
-        }
+    @Override
+    public void clientTick(){
+        tick();
     }
 }

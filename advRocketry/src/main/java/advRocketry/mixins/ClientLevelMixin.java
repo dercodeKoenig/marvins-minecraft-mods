@@ -37,7 +37,7 @@ public abstract class ClientLevelMixin {
         brightness *= 1.0F - level.getRainLevel(partialTick) * 5.0F / 16.0F;
         brightness *= 1.0F - level.getThunderLevel(partialTick) * 5.0F / 16.0F;
 
-        double finalSkyValue = brightness * 0.9F + 0.1F; // original is *0.8+0.2
+        double finalSkyValue = brightness * 0.8F + 0.2F; // original is *0.8+0.2
 
         cir.setReturnValue((float) finalSkyValue);
         cir.cancel();
@@ -58,6 +58,7 @@ public abstract class ClientLevelMixin {
             float f = level.getTimeOfDay(partialTick);
             brightness = Mth.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
         }
+        // TODO: custom cloud colors? maybe a bit random?
 
         float f1 = (float) brightness;
         f1 = Mth.clamp(f1, 0.0F, 1.0F);

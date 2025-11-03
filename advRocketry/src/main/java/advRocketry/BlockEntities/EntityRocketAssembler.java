@@ -225,7 +225,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (level.isClientSide) return;
         //long t0 = System.currentTimeMillis();
         Dimension myDim = DimensionManager.get(level.dimension().location());
-        if (myDim != null && myDim.getType() == DimensionProperties.PlanetType.SPACE_STATION) {
+        if (myDim != null && myDim.getType() == DimensionProperties.DimensionType.SPACE_STATION) {
             scanForSpaceDockingArea();
         } else {
             scanForLaunchPadArea();

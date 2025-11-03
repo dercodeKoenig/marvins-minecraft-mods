@@ -2,12 +2,9 @@ package advRocketry.utils;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-
-import javax.annotation.Nullable;
 
 /**
  * A utility class for celestial mechanics calculations
@@ -38,7 +35,7 @@ public class CelestialUtils {
         Dimension dimension = DimensionManager.get(dimensionId);
         double massMultiplier = 1.0;
         if (dimension != null) {
-            massMultiplier = dimension.getEarthMassMultiplier();
+            massMultiplier = dimension.getGravitationalMultiplier();
         }
         return massMultiplier;
     }

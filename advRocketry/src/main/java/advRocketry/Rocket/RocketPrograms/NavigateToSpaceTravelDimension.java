@@ -1,10 +1,7 @@
 package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.Config;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
-import advRocketry.Dimension.RocketTravelDimension;
+import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.CelestialUtils;
 import net.minecraft.core.BlockPos;
@@ -28,7 +25,7 @@ public class NavigateToSpaceTravelDimension {
         rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
 
         Dimension myDim = DimensionManager.get(rocket.level().dimension().location());
-        if (myDim != null && myDim.getType() == DimensionProperties.PlanetType.SPACE_STATION) {
+        if (myDim != null && myDim.getType() == DimensionProperties.DimensionType.SPACE_STATION) {
             // logic for space station
             // undock from station and move to launchpos.y-50, then thrust away
         } else {
@@ -41,18 +38,23 @@ public class NavigateToSpaceTravelDimension {
                 // teleport to space travel dimension
 
                 if (myDim != null) {
-                    double r = CelestialUtils.toAU(myDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.1 + Config.INSTANCE.planetSkyHeight * 10);
-                    Vec3 planetUp = myDim.getGlobalAxisDirections(0, Optional.of(rocket.position().z)).up;
-                    rocket.universePosition = myDim.getPosition(0).add(planetUp.scale(r));
-                    rocket.universeHeading = planetUp.normalize();
-                    rocket.universeFront = rocket.universeHeading.cross(new Vec3(1, 0, 0));
-                    if (rocket.universeFront.length() < 0.01)
-                        rocket.universeFront = rocket.universeHeading.cross(new Vec3(0, 0, 1));
+                    // for planets, move to the correct position relative to the planet.
+                    if(myDim instanceof PlanetDimension p){
+                        double r = CelestialUtils.toAU(p.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.1 + Config.INSTANCE.planetSkyHeight * 10);
+                        Vec3 planetUp = p.getGlobalAxisDirections(0, p.getLatitudeFromZPosition(rocket.position().z)).up;
+                        rocket.universePosition = myDim.getPosition(0).add(planetUp.scale(r));
+                        rocket.universeHeading = planetUp.normalize();
+                        rocket.universeFront = rocket.universeHeading.cross(new Vec3(1, 0, 0));
+                        if (rocket.universeFront.length() < 0.01)
+                            rocket.universeFront = rocket.universeHeading.cross(new Vec3(0, 0, 1));
+                    }else{
+                        rocket.universePosition = myDim.getPosition(0);
+                    }
                 }
 
                 // get the teleportation target
                 ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), RocketTravelDimension.dimId);
-                ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
+                ChunkPos targetPos = RocketTravelDimension.INSTANCE.getNextFreeChunkPos();
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
 
@@ -60,7 +62,7 @@ public class NavigateToSpaceTravelDimension {
 
 
                 // initial command to force load the chunk so that the rocket starts ticking
-                RocketTravelDimension.keepChunkLoaded(targetPos);
+                RocketTravelDimension.INSTANCE.keepChunkLoaded(targetPos);
 
                 // newRocket.endProgram();
             }

@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.OptionalLong;
 
 public class PlanetDimensionGeneration {
-    public static DimensionType makePlanetDimensionType() {
+    public static DimensionType makePlanetDimensionType(OptionalLong fixedTime) {
         return new DimensionType(
-                OptionalLong.empty(),
+                fixedTime,
                 true,
                 false,
                 false,

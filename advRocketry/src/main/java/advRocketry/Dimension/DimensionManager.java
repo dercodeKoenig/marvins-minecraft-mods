@@ -38,7 +38,7 @@ public class DimensionManager {
 
     public static Dimension get(ResourceLocation key) {
         if (INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
-        if(key.equals(RocketTravelDimension.dimId))return RocketTravelDimension.rocketTravelDimension;
+        if(key.equals(RocketTravelDimension.dimId))return RocketTravelDimension.INSTANCE;
         return null;
     }
 
@@ -58,7 +58,7 @@ public class DimensionManager {
         Iterator<Dimension> dimensionIterator = INSTANCE.dimensions.values().iterator();
         while (dimensionIterator.hasNext()){
             Dimension i = dimensionIterator.next();
-            i.clientOnly.clientTick();
+            i.clientTick();
         }
     }
 
