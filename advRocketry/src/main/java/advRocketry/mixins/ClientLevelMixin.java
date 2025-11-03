@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,9 +24,7 @@ public abstract class ClientLevelMixin {
         Dimension dimension = DimensionManager.get(dimensionId);
         double brightness;
         if (dimension != null) { // registered in DimensionManager
-            brightness = dimension.getAccumulatedStarIntensity(partialTick, 0.2f, null);
-            // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-            brightness = Math.clamp(Math.pow(brightness, 0.8) * 1, 0, 1);
+            brightness = dimension.getTerrainBrightness(partialTick);
         } else {
             // original code
             float f = level.getTimeOfDay(partialTick);
@@ -49,22 +48,25 @@ public abstract class ClientLevelMixin {
         Level level = (Level) (Object) this;
         ResourceLocation dimensionId = level.dimension().location();
         Dimension dimension = DimensionManager.get(dimensionId);
-        double brightness;
-        if (dimension != null) { // registered in DimensionManager
-            brightness = dimension.getAccumulatedStarIntensity(partialTick, 0.4f, null);
-            // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-            brightness = Math.clamp(Math.pow(brightness, 0.8) * 1, 0, 1);
+
+        double brightness = 1;
+        float f2 = 1.0F;
+        float f3 = 1.0F;
+        float f4 = 1.0F;
+
+        if (dimension != null) { // custom cloud colors!
+            Vector3f cloudColor = dimension.getCloudColor(partialTick);
+            f2 = cloudColor.x;
+            f3 = cloudColor.y;
+            f4 = cloudColor.z;
         }else{
             float f = level.getTimeOfDay(partialTick);
             brightness = Mth.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
         }
-        // TODO: custom cloud colors? maybe a bit random?
 
         float f1 = (float) brightness;
         f1 = Mth.clamp(f1, 0.0F, 1.0F);
-        float f2 = 1.0F;
-        float f3 = 1.0F;
-        float f4 = 1.0F;
+
         float f5 = level.getRainLevel(partialTick);
         if (f5 > 0.0F) {
             float f6 = (f2 * 0.3F + f3 * 0.59F + f4 * 0.11F) * 0.6F;

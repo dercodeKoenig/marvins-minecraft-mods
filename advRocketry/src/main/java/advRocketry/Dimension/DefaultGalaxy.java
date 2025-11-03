@@ -7,10 +7,11 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultGalaxy {
 
-    public static String createDefaultGalaxy() {
+    public static List<String> createDefaultGalaxy() {
 
         ArrayList<DimensionProperties> galaxy = new ArrayList<>();
 
@@ -73,6 +74,7 @@ public class DefaultGalaxy {
         venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         venus.orbitalDistanceToParent = 0.5f;
         venus.atmosphereDensity = 2;
+        venus.cloudColor = new Vector3f(0.8f,1,0.5f);
         galaxy.add(venus);
 
 
@@ -90,6 +92,13 @@ public class DefaultGalaxy {
         distantStar.position = new Vec3(20,2,0);
         galaxy.add(distantStar);
 
-        return new GsonBuilder().setPrettyPrinting().create().toJson(galaxy);
+
+
+
+        List<String> dimensionProperties = new ArrayList<>();
+        for(DimensionProperties i : galaxy){
+            dimensionProperties.add(new GsonBuilder().setPrettyPrinting().create().toJson(i));
+        }
+        return dimensionProperties;
     }
 }

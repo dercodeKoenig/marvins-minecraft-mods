@@ -41,6 +41,8 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public Vector3f skyColor = new Vector3f(0.45f, 0.7f, 1f);
 
+    public Vector3f cloudColor = new Vector3f(1,1,1);
+
     public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
 
     public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.1f);

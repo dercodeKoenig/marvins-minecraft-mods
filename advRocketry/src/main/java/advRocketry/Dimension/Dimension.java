@@ -53,11 +53,11 @@ public abstract class Dimension {
 
     abstract public boolean hasCustomSky();
 
-    abstract public double getTerrainBrightness();
+    abstract public double getTerrainBrightness(float partialTick);
 
-    abstract public Vector3f getCloudColor(); // maybe based on atm composition?
+    abstract public Vector3f getCloudColor(float partialTick); // maybe based on atm composition?
 
-    abstract public Vector3f computeTerrainFogColor();
+    abstract public Vector3f computeTerrainFogColor(float partialTick);
 
     abstract public Vec3 getPosition(float partialTick);
 

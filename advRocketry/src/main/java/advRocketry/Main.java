@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -33,6 +34,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -58,6 +60,7 @@ public class Main {
             NeoForge.EVENT_BUS.addListener(Fog::computeFogColorEvent);
             NeoForge.EVENT_BUS.addListener(this::onClientTick);
         }
+        NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
@@ -89,6 +92,14 @@ public class Main {
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
         BiomeConfig.makePresetIfNotExist(HOT_VERYDRY.name, HOT_VERYDRY.create());
 
+    }
+
+    public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
+        if( event.getEntity() instanceof  ServerPlayer p){
+            for(Dimension i : DimensionManager.INSTANCE.dimensions.values()) {
+                DimensionManager.syncDimension(p, i);
+            }
+        }
     }
 
     public void onServerTick(ServerTickEvent.Post event) {

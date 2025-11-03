@@ -110,17 +110,17 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public double getTerrainBrightness() {
+    public double getTerrainBrightness(float partialTick) {
         return 0; // we use ambient light in space
     }
 
     @Override
-    public Vector3f getCloudColor() {
+    public Vector3f getCloudColor(float partialTick) {
         return new Vector3f(0,0,0);
     }
 
     @Override
-    public Vector3f computeTerrainFogColor() {
+    public Vector3f computeTerrainFogColor(float partialTick) {
         return getFogColor();
     }
 

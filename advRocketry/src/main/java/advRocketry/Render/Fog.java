@@ -2,6 +2,7 @@ package advRocketry.Render;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -20,27 +21,11 @@ public class Fog {
     }
 
 
-    public static Vector3f computeFogColor(float partialTick) {
-        Level currentLevel = Minecraft.getInstance().level;
-        ResourceLocation dimensionId = currentLevel.dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
-        if (dimension == null) return null; // not registered in DimensionManager
-
-        Vector3f fogColor = dimension.computeTerrainFogColor();
-        double brightnessMultiplier = dimension.getAccumulatedStarIntensity(partialTick, 0.2f, null);
-
-        // just some adjustments because it looks better. make it change dark to bright faster and stay bright for longer
-        brightnessMultiplier = Math.clamp(Math.pow(brightnessMultiplier, 0.8), 0, 1);
-
-        fogColor = fogColor.mul((float) brightnessMultiplier).mul(dimension.getAtmosphereDensity() / (1 + dimension.getAtmosphereDensity()));
-
-        return fogColor;
-    }
-
     // can modify fog color, apparently used for terrain shading
     public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
-        Vector3f fogColor = computeFogColor((float) event.getPartialTick());
-        if (fogColor != null) {
+        Dimension myDimension = DimensionManager.get(ClientUtils.getPlayerLevel().dimension().location());
+        if (myDimension != null) {
+            Vector3f fogColor = myDimension.computeTerrainFogColor((float) event.getPartialTick());
             event.setRed((float) (fogColor.x));
             event.setGreen((float) (fogColor.y));
             event.setBlue((float) (fogColor.z));

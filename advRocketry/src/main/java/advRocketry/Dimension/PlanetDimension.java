@@ -43,8 +43,12 @@ public class PlanetDimension extends Dimension {
     public void createDimension() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        System.out.println("creating dimension for " + getDimensionId());
+
         DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
+        if (!dynamicDimensionRegistry.canCreateDimension(getDimensionId()))
+            return;
+
+        System.out.println("creating dimension for " + getDimensionId());
 
         long seed = (server.overworld().getSeed() + (long) getDimensionId().hashCode());
 
@@ -59,16 +63,16 @@ public class PlanetDimension extends Dimension {
 
         OptionalLong fixedTime = properties().targetDayLength <= 0 ? OptionalLong.of(-properties().targetDayLength) : OptionalLong.empty();
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType(fixedTime);
-        ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId, generator, type);
+        ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(getDimensionId(), generator, type);
         if (l == null) {
             dynamicDimensionRegistry.createDynamicDimension(
-                    properties.dimensionId,
+                    getDimensionId(),
                     generator,
                     type
             );
-            System.out.println("created dimension for " + properties.dimensionId);
+            System.out.println("created dimension for " + getDimensionId());
         } else {
-            System.out.println("loaded dimension for " + properties.dimensionId);
+            System.out.println("loaded dimension for " + getDimensionId());
         }
     }
 
@@ -86,7 +90,7 @@ public class PlanetDimension extends Dimension {
         if (properties().dayTimeReference == null) {
             return false;
         }
-        if(properties().radiationIntensity > 0){
+        if (properties().radiationIntensity > 0) { // star
             return false;
         }
         return true;
@@ -142,18 +146,26 @@ public class PlanetDimension extends Dimension {
     }
 
     @Override
-    public double getTerrainBrightness() {
-        return 0;
+    public double getTerrainBrightness(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        return brightness;
     }
 
     @Override
-    public Vector3f getCloudColor() {
-        return null;
+    public Vector3f getCloudColor(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        return new Vector3f(properties().cloudColor).mul((float) brightness);
     }
 
     @Override
-    public Vector3f computeTerrainFogColor() {
-        return null;
+    public Vector3f computeTerrainFogColor(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        return new Vector3f(properties().fogColor)
+                .mul((float) brightness)
+                .mul(getAtmosphereDensity() / (1 + getAtmosphereDensity()));
     }
 
     public int getSeaLevel() {
