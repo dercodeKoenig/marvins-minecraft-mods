@@ -9,10 +9,12 @@ import advRocketry.worldgen.PlanetDimensionGeneration;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -311,6 +313,12 @@ public class Dimension {
             properties.dayTime = level.getDayTime();
         } else {
             trackDayTimeNormal();
+        }
+
+        if (level != null) {
+            if (!canRain()) {
+                level.setWeatherParameters(100, 0, false, false);
+            }
         }
     }
 

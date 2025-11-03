@@ -86,7 +86,6 @@ public abstract class ClientLevelMixin {
         }
 
         cir.setReturnValue(new Vec3((double) f2, (double) f3, (double) f4));
-        ;
         cir.cancel();
     }
 
