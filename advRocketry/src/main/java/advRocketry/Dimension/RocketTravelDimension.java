@@ -180,13 +180,9 @@ public class RocketTravelDimension extends Dimension {
         return  new Vec3(0,0,0);
     }
 
-    public void tick(){
-        super.tickStarCache();
-    }
 
     @Override
     public void serverTick(ServerTickEvent event) {
-        tick();
         if (GlobalTime.getGlobalTime() % 200 == 59) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             ServerLevel level = DimensionManager.getServerLevel(server, dimId);
@@ -206,6 +202,6 @@ public class RocketTravelDimension extends Dimension {
 
     @Override
     public void clientTick(){
-        tick();
+        super.tickStarCache();
     }
 }

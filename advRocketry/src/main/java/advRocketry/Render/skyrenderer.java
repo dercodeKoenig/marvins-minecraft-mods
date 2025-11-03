@@ -370,7 +370,7 @@ public class skyrenderer {
 
             if (isMyDimension) {
                 shader.getUniform("fastPlanetDraw").set(1);
-                shader.getUniform("fastDrawFogColor").set(Fog.computeFogColor(0));
+                shader.getUniform("fastDrawFogColor").set(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
             } else {
                 shader.getUniform("fastPlanetDraw").set(0);
             }
@@ -420,7 +420,7 @@ public class skyrenderer {
             shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
             shader.getUniform("fastPlanetDraw").set(1);
-            shader.getUniform("fastDrawFogColor").set(Fog.computeFogColor(0));
+            shader.getUniform("fastDrawFogColor").set(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
 
             shader.apply();
             vertexBufferCircle.bind();
