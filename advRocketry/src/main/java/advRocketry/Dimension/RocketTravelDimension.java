@@ -2,21 +2,12 @@ package advRocketry.Dimension;
 
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.AxisDirections;
-import advRocketry.worldgen.SpaceDimensionGeneration;
-import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
 
@@ -33,7 +24,7 @@ public class RocketTravelDimension extends Dimension {
 
     @Override
     public ResourceLocation getDimensionId(){
-        return SpaceTravelManager.dimId;
+        return RocketSpaceTravelManager.dimId;
     }
 
     @Override
@@ -66,6 +57,7 @@ public class RocketTravelDimension extends Dimension {
         else return null;
     }
 
+    // not sure if this is even used anywhere because we have no terrain, nothing
     @Override
     public double getSurfaceDotToTarget(Dimension target, float partialTick, @Nullable Vec3 myPlanetPosition, @Nullable Vec3 targetPosition) {
         return 1;

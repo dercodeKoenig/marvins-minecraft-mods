@@ -1,24 +1,20 @@
 package advRocketry.Dimension;
 
 import advRocketry.Main;
-import advRocketry.Rocket.EntityRocket;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 
-public class SpaceTravelManager {
+public class RocketSpaceTravelManager {
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
     public static RocketTravelDimension rocketTravelDimension = new RocketTravelDimension(new DimensionProperties());

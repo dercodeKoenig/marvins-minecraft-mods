@@ -2,8 +2,7 @@ package advRocketry;
 
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
-import advRocketry.Dimension.RocketTravelDimension;
-import advRocketry.Dimension.SpaceTravelManager;
+import advRocketry.Dimension.RocketSpaceTravelManager;
 import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
@@ -22,7 +21,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -98,7 +96,7 @@ public class Main {
         DimensionManager.serverTick(event);
         GlobalTime.tickServer();
         if(GlobalTime.getGlobalTime() % 200 == 59) { // a random number i choose so not everything happens on a 0 tick because most mods use % x == 0
-            SpaceTravelManager.update(); // remove forced chunks
+            RocketSpaceTravelManager.update(); // remove forced chunks
         }
     }
 
@@ -106,7 +104,7 @@ public class Main {
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
         EntityRocket.clientOnly.onClientTickEvent();
-        SpaceTravelManager.rocketTravelDimension.clientOnly.clientTick();
+        RocketSpaceTravelManager.rocketTravelDimension.clientOnly.clientTick();
     }
 
     public void onServerStarted(ServerStartedEvent event) {
@@ -114,7 +112,7 @@ public class Main {
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.init();
-        SpaceTravelManager.init();
+        RocketSpaceTravelManager.init();
     }
 
     public void onServerStop(ServerStoppingEvent event) {

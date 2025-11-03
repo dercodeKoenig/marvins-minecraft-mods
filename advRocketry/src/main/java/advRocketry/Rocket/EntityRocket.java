@@ -196,7 +196,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public double getDefaultGravity() {
-        if (level().dimension().location().equals(SpaceTravelManager.dimId))
+        if (level().dimension().location().equals(RocketSpaceTravelManager.dimId))
             return 0;
         return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
@@ -515,8 +515,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (GlobalTime.getGlobalTime() % 100 == 0) {
             if (!level().isClientSide) {
-                if (level() == DimensionManager.getServerLevel(level().getServer(), SpaceTravelManager.dimId)) {
-                    SpaceTravelManager.keepChunkLoaded(chunkPosition());
+                if (level() == DimensionManager.getServerLevel(level().getServer(), RocketSpaceTravelManager.dimId)) {
+                    RocketSpaceTravelManager.keepChunkLoaded(chunkPosition());
                 }
             }
         }
