@@ -6,7 +6,9 @@ import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.worldgen.PlanetDimensionGeneration;
+import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
+import com.mojang.serialization.Lifecycle;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
@@ -19,9 +21,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.storage.DerivedLevelData;
+import net.minecraft.world.level.storage.PrimaryLevelData;
+import net.minecraft.world.level.storage.ServerLevelData;
+import net.minecraft.world.level.storage.WorldData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
@@ -30,6 +38,8 @@ import org.joml.Vector4f;
 import javax.annotation.Nullable;
 
 import java.util.Optional;
+import java.util.Random;
+import java.util.function.BooleanSupplier;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
@@ -62,14 +72,17 @@ public class Dimension {
         System.out.println("creating dimension for " + getDimensionId());
         DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
 
+        long seed = (server.overworld().getSeed()+(long)getDimensionId().hashCode());
+
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(),
                 Blocks.WATER.defaultBlockState(),
                 getSeaLevel(),
-                properties.dimensionId.hashCode(),
-                properties.generateStructures,
-                BiomeConfig.loadPreset(HOT_VERYDRY.name)
+                BiomeConfig.loadPreset(HOT_DRY.name),
+                seed,
+                properties.generateStructures
         );
+
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType();
         ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId, generator, type);
         if (l == null) {
@@ -317,8 +330,9 @@ public class Dimension {
 
         if (level != null) {
             if (!canRain()) {
-                // TODO: dynamic dimension currently uses derived level data, this does not work!
                 level.setWeatherParameters(100, 0, false, false);
+            }else{
+                //level.setWeatherParameters(0, 100, true, false);
             }
         }
     }
@@ -334,6 +348,7 @@ public class Dimension {
             Level level = Minecraft.getInstance().level;
             if (level != null && properties.dimensionId.equals(level.dimension().location())) {
                 properties.dayTime = level.getDayTime();
+                //System.out.println(level.isClientSide+":"+ level.getDayTimePerTick()+":"+properties.dayTime+":"+getDimensionId());
             } else {
                 trackDayTimeNormal();
             }

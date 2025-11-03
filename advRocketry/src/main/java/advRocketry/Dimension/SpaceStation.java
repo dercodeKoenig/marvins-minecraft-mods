@@ -74,23 +74,6 @@ public class SpaceStation extends Dimension {
 
     @Override
     public void createDimension() {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) return;
-        System.out.println("creating dimension for " + getDimensionId());
-        DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
 
-        ChunkGenerator generator = SpaceDimensionGeneration.makeChunkGenerator();
-        DimensionType type = SpaceDimensionGeneration.makeDimensionType();
-        ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(properties.dimensionId, generator, type);
-        if (l == null) {
-            dynamicDimensionRegistry.createDynamicDimension(
-                    properties.dimensionId,
-                    generator,
-                    type
-            );
-            System.out.println("created dimension for " + properties.dimensionId);
-        } else {
-            System.out.println("loaded dimension for " + properties.dimensionId);
-        }
     }
 }
