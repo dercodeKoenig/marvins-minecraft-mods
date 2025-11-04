@@ -117,7 +117,7 @@ public class skyrenderer {
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
-        for (Face i : ringModel.groupObjects.get("Torus.001").faces) {
+        for (Face i : ringModel.groupObjects.get("Circle").faces) {
             i.addFaceForRender(new PoseStack(), b);
         }
         MeshData meshPlanet = b.build();
@@ -411,7 +411,7 @@ public class skyrenderer {
 
             if(otherDimension.hasRings()){
                 // nice thing, the planet matrix is already transformed
-                planetMatrix.scale(3);
+                planetMatrix.scale(4);
 
                 RenderSystem.setShader(shaderUtils::getRingSystemShader);
                 ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
@@ -437,6 +437,7 @@ public class skyrenderer {
                 shader.getUniform("LightCount").set(totalLights);
 
                 TRANSLUCENT_TRANSPARENCY.setupRenderState();
+                NO_CULL.setupRenderState();
 
                 shader.apply();
                 vertexBufferRingSystem.bind();
@@ -444,6 +445,7 @@ public class skyrenderer {
                 shader.clear();
 
                 TRANSLUCENT_TRANSPARENCY.clearRenderState();
+                NO_CULL.clearRenderState();
             }
 
             RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); // remember, we do manual depth sorting
