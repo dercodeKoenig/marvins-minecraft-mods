@@ -45,7 +45,7 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
 
-    public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.1f);
+    public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.2f);
 
     public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f); // TODO: include this in shader
 

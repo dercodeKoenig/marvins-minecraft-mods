@@ -10,7 +10,7 @@ uniform mat4 ProjMat;
 
 
 out vec3 normalUniverseSpace;
-out vec3 upUniverseSpace;
+out vec3 localUpUniverseSpace;
 
 void main() {
     gl_Position = ProjMat * ViewMat * ModelMat * vec4(Position, 1.0);
@@ -23,5 +23,5 @@ void main() {
     normalUniverseSpace = normalize(rotWorldInv * (rotModel * Normal));
 
     // World up in universe space
-    upUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));
+    localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));
 }

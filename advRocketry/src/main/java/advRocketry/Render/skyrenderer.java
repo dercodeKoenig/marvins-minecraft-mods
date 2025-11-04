@@ -8,6 +8,7 @@ import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import advRocketry.utils.RenderUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -18,6 +19,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
@@ -184,18 +186,24 @@ public class skyrenderer {
             Vec3 StarPos = star.getPosition(partialTick);
             Vec3 LightVector = myCurrentPositionInSpace.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
             shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
-            shader.getUniform("LightColors[" + totalLights + "]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getRadiationIntensity());
+            Vector3f starColorLin = RenderUtils.gamma_reverse(star.getEmissiveColor());
+            shader.getUniform("LightColors[" + totalLights + "]").set(starColorLin.x, starColorLin.y, starColorLin.z, star.getRadiationIntensity());
             totalLights += 1;
         }
         shader.getUniform("LightCount").set(totalLights);
-// TODO: pre- gamma reverse to lower shader load
-        shader.getUniform("SkyColor").set(myCurrentSpaceObject.getSkyColor().x, myCurrentSpaceObject.getSkyColor().y, myCurrentSpaceObject.getSkyColor().z);
-        shader.getUniform("SunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
-        shader.getUniform("FogColor").set(myCurrentSpaceObject.getFogColor().x, myCurrentSpaceObject.getFogColor().y, myCurrentSpaceObject.getFogColor().z);
+
+        Vector3f SkyColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSkyColor());
+        shader.getUniform("SkyColor").set(SkyColorLin.x, SkyColorLin.y,SkyColorLin.z);
+
+        Vector3f SunriseColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
+        shader.getUniform("SunriseColor").set(SunriseColorLin.x, SunriseColorLin.y, SunriseColorLin.z);
+
+        Vector3f FogColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getFogColor());
+        shader.getUniform("FogColor").set(FogColorLin.x, FogColorLin.y, FogColorLin.z);
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
-        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight - 500);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
 
         shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
@@ -319,15 +327,27 @@ public class skyrenderer {
             shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
             shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
-            shader.getUniform("emissiveColor").set(new Vector4f(otherDimension.getEmissiveColor().x, otherDimension.getEmissiveColor().y, otherDimension.getEmissiveColor().z, otherDimension.getRadiationIntensity()) );
+            Vector3f emissiveColor = RenderUtils.gamma_reverse(otherDimension.getEmissiveColor());
+            shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, otherDimension.getRadiationIntensity()));
 
             shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
-            shader.getUniform("LocalSunriseColor").set(myCurrentSpaceObject.getSunRiseColor().x, myCurrentSpaceObject.getSunRiseColor().y, myCurrentSpaceObject.getSunRiseColor().z);
+
+            Vector3f LocalSunriseColor =  RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
+            shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
+
             shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
+
             shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
-            shader.getUniform("TargetSkyColor").set(otherDimension.getSkyColor().x, otherDimension.getSkyColor().y, otherDimension.getSkyColor().z);
+
+            Vector3f TargetSkyColor = RenderUtils.gamma_reverse(otherDimension.getSkyColor());
+            shader.getUniform("TargetSkyColor").set(TargetSkyColor);
+
             shader.getUniform("playerHeight").set(playerHeightAboveSea);
-            shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight - 500);
+
+            shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+
+            Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
+            shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
 
             int totalLights = 0;
             for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
@@ -335,16 +355,17 @@ public class skyrenderer {
                 Vec3 StarPos = star.getPosition(partialtick);
                 Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
                 shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
-                shader.getUniform("LightColors[" + totalLights + "]").set(star.getEmissiveColor().x, star.getEmissiveColor().y, star.getEmissiveColor().z, star.getRadiationIntensity());
+                Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
+                shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
                 totalLights += 1;
             }
             shader.getUniform("LightCount").set(totalLights);
 
+
             if (isMyDimension) {
-                shader.getUniform("fastPlanetDraw").set(1);
-                shader.getUniform("fastDrawFogColor").set(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
+                shader.getUniform("isLocalPlanet").set(1);
             } else {
-                shader.getUniform("fastPlanetDraw").set(0);
+                shader.getUniform("isLocalPlanet").set(0);
             }
 
             shader.apply();

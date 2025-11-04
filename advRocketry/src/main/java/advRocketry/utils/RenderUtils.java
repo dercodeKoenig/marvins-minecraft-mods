@@ -55,4 +55,13 @@ public class RenderUtils {
         vertexConsumer.addVertex(pose,new Vector3f(x0,y0,z)).setColor(color).setLight(light).setUv(u0,v0).setOverlay(overlay).setNormal(0,0,1);
     }
 
+
+    public static Vector3f gamma_reverse(Vector3f color){
+        return new Vector3f(
+                (float) Math.pow(color.x, 2.2),
+                (float) Math.pow(color.y, 2.2),
+                (float) Math.pow(color.z, 2.2)
+        );
+    }
+
 }
