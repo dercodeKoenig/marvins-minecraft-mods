@@ -7,25 +7,26 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultGalaxy {
 
-    public static String createDefaultGalaxy() {
+    public static List<String> createDefaultGalaxy() {
 
         ArrayList<DimensionProperties> galaxy = new ArrayList<>();
 
-        DimensionProperties sun = new DimensionProperties();
+        PlanetDimensionProperties sun = new PlanetDimensionProperties();
         sun.name = "Sun";
-        sun.type = DimensionProperties.PlanetType.STAR;
         sun.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "sun");
-        sun.earthMassMultiplier = 200;
+        sun.gravitationalMultiplier = 200;
         sun.earthRadiusMultiplier = 100;
         sun.rotationAxis = new Vec3(0, 1, 0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun.emissiveColor = new Vector4f(1f, 1f, 0.8f, 2f);
+        sun.emissiveColor = new Vector3f(1f, 1f, 0.8f);
+        sun.radiationIntensity = 2;
         galaxy.add(sun);
 
-        DimensionProperties overworld = new DimensionProperties();
+        PlanetDimensionProperties overworld = new PlanetDimensionProperties();
         overworld.name = "Earth";
         overworld.dimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         overworld.parentDimensionId = sun.dimensionId;
@@ -33,39 +34,39 @@ public class DefaultGalaxy {
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         galaxy.add(overworld);
 
-        DimensionProperties moon = new DimensionProperties();
+        PlanetDimensionProperties moon = new PlanetDimensionProperties();
         moon.name = "moon";
         moon.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
         moon.parentDimensionId = overworld.dimensionId;
         moon.dayTimeReference = sun.dimensionId;
-        moon.orbitalDistanceToParent = 0.00257;
+        moon.orbitalDistanceToParent = 0.00257f;
         moon.orbitAxis = new Vec3(0.1, 1, 0.1);
-        moon.earthRadiusMultiplier = 0.272;
-        moon.earthMassMultiplier = 0.3;
+        moon.earthRadiusMultiplier = 0.272f;
+        moon.gravitationalMultiplier = 0.3f;
         moon.targetDayLength = 12000;
         moon.atmosphereDensity = 0;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         galaxy.add(moon);
 
 
-        DimensionProperties moon2 = new DimensionProperties();
+        PlanetDimensionProperties moon2 = new PlanetDimensionProperties();
         moon2.name = "moon2";
         moon2.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
         moon2.parentDimensionId = overworld.dimensionId;
         moon2.dayTimeReference = sun.dimensionId;
-        moon2.orbitalDistanceToParent = 0.0032;
+        moon2.orbitalDistanceToParent = 0.0032f;
         moon2.orbitAxis = new Vec3(-0.1, 1, 0.2);
-        moon2.earthRadiusMultiplier = 0.1;
-        moon2.earthMassMultiplier = 0.1;
+        moon2.earthRadiusMultiplier = 0.1f;
+        moon2.gravitationalMultiplier = 0.1f;
         moon2.targetDayLength = -1000;
         moon2.atmosphereDensity = 0;
-        moon2.sealevel = 50;
+        moon2.seaLevel = 50;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
         galaxy.add(moon2);
 
 
 
-        DimensionProperties venus = new DimensionProperties();
+        PlanetDimensionProperties venus = new PlanetDimensionProperties();
         venus.name = "Venus";
         venus.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         venus.parentDimensionId = sun.dimensionId;
@@ -73,23 +74,31 @@ public class DefaultGalaxy {
         venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         venus.orbitalDistanceToParent = 0.5f;
         venus.atmosphereDensity = 2;
+        venus.cloudColor = new Vector3f(0.8f,1,0.5f);
         galaxy.add(venus);
 
 
 
 
-        DimensionProperties distantStar = new DimensionProperties();
+        PlanetDimensionProperties distantStar = new PlanetDimensionProperties();
         distantStar.name = "Blue Star";
-        distantStar.type = DimensionProperties.PlanetType.STAR;
         distantStar.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "blue_star");
-        distantStar.earthMassMultiplier = 300;
+        distantStar.gravitationalMultiplier = 300;
         distantStar.earthRadiusMultiplier = 300;
         distantStar.rotationAxis = new Vec3(0, 1, 0).normalize();
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        distantStar.emissiveColor = new Vector4f(0.5f, 0.8f, 4f, 1f);
+        distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
+        distantStar.radiationIntensity = 1;
         distantStar.position = new Vec3(20,2,0);
-        galaxy.add(distantStar);
+        //galaxy.add(distantStar);
 
-        return new GsonBuilder().setPrettyPrinting().create().toJson(galaxy);
+
+
+
+        List<String> dimensionProperties = new ArrayList<>();
+        for(DimensionProperties i : galaxy){
+            dimensionProperties.add(new GsonBuilder().setPrettyPrinting().create().toJson(i));
+        }
+        return dimensionProperties;
     }
 }

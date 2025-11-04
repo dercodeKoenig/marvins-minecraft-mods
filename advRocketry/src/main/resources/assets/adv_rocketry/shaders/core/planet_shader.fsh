@@ -16,30 +16,23 @@ uniform vec3 TargetSkyColor;       // target planets sky color
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
 uniform float planetSkyHeight;      // how high is considered out of atmosphere
 
-uniform int fastPlanetDraw;           // toggles a fast draw mode for the planet below me to reduce this crazy fps lag
-uniform vec3 fastDrawFogColor;
+uniform int isLocalPlanet;           // if this is my planet, some special rendering applies
+uniform vec3 localTerrainFogColor;
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
-in vec3 upUniverseSpace;
+in vec3 localUpUniverseSpace;
 
 out vec4 fragColor;
-vec3 gamma_reverse(vec3 color){
-    return pow(color, vec3(2.2));
-}
+
 void main() {
 
-    if(fastPlanetDraw == 1 && playerHeight < 350){
-        fragColor = vec4(gamma_reverse(fastDrawFogColor), 1);
-        return;
-    }
+    vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
+    baseSurfaceColor = pow(baseSurfaceColor, vec3(2.2)); // gamma reverse
 
-    vec3 baseSurfaceColor = gamma_reverse(texture(Sampler0, texcoord).rgb);
-
-    if(fastPlanetDraw == 1){
+    if(isLocalPlanet == 1){
         float mixvalue = clamp((playerHeight-350) / planetSkyHeight * 5, 0, 1);
-        fragColor = vec4(mix(gamma_reverse(fastDrawFogColor), baseSurfaceColor, mixvalue), 1);
-        return;
+        baseSurfaceColor = mix(localTerrainFogColor, baseSurfaceColor, mixvalue);
     }
 
     vec3 totalReflectedLight = vec3(0.0);
@@ -51,7 +44,7 @@ void main() {
         float dist = length(LightVectors[i]);
 
         // the reflected light without atmosphere consideration is normal dot light
-        float NdotL = max(0,dot(normalize(normalUniverseSpace), normalize(LightVectors[i])));
+        float NdotL = max(0,dot(N, L));
 
 
         // now consider atmosphere
@@ -66,8 +59,8 @@ void main() {
         * TargetAtmDensity; // less atmosphere = less light by atmosphere
 
         vec3 reflected =
-        (NdotL * baseSurfaceColor + rim * mix(baseSurfaceColor,gamma_reverse(TargetSkyColor),TargetAtmDensity/(1+TargetAtmDensity)))
-        * gamma_reverse(LightColors[i].rgb) * LightColors[i].a
+        (NdotL * baseSurfaceColor + rim * mix(baseSurfaceColor,TargetSkyColor,TargetAtmDensity/(1+TargetAtmDensity)))
+        * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);
 
 
@@ -77,7 +70,7 @@ void main() {
 
     // atmosphere modifies how the star appears
     float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
-    float starUp = dot(upUniverseSpace, normalize(TargetVector));
+    float starUp = dot(localUpUniverseSpace, normalize(TargetVector));
     float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
     atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
     atmThicknessMod *= altitudeAtmThicknessMod;
@@ -85,14 +78,12 @@ void main() {
     // more atm should make the star less bright bc light scatters away
     float starBrightness = max(0.0, emissiveColor.a) * (1 - atmThicknessMod) ;
 
-    vec3 starColorRGBLinear= gamma_reverse(emissiveColor.rgb);
-    vec3 sunriseLinear = gamma_reverse(LocalSunriseColor);
 
     // i tint the star slightly in the sunrise color because this is the light that scatters away less
-    vec3 sunRiseTintColor = sunriseLinear;
+    vec3 sunRiseTintColor = LocalSunriseColor;
 
     // tint based on atm thickness
-    vec3 atmAdjustedEmissiveColor = mix(starColorRGBLinear, sunRiseTintColor, atmThicknessMod);
+    vec3 atmAdjustedEmissiveColor = mix(emissiveColor.rgb, sunRiseTintColor, atmThicknessMod);
 
     // also include the texture for emissive, well it will probably not matter because of bloom but i think this is correct so
     vec3 emitted = atmAdjustedEmissiveColor * baseSurfaceColor * starBrightness;

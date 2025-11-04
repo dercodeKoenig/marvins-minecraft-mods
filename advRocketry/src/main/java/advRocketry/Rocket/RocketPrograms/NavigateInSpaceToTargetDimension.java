@@ -3,6 +3,7 @@ package advRocketry.Rocket.RocketPrograms;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.CelestialUtils;
 import net.minecraft.resources.ResourceLocation;
@@ -62,11 +63,15 @@ public class NavigateInSpaceToTargetDimension {
             System.out.println(targetPositionRelative);
 
         // move forward
-        double speed = Config.INSTANCE.rocketSpaceTravelSpeedBase * Math.max(0, rocket.universeHeading.dot(targetDirectiop)); // in AU per tick
-        speed *= targetPositionRelative.length()*1000; // todo: better acceleration calculations
+        double speed = Config.INSTANCE.rocketSpaceTravelSpeedBase * Math.max(0, rocket.universeHeading.dot(targetDirectiop)-0.5); // in AU per tick
+        speed *= 10+(targetPositionRelative.length()*1000); // todo: better acceleration calculations
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(speed));
 
-        if (rocket.level() instanceof ServerLevel serverLevel && targetPositionRelative.length() < CelestialUtils.toAU(targetDim.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier)) {
+        // TODO: make this much better with acceleration, also the pd controlls need tuning
+
+        double entryDistance = Math.max(0.0001,CelestialUtils.toAU((targetDim instanceof PlanetDimension p ?  p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier));
+
+        if (rocket.level() instanceof ServerLevel serverLevel && targetPositionRelative.length() < entryDistance) {
             // TODO: ifrocket.hasSatellites && shouldDeployThem -> deploy satellites shortly before dimension jump
 
             // get the teleportation target

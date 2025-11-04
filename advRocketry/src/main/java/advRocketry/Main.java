@@ -4,8 +4,10 @@ import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketFlameParticleProvider;
+import advRocketry.Render.PlanetRenderCache;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
+import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.BiomeConfig;
 
 import advRocketry.Render.Fog;
@@ -19,6 +21,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -32,6 +35,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -57,6 +61,7 @@ public class Main {
             NeoForge.EVENT_BUS.addListener(Fog::computeFogColorEvent);
             NeoForge.EVENT_BUS.addListener(this::onClientTick);
         }
+        NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
@@ -90,18 +95,28 @@ public class Main {
 
     }
 
+    public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
+        if( event.getEntity() instanceof  ServerPlayer p){
+            for(Dimension i : DimensionManager.INSTANCE.dimensions.values()) {
+                DimensionManager.syncDimension(p, i);
+            }
+        }
+    }
+
     public void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.serverTick(event);
         GlobalTime.tickServer();
-        RocketTravelDimension.rocketTravelDimension.serverTick(event);
+        RocketTravelDimension.INSTANCE.serverTick(event);
     }
 
     public void onClientTick(ClientTickEvent.Post event) {
+        if(ClientUtils.getPlayerLevel() == null)return; // my stuff is only for when playing
+
         DimensionManager.clientTick(event);
         GlobalTime.tickClient();
-        EntityRocket.clientOnly.onClientTickEvent();
-        RocketTravelDimension.rocketTravelDimension.clientOnly.clientTick();
-        PlanetCache.updatePlanetsToRenderInSky();
+        RocketTravelDimension.INSTANCE.clientTick();
+        EntityRocket.onClientTickEvent();
+        PlanetRenderCache.updatePlanetsToRenderInSky();
     }
 
     public void onServerStarted(ServerStartedEvent event) {
