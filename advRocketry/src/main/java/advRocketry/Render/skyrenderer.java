@@ -33,6 +33,7 @@ public class skyrenderer {
 
     VertexBuffer vertexBufferSkyBox;
     VertexBuffer vertexBufferPlanet;
+    VertexBuffer vertexBufferRingSystem;
     VertexBuffer vertexBufferSquare;
     VertexBuffer vertexBufferStarBackground;
     boolean finishedLoading = false;
@@ -41,6 +42,7 @@ public class skyrenderer {
         RenderSystem.recordRenderCall(() -> {
             createSkyBoxBuffer();
             createPlanetBuffer();
+            createRingSystemBuffer();
             createSquareBuffer();
             setupRenderTargets();
             createStarBackgroundBuffer();
@@ -102,6 +104,28 @@ public class skyrenderer {
         vertexBufferSquare.upload(mesh);
         byteBuffer.close();
     }
+
+    void createRingSystemBuffer() {
+        WavefrontObject ringModel;
+
+        vertexBufferRingSystem = new VertexBuffer(VertexBuffer.Usage.STATIC);
+        try {
+            ringModel = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/environment/ring.obj"));
+        } catch (ModelFormatException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
+        for (Face i : ringModel.groupObjects.get("Torus.001").faces) {
+            i.addFaceForRender(new PoseStack(), b);
+        }
+        MeshData meshPlanet = b.build();
+        vertexBufferRingSystem.bind();
+        vertexBufferRingSystem.upload(meshPlanet);
+        byteBuffer.close();
+    }
+
 
     void createPlanetBuffer() {
         WavefrontObject planetModel;
@@ -234,7 +258,6 @@ public class skyrenderer {
         NO_DEPTH_TEST.setupRenderState(); // i do manual depth sort for planets for precision errors reason
         NO_TRANSPARENCY.setupRenderState();
         GlStateManager._depthMask(false);
-
         RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
         ShaderInstance shader = RenderSystem.getShader();
         shader.getUniform("ViewMat").set(viewMatrix);
@@ -245,6 +268,7 @@ public class skyrenderer {
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();
         shader.clear();
+        GlStateManager._depthMask(true);
 
 
         // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
@@ -262,10 +286,18 @@ public class skyrenderer {
 
             boolean isMyDimension = otherDimension.equals(myCurrentSpaceObject);
 
-            if (isMyDimension) {
-                // only render when we sit in rocket to reduce gpu load when it it not required
-                if(!(Minecraft.getInstance().player.getVehicle() instanceof EntityRocket)) continue;
+            boolean skipPlanetRender = false;
 
+            // only render when we sit in rocket to reduce gpu load when it it not required
+            if (isMyDimension) {
+                skipPlanetRender = true;
+                if ((Minecraft.getInstance().player.getVehicle() instanceof EntityRocket))
+                    skipPlanetRender = false;
+                if (playerHeightAboveSea > 300)
+                    skipPlanetRender = false;
+            }
+
+            if (isMyDimension) {
                 // special case: to correctly render the planet below, we need to add the up vector * radius * render multiplier to get the players location and not the planet center
                 float playerHeightAboveMyPlanetCenterAU =
                         (float) (CelestialUtils.toAU(
@@ -273,7 +305,7 @@ public class skyrenderer {
                                         * CelestialUtils.EARTH_RADIUS
                                         * Config.INSTANCE.planetRenderScaleMultiplier
                                         * 1.0
-                                        + Minecraft.getInstance().player.position().y * 100
+                                        + Minecraft.getInstance().player.position().y * 1
                         ));
                 Vec3 localUp = myCurrentSpaceObject.getGlobalAxisDirections(0).up;
                 myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(playerHeightAboveMyPlanetCenterAU));
@@ -309,75 +341,117 @@ public class skyrenderer {
             planetMatrix.scale(distance_multiplier);
             planetMatrix.scale((float) Config.INSTANCE.planetRenderScaleMultiplier); // true size is too small, so apply a fixed scale
 
-            RenderSystem.setShader(shaderUtils::getPlanetShader);
-            TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-            texturemanager.getTexture(otherDimension.getTexture()).setFilter(true, true);
-            RenderSystem.setShaderTexture(0, otherDimension.getTexture());
-            shader = RenderSystem.getShader();
-
             // custom proj matrix for every draw because of high potential distance range
             Matrix4f newProj = new Matrix4f(proj);
             float n = (float) (relativePos.length() / 10000);
-            float f = (float) (relativePos.length() * 2);
+            float f = (float) (relativePos.length() * 100);
             newProj.set(2, 2, -(f + n) / (f - n));
             newProj.set(3, 2, -(2f * f * n) / (f - n));
 
-            shader.getUniform("ProjMat").set(newProj);
-            shader.getUniform("ViewMat").set(viewMatrix);
-            shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
-            shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
+            if(!skipPlanetRender) {
 
-            Vector3f emissiveColor = RenderUtils.gamma_reverse(otherDimension.getEmissiveColor());
-            shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, otherDimension.getRadiationIntensity()));
+                RenderSystem.setShader(shaderUtils::getPlanetShader);
+                TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+                texturemanager.getTexture(otherDimension.getTexture()).setFilter(true, true);
+                RenderSystem.setShaderTexture(0, otherDimension.getTexture());
+                shader = RenderSystem.getShader();
 
-            shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
+                shader.getUniform("ProjMat").set(newProj);
+                shader.getUniform("ViewMat").set(viewMatrix);
+                shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
+                shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
-            Vector3f LocalSunriseColor =  RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
-            shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
+                Vector3f emissiveColor = RenderUtils.gamma_reverse(otherDimension.getEmissiveColor());
+                shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, otherDimension.getRadiationIntensity()));
 
-            shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
+                shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
-            shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
+                Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
+                shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
 
-            Vector3f TargetSkyColor = RenderUtils.gamma_reverse(otherDimension.getSkyColor());
-            shader.getUniform("TargetSkyColor").set(TargetSkyColor);
+                shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
 
-            shader.getUniform("playerHeight").set(playerHeightAboveSea);
+                shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
 
-            shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+                Vector3f TargetSkyColor = RenderUtils.gamma_reverse(otherDimension.getSkyColor());
+                shader.getUniform("TargetSkyColor").set(TargetSkyColor);
 
-            Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
-            shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
+                shader.getUniform("playerHeight").set(playerHeightAboveSea);
 
-            int totalLights = 0;
-            for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
-                Dimension star = DimensionManager.get(lightSourceId);
-                Vec3 StarPos = star.getPosition(partialtick);
-                Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
-                shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
-                Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
-                shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
-                totalLights += 1;
+                shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+
+                Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
+                shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
+
+                int totalLights = 0;
+                for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
+                    Dimension star = DimensionManager.get(lightSourceId);
+                    Vec3 StarPos = star.getPosition(partialtick);
+                    Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
+                    shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+                    Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
+                    shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
+                    totalLights += 1;
+                }
+                shader.getUniform("LightCount").set(totalLights);
+
+
+                if (isMyDimension) {
+                    shader.getUniform("isLocalPlanet").set(1);
+                } else {
+                    shader.getUniform("isLocalPlanet").set(0);
+                }
+
+                shader.apply();
+                vertexBufferPlanet.bind();
+                vertexBufferPlanet.draw();
+                shader.clear();
+
             }
-            shader.getUniform("LightCount").set(totalLights);
 
+            if(otherDimension.hasRings()){
+                // nice thing, the planet matrix is already transformed
+                planetMatrix.scale(3);
 
-            if (isMyDimension) {
-                shader.getUniform("isLocalPlanet").set(1);
-            } else {
-                shader.getUniform("isLocalPlanet").set(0);
+                RenderSystem.setShader(shaderUtils::getRingSystemShader);
+                ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
+                TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+                texturemanager.getTexture(tex).setFilter(true, true);
+                RenderSystem.setShaderTexture(0, tex);
+                shader = RenderSystem.getShader();
+                shader.getUniform("ProjMat").set(newProj);
+                shader.getUniform("ViewMat").set(viewMatrix);
+                shader.getUniform("WorldMat").set(worldMatrix);
+                shader.getUniform("ModelMat").set(planetMatrix);
+
+                int totalLights = 0;
+                for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
+                    Dimension star = DimensionManager.get(lightSourceId);
+                    Vec3 StarPos = star.getPosition(partialtick);
+                    Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
+                    shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+                    Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
+                    shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
+                    totalLights += 1;
+                }
+                shader.getUniform("LightCount").set(totalLights);
+
+                TRANSLUCENT_TRANSPARENCY.setupRenderState();
+
+                shader.apply();
+                vertexBufferRingSystem.bind();
+                vertexBufferRingSystem.draw();
+                shader.clear();
+
+                TRANSLUCENT_TRANSPARENCY.clearRenderState();
             }
 
-            shader.apply();
-            vertexBufferPlanet.bind();
-            vertexBufferPlanet.draw();
-            shader.clear();
+            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); // remember, we do manual depth sorting
         }
 
 
         NO_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
-        GlStateManager._depthMask(true);
 
         VertexBuffer.unbind();
     }

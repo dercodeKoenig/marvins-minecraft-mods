@@ -12,7 +12,12 @@ void main()
     // The size of a single texel
     float texelSize = 1.0 / resolution;
 
-    float weight[] = {0.227, 0.194, 0.121, 0.054, 0.016};
+    float weight[5];
+    weight[0] = 0.227;
+    weight[1] = 0.194;
+    weight[2] = 0.121;
+    weight[3] = 0.054;
+    weight[4] = 0.016;
 
     vec3 result = texture(image, texCoord).rgb * weight[0]; // Start with the center pixel
 

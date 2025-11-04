@@ -134,6 +134,10 @@ public class PlanetDimension extends Dimension {
         return new Vector3f(properties().fogColor);
     }
 
+    public boolean hasRings() {
+        return properties().hasRingSystem;
+    }
+
     public float getAtmosphereDensity() {
         return properties().atmosphereDensity;
     }

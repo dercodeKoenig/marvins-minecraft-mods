@@ -32,6 +32,7 @@ public class DefaultGalaxy {
         overworld.parentDimensionId = sun.dimensionId;
         overworld.dayTimeReference = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
+        overworld.hasRingSystem = true;
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
@@ -46,6 +47,7 @@ public class DefaultGalaxy {
         moon.targetDayLength = 12000;
         moon.atmosphereDensity = 0;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
+        moon.hasRingSystem = true;
         galaxy.add(moon);
 
 

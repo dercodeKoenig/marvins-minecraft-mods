@@ -51,6 +51,8 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with
 
+    public boolean hasRingSystem = false;
+
     public float radiationIntensity; // radiation strength, can be used for terrain shading, temperature calculation and maybe more stuff
 
     public float atmosphereDensity = 1;

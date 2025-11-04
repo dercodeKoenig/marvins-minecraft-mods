@@ -54,4 +54,9 @@ public class shaderUtils {
     public static ShaderInstance getstarBackgroundShader() {
         return starBackgroundShader;
     }
+
+    public static ShaderInstance ringSystemShader;
+    public static ShaderInstance getRingSystemShader() {
+        return ringSystemShader;
+    }
 }

@@ -187,6 +187,10 @@ public class Main {
             shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.POSITION_COLOR);
             event.registerShader(shaderUtils.starBackgroundShader, x -> {
             });
+
+            shaderUtils.ringSystemShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "ring_system_shader"), shaderUtils.POSITION_NORMAL);
+            event.registerShader(shaderUtils.ringSystemShader, x -> {
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

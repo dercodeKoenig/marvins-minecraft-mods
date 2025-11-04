@@ -67,26 +67,28 @@ void main() {
         totalReflectedLight += reflected;
     }
 
+    vec3 emitted = vec3(0,0,0);
+    if(emissiveColor.a > 0) {
+        // atmosphere modifies how the star appears
+        float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
+        float starUp = dot(localUpUniverseSpace, normalize(TargetVector));
+        float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
+        atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
+        atmThicknessMod *= altitudeAtmThicknessMod;
 
-    // atmosphere modifies how the star appears
-    float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
-    float starUp = dot(localUpUniverseSpace, normalize(TargetVector));
-    float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
-    atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
-    atmThicknessMod *= altitudeAtmThicknessMod;
-
-    // more atm should make the star less bright bc light scatters away
-    float starBrightness = max(0.0, emissiveColor.a) * (1 - atmThicknessMod) ;
+        // more atm should make the star less bright bc light scatters away
+        float starBrightness = max(0.0, emissiveColor.a) * (1 - atmThicknessMod);
 
 
-    // i tint the star slightly in the sunrise color because this is the light that scatters away less
-    vec3 sunRiseTintColor = LocalSunriseColor;
+        // i tint the star slightly in the sunrise color because this is the light that scatters away less
+        vec3 sunRiseTintColor = LocalSunriseColor;
 
-    // tint based on atm thickness
-    vec3 atmAdjustedEmissiveColor = mix(emissiveColor.rgb, sunRiseTintColor, atmThicknessMod);
+        // tint based on atm thickness
+        vec3 atmAdjustedEmissiveColor = mix(emissiveColor.rgb, sunRiseTintColor, atmThicknessMod);
 
-    // also include the texture for emissive, well it will probably not matter because of bloom but i think this is correct so
-    vec3 emitted = atmAdjustedEmissiveColor * baseSurfaceColor * starBrightness;
+        // also include the texture for emissive, well it will probably not matter because of bloom but i think this is correct so
+        emitted = atmAdjustedEmissiveColor * baseSurfaceColor * starBrightness;
+    }
 
     fragColor = vec4(totalReflectedLight + emitted, 1.0);
 }
