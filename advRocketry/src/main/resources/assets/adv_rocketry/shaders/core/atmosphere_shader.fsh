@@ -18,7 +18,7 @@ uniform int LightCount;
 
 out vec4 fragColor;
 
-//TODO: to render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings
+//TODO: to render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings on local planet - but monitor fps and use low framebuffer size
 vec3 gamma_reverse(vec3 color){
     return pow(color, vec3(2.2));
 }

@@ -31,7 +31,6 @@ public class skyrenderer {
 
     VertexBuffer vertexBufferSkyBox;
     VertexBuffer vertexBufferPlanet;
-    VertexBuffer vertexBufferCircle;
     VertexBuffer vertexBufferSquare;
     VertexBuffer vertexBufferStarBackground;
     boolean finishedLoading = false;
@@ -43,36 +42,8 @@ public class skyrenderer {
             createSquareBuffer();
             setupRenderTargets();
             createStarBackgroundBuffer();
-            createCircleBuffer();
             finishedLoading = true;
         });
-    }
-
-    void createCircleBuffer() {
-        int segments = 20; // smoothness of the circle
-        vertexBufferCircle = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(segments * 6 * 16);
-        BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
-
-        for (int i = 0; i < segments; i++) {
-            double angle1 = 2 * Math.PI * i / segments;
-            double angle2 = 2 * Math.PI * (i + 1) / segments;
-
-            float x1 = (float) Math.cos(angle1);
-            float z1 = (float) Math.sin(angle1);
-            float x2 = (float) Math.cos(angle2);
-            float z2 = (float) Math.sin(angle2);
-
-            // Center is at origin (0,0,0), facing +Y
-            bufferbuilder.addVertex(0, 0, 0).setNormal(0, 1, 0);
-            bufferbuilder.addVertex(x2, 0, z2).setNormal(0, 1, 0);
-            bufferbuilder.addVertex(x1, 0, z1).setNormal(0, 1, 0);
-        }
-
-        MeshData mesh = bufferbuilder.build();
-        vertexBufferCircle.bind();
-        vertexBufferCircle.upload(mesh);
-        byteBuffer.close();
     }
 
 
@@ -284,7 +255,8 @@ public class skyrenderer {
             boolean isMyDimension = otherDimension.equals(myCurrentSpaceObject);
 
             if (isMyDimension) {
-                if(playerHeightAboveSea < 350) continue; // use the simple circle shader to try reducing fps lag
+                // only render when we sit in rocket to reduce gpu load when it it not required
+                if(!(Minecraft.getInstance().player.getVehicle() instanceof EntityRocket)) continue;
 
                 // special case: to correctly render the planet below, we need to add the up vector * radius * render multiplier to get the players location and not the planet center
                 float playerHeightAboveMyPlanetCenterAU =
@@ -337,7 +309,7 @@ public class skyrenderer {
 
             // custom proj matrix for every draw because of high potential distance range
             Matrix4f newProj = new Matrix4f(proj);
-            float n = (float) (relativePos.length() / 1000);
+            float n = (float) (relativePos.length() / 10000);
             float f = (float) (relativePos.length() * 2);
             newProj.set(2, 2, -(f + n) / (f - n));
             newProj.set(3, 2, -(2f * f * n) / (f - n));
@@ -382,52 +354,6 @@ public class skyrenderer {
         }
 
 
-        // TODO: might need a custom shader?
-        // if the player is below some y, we do not render the sphere because it creates fps lag
-        // just render a flat circle
-        // also only do this when we are on a rocket, or else do not render anything special to reduce fps lag
-        if(myCurrentSpaceObject instanceof  PlanetDimension myPlanet && playerHeightAboveSea < 350 && Minecraft.getInstance().player.getVehicle() instanceof EntityRocket){
-            float playerHeightAboveMyPlanetCenterAU =
-                    (float) (CelestialUtils.toAU(
-                            ((PlanetDimension)myCurrentSpaceObject).getEarthRadiusMultiplier()
-                                    * CelestialUtils.EARTH_RADIUS
-                                    * Config.INSTANCE.planetRenderScaleMultiplier
-                                    * 1.0
-                                    + Minecraft.getInstance().player.position().y * 100
-                    ));
-
-            Matrix4f planetMatrix = new Matrix4f();
-            float yrelative = (float) CelestialUtils.fromAU(playerHeightAboveMyPlanetCenterAU);
-            planetMatrix.translate(0, -yrelative, 0);
-
-            double trueRadius = CelestialUtils.fromEarthRadius(myPlanet.getEarthRadiusMultiplier());
-            planetMatrix.scale((float) (trueRadius * Config.INSTANCE.planetRenderScaleMultiplier));
-            planetMatrix.scale(2); // some extra scaling to try to match the sphere radius more
-
-            RenderSystem.setShader(shaderUtils::getPlanetShader);
-            shader = RenderSystem.getShader();
-
-            // custom proj matrix for every draw because of high potential distance range
-            Matrix4f newProj = new Matrix4f(proj);
-            float n = (float) (yrelative / 100);
-            float f = (float) (yrelative * 100);
-            newProj.set(2, 2, -(f + n) / (f - n));
-            newProj.set(3, 2, -(2f * f * n) / (f - n));
-
-            shader.getUniform("ProjMat").set(newProj);
-            shader.getUniform("ViewMat").set(viewMatrix);
-            shader.getUniform("WorldMat").set(new Matrix4f()); // so it can transform universe space to world space
-            shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
-
-            shader.getUniform("fastPlanetDraw").set(1);
-            shader.getUniform("fastDrawFogColor").set(myCurrentSpaceObject.computeTerrainFogColor(partialtick));
-
-            shader.apply();
-            vertexBufferCircle.bind();
-            vertexBufferCircle.draw();
-            shader.clear();
-        }
-
         NO_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
         GlStateManager._depthMask(true);
@@ -467,7 +393,7 @@ public class skyrenderer {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        adjustRenderTargetSize(PlanetsTarget, windowWidth, windowHeight, 2f);
+        adjustRenderTargetSize(PlanetsTarget, windowWidth, windowHeight, 1f); // TODO: can we use 1 again? this is not good for rendering close up planet with many fragments
         adjustRenderTargetSize(AtmosphereTarget, windowWidth, windowHeight, 0.25f);
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
