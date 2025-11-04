@@ -57,7 +57,9 @@ void main() {
         float sunDot = -dot(starDir, normalUniverseSpace);
 
         // a fancy curve based on the height of the star above the horizon (dot product to up vector)
-        float perStarBrightnessMultiplier = pow(max(0, (sunUp+0.4)/1.4), 0.8);
+        // note that future gamma correction will make dark areas brighter, so i adjust the pow factor to compensate it
+        // it is not about beeing physically correct, it just has to look good enough
+        float perStarBrightnessMultiplier = pow(max(0, (sunUp+0.4)/1.4), 2.2);
         // apply intensity + distance modifier
         perStarBrightnessMultiplier *= starColor.a / (starDistance * starDistance);
         // if a fragment is closely aligned with the sun, make it more bright so that the area around the sun is brighter
