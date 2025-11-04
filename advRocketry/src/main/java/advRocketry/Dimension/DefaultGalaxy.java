@@ -45,7 +45,7 @@ public class DefaultGalaxy {
         moon.gravitationalMultiplier = 0.3f;
         moon.targetDayLength = 12000;
         moon.atmosphereDensity = 0;
-        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
+        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         galaxy.add(moon);
 
 
@@ -61,7 +61,7 @@ public class DefaultGalaxy {
         moon2.targetDayLength = -1000;
         moon2.atmosphereDensity = 0;
         moon2.seaLevel = 50;
-        moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_512.png");
+        moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         galaxy.add(moon2);
 
 
