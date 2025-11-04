@@ -43,10 +43,6 @@ void main() {
         vec3 L = normalize(LightVectors[i]);
         float dist = length(LightVectors[i]);
 
-        // the reflected light without atmosphere consideration is normal dot light
-        float NdotL = max(0,dot(N, L));
-
-
         // now consider atmosphere
         // how much of the edge (horizon) we see
         float viewAngle = 1.0 - clamp(dot(N, normalize(TargetVector)), 0.0, 1.0);
@@ -57,6 +53,9 @@ void main() {
         float rim = pow(viewAngle, 4)  // the more at the side the more atmosphere we will see
         * lightAngle  // more away from the sun = darker.
         * TargetAtmDensity; // less atmosphere = less light by atmosphere
+
+        // the reflected light without atmosphere consideration is normal dot light
+        float NdotL = max(0,dot(N, L));
 
         vec3 reflected =
         (NdotL * baseSurfaceColor + rim * mix(baseSurfaceColor,TargetSkyColor,TargetAtmDensity/(1+TargetAtmDensity)))

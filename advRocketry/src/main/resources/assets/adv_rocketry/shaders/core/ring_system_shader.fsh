@@ -13,7 +13,7 @@ in vec3 normalModelSpace;
 
 out vec4 fragColor;
 
-//TODO: to render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings on local planet - but monitor fps and use low framebuffer size
+//TODO: maybe render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings on local planet - but monitor fps and use low framebuffer size
 
 void main() {
 
@@ -25,9 +25,9 @@ void main() {
     for (int i = 0; i < LightCount; i++) {
         vec3 L = normalize(LightVectors[i]);
         vec4 C = LightColors[i];
+        float distance = length(LightVectors[i]);
 
-        float d = max(0,(dot(normalUniverseSpace, L)+1) / 2);
-        totalColor+=d*C.rgb*baseColor.rgb;
+        totalColor+= 1 * C.rgb * baseColor.rgb * C.a / (distance*distance);
 
     }
 
