@@ -530,6 +530,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
             p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
+        else if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon")))
+            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        else if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus")))
+            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
         else
             p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         p.target = new BlockPos((int) position().x, 0, (int) position().z);
