@@ -220,6 +220,8 @@ public class PlanetDimension extends Dimension {
     }
 
     public float getLatitudeFromZPosition(double z) {
+        // TODO: this is not good! it is not equal distribution of latitude because changes at equator are faster
+        //      rework this!!!!
         double s = z / properties().latitude_len;
         return (float) Math.sin(s * Math.PI * 2) * 90;
     }
