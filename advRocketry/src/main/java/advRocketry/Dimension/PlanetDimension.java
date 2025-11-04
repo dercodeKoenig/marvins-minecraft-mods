@@ -316,7 +316,8 @@ public class PlanetDimension extends Dimension {
             if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
                 level.setDayTimePerTick(getDayTimePerTick());
             }
-            properties().dayTime = level.getTimeOfDay(0) * 24000; // todo: make it as float
+            properties().dayTime =  (level.getTimeOfDay(0)+0.25f) * 24000; // todo: make my level time as float
+            properties().dayTime = properties().dayTime % 24000;
         } else {
             trackDayTimeNormal();
         }
@@ -336,7 +337,8 @@ public class PlanetDimension extends Dimension {
         tick();
         Level level = ClientUtils.getPlayerLevel();
         if (level != null && getDimensionId() != null && getDimensionId().equals(level.dimension().location())) {
-            properties().dayTime = level.getTimeOfDay(0) * 24000;
+            properties().dayTime =  (level.getTimeOfDay(0)+0.25f) * 24000; // todo: make my level time as float
+            properties().dayTime = properties().dayTime % 24000;
         } else {
             trackDayTimeNormal();
         }
