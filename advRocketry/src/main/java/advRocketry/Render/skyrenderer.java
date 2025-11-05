@@ -56,8 +56,8 @@ public class skyrenderer {
         vertexBufferStarBackground = new VertexBuffer(VertexBuffer.Usage.STATIC);
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(starCount * 4 * 16);
         BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR);
-        float radius = 1000;
-        float scale = 2;
+        float radius = 1000; // about 1 - 2 px on a full hd screen?
+        float scale = 1f;
         Random random = new Random(42);
         for (int i = 0; i < starCount; i++) {
             double theta = random.nextFloat() * 2.0 * Math.PI; // azimuth
@@ -191,7 +191,6 @@ public class skyrenderer {
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
         Dimension myCurrentSpaceObject = DimensionManager.get(myId);
         Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialTick);
-
 
         Matrix4f atmMatrix = new Matrix4f();
         atmMatrix.scale(Minecraft.getInstance().gameRenderer.getRenderDistance()); // this prevents bobbing by zooming out
