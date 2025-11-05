@@ -47,7 +47,7 @@ void main() {
 
         // the atm adds extra light after the normal falloff
         float atmLightFactor = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
-        atmLightFactor = pow(atmLightFactor, 3);
+        atmLightFactor = pow(atmLightFactor, 2);
 
 
         // how much of the edge (horizon) we see
@@ -64,7 +64,7 @@ void main() {
 
 
         // the reflected light without atmosphere consideration is normal dot light
-        float NdotL = max(0,dot(N, L));
+        float NdotL = pow(max(0,dot(N, L)),2);
         vec3 reflectedLight = NdotL * baseSurfaceColor;
 
         vec3 reflected =
