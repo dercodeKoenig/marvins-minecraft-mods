@@ -116,8 +116,8 @@ void main() {
             position,
             L,
             planetCenter,
-            planetRadius,
-            planetRadius * 0.5
+            planetGeometryScale,
+            planetGeometryScale * 0.5
         );
 
         if(shadowFactor <= 0)
