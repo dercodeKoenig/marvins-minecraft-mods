@@ -411,7 +411,6 @@ public class skyrenderer {
 
             if(otherDimension.hasRings()){
                 // nice thing, the planet matrix is already transformed
-                planetMatrix.scale(4);
 
                 RenderSystem.setShader(shaderUtils::getRingSystemShader);
                 ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
@@ -423,6 +422,9 @@ public class skyrenderer {
                 shader.getUniform("ViewMat").set(viewMatrix);
                 shader.getUniform("WorldMat").set(worldMatrix);
                 shader.getUniform("ModelMat").set(planetMatrix);
+
+                shader.getUniform("scale").set(4f);
+                shader.getUniform("planetGeometryScale").set((float)(scaleAU * distance_multiplier * Config.INSTANCE.planetRenderScaleMultiplier));
 
                 int totalLights = 0;
                 for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {

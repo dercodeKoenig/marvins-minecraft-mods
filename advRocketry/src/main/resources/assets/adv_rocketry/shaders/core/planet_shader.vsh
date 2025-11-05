@@ -5,8 +5,8 @@ in vec3 Normal;
 in vec2 UV0;
 
 uniform mat4 ViewMat;
-uniform mat4 WorldMat;  // rotate universe space (relative to player position) to world space
-uniform mat4 ModelMat; // Model space to universe space (planets are transformed in universe space, relative to the player position)
+uniform mat4 WorldMat;  // rotate universe space to world space
+uniform mat4 ModelMat; // Model space to universe space (planets are transformed in universe space, translated relative to the player position in universe space)
 uniform mat4 ProjMat;
 
 out vec2 texcoord;
