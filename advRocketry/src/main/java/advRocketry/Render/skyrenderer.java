@@ -57,6 +57,7 @@ public class skyrenderer {
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(starCount * 4 * 16);
         BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR);
         float radius = 1000;
+        float scale = 2;
         Random random = new Random(42);
         for (int i = 0; i < starCount; i++) {
             double theta = random.nextFloat() * 2.0 * Math.PI; // azimuth
@@ -70,10 +71,10 @@ public class skyrenderer {
             Vec3 normal1 = position.cross(new Vec3(0, 1, 0)).normalize().scale(1);
             Vec3 normal2 = normal1.cross(position).normalize().scale(1);
 
-            Vector3f point1 = position.add(normal1.scale(-1)).add(normal2.scale(-1)).toVector3f();
-            Vector3f point2 = position.add(normal1.scale(1)).add(normal2.scale(-1)).toVector3f();
-            Vector3f point3 = position.add(normal1.scale(1)).add(normal2.scale(1)).toVector3f();
-            Vector3f point4 = position.add(normal1.scale(-1)).add(normal2.scale(1)).toVector3f();
+            Vector3f point1 = position.add(normal1.scale(-scale)).add(normal2.scale(-scale)).toVector3f();
+            Vector3f point2 = position.add(normal1.scale(scale)).add(normal2.scale(-scale)).toVector3f();
+            Vector3f point3 = position.add(normal1.scale(scale)).add(normal2.scale(scale)).toVector3f();
+            Vector3f point4 = position.add(normal1.scale(-scale)).add(normal2.scale(scale)).toVector3f();
 
             Vector4f color = new Vector4f(0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 1f);
             color.mul(0.0f + random.nextFloat() * 1f);

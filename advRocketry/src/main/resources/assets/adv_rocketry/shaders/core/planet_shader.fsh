@@ -22,6 +22,7 @@ uniform vec3 localTerrainFogColor;
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
 in vec3 localUpUniverseSpace;
+in vec3 relativeFragPosUniverse;
 
 out vec4 fragColor;
 
@@ -43,27 +44,32 @@ void main() {
         vec3 L = normalize(LightVectors[i]);
         float dist = length(LightVectors[i]);
 
-        // now consider atmosphere
-        // how much of the edge (horizon) we see
-        float viewAngle = 1.0 - abs(dot(N, normalize(TargetVector)));
 
-        // forward/back scattering relative to light direction
+        // the atm adds extra light after the normal falloff
         float atmLightFactor = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
-        atmLightFactor *= TargetAtmDensity;
-        atmLightFactor = pow(atmLightFactor, 2.2);
+        atmLightFactor = pow(atmLightFactor, 3);
 
+
+        // how much of the edge (horizon) we see
+        vec3 viewDir = normalize(relativeFragPosUniverse);
+        float viewAngle = 1.0 - abs(dot(N, viewDir));
         // rim intensity (thicker with higher TargetAtmDensity)
         // the thing that glows on the side
         float rim = pow(viewAngle, 2);  // the more at the side the more atmosphere we will see
 
+        vec3 atmLight =
+         2 * rim * atmLightFactor * TargetSkyColor // the atm glow around the planet
+         + atmLightFactor * baseSurfaceColor; // the light scatters through atm and hits terrain. not for cloudy atmosphere, but this is what the texture is for!
+        ;
+
+
         // the reflected light without atmosphere consideration is normal dot light
         float NdotL = max(0,dot(N, L));
+        vec3 reflectedLight = NdotL * baseSurfaceColor;
 
         vec3 reflected =
         (
-            NdotL * baseSurfaceColor
-            + rim * atmLightFactor * TargetSkyColor
-            + atmLightFactor * baseSurfaceColor
+            mix(reflectedLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity))
         )
         * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);

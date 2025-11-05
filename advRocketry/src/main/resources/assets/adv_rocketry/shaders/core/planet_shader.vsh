@@ -12,10 +12,13 @@ uniform mat4 ProjMat;
 out vec2 texcoord;
 out vec3 normalUniverseSpace;
 out vec3 localUpUniverseSpace;
+out vec3 relativeFragPosUniverse;
 
 void main() {
 
     gl_Position = ProjMat * ViewMat * WorldMat * ModelMat * vec4(Position, 1.0);
+
+    relativeFragPosUniverse = (ModelMat * vec4(Position, 1.0)).xyz;
 
     texcoord = UV0;
 
