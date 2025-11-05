@@ -9,7 +9,7 @@ uniform int LightCount;
 
 
 in vec2 texcoord;
-in vec3 universePosition;
+in vec3 viewDir;
 in vec3 normalUniverseSpace;
 
 out vec4 fragColor;
@@ -17,6 +17,12 @@ out vec4 fragColor;
 //TODO: maybe render rings on planets use a sphere with dot(normal, ringnormal) and pow to render rings on local planet - but monitor fps and use low framebuffer size
 
 void main() {
+
+    float specularStrength = 1;
+    float specularPower = 10;
+
+    float alphaMultiplier = 0.1;
+
 
     //vec4 baseColor = pow(texture(Sampler0, texcoord), vec4(2.2));
     vec4 baseColor = texture(Sampler0, texcoord);
@@ -31,18 +37,20 @@ void main() {
         vec3 L = normalize(LightVectors[i]);
         vec3 C = LightColors[i].rgb * LightColors[i].a;
         float distance = length(LightVectors[i]);
+        vec3 C1 = C  / (distance*distance);
 
-        // specular
-        vec3 reflected = reflect(normalize(universePosition), normalUniverseSpaceAdjusted); // the reflection vector
-        float reflectionMultiplier = pow(max(0,dot(reflected, L)), 5);
-        totalColor += reflectionMultiplier * C;
+        // specular - bright when starlight reflects into my view
+        vec3 reflected = reflect(viewDir, normalUniverseSpaceAdjusted); // the reflection vector
+        float reflectionMultiplier = pow(max(0,dot(reflected, L)), specularPower);
+        totalColor += specularStrength * reflectionMultiplier * C1;
 
-        // diffuse
-        totalColor+= 0.5* (dot(L, normalUniverseSpaceAdjusted)+1)/2 * C * baseColorLinRGB / (distance*distance);
+        // diffuse - brignt when face is facing the star
+        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted))*0.9+0.1;
+        totalColor+= diffuse * C1 * baseColorLinRGB;
 
     }
 
-    vec4 normalColor = vec4(totalColor, baseColor.a);
+    vec4 normalColor = vec4(totalColor, baseColor.a * alphaMultiplier);
     //vec4 normalColor = vec4(totalColor, 1);
 
     fragColor = normalColor;

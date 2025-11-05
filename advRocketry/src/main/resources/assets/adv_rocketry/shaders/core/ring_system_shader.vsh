@@ -10,13 +10,13 @@ uniform mat4 ProjMat;
 
 out vec2 texcoord;
 out vec3 normalUniverseSpace;
-out vec3 universePosition; // the position, note that the model is translated relative to player position so it is just modelMat * position
+out vec3 viewDir; // the direction of the fragment relative to the camera for specular light
 
 void main() {
 
     gl_Position = ProjMat * ViewMat * WorldMat * ModelMat * vec4(Position, 1.0);
 
-    universePosition = (ModelMat * vec4(Position, 1.0)).xyz;
+    viewDir = normalize((ModelMat * vec4(Position, 1.0)).xyz); // the model is already translated relative to camera
 
     texcoord = vec2((length(Position.xz) - 0.5) * 2, 0.5);
 

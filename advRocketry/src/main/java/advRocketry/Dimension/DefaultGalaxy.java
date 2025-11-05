@@ -92,8 +92,7 @@ public class DefaultGalaxy {
         distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
         distantStar.radiationIntensity = 1;
         distantStar.position = new Vec3(20,2,0);
-        //galaxy.add(distantStar);
-
+        //galaxy.add(distantStar);star
 
 
 
