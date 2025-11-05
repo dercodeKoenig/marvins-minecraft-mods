@@ -352,12 +352,12 @@ public class PlanetDimension extends Dimension {
         } else {
             trackDayTimeNormal();
         }
-        if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon")))
-            properties().rotationAxis = new Vec3(1,0.1,0);
+        //if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon")))
+        //    properties().rotationAxis = new Vec3(1,0.1,0);
         if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus")))
             properties().hasRingSystem=true;
         if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2")))
-            properties().hasRingSystem=true;
+            properties().hasRingSystem=false;
         if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
             properties().rotationAxis = new Vec3(0.05,1,0);
     }
