@@ -45,20 +45,26 @@ void main() {
 
         // now consider atmosphere
         // how much of the edge (horizon) we see
-        float viewAngle = 1.0 - clamp(dot(N, normalize(TargetVector)), 0.0, 1.0);
+        float viewAngle = 1.0 - abs(dot(N, normalize(TargetVector)));
+
         // forward/back scattering relative to light direction
-        float lightAngle = clamp(dot(N, L) * 0.7 + 0.3, 0.0, 1.0);
+        float atmLightFactor = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
+        atmLightFactor *= TargetAtmDensity;
+        atmLightFactor = pow(atmLightFactor, 2.2);
 
         // rim intensity (thicker with higher TargetAtmDensity)
-        float rim = pow(viewAngle, 4)  // the more at the side the more atmosphere we will see
-        * lightAngle  // more away from the sun = darker.
-        * TargetAtmDensity; // less atmosphere = less light by atmosphere
+        // the thing that glows on the side
+        float rim = pow(viewAngle, 2);  // the more at the side the more atmosphere we will see
 
         // the reflected light without atmosphere consideration is normal dot light
         float NdotL = max(0,dot(N, L));
 
         vec3 reflected =
-        (NdotL * baseSurfaceColor + rim * mix(baseSurfaceColor,TargetSkyColor,TargetAtmDensity/(1+TargetAtmDensity)))
+        (
+            NdotL * baseSurfaceColor
+            + rim * atmLightFactor * TargetSkyColor
+            + atmLightFactor * baseSurfaceColor
+        )
         * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);
 
