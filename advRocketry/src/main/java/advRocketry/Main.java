@@ -111,7 +111,6 @@ public class Main {
 
     public void onClientTick(ClientTickEvent.Post event) {
         if(ClientUtils.getPlayerLevel() == null)return; // my stuff is only for when playing
-
         DimensionManager.INSTANCE_CLIENT.tick();
         GlobalTime.tickClient();
         EntityRocket.onClientTickEvent();

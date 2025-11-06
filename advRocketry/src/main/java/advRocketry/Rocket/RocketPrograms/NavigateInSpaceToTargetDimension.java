@@ -51,6 +51,7 @@ public class NavigateInSpaceToTargetDimension {
 
         // move to target dimension
         Dimension targetDim = DimensionManager.getDimensionManager(rocket.level().isClientSide) .get(target);
+        if(targetDim == null) return true; // client might not have received the dimension sync packet
         Vec3 targetPosition = targetDim.getPosition(0);
 
         Vec3 targetPositionRelative = targetPosition.subtract(rocket.universePosition);

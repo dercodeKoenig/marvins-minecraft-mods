@@ -73,13 +73,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
 
-    public void onServerStop() {
-
-        dimensions.remove(RocketTravelDimension.dimId); // this one does not need to be saved
-        DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, PlayerRemover.DEFAULT);
-
+    public void saveDimensionProperties(Path saveDir){
         System.out.println("[DimensionManager]  saving current dimension properties...");
-        Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         try {
             Files.createDirectories(saveDir);
             for (Dimension i : dimensions.values()) {
@@ -91,15 +86,10 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             throw new RuntimeException(e);
         }
         System.out.println("[DimensionManager] saved all dimension properties!");
-        System.out.println("[DimensionManager] unloading and saving dimensions...");
-        for (Dimension i : dimensions.values()) {
-            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
-        }
-        System.out.println("[DimensionManager] saved all dimensions!");
+
 
         // remove dimension property files for dimensions that no longer exist (idk death star laser or whatever)
-        Path directory = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(saveDir)) {
             for (Path file : stream) {
                 if (Files.isRegularFile(file)) {
                     String content = Files.readString(file);
@@ -113,7 +103,21 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    public void onServerStop() {
+
+        dimensions.remove(RocketTravelDimension.dimId); // this one does not need to be saved
+        DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, PlayerRemover.DEFAULT);
+
+        Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
+        saveDimensionProperties(saveDir);
+
+        System.out.println("[DimensionManager] unloading and saving dimensions...");
+        for (Dimension i : dimensions.values()) {
+            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
+        }
+        System.out.println("[DimensionManager] saved all dimensions!");
 
     }
 
@@ -178,7 +182,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             for (String s : defaultGalaxy) {
                 loadDimensionFromString(s);
             }
-            // TODO: save default files
+            saveDimensionProperties(defaultDir);
         }
 
 
@@ -191,6 +195,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     public static class SyncDimensionProperties implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
         public void readClient(String props) {
+            System.out.println(props);
             INSTANCE_CLIENT.loadDimensionFromString(props);
         }
 

@@ -666,7 +666,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         };
         deconstructButton.color = 0xffffffff;
         guiHandler.modules.add(deconstructButton);
-        guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
+        guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
+            public void onButtonClicked() {
+                super.onButtonClicked();
+                Minecraft.getInstance().setScreen(null);
+            }
+        };
         launchButton.color = 0xffffffff;
         guiHandler.modules.add(launchButton);
 

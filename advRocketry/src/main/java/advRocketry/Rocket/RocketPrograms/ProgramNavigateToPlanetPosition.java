@@ -52,7 +52,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double yOffset = -2; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
             double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
 
-            double maxDiffY = 1000;
+            double maxDiffY = 500;
             if (rocket.position().y - targetY > maxDiffY) {
                 targetY = rocket.position().y - maxDiffY;
             }
