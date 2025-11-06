@@ -122,9 +122,7 @@ public class PlanetDimension extends Dimension {
         return properties().texture;
     }
 
-    public Vector3f getSkyColor() {
-        return new Vector3f(properties().skyColor);
-    }
+    public Vector3f getSkyColor() {return new Vector3f(properties().skyColor);}
 
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
@@ -133,6 +131,8 @@ public class PlanetDimension extends Dimension {
     public Vector3f getFogColor() {
         return new Vector3f(properties().fogColor);
     }
+
+    public Vector3f getReflectiveTextureTintColor() {return new Vector3f(properties().reflectiveTextureTintColor);}
 
     public boolean hasRings() {
         return properties().hasRingSystem;
@@ -352,13 +352,5 @@ public class PlanetDimension extends Dimension {
         } else {
             trackDayTimeNormal();
         }
-        //if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon")))
-        //    properties().rotationAxis = new Vec3(1,0.1,0);
-        if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus")))
-            properties().hasRingSystem=true;
-        if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2")))
-            properties().hasRingSystem=false;
-        if(getDimensionId().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
-            properties().rotationAxis = new Vec3(0.05,1,0);
     }
 }

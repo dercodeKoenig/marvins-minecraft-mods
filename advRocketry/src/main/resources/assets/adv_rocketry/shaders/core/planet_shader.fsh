@@ -11,8 +11,8 @@ uniform vec4 emissiveColor;      // planet’s self-emission (rgb + intensity)
 uniform float AtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
-uniform vec3 TargetVector;       // from observer to target planet
 uniform vec3 TargetSkyColor;       // target planets sky color
+uniform vec3 TargetReflectiveTextureTintColor; // tint the texture for diffuse light
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
 uniform float planetSkyHeight;      // how high is considered out of atmosphere
 
@@ -47,9 +47,7 @@ void main() {
 
         // the atm adds extra light after the normal falloff
         float atmLightFactor = clamp(dot(N, L) * 0.7 + 0.3, 0.0, 1.0);
-        atmLightFactor = pow(atmLightFactor, 2); // with tonemap and gamma correct the transition from black to less black is too aggressive
-                                                // TODO: find a tonemap that keeps dark areas more linear?
-
+        atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
 
         // how much of the edge (horizon) we see
         vec3 viewDir = normalize(relativeFragPosUniverse);
@@ -72,6 +70,7 @@ void main() {
         (
             mix(reflectedLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity))
         )
+        * TargetReflectiveTextureTintColor
         * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);
 
@@ -83,7 +82,7 @@ void main() {
     if(emissiveColor.a > 0) {
         // atmosphere modifies how the star appears
         float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
-        float starUp = dot(localUpUniverseSpace, normalize(TargetVector));
+        float starUp = dot(localUpUniverseSpace, normalize(relativeFragPosUniverse));
         float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
         atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
         atmThicknessMod *= altitudeAtmThicknessMod;

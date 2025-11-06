@@ -369,12 +369,13 @@ public class skyrenderer {
                 Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
                 shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
 
-                shader.getUniform("TargetVector").set((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
-
                 shader.getUniform("TargetAtmDensity").set(otherDimension.getAtmosphereDensity());
 
                 Vector3f TargetSkyColor = RenderUtils.gamma_reverse(otherDimension.getSkyColor());
                 shader.getUniform("TargetSkyColor").set(TargetSkyColor);
+
+                Vector3f TargetReflectiveTextureTintColor = RenderUtils.gamma_reverse(otherDimension.getReflectiveTextureTintColor());
+                shader.getUniform("TargetReflectiveTextureTintColor").set(TargetReflectiveTextureTintColor);
 
                 shader.getUniform("playerHeight").set(playerHeightAboveSea);
 

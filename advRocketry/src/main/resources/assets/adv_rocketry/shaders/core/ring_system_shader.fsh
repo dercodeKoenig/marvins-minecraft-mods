@@ -137,12 +137,12 @@ void main() {
         totalColor += reflectionMultiplier * C1 * fr ;
 
         // diffuse - brignt when face is facing the star
-        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted));
+        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted)*0.95+0.05);
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
         float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 50);
-        totalColor+= transmission * C1 * baseColorLinRGB * (1-fr);
+        totalColor+= transmission * C1 * baseColorLinRGB;
     }
 
     vec4 normalColor = vec4(totalColor, alpha);
