@@ -34,31 +34,37 @@ void main() {
 
     vertexDistance = fog_distance(pos, FogShape);
 
-    vec4 lightMapColor = 2*pow(minecraft_sample_lightmap(Sampler2, UV2), vec4(3)) * pow(Color, vec4(2.2));
+    vec4 lightMapColor = 2*pow(minecraft_sample_lightmap(Sampler2, UV2), vec4(3));
+    vec4 ColorLin = pow(Color, vec4(2.2));
 
 
     //   rotWorldInv transforms vectors from World space to Universe space
     // terrain model is not rotated so model normal is already world space
     mat3 rotWorldInv = transpose(mat3(WorldMat));
     vec3 normalUniverseSpace = normalize(rotWorldInv * Normal).xyz;
-    vec3 upUniverseSpace = normalize(rotWorldInv * vec3(1, 1, 1)).xyz;
+    vec3 upUniverseSpace = normalize(rotWorldInv * vec3(0, 1, 0)).xyz;
 
     vec3 vertexColor3 = vec3(0,0, 0);
 
+
+
     for (int i = 0; i < LightCount; i++) {
+
         float distance = length(LightVectors[i]);
         vec3 L = normalize(LightVectors[i]);
         vec3 C = LightColors[i].rgb;
 
-        vertexColor3 += lightMapColor.xyz
-                        * C
+vertexColor3 += C * ColorLin.xyz
                         * LightColors[i].a / ( distance*distance)
-                        * pow(max(0, 0.6 + 0.5* dot(L, normalUniverseSpace)), 1)
-                        * max(0,dot(L, upUniverseSpace))
-;
+                        * pow(max(0, dot(L, normalUniverseSpace)), 1)
+                        * pow(max(0,dot(upUniverseSpace, L)), 0.2)
+                        * lightMapColor.xyz
+        ;
         }
 
-    vertexColor = vec4(vertexColor3, lightMapColor.a);
+    vertexColor3 += lightMapColor.xyz * ColorLin.xyz;
+
+    vertexColor = vec4(vertexColor3, Color.a);
 
 
     texCoord0 = UV0;

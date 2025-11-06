@@ -152,10 +152,10 @@ public class PlanetDimension extends Dimension {
 
     @Override
     public double getTerrainBrightness(float partialTick) {
-        //double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
-        //brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
-        //return brightness;
-        return 1;
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        return brightness;
+        //return 1;
     }
 
     @Override
