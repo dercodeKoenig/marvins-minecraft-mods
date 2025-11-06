@@ -64,7 +64,7 @@ public class RocketTravelDimension extends Dimension {
     public void createDimension() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        System.out.println("creating space travel dimension");
+        System.out.println("creating space travel dimension...");
         DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
 
         ChunkGenerator generator = SpaceDimensionGeneration.makeChunkGenerator();

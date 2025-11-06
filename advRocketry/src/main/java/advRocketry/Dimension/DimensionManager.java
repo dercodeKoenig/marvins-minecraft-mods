@@ -78,7 +78,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         dimensions.remove(RocketTravelDimension.dimId); // this one does not need to be saved
         DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, PlayerRemover.DEFAULT);
 
-        System.out.println("[DimensionManager]  saving all dimension properties...");
+        System.out.println("[DimensionManager]  saving current dimension properties...");
         Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         try {
             Files.createDirectories(saveDir);
@@ -96,6 +96,24 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
         }
         System.out.println("[DimensionManager] saved all dimensions!");
+
+        // remove dimension property files for dimensions that no longer exist (idk death star laser or whatever)
+        Path directory = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+            for (Path file : stream) {
+                if (Files.isRegularFile(file)) {
+                    String content = Files.readString(file);
+                    DimensionProperties props = new Gson().fromJson(content, DimensionProperties.class);
+                    if (!dimensions.containsKey(props.dimensionId)) {
+                        Files.delete(file);
+                        System.out.println("[DimensionManager] Deleted file for "+props.dimensionId+" because it no longer exists on server");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
     }
 
