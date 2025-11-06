@@ -123,7 +123,7 @@ void main() {
         );
 
         if(shadowFactor <= 0)
-            continue;
+        continue;
 
         C1 *= shadowFactor;
 
@@ -132,9 +132,10 @@ void main() {
 
         // specular - bright when starlight reflects into my view
         // TODO: this might not be perfect because it also reflects backside ?
-        vec3 reflected = reflect(viewDirNormalized, normalUniverseSpaceAdjusted); // the reflection vector
-        float reflectionMultiplier = pow(max(0,dot(reflected, L)*0.5+0.5), specularPower);
-        if(dot(normalUniverseSpaceAdjusted, L) >= 0) {
+        vec3 halfway = L - viewDir;
+        if(length(halfway) > 0){
+            halfway = normalize(halfway);
+            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), specularPower);
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
@@ -148,7 +149,6 @@ void main() {
     }
 
     vec4 normalColor = vec4(totalColor, alpha);
-    //vec4 normalColor = vec4(totalColor, 1);
 
     fragColor = normalColor;
 
