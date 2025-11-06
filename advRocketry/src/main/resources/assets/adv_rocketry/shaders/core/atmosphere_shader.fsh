@@ -19,12 +19,15 @@ uniform int LightCount;
 out vec4 fragColor;
 
 void main() {
+
+    vec3 N = normalize(normalUniverseSpace); // TODO; replace with viewdir calculated by vertex positions
+
     // how bright the sky should be, TODO: this should also depend on weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
     float brightnessModifierPlayerAltitude = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
     float globalBrightnessModifier = brightnessModifierPlayerAltitude * (AtmDensity/(1+AtmDensity));
 
     // how much the fragment is up, 1 = directly above me, 0 = at horizon
-    float verticalDot = dot(localUpUniverseSpace, -normalUniverseSpace);
+    float verticalDot = dot(localUpUniverseSpace, -N);
 
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
@@ -52,7 +55,7 @@ void main() {
         // how much the sun is at horizon
         float sunAtHorizon = 1 - max(0,sunUp);
         // how much is the sun aligned with the fragments normal, note that the skybox normals point towards inside
-        float sunDot = -dot(starDir, normalUniverseSpace);
+        float sunDot = -dot(starDir, N);
 
         // a fancy curve based on the height of the star above the horizon (dot product to up vector)
         // note that future gamma correction will make dark areas brighter, so i adjust the pow factor to compensate it

@@ -97,7 +97,9 @@ void main() {
 
     vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
 
-    vec3 normalUniverseSpaceAdjusted = gl_FrontFacing ? normalUniverseSpace : -normalUniverseSpace;
+    vec3 normalUniverseSpaceAdjusted = normalize(gl_FrontFacing ? normalUniverseSpace : -normalUniverseSpace);
+
+    vec3 viewDirNormalized = normalize(viewDir);
 
     vec3 totalColor = vec3(0,0,0);
 
@@ -126,10 +128,11 @@ void main() {
         C1 *= shadowFactor;
 
         vec3 F0 = vec3(0.04);
-        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpace, viewDir)), F0);
+        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpace, viewDirNormalized)), F0);
 
         // specular - bright when starlight reflects into my view
-        vec3 reflected = reflect(viewDir, normalUniverseSpaceAdjusted); // the reflection vector
+        // TODO: this might not be perfect because it also reflects backside ?
+        vec3 reflected = reflect(viewDirNormalized, normalUniverseSpaceAdjusted); // the reflection vector
         float reflectionMultiplier = pow(max(0,dot(reflected, L)*0.5+0.5), specularPower);
         totalColor += reflectionMultiplier * C1 * fr ;
 
@@ -138,7 +141,7 @@ void main() {
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
-        float transmission = pow(dot(L, viewDir) * 0.5 + 0.5, 50);
+        float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 50);
         totalColor+= transmission * C1 * baseColorLinRGB * (1-fr);
     }
 
