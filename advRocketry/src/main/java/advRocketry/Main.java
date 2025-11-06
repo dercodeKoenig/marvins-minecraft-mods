@@ -1,5 +1,6 @@
 package advRocketry;
 
+import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
@@ -82,6 +83,9 @@ public class Main {
         Registry.ENTITIES.register(modEventBus);
         Registry.PARTICLES.register(modEventBus);
 
+        // register network packets
+        SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
+        SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionListSync, new DimensionManager.SyncDimensionList());
 
         Path configDir = FMLPaths.CONFIGDIR.get();
         myConfigDir = Path.of(String.valueOf(configDir), Main.MODID);

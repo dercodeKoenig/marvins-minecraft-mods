@@ -33,11 +33,6 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     public static final DimensionManager INSTANCE_CLIENT = new DimensionManager(true);
 
     static {
-        // register network packet
-        SimpleNetworkPacket.registerReceiver(packetDimensionPropertiesSync, new SyncDimensionProperties());
-        // register network packet
-        SimpleNetworkPacket.registerReceiver(packetDimensionListSync, new SyncDimensionList());
-
         // register rocket dimension client side - for the server it is registered on server startup
         INSTANCE_CLIENT.dimensions.put(RocketTravelDimension.dimId, new RocketTravelDimension(new DimensionProperties(), INSTANCE_CLIENT));
     }
@@ -170,10 +165,10 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveDir);
 
-        if (Files.exists(worldDir) && false) {
+        if (Files.exists(worldDir)) {
             System.out.println("[DimensionManager] Loading dimensions from world path...");
             loadDimensionsFromDirectory(worldDir);
-        } else if (Files.exists(defaultDir) && false) {
+        } else if (Files.exists(defaultDir)) {
             System.out.println("[DimensionManager] Loading dimensions from default config...");
             loadDimensionsFromDirectory(defaultDir);
         } else {

@@ -98,7 +98,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     Map<UUID, BlockPos> passengers = new HashMap<>();
     private boolean firstTick = true; // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
 
+    // gui
     public GuiHandlerEntity guiHandler;
+    static long allowNextGuiOpenInTickEvent = 0; // after i click launch i want to close the gui automatically, but the tick event would instantly open it. so use the global time to block it for a few ticks
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -661,6 +663,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
+                allowNextGuiOpenInTickEvent = GlobalTime.getGlobalTime() + 5;
                 Minecraft.getInstance().setScreen(null);
             }
         };
@@ -669,6 +672,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
+                allowNextGuiOpenInTickEvent = GlobalTime.getGlobalTime() + 5;
                 Minecraft.getInstance().setScreen(null);
             }
         };
@@ -751,8 +755,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Player player = ClientUtils.getSinglePlayer();
         if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
             if (Minecraft.getInstance().options.keyUse.isDown()) {
-                rocket.openGui();
-                Minecraft.getInstance().options.keyUse.consumeClick();
+                if(allowNextGuiOpenInTickEvent < GlobalTime.getGlobalTime()) {
+                    rocket.openGui();
+                    Minecraft.getInstance().options.keyUse.consumeClick();
+                }
             }
         }
     }
