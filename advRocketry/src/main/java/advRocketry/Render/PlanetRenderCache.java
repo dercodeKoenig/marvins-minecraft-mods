@@ -3,6 +3,7 @@ package advRocketry.Render;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -21,12 +22,10 @@ public class PlanetRenderCache {
     // bubble sort is good because it can be distributed over many ticks and will approach target sort fast
     public static void updatePlanetsToRenderInSky() {
 
-        Level level = Minecraft.getInstance().level;
-        if(level == null) return;
-        Dimension myDimension = DimensionManager.get(level.dimension().location());
+        Dimension myDimension = ClientUtils.getPlayerDimension();
         if(myDimension == null) return;
 
-        HashSet<Dimension> allDimensions = new HashSet<>(DimensionManager.INSTANCE.dimensions.values());
+        HashSet<Dimension> allDimensions = new HashSet<>(DimensionManager.INSTANCE_CLIENT.dimensions.values());
         planetsToRenderInSky.removeIf((dimension) -> !allDimensions.contains(dimension));
 
         HashSet<Dimension> planetsToRenderInSkySet = new HashSet<>(planetsToRenderInSky);

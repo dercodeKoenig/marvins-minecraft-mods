@@ -12,50 +12,59 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     public static final String saveDir = "dimensionProperties";
 
-    public static final String packetSyncId = Main.MODID + "_dimensionManager";
+    // this one syncs dimension properties and creates the dimension if not exist
+    public static final String packetDimensionPropertiesSync = Main.MODID + "_packetDimensionPropertiesSync";
+    // this one syncs the list of dimensions so the client can remove the ones that shouldnt exist
+    public static final String packetDimensionListSync = Main.MODID + "_packetDimensionListSync";
 
-    public static final DimensionManager INSTANCE = new DimensionManager();
+    // i split into server instance and client instance because some code might not be thread safe and could break in local world
+    public static final DimensionManager INSTANCE_SERVER = new DimensionManager(false);
+    public static final DimensionManager INSTANCE_CLIENT = new DimensionManager(true);
+
+    static {
+        // register network packet
+        SimpleNetworkPacket.registerReceiver(packetDimensionPropertiesSync, new SyncDimensionProperties());
+        // register network packet
+        SimpleNetworkPacket.registerReceiver(packetDimensionListSync, new SyncDimensionList());
+
+        // register rocket dimension client side - for the server it is registered on server startup
+        INSTANCE_CLIENT.dimensions.put(RocketTravelDimension.dimId, new RocketTravelDimension(new DimensionProperties(), INSTANCE_CLIENT));
+    }
 
     public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
 
-    public DimensionManager() {
-        SimpleNetworkPacket.registerReceiver(packetSyncId, this);
+    public boolean isClientSide;
+
+    public DimensionManager(boolean isClientSide) {
+        this.isClientSide = isClientSide;
     }
 
-    public static Dimension get(ResourceLocation key) {
-        if (INSTANCE.dimensions.containsKey(key)) return INSTANCE.dimensions.get(key);
-        if (key.equals(RocketTravelDimension.dimId)) return RocketTravelDimension.INSTANCE;
+    public static DimensionManager getDimensionManager(boolean isClientSide) {
+        if (isClientSide) return INSTANCE_CLIENT;
+        else return INSTANCE_SERVER;
+    }
+
+    public Dimension get(ResourceLocation key) {
+        if (dimensions.containsKey(key)) return dimensions.get(key);
         return null;
     }
 
-    public static void serverTick(ServerTickEvent.Post event) {
-        Iterator<Dimension> dimensionIterator = INSTANCE.dimensions.values().iterator();
+    public void tick() {
+        Iterator<Dimension> dimensionIterator = dimensions.values().iterator();
         while (dimensionIterator.hasNext()) {
             Dimension i = dimensionIterator.next();
-            i.serverTick(event);
-        }
-    }
-
-    public static void clientTick(ClientTickEvent.Post event) {
-        Iterator<Dimension> dimensionIterator = INSTANCE.dimensions.values().iterator();
-        while (dimensionIterator.hasNext()) {
-            Dimension i = dimensionIterator.next();
-            i.clientTick();
+            i.tick();
         }
     }
 
@@ -64,12 +73,16 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
 
-    public static void save() {
+    public void onServerStop() {
+
+        dimensions.remove(RocketTravelDimension.dimId); // this one does not need to be saved
+        DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, PlayerRemover.DEFAULT);
+
         System.out.println("[DimensionManager]  saving all dimension properties...");
         Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         try {
             Files.createDirectories(saveDir);
-            for (Dimension i : INSTANCE.dimensions.values()) {
+            for (Dimension i : dimensions.values()) {
                 Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath());
                 String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i.properties);
                 Files.writeString(saveFile, s, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -79,36 +92,35 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
         System.out.println("[DimensionManager] saved all dimension properties!");
         System.out.println("[DimensionManager] unloading and saving dimensions...");
-        for (Dimension i : INSTANCE.dimensions.values()) {
+        for (Dimension i : dimensions.values()) {
             DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
         }
         System.out.println("[DimensionManager] saved all dimensions!");
 
     }
 
-    private static void loadDimensionFromString(String dimensionProperties) {
+    private void loadDimensionFromString(String dimensionProperties) {
         Gson gson = new Gson();
         DimensionProperties propsBase = gson.fromJson(dimensionProperties, DimensionProperties.class);
         if (propsBase.type == DimensionProperties.DimensionType.PLANET) {
             PlanetDimensionProperties planetProps = gson.fromJson(dimensionProperties, PlanetDimensionProperties.class);
-            if (INSTANCE.dimensions.containsKey(planetProps.dimensionId)) {
+            if (dimensions.containsKey(planetProps.dimensionId)) {
                 // update
-                INSTANCE.dimensions.get(planetProps.dimensionId).properties = planetProps;
+                dimensions.get(planetProps.dimensionId).properties = planetProps;
             } else {
                 // create
-                PlanetDimension dimension = new PlanetDimension(planetProps);
-                INSTANCE.dimensions.put(dimension.getDimensionId(), dimension);
+                PlanetDimension dimension = new PlanetDimension(planetProps, this);
+                dimensions.put(dimension.getDimensionId(), dimension);
                 System.out.println("[DimensionManager] created PlanetDimension for " + dimension.getDimensionId());
             }
         }
     }
 
-    private static void loadDimensionsFromDirectory(Path directory) {
+    private void loadDimensionsFromDirectory(Path directory) {
         if (!Files.exists(directory)) {
             System.out.println("[DimensionManager] Directory does not exist: " + directory);
             return;
         }
-
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
                 if (Files.isRegularFile(file)) {
@@ -129,8 +141,9 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
 
-    public static void init() {
-        INSTANCE.dimensions = new HashMap<>();
+    public void onServerStart() {
+
+        dimensions = new HashMap<>();
 
         Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveDir);
@@ -149,19 +162,54 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             }
             // TODO: save default files
         }
+
+
+        // add the rocket travel dimension
+        dimensions.put(RocketTravelDimension.dimId, new RocketTravelDimension(new DimensionProperties(), this));
+
     }
 
 
-    public static void syncDimension(ServerPlayer player, Dimension dimension) {
-        PacketDistributor.sendToPlayer(player,
-                new SimpleNetworkPacket(
-                        packetSyncId,
-                        new Gson().toJson(dimension.properties)
-                )
-        );
+    public static class SyncDimensionProperties implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+
+        public void readClient(String props) {
+            INSTANCE_CLIENT.loadDimensionFromString(props);
+        }
+
+        public static void syncDimensionPropertiesToPlayer(ServerPlayer player, Dimension dimension) {
+            PacketDistributor.sendToPlayer(player,
+                    new SimpleNetworkPacket(
+                            packetDimensionPropertiesSync,
+                            new Gson().toJson(dimension.properties)
+                    )
+            );
+        }
     }
 
-    public void readClient(String props) {
-        loadDimensionFromString(props);
+    public static class SyncDimensionList implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+        static class DimensionList { // wrapped for gson to parse so it has the type of the list
+            ArrayList<ResourceLocation> dimensionIds;
+
+            public DimensionList(ArrayList<ResourceLocation> dimensionIds) {
+                this.dimensionIds = dimensionIds;
+            }
+        }
+
+        public static void syncDimensionListToPlayer(ServerPlayer player) {
+            DimensionList list = new DimensionList(new ArrayList<>(INSTANCE_SERVER.dimensions.keySet()));
+            String s = new Gson().toJson(list);
+            PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket(packetDimensionListSync, s));
+        }
+
+        public void readClient(String dimensionList) {
+            DimensionList list = new Gson().fromJson(dimensionList, DimensionList.class);
+            HashSet<ResourceLocation> set = new HashSet<>(list.dimensionIds);
+            for (ResourceLocation i : new ArrayList<>(INSTANCE_CLIENT.dimensions.keySet())) {
+                if (!set.contains(i)) {
+                    INSTANCE_CLIENT.dimensions.remove(i);
+                    System.out.println("client removed dimension: " + i);
+                }
+            }
+        }
     }
 }

@@ -23,7 +23,7 @@ public class Fog {
 
     // can modify fog color, apparently used for terrain shading
     public static void computeFogColorEvent(ViewportEvent.ComputeFogColor event) {
-        Dimension myDimension = DimensionManager.get(ClientUtils.getPlayerLevel().dimension().location());
+        Dimension myDimension = ClientUtils.getPlayerDimension();
         if (myDimension != null) {
             Vector3f fogColor = myDimension.computeTerrainFogColor((float) event.getPartialTick());
             event.setRed((float) (fogColor.x));

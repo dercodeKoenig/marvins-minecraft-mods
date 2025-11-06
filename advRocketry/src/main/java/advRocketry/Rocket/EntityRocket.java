@@ -496,7 +496,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         applyGravity();
 
-        Dimension myDimension = DimensionManager.get(level().dimension().location());
+        Dimension myDimension = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
 
         // simulate some air friction
         if (getDeltaMovement().length() > 0.01) { // you really dont want to normalize 0 vector. velocity will become like (NaN, Infinity, NaN) and the game freezes forever. took me 2 hours to realize this
@@ -517,7 +517,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (GlobalTime.getGlobalTime() % 100 == 0) {
             if (!level().isClientSide) {
                 if (level() == DimensionManager.getServerLevel(level().getServer(), RocketTravelDimension.dimId)) {
-                    RocketTravelDimension.INSTANCE.keepChunkLoaded(chunkPosition());
+                    RocketTravelDimension.keepChunkLoaded(chunkPosition());
                 }
             }
         }

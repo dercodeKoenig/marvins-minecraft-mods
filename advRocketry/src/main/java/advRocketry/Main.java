@@ -12,7 +12,7 @@ import advRocketry.worldgen.BiomeConfig;
 
 import advRocketry.Render.Fog;
 import advRocketry.Render.shaderUtils;
-import advRocketry.Render.skyrenderer;
+import advRocketry.Render.SkyRenderer;
 import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
 import net.minecraft.client.Minecraft;
@@ -97,24 +97,23 @@ public class Main {
 
     public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
         if( event.getEntity() instanceof  ServerPlayer p){
-            for(Dimension i : DimensionManager.INSTANCE.dimensions.values()) {
-                DimensionManager.syncDimension(p, i);
+            for(Dimension i : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
+                DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, i);
             }
+            DimensionManager.SyncDimensionList.syncDimensionListToPlayer(p);
         }
     }
 
     public void onServerTick(ServerTickEvent.Post event) {
-        DimensionManager.serverTick(event);
+        DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
-        RocketTravelDimension.INSTANCE.serverTick(event);
     }
 
     public void onClientTick(ClientTickEvent.Post event) {
         if(ClientUtils.getPlayerLevel() == null)return; // my stuff is only for when playing
 
-        DimensionManager.clientTick(event);
+        DimensionManager.INSTANCE_CLIENT.tick();
         GlobalTime.tickClient();
-        RocketTravelDimension.INSTANCE.clientTick();
         EntityRocket.onClientTickEvent();
         PlanetRenderCache.updatePlanetsToRenderInSky();
     }
@@ -123,13 +122,12 @@ public class Main {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
-        DimensionManager.init();
-        RocketTravelDimension.init();
+        DimensionManager.INSTANCE_SERVER.onServerStart();
     }
 
     public void onServerStop(ServerStoppingEvent event) {
         GlobalTime.save();
-        DimensionManager.save();
+        DimensionManager.INSTANCE_SERVER.onServerStop();
     }
 
     private void onRenderStage(RenderLevelStageEvent event) {
@@ -137,7 +135,7 @@ public class Main {
             //if(true)return;
             Matrix4f proj = event.getProjectionMatrix();
             Matrix4f view = event.getModelViewMatrix();
-            skyrenderer.INSTANCE.renderSky(proj, view, event.getPartialTick().getGameTimeDeltaPartialTick(false));
+            SkyRenderer.INSTANCE.renderSky(proj, view, event.getPartialTick().getGameTimeDeltaPartialTick(false));
         }
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             // clouds will render next, disable stupid fog

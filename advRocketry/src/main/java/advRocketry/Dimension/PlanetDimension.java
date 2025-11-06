@@ -32,8 +32,8 @@ public class PlanetDimension extends Dimension {
     // all the gases need to be added too, gascomposition
     // maybe gases underground trapped / frozen that can be freed
 
-    public PlanetDimension(PlanetDimensionProperties properties) {
-        super(properties);
+    public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
+        super(properties, dimensionManager);
     }
 
     private PlanetDimensionProperties properties() {
@@ -185,7 +185,7 @@ public class PlanetDimension extends Dimension {
 
     public Vec3 getPosition(float partialTick) {
         if (properties().parentDimensionId != null) {
-            PlanetDimension parent = (PlanetDimension) DimensionManager.get(properties().parentDimensionId);
+            PlanetDimension parent = (PlanetDimension) dimensionManager.get(properties().parentDimensionId);
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
             double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
@@ -257,7 +257,7 @@ public class PlanetDimension extends Dimension {
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
-        Dimension dayReference = DimensionManager.get(properties().dayTimeReference);
+        Dimension dayReference = dimensionManager.get(properties().dayTimeReference);
         Vec3 dayRefToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
         Vec3 equatorReference = dayRefToPlanet.cross(properties().rotationAxis).scale(-1);
         return equatorReference;
@@ -272,7 +272,7 @@ public class PlanetDimension extends Dimension {
         if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
         double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
-            Dimension target = DimensionManager.get(targetId);
+            Dimension target = dimensionManager.get(targetId);
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
             double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
@@ -314,43 +314,39 @@ public class PlanetDimension extends Dimension {
 
     public void tick() {
         super.tickStarCache();
-    }
 
-    public void serverTick(ServerTickEvent event) {
-        tick();
-
-        ServerLevel level = DimensionManager.getServerLevel(event.getServer(), getDimensionId());
-        if (level != null) {
-            if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
-                level.setDayTimePerTick(getDayTimePerTick());
-                properties().dayTime = level.dayTime();
-            } else
-                properties().dayTime = -properties().targetDayLength;
-        } else {
-            trackDayTimeNormal();
-        }
-
-        if (level != null) {
-            if (!canRain()) {
-                level.setWeatherParameters(100, 0, false, false);
+        if(!isClientSide){
+            ServerLevel level = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), getDimensionId());
+            if (level != null) {
+                if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
+                    level.setDayTimePerTick(getDayTimePerTick());
+                    properties().dayTime = level.dayTime();
+                } else
+                    properties().dayTime = -properties().targetDayLength;
             } else {
-                //level.setWeatherParameters(0, 100, true, false);
-                // TODO: custom weather logic
+                trackDayTimeNormal();
+            }
+
+            if (level != null) {
+                if (!canRain()) {
+                    level.setWeatherParameters(100, 0, false, false);
+                } else {
+                    //level.setWeatherParameters(0, 100, true, false);
+                    // TODO: custom weather logic
+                }
             }
         }
-    }
 
-
-    public void clientTick() {
-        tick();
-        Level level = ClientUtils.getPlayerLevel();
-        if (level != null && getDimensionId() != null && getDimensionId().equals(level.dimension().location())) {
-            if (properties().targetDayLength > 0)
-                properties().dayTime = level.dayTime();
-            else
-                properties().dayTime = -properties().targetDayLength;
-        } else {
-            trackDayTimeNormal();
+        if(isClientSide){
+            Dimension myDimension = ClientUtils.getPlayerDimension();
+            if (myDimension.getDimensionId().equals(this.getDimensionId())) {
+                if (properties().targetDayLength > 0)
+                    properties().dayTime = ClientUtils.getPlayerLevel().dayTime();
+                else
+                    properties().dayTime = -properties().targetDayLength;
+            } else {
+                trackDayTimeNormal();
+            }
         }
     }
 }

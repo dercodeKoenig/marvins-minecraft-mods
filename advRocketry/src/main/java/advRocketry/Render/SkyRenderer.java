@@ -8,6 +8,7 @@ import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import advRocketry.utils.ClientUtils;
 import advRocketry.utils.RenderUtils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
@@ -19,7 +20,6 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.ScreenEvent;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
@@ -28,7 +28,7 @@ import java.lang.Math;
 import static advRocketry.Render.shaderUtils.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class skyrenderer {
+public class SkyRenderer {
 
 
     VertexBuffer vertexBufferSkyBox;
@@ -38,7 +38,7 @@ public class skyrenderer {
     VertexBuffer vertexBufferStarBackground;
     boolean finishedLoading = false;
 
-    public skyrenderer() {
+    public SkyRenderer() {
         RenderSystem.recordRenderCall(() -> {
             createSkyBoxBuffer();
             createPlanetBuffer();
@@ -171,7 +171,7 @@ public class skyrenderer {
     }
 
 
-    public static skyrenderer INSTANCE = new skyrenderer();
+    public static SkyRenderer INSTANCE = new SkyRenderer();
 
     private TextureTarget PlanetsTarget;
     private TextureTarget AtmosphereTarget;
@@ -188,8 +188,7 @@ public class skyrenderer {
     }
 
     public void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
-        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myCurrentSpaceObject = DimensionManager.get(myId);
+        Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
         Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialTick);
 
         Matrix4f atmMatrix = new Matrix4f();
@@ -206,7 +205,7 @@ public class skyrenderer {
 
         int totalLights = 0;
         for (ResourceLocation lightSourceId : myCurrentSpaceObject.getCurrentMainStars()) {
-            Dimension star = DimensionManager.get(lightSourceId);
+            Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
             Vec3 StarPos = star.getPosition(partialTick);
             Vec3 LightVector = myCurrentPositionInSpace.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
             shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
@@ -244,8 +243,7 @@ public class skyrenderer {
     public void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
 
 
-        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myCurrentSpaceObject = DimensionManager.get(myId);
+        Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
 
         // for star background
         Matrix4f newProj2 = new Matrix4f(proj);
@@ -268,6 +266,8 @@ public class skyrenderer {
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();
         shader.clear();
+        NO_DEPTH_TEST.clearRenderState();
+        NO_TRANSPARENCY.clearRenderState();
         GlStateManager._depthMask(true);
 
 
@@ -278,6 +278,9 @@ public class skyrenderer {
         float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
 
         Vec3 myDimensionPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
+
+        LEQUAL_DEPTH_TEST.setupRenderState();
+        NO_TRANSPARENCY.setupRenderState();
 
         // Render planets / stars
         for (PlanetDimension otherDimension : PlanetRenderCache.getPlanetsToRenderInSky()) {
@@ -386,7 +389,7 @@ public class skyrenderer {
 
                 int totalLights = 0;
                 for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
-                    Dimension star = DimensionManager.get(lightSourceId);
+                    Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
                     Vec3 StarPos = star.getPosition(partialtick);
                     Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
                     shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
@@ -429,7 +432,7 @@ public class skyrenderer {
 
                 int totalLights = 0;
                 for (ResourceLocation lightSourceId : otherDimension.getCurrentMainStars()) {
-                    Dimension star = DimensionManager.get(lightSourceId);
+                    Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
                     Vec3 StarPos = star.getPosition(partialtick);
                     Vec3 LightVector = otherPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
                     shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
@@ -455,7 +458,7 @@ public class skyrenderer {
         }
 
 
-        NO_DEPTH_TEST.clearRenderState();
+        LEQUAL_DEPTH_TEST.clearRenderState();
         NO_TRANSPARENCY.clearRenderState();
 
         VertexBuffer.unbind();
@@ -476,7 +479,7 @@ public class skyrenderer {
         //if(true)return;
 
         ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myCurrentSpaceObject = DimensionManager.get(myId);
+        Dimension myCurrentSpaceObject = DimensionManager.INSTANCE_CLIENT.get(myId);
         if (myCurrentSpaceObject == null) return;
         if (!myCurrentSpaceObject.hasCustomSky()) return;
 

@@ -24,7 +24,7 @@ public class NavigateToSpaceTravelDimension {
         rocket.enableSecondaryEngines(false, false);
         rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
 
-        Dimension myDim = DimensionManager.get(rocket.level().dimension().location());
+        Dimension myDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
         if (myDim != null && myDim.getType() == DimensionProperties.DimensionType.SPACE_STATION) {
             // logic for space station
             // undock from station and move to launchpos.y-50, then thrust away
@@ -54,7 +54,7 @@ public class NavigateToSpaceTravelDimension {
 
                 // get the teleportation target
                 ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), RocketTravelDimension.dimId);
-                ChunkPos targetPos = RocketTravelDimension.INSTANCE.getNextFreeChunkPos();
+                ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
                 BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
 
@@ -62,7 +62,7 @@ public class NavigateToSpaceTravelDimension {
 
 
                 // initial command to force load the chunk so that the rocket starts ticking
-                RocketTravelDimension.INSTANCE.keepChunkLoaded(targetPos);
+                RocketTravelDimension.keepChunkLoaded(targetPos);
 
                 // newRocket.endProgram();
             }

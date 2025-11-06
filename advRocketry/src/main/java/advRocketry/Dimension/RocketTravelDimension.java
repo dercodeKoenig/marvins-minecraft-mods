@@ -26,34 +26,28 @@ public class RocketTravelDimension extends Dimension {
 
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
-    public static RocketTravelDimension INSTANCE;
-
     // a rocket should every tick or every few ticks update its chunkpos with the current global time
     // when the travel manager updates, it will remove force loaded chunks where the time was not reset for a few seconds
     HashMap<ChunkPos, Long> usedChunksMap;
 
-    public RocketTravelDimension(DimensionProperties properties) {
-        super(properties);
+    public RocketTravelDimension(DimensionProperties properties, DimensionManager dimensionManager) {
+        super(properties, dimensionManager);
         usedChunksMap = new HashMap<>();
     }
 
-    public static void init() {
-        INSTANCE = new RocketTravelDimension(new DimensionProperties());
-    }
-
-
-    public void keepChunkLoaded(ChunkPos pos) {
-        if (!usedChunksMap.containsKey(pos)) {
+    public static void keepChunkLoaded(ChunkPos pos) {
+        RocketTravelDimension INSTANCE = (RocketTravelDimension) DimensionManager.INSTANCE_SERVER.get(dimId);
+        if (!INSTANCE.usedChunksMap.containsKey(pos)) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             ServerLevel level = DimensionManager.getServerLevel(server, dimId);
             level.setChunkForced(pos.x, pos.z, true);
             System.out.println("there are " + level.getForcedChunks().size() + " chunk force loaded in space travel dimension");
         }
         System.out.println("set chunk force loaded:" + pos.x + ":" + pos.z);
-        usedChunksMap.put(pos, GlobalTime.getGlobalTime());
+        INSTANCE.usedChunksMap.put(pos, GlobalTime.getGlobalTime());
     }
 
-    public ChunkPos getNextFreeChunkPos() {
+    public static ChunkPos getNextFreeChunkPos() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         ServerLevel level = DimensionManager.getServerLevel(server, dimId);
         int x = 0;
@@ -187,28 +181,26 @@ public class RocketTravelDimension extends Dimension {
         return new Vec3(0, 0, 0);
     }
 
-
     @Override
-    public void serverTick(ServerTickEvent event) {
-        if (GlobalTime.getGlobalTime() % 200 == 59) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-            for (long i : level.getForcedChunks()) {
-                ChunkPos pos = new ChunkPos(i);
-                long currentTime = GlobalTime.getGlobalTime();
-                usedChunksMap.putIfAbsent(pos, currentTime);
-                if (usedChunksMap.get(pos) + 20 * 120 < currentTime) {
-                    level.setChunkForced(pos.x, pos.z, false);
-                    System.out.println("remove forced chunk at " + pos.x + ":" + pos.z);
-                    usedChunksMap.remove(pos);
-                    break; // prevent  exceptions
+    public void tick(){
+        if(!isClientSide) {
+            if (GlobalTime.getGlobalTime() % 200 == 59) {
+                MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+                ServerLevel level = DimensionManager.getServerLevel(server, dimId);
+                for (long i : level.getForcedChunks()) {
+                    ChunkPos pos = new ChunkPos(i);
+                    long currentTime = GlobalTime.getGlobalTime();
+                    usedChunksMap.putIfAbsent(pos, currentTime);
+                    if (usedChunksMap.get(pos) + 20 * 120 < currentTime) {
+                        level.setChunkForced(pos.x, pos.z, false);
+                        System.out.println("remove forced chunk at " + pos.x + ":" + pos.z);
+                        usedChunksMap.remove(pos);
+                        break; // prevent  exceptions
+                    }
                 }
             }
+        }else{
+            super.tickStarCache();
         }
-    }
-
-    @Override
-    public void clientTick() {
-        super.tickStarCache();
     }
 }

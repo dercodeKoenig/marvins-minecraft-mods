@@ -19,7 +19,7 @@ public class StarCache {
 
         if (dimIterator1 == null || !dimIterator1.hasNext()) {
             // Restart once we've gone through all dimensions
-            dimIterator1 = new ArrayList<>(DimensionManager.INSTANCE.dimensions.values()).iterator();
+            dimIterator1 = new ArrayList<>(myDimension.dimensionManager.dimensions.values()).iterator();
         }
 
         if (dimIterator1.hasNext()) { // TODO: client and server static variables are shared!!!! this is a problem!!!!

@@ -50,7 +50,7 @@ public class NavigateInSpaceToTargetDimension {
 
 
         // move to target dimension
-        Dimension targetDim = DimensionManager.get(target);
+        Dimension targetDim = DimensionManager.getDimensionManager(rocket.level().isClientSide) .get(target);
         Vec3 targetPosition = targetDim.getPosition(0);
 
         Vec3 targetPositionRelative = targetPosition.subtract(rocket.universePosition);
