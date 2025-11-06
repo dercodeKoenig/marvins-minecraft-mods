@@ -478,8 +478,7 @@ public class SkyRenderer {
         if (!finishedLoading) return;
         //if(true)return;
 
-        ResourceLocation myId = Minecraft.getInstance().level.dimension().location();
-        Dimension myCurrentSpaceObject = DimensionManager.INSTANCE_CLIENT.get(myId);
+        Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
         if (myCurrentSpaceObject == null) return;
         if (!myCurrentSpaceObject.hasCustomSky()) return;
 
