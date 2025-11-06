@@ -19,9 +19,8 @@ import java.nio.file.StandardOpenOption;
 public class GlobalTime implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     public static final String saveFile = "universalTime.txt";
-    public static final int syncTimeAfterTicks = 20 * 10; // sync time once per minute in case ticks have been skipped
+    public static final int syncTimeAfterTicks = 20 * 60; // sync time once per minute in case ticks have been skipped
     public static String PACKET_ID_SYNCTIME = "adv_rocketry_globaltime";
-
 
     public static GlobalTime INSTANCE = new GlobalTime();
 
@@ -29,10 +28,6 @@ public class GlobalTime implements SimpleNetworkPacket.SimpleNetworkDataReceiver
     public long universalTimeClient = 0;
     public float universalTimeClientCorrection = 0;
     public long universalTimeClientTarget = 0;
-
-    public GlobalTime() {
-        SimpleNetworkPacket.registerReceiver(PACKET_ID_SYNCTIME, this);
-    }
 
     public static long getGlobalTime() {
         if (FMLLoader.getDist().isClient()) {

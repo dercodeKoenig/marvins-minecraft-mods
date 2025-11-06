@@ -86,6 +86,7 @@ public class Main {
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
         SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionListSync, new DimensionManager.SyncDimensionList());
+        SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
 
         Path configDir = FMLPaths.CONFIGDIR.get();
         myConfigDir = Path.of(String.valueOf(configDir), Main.MODID);
