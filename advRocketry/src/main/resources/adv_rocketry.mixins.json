@@ -11,7 +11,8 @@
   "client": [
     "MixinWorldEffects",
     "ClientLevelMixin",
-    "LevelRendererMixin"
+    "LevelRendererMixin",
+    "ShaderInstanceMixin"
   ],
   "injectors": {
     "defaultRequire": 1
