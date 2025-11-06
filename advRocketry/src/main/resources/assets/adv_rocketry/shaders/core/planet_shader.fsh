@@ -46,8 +46,8 @@ void main() {
 
 
         // the atm adds extra light after the normal falloff
-        float atmLightFactor = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
-        atmLightFactor = pow(atmLightFactor, 2);
+        float atmLightFactor = clamp(dot(N, L) * 0.7 + 0.3, 0.0, 1.0);
+        atmLightFactor = pow(atmLightFactor, 2); // with tonemap and gamma correct the transition from black to less black is too aggressive
 
 
         // how much of the edge (horizon) we see
