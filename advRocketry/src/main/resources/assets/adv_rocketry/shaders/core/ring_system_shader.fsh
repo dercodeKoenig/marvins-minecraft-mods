@@ -134,15 +134,17 @@ void main() {
         // TODO: this might not be perfect because it also reflects backside ?
         vec3 reflected = reflect(viewDirNormalized, normalUniverseSpaceAdjusted); // the reflection vector
         float reflectionMultiplier = pow(max(0,dot(reflected, L)*0.5+0.5), specularPower);
-        totalColor += reflectionMultiplier * C1 * fr ;
+        if(dot(normalUniverseSpaceAdjusted, L) >= 0) {
+            totalColor += reflectionMultiplier * C1 * fr ;
+        }
 
         // diffuse - brignt when face is facing the star
-        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted)*0.95+0.05);
+        float diffuse = pow(max(0,dot(L, normalUniverseSpaceAdjusted)*0.95+0.05), 0.5);
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
-        float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 50);
-        totalColor+= transmission * C1 * baseColorLinRGB;
+        float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 4);
+        totalColor+= transmission * C1 * baseColorLinRGB * (1-alpha);
     }
 
     vec4 normalColor = vec4(totalColor, alpha);
