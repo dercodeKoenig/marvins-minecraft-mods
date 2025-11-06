@@ -16,9 +16,13 @@ in vec2 texCoord0;
 out vec4 fragColor;
 
 void main() {
-    vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
+    vec4 color = pow(texture(Sampler0, texCoord0), vec4(2.2)) * vertexColor * ColorModulator;
     if (color.a < 0.1) {
         discard;
     }
     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+
+    fragColor = fragColor / (vec4(1)+fragColor);
+    fragColor = pow(fragColor, 1/vec4(2.2));
+
 }
