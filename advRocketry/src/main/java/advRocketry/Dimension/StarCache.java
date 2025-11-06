@@ -22,7 +22,7 @@ public class StarCache {
             dimIterator1 = new ArrayList<>(DimensionManager.INSTANCE.dimensions.values()).iterator();
         }
 
-        if (dimIterator1.hasNext()) {
+        if (dimIterator1.hasNext()) { // TODO: client and server static variables are shared!!!! this is a problem!!!!
             Dimension otherDimension = dimIterator1.next();
             ResourceLocation id = otherDimension.getDimensionId();
 
