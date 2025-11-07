@@ -225,7 +225,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             if (!level().isClientSide) {
                 player.startRiding(this);
             }
-            return true;
+            return false;
         }
         return super.hurt(source, amount);
     }
