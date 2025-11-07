@@ -32,7 +32,7 @@ public class NavigateToSpaceTravelDimension {
             // normal logic; just fly high up!
             rocket.enableMainEngines(true, false);
             rocket.enableSecondaryEngines(false, false);
-            rocket.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planetSkyHeight + 500, rocket.position().z), false);
+            rocket.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planetSkyHeight + 5000, rocket.position().z), false);
 
             if(rocket.position().y > Config.INSTANCE.planetSkyHeight) {
                 if (rocket.level() instanceof ServerLevel serverLevel) {
