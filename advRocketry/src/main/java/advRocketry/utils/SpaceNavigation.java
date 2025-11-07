@@ -62,7 +62,7 @@ public class SpaceNavigation {
         if (closestDistanceOnRay < requiredDistance) {
             // need to navigate around
             Vec3 target = null;
-            if (closestDistanceOnRay == 0) // go above
+            if (closestDistanceOnRay == 0) // go above and hope we dont fly along y axis
                 target = closestPlanetPosition.add(new Vec3(0, requiredDistance, 0));
             else
                 target = closestPlanetPosition.add(closestPointOnRay.subtract(closestPlanetPosition).normalize().scale(requiredDistance));
