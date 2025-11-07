@@ -62,7 +62,9 @@ private float targetSize;
 
         this.roll = this.random.nextFloat();
 
-        tick(); // initial position correction
+        if(!level.dimension().location().equals(RocketTravelDimension.dimId)) {
+            tick(); // initial position correction
+        }
     }
 
     @Override

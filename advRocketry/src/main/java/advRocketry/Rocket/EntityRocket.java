@@ -90,6 +90,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
+    public double universeTravelSpeed = 0; // simplified, this should be vec3 but we just float and the direction = heading
     public Vec3 universeHeading = new Vec3(0, 1, 0);
     public Vec3 universeTargetHeading = new Vec3(0, 1, 0);
     public Vec3 universeFront = new Vec3(0, 0, 1);
@@ -100,7 +101,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // gui
     public GuiHandlerEntity guiHandler;
-    static long allowNextGuiOpenInTickEvent = 0; // after i click launch i want to close the gui automatically, but the tick event would instantly open it. so use the global time to block it for a few ticks
+    static long LockGuiOpenUntil = 0; // after i click launch i want to close the gui automatically, but the tick event would instantly open it. so use the global time to block it for a few ticks
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -211,8 +212,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        openGui();
-        return InteractionResult.SUCCESS_NO_ITEM_USED;
+        if(GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
+            openGui();
+            return InteractionResult.SUCCESS_NO_ITEM_USED;
+        }
+        return super.interact(player, hand);
     }
 
     @Override
@@ -663,7 +667,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
-                allowNextGuiOpenInTickEvent = GlobalTime.getGlobalTime() + 5;
+                LockGuiOpenUntil = GlobalTime.getGlobalTime() + 5;
                 Minecraft.getInstance().setScreen(null);
             }
         };
@@ -672,7 +676,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
-                allowNextGuiOpenInTickEvent = GlobalTime.getGlobalTime() + 5;
+                LockGuiOpenUntil = GlobalTime.getGlobalTime() + 5;
                 Minecraft.getInstance().setScreen(null);
             }
         };
@@ -755,7 +759,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Player player = ClientUtils.getSinglePlayer();
         if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
             if (Minecraft.getInstance().options.keyUse.isDown()) {
-                if(allowNextGuiOpenInTickEvent < GlobalTime.getGlobalTime()) {
+                if(GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
                     rocket.openGui();
                     Minecraft.getInstance().options.keyUse.consumeClick();
                 }

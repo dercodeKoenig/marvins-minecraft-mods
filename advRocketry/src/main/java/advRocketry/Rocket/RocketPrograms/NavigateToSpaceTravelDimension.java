@@ -68,7 +68,7 @@ public class NavigateToSpaceTravelDimension {
                     // newRocket.endProgram();
                 }else{
                     // client side, while waiting on dimension transition do not stop and rotate the rocket midflight, just keep going and wait for teleport to kick in
-                    rocket.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 500, rocket.position().z), false);
+                    rocket.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
                 }
             }
         }

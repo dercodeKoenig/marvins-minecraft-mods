@@ -160,7 +160,7 @@ public class PlanetDimension extends Dimension {
     @Override
     public Vector3f getCloudColor(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
         return new Vector3f(properties().cloudColor).mul((float) brightness);
     }
 
