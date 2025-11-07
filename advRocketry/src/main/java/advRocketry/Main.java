@@ -61,6 +61,7 @@ public class Main {
             NeoForge.EVENT_BUS.addListener(Fog::renderFogEvent);
             NeoForge.EVENT_BUS.addListener(Fog::computeFogColorEvent);
             NeoForge.EVENT_BUS.addListener(this::onClientTick);
+            NeoForge.EVENT_BUS.addListener(this::CalculateDetachedCameraDistance);
         }
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
@@ -153,6 +154,12 @@ public class Main {
         }
     }
 
+    public void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event){
+        if(ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
+            int rocketsize = rocket.size.getY();
+            event.setDistance(event.getDistance() + rocketsize*1.3f);
+        }
+    }
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer)x).itemStackHandler));
