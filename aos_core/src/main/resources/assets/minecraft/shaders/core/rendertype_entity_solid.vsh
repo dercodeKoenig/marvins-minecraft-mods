@@ -19,6 +19,9 @@ uniform int FogShape;
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
 
+// precomputed normal matrix from CPU
+uniform mat3 NormalMat;
+
 out float vertexDistance;
 out vec4 vertexColor;
 out vec4 lightMapColor;
@@ -28,9 +31,8 @@ out vec2 texCoord0;
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
 
-    // Compute the normal matrix (upper-left 3x3 inverse transpose)
-    mat3 normalMatrix = transpose(inverse(mat3(ModelViewMat)));
-    vec3 rotatedNormal = normalize(normalMatrix * Normal);
+    // Use the precomputed normal matrix
+    vec3 rotatedNormal = normalize(NormalMat * Normal);
 
     vertexDistance = fog_distance(Position, FogShape);
     vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, rotatedNormal, Color);

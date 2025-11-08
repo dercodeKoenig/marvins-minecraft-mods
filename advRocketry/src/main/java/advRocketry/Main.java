@@ -83,6 +83,7 @@ public class Main {
         Registry.CREATIVE_TAB.register(modEventBus);
         Registry.ENTITIES.register(modEventBus);
         Registry.PARTICLES.register(modEventBus);
+        Registry.FLUIDS.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());

@@ -120,6 +120,8 @@ dependencies {
 
     implementation "curse.maven:badpackets-615134:6067146" // for DynamicDimension
 
+    implementation "curse.maven:jei-238222:7181665"
+
     //implementation "curse.maven:distant-horizons-508933:6791190" // appears to crash in dynamicdimensions
 
     //implementation("dev.galacticraft:dynamicdimensions-neoforge:0.9.1+34")

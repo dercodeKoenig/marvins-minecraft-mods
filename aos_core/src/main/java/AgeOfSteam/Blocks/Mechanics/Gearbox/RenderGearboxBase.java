@@ -5,6 +5,7 @@ import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Main;
 import AgeOfSteam.Static;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -25,10 +26,13 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGearboxBase> {
 
-    static WavefrontObject model;
+    WavefrontObject model;
     ResourceLocation tex;
 
-    static {
+
+    public RenderGearboxBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
+        super();
+        this.tex = texture;
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/gearbox.obj"));
         } catch (ModelFormatException ex) {
@@ -37,16 +41,10 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
     }
 
 
-    public RenderGearboxBase(BlockEntityRendererProvider.Context c, ResourceLocation texture)  {
-        super();
-        this.tex = texture;
-    }
-
-
     @Override
     public void render(EntityGearboxBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        if(tile.lastLight != packedLight){
+        if (tile.lastLight != packedLight) {
             tile.lastLight = packedLight;
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
             BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
@@ -82,98 +80,115 @@ public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGea
         }
 
         BlockState myState = tile.getBlockState();
-        if (!(myState.getBlock() instanceof BlockGearboxBase))return;
+        if (!(myState.getBlock() instanceof BlockGearboxBase)) return;
 
-            Direction facing = myState.getValue(BlockGearboxBase.FACING);
+        Direction facing = myState.getValue(BlockGearboxBase.FACING);
 
-            Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
-            m1 = m1.mul(stack.last().pose());
-            m1 = m1.translate(0.5f, 0.5f, 0.5f);
+        Matrix4f modelMat = new Matrix4f();
+        modelMat = modelMat.mul(stack.last().pose());
+        modelMat = modelMat.translate(0.5f, 0.5f, 0.5f);
 
-            double facingBasedRotationMultiplier = 1;
-            if (facing == Direction.NORTH) {
-                // all good
-            }
-            if (facing == Direction.SOUTH) {
-                facingBasedRotationMultiplier = -1;
-                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 180));
-            }
-            if (facing == Direction.EAST) {
-                facingBasedRotationMultiplier = -1;
-                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 270));
-            }
-            if (facing == Direction.WEST) {
-                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 90));
-            }
+        double facingBasedRotationMultiplier = 1;
+        if (facing == Direction.NORTH) {
+            // all good
+        }
+        if (facing == Direction.SOUTH) {
+            facingBasedRotationMultiplier = -1;
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 180));
+        }
+        if (facing == Direction.EAST) {
+            facingBasedRotationMultiplier = -1;
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 270));
+        }
+        if (facing == Direction.WEST) {
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 90));
+        }
 
-            RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
-            LIGHTMAP.setupRenderState();
-            LEQUAL_DEPTH_TEST.setupRenderState();
-            NO_TRANSPARENCY.setupRenderState();
-            RenderSystem.setShaderTexture(0, tex);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
+        LIGHTMAP.setupRenderState();
+        LEQUAL_DEPTH_TEST.setupRenderState();
+        NO_TRANSPARENCY.setupRenderState();
+        RenderSystem.setShaderTexture(0, tex);
 
-            ShaderInstance shader = RenderSystem.getShader();
+        ShaderInstance shader = RenderSystem.getShader();
 
-            Matrix4f m2 = new Matrix4f(m1);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
+        Matrix4f modelMat2 = new Matrix4f(modelMat);
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
+                (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
 
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.apply();
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        Uniform NormalMat = shader.getUniform("NormalMat");
+        Matrix3f normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
+        shader.apply();
+
         tile.vertexBuffer_in.bind();
         tile.vertexBuffer_in.draw();
 
 
-            m2 = new Matrix4f(m1);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
+        modelMat2 = new Matrix4f(modelMat);
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing.getOpposite()) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
+                (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing.getOpposite()) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.apply();
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        NormalMat = shader.getUniform("NormalMat");
+        normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
+        shader.apply();
 
         tile.vertexBuffer_out.bind();
         tile.vertexBuffer_out.draw();
-            //shader.clear();
+        //shader.clear();
 
 
-            m2 = new Matrix4f(m1);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
-            m2 = m2.translate(0.3f, 0, 0);
+        modelMat2 = new Matrix4f(modelMat);
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
+        modelMat2 = modelMat2.translate(0.3f, 0, 0);
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
+                (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.apply();
-
-        tile.vertexBuffer_mid.bind();
-        tile.vertexBuffer_mid.draw();
-            //shader.clear();
-
-            m2 = new Matrix4f(m1);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
-            m2 = m2.translate(-0.3f, 0, 0);
-
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
-
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.apply();
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        NormalMat = shader.getUniform("NormalMat");
+        normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
+        shader.apply();
 
         tile.vertexBuffer_mid.bind();
         tile.vertexBuffer_mid.draw();
+        //shader.clear();
 
+        modelMat2 = new Matrix4f(modelMat);
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
+        modelMat2 = modelMat2.translate(-0.3f, 0, 0);
 
-            shader.clear();
-            VertexBuffer.unbind();
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
+                (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
-            LIGHTMAP.clearRenderState();
-            LEQUAL_DEPTH_TEST.clearRenderState();
-            NO_TRANSPARENCY.clearRenderState();
-        }
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        NormalMat = shader.getUniform("NormalMat");
+        normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
+        shader.apply();
+
+        tile.vertexBuffer_mid.bind();
+        tile.vertexBuffer_mid.draw();
+
+        NormalMat.set(new Matrix3f());
+        shader.clear();
+        VertexBuffer.unbind();
+
+        LIGHTMAP.clearRenderState();
+        LEQUAL_DEPTH_TEST.clearRenderState();
+        NO_TRANSPARENCY.clearRenderState();
+    }
 }

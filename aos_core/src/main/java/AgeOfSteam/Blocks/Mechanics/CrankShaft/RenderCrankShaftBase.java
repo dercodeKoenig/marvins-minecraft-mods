@@ -4,7 +4,7 @@ import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Main;
-import AgeOfSteam.Static;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -23,22 +23,19 @@ import org.joml.Quaternionf;
 import static AgeOfSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderSmallCrankShaftBase implements BlockEntityRenderer<EntityCrankShaftBase> {
+public class RenderCrankShaftBase implements BlockEntityRenderer<EntityCrankShaftBase> {
 
-    static WavefrontObject model;
-    public ResourceLocation tex;
+    WavefrontObject model;
+    ResourceLocation tex;
 
-    static {
+    public RenderCrankShaftBase(BlockEntityRendererProvider.Context c, ResourceLocation texture, ResourceLocation model) {
+        super();
+        this.tex = texture;
         try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/small_crankshaft.obj"));
+            this.model = new WavefrontObject(model);
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    public RenderSmallCrankShaftBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
-        super();
-        this.tex = texture;
     }
 
 
@@ -62,20 +59,20 @@ public class RenderSmallCrankShaftBase implements BlockEntityRenderer<EntityCran
         if (!(state.getBlock() instanceof BlockCrankShaftBase)) return;
         Direction.Axis facingAxis = state.getValue(BlockCrankShaftBase.ROTATION_AXIS);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
-        m1 = m1.mul(stack.last().pose());
+        Matrix4f modelMat = new Matrix4f();
+        modelMat = modelMat.mul(stack.last().pose());
 
-        m1 = m1.translate(0.5f, 0.5f, 0.5f);
+        modelMat = modelMat.translate(0.5f, 0.5f, 0.5f);
 
         if (facingAxis == Direction.Axis.Z) {
             // no rotation
         } else if (facingAxis == Direction.Axis.X) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
         } else if (facingAxis == Direction.Axis.Y) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
         }
 
-        m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
+        modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
         //System.out.println(tile.currentRotation);
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
@@ -85,12 +82,17 @@ public class RenderSmallCrankShaftBase implements BlockEntityRenderer<EntityCran
         RenderSystem.setShaderTexture(0, tex);
 
         ShaderInstance shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        Uniform NormalMat = shader.getUniform("NormalMat");
+        Matrix3f normalMat = new Matrix3f(modelMat); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
         shader.apply();
 
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();
 
+        NormalMat.set(new Matrix3f());
         shader.clear();
         VertexBuffer.unbind();
 

@@ -5,6 +5,7 @@ import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Main;
 import AgeOfSteam.Static;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -25,20 +26,16 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenerator> {
 
-    static WavefrontObject model;
+    WavefrontObject model;
     public ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/planks.png");
 
-    static {
+    public RenderHandGenerator(BlockEntityRendererProvider.Context c) {
+        super();
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/handcranked_generator.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-
-    public RenderHandGenerator(BlockEntityRendererProvider.Context c) {
-        super();
     }
 
     @Override
@@ -76,24 +73,24 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
         if (!(axleState.getBlock() instanceof BlockHandGenerator)) return;
         Direction facing = axleState.getValue(BlockHandGenerator.FACING);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
-        m1 = m1.mul(stack.last().pose());
-        m1 = m1.translate(0.5f, 0.5f, 0.5f);
+        Matrix4f modelMat = new Matrix4f();
+        modelMat = modelMat.mul(stack.last().pose());
+        modelMat = modelMat.translate(0.5f, 0.5f, 0.5f);
 
         double rotorRotationMultiplier = 1;
         if (facing == Direction.WEST) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 90f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 90f));
         }
         if (facing == Direction.EAST) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 270f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 270f));
             rotorRotationMultiplier = -1;
         }
         if (facing == Direction.SOUTH) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 180f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 180f));
             rotorRotationMultiplier = -1;
         }
         if (facing == Direction.NORTH) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 0f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 0f));
             //rotorRotationMultiplier = -1;
         }
 
@@ -106,24 +103,33 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
 
         ShaderInstance shader = RenderSystem.getShader();
 
-        Matrix4f m2 = new Matrix4f(m1);
-        m2 = m2.translate(0.0f, 0.0f, -0.2f);
-        m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1.0f, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        Matrix4f modelMat2 = new Matrix4f(modelMat);
+        modelMat2 = modelMat2.translate(0.0f, 0.0f, -0.2f);
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1.0f, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul( modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        Uniform NormalMat = shader.getUniform("NormalMat");
+        Matrix3f normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
         shader.apply();
 
         tile.vertexBuffer2.bind();
         tile.vertexBuffer2.draw();
 
-        m2 = new Matrix4f(m1);
-        m2 = m2.translate(0.0f, 0.08f, 0.205f);
-        m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        modelMat2 = new Matrix4f(modelMat);
+        modelMat2 = modelMat2.translate(0.0f, 0.08f, 0.205f);
+        modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul( modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        NormalMat = shader.getUniform("NormalMat");
+        normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
         shader.apply();
 
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();
 
+        NormalMat.set(new Matrix3f());
         shader.clear();
         VertexBuffer.unbind();
 
