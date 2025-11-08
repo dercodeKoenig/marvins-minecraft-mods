@@ -200,8 +200,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public double getDefaultGravity() {
-        if (level().dimension().location().equals(RocketTravelDimension.dimId))
-            return 0;
         return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
 

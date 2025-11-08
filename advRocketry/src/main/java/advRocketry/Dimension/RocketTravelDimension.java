@@ -125,9 +125,7 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public float getGravitationalMultiplier() {
-        return 0.2f;
-    }
+    public float getGravitationalMultiplier() {return 0f;}
 
     @Override
     public Vector3f getEmissiveColor() {

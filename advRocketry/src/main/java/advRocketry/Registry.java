@@ -3,6 +3,7 @@ package advRocketry;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Blocks.*;
+import advRocketry.Fluid.RocketFuel;
 import advRocketry.Particles.RocketFlameParticle;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -11,19 +12,21 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.joml.Vector3f;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class Registry {
@@ -33,7 +36,8 @@ public class Registry {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, Main.MODID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Main.MODID);
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, Main.MODID);
-    public static final DeferredRegister<FluidType> FLUIDS = DeferredRegister.create(NeoForgeRegistries.FLUID_TYPES, Main.MODID);
+    public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(BuiltInRegistries.FLUID, Main.MODID);
+    public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.FLUID_TYPES, Main.MODID);
 
 
     public static final Supplier<CreativeModeTab> CUSTOM_CREATIVE_TAB = CREATIVE_TAB.register(Main.MODID, () -> new CustomCreativeTab());
@@ -42,7 +46,18 @@ public class Registry {
         return ITEMS.register(name, () -> new BlockItem(b.get(), new Item.Properties()));
     }
 
-    public static final Supplier<FluidType> ROCKET_FUEL = FLUIDS.register("rocket_fuel", () -> new FluidType(FluidType.Properties.create()));
+    public static final Supplier<Fluid> ROCKET_FUEL = FLUIDS.register("rocket_fuel", () -> new RocketFuel());
+    public static final Supplier<Item> ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(ROCKET_FUEL.get(),new Item.Properties().stacksTo(16).craftRemainder(Items.BUCKET)){
+        @Override
+        public int getColor(ItemStack stack, int tintIndex) {
+            if (tintIndex == 1) {
+                return 0xA005A005; // same as your fluid
+            }
+            return 0xFFFFFFFF;
+        }
+
+    });
+    public static final Supplier<FluidType> ROCKET_FUEL_TYPE = FLUID_TYPES.register("rocket_fuel_type", () -> new FluidType(FluidType.Properties.create()));
 
     public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", LAUNCHPAD);

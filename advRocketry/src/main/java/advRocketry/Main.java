@@ -23,6 +23,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -33,6 +34,8 @@ import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -75,6 +78,7 @@ public class Main {
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerParticles);
+        modEventBus.addListener(this::registerClientExtensions);
 
 
         Registry.BLOCKS.register(modEventBus);
@@ -84,6 +88,7 @@ public class Main {
         Registry.ENTITIES.register(modEventBus);
         Registry.PARTICLES.register(modEventBus);
         Registry.FLUIDS.register(modEventBus);
+        Registry.FLUID_TYPES.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
@@ -214,6 +219,25 @@ public class Main {
         event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
     }
 
+    public void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerFluidType(
+                new IClientFluidTypeExtensions() {
+                    @Override
+                    public int getTintColor() {
+                        return 0xA005A005;
+                    }
+
+                    public ResourceLocation getStillTexture() {
+                        return IClientFluidTypeExtensions.of(Fluids.WATER).getStillTexture();
+                    }
+
+                    public ResourceLocation getFlowingTexture() {
+                        return IClientFluidTypeExtensions.of(Fluids.WATER).getFlowingTexture();
+                    }
+                }, Registry.ROCKET_FUEL_TYPE.get()
+        );
+    }
+
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(Registry.CUSTOM_CREATIVE_TAB.get())) {
             e.accept(Registry.LAUNCHPAD.get());
@@ -223,6 +247,7 @@ public class Main {
             e.accept(Registry.FUEL_TANK.get());
             e.accept(Registry.GUIDANCE_COMPUTER.get());
             e.accept(Registry.SEAT.get());
+            e.accept(Registry.ROCKET_FUEL_BUCKET.get());
         }
     }
 }
