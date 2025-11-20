@@ -68,17 +68,13 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
         inventory.add(ItemStack.EMPTY);
     }
 
-    @Override
-    public void setRemoved(){
+    public void popItems(){
         if(!level.isClientSide) {
             ItemStack stack1 = inventory.get(0).copy();
             popResource(level, getBlockPos(), stack1);
 
             ItemStack stack2 = inventory.get(1).copy();
             popResource(level, getBlockPos(), stack2);
-
-            inventory.set(0, ItemStack.EMPTY);
-            inventory.set(1, ItemStack.EMPTY);
         }
         super.setRemoved();
     }

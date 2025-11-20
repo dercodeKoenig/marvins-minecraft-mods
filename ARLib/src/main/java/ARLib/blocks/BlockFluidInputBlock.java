@@ -1,6 +1,7 @@
 package ARLib.blocks;
 
 import ARLib.blockentities.EntityFluidInputBlock;
+import ARLib.blockentities.EntityItemInputBlock;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.multiblockCore.BlockMultiblockPart;
 import ARLib.network.PacketBlockEntity;
@@ -57,7 +58,18 @@ public class BlockFluidInputBlock extends BlockMultiblockPart implements EntityB
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         List<ItemStack> drops = new ArrayList<>();
-        drops.add(new ItemStack(this,1));
+        drops.add(new ItemStack(this, 1));
         return drops;
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!level.isClientSide) {
+            BlockEntity me = level.getBlockEntity(pos);
+            if (me instanceof EntityFluidInputBlock i) {
+                i.popItems();
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }
