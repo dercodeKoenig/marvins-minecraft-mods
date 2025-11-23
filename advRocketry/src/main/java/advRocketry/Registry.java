@@ -47,16 +47,7 @@ public class Registry {
     }
 
     public static final Supplier<Fluid> ROCKET_FUEL = FLUIDS.register("rocket_fuel", () -> new RocketFuel());
-    public static final Supplier<Item> ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(ROCKET_FUEL.get(),new Item.Properties().stacksTo(16).craftRemainder(Items.BUCKET)){
-        @Override
-        public int getColor(ItemStack stack, int tintIndex) {
-            if (tintIndex == 1) {
-                return 0xA005A005; // same as your fluid
-            }
-            return 0xFFFFFFFF;
-        }
-
-    });
+    public static final Supplier<Item> ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(ROCKET_FUEL.get(),new Item.Properties().stacksTo(16).craftRemainder(Items.BUCKET)));
     public static final Supplier<FluidType> ROCKET_FUEL_TYPE = FLUID_TYPES.register("rocket_fuel_type", () -> new FluidType(FluidType.Properties.create()));
 
     public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
