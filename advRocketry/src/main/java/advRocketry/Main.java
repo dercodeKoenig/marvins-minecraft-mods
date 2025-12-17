@@ -224,15 +224,15 @@ public class Main {
                 new IClientFluidTypeExtensions() {
                     @Override
                     public int getTintColor() {
-                        return 0xA005A005;
+                        return 0xffffffff;
                     }
 
                     public ResourceLocation getStillTexture() {
-                        return IClientFluidTypeExtensions.of(Fluids.WATER).getStillTexture();
+                        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fuel_still");
                     }
 
                     public ResourceLocation getFlowingTexture() {
-                        return IClientFluidTypeExtensions.of(Fluids.WATER).getFlowingTexture();
+                        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fuel_flow");
                     }
                 }, Registry.ROCKET_FUEL_TYPE.get()
         );

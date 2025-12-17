@@ -220,10 +220,26 @@ public class PlanetDimension extends Dimension {
     }
 
     public float getLatitudeFromZPosition(double z) {
-        // TODO: this is not good! it is not equal distribution of latitude because changes at equator are faster
-        //      rework this!!!!
-        double s = z / properties().latitude_len;
-        return (float) Math.sin(s * Math.PI * 2) * 90;
+        // 1. Normalize z into a 0.0 to 1.0 range based on the full length
+        // Use modulo to handle wrapping if z exceeds the latitude_len
+        double s = (z / properties().latitude_len) % 1.0;
+        if (s < 0) s += 1.0; // Ensure positive value for negative z
+
+        float latitude;
+
+        // 2. Map the 0-1 range to a linear "up and down" motion
+        if (s < 0.25) {
+            // Phase 1: 0 to 0.25 -> Maps 0 to 90
+            latitude = (float) (s * 4 * 90);
+        } else if (s < 0.75) {
+            // Phase 2: 0.25 to 0.75 -> Maps 90 down to -90
+            latitude = (float) ((0.5 - s) * 4 * 90);
+        } else {
+            // Phase 3: 0.75 to 1.0 -> Maps -90 back to 0
+            latitude = (float) ((s - 1.0) * 4 * 90);
+        }
+
+        return latitude;
     }
 
     public AxisDirections getGlobalAxisDirections(float partialTick) {
