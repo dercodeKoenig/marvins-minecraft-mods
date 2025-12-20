@@ -27,13 +27,14 @@ import static net.minecraft.world.level.block.Block.popResource;
 
 public class EntityItemInputBlock extends BlockEntity implements IItemHandler, INetworkTagReceiver {
 
-    BlockEntityItemStackHandler inventory;
-    GuiHandlerBlockEntity guiHandler;
+    public BlockEntityItemStackHandler inventory;
+    public GuiHandlerBlockEntity guiHandler;
 
 
     public EntityItemInputBlock(BlockPos pos, BlockState blockState) {
-        this(ENTITY_ITEM_INPUT_BLOCK.get(),pos,blockState);
+        this(ENTITY_ITEM_INPUT_BLOCK.get(), pos, blockState);
     }
+
     public EntityItemInputBlock(BlockEntityType t, BlockPos pos, BlockState blockState) {
         super(t, pos, blockState);
 
@@ -42,23 +43,23 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
 
         int containergroup = 0;
         int playerinventorygroup = 1;
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0,this, 0,containergroup,playerinventorygroup,this.guiHandler,45,10) );
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1,this, 1,containergroup,playerinventorygroup,this.guiHandler,65,10) );
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2,this, 2,containergroup,playerinventorygroup,this.guiHandler,85,10) );
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3,this, 3,containergroup,playerinventorygroup,this.guiHandler,105,10) );
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0, this, 0, containergroup, playerinventorygroup, this.guiHandler, 45, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1, this, 1, containergroup, playerinventorygroup, this.guiHandler, 65, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, this, 2, containergroup, playerinventorygroup, this.guiHandler, 85, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3, this, 3, containergroup, playerinventorygroup, this.guiHandler, 105, 10));
 
-        List<guiModulePlayerInventorySlot> playerHotBar =  guiModulePlayerInventorySlot.makePlayerHotbarModules(7,100,100,playerinventorygroup,containergroup,this.guiHandler);
-        for (guiModulePlayerInventorySlot i:playerHotBar){
+        List<guiModulePlayerInventorySlot> playerHotBar = guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 100, 100, playerinventorygroup, containergroup, this.guiHandler);
+        for (guiModulePlayerInventorySlot i : playerHotBar) {
             this.guiHandler.getModules().add(i);
         }
 
-        List<guiModulePlayerInventorySlot> playerInv =  guiModulePlayerInventorySlot.makePlayerInventoryModules(7,40,200,playerinventorygroup,containergroup,this.guiHandler);
-        for (guiModulePlayerInventorySlot i:playerInv){
+        List<guiModulePlayerInventorySlot> playerInv = guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 40, 200, playerinventorygroup, containergroup, this.guiHandler);
+        for (guiModulePlayerInventorySlot i : playerInv) {
             this.guiHandler.getModules().add(i);
         }
 
 
-        inventory = new BlockEntityItemStackHandler(4,this);
+        inventory = new BlockEntityItemStackHandler(4, this);
     }
 
 
@@ -71,9 +72,9 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag,registries);
+        super.saveAdditional(tag, registries);
         CompoundTag inv = inventory.serializeNBT(registries);
-        tag.put("inventory",inv);
+        tag.put("inventory", inv);
     }
 
 
@@ -85,13 +86,13 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
     @Override
     public void readClient(CompoundTag tagIn) {
         this.guiHandler.readClient(tagIn);
-        if(tagIn.contains("openGui")){
+        if (tagIn.contains("openGui")) {
             openGui();
         }
     }
 
-    public void openGui(){
-        guiHandler.        openGui(176, 126, true);
+    public void openGui() {
+        guiHandler.openGui(176, 126, true);
     }
 
     public void popItems() {
@@ -99,7 +100,7 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
             for (int i = 0; i < inventory.getSlots(); i++) {
                 ItemStack stack = inventory.getStackInSlot(i).copy();
                 popResource(level, getBlockPos(), stack);
-                inventory.setStackInSlot(i,ItemStack.EMPTY);
+                inventory.setStackInSlot(i, ItemStack.EMPTY);
             }
         }
     }
@@ -116,26 +117,30 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return inventory.insertItem(slot,stack,simulate);
+        return inventory.insertItem(slot, stack, simulate);
     }
 
     @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return inventory.extractItem(slot,amount,simulate);
+        return inventory.extractItem(slot, amount, simulate);
     }
 
-        @Override
+    @Override
     public int getSlotLimit(int slot) {
         return 99;
     }
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        return inventory.isItemValid(slot,stack);
+        return inventory.isItemValid(slot, stack);
+    }
+
+    public void tick() {
+        if (!level.isClientSide)
+            guiHandler.serverTick();
     }
 
     public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
-        if(!level.isClientSide)
-            ((EntityItemInputBlock)t).guiHandler.serverTick();
+        ((EntityItemInputBlock) t).tick();
     }
 }

@@ -20,8 +20,8 @@ import static ARLib.ARLibRegistry.ENTITY_ENERGY_INPUT_BLOCK;
 
 public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorage, INetworkTagReceiver {
 
-    protected BlockEntityBattery energyStorage;
-    GuiHandlerBlockEntity guiHandler;
+    public BlockEntityBattery energyStorage;
+    public GuiHandlerBlockEntity guiHandler;
 
     public EntityEnergyInputBlock(BlockPos p_155229_, BlockState p_155230_) {
         this(ENTITY_ENERGY_INPUT_BLOCK.get(), p_155229_, p_155230_);

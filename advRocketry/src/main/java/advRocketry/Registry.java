@@ -1,5 +1,6 @@
 package advRocketry;
 
+import advRocketry.BlockEntities.EntityFuelingStation;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Blocks.*;
@@ -62,6 +63,9 @@ public class Registry {
     public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
     public static final Supplier<BlockEntityType<EntityRocketAssembler>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
 
+    public static final Supplier<Block> FUELING_STATION = BLOCKS.register("fueling_station", () -> new FuelingStation());
+    public static final Supplier<BlockEntityType<EntityFuelingStation>> ENTITY_FUELING_STATION = BLOCK_ENTITIES.register("fueling_station", () -> BlockEntityType.Builder.of(EntityFuelingStation::new, FUELING_STATION.get()).build(null));
+
     public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
     public static final Supplier<BlockEntityType<EntityGuidanceComputer>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
 
@@ -82,5 +86,6 @@ public class Registry {
         registerBlockItem("fuel_tank", FUEL_TANK);
         registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
         registerBlockItem("seat", SEAT);
+        registerBlockItem("fueling_station", FUELING_STATION);
     }
 }

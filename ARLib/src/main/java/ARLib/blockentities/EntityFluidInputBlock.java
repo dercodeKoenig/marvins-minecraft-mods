@@ -34,10 +34,10 @@ import static net.minecraft.world.level.block.Block.popResource;
 
 public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,IFluidHandler, INetworkTagReceiver {
 
-    FluidTank myTank;
-    GuiHandlerBlockEntity guiHandler;
+    public FluidTank myTank;
+    public GuiHandlerBlockEntity guiHandler;
 
-    List<ItemStack> inventory;
+    public List<ItemStack> inventory;
 
     public EntityFluidInputBlock(BlockPos pos, BlockState blockState) {
         this(ENTITY_FLUID_INPUT_BLOCK.get(), pos, blockState);
@@ -241,14 +241,11 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
         return stack.getCapability(Capabilities.FluidHandler.ITEM) != null;
     }
 
-
-    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+    public void tick(){
         if (!level.isClientSide) {
-            ((EntityFluidInputBlock) t).guiHandler.serverTick();
+            guiHandler.serverTick();
 
-
-            EntityFluidInputBlock tile = (EntityFluidInputBlock) t;
-            ItemStack stack = tile.getStackInSlot(0);
+            ItemStack stack = getStackInSlot(0);
             if (!stack.isEmpty()) {
 
                 // Make a single-item copy to operate on
@@ -257,8 +254,8 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
 
                 if (fluidHandler != null) {
                     FluidStack drained;
-                    FluidStack fluidInTank = ((IFluidHandler) tile).getFluidInTank(0);
-                    int tankCapacity = ((IFluidHandler) tile).getTankCapacity(0);
+                    FluidStack fluidInTank = getFluidInTank(0);
+                    int tankCapacity = getTankCapacity(0);
 
                     // 1. Try to drain fluid from the item into the tank
                     if (fluidInTank.isEmpty()) {
@@ -268,27 +265,27 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
                         ItemStack resultItem = fluidHandler.getContainer();
 
                         // Try inserting result item into slot 1
-                        if (!drained.isEmpty()&&tile.insertItem(1, resultItem, true, true).isEmpty()) {
+                        if (!drained.isEmpty()&&insertItem(1, resultItem, true, true).isEmpty()) {
                             // Commit the drain, fluid transfer, and item movement
-                            ((IFluidHandler) tile).fill(drained, FluidAction.EXECUTE);
-                            tile.extractItem(0, 1, false);
-                            tile.insertItem(1, resultItem, false, true);
+                            fill(drained, FluidAction.EXECUTE);
+                            extractItem(0, 1, false);
+                            insertItem(1, resultItem, false, true);
 
                         }
                     } else {
                         // Tank has fluid; calculate maximum fillable amount
                         int maxFill = tankCapacity - fluidInTank.getAmount();
                         drained = fluidHandler.drain(maxFill, FluidAction.EXECUTE);
-                        int filled = tile.fill(drained, FluidAction.SIMULATE);
+                        int filled = fill(drained, FluidAction.SIMULATE);
                         ItemStack resultItem = fluidHandler.getContainer();
 
                         // Try inserting result item into slot 1
                         if(!drained.isEmpty() && filled == drained.getAmount()) {
-                            if (tile.insertItem(1, resultItem, true, true).isEmpty()) {
+                            if (insertItem(1, resultItem, true, true).isEmpty()) {
                                 // Commit the drain, fluid transfer, and item movement
-                                ((IFluidHandler) tile).fill(drained, FluidAction.EXECUTE);
-                                tile.extractItem(0, 1, false);
-                                tile.insertItem(1, resultItem, false, true);
+                                fill(drained, FluidAction.EXECUTE);
+                                extractItem(0, 1, false);
+                                insertItem(1, resultItem, false, true);
                             }
                         }else{
                             drained = FluidStack.EMPTY;
@@ -306,15 +303,19 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
                         int filled = fluidHandler.fill(wasInTank, FluidAction.EXECUTE);
                         ItemStack resultItem = fluidHandler.getContainer();
                         // Try inserting result item into slot 1
-                        if (tile.insertItem(1, resultItem, true, true).isEmpty()) {
+                        if (insertItem(1, resultItem, true, true).isEmpty()) {
                             // Commit the fill, fluid transfer, and item movement
-                            ((IFluidHandler) tile).drain(wasInTank.copyWithAmount(filled), FluidAction.EXECUTE);
-                            tile.extractItem(0, 1, false);
-                            tile.insertItem(1, resultItem, false, true);
+                            drain(wasInTank.copyWithAmount(filled), FluidAction.EXECUTE);
+                            extractItem(0, 1, false);
+                            insertItem(1, resultItem, false, true);
                         }
                     }
                 }
             }
         }
+    }
+
+    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+        ((EntityFluidInputBlock)t).tick();
     }
 }
