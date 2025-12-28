@@ -24,10 +24,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     double lastVy;
 
     public void run(EntityRocket rocket) {
-        travelHeight = 100;
 
-        maxD = 100;
-
+        if(rocket.fuelTank.isEmpty()) rocket.endProgram();
 
         // if rocket.hasSatellites && shouldDeploySatellites: move to space first
 

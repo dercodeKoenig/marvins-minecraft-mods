@@ -249,6 +249,7 @@ public class Main {
             e.accept(Registry.SEAT.get());
             e.accept(Registry.ROCKET_FUEL_BUCKET.get());
             e.accept(Registry.FUELING_STATION.get());
+            e.accept(Registry.ITEM_LINKER.get());
         }
     }
 }

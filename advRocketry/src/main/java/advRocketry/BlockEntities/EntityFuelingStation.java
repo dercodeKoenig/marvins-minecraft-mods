@@ -11,12 +11,15 @@ import advRocketry.Blocks.StructureTower;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
+import advRocketry.Items.ItemLinker;
+import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,15 +35,19 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
+import java.security.cert.TrustAnchor;
 import java.util.*;
 
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
-public class EntityFuelingStation extends EntityFluidInputBlock{
+public class EntityFuelingStation extends EntityFluidInputBlock implements ItemLinker.linkable {
+
+    public BlockPos linkedAssemblerPos = null;
 
     public EntityFuelingStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_FUELING_STATION.get(), pos, blockState);
@@ -59,18 +66,51 @@ public class EntityFuelingStation extends EntityFluidInputBlock{
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        if (linkedAssemblerPos != null)
+            tag.put("linkedAssemblerPos", NbtUtils.writeBlockPos(linkedAssemblerPos));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        if (tag.contains("linkedAssemblerPos"))
+            linkedAssemblerPos = NbtUtils.readBlockPos(tag, "linkedAssemblerPos").get();
     }
 
-    public void tick(){
+    public void tick() {
         super.tick();
+        if (linkedAssemblerPos != null) {
+            BlockEntity rocketAssembler = level.getBlockEntity(linkedAssemblerPos);
+            if (rocketAssembler instanceof EntityRocketAssembler assembler) {
+                if (!myTank.isEmpty()) {
+                    EntityRocket currentRocket = assembler.currentRocket;
+                    if(currentRocket != null) {
+                        if (currentRocket.getCurrentProgram() == null) {
+                            FluidStack available = myTank.drain(10, FluidAction.SIMULATE);
+                            int canFill = currentRocket.fuelTank.fill(available, FluidAction.SIMULATE);
+                            FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
+                            currentRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityFuelingStation) t).tick();
+    }
+
+
+    @Override
+    public boolean link(BlockPos otherpos, Level otherLevel) {
+        if (otherLevel == level) {
+            Block otherBlock = level.getBlockState(otherpos).getBlock();
+            if (otherBlock.equals(Registry.ROCKET_ASSEMBLER.get())) {
+                linkedAssemblerPos = otherpos;
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -1,14 +1,17 @@
 package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
+import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
+import ARLib.utils.DimensionUtils;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
 import advRocketry.Dimension.*;
+import advRocketry.Items.ItemLinker;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.utils.CelestialUtils;
@@ -22,6 +25,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -56,10 +60,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3i size;
     public FluidTank fuelTank = null;
 
-    public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
-
     // cached values
     private float cachedThrust = -1;
+    private int cachedFuelRate = -1;
     private ArrayList<BlockPos> cachedEnginePositions = null;
     private ArrayList<BlockPos> cachedSeatPositions = null;
 
@@ -144,8 +147,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         rocket.fuelTank = new FluidTank(fuelCapacity);
-        rocket.makeGui();
         rocket.refreshDimensions();
+        rocket.makeGui();
         return rocket;
     }
 
@@ -210,7 +213,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if(GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
+        if (GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
             openGui();
             return InteractionResult.SUCCESS_NO_ITEM_USED;
         }
@@ -527,21 +530,29 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
     }
 
-    public void launch() {
-        setLastLaunchPosition(blockPosition(), true);
-        ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
-        p.targetDimensionId = level().dimension().location();
+    public void launch(ItemStack navigationItem) {
+        if (navigationItem.getItem() instanceof ItemLinker linker) {
+            // navigate using linker item
+            CompoundTag tag = linker.getStacktagOrEmpty(navigationItem);
+            if (tag.contains("p") && tag.contains("l")) {
+                // extract level & pos
+                BlockPos targetPos = NbtUtils.readBlockPos(tag, "p").get();
+                Level targetLevel = DimensionUtils.getDimensionLevelServer(tag.getString("l"));
+                ResourceLocation targetLevelId = targetLevel.dimension().location();
 
-        if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
-        else if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon")))
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
-        else if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus")))
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
-        else
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        p.target = new BlockPos((int) position().x, 0, (int) position().z);
-        setProgramAndSync(p);
+                // TODO: force load and check target coord if it is a rocket assembler and if so, calculate correct landing position for planet or space travel
+
+                if (DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId).getType() == DimensionProperties.DimensionType.PLANET) {
+                    // target level is planet, use planet navigation program
+                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
+                    p.target = targetPos;
+                    p.targetDimensionId = targetLevelId;
+                    setProgramAndSync(p);
+
+                    setLastLaunchPosition(blockPosition(), true);
+                }
+            }
+        }
     }
 
     public void deconstruct() {
@@ -634,7 +645,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 deconstruct();
             }
             if (id == 3) {
-                launch();
+                for (BlockEntity i : blockEntities.values()) {
+                    if (i instanceof EntityGuidanceComputer computer) {
+                        launch(computer.itemStackHandler.getStackInSlot(0));
+                    }
+                }
             }
         }
     }
@@ -691,7 +706,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void openGui() {
         if (level().isClientSide) {
-            //makeGui();
+            makeGui();
             guiHandler.openGui(180, 200, true);
         }
     }
@@ -713,6 +728,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public int getFuel() {
         return fuelTank.getFluidAmount();
+    }
+
+    public int getFuelRateMax() {
+        if (cachedFuelRate < 0) {
+            cachedFuelRate = 0;
+            for (BlockState state : blocks.values()) {
+                if (state.getBlock() instanceof RocketMotor motor) {
+                    cachedFuelRate += motor.getFuelRateMax();
+                }
+            }
+        }
+        return cachedFuelRate;
     }
 
     public float getMass() {
@@ -757,7 +784,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Player player = ClientUtils.getSinglePlayer();
         if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
             if (Minecraft.getInstance().options.keyUse.isDown()) {
-                if(GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
+                if (GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
                     rocket.openGui();
                     Minecraft.getInstance().options.keyUse.consumeClick();
                 }

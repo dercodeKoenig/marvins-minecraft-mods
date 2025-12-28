@@ -6,7 +6,10 @@ import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.Random;
 
 public class RocketController {
 
@@ -131,6 +134,11 @@ public class RocketController {
             double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
             currentThrust = ThrustMultiplier;
             // TODO: burn rocket fuel
+            float toBurn = (int) ((rocket.getFuelRateMax()) * ThrustMultiplier);
+            int toBurnInt = (int)toBurn;
+            if(toBurnInt == 0 && toBurn > 0 && rocket.level().random.nextFloat() < toBurn)
+                toBurnInt = 1;
+            rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
 
         } else {
             targetHeading = rocket.getDefaultTargetHeading();
