@@ -1,12 +1,16 @@
 package advRocketry.Rocket.RocketPrograms;
 
+import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -33,20 +37,25 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             rocket.enableMainEngines(true, false);
 
             // we are at the correct dimension
-            // TODO: check if target is a rocket assembler and if so, find the correct landing position for it and the target front
 
-            double dx = target.getX() - rocket.position().x;
-            double dz = target.getZ() - rocket.position().z;
+            Vec3 targetVec3 = new Vec3(target.getX(), target.getY(), target.getZ());
 
-            int y = Utils.findGroundY(rocket.level(), new BlockPos(target.getX(), rocket.level().getMaxBuildHeight(), target.getZ()));
+            if(rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler){
+                targetVec3 =  assembler.getLandingPos(rocket);
+            }
+
+            double dx = targetVec3.x - rocket.position().x;
+            double dz = targetVec3.z - rocket.position().z;
+
+            int y = Utils.findGroundY(rocket.level(), new BlockPos((int) targetVec3.x, rocket.level().getMaxBuildHeight(), (int) targetVec3.z));
             double dy = y - rocket.position().y;
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
             double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
 
             double heightErrorMultiplier = 0.5; // dont close the height error at once, to slowly approach target set the height target to rocketY + dy * heightErrorMultiplier
-            double xzDistanceHeightMultiplier = 1; // target height increases as we move more away from the target position in xz direction
+            double xzDistanceHeightMultiplier = 2; // target height increases as we move more away from the target position in xz direction
             double speedHeightMultiplier = 20; // if we move fast, target is higher. we will only land if the movement in xz is close to 0
-            double yOffset = -2; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
+            double yOffset = -3; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
             double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
 
             double maxDiffY = 500;
@@ -54,19 +63,26 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 targetY = rocket.position().y - maxDiffY;
             }
 
-            Vec3 targetVec3 = new Vec3(target.getX(), targetY, target.getZ());
+            targetVec3 = new Vec3(targetVec3.x,targetY,targetVec3.z);
 
-
-            if (distanceToTargetXZ < 50)
+            if (distanceToTargetXZ < 20)
                 rocket.enableSecondaryEngines(true, false); // help or it swings around too much
             else {
                 rocket.enableSecondaryEngines(false, false);
 
                 int yCurrentBelow = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
 
-                if (rocket.position().y - yCurrentBelow < 20) {
+                if (rocket.position().y < 20 + yCurrentBelow) {
                     // start / move up
-                    targetVec3 = new Vec3(rocket.position().x, targetY, rocket.position().z);
+                    targetVec3 = new Vec3(rocket.position().x, yCurrentBelow + travelHeight, rocket.position().z);
+                }else{
+                    targetVec3 = new Vec3(targetVec3.x, Math.max(yCurrentBelow + travelHeight, targetVec3.y), targetVec3.z);
+
+                    // rotate to the target front if it is a rocket assembler there
+                    if(rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler){
+                        Direction targetFront = assembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+                        rocket.setTargetFront(new Vec3(targetFront.getStepX(),targetFront.getStepY(),targetFront.getStepZ()),false);
+                    }
                 }
             }
 

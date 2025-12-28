@@ -213,11 +213,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if (GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
+        if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 100) { // sometimes for whatever reason the lock is too high maybe because lag?
             openGui();
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
         }
-        return super.interact(player, hand);
+        return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
     @Override
@@ -449,9 +448,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void endProgram() {
         setProgramAndSync(null);
-        setTargetPosition(null, true);
-        enableSecondaryEngines(false, true);
-        enableMainEngines(false, true);
     }
 
 
@@ -463,7 +459,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
 
-            if(fuelTank.isEmpty()) endProgram();
+            if (fuelTank.isEmpty()) endProgram();
         }
 
         if (firstTick) {
@@ -502,6 +498,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (currentProgram != null)
             currentProgram.run(this);
+        else {
+            setTargetPosition(null, false);
+            enableSecondaryEngines(false, false);
+            enableMainEngines(false, false);
+        }
 
         applyGravity();
 
@@ -783,7 +784,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Player player = ClientUtils.getSinglePlayer();
         if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
             if (Minecraft.getInstance().options.keyUse.isDown()) {
-                if (GlobalTime.getGlobalTime() > LockGuiOpenUntil) {
+                if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 100) { // sometimes for whatever reason the lock is too high maybe because lag?
                     rocket.openGui();
                     Minecraft.getInstance().options.keyUse.consumeClick();
                 }

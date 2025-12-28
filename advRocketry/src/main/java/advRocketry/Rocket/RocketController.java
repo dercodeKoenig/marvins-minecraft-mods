@@ -138,7 +138,6 @@ public class RocketController {
             int toBurnInt = (int)toBurn;
             if(toBurnInt == 0 && toBurn > 0 && rocket.level().random.nextFloat() < toBurn)
                 toBurnInt = 1;
-            System.out.println(toBurn+":"+toBurnInt+":"+rocket.getFuelRateMax()+":"+ThrustMultiplier);
             if(!rocket.level().isClientSide) {
                 rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
             }

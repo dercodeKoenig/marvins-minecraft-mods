@@ -86,10 +86,12 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
                     EntityRocket currentRocket = assembler.currentRocket;
                     if(currentRocket != null) {
                         if (currentRocket.getCurrentProgram() == null) {
-                            FluidStack available = myTank.drain(10, FluidAction.SIMULATE);
-                            int canFill = currentRocket.fuelTank.fill(available, FluidAction.SIMULATE);
-                            FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
-                            currentRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
+                            if (new AABB(assembler.areaMin.getCenter(),assembler.areaMax.getCenter()).inflate(2).contains(currentRocket.position())) {
+                                FluidStack available = myTank.drain(10, FluidAction.SIMULATE);
+                                int canFill = currentRocket.fuelTank.fill(available, FluidAction.SIMULATE);
+                                FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
+                                currentRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
+                            }
                         }
                     }
                 }
