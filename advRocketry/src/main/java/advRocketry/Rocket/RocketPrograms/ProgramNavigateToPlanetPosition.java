@@ -25,8 +25,6 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
     public void run(EntityRocket rocket) {
 
-        if(rocket.fuelTank.isEmpty()) rocket.endProgram();
-
         // if rocket.hasSatellites && shouldDeploySatellites: move to space first
 
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
@@ -35,6 +33,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             rocket.enableMainEngines(true, false);
 
             // we are at the correct dimension
+            // TODO: check if target is a rocket assembler and if so, find the correct landing position for it and the target front
 
             double dx = target.getX() - rocket.position().x;
             double dz = target.getZ() - rocket.position().z;

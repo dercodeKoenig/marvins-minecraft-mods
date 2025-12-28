@@ -16,8 +16,6 @@ public class NavigateToSpaceTravelDimension {
 
     public static boolean run(EntityRocket rocket) {
 
-        if(rocket.fuelTank.isEmpty()) rocket.endProgram();
-
         if (rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
             return true;
         }

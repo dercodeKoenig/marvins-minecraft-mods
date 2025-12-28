@@ -462,6 +462,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (!level().isClientSide) {
             guiHandler.serverTick();
+
+            if(fuelTank.isEmpty()) endProgram();
         }
 
         if (firstTick) {
@@ -539,8 +541,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 BlockPos targetPos = NbtUtils.readBlockPos(tag, "p").get();
                 Level targetLevel = DimensionUtils.getDimensionLevelServer(tag.getString("l"));
                 ResourceLocation targetLevelId = targetLevel.dimension().location();
-
-                // TODO: force load and check target coord if it is a rocket assembler and if so, calculate correct landing position for planet or space travel
 
                 if (DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId).getType() == DimensionProperties.DimensionType.PLANET) {
                     // target level is planet, use planet navigation program
@@ -706,7 +706,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void openGui() {
         if (level().isClientSide) {
-            makeGui();
             guiHandler.openGui(180, 200, true);
         }
     }

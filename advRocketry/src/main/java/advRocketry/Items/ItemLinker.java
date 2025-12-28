@@ -60,8 +60,10 @@ public class ItemLinker extends Item {
 
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         if(!level.isClientSide) {
-            setTag(player.getItemInHand(usedHand), new CompoundTag());
-            player.sendSystemMessage(Component.literal("clear position"));
+            if(player.isShiftKeyDown()) {
+                setTag(player.getItemInHand(usedHand), new CompoundTag());
+                player.sendSystemMessage(Component.literal("clear position"));
+            }
         }
         return InteractionResultHolder.success(player.getItemInHand(usedHand));
     }

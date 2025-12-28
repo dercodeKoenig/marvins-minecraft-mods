@@ -134,11 +134,14 @@ public class RocketController {
             double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
             currentThrust = ThrustMultiplier;
             // TODO: burn rocket fuel
-            float toBurn = (int) ((rocket.getFuelRateMax()) * ThrustMultiplier);
+            float toBurn = (float) ((float)rocket.getFuelRateMax() * ThrustMultiplier);
             int toBurnInt = (int)toBurn;
             if(toBurnInt == 0 && toBurn > 0 && rocket.level().random.nextFloat() < toBurn)
                 toBurnInt = 1;
-            rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
+            System.out.println(toBurn+":"+toBurnInt+":"+rocket.getFuelRateMax()+":"+ThrustMultiplier);
+            if(!rocket.level().isClientSide) {
+                rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
+            }
 
         } else {
             targetHeading = rocket.getDefaultTargetHeading();
