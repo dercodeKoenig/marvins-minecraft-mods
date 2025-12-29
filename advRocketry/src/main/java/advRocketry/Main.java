@@ -1,21 +1,18 @@
 package advRocketry;
 
-import ARLib.ARLibRegistry;
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntities.EntityObservatory;
+import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketFlameParticleProvider;
-import advRocketry.Render.PlanetRenderCache;
+import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.BiomeConfig;
 
-import advRocketry.Render.Fog;
-import advRocketry.Render.shaderUtils;
-import advRocketry.Render.SkyRenderer;
 import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
 import net.minecraft.client.Minecraft;
@@ -25,7 +22,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -179,6 +175,7 @@ public class Main {
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
         event.registerBlockEntityRenderer(Registry.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
+        event.registerBlockEntityRenderer(Registry.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
     }
 
     void loadShaders(RegisterShadersEvent event) {
