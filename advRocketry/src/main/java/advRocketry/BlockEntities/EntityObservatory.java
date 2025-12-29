@@ -22,11 +22,13 @@ public class EntityObservatory extends EntityMultiblockMaster {
     public MeshData meshScope;
     public MeshData meshCasingXPlus;
     public MeshData meshCasingXMinus;
+    public MeshData meshBase;
 
     public VertexBuffer axle;
     public VertexBuffer scope;
     public VertexBuffer casingXPlus;
     public VertexBuffer casingXMinus;
+    public VertexBuffer base;
 
     public int lastLight;
 
@@ -40,6 +42,7 @@ public class EntityObservatory extends EntityMultiblockMaster {
                 scope = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 casingXMinus = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 casingXPlus = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                base = new VertexBuffer(VertexBuffer.Usage.STATIC);
             });
         }
     }
@@ -51,6 +54,7 @@ public class EntityObservatory extends EntityMultiblockMaster {
                 scope.close();
                 casingXPlus.close();
                 casingXMinus.close();
+                base.close();
             });
         }
     }

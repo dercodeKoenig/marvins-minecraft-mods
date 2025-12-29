@@ -1,5 +1,6 @@
 package advRocketry.BlockEntityRenderers;
 
+import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
@@ -91,10 +92,22 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         tile.casingXMinus.bind();
         tile.casingXMinus.upload(tile.meshCasingXMinus);
         byteBuffer.close();
+
+
+        byteBuffer = new ByteBufferBuilder(1024);
+        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("Base").faces) {
+            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+        }
+        tile.meshBase = b.build();
+        tile.base.bind();
+        tile.base.upload(tile.meshBase);
+        byteBuffer.close();
     }
 
     @Override
     public void render(EntityObservatory observatory, float partialtick, PoseStack stack, MultiBufferSource multiBufferSource, int light, int overlay) {
+
         if (observatory.lastLight != light) {
             observatory.lastLight = light;
             updateVertexBuffers(observatory,light);
@@ -102,6 +115,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
         BlockState state = observatory.getBlockState();
         if (!(state.getBlock() instanceof Observatory)) return;
+
+        if(!state.getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
+            return;
 
         Direction back = state.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 
@@ -117,15 +133,30 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         // translate to structure center
         modelMat.translate(back.getStepX()*2+0.5f,0,back.getStepZ()*2+0.5f);
 
-        modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0,1,0,30));
+        ShaderInstance shader;
+        Uniform NormalMat;
+        Matrix3f normalMat;
+
+        shader = RenderSystem.getShader();
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        NormalMat = shader.getUniform("NormalMat");
+        normalMat = new Matrix3f(modelMat); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        NormalMat.set(normalMat);
+        shader.apply();
+
+        observatory.base.bind();
+        observatory.base.draw();
+        
+        modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0,1,0,(float)(System.currentTimeMillis() % 360000) / 300f));
 
         Matrix4f modelMatScope = new Matrix4f(modelMat);
         modelMatScope.translate(0,2,0);
 
-        ShaderInstance shader = RenderSystem.getShader();
+        shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatScope), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        Uniform NormalMat = shader.getUniform("NormalMat");
-        Matrix3f normalMat = new Matrix3f(modelMatScope); // take upper-left 3x3
+        NormalMat = shader.getUniform("NormalMat");
+        normalMat = new Matrix3f(modelMatScope); // take upper-left 3x3
         normalMat.invert().transpose(); // compute normal matrix
         NormalMat.set(normalMat);
         shader.apply();
@@ -138,7 +169,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
 
         Matrix4f modelMatCaseXPlus = new Matrix4f(modelMat);
-        modelMatCaseXPlus.translate(0f,0,1f);
+        //modelMatCaseXPlus.translate(0f,0,1f);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXPlus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -153,7 +184,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
 
         Matrix4f modelMatCaseXMinus = new Matrix4f(modelMat);
-        modelMatCaseXMinus.translate(0f,0,-1f);
+        //modelMatCaseXMinus.translate(0f,0,-1f);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXMinus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
