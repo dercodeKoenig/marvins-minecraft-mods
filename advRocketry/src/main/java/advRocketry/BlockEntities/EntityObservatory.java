@@ -14,6 +14,7 @@ import java.util.List;
 public class EntityObservatory extends EntityMultiblockMaster {
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
+        super.forwardInteractionToMaster = true;
     }
 
     public static Object[][][] structure =
@@ -78,7 +79,15 @@ public class EntityObservatory extends EntityMultiblockMaster {
 
     @Override
     public boolean shouldHideBlock(int y, int z, int x, BlockState stateInWorld) {
-        boolean[][][] hideBlocks = this.hideBlocks();
-        return hideBlocks[y][z][x];
+        Block block = stateInWorld.getBlock();
+        if(block.equals(ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get()))
+            return false;
+        if(block.equals(ARLibRegistry.BLOCK_ITEM_INPUT_BLOCK.get()))
+            return false;
+        if(block.equals(ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get()))
+            return false;
+
+        return true;
+
     }
 }
