@@ -1,7 +1,9 @@
 package advRocketry;
 
+import ARLib.ARLibRegistry;
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketFlameParticleProvider;
@@ -29,6 +31,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -79,6 +82,7 @@ public class Main {
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerParticles);
         modEventBus.addListener(this::registerClientExtensions);
+        modEventBus.addListener(this::loadComplete);
 
 
         Registry.BLOCKS.register(modEventBus);
@@ -91,8 +95,8 @@ public class Main {
         Registry.FLUID_TYPES.register(modEventBus);
 
         // register network packets
-        SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
-        SimpleNetworkPacket.registerReceiver(DimensionManager. packetDimensionListSync, new DimensionManager.SyncDimensionList());
+        SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
+        SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionListSync, new DimensionManager.SyncDimensionList());
         SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
 
         Path configDir = FMLPaths.CONFIGDIR.get();
@@ -107,41 +111,41 @@ public class Main {
 
     }
 
-    public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
-        if( event.getEntity() instanceof  ServerPlayer p){
-            for(Dimension i : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
+    void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer p) {
+            for (Dimension i : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
                 DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, i);
             }
             DimensionManager.SyncDimensionList.syncDimensionListToPlayer(p);
         }
     }
 
-    public void onServerTick(ServerTickEvent.Post event) {
+    void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
     }
 
-    public void onClientTick(ClientTickEvent.Post event) {
-        if(ClientUtils.getPlayerLevel() == null)return; // my stuff is only for when playing
+    void onClientTick(ClientTickEvent.Post event) {
+        if (ClientUtils.getPlayerLevel() == null) return; // my stuff is only for when playing
         DimensionManager.INSTANCE_CLIENT.tick();
         GlobalTime.tickClient();
         EntityRocket.onClientTickEvent();
         PlanetRenderCache.updatePlanetsToRenderInSky();
     }
 
-    public void onServerStarted(ServerStartedEvent event) {
+    void onServerStarted(ServerStartedEvent event) {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + worldPath);
         GlobalTime.load();
         DimensionManager.INSTANCE_SERVER.onServerStart();
     }
 
-    public void onServerStop(ServerStoppingEvent event) {
+    void onServerStop(ServerStoppingEvent event) {
         GlobalTime.save();
         DimensionManager.INSTANCE_SERVER.onServerStop();
     }
 
-    private void onRenderStage(RenderLevelStageEvent event) {
+    void onRenderStage(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
             //if(true)return;
             Matrix4f proj = event.getProjectionMatrix();
@@ -154,29 +158,30 @@ public class Main {
         }
     }
 
-    public void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
+    void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
         if (event.getEntity() instanceof EntityRocket rocket) {
             rocket.closeVertexBuffer();
         }
     }
 
-    public void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event){
-        if(ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
+    void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
+        if (ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
             int rocketsize = rocket.size.getY();
-            event.setDistance(event.getDistance() + rocketsize*1.3f);
+            event.setDistance(event.getDistance() + rocketsize * 1.3f);
         }
     }
 
-    private void registerCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer)x).itemStackHandler));
+    void registerCapabilities(RegisterCapabilitiesEvent e) {
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer) x).itemStackHandler));
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.myTank);
     }
 
-    public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+    void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
         event.registerBlockEntityRenderer(Registry.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
     }
 
-    private void loadShaders(RegisterShadersEvent event) {
+    void loadShaders(RegisterShadersEvent event) {
         // 3. Register the shader and set the static field in the callback
         try {
             shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
@@ -211,15 +216,15 @@ public class Main {
         }
     }
 
-    public void onClientSetup(FMLClientSetupEvent event) {
+    void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(Registry.STRUCTURE_TOWER.get(), RenderType.cutout());
     }
 
-    public void registerParticles(RegisterParticleProvidersEvent event){
+    void registerParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
     }
 
-    public void registerClientExtensions(RegisterClientExtensionsEvent event) {
+    void registerClientExtensions(RegisterClientExtensionsEvent event) {
         event.registerFluidType(
                 new IClientFluidTypeExtensions() {
                     @Override
@@ -238,7 +243,11 @@ public class Main {
         );
     }
 
-    private void addCreative(BuildCreativeModeTabContentsEvent e) {
+    void loadComplete(FMLLoadCompleteEvent e) {
+        ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure,EntityObservatory.charMapping);
+    }
+
+    void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(Registry.CUSTOM_CREATIVE_TAB.get())) {
             e.accept(Registry.LAUNCHPAD.get());
             e.accept(Registry.STRUCTURE_TOWER.get());
@@ -250,6 +259,7 @@ public class Main {
             e.accept(Registry.ROCKET_FUEL_BUCKET.get());
             e.accept(Registry.FUELING_STATION.get());
             e.accept(Registry.ITEM_LINKER.get());
+            e.accept(Registry.OBSERVATORY.get());
         }
     }
 }

@@ -1,0 +1,13 @@
+{
+    "variants": {
+        "facing=north,state=false": { "model": "adv_rocketry:block/observatory" },
+        "facing=east,state=false":  { "model": "adv_rocketry:block/observatory", "y": 90 },
+        "facing=south,state=false": { "model": "adv_rocketry:block/observatory", "y": 180 },
+        "facing=west,state=false":  { "model": "adv_rocketry:block/observatory", "y": 270 },
+
+        "facing=north,state=true":  { "model": "adv_rocketry:block/observatory_multiblock" },
+        "facing=east,state=true":   { "model": "adv_rocketry:block/observatory_multiblock", "y": 90 },
+        "facing=south,state=true":  { "model": "adv_rocketry:block/observatory_multiblock", "y": 180 },
+        "facing=west,state=true":   { "model": "adv_rocketry:block/observatory_multiblock", "y": 270 }
+    }
+}
