@@ -2,6 +2,7 @@ package advRocketry;
 
 import advRocketry.BlockEntities.EntityFuelingStation;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Blocks.*;
 import advRocketry.Fluid.RocketFuel;
@@ -74,6 +75,9 @@ public class Registry {
 
     public static final Supplier<Block> SEAT = BLOCKS.register("seat", () -> new Seat());
 
+    public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
+    public static final Supplier<BlockEntityType<EntityObservatory>> ENTITY_OBSERVATORY = BLOCK_ENTITIES.register("observatory", () -> BlockEntityType.Builder.of(EntityObservatory::new, OBSERVATORY.get()).build(null));
+
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
             "rocket",
             () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(1000).build(Main.MODID+":rocket")
@@ -90,5 +94,6 @@ public class Registry {
         registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
         registerBlockItem("seat", SEAT);
         registerBlockItem("fueling_station", FUELING_STATION);
+        registerBlockItem("observatory", OBSERVATORY);
     }
 }
