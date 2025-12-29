@@ -9,4 +9,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 1
-map_Kd C:/Users/Dr-Hc/Documents/aos_mods/advRocketry/src/main/resources/assets/adv_rocketry/textures/block/observatory.png
+map_Kd adv_rocketry:block/observatory
