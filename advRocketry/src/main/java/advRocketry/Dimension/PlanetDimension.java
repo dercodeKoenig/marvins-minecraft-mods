@@ -150,6 +150,14 @@ public class PlanetDimension extends Dimension {
         return properties().hasCustomSky;
     }
 
+    public ResourceLocation getParentDimensionId(){ return properties().parentDimensionId; }
+
+    public float getorbitalDistanceToParent(){ return properties().orbitalDistanceToParent; }
+
+    public float getorbitalBaseOffsetDegrees(){ return properties().orbitalBaseOffsetDegrees; }
+
+    public Vec3 getOrbitAxis(){return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);}
+
     @Override
     public double getTerrainBrightness(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);

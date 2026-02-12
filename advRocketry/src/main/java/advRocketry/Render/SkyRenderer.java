@@ -31,11 +31,11 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class SkyRenderer {
 
 
-    VertexBuffer vertexBufferSkyBox;
-    VertexBuffer vertexBufferPlanet;
-    VertexBuffer vertexBufferRingSystem;
-    VertexBuffer vertexBufferSquare;
-    VertexBuffer vertexBufferStarBackground;
+    public static VertexBuffer vertexBufferSkyBox;
+    public static VertexBuffer vertexBufferPlanet;
+    public static VertexBuffer vertexBufferRingSystem;
+    public static VertexBuffer vertexBufferSquare;
+    public static VertexBuffer vertexBufferStarBackground;
     boolean finishedLoading = false;
 
     public SkyRenderer() {
@@ -44,8 +44,8 @@ public class SkyRenderer {
             createPlanetBuffer();
             createRingSystemBuffer();
             createSquareBuffer();
-            setupRenderTargets();
             createStarBackgroundBuffer();
+            setupRenderTargets();
             finishedLoading = true;
         });
     }
@@ -173,18 +173,18 @@ public class SkyRenderer {
 
     public static SkyRenderer INSTANCE = new SkyRenderer();
 
-    private TextureTarget PlanetsTarget;
-    private TextureTarget AtmosphereTarget;
-    private TextureTarget bloomBrightTarget;
-    private TextureTarget bloomBlurTarget1;
-    private TextureTarget bloomBlurTarget2;
+    public static TextureTarget PlanetsTarget;
+    public static TextureTarget AtmosphereTarget;
+    public static TextureTarget bloomBrightTarget;
+    public static TextureTarget bloomBlurTarget1;
+    public static TextureTarget bloomBlurTarget2;
 
     public void setupRenderTargets() {
-        this.PlanetsTarget = new HDRTextureTarget(1000, 1000, true, false);
-        this.AtmosphereTarget = new HDRTextureTarget(1000, 1000, false, false);
-        this.bloomBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
-        this.bloomBlurTarget1 = new HDRTextureTarget(1000, 1000, false, false);
-        this.bloomBlurTarget2 = new HDRTextureTarget(1000, 1000, false, false);
+        PlanetsTarget = new HDRTextureTarget(1000, 1000, true, false);
+        AtmosphereTarget = new HDRTextureTarget(1000, 1000, false, false);
+        bloomBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
+        bloomBlurTarget1 = new HDRTextureTarget(1000, 1000, false, false);
+        bloomBlurTarget2 = new HDRTextureTarget(1000, 1000, false, false);
     }
 
     public void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
@@ -464,7 +464,7 @@ public class SkyRenderer {
         VertexBuffer.unbind();
     }
 
-    public void adjustRenderTargetSize(RenderTarget renderTarget, int w, int h, float multiplier) {
+    public static void adjustRenderTargetSize(RenderTarget renderTarget, int w, int h, float multiplier) {
         int targetW = (int) (w * multiplier);
         int targetH = (int) (h * multiplier);
         if (renderTarget.width != targetW || renderTarget.height != targetH) {
@@ -500,11 +500,11 @@ public class SkyRenderer {
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
 
-        this.PlanetsTarget.bindWrite(true);
+        PlanetsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         renderSpaceBodies(proj, view, worldMatrix, partialtick);
 
-        this.AtmosphereTarget.bindWrite(true);
+        AtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         renderSkyBox(proj, view, worldMatrix, partialtick);
 

@@ -2,16 +2,26 @@ package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
 import ARLib.multiblockCore.EntityMultiblockMaster;
+import ARLib.network.PacketBlockEntity;
 import advRocketry.Registry;
+import advRocketry.Render.SpaceMapScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +67,15 @@ public class EntityObservatory extends EntityMultiblockMaster {
                 base.close();
             });
         }
+    }
+
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!world.isClientSide) {
+            CompoundTag info = new CompoundTag();
+            info.put("openStarMap",new CompoundTag());
+            PacketDistributor.sendToPlayer((ServerPlayer)player, PacketBlockEntity.getBlockEntityPacket(this, info));
+        }
+        return InteractionResult.SUCCESS;
     }
 
 
@@ -131,6 +150,16 @@ public class EntityObservatory extends EntityMultiblockMaster {
             return false;
 
         return true;
+    }
 
+    @Override
+    public void readServer(CompoundTag tag, ServerPlayer player){
+
+    }
+    @Override
+    public void readClient(CompoundTag tag){
+        if (tag.contains("openStarMap")) {
+            Minecraft.getInstance().setScreen(new SpaceMapScreen());
+        }
     }
 }

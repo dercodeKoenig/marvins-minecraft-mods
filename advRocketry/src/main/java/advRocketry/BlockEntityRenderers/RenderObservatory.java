@@ -147,8 +147,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
         observatory.base.bind();
         observatory.base.draw();
-        
-        modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0,1,0,(float)(System.currentTimeMillis() % 360000) / 300f));
+
+        // rotate
+        //modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0,1,0,(float)(System.currentTimeMillis() % 360000) / 300f));
 
         Matrix4f modelMatScope = new Matrix4f(modelMat);
         modelMatScope.translate(0,2,0);
@@ -169,7 +170,8 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
 
         Matrix4f modelMatCaseXPlus = new Matrix4f(modelMat);
-        //modelMatCaseXPlus.translate(0f,0,1f);
+        // open
+        modelMatCaseXPlus.translate(0f,0,1f);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXPlus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -184,7 +186,8 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
 
         Matrix4f modelMatCaseXMinus = new Matrix4f(modelMat);
-        //modelMatCaseXMinus.translate(0f,0,-1f);
+        // open
+        modelMatCaseXMinus.translate(0f,0,-1f);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXMinus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
