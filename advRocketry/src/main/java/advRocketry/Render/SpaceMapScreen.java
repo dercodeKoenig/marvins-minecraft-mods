@@ -101,6 +101,93 @@ public class SpaceMapScreen extends Screen {
         return true;
     }
 
+    private Matrix4f viewMat(){
+        Matrix4f viewMatrix = new Matrix4f().lookAt(
+                new Vector3f(camX, zoom, camY),
+                new Vector3f(camX, 0, camY),
+                new Vector3f(0, 0, 1)
+        );
+        return viewMatrix;
+    }
+    private Matrix4f projMat(){
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+        Matrix4f projMatrix = new Matrix4f();
+        float fov = (float) Math.toRadians(60.0f); // 60 is usually better for maps than 90
+        float aspect = (float) windowWidth / windowHeight;
+        float near = 0.1f;
+        float far = 100000f;
+        projMatrix.setPerspective(fov, aspect, near, far);
+        return projMatrix;
+    }
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
+
+        // 1. Get RAW pixel coordinates from Minecraft's MouseHandler
+        // 'mouseX' from the method is scaled (e.g. 400), but we need pixels (e.g. 1920)
+        double rawMouseX = Minecraft.getInstance().mouseHandler.xpos();
+        double rawMouseY = Minecraft.getInstance().mouseHandler.ypos();
+
+        // 2. Get RAW window dimensions
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+
+        // 3. Recreate matrices (Must match your render() exactly)
+        Matrix4f viewMatrix = viewMat();
+        Matrix4f projMatrix = projMat(); // Uses the same FOV and window aspect ratio
+
+        for (ResourceLocation dimId : DimensionManager.INSTANCE_CLIENT.dimensions.keySet()) {
+            Dimension dim = DimensionManager.INSTANCE_CLIENT.get(dimId);
+            if (!dim.getType().equals(DimensionProperties.DimensionType.PLANET)) continue;
+
+            PlanetDimension planet = (PlanetDimension) dim;
+            float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+            Vec3 pos = getPositionScaled(planet, pTicks);
+
+            // MATCH YOUR RENDER TRANSLATION: (pos.x * 2000, pos.y * 2000, pos.z * 2000)
+            Vector3f planetWorldPos = new Vector3f((float)pos.x * 2000, (float)pos.y * 2000, (float)pos.z * 2000);
+
+            float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
+
+            // 4. Pass RAW pixels and RAW window size to the check
+            if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
+                System.out.println("Clicked: " + planet.getDimensionId());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // made by gemini
+    private boolean isHoveringPlanet(double rawX, double rawY, int winW, int winH, Vector3f planetPos, float radius, Matrix4f view, Matrix4f proj) {
+        // 1. Convert Raw Pixel to NDC
+        float x = (float) (2.0f * rawX / winW - 1.0f);
+        float y = (float) (1.0f - 2.0f * rawY / winH);
+
+        // 2. Unproject to find the Ray
+        Matrix4f invVP = new Matrix4f(proj).mul(view).invert();
+
+        // We shoot from the Near Plane to the Far Plane
+        Vector4f near = new Vector4f(x, y, -1.0f, 1.0f).mul(invVP);
+        Vector4f far = new Vector4f(x, y, 1.0f, 1.0f).mul(invVP);
+
+        near.div(near.w);
+        far.div(far.w);
+
+        Vector3f rayOrigin = new Vector3f(near.x, near.y, near.z);
+        Vector3f rayDir = new Vector3f(far.x - near.x, far.y - near.y, far.z - near.z).normalize();
+
+        // 3. Ray-Sphere Intersection
+        Vector3f oc = new Vector3f(rayOrigin).sub(planetPos);
+        float b = oc.dot(rayDir);
+        float c = oc.dot(oc) - radius * radius;
+        float discriminant = b * b - c;
+
+        // If discriminant < 0, the ray missed entirely.
+        return (discriminant > 0);
+    }
+
     // i will use some stuff from the skyrenderer here and also reuse the skybox shaders
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 
@@ -113,19 +200,10 @@ public class SpaceMapScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         // 2. VIEW MATRIX (Camera)
-        Matrix4f viewMatrix = new Matrix4f().lookAt(
-                new Vector3f(camX, zoom, camY),
-                new Vector3f(camX, 0, camY),
-                new Vector3f(0, 0, 1)
-        );
+        Matrix4f viewMatrix = viewMat();
 
         // 3. PROJECTION MATRIX
-        Matrix4f projMatrix = new Matrix4f();
-        float fov = (float) Math.toRadians(60.0f); // 60 is usually better for maps than 90
-        float aspect = (float) windowWidth / windowHeight;
-        float near = 0.1f;
-        float far = 100000f;
-        projMatrix.setPerspective(fov, aspect, near, far);
+        Matrix4f projMatrix = projMat();
 
         SkyRenderer.adjustRenderTargetSize(SkyRenderer.PlanetsTarget, windowWidth, windowHeight, 1f); // TODO: can we use 1 again? this is not good for rendering close up planet with many fragments
         SkyRenderer.adjustRenderTargetSize(SkyRenderer.AtmosphereTarget, windowWidth, windowHeight, 0.25f);
