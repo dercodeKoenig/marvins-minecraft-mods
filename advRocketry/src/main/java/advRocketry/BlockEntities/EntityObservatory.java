@@ -1,6 +1,7 @@
 package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
+import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Registry;
@@ -26,7 +27,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.HashMap;
 import java.util.List;
 
-public class EntityObservatory extends EntityMultiblockMaster {
+public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public MeshData meshAxle;
     public MeshData meshScope;

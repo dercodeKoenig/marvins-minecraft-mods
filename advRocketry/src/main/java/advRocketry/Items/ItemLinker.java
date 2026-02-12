@@ -47,6 +47,7 @@ public class ItemLinker extends Item {
                     context.getPlayer().sendSystemMessage(Component.literal("link executed"));
                 else
                     context.getPlayer().sendSystemMessage(Component.literal("link failed"));
+                setTag(context.getItemInHand(), new CompoundTag());
             } else {
                 tag.put("p", NbtUtils.writeBlockPos(p));
                 tag.putString("l", levelId);
