@@ -1,4 +1,4 @@
-package advRocketry.Render;
+package advRocketry.Render.starmap;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;

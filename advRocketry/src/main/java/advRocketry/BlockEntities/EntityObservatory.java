@@ -4,7 +4,7 @@ import ARLib.ARLibRegistry;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Registry;
-import advRocketry.Render.SpaceMapScreen;
+import advRocketry.Render.starmap.SpaceMapScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;

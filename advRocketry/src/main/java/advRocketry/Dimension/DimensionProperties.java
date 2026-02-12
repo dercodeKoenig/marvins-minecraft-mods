@@ -13,7 +13,7 @@ public class DimensionProperties {
     public DimensionType type = DimensionType.DUMMY;
     public ResourceLocation dimensionId = null;
 
-    public static enum DimensionType {
+    public enum DimensionType {
         PLANET,
         SPACE_STATION,
         DUMMY;

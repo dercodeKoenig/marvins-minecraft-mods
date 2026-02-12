@@ -283,7 +283,7 @@ public class SkyRenderer {
         NO_TRANSPARENCY.setupRenderState();
 
         // Render planets / stars
-        for (PlanetDimension otherDimension : PlanetRenderCache.getPlanetsToRenderInSky()) {
+        for (PlanetDimension otherDimension : PlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
 
             Vec3 myCurrentPositionInSpace = myDimensionPositionInSpace;
 
@@ -415,7 +415,6 @@ public class SkyRenderer {
 
             if(otherDimension.hasRings()){
                 // nice thing, the planet matrix is already transformed
-
                 RenderSystem.setShader(shaderUtils::getRingSystemShader);
                 ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
                 TextureManager texturemanager = Minecraft.getInstance().getTextureManager();

@@ -12,18 +12,17 @@ import java.util.*;
 
 public class PlanetRenderCache {
 
-    static ArrayList<PlanetDimension> planetsToRenderInSky = new ArrayList<>();
+    public ArrayList<PlanetDimension> planetsToRenderInSky = new ArrayList<>();
 
-    public static ArrayList<PlanetDimension> getPlanetsToRenderInSky() {
+    public ArrayList<PlanetDimension> getPlanetsToRenderInSky() {
         return planetsToRenderInSky;
     }
 
+    public static PlanetRenderCache INSTANCE = new PlanetRenderCache();
+
     // depth sorts planets for correct rendering using bubble sort
     // bubble sort is good because it can be distributed over many ticks and will approach target sort fast
-    public static void updatePlanetsToRenderInSky() {
-
-        Dimension myDimension = ClientUtils.getPlayerDimension();
-        if(myDimension == null) return;
+    public void updatePlanetsToRenderInSky(Vec3 myDimensionPosition) {
 
         HashSet<Dimension> allDimensions = new HashSet<>(DimensionManager.INSTANCE_CLIENT.dimensions.values());
         planetsToRenderInSky.removeIf((dimension) -> !allDimensions.contains(dimension));
@@ -39,13 +38,11 @@ public class PlanetRenderCache {
             }
         }
 
-        Vec3 myPos = myDimension.getPosition(0);
-
         // to avoid recalculating the distance 2 times
         HashMap<PlanetDimension, Double> distanceToObserverMap = new HashMap<>();
         for (int i = 0; i < planetsToRenderInSky.size(); i++) {
             PlanetDimension dim = planetsToRenderInSky.get(i);
-            double distance = dim.getPosition(0).distanceTo(myPos);
+            double distance = dim.getPosition(0).distanceTo(myDimensionPosition);
             distanceToObserverMap.put(dim, distance);
         }
 

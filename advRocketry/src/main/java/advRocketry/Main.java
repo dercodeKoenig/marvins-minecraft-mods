@@ -23,6 +23,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -126,7 +127,12 @@ public class Main {
         DimensionManager.INSTANCE_CLIENT.tick();
         GlobalTime.tickClient();
         EntityRocket.onClientTickEvent();
-        PlanetRenderCache.updatePlanetsToRenderInSky();
+
+        Dimension myDimension = ClientUtils.getPlayerDimension();
+        if(myDimension != null) {
+            Vec3 myPos = myDimension.getPosition(0);
+            PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
+        }
     }
 
     void onServerStarted(ServerStartedEvent event) {

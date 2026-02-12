@@ -1,7 +1,10 @@
-package advRocketry.Render;
+package advRocketry.Render.starmap;
 
 import advRocketry.Config;
 import advRocketry.Dimension.*;
+import advRocketry.Main;
+import advRocketry.Render.SkyRenderer;
+import advRocketry.Render.shaderUtils;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.RenderUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -9,7 +12,6 @@ import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.network.chat.Component;
@@ -23,8 +25,9 @@ import java.lang.Math;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
-import static net.minecraft.client.renderer.RenderStateShard.NO_CULL;
-import static net.minecraft.client.renderer.RenderStateShard.NO_DEPTH_TEST;
+import static net.minecraft.client.renderer.RenderStateShard.*;
+
+// TODO: DEPTH SORT for rendering and reverse depth sort for click check so we click top planet
 
 public class SpaceMapScreen extends Screen {
     public SpaceMapScreen() {
@@ -37,26 +40,32 @@ public class SpaceMapScreen extends Screen {
     private float zoom = 3000f;
 
     private float logScale = 0.5f;
-    private float scale = 0.5f;
+    private float scale = 0.3f;
 
     @Override
+    public void tick() {
+        super.tick();
+
+        // depth sort the planets
+        SpaceMapPlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
+    }
+
+        @Override
     protected void init() {
         super.init();
 
         this.addRenderableWidget(new MapSlider(
                 10, this.height - 20, 100, 10,
-                Component.literal("scale"), 0.5,
+                Component.literal("scale"), scale,
                 (newValue) -> {
-                    // Map the 0.0-1.0 slider value to your zoom range
                     this.scale = (float) newValue;
                 }
         ));
 
         this.addRenderableWidget(new MapSlider(
                 120, this.height - 20, 100, 10,
-                Component.literal("logScale"), 0.5,
+                Component.literal("logScale"), logScale,
                 (newValue) -> {
-                    // Map the 0.0-1.0 slider value to your zoom range
                     this.logScale = (float) newValue;
                 }
         ));
@@ -137,11 +146,8 @@ public class SpaceMapScreen extends Screen {
         Matrix4f viewMatrix = viewMat();
         Matrix4f projMatrix = projMat(); // Uses the same FOV and window aspect ratio
 
-        for (ResourceLocation dimId : DimensionManager.INSTANCE_CLIENT.dimensions.keySet()) {
-            Dimension dim = DimensionManager.INSTANCE_CLIENT.get(dimId);
-            if (!dim.getType().equals(DimensionProperties.DimensionType.PLANET)) continue;
+        for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky().reversed()) {
 
-            PlanetDimension planet = (PlanetDimension) dim;
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
             Vec3 pos = getPositionScaled(planet, pTicks);
 
@@ -213,11 +219,7 @@ public class SpaceMapScreen extends Screen {
         SkyRenderer.PlanetsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
-        for (ResourceLocation dimId : DimensionManager.INSTANCE_CLIENT.dimensions.keySet()) {
-            Dimension dim = DimensionManager.INSTANCE_CLIENT.get(dimId);
-            if (!dim.getType().equals(DimensionProperties.DimensionType.PLANET))
-                continue;
-            PlanetDimension planet = (PlanetDimension) dim;
+        for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
             //Vec3 pos = planet.getPosition(partialTick);
             Vec3 pos = getPositionScaled(planet, partialTick);
 
@@ -293,7 +295,48 @@ public class SpaceMapScreen extends Screen {
             SkyRenderer.vertexBufferPlanet.bind();
             SkyRenderer.vertexBufferPlanet.draw();
             shader.clear();
-            VertexBuffer.unbind();
+
+            if(planet.hasRings()){
+                // nice thing, the planet matrix is already transformed
+                RenderSystem.setShader(shaderUtils::getRingSystemShader);
+                ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
+                texturemanager.getTexture(tex).setFilter(true, true);
+                RenderSystem.setShaderTexture(0, tex);
+                shader = RenderSystem.getShader();
+                shader.getUniform("ProjMat").set(projMatrix);
+                shader.getUniform("ViewMat").set(viewMatrix);
+                shader.getUniform("WorldMat").set(new Matrix4f());
+                shader.getUniform("ModelMat").set(planetMatrix);
+
+                shader.getUniform("scale").set(4f);
+                shader.getUniform("planetGeometryScale").set(renderScale);
+
+                totalLights = 0;
+                for (ResourceLocation lightSourceId : planet.getCurrentMainStars()) {
+                    Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
+                    Vec3 StarPos = star.getPosition(partialTick);
+                    Vec3 LightVector = pos.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
+                    shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+                    Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
+                    shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
+                    totalLights += 1;
+                }
+                shader.getUniform("LightCount").set(totalLights);
+
+                TRANSLUCENT_TRANSPARENCY.setupRenderState();
+                NO_CULL.setupRenderState();
+
+                shader.apply();
+                SkyRenderer. vertexBufferRingSystem.bind();
+                SkyRenderer.vertexBufferRingSystem.draw();
+                shader.clear();
+
+                TRANSLUCENT_TRANSPARENCY.clearRenderState();
+                NO_CULL.clearRenderState();
+            }
+
+            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); // we do manual depth sorting to avoid geometry mix
+
         }
 
         // this one is only required for the blit shader later bc i dont want to write another shader

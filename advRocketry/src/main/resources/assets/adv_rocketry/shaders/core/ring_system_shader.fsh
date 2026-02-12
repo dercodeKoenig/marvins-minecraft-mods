@@ -140,7 +140,7 @@ void main() {
         }
 
         // diffuse - brignt when face is facing the star
-        float diffuse = pow(max(0,dot(L, normalUniverseSpaceAdjusted)*0.95+0.05), 0.5);
+        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted)*0.8+0.2);
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
