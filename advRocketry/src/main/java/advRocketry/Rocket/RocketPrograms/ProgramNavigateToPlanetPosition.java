@@ -6,14 +6,11 @@ import advRocketry.Rocket.RocketProgram;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForgeMod;
-import net.neoforged.neoforge.fluids.FluidType;
 
 public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
@@ -23,9 +20,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public BlockPos target;
 
     public static double travelHeight = 150;
-    public static double maxD = 100; // for pd controller travel target distance so that we dont get too fast
 
     double lastVy;
+    boolean isStarted = false; // make sure at start it actually fly up
 
     public void run(EntityRocket rocket) {
 
@@ -65,17 +62,25 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             targetVec3 = new Vec3(targetVec3.x,targetY,targetVec3.z);
 
-            if (distanceToTargetXZ < 20)
-                rocket.enableSecondaryEngines(true, false); // help or it swings around too much
-            else {
+            int yCurrentBelow = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
+
+            if (!isStarted){
+                // make sure it starts correctly
+                rocket.enableSecondaryEngines(false, false);
+                targetVec3 = new Vec3(rocket.position().x, yCurrentBelow + travelHeight, rocket.position().z);
+                if (rocket.position().y > travelHeight / 3 + yCurrentBelow){
+                    isStarted = true; // ok, it is in air now
+                }
+            }
+            else if (distanceToTargetXZ > 20) {
+                // when far away from target, make sure to maintain travel height to go there
                 rocket.enableSecondaryEngines(false, false);
 
-                int yCurrentBelow = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
-
                 if (rocket.position().y < 20 + yCurrentBelow) {
-                    // start / move up
+                    // too low, pull up
                     targetVec3 = new Vec3(rocket.position().x, yCurrentBelow + travelHeight, rocket.position().z);
                 }else{
+                    // travel to target at target height
                     targetVec3 = new Vec3(targetVec3.x, Math.max(yCurrentBelow + travelHeight, targetVec3.y), targetVec3.z);
 
                     // rotate to the target front if it is a rocket assembler there
@@ -84,13 +89,16 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                         rocket.setTargetFront(new Vec3(targetFront.getStepX(),targetFront.getStepY(),targetFront.getStepZ()),false);
                     }
                 }
+            }else{
+                // landing...
+                rocket.enableSecondaryEngines(true, false); // help or it swings around too much
             }
 
             rocket.setTargetPosition(targetVec3, false);
 
             // check if landed
             // WARNING: onGround() appears to only work server side - it appears the server syncs it for 1 tick to client
-            if ((rocket.onGround() || rocket.isInLiquid()) && distanceToTargetXZ < 10) {
+            if ((rocket.onGround() || rocket.isInLiquid()) && distanceToTargetXZ < 10 && isStarted) {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
             }

@@ -10,7 +10,7 @@ import org.joml.Vector3f;
 public class RocketFlameParticle extends DustParticleBase<DustParticleOptions> {
 
     private float rotSpeed;
-private float targetSize;
+    private float targetSize;
 
     public RocketFlameParticle(ClientLevel level, double x, double y, double z,
                                double vx, double vy, double vz, SpriteSet spriteSet) {
@@ -18,7 +18,7 @@ private float targetSize;
 
         boolean isSmoke = random.nextBoolean();
 
-        if(level.dimension().location().equals(RocketTravelDimension.dimId)) {
+        if (level.dimension().location().equals(RocketTravelDimension.dimId)) {
             if (isSmoke) {
                 // no smoke in space, looks strange
                 this.remove();
@@ -46,23 +46,23 @@ private float targetSize;
 
         this.hasPhysics = true;
 
-        if (!isSmoke) {
-            this.lifetime = 20;
+        if (isSmoke) {
+            this.lifetime = 200;
         } else {
-            this.lifetime = (int) (200);
+            this.lifetime = 20;
         }
 
         this.targetSize = quadSize;
 
-        this.xd =1* vx + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
-        this.yd = 1*vy + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
-        this.zd = 1*vz + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
+        this.xd = 1 * vx + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
+        this.yd = 1 * vy + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
+        this.zd = 1 * vz + (Math.random() * (double) 2.0F - (double) 1.0F) * (double) 0.1F;
 
         this.rotSpeed = this.random.nextFloat() / 50f;
 
         this.roll = this.random.nextFloat();
 
-        if(!level.dimension().location().equals(RocketTravelDimension.dimId)) {
+        if (!level.dimension().location().equals(RocketTravelDimension.dimId)) {
             tick(); // initial position correction
         }
     }
@@ -76,9 +76,9 @@ private float targetSize;
             xd = (this.random.nextFloat() - 0.5) * 0.5F;
             zd = (this.random.nextFloat() - 0.5) * 0.5F;
         }
-        if(this.lifetime < 20){
-            this.quadSize = targetSize * (float)this.lifetime / 20f;
-        }else{
+        if (this.lifetime < 20) {
+            this.quadSize = targetSize * (float) this.lifetime / 20f;
+        } else {
             quadSize = targetSize;
         }
 

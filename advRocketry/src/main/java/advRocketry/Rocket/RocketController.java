@@ -1,6 +1,9 @@
 package advRocketry.Rocket;
 
 import ARLib.network.PacketEntity;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Registry;
 import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
@@ -107,6 +110,12 @@ public class RocketController {
 
             currentSecondaryThrust = secondaryThrustersForce;
             // TODO: render secondaryThrustersForce particles based on secondaryThrustersForce
+        }
+
+        // on planets, we never want to accelerate down because it can cause problems on low gravity planets
+        Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
+        if(rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET){
+            desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
         }
 
         if (desiredAcceleration.length() > 0.0001 && rocket.canUseMainEngines()) {
