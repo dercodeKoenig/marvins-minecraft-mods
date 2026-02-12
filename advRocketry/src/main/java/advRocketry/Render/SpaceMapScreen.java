@@ -31,9 +31,36 @@ public class SpaceMapScreen extends Screen {
         super(Component.literal("space map"));
     }
 
+
     private float camX = 0;
     private float camY = 0;
     private float zoom = 3000f;
+
+    private float logScale = 0.5f;
+    private float scale = 0.5f;
+
+    @Override
+    protected void init() {
+        super.init();
+
+        this.addRenderableWidget(new MapSlider(
+                10, this.height - 25, 100, 10,
+                Component.literal("scale"), 0.5,
+                (newValue) -> {
+                    // Map the 0.0-1.0 slider value to your zoom range
+                    this.scale = (float) newValue;
+                }
+        ));
+
+        this.addRenderableWidget(new MapSlider(
+                120, this.height - 25, 100, 10,
+                Component.literal("logScale"), 0.5,
+                (newValue) -> {
+                    // Map the 0.0-1.0 slider value to your zoom range
+                    this.logScale = (float) newValue;
+                }
+        ));
+    }
 
     // This method is inherited from GuiEventListener
     @Override
@@ -52,6 +79,11 @@ public class SpaceMapScreen extends Screen {
     // This method is inherited from GuiEventListener
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        // 1. Check if a UI element (like the slider) is being dragged first
+        if (super.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+            return true; // Stop here! The slider handled it.
+        }
+
         // Button 0 is left-click
         if (button == 0) {
             // Sensitivity scales with zoom.
@@ -77,6 +109,8 @@ public class SpaceMapScreen extends Screen {
 
         guiGraphics.fill(0, 0, windowWidth, windowHeight, 0xff000000);
         RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         // 2. VIEW MATRIX (Camera)
         Matrix4f viewMatrix = new Matrix4f().lookAt(
@@ -125,9 +159,9 @@ public class SpaceMapScreen extends Screen {
             double planetRotationAngle = planet.getRotationAngle(partialTick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
-            float scale = Math.max(5,(float) Math.pow(planet.getEarthRadiusMultiplier(), 0.5) * 5);
+            float renderScale = Math.max(5,(float) Math.pow(planet.getEarthRadiusMultiplier(), 1-(logScale*0.95+0.05)) * (1+(this.scale*100)));
 
-            planetMatrix.scale(scale);
+            planetMatrix.scale(renderScale);
 
 
             ShaderInstance shader;
