@@ -44,7 +44,7 @@ public class SpaceMapScreen extends Screen {
         super.init();
 
         this.addRenderableWidget(new MapSlider(
-                10, this.height - 25, 100, 10,
+                10, this.height - 20, 100, 10,
                 Component.literal("scale"), 0.5,
                 (newValue) -> {
                     // Map the 0.0-1.0 slider value to your zoom range
@@ -53,7 +53,7 @@ public class SpaceMapScreen extends Screen {
         ));
 
         this.addRenderableWidget(new MapSlider(
-                120, this.height - 25, 100, 10,
+                120, this.height - 20, 100, 10,
                 Component.literal("logScale"), 0.5,
                 (newValue) -> {
                     // Map the 0.0-1.0 slider value to your zoom range
@@ -159,7 +159,7 @@ public class SpaceMapScreen extends Screen {
             double planetRotationAngle = planet.getRotationAngle(partialTick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
-            float renderScale = Math.max(5,(float) Math.pow(planet.getEarthRadiusMultiplier(), 1-(logScale*0.95+0.05)) * (1+(this.scale*100)));
+            float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1-(logScale*0.95+0.05)) * (1+(this.scale*100));
 
             planetMatrix.scale(renderScale);
 
