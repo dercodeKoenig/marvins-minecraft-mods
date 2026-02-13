@@ -1,8 +1,9 @@
 package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
+import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
-import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
@@ -11,17 +12,22 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
@@ -43,6 +49,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public int lastLight;
 
+    public GuiHandlerBlockEntity guiHandler;
+
+    public ItemStackHandler storageItemStackHandler;
+
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
         super.forwardInteractionToMaster = true;
@@ -56,8 +66,41 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 base = new VertexBuffer(VertexBuffer.Usage.STATIC);
             });
         }
+
+        guiHandler = new GuiHandlerBlockEntity(this);
+        storageItemStackHandler = new ItemStackHandler(2) {
+            public boolean isItemValid(int slot, ItemStack stack) {
+                return stack.getItem().equals(Registry.ITEM_GALAXY_STORAGE_DISK.get());
+            }
+        };
+        ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot1 =
+                new guiModuleItemHandlerSlot(0, storageItemStackHandler, 0, 1, 0, guiHandler, 130, 160);
+        guiHandler.modules.add(storageItemSlot1);
+        ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot2 =
+                new guiModuleItemHandlerSlot(1, storageItemStackHandler, 1, 1, 0, guiHandler, 150, 160);
+        guiHandler.modules.add(storageItemSlot2);
+        guiHandler.modules.add(
+                new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 163, 0xff000000, false)
+        );
+
+        guiHandler.modules.add(
+                new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 30, 15, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20){
+                    public void onButtonClicked() {
+                        Minecraft.getInstance().setScreen(
+                                new SpaceMapScreen(
+                                        (dimensionId) -> {
+                                            System.out.println("selected " + dimensionId);
+                                        }
+                                )
+                        );
+                    }
+                }
+        );
+
+        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(15, 185, 10000, 0, 1, guiHandler));
     }
 
+    @Override
     public void setRemoved() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
@@ -70,13 +113,43 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
     }
 
-    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!world.isClientSide) {
-            CompoundTag info = new CompoundTag();
-            info.put("openStarMap",new CompoundTag());
-            PacketDistributor.sendToPlayer((ServerPlayer)player, PacketBlockEntity.getBlockEntityPacket(this, info));
+    public void tick() {
+        if (!level.isClientSide) {
+            guiHandler.serverTick();
         }
-        return InteractionResult.SUCCESS;
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityObservatory) t).tick();
+    }
+
+    @Override
+    public void readServer(CompoundTag tag, ServerPlayer player) {
+        guiHandler.readServer(tag);
+    }
+
+    @Override
+    public void readClient(CompoundTag tag) {
+        guiHandler.readClient(tag);
+        if (tag.contains("openGui")) {
+            guiHandler.openGui(200, 210, true);
+        }
+    }
+
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("storageItemStackHandler", storageItemStackHandler.serializeNBT(registries));
+    }
+
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        storageItemStackHandler.deserializeNBT(registries, tag.getCompound("storageItemStackHandler"));
+    }
+
+    public void popInventory() {
+        for (int i = 0; i < storageItemStackHandler.getSlots(); i++) {
+            Block.popResource(level, getBlockPos(), storageItemStackHandler.getStackInSlot(i));
+        }
     }
 
 
@@ -153,14 +226,14 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         return true;
     }
 
-    @Override
-    public void readServer(CompoundTag tag, ServerPlayer player){
 
-    }
-    @Override
-    public void readClient(CompoundTag tag){
-        if (tag.contains("openStarMap")) {
-            Minecraft.getInstance().setScreen(new SpaceMapScreen());
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!world.isClientSide) {
+            CompoundTag info = new CompoundTag();
+            info.put("openGui", new CompoundTag());
+            PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(this, info));
         }
+        return InteractionResult.SUCCESS;
     }
+
 }

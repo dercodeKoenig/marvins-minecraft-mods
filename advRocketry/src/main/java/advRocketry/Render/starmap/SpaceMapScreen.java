@@ -21,7 +21,9 @@ import org.joml.*;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
+import javax.security.auth.callback.Callback;
 import java.lang.Math;
+import java.util.ArrayList;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
@@ -30,10 +32,20 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 // TODO: DEPTH SORT for rendering and reverse depth sort for click check so we click top planet
 
 public class SpaceMapScreen extends Screen {
-    public SpaceMapScreen() {
+    public SpaceMapScreen(planetSelector planetSelector) {
         super(Component.literal("space map"));
+        this.planetSelector = planetSelector;
     }
 
+    public interface planetSelector {
+        void selectPlanet(ResourceLocation dimensionId);
+    }
+
+    planetSelector planetSelector;
+
+    private PlanetDimension selectedPlanet = null;
+    private net.minecraft.client.gui.components.Button actionButton;
+    private final int SIDEBAR_WIDTH = 120;
 
     private float camX = 0;
     private float camY = 0;
@@ -50,7 +62,7 @@ public class SpaceMapScreen extends Screen {
         SpaceMapPlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
     }
 
-        @Override
+    @Override
     protected void init() {
         super.init();
 
@@ -69,6 +81,17 @@ public class SpaceMapScreen extends Screen {
                     this.logScale = (float) newValue;
                 }
         ));
+
+        this.actionButton = net.minecraft.client.gui.components.Button.builder(Component.literal("Do Stuff"), (btn) -> {
+                    if (selectedPlanet != null) {
+                        planetSelector.selectPlanet(selectedPlanet.getDimensionId());
+                    }
+                })
+                .bounds(this.width - SIDEBAR_WIDTH + 10, this.height - 30, SIDEBAR_WIDTH - 20, 20)
+                .build();
+
+        this.addRenderableWidget(this.actionButton);
+        this.actionButton.visible = false; // Hide until a planet is clicked
     }
 
     // This method is inherited from GuiEventListener
@@ -110,7 +133,7 @@ public class SpaceMapScreen extends Screen {
         return true;
     }
 
-    private Matrix4f viewMat(){
+    private Matrix4f viewMat() {
         Matrix4f viewMatrix = new Matrix4f().lookAt(
                 new Vector3f(camX, zoom, camY),
                 new Vector3f(camX, 0, camY),
@@ -118,7 +141,8 @@ public class SpaceMapScreen extends Screen {
         );
         return viewMatrix;
     }
-    private Matrix4f projMat(){
+
+    private Matrix4f projMat() {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
         Matrix4f projMatrix = new Matrix4f();
@@ -129,9 +153,15 @@ public class SpaceMapScreen extends Screen {
         projMatrix.setPerspective(fov, aspect, near, far);
         return projMatrix;
     }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
+
+        // Don't select planets if clicking the sidebar UI
+        if (mouseX > this.width - SIDEBAR_WIDTH && selectedPlanet != null) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
 
         // 1. Get RAW pixel coordinates from Minecraft's MouseHandler
         // 'mouseX' from the method is scaled (e.g. 400), but we need pixels (e.g. 1920)
@@ -152,16 +182,19 @@ public class SpaceMapScreen extends Screen {
             Vec3 pos = getPositionScaled(planet, pTicks);
 
             // MATCH YOUR RENDER TRANSLATION: (pos.x * 2000, pos.y * 2000, pos.z * 2000)
-            Vector3f planetWorldPos = new Vector3f((float)pos.x * 2000, (float)pos.y * 2000, (float)pos.z * 2000);
+            Vector3f planetWorldPos = new Vector3f((float) pos.x * 2000, (float) pos.y * 2000, (float) pos.z * 2000);
 
             float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
 
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
-                System.out.println("Clicked: " + planet.getDimensionId());
+                selectedPlanet = planet;
+                actionButton.visible = true;
                 return true;
             }
         }
+        selectedPlanet= null;
+        actionButton.visible = false;
         return false;
     }
 
@@ -202,7 +235,7 @@ public class SpaceMapScreen extends Screen {
 
         guiGraphics.fill(0, 0, windowWidth, windowHeight, 0xff000000);
         RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-
+        
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         // 2. VIEW MATRIX (Camera)
@@ -239,7 +272,7 @@ public class SpaceMapScreen extends Screen {
             double planetRotationAngle = planet.getRotationAngle(partialTick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
-            float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1-(logScale*0.95+0.05)) * (1+(this.scale*100));
+            float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
 
             planetMatrix.scale(renderScale);
 
@@ -296,7 +329,7 @@ public class SpaceMapScreen extends Screen {
             SkyRenderer.vertexBufferPlanet.draw();
             shader.clear();
 
-            if(planet.hasRings()){
+            if (planet.hasRings()) {
                 // nice thing, the planet matrix is already transformed
                 RenderSystem.setShader(shaderUtils::getRingSystemShader);
                 ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
@@ -327,7 +360,7 @@ public class SpaceMapScreen extends Screen {
                 NO_CULL.setupRenderState();
 
                 shader.apply();
-                SkyRenderer. vertexBufferRingSystem.bind();
+                SkyRenderer.vertexBufferRingSystem.bind();
                 SkyRenderer.vertexBufferRingSystem.draw();
                 shader.clear();
 
@@ -409,6 +442,28 @@ public class SpaceMapScreen extends Screen {
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
+
+
+        // After existing post-processing/tonemapping
+        if (selectedPlanet != null) {
+            int xStart = this.width - SIDEBAR_WIDTH;
+
+            // 1. Draw Background
+            guiGraphics.fill(xStart, 0, this.width, this.height, 0xAA000000); // Semi-transparent black
+            guiGraphics.vLine(xStart, 0, this.height, 0xFFFFFFFF); // White border line
+
+            // 2. Draw Title
+            guiGraphics.drawString(this.font, selectedPlanet.getDimensionId().getPath().toUpperCase(), xStart + 10, 10, 0xFFFFFF);
+
+            // 3. Draw Description with Newlines/Wrapping
+            String description = "This is a custom description for " + selectedPlanet.getDimensionId().getPath() +
+                    ".\n\nGravity: " + selectedPlanet.getGravitationalMultiplier() + "g" +
+                    "\nAtmosphere: " + (selectedPlanet.getAtmosphereDensity() * 100) + "%";
+
+            // drawWordWrap handles the "\n" and automatically wraps text based on width
+            guiGraphics.drawWordWrap(this.font, Component.literal(description), xStart + 10, 30, SIDEBAR_WIDTH - 20, 0xCCCCCC);
+        }
+
     }
 
     //applies a scale to orbit distance for better rendering on map
