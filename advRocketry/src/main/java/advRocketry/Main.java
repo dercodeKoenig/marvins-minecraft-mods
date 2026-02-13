@@ -6,7 +6,9 @@ import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
+import advRocketry.Particles.DelayedTransparentParticles;
 import advRocketry.Particles.RocketFlameParticleProvider;
+import advRocketry.Particles.SmokeParticleProvider;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
@@ -15,6 +17,7 @@ import advRocketry.worldgen.BiomeConfig;
 
 import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.HOT_VERYDRY;
+import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -108,6 +111,8 @@ public class Main {
 
     }
 
+    /// level events ////////////////////////////////
+
     void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer p) {
             for (Dimension i : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
@@ -133,6 +138,8 @@ public class Main {
             Vec3 myPos = myDimension.getPosition(0);
             PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
         }
+
+        DelayedTransparentParticles.checkRemoved();
     }
 
     void onServerStarted(ServerStartedEvent event) {
@@ -148,15 +155,24 @@ public class Main {
     }
 
     void onRenderStage(RenderLevelStageEvent event) {
+        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        boolean is_fabulous = Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS;
+
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
             //if(true)return;
             Matrix4f proj = event.getProjectionMatrix();
             Matrix4f view = event.getModelViewMatrix();
-            SkyRenderer.INSTANCE.renderSky(proj, view, event.getPartialTick().getGameTimeDeltaPartialTick(false));
+            SkyRenderer.INSTANCE.renderSky(proj, view, partialTick);
         }
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             // clouds will render next, disable stupid fog
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
+
+
+            DelayedTransparentParticles.renderAll(event.getFrustum(), event.getCamera(), partialTick);
+        }
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
+
         }
     }
 
@@ -172,6 +188,8 @@ public class Main {
             event.setDistance(event.getDistance() + rocketsize * 1.3f);
         }
     }
+
+    /// mod load events /////////////////////////////////////
 
     void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer) x).itemStackHandler));
@@ -225,6 +243,7 @@ public class Main {
 
     void registerParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
+        event.registerSpriteSet(Registry.SMOKE_PARTICLE.get(), SmokeParticleProvider::new);
     }
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {

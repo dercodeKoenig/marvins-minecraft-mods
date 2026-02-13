@@ -4,11 +4,14 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import advRocketry.Registry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -76,6 +79,13 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+        }else{
+                level.addParticle(
+                        Registry.SMOKE_PARTICLE.get(),
+                        true,
+                        getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+                        0, 0.05, 0
+                );
         }
     }
 
