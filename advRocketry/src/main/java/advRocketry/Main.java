@@ -284,6 +284,7 @@ public class Main {
             e.accept(Registry.ROCKET_FUEL_BUCKET.get());
             e.accept(Registry.FUELING_STATION.get());
             e.accept(Registry.ITEM_LINKER.get());
+            e.accept(Registry.ITEM_GALAXY_STORAGE_DISK.get());
             e.accept(Registry.OBSERVATORY.get());
         }
     }

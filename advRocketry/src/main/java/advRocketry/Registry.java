@@ -46,6 +46,7 @@ public class Registry {
     public static final Supplier<FluidType> ROCKET_FUEL_TYPE = FLUID_TYPES.register("rocket_fuel_type", () -> new FluidType(FluidType.Properties.create()));
 
     public static final Supplier<Item> ITEM_LINKER = ITEMS.register("linker", () -> new ItemLinker());
+    public static final Supplier<Item> ITEM_GALAXY_STORAGE_DISK = ITEMS.register("galaxy_storage_disk", () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", LAUNCHPAD);

@@ -131,6 +131,7 @@ public class RocketParticleEngine {
         PARTICLES_TARGET.setupRenderState();
         TRANSLUCENT_TRANSPARENCY.setupRenderState();
         LIGHTMAP.setupRenderState();
+        LEQUAL_DEPTH_TEST.setupRenderState();
         if (is_fabulous) {
             // this requires depth write and manual sort
             RenderSystem.depthMask(true);
@@ -167,6 +168,7 @@ public class RocketParticleEngine {
         TRANSLUCENT_TRANSPARENCY.clearRenderState();
         PARTICLES_TARGET.clearRenderState();
         LIGHTMAP.clearRenderState();
+        LEQUAL_DEPTH_TEST.clearRenderState();
         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
     }
 }
