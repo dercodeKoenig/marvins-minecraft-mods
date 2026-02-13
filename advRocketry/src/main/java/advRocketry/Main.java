@@ -6,9 +6,9 @@ import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
-import advRocketry.Particles.DelayedTransparentParticles;
+import advRocketry.Particles.ParticleEngine;
 import advRocketry.Particles.RocketFlameParticleProvider;
-import advRocketry.Particles.SmokeParticleProvider;
+import advRocketry.Particles.SoftParticleProvider;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
@@ -139,7 +139,7 @@ public class Main {
             PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
         }
 
-        DelayedTransparentParticles.checkRemoved();
+        ParticleEngine.tick();
     }
 
     void onServerStarted(ServerStartedEvent event) {
@@ -168,11 +168,7 @@ public class Main {
             // clouds will render next, disable stupid fog
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
 
-
-            DelayedTransparentParticles.renderAll(event.getFrustum(), event.getCamera(), partialTick);
-        }
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
-
+            ParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
         }
     }
 
@@ -243,7 +239,7 @@ public class Main {
 
     void registerParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
-        event.registerSpriteSet(Registry.SMOKE_PARTICLE.get(), SmokeParticleProvider::new);
+        event.registerSpriteSet(Registry.SMOKE_PARTICLE.get(), SoftParticleProvider::new);
     }
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {

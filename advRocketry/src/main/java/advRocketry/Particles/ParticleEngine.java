@@ -1,5 +1,6 @@
 package advRocketry.Particles;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Camera;
@@ -16,12 +17,17 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class DelayedTransparentParticles {
+public class ParticleEngine {
 
-    public interface delayedTransparentParticle {
+    public static HashMap<ResourceLocation, ArrayList<ARParticle>> particles = new HashMap<>();
+    public static HashMap<ResourceLocation, ArrayList<ARParticle>> particlesGlowing = new HashMap<>();
+
+    public interface ARParticle {
         // for delayed render with depth sort
         void renderDelayed(VertexConsumer buffer, Camera renderInfo, float partialTicks);
 
@@ -34,15 +40,38 @@ public class DelayedTransparentParticles {
         boolean isAlive();
 
         AABB getRenderBoundingBox(float t);
+
+        void tick();
+
+        boolean isGlowing();
     }
 
-    public static void checkRemoved() {
-        for (ResourceLocation key : SmokeParticle.smokeParticles.keySet()) {
-            SmokeParticle.smokeParticles.get(key).removeIf((p) -> !p.isAlive());
+    public static void addParticle(ResourceLocation key, ARParticle particle) {
+        particles.putIfAbsent(key, new ArrayList<>());
+        particlesGlowing.putIfAbsent(key, new ArrayList<>());
+        if (particle.isGlowing())
+            particlesGlowing.get(key).add(particle);
+        else
+            particles.get(key).add(particle);
+    }
+
+    public static void tick() {
+        for (ResourceLocation key : particles.keySet()) {
+            particles.get(key).removeIf((p) -> !p.isAlive());
+            for (ARParticle p : particles.get(key)) {
+                p.tick();
+            }
+        }
+
+        for (ResourceLocation key : particlesGlowing.keySet()) {
+            particlesGlowing.get(key).removeIf((p) -> !p.isAlive());
+            for (ARParticle p : particlesGlowing.get(key)) {
+                p.tick();
+            }
         }
     }
 
-    public static double getPlanarDepth(delayedTransparentParticle p, Vec3 camPos, Vector3f lookVec, float partialTicks) {
+    public static double getPlanarDepth(ARParticle p, Vec3 camPos, Vector3f lookVec, float partialTicks) {
         // Interpolate position exactly like SingleQuadParticle does
         double x = Mth.lerp(partialTicks, p.getPrevPos().x, p.getPos().x) - camPos.x;
         double y = Mth.lerp(partialTicks, p.getPrevPos().y, p.getPos().y) - camPos.y;
@@ -52,7 +81,10 @@ public class DelayedTransparentParticles {
         return x * lookVec.x() + y * lookVec.y() + z * lookVec.z();
     }
 
-    public static void renderParticles(ArrayList<delayedTransparentParticle> particles, VertexConsumer buffer, Frustum frustum, Camera camera, float partialTicks, boolean depthSort) {
+    public static void renderParticles(List<ARParticle> particles, Frustum frustum, Camera camera, float partialTicks, boolean depthSort) {
+
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+
         if (particles != null) {
             // dont delete from original list when culling
             particles = new ArrayList<>(particles);
@@ -74,10 +106,19 @@ public class DelayedTransparentParticles {
                     return Double.compare(d2, d1);
                 });
             }
-            for (delayedTransparentParticle p : particles) {
+            for (ARParticle p : particles) {
                 p.renderDelayed(buffer, camera, partialTicks);
             }
         }
+
+        // upload & draw
+        MeshData meshdata = buffer.build();
+        if (meshdata != null) {
+            BufferUploader.drawWithShader(meshdata);
+        }
+
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+
     }
 
     public static void renderAll(Frustum frustum, Camera renderInfo, float partialTicks) {
@@ -97,16 +138,27 @@ public class DelayedTransparentParticles {
             RenderSystem.depthMask(false);
         }
         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
 
-        // render particles
+
         ResourceLocation key = Minecraft.getInstance().level.dimension().location();
-        renderParticles(SmokeParticle.smokeParticles.get(key), buffer, frustum, renderInfo, partialTicks, is_fabulous);
 
-        // upload & draw
-        MeshData meshdata = buffer.build();
-        if (meshdata != null) {
-            BufferUploader.drawWithShader(meshdata);
+        if(!is_fabulous) {
+            // render translucent particles
+            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            renderParticles(particles.get(key), frustum, renderInfo, partialTicks, is_fabulous);
+
+            // render glowing particles
+            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
+            renderParticles(particlesGlowing.get(key), frustum, renderInfo, partialTicks, is_fabulous);
+        }else{
+            // fabulous makes so much problems... we will need to depth sort and render all together and switch blend states
+            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
+            ArrayList<ARParticle> join = new ArrayList<>();
+            if(particles.get(key) != null)
+                join.addAll(particles.get(key));
+            if(particlesGlowing.get(key) != null)
+                join.addAll(particlesGlowing.get(key));
+            renderParticles(join, frustum, renderInfo, partialTicks, is_fabulous);
         }
 
         // clear render state

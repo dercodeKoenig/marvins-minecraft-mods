@@ -4,35 +4,47 @@ import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+public class SoftParticle extends TextureSheetParticle implements ParticleEngine.ARParticle {
 
-public class SmokeParticle extends TextureSheetParticle implements DelayedTransparentParticles.delayedTransparentParticle{
-    private final SpriteSet sprites;
+    public SoftParticle(ClientLevel level, double x, double y, double z,
+                        double dx, double dy, double dz) {
+        this (level,x,y,z,dx,dy,dz,new Vector3f(1,1,1),1f, 1f, 200, false);
+    }
 
-    public static HashMap<ResourceLocation, ArrayList<DelayedTransparentParticles.delayedTransparentParticle>> smokeParticles = new HashMap<>();
+    float alphaMultiplier = 1f;
+    float size = 1f;
+    boolean isGlowing = false;
 
-    protected SmokeParticle(ClientLevel level, double x, double y, double z,
-                            double dx, double dy, double dz, SpriteSet sprites) {
+    public SoftParticle(ClientLevel level, double x, double y, double z,
+                        double dx, double dy, double dz, Vector3f color, float alphaMultiplier, float size, int lifetime, boolean isGlowing) {
         super(level, x, y, z, dx, dy, dz);
-        this.sprites = sprites;
 
-        this.friction = 0.95F;
-        this.gravity = -0.05f;
-        this.lifetime = 500;
+        this.friction = 0.99F;
+        this.gravity = 0f;
+        this.lifetime = lifetime;
+        this.isGlowing = isGlowing;
 
-        this.setSpriteFromAge(sprites);
+        xd = dx;
+        yd = dy;
+        zd = dz;
+
+        this.setSpriteFromAge(SoftParticleProvider.sprites);
 
         ResourceLocation key = level.dimension().location();
-        smokeParticles.putIfAbsent(key, new ArrayList<>());
-        smokeParticles.get(key).add(this);
+        ParticleEngine.addParticle(key, this);
 
-        this.setColor(1f,0.5f,0.9f);
+        this.setColor(color.x,color.y,color.z);
+        this.alphaMultiplier = alphaMultiplier;
+        this.size = size;
+    }
+
+    public boolean isGlowing(){
+        return isGlowing;
     }
 
     @Override
@@ -44,8 +56,8 @@ public class SmokeParticle extends TextureSheetParticle implements DelayedTransp
     @Override
     public void tick() {
         super.tick();
-        this.setSpriteFromAge(sprites);
-        this.alpha = 1.0F - ((float) this.age / (float) this.lifetime);
+        this.alpha = (1.0F - ((float) this.age / (float) this.lifetime)) * alphaMultiplier;
+        this.size *= 0.999f;
 
         if (super.onGround) {
             float f = this.random.nextFloat() * 0.5F;
@@ -54,9 +66,9 @@ public class SmokeParticle extends TextureSheetParticle implements DelayedTransp
             zd = (this.random.nextFloat() - 0.5) * 0.5F;
         }
         if (this.lifetime < 20) {
-            this.quadSize = 1 * (float) this.lifetime / 20f;
+            this.quadSize = size * (float) this.lifetime / 20f;
         } else {
-            quadSize = 1;
+            this.quadSize = size;
         }
     }
 

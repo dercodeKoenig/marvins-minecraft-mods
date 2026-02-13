@@ -4,13 +4,16 @@ import ARLib.network.PacketEntity;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
+import advRocketry.Particles.SoftParticle;
 import advRocketry.Registry;
 import advRocketry.utils.Utils;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3f;
 
 import java.util.Random;
 
@@ -22,11 +25,11 @@ public class RocketController {
     double currentThrust;
     Vec3 currentSecondaryThrust;
 
-    public RocketController(EntityRocket rocket){
+    public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
     }
 
-    public void tick(){
+    public void tick() {
         tickController();
         tickRotation();
         makeThrustParticles();
@@ -39,7 +42,7 @@ public class RocketController {
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
         Vec3 rotationCorrection;
-        if(targetHeading.dot(rocket.heading) > -0.99)
+        if (targetHeading.dot(rocket.heading) > -0.99)
             rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE);
         else
             rotationCorrection = rocket.front.subtract(rocket.heading).scale(ROTATION_RATE);
@@ -62,10 +65,10 @@ public class RocketController {
     // it should also scan (if no launchpad structure) to land at some area where there is a flat area
     public void tickController() {
 
-        if(rocket.getTargetPosition() == null){
+        if (rocket.getTargetPosition() == null) {
             targetHeading = rocket.getDefaultTargetHeading();
             currentThrust = 0;
-            currentSecondaryThrust = new Vec3(0,0,0);
+            currentSecondaryThrust = new Vec3(0, 0, 0);
             return;
         }
 
@@ -114,7 +117,7 @@ public class RocketController {
 
         // on planets, we never want to accelerate down because it can cause problems on low gravity planets
         Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
-        if(rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET){
+        if (rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET) {
             desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
         }
 
@@ -133,7 +136,7 @@ public class RocketController {
             double effectiveAcceleration = Math.min(neededAcceleration, MAX_ALLOWED_ACCEL);
             // The component of the effective acceleration that aligns with the current (limited) heading.
             // This ensures we only thrust in the direction we are currently pointing.
-            double actualThrustAccel = effectiveAcceleration * Math.max(0, rocket.heading.dot(targetHeading) - 0.9)*10;
+            double actualThrustAccel = effectiveAcceleration * Math.max(0, rocket.heading.dot(targetHeading) - 0.9) * 10;
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
             Vec3 thrustVector = rocket.heading.scale(actualThrustAccel);
@@ -143,11 +146,11 @@ public class RocketController {
             double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
             currentThrust = ThrustMultiplier;
             // TODO: burn rocket fuel
-            float toBurn = (float) ((float)rocket.getFuelRateMax() * ThrustMultiplier);
-            int toBurnInt = (int)toBurn;
-            if(toBurnInt == 0 && toBurn > 0 && rocket.level().random.nextFloat() < toBurn)
+            float toBurn = (float) ((float) rocket.getFuelRateMax() * ThrustMultiplier);
+            int toBurnInt = (int) toBurn;
+            if (toBurnInt == 0 && toBurn > 0 && rocket.level().random.nextFloat() < toBurn)
                 toBurnInt = 1;
-            if(!rocket.level().isClientSide) {
+            if (!rocket.level().isClientSide) {
                 rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
             }
 
@@ -164,40 +167,66 @@ public class RocketController {
     }
 
 
-    public void makeThrustParticles(){
+    public void makeThrustParticles() {
 
         if (rocket.level().isClientSide) {
             if (rocket.getMainEnginesBootUp() != 0) {
-                float relativeBootTimeLin = (float) rocket.getMainEnginesBootUp() / EntityRocket. ENGINE_BOOT_TIME;
-                float bootupParticleProb = (float)Math.sqrt(relativeBootTimeLin);
+                float relativeBootTimeLin = (float) rocket.getMainEnginesBootUp() / EntityRocket.ENGINE_BOOT_TIME;
+                float bootupParticleProb = (float) Math.sqrt(relativeBootTimeLin);
                 int maxParticlesPerTick = 50;
-                int maxParticlePerEngine = 3;
+                int maxParticlePerEngine = 2;
                 for (BlockPos i : rocket.getEnginePositions()) {
                     Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
                     for (int j = 0; j < maxParticlePerEngine; j++) {
+
                         if (relativeBootTimeLin < 0.99) {
                             if (rocket.level().random.nextFloat() > bootupParticleProb) {
                                 continue;
                             }
                         }
 
-                        float engineNumSpeedMultiplier = 1;
+
+                        // not spawn too many particles. if we have too many, increase particle size and not spawn many new
+                        float particleSizeMultiplier = 1;
                         if (rocket.getEnginePositions().size() * maxParticlePerEngine > maxParticlesPerTick) {
                             if (rocket.level().random.nextFloat() > (float) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine)) {
                                 continue;
                             }
-                            engineNumSpeedMultiplier = (float) (rocket.getEnginePositions().size() * maxParticlePerEngine) / maxParticlesPerTick;
+                            particleSizeMultiplier = (float) (rocket.getEnginePositions().size() * maxParticlePerEngine) / maxParticlesPerTick;
                         }
 
-                        rocket.level().addParticle(
-                                Registry.ROCKET_FLAME.get(),
-                                worldPos.x,
-                                worldPos.y,
-                                worldPos.z,
-                                rocket.heading.x * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().x,
-                                rocket.heading.y * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().y,
-                                rocket.heading.z * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().z
+                        double speedMultiplier = -1 * (currentThrust + 0.3) * relativeBootTimeLin * particleSizeMultiplier * (1+j*0.1f);
+                        new SoftParticle(
+                                (ClientLevel) rocket.level(),
+                                worldPos.x+ (rocket.level().random.nextFloat()-0.5)*0.5,
+                                worldPos.y+ (rocket.level().random.nextFloat()-0.5)*0.5,
+                                worldPos.z+ (rocket.level().random.nextFloat()-0.5)*0.5,
+                                rocket.heading.x * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
+                                rocket.heading.y * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
+                                rocket.heading.z * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
+                                new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
+                                0.1f,
+                                particleSizeMultiplier*1,
+                                500,
+                                false
                         );
+
+                        for (int p = 0; p < 3; p++) {
+                            new SoftParticle(
+                                    (ClientLevel) rocket.level(),
+                                    worldPos.x+ (rocket.level().random.nextFloat()-0.5)*0.5,
+                                    worldPos.y+ (rocket.level().random.nextFloat()-0.5)*0.5,
+                                    worldPos.z+ (rocket.level().random.nextFloat()-0.5)*0.5,
+                                    rocket.heading.x * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
+                                    rocket.heading.y * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
+                                    rocket.heading.z * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
+                                    new Vector3f(0.1f, 0.4f, 1.0f).mul(1f),
+                                    0.5f,
+                                    particleSizeMultiplier*0.5f,
+                                    20,
+                                    true
+                            );
+                        }
                     }
                 }
                 //System.out.println(currentThrust);
