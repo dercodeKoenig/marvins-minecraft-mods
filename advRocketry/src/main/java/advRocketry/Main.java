@@ -6,9 +6,9 @@ import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
-import advRocketry.Particles.ParticleEngine;
+import advRocketry.Particles.RocketParticleEngine;
 import advRocketry.Particles.RocketFlameParticleProvider;
-import advRocketry.Particles.SoftParticleProvider;
+import advRocketry.Particles.RocketParticleProvider;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
@@ -139,7 +139,7 @@ public class Main {
             PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
         }
 
-        ParticleEngine.tick();
+        RocketParticleEngine.tick();
     }
 
     void onServerStarted(ServerStartedEvent event) {
@@ -168,8 +168,15 @@ public class Main {
             // clouds will render next, disable stupid fog
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
 
-            ParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
+            if(is_fabulous)
+                RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
         }
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
+            // make it render after clouds then
+            if(!is_fabulous)
+                RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
+        }
+
     }
 
     void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
@@ -239,7 +246,7 @@ public class Main {
 
     void registerParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
-        event.registerSpriteSet(Registry.SMOKE_PARTICLE.get(), SoftParticleProvider::new);
+        event.registerSpriteSet(Registry.SOFT_PARTICLE.get(), RocketParticleProvider::new);
     }
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {

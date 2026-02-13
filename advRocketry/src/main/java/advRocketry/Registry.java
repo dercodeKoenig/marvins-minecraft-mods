@@ -77,7 +77,7 @@ public class Registry {
 
     public static final Supplier<SimpleParticleType> ROCKET_FLAME = PARTICLES.register("rocketflame",() -> new SimpleParticleType(true));
 
-    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SMOKE_PARTICLE = PARTICLES.register("smoke_particle", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SOFT_PARTICLE = PARTICLES.register("soft_particle", () -> new SimpleParticleType(false));
 
 
     static {

@@ -9,10 +9,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
-public class SoftParticle extends TextureSheetParticle implements ParticleEngine.ARParticle {
+public class RocketParticle extends TextureSheetParticle implements RocketParticleEngine.ARParticle {
 
-    public SoftParticle(ClientLevel level, double x, double y, double z,
-                        double dx, double dy, double dz) {
+    public RocketParticle(ClientLevel level, double x, double y, double z,
+                          double dx, double dy, double dz) {
         this (level,x,y,z,dx,dy,dz,new Vector3f(1,1,1),1f, 1f, 200, false);
     }
 
@@ -20,8 +20,8 @@ public class SoftParticle extends TextureSheetParticle implements ParticleEngine
     float size = 1f;
     boolean isGlowing = false;
 
-    public SoftParticle(ClientLevel level, double x, double y, double z,
-                        double dx, double dy, double dz, Vector3f color, float alphaMultiplier, float size, int lifetime, boolean isGlowing) {
+    public RocketParticle(ClientLevel level, double x, double y, double z,
+                          double dx, double dy, double dz, Vector3f color, float alphaMultiplier, float size, int lifetime, boolean isGlowing) {
         super(level, x, y, z, dx, dy, dz);
 
         this.friction = 0.99F;
@@ -33,10 +33,10 @@ public class SoftParticle extends TextureSheetParticle implements ParticleEngine
         yd = dy;
         zd = dz;
 
-        this.setSpriteFromAge(SoftParticleProvider.sprites);
+        this.setSpriteFromAge(RocketParticleProvider.sprites);
 
         ResourceLocation key = level.dimension().location();
-        ParticleEngine.addParticle(key, this);
+        RocketParticleEngine.addParticle(key, this);
 
         this.setColor(color.x,color.y,color.z);
         this.alphaMultiplier = alphaMultiplier;

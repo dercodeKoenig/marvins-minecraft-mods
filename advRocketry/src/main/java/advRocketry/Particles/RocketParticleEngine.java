@@ -22,7 +22,7 @@ import java.util.List;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class ParticleEngine {
+public class RocketParticleEngine {
 
     public static HashMap<ResourceLocation, ArrayList<ARParticle>> particles = new HashMap<>();
     public static HashMap<ResourceLocation, ArrayList<ARParticle>> particlesGlowing = new HashMap<>();
@@ -151,8 +151,8 @@ public class ParticleEngine {
             RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
             renderParticles(particlesGlowing.get(key), frustum, renderInfo, partialTicks, is_fabulous);
         }else{
-            // fabulous makes so much problems... we will need to depth sort and render all together and switch blend states
-            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
+            // fabulous makes so much problems... we will use only normal blending
+            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             ArrayList<ARParticle> join = new ArrayList<>();
             if(particles.get(key) != null)
                 join.addAll(particles.get(key));

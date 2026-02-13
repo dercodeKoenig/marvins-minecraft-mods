@@ -1,21 +1,16 @@
 package advRocketry.Rocket;
 
-import ARLib.network.PacketEntity;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
-import advRocketry.Particles.SoftParticle;
-import advRocketry.Registry;
-import advRocketry.utils.Utils;
+import advRocketry.Particles.RocketParticle;
+import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
-
-import java.util.Random;
 
 public class RocketController {
 
@@ -196,7 +191,7 @@ public class RocketController {
                         }
 
                         double speedMultiplier = -1 * (currentThrust + 0.3) * relativeBootTimeLin * particleSizeMultiplier * (1+j*0.1f);
-                        new SoftParticle(
+                        new RocketParticle(
                                 (ClientLevel) rocket.level(),
                                 worldPos.x+ (rocket.level().random.nextFloat()-0.5)*0.5,
                                 worldPos.y+ (rocket.level().random.nextFloat()-0.5)*0.5,
@@ -205,14 +200,14 @@ public class RocketController {
                                 rocket.heading.y * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
                                 rocket.heading.z * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
                                 new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
-                                0.1f,
+                                0.2f,
                                 particleSizeMultiplier*1,
                                 500,
                                 false
                         );
 
-                        for (int p = 0; p < 3; p++) {
-                            new SoftParticle(
+                        for (int p = 0; p < 1; p++) {
+                            new RocketParticle(
                                     (ClientLevel) rocket.level(),
                                     worldPos.x+ (rocket.level().random.nextFloat()-0.5)*0.5,
                                     worldPos.y+ (rocket.level().random.nextFloat()-0.5)*0.5,
@@ -220,8 +215,9 @@ public class RocketController {
                                     rocket.heading.x * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
                                     rocket.heading.y * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
                                     rocket.heading.z * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
-                                    new Vector3f(0.1f, 0.4f, 1.0f).mul(1f),
-                                    0.5f,
+                                    new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
+                                    // we not use additive blending in fabulous because it doesnt work so make it more bright
+                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
                                     particleSizeMultiplier*0.5f,
                                     20,
                                     true

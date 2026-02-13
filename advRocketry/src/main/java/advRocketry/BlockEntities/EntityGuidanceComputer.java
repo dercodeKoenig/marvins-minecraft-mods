@@ -4,8 +4,6 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import advRocketry.Particles.SoftParticle;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -16,7 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import org.joml.Vector3f;
 
 import static advRocketry.Registry.ENTITY_GUIDANCE_COMPUTER;
 
