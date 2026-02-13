@@ -1,5 +1,6 @@
 package advRocketry.Items;
 
+import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,20 +17,26 @@ public class ItemPlanetIdChip extends Item {
     }
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
-        if(tag.contains("dimensionId")){
+        Dimension selected = DimensionManager.INSTANCE_CLIENT.get(getSelectedDimension(stack));
+        if (selected != null) {
             tooltipComponents.add(
                     Component.literal(
-                            DimensionManager.INSTANCE_CLIENT.get(ResourceLocation.parse(tag.getString("dimensionId"))).getName()
+                            selected.getName()
                     )
             );
         }
     }
 
-    public static void setSelectedDimension(ResourceLocation dimensionId, ItemStack stack){
+    public static void setSelectedDimension(ResourceLocation dimensionId, ItemStack stack) {
         CompoundTag tag = new CompoundTag();
         tag.putString("dimensionId", dimensionId.toString());
-        System.out.println(tag);
         ItemUtils.setTag(stack, tag);
+    }
+
+    public static ResourceLocation getSelectedDimension(ItemStack stack) {
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        if (tag.contains("dimensionId"))
+            return ResourceLocation.parse(tag.getString("dimensionId"));
+        else return null;
     }
 }

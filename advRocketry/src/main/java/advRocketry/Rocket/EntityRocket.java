@@ -12,6 +12,7 @@ import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
+import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemUtils;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
@@ -535,24 +536,37 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void launch(ItemStack navigationItem) {
+
+        Level targetLevel = null;
+        BlockPos targetPos = null;
+
         if (navigationItem.getItem() instanceof ItemLinker linker) {
             // navigate using linker item
             CompoundTag tag = ItemUtils.getStacktagOrEmpty(navigationItem);
             if (tag.contains("p") && tag.contains("l")) {
                 // extract level & pos
-                BlockPos targetPos = NbtUtils.readBlockPos(tag, "p").get();
-                Level targetLevel = DimensionUtils.getDimensionLevelServer(tag.getString("l"));
-                ResourceLocation targetLevelId = targetLevel.dimension().location();
+                targetPos = NbtUtils.readBlockPos(tag, "p").get();
+                targetLevel = DimensionUtils.getDimensionLevelServer(tag.getString("l"));
+            }
+        }
+        if (navigationItem.getItem() instanceof ItemPlanetIdChip idChip) {
+            ResourceLocation targetLocation = ItemPlanetIdChip.getSelectedDimension(navigationItem);
+            if (targetLocation != null) {
+                targetPos = getOnPos();
+                targetLevel = DimensionUtils.getDimensionLevelServer(targetLocation.toString());
+            }
+        }
 
-                if (DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId).getType() == DimensionProperties.DimensionType.PLANET) {
-                    // target level is planet, use planet navigation program
-                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
-                    p.target = targetPos;
-                    p.targetDimensionId = targetLevelId;
-                    setProgramAndSync(p);
+        if (targetLevel != null) {
+            ResourceLocation targetLevelId = targetLevel.dimension().location();
+            if (DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId).getType() == DimensionProperties.DimensionType.PLANET) {
+                // target level is planet, use planet navigation program
+                ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
+                p.target = targetPos;
+                p.targetDimensionId = targetLevelId;
+                setProgramAndSync(p);
 
-                    setLastLaunchPosition(blockPosition(), true);
-                }
+                setLastLaunchPosition(blockPosition(), true);
             }
         }
     }

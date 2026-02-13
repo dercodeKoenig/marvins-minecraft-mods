@@ -23,6 +23,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -45,9 +46,12 @@ import java.util.*;
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
-public class EntityFuelingStation extends EntityFluidInputBlock implements ItemLinker.linkable {
+public class EntityFuelingStation extends EntityFluidInputBlock implements ItemLinker.linkable, ItemLinker.linkableToEntity {
 
     public BlockPos linkedAssemblerPos = null;
+    public EntityRocket linkedRocket = null;
+
+    public static float maxDistance = 30;
 
     public EntityFuelingStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_FUELING_STATION.get(), pos, blockState);
@@ -80,22 +84,34 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
     public void tick() {
         super.tick();
         if (linkedAssemblerPos != null) {
+            linkedRocket = null;
             BlockEntity rocketAssembler = level.getBlockEntity(linkedAssemblerPos);
             if (rocketAssembler instanceof EntityRocketAssembler assembler) {
                 if (!myTank.isEmpty()) {
                     EntityRocket currentRocket = assembler.currentRocket;
-                    if(currentRocket != null) {
-                        if (currentRocket.getCurrentProgram() == null) {
-                            if (new AABB(assembler.areaMin.getCenter(),assembler.areaMax.getCenter()).inflate(2).contains(currentRocket.position())) {
-                                FluidStack available = myTank.drain(10, FluidAction.SIMULATE);
-                                int canFill = currentRocket.fuelTank.fill(available, FluidAction.SIMULATE);
-                                FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
-                                currentRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
-                            }
+                    if (currentRocket != null) {
+                        if (new AABB(assembler.areaMin.getCenter(), assembler.areaMax.getCenter()).inflate(2).contains(currentRocket.position())) {
+                            linkedRocket = currentRocket;
                         }
                     }
                 }
             }
+            else
+                linkedAssemblerPos = null;
+        }
+
+        if (linkedRocket != null) {
+            if (linkedRocket.getCurrentProgram() == null) {
+                FluidStack available = myTank.drain(10, FluidAction.SIMULATE);
+                int canFill = linkedRocket.fuelTank.fill(available, FluidAction.SIMULATE);
+                FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
+                linkedRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
+            }
+        }
+
+        if (linkedRocket != null) {
+            if (linkedRocket.isRemoved() || linkedRocket.position().distanceTo(getBlockPos().getCenter()) >= maxDistance)
+                linkedRocket = null;
         }
     }
 
@@ -109,8 +125,24 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
         if (otherLevel == level) {
             Block otherBlock = level.getBlockState(otherpos).getBlock();
             if (otherBlock.equals(Registry.ROCKET_ASSEMBLER.get())) {
-                linkedAssemblerPos = otherpos;
-                return true;
+                if (otherpos.getCenter().distanceTo(getBlockPos().getCenter()) < maxDistance) {
+                    linkedAssemblerPos = otherpos;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean link(Entity e) {
+        if (e instanceof EntityRocket rocket) {
+            if (rocket.position().distanceTo(getBlockPos().getCenter()) < maxDistance) {
+                if (rocket.level().equals(level)) {
+                    linkedRocket = rocket;
+                    linkedAssemblerPos = null;
+                    return true;
+                }
             }
         }
         return false;

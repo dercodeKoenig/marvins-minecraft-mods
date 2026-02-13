@@ -57,7 +57,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
     public void tick() {
         super.tick();
         this.alpha = (1.0F - ((float) this.age / (float) this.lifetime)) * alphaMultiplier;
-        this.size *= 0.999f;
+        //this.size *= 0.999f;
 
         if (super.onGround) {
             float f = this.random.nextFloat() * 0.5F;

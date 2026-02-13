@@ -3,6 +3,7 @@ package advRocketry.Rocket;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
+import advRocketry.Dimension.RocketTravelDimension;
 import advRocketry.Particles.RocketParticle;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
@@ -191,20 +192,23 @@ public class RocketController {
                         }
 
                         double speedMultiplier = -1 * (currentThrust + 0.3) * relativeBootTimeLin * particleSizeMultiplier * (1+j*0.1f);
-                        new RocketParticle(
-                                (ClientLevel) rocket.level(),
-                                worldPos.x+ (rocket.level().random.nextFloat()-0.5)*0.5,
-                                worldPos.y+ (rocket.level().random.nextFloat()-0.5)*0.5,
-                                worldPos.z+ (rocket.level().random.nextFloat()-0.5)*0.5,
-                                rocket.heading.x * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
-                                rocket.heading.y * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
-                                rocket.heading.z * speedMultiplier + (rocket.level().random.nextFloat()-0.5)*0.5*speedMultiplier,
-                                new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
-                                0.2f,
-                                particleSizeMultiplier*1,
-                                500,
-                                false
-                        );
+                        if(!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
+                            // no smoke in space
+                            new RocketParticle(
+                                    (ClientLevel) rocket.level(),
+                                    worldPos.x + (rocket.level().random.nextFloat() - 0.5) * 0.5,
+                                    worldPos.y + (rocket.level().random.nextFloat() - 0.5) * 0.5,
+                                    worldPos.z + (rocket.level().random.nextFloat() - 0.5) * 0.5,
+                                    rocket.heading.x * speedMultiplier + (rocket.level().random.nextFloat() - 0.5) * 0.5 * speedMultiplier,
+                                    rocket.heading.y * speedMultiplier + (rocket.level().random.nextFloat() - 0.5) * 0.5 * speedMultiplier,
+                                    rocket.heading.z * speedMultiplier + (rocket.level().random.nextFloat() - 0.5) * 0.5 * speedMultiplier,
+                                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
+                                    0.2f,
+                                    particleSizeMultiplier * 1,
+                                    500,
+                                    false
+                            );
+                        }
 
                         for (int p = 0; p < 1; p++) {
                             new RocketParticle(

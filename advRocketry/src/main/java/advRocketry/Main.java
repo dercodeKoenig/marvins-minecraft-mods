@@ -6,6 +6,7 @@ import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
+import advRocketry.Items.ItemLinker;
 import advRocketry.Particles.RocketParticleEngine;
 import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Particles.RocketParticleProvider;
@@ -25,6 +26,10 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -43,6 +48,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -61,7 +67,7 @@ public class Main {
     public static Path myConfigDir;
 
     public Main(IEventBus modEventBus, ModContainer modContaine) {
-        //modEventBus.register(this);
+        // game events
         if (FMLLoader.getDist().isClient()) {
             NeoForge.EVENT_BUS.addListener(this::onRenderStage);
             NeoForge.EVENT_BUS.addListener(Fog::renderFogEvent);
@@ -74,7 +80,9 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
         NeoForge.EVENT_BUS.addListener(this::onEntityLeaveWorld);
+        NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
 
+        // mod loading
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::onClientSetup);
@@ -83,7 +91,6 @@ public class Main {
         modEventBus.addListener(this::registerParticles);
         modEventBus.addListener(this::registerClientExtensions);
         modEventBus.addListener(this::loadComplete);
-
 
         Registry.BLOCKS.register(modEventBus);
         Registry.ITEMS.register(modEventBus);
@@ -99,6 +106,7 @@ public class Main {
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionListSync, new DimensionManager.SyncDimensionList());
         SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
 
+        // setup config directory
         Path configDir = FMLPaths.CONFIGDIR.get();
         myConfigDir = Path.of(String.valueOf(configDir), Main.MODID);
         File myConfigDirFile = new File(String.valueOf(myConfigDir));
@@ -106,6 +114,7 @@ public class Main {
             myConfigDirFile.mkdirs();
         }
 
+        // write biome presets
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
         BiomeConfig.makePresetIfNotExist(HOT_VERYDRY.name, HOT_VERYDRY.create());
 
@@ -189,6 +198,17 @@ public class Main {
         if (ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
             int rocketsize = rocket.size.getY();
             event.setDistance(event.getDistance() + rocketsize * 1.3f);
+        }
+    }
+
+    public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        ItemStack stack = event.getItemStack();
+        Player p = event.getEntity();
+        Entity target = event.getTarget();
+        if (stack.getItem() instanceof ItemLinker) {
+            ItemLinker.useOnEntity(p, stack, target);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            event.setCanceled(true);
         }
     }
 
