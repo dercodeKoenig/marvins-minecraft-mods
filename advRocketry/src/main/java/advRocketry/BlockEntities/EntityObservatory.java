@@ -5,6 +5,7 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.network.PacketBlockEntity;
+import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -51,7 +52,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public GuiHandlerBlockEntity guiHandler;
 
-    public ItemStackHandler storageItemStackHandler;
+    public ItemStackHandler itemStackHandler;
 
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
@@ -68,28 +69,41 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        storageItemStackHandler = new ItemStackHandler(2) {
+        itemStackHandler = new ItemStackHandler(3) {
             public boolean isItemValid(int slot, ItemStack stack) {
-                return stack.getItem().equals(Registry.ITEM_GALAXY_STORAGE_DISK.get());
+                if (slot == 0 || slot == 1)
+                    return stack.getItem().equals(Registry.ITEM_GALAXY_STORAGE_DISK.get());
+                if (slot == 2)
+                    return stack.getItem().equals(Registry.ITEM_PLANET_ID_CHIP.get());
+                return false;
             }
         };
         ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot1 =
-                new guiModuleItemHandlerSlot(0, storageItemStackHandler, 0, 1, 0, guiHandler, 130, 160);
+                new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 1, 0, guiHandler, 130, 160);
         guiHandler.modules.add(storageItemSlot1);
         ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot2 =
-                new guiModuleItemHandlerSlot(1, storageItemStackHandler, 1, 1, 0, guiHandler, 150, 160);
+                new guiModuleItemHandlerSlot(1, itemStackHandler, 1, 1, 0, guiHandler, 150, 160);
         guiHandler.modules.add(storageItemSlot2);
         guiHandler.modules.add(
                 new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 163, 0xff000000, false)
         );
 
+        ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot3 =
+                new guiModuleItemHandlerSlot(4, itemStackHandler, 2, 1, 0, guiHandler, 150, 140);
+        guiHandler.modules.add(storageItemSlot3);
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 30, 15, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20){
+                new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 143, 0xff000000, false)
+        );
+
+        guiHandler.modules.add(
+                new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
                     public void onButtonClicked() {
                         Minecraft.getInstance().setScreen(
                                 new SpaceMapScreen(
                                         (dimensionId) -> {
-                                            System.out.println("selected " + dimensionId);
+                                            CompoundTag info = new CompoundTag();
+                                            info.putString("writeToChip", dimensionId.toString());
+                                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
                                         }
                                 )
                         );
@@ -126,6 +140,12 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     @Override
     public void readServer(CompoundTag tag, ServerPlayer player) {
         guiHandler.readServer(tag);
+        if(tag.contains("writeToChip")){
+            if (itemStackHandler.getStackInSlot(2).getItem() instanceof ItemPlanetIdChip planetIdChip) {
+                ResourceLocation target = ResourceLocation.parse(tag.getString("writeToChip"));
+                ItemPlanetIdChip.setSelectedDimension(target, itemStackHandler.getStackInSlot(2));
+            }
+        }
     }
 
     @Override
@@ -138,17 +158,17 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("storageItemStackHandler", storageItemStackHandler.serializeNBT(registries));
+        tag.put("storageItemStackHandler", itemStackHandler.serializeNBT(registries));
     }
 
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        storageItemStackHandler.deserializeNBT(registries, tag.getCompound("storageItemStackHandler"));
+        itemStackHandler.deserializeNBT(registries, tag.getCompound("storageItemStackHandler"));
     }
 
     public void popInventory() {
-        for (int i = 0; i < storageItemStackHandler.getSlots(); i++) {
-            Block.popResource(level, getBlockPos(), storageItemStackHandler.getStackInSlot(i));
+        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+            Block.popResource(level, getBlockPos(), itemStackHandler.getStackInSlot(i));
         }
     }
 

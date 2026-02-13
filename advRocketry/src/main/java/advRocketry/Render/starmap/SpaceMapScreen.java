@@ -82,7 +82,7 @@ public class SpaceMapScreen extends Screen {
                 }
         ));
 
-        this.actionButton = net.minecraft.client.gui.components.Button.builder(Component.literal("Do Stuff"), (btn) -> {
+        this.actionButton = net.minecraft.client.gui.components.Button.builder(Component.literal("Write to Chip"), (btn) -> {
                     if (selectedPlanet != null) {
                         planetSelector.selectPlanet(selectedPlanet.getDimensionId());
                     }
@@ -189,7 +189,9 @@ public class SpaceMapScreen extends Screen {
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
                 selectedPlanet = planet;
-                actionButton.visible = true;
+                if(planet.canVisit()) {
+                    actionButton.visible = true;
+                }
                 return true;
             }
         }
@@ -235,7 +237,7 @@ public class SpaceMapScreen extends Screen {
 
         guiGraphics.fill(0, 0, windowWidth, windowHeight, 0xff000000);
         RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-        
+
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         // 2. VIEW MATRIX (Camera)

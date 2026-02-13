@@ -38,6 +38,10 @@ public abstract class Dimension {
         return properties.dimensionId;
     }
 
+    public String getName(){
+        return properties.name;
+    }
+
     abstract public void createDimension();
 
     abstract public boolean canVisit();

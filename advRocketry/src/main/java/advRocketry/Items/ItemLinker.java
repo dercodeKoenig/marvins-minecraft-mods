@@ -18,21 +18,12 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import static advRocketry.Items.ItemUtils.getStacktagOrEmpty;
+import static advRocketry.Items.ItemUtils.setTag;
+
 public class ItemLinker extends Item {
     public ItemLinker() {
         super(new Properties().stacksTo(1));
-    }
-
-    public CompoundTag getStacktagOrEmpty(ItemStack stack) {
-        try {
-            return ((CustomData) stack.get(DataComponents.CUSTOM_DATA)).copyTag();
-        } catch (Exception var3) {
-            return new CompoundTag();
-        }
-    }
-
-    public void setTag(ItemStack stack, CompoundTag tag) {
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public InteractionResult useOn(UseOnContext context) {

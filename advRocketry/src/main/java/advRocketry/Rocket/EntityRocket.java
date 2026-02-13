@@ -12,6 +12,7 @@ import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
+import advRocketry.Items.ItemUtils;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.utils.CelestialUtils;
@@ -536,7 +537,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void launch(ItemStack navigationItem) {
         if (navigationItem.getItem() instanceof ItemLinker linker) {
             // navigate using linker item
-            CompoundTag tag = linker.getStacktagOrEmpty(navigationItem);
+            CompoundTag tag = ItemUtils.getStacktagOrEmpty(navigationItem);
             if (tag.contains("p") && tag.contains("l")) {
                 // extract level & pos
                 BlockPos targetPos = NbtUtils.readBlockPos(tag, "p").get();
