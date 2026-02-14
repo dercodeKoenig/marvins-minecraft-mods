@@ -104,6 +104,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                             CompoundTag info = new CompoundTag();
                                             info.putString("writeToChip", dimensionId.toString());
                                             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
+                                        },
+                                        () -> {
+                                            openGui();
                                         }
                                 )
                         );
@@ -137,6 +140,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         ((EntityObservatory) t).tick();
     }
 
+    public void openGui(){
+        guiHandler.openGui(200, 210, true);
+    }
+
     @Override
     public void readServer(CompoundTag tag, ServerPlayer player) {
         guiHandler.readServer(tag);
@@ -152,7 +159,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public void readClient(CompoundTag tag) {
         guiHandler.readClient(tag);
         if (tag.contains("openGui")) {
-            guiHandler.openGui(200, 210, true);
+            openGui();
         }
     }
 

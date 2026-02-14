@@ -32,9 +32,10 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 // TODO: DEPTH SORT for rendering and reverse depth sort for click check so we click top planet
 
 public class SpaceMapScreen extends Screen {
-    public SpaceMapScreen(planetSelector planetSelector) {
+    public SpaceMapScreen(planetSelector planetSelector, Runnable atExit) {
         super(Component.literal("space map"));
         this.planetSelector = planetSelector;
+        this.atExit = atExit;
     }
 
     public interface planetSelector {
@@ -42,6 +43,7 @@ public class SpaceMapScreen extends Screen {
     }
 
     planetSelector planetSelector;
+    Runnable atExit;
 
     private PlanetDimension selectedPlanet = null;
     private net.minecraft.client.gui.components.Button actionButton;
@@ -504,5 +506,11 @@ public class SpaceMapScreen extends Screen {
             return getPositionScaled(parent, partialTick).add(rotatedOffset);
         }
         return planet.getPosition(partialTick);
+    }
+
+    @Override
+    public void onClose(){
+        super.onClose(); // close gui first
+        atExit.run(); // now run the exit method
     }
 }

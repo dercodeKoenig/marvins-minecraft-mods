@@ -1,6 +1,8 @@
 package advRocketry.Items;
 
 import ARLib.utils.DimensionUtils;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -15,10 +17,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+
+import java.util.List;
 
 import static advRocketry.Items.ItemUtils.getStacktagOrEmpty;
 import static advRocketry.Items.ItemUtils.setTag;
@@ -26,6 +31,31 @@ import static advRocketry.Items.ItemUtils.setTag;
 public class ItemLinker extends Item {
     public ItemLinker() {
         super(new Properties().stacksTo(1));
+    }
+
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        CompoundTag tag = getStacktagOrEmpty(stack);
+        if(tag.contains("uuid")){
+            tooltipComponents.add(
+                    Component.literal(
+                            "Selected Entity: "+tag.getUUID("uuid")
+                    )
+            );
+        }
+        if(tag.contains("l")){
+            tooltipComponents.add(
+                    Component.literal(
+                            "Selected Level: "+tag.getString("l")
+                    )
+            );
+        }
+        if(tag.contains("p")){
+            tooltipComponents.add(
+                    Component.literal(
+                            "Selected Position: "+NbtUtils.readBlockPos(tag, "p").get()
+                    )
+            );
+        }
     }
 
     public InteractionResult useOn(UseOnContext context) {
