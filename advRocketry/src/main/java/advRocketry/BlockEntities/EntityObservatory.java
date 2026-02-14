@@ -5,6 +5,7 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.network.PacketBlockEntity;
+import advRocketry.Dimension.DimensionManager;
 import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
@@ -50,9 +51,15 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public int lastLight;
 
-    public GuiHandlerBlockEntity guiHandler;
 
     public ItemStackHandler itemStackHandler;
+
+
+    public GuiHandlerBlockEntity guiHandler;
+    ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot1;
+    ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot2;
+    ARLib.gui.modules.guiModuleItemHandlerSlot planetIdChipSlot;
+
 
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
@@ -78,19 +85,16 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 return false;
             }
         };
-        ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot1 =
-                new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 1, 0, guiHandler, 130, 160);
-        guiHandler.modules.add(storageItemSlot1);
-        ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot2 =
-                new guiModuleItemHandlerSlot(1, itemStackHandler, 1, 1, 0, guiHandler, 150, 160);
-        guiHandler.modules.add(storageItemSlot2);
+        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 1, 0, guiHandler, 130, 160);
+        guiHandler.modules.add(storageDiskSlot1);
+        storageDiskSlot2= new guiModuleItemHandlerSlot(1, itemStackHandler, 1, 1, 0, guiHandler, 150, 160);
+        guiHandler.modules.add(storageDiskSlot2);
         guiHandler.modules.add(
                 new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 163, 0xff000000, false)
         );
 
-        ARLib.gui.modules.guiModuleItemHandlerSlot storageItemSlot3 =
-                new guiModuleItemHandlerSlot(4, itemStackHandler, 2, 1, 0, guiHandler, 150, 140);
-        guiHandler.modules.add(storageItemSlot3);
+        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, 2, 1, 0, guiHandler, 150, 140);
+        guiHandler.modules.add(planetIdChipSlot);
         guiHandler.modules.add(
                 new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 143, 0xff000000, false)
         );
@@ -99,16 +103,32 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
                     public void onButtonClicked() {
                         Minecraft.getInstance().setScreen(
-                                new SpaceMapScreen(
-                                        (dimensionId) -> {
-                                            CompoundTag info = new CompoundTag();
-                                            info.putString("writeToChip", dimensionId.toString());
-                                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
-                                        },
-                                        () -> {
-                                            openGui();
-                                        }
-                                )
+                                new SpaceMapScreen(){
+                                    @Override
+                                    public void tick(){
+                                        super.tick();
+                                        // make sure the main gui stays in sync
+                                        EntityObservatory.this.guiHandler.sendPing();
+                                    }
+                                    @Override
+                                    public void onClose(){
+                                        super.onClose();
+                                        // open the main gui again
+                                        openGui();
+                                    }
+
+                                    public void interact(ResourceLocation dimensionId){
+                                        CompoundTag info = new CompoundTag();
+                                        info.putString("writeToChip", dimensionId.toString());
+                                        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
+                                    }
+                                    public String getInteractText(ResourceLocation dimensionId){
+                                        return "interact with "+ dimensionId;
+                                    }
+                                    public String getPlanetInfoText(ResourceLocation dimensionId){
+                                        return "can visit:" + DimensionManager.INSTANCE_CLIENT.get(dimensionId).canVisit();
+                                    }
+                                }
                         );
                     }
                 }

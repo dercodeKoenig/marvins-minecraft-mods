@@ -32,18 +32,9 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 // TODO: DEPTH SORT for rendering and reverse depth sort for click check so we click top planet
 
 public class SpaceMapScreen extends Screen {
-    public SpaceMapScreen(planetSelector planetSelector, Runnable atExit) {
+    public SpaceMapScreen() {
         super(Component.literal("space map"));
-        this.planetSelector = planetSelector;
-        this.atExit = atExit;
     }
-
-    public interface planetSelector {
-        void selectPlanet(ResourceLocation dimensionId);
-    }
-
-    planetSelector planetSelector;
-    Runnable atExit;
 
     private PlanetDimension selectedPlanet = null;
     private net.minecraft.client.gui.components.Button actionButton;
@@ -62,6 +53,16 @@ public class SpaceMapScreen extends Screen {
 
         // depth sort the planets
         SpaceMapPlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
+    }
+
+    public void interact(ResourceLocation dimensionId){
+
+    }
+    public String getInteractText(ResourceLocation dimensionId){
+        return "interact";
+    }
+    public String getPlanetInfoText(ResourceLocation dimensionId){
+        return "This is planet info text...";
     }
 
     @Override
@@ -86,7 +87,7 @@ public class SpaceMapScreen extends Screen {
 
         this.actionButton = net.minecraft.client.gui.components.Button.builder(Component.literal("Write to Chip"), (btn) -> {
                     if (selectedPlanet != null) {
-                        planetSelector.selectPlanet(selectedPlanet.getDimensionId());
+                        interact(selectedPlanet.getDimensionId());
                     }
                 })
                 .bounds(this.width - SIDEBAR_WIDTH + 10, this.height - 30, SIDEBAR_WIDTH - 20, 20)
@@ -191,14 +192,10 @@ public class SpaceMapScreen extends Screen {
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
                 selectedPlanet = planet;
-                if(planet.canVisit()) {
-                    actionButton.visible = true;
-                }
                 return true;
             }
         }
-        selectedPlanet= null;
-        actionButton.visible = false;
+        selectedPlanet = null;
         return false;
     }
 
@@ -239,6 +236,16 @@ public class SpaceMapScreen extends Screen {
 
         guiGraphics.fill(0, 0, windowWidth, windowHeight, 0xff000000);
         RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+
+        if (selectedPlanet != null) {
+            String actionBtnText = getInteractText(selectedPlanet.getDimensionId());
+            if(actionBtnText.isEmpty())
+                actionButton.visible = false;
+            else{
+                actionButton.visible = true;
+                actionButton.setMessage(Component.literal(actionBtnText));
+            }
+        }
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
@@ -460,9 +467,7 @@ public class SpaceMapScreen extends Screen {
             guiGraphics.drawString(this.font, selectedPlanet.getDimensionId().getPath().toUpperCase(), xStart + 10, 10, 0xFFFFFF);
 
             // 3. Draw Description with Newlines/Wrapping
-            String description = "This is a custom description for " + selectedPlanet.getDimensionId().getPath() +
-                    ".\n\nGravity: " + selectedPlanet.getGravitationalMultiplier() + "g" +
-                    "\nAtmosphere: " + (selectedPlanet.getAtmosphereDensity() * 100) + "%";
+            String description = getPlanetInfoText(selectedPlanet.getDimensionId());
 
             // drawWordWrap handles the "\n" and automatically wraps text based on width
             guiGraphics.drawWordWrap(this.font, Component.literal(description), xStart + 10, 30, SIDEBAR_WIDTH - 20, 0xCCCCCC);
@@ -506,11 +511,5 @@ public class SpaceMapScreen extends Screen {
             return getPositionScaled(parent, partialTick).add(rotatedOffset);
         }
         return planet.getPosition(partialTick);
-    }
-
-    @Override
-    public void onClose(){
-        super.onClose(); // close gui first
-        atExit.run(); // now run the exit method
     }
 }

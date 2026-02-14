@@ -24,6 +24,7 @@ public class DefaultGalaxy {
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         sun.emissiveColor = new Vector3f(1f, 1f, 0.8f);
         sun.radiationIntensity = 2;
+        sun.isKnown = true;
         galaxy.add(sun);
 
         PlanetDimensionProperties overworld = new PlanetDimensionProperties();
@@ -33,6 +34,7 @@ public class DefaultGalaxy {
         overworld.dayTimeReference = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         overworld.hasRingSystem = true;
+        overworld.isKnown = true;
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
