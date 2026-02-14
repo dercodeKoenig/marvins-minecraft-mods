@@ -90,7 +90,6 @@ void main() {
     float alphaMultiplier = 0.5;
     // TODO: tint color?, specular color?
 
-    //vec4 baseColor = pow(texture(Sampler0, texcoord), vec4(2.2));
     vec4 baseColor = texture(Sampler0, texcoord);
 
     float alpha = baseColor.a * alphaMultiplier;
