@@ -86,6 +86,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     return stack.getItem().equals(Registry.ITEM_PLANET_ID_CHIP.get());
                 return false;
             }
+            public void onContentsChanged(int slot) {
+                EntityObservatory.this.setChanged();
+            }
         };
         storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 1, 0, guiHandler, 130, 160);
         guiHandler.modules.add(storageDiskSlot1);

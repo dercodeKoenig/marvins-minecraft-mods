@@ -69,7 +69,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
 
     public void saveDimensionProperties(Path saveDir){
-        System.out.println("[DimensionManager]  saving current dimension properties...");
+        System.out.println("[DimensionManager] saving current dimension properties...");
         try {
             Files.createDirectories(saveDir);
             for (Dimension i : dimensions.values()) {
