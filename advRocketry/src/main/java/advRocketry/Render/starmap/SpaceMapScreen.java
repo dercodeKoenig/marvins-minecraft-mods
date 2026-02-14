@@ -47,24 +47,44 @@ public class SpaceMapScreen extends Screen {
     private float logScale = 0.5f;
     private float scale = 0.3f;
 
+    private String planetInfoText;
+
+
     @Override
     public void tick() {
         super.tick();
+
+
+        if (selectedPlanet != null) {
+            String actionBtnText = getInteractText(selectedPlanet.getDimensionId());
+            if (!actionBtnText.isEmpty()) {
+                actionButton.visible = true;
+                actionButton.setMessage(Component.literal(actionBtnText));
+            } else
+                actionButton.visible = false;
+
+            planetInfoText = getPlanetInfoText(selectedPlanet.getDimensionId());
+        }else {
+            actionButton.visible = false;
+        }
 
         // depth sort the planets
         SpaceMapPlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
     }
 
-    public void interact(ResourceLocation dimensionId){
+    public void interact(ResourceLocation dimensionId) {
 
     }
-    public String getInteractText(ResourceLocation dimensionId){
+
+    public String getInteractText(ResourceLocation dimensionId) {
         return "interact";
     }
-    public String getPlanetInfoText(ResourceLocation dimensionId){
+
+    public String getPlanetInfoText(ResourceLocation dimensionId) {
         return "This is planet info text...";
     }
-    public boolean shouldRenderPlanet(ResourceLocation dimensionId){
+
+    public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
         return true;
     }
 
@@ -231,26 +251,14 @@ public class SpaceMapScreen extends Screen {
         return (discriminant > 0);
     }
 
-    // i will use some stuff from the skyrenderer here and also reuse the skybox shaders
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-
+    // i render the map as background so the buttons and sliders and whatever are on top correctly
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        guiGraphics.fill(0, 0, windowWidth, windowHeight, 0xff000000);
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+        guiGraphics.fill(0, 0, width, height, 0xff000000);
 
-        if (selectedPlanet != null) {
-            String actionBtnText = getInteractText(selectedPlanet.getDimensionId());
-            if(actionBtnText.isEmpty())
-                actionButton.visible = false;
-            else{
-                actionButton.visible = true;
-                actionButton.setMessage(Component.literal(actionBtnText));
-            }
-        }
-
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         // 2. VIEW MATRIX (Camera)
         Matrix4f viewMatrix = viewMat();
@@ -267,10 +275,9 @@ public class SpaceMapScreen extends Screen {
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
-            if(!shouldRenderPlanet(planet.getDimensionId()))
+            if (!shouldRenderPlanet(planet.getDimensionId()))
                 continue;
 
-            //Vec3 pos = planet.getPosition(partialTick);
             Vec3 pos = getPositionScaled(planet, partialTick);
 
             Matrix4f planetMatrix = new Matrix4f();
@@ -290,7 +297,6 @@ public class SpaceMapScreen extends Screen {
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
             float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
-
             planetMatrix.scale(renderScale);
 
 
@@ -302,8 +308,8 @@ public class SpaceMapScreen extends Screen {
                     new Matrix4f(),
                     planetMatrix,
                     0,
-                    new Vector3f(0,0,0),
-                    new Vector3f(0,0,0),
+                    new Vector3f(0, 0, 0),
+                    new Vector3f(0, 0, 0),
                     0,
                     false,
                     partialTick
@@ -396,8 +402,6 @@ public class SpaceMapScreen extends Screen {
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
-
-        // After existing post-processing/tonemapping
         if (selectedPlanet != null) {
             int xStart = this.width - SIDEBAR_WIDTH;
 
@@ -409,17 +413,21 @@ public class SpaceMapScreen extends Screen {
             guiGraphics.drawString(this.font, selectedPlanet.getDimensionId().getPath().toUpperCase(), xStart + 10, 10, 0xFFFFFF);
 
             // 3. Draw Description with Newlines/Wrapping
-            String description = getPlanetInfoText(selectedPlanet.getDimensionId());
+            String description = planetInfoText;
 
             // drawWordWrap handles the "\n" and automatically wraps text based on width
             guiGraphics.drawWordWrap(this.font, Component.literal(description), xStart + 10, 30, SIDEBAR_WIDTH - 20, 0xCCCCCC);
         }
+    }
 
+    // i will use some stuff from the skyrenderer here and also reuse the skybox shaders
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     //applies a scale to orbit distance for better rendering on map
     public Vec3 getPositionScaled(Dimension dimension, float partialTick) {
-        if(dimension instanceof PlanetDimension planet) {
+        if (dimension instanceof PlanetDimension planet) {
             if (planet.getParentDimensionId() != null) {
                 Dimension parent = DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId());
                 double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(planet.getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(planet.getorbitalDistanceToParent()));

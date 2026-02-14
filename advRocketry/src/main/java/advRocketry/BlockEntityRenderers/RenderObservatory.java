@@ -25,6 +25,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -56,6 +57,10 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         super();
     }
 
+    @Override
+    public AABB getRenderBoundingBox(EntityObservatory blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(5);
+    }
 
     public void updateVertexBuffers(EntityObservatory.RenderData renderData, int light) {
         ByteBufferBuilder byteBuffer;

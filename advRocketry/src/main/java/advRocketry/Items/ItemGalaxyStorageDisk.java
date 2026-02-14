@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class ItemGalaxyStorageDisk extends Item {
 
-    public static int UNLOCKED_POINTS = 100;
+    public static int UNLOCKED_POINTS = 20 * 120;
 
     public ItemGalaxyStorageDisk() {
         super(new Properties().stacksTo(1));

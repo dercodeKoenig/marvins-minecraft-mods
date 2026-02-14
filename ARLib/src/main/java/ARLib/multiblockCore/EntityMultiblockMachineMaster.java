@@ -37,6 +37,14 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
         return totalEnergy;
     }
 
+    public int getMaxEnergyStored() {
+        int totalEnergy = 0;
+        for (IEnergyStorage i : energyInTiles) {
+            totalEnergy += i.getMaxEnergyStored();
+        }
+        return totalEnergy;
+    }
+
     public void consumeEnergy(int energyToConsume) {
         int consumed = 0;
         for (IEnergyStorage i : energyInTiles) {

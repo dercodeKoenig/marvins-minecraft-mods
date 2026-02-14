@@ -40,11 +40,13 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
+import org.joml.Random;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 public class EntityObservatory extends EntityMultiblockMachineMaster {
 
@@ -107,7 +109,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                 should_open = true;
 
-                if (observatory.taskTarget != null) {
+                if (observatory.taskTarget != null && observatory.hasEnoughEnergy) {
                     Dimension targetDim = DimensionManager.INSTANCE_CLIENT.get(observatory.taskTarget);
                     Dimension myDim = DimensionManager.INSTANCE_CLIENT.get(observatory.getLevel().dimension().location());
 
@@ -124,7 +126,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 }
 
                 actionTimeout--;
-                if (actionTimeout <= 0) {
+                if (actionTimeout <= 0 && observatory.hasEnoughEnergy) {
                     // first choose a movement time
                     actionTimeout = (int) Math.max(20 * 5, Math.random() * 20 * 30);
                     yawTarget = (float) (Math.random() * 360);
@@ -134,44 +136,40 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     // now add idle time after movement
                     actionTimeout += (int) Math.max(20 * 5, Math.random() * 20 * 20);
                 }
+            }
+            // --- YAW LOGIC ---
+            // 1. Calculate the shortest distance to the target (handles wrapping)
+            float yawDiff = getAngleDifference(yawTarget, yaw);
 
-
-                // --- YAW LOGIC ---
-                // 1. Calculate the shortest distance to the target (handles wrapping)
-                float yawDiff = getAngleDifference(yawTarget, yaw);
-
-                // 2. Check if we are close enough to reach the target this tick
-                if (Math.abs(yawDiff) <= yawSpeed) {
-                    // We can reach the target exactly
-                    yawD = yawDiff;
-                    yaw = yawTarget;
-                } else {
-                    // We need to move towards the target at max speed
-                    // Math.signum returns 1.0 for positive, -1.0 for negative
-                    yawD = Math.signum(yawDiff) * yawSpeed;
-                    yaw += yawD;
-                }
-
-                // Normalize yaw to keep it within 0-360 range
-                if (yaw > 0) yaw -= 360;
-                if (yaw < 0) yaw += 360;
-
-
-                // --- PITCH LOGIC ---
-                // 1. Calculate difference, use normal diff because pitch can not wrap around
-                float pitchDiff = pitchTarget - pitch;
-
-                // 2. Check for overshoot
-                if (Math.abs(pitchDiff) <= pitchSpeed) {
-                    pitchD = pitchDiff;
-                    pitch = pitchTarget;
-                } else {
-                    pitchD = Math.signum(pitchDiff) * pitchSpeed;
-                    pitch += pitchD;
-                }
-
+            // 2. Check if we are close enough to reach the target this tick
+            if (Math.abs(yawDiff) <= yawSpeed) {
+                // We can reach the target exactly
+                yawD = yawDiff;
+                yaw = yawTarget;
+            } else {
+                // We need to move towards the target at max speed
+                // Math.signum returns 1.0 for positive, -1.0 for negative
+                yawD = Math.signum(yawDiff) * yawSpeed;
+                yaw += yawD;
             }
 
+            // Normalize yaw to keep it within 0-360 range
+            if (yaw > 0) yaw -= 360;
+            if (yaw < 0) yaw += 360;
+
+
+            // --- PITCH LOGIC ---
+            // 1. Calculate difference, use normal diff because pitch can not wrap around
+            float pitchDiff = pitchTarget - pitch;
+
+            // 2. Check for overshoot
+            if (Math.abs(pitchDiff) <= pitchSpeed) {
+                pitchD = pitchDiff;
+                pitch = pitchTarget;
+            } else {
+                pitchD = Math.signum(pitchDiff) * pitchSpeed;
+                pitch += pitchD;
+            }
         }
 
         public static Pair<Float, Float> getYawAndPitch(Dimension targetDim, Dimension myDim, float partialTick) {
@@ -215,6 +213,13 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public Task task = Task.IDLE;
     public ResourceLocation taskTarget = null;
+    public int taskProgress;
+    public static int writePlanetToChipTicks = 20 * 5;
+    public static int syncStorageDisksTicks = 20 * 10;
+    public static int discoverPlanetTicks = 20 * 180;
+    public static int discoverAsteroidTicks = 20 * 60;
+    public static int ENERGY_PER_TICK = 10;
+    boolean hasEnoughEnergy = false;
 
     public GuiHandlerBlockEntity guiHandler;
     ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot1;
@@ -225,6 +230,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     ARLib.gui.modules.guiModuleButton scanAsteroidBtn;
     ARLib.gui.modules.guiModuleButton syncStorageDisksBtn;
     ARLib.gui.modules.guiModuleProgressBarHorizontal6px guiProgressBar;
+    ARLib.gui.modules.guiModuleVerticalProgressBar energyBar;
 
     ResourceLocation BTN_BLACK = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png");
     ResourceLocation BTN_RED = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png");
@@ -395,6 +401,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         };
         guiHandler.modules.add(syncStorageDisksBtn);
 
+        energyBar = new ARLib.gui.modules.guiModuleVerticalProgressBar(300, guiHandler, 175, 10);
+        guiHandler.modules.add(energyBar);
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(15, 185, 10000, 0, 1, guiHandler));
     }
@@ -426,17 +434,66 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         if (!level.isClientSide) {
             guiHandler.serverTick();
 
-
             if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 toggleTask(Task.IDLE, null);
             } else {
+
+                int energy = this.getTotalEnergyStored();
+                int maxEnergy = this.getMaxEnergyStored();
+
+                boolean newHasEnoughEnergy = energy > ENERGY_PER_TICK;
+                if (newHasEnoughEnergy != hasEnoughEnergy) {
+                    hasEnoughEnergy = newHasEnoughEnergy;
+                    sendUpdatePacket(null); // client needs to know about energy to stop the rotate animations
+                }
+
+                if (!hasEnoughEnergy) {
+                    currentTaskText.setTextAndSync("OUT OF ENERGY!");
+                } else {
+                    currentTaskText.setTextAndSync("Task: " + task.name());
+                }
+
+                energyBar.setProgressAndSync((double) energy / maxEnergy);
+                energyBar.setHoverInfoAndSync(energy + " / " + maxEnergy + " RF");
 
                 if (task == Task.IDLE) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
                 }
 
                 if (task == Task.SCANNING_FOR_PLANETS) {
-                    guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
+                    ItemStack storageDisk = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
+                    if (!(storageDisk.getItem() instanceof ItemGalaxyStorageDisk)) {
+                        // has no data disk, can not work
+                        toggleTask(Task.IDLE, null);
+                    } else {
+                        guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
+                        if (hasEnoughEnergy) {
+                            consumeEnergy(ENERGY_PER_TICK);
+                            taskProgress++;
+                            if (taskProgress > discoverPlanetTicks) {
+                                // discover a new random planet that is not already known
+                                List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
+                                Collections.shuffle(randomDimIds);
+                                boolean allDiscovered = true;
+                                for (ResourceLocation dimId : randomDimIds) {
+                                    Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
+                                    if (dim instanceof PlanetDimension planetDimension && !planetDimension.isKnown()) {
+                                        if (!ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, dimId.toString())) {
+                                            ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, dimId.toString(), 0); // add the planet to the list
+                                            taskProgress = 0; // resume working
+                                            allDiscovered = false;
+                                            System.out.println("observatory discover planet: " + dimId);
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (allDiscovered) {
+                                    toggleTask(Task.IDLE, null);
+                                }
+                            }
+                            setChanged();
+                        }
+                    }
                 }
 
                 if (task == Task.SYNC_STORAGE_DISKS) {
@@ -445,10 +502,31 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                 if (task == Task.ANALYZE_PLANET) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+                    ItemStack storageDisk = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
+                    if (!(storageDisk.getItem() instanceof ItemGalaxyStorageDisk)) {
+                        // has no data disk, can not work
+                        toggleTask(Task.IDLE, null);
+                    } else {
+                        if (hasEnoughEnergy) {
+                            consumeEnergy(ENERGY_PER_TICK);
+                            taskProgress = ItemGalaxyStorageDisk.getUnlockPoints(storageDisk, taskTarget.toString());
+                            guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyStorageDisk.UNLOCKED_POINTS);
+                            guiProgressBar.setHoverInfoAndSync("analyzing planet...");
+                            if (taskProgress < ItemGalaxyStorageDisk.UNLOCKED_POINTS) {
+                                ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, taskTarget.toString(), taskProgress + 1);
+                            } else {
+                                // fully unlocked!
+                                System.out.println("observatory unlocked planet: " + taskTarget);
+                                toggleTask(Task.IDLE, null);
+                            }
+                            setChanged();
+                        }
+                    }
                 }
 
                 if (task == Task.WRITE_PLANET_TO_CHIP) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+
                 }
 
             }
@@ -484,14 +562,13 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
         this.task = task;
         this.taskTarget = taskTarget;
+        this.taskProgress = 0;
         setChanged();
         updateActionButtonStates();
         sendUpdatePacket(null);
     }
 
     public void updateActionButtonStates() {
-
-        currentTaskText.setTextAndSync("Task: " + task.name());
 
         if (task == Task.SCANNING_FOR_PLANETS) {
             scanPlanetBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
@@ -518,6 +595,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         if (taskTarget != null) {
             tag.putString("taskTarget", taskTarget.toString());
         }
+        tag.putBoolean("hasEnoughEnergy", hasEnoughEnergy);
         return tag;
     }
 
@@ -584,6 +662,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         if (tag.contains("taskTarget")) {
             taskTarget = ResourceLocation.parse(tag.getString("taskTarget"));
         }
+        if (tag.contains("hasEnoughEnergy")) {
+            hasEnoughEnergy = tag.getBoolean("hasEnoughEnergy");
+        }
     }
 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
@@ -591,6 +672,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         tag.put("storageItemStackHandler", itemStackHandler.serializeNBT(registries));
 
         tag.putInt("task", task.ordinal());
+        tag.putInt("taskProgress", taskProgress);
         if (taskTarget != null) {
             tag.putString("taskTarget", taskTarget.toString());
         }
@@ -601,6 +683,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         itemStackHandler.deserializeNBT(registries, tag.getCompound("storageItemStackHandler"));
 
         task = Task.values()[tag.getInt("task")];
+        taskProgress = tag.getInt("taskProgress");
         if (tag.contains("taskTarget")) {
             taskTarget = ResourceLocation.parse(tag.getString("taskTarget"));
         }
@@ -610,7 +693,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public void popInventory() {
         for (int i = 0; i < itemStackHandler.getSlots(); i++) {
             Block.popResource(level, getBlockPos(), itemStackHandler.getStackInSlot(i));
+            itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
         }
+        setChanged();
     }
 
 
