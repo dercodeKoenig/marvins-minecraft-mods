@@ -119,6 +119,12 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     }
                 }
 
+                // make sure the current planet is always unlocked
+                ItemStack stack = getStackInSlot(slot);
+                if(stack.getItem() instanceof ItemGalaxyStorageDisk  && level != null){
+                    ItemGalaxyStorageDisk.setUnlockPoints(stack,level.dimension().location().toString(),ItemGalaxyStorageDisk.UNLOCKED_POINTS);
+                }
+
                 EntityObservatory.this.setChanged();
             }
         };
@@ -302,7 +308,13 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
 
         if(level.isClientSide){
-            should_open = task != Task.IDLE;
+            if(task == Task.IDLE)
+                should_open = false;
+            if (task == Task.ANALYZE_PLANET ||
+                    task == Task.WRITE_PLANET_TO_CHIP ||
+                    task == Task.SCANNING_FOR_PLANETS ||
+                    task == Task.SCANNING_FOR_ASTEROIDS)
+                should_open = true;
             if (should_open && openingTicks < openingTicksMax)
                 openingTicks++;
             if (!should_open && openingTicks > 0)
