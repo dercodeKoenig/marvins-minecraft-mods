@@ -47,7 +47,7 @@ public class SpaceMapScreen extends Screen {
     private float logScale = 0.5f;
     private float scale = 0.3f;
 
-    private String planetInfoText;
+    private String planetInfoText = "";
 
 
     @Override
@@ -57,13 +57,16 @@ public class SpaceMapScreen extends Screen {
 
         if (selectedPlanet != null) {
             String actionBtnText = getInteractText(selectedPlanet.getDimensionId());
-            if (!actionBtnText.isEmpty()) {
+            if (actionBtnText != null && !actionBtnText.isEmpty()) {
                 actionButton.visible = true;
                 actionButton.setMessage(Component.literal(actionBtnText));
             } else
                 actionButton.visible = false;
 
             planetInfoText = getPlanetInfoText(selectedPlanet.getDimensionId());
+            if(planetInfoText == null)
+                planetInfoText = "";
+
         }else {
             actionButton.visible = false;
         }

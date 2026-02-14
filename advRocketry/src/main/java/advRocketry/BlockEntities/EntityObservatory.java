@@ -10,6 +10,7 @@ import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Items.ItemGalaxyStorageDisk;
+import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.AxisDirections;
@@ -526,9 +527,25 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                 if (task == Task.WRITE_PLANET_TO_CHIP) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
-
+                    ItemStack planetChip = itemStackHandler.getStackInSlot(PLANET_ID_CHIP_SLOT);
+                    if (!(planetChip.getItem() instanceof ItemPlanetIdChip)) {
+                        // has no id chip, can not work
+                        toggleTask(Task.IDLE, null);
+                    } else {
+                        if (hasEnoughEnergy) {
+                            consumeEnergy(ENERGY_PER_TICK);
+                            taskProgress++;
+                            guiProgressBar.setHoverInfoAndSync("writing to chip...");
+                            guiProgressBar.setProgressAndSync((double) taskProgress / writePlanetToChipTicks);
+                            if(taskProgress > writePlanetToChipTicks){
+                                ItemPlanetIdChip.setSelectedDimension(taskTarget,planetChip);
+                                System.out.println("observatory write target to chip: " +taskTarget);
+                                toggleTask(Task.IDLE,null);
+                                setChanged();
+                            }
+                        }
+                    }
                 }
-
             }
         }
 
