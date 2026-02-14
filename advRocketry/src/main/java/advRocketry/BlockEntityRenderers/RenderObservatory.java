@@ -57,7 +57,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
     }
 
 
-    public void updateVertexBuffers(EntityObservatory tile, int light) {
+    public void updateVertexBuffers(EntityObservatory.RenderData renderData, int light) {
         ByteBufferBuilder byteBuffer;
         BufferBuilder b;
 
@@ -66,9 +66,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         for (Face i : model.groupObjects.get("Axis").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
-        tile.meshAxle = b.build();
-        tile.axle.bind();
-        tile.axle.upload(tile.meshAxle);
+        renderData.meshAxle = b.build();
+        renderData.axle.bind();
+        renderData.axle.upload(renderData.meshAxle);
         byteBuffer.close();
 
 
@@ -77,9 +77,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         for (Face i : model.groupObjects.get("Scope").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
-        tile.meshScope = b.build();
-        tile.scope.bind();
-        tile.scope.upload(tile.meshScope);
+        renderData.meshScope = b.build();
+        renderData.scope.bind();
+        renderData.scope.upload(renderData.meshScope);
         byteBuffer.close();
 
 
@@ -88,9 +88,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         for (Face i : model.groupObjects.get("CasingXPlus").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
-        tile.meshCasingXPlus = b.build();
-        tile.casingXPlus.bind();
-        tile.casingXPlus.upload(tile.meshCasingXPlus);
+        renderData.meshCasingXPlus = b.build();
+        renderData.casingXPlus.bind();
+        renderData.casingXPlus.upload(renderData.meshCasingXPlus);
         byteBuffer.close();
 
 
@@ -99,9 +99,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         for (Face i : model.groupObjects.get("CasingXMinus").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
-        tile.meshCasingXMinus = b.build();
-        tile.casingXMinus.bind();
-        tile.casingXMinus.upload(tile.meshCasingXMinus);
+        renderData.meshCasingXMinus = b.build();
+        renderData.casingXMinus.bind();
+        renderData.casingXMinus.upload(renderData.meshCasingXMinus);
         byteBuffer.close();
 
 
@@ -110,60 +110,20 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         for (Face i : model.groupObjects.get("Base").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
-        tile.meshBase = b.build();
-        tile.base.bind();
-        tile.base.upload(tile.meshBase);
+        renderData.meshBase = b.build();
+        renderData.base.bind();
+        renderData.base.upload(renderData.meshBase);
         byteBuffer.close();
-    }
-
-    public Pair<Float, Float> getYawAndPitch(EntityObservatory observatory, float partialTick) {
-        float yaw = 0f;
-        float pitch = 0f;
-
-        Dimension targetDim = DimensionManager.INSTANCE_CLIENT.get(observatory.taskTarget);
-        Dimension myDim = DimensionManager.INSTANCE_CLIENT.get(observatory.getLevel().dimension().location());
-
-        if (targetDim != null && myDim != null && myDim != targetDim) {
-            // try to look to target space object
-
-            Vec3 targetPos = targetDim.getPosition(partialTick);
-            Vec3 myPos = myDim.getPosition(partialTick);
-
-            Vector3f relative = targetPos.subtract(myPos).toVector3f();
-
-            AxisDirections myGlobalAxis = myDim.getGlobalAxisDirections(partialTick);
-
-            Matrix4f worldMatrix = new Matrix4f().lookAt(
-                    new Vector3f(0, 0, 0),
-                    myGlobalAxis.front.toVector3f(),
-                    myGlobalAxis.up.toVector3f()
-            );
-            Vector3f relativeWorldSpace = worldMatrix.transformDirection(relative);
-
-            // Horizon check: If Y is positive, it's above the horizon
-            if (relativeWorldSpace.y > 0) {
-                // Since the model faces West (-X) by default:
-                // We use Z for the first parameter (the "y" in standard atan2)
-                // We use -X for the second parameter (the "x" in standard atan2)
-                yaw = (float) Math.atan2(relativeWorldSpace.z, -relativeWorldSpace.x);
-
-                // Math.asin(y) gives the elevation angle above the XZ plane
-                pitch = (float) Math.asin(relativeWorldSpace.y);
-
-                return Pair.of(yaw, pitch);
-            }
-        }
-
-        return Pair.of(yaw, pitch);
     }
 
 
     @Override
     public void render(EntityObservatory observatory, float partialtick, PoseStack stack, MultiBufferSource multiBufferSource, int light, int overlay) {
+        EntityObservatory.RenderData renderData = observatory.renderData;
 
-        if (observatory.lastLight != light) {
-            observatory.lastLight = light;
-            updateVertexBuffers(observatory, light);
+        if (renderData.lastLight != light) {
+            renderData.lastLight = light;
+            updateVertexBuffers(renderData, light);
         }
 
         BlockState state = observatory.getBlockState();
@@ -198,12 +158,13 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         NormalMat.set(normalMat);
         shader.apply();
 
-        observatory.base.bind();
-        observatory.base.draw();
+        renderData.base.bind();
+        renderData.base.draw();
 
-        Pair<Float, Float> yaw_pitch = getYawAndPitch(observatory, partialtick);
-        float yaw = yaw_pitch.getFirst();
-        float pitch = yaw_pitch.getSecond();
+        float yaw = renderData.yaw - (1-partialtick) * renderData.yawD;
+        float pitch = renderData.pitch - (1-partialtick) * renderData.pitchD;
+        yaw = yaw * (float)Math.PI / 180;
+        pitch = pitch * (float)Math.PI / 180;
 
         Matrix4f modelMatScope = new Matrix4f(modelMat);
         modelMatScope.translate(0, 2, 0);
@@ -218,16 +179,16 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         NormalMat.set(normalMat);
         shader.apply();
 
-        observatory.scope.bind();
-        observatory.scope.draw();
+        renderData.scope.bind();
+        renderData.scope.draw();
 
-        observatory.axle.bind();
-        observatory.axle.draw();
+        renderData.axle.bind();
+        renderData.axle.draw();
 
 
-        float openProgress = (float) observatory.openingTicks / observatory.openingTicksMax;
-        if (observatory.should_open) openProgress += partialtick / observatory.openingTicksMax;
-        if (!observatory.should_open) openProgress -= partialtick / observatory.openingTicksMax;
+        float openProgress = (float) renderData.openingTicks / renderData.openingTicksMax;
+        if (renderData.should_open) openProgress += partialtick / renderData.openingTicksMax;
+        if (!renderData.should_open) openProgress -= partialtick / renderData.openingTicksMax;
         openProgress = Math.clamp(openProgress, 0, 1);
 
 
@@ -245,8 +206,8 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         NormalMat.set(normalMat);
         shader.apply();
 
-        observatory.casingXPlus.bind();
-        observatory.casingXPlus.draw();
+        renderData.casingXPlus.bind();
+        renderData.casingXPlus.draw();
 
 
         Matrix4f modelMatCaseXMinus = new Matrix4f(modelMat);
@@ -263,8 +224,8 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         NormalMat.set(normalMat);
         shader.apply();
 
-        observatory.casingXMinus.bind();
-        observatory.casingXMinus.draw();
+        renderData.casingXMinus.bind();
+        renderData.casingXMinus.draw();
 
         // i think i need to reset it or there might be problems. dont know exactly why but minecraft doesnt know / care about normal mat
         NormalMat.set(new Matrix3f());

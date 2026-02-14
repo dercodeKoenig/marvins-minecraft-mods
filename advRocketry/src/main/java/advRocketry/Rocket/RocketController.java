@@ -144,7 +144,7 @@ public class RocketController {
             // TODO: burn rocket fuel
             float toBurn = (float) ((float) rocket.getFuelRateMax() * ThrustMultiplier);
             int toBurnInt = (int) toBurn;
-            if (toBurnInt == 0 && toBurn > 0 && rocket.level().random.nextFloat() < toBurn)
+            if (toBurnInt == 0 && toBurn > 0 && Math.random() < toBurn)
                 toBurnInt = 1;
             if (!rocket.level().isClientSide) {
                 rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
@@ -176,7 +176,7 @@ public class RocketController {
                     for (int j = 0; j < maxParticlePerEngine; j++) {
 
                         if (relativeBootTimeLin < 0.99) {
-                            if (rocket.level().random.nextFloat() > bootupParticleProb) {
+                            if (Math.random() > bootupParticleProb) {
                                 continue;
                             }
                         }
@@ -184,8 +184,8 @@ public class RocketController {
 
                         // not spawn too many particles. if we have too many, increase particle size and not spawn many new
                         float particleSizeMultiplier = 1;
-                        if (rocket.getEnginePositions().size() * maxParticlePerEngine > maxParticlesPerTick) {
-                            if (rocket.level().random.nextFloat() > (float) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine)) {
+                        if (maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine) < 1) {
+                            if (Math.random() > (float) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine)) {
                                 continue;
                             }
                             particleSizeMultiplier = (float) (rocket.getEnginePositions().size() * maxParticlePerEngine) / maxParticlesPerTick;
@@ -196,12 +196,12 @@ public class RocketController {
                             // no smoke in space
                             new RocketParticle(
                                     (ClientLevel) rocket.level(),
-                                    worldPos.x + (rocket.level().random.nextFloat() - 0.5) * 0.5,
-                                    worldPos.y + (rocket.level().random.nextFloat() - 0.5) * 0.5,
-                                    worldPos.z + (rocket.level().random.nextFloat() - 0.5) * 0.5,
-                                    rocket.heading.x * speedMultiplier + (rocket.level().random.nextFloat() - 0.5) * 0.5 * speedMultiplier,
-                                    rocket.heading.y * speedMultiplier + (rocket.level().random.nextFloat() - 0.5) * 0.5 * speedMultiplier,
-                                    rocket.heading.z * speedMultiplier + (rocket.level().random.nextFloat() - 0.5) * 0.5 * speedMultiplier,
+                                    worldPos.x + (Math.random() - 0.5) * 0.5,
+                                    worldPos.y + (Math.random() - 0.5) * 0.5,
+                                    worldPos.z + (Math.random() - 0.5) * 0.5,
+                                    rocket.heading.x * speedMultiplier + (Math.random() - 0.5) * 0.5 * speedMultiplier,
+                                    rocket.heading.y * speedMultiplier + (Math.random() - 0.5) * 0.5 * speedMultiplier,
+                                    rocket.heading.z * speedMultiplier + (Math.random() - 0.5) * 0.5 * speedMultiplier,
                                     new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
                                     0.2f,
                                     particleSizeMultiplier * 1,
@@ -213,12 +213,12 @@ public class RocketController {
                         for (int p = 0; p < 1; p++) {
                             new RocketParticle(
                                     (ClientLevel) rocket.level(),
-                                    worldPos.x+ (rocket.level().random.nextFloat()-0.5)*0.5,
-                                    worldPos.y+ (rocket.level().random.nextFloat()-0.5)*0.5,
-                                    worldPos.z+ (rocket.level().random.nextFloat()-0.5)*0.5,
-                                    rocket.heading.x * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
-                                    rocket.heading.y * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
-                                    rocket.heading.z * speedMultiplier*2 + (rocket.level().random.nextFloat()-0.5)*0.1*speedMultiplier,
+                                    worldPos.x+ (Math.random()-0.5)*0.5,
+                                    worldPos.y+ (Math.random()-0.5)*0.5,
+                                    worldPos.z+ (Math.random()-0.5)*0.5,
+                                    rocket.heading.x * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
+                                    rocket.heading.y * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
+                                    rocket.heading.z * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
                                     new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
                                     // we not use additive blending in fabulous because it doesnt work so make it more bright
                                     (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,

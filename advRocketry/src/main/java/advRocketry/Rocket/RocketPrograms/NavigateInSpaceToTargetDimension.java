@@ -21,15 +21,14 @@ public class NavigateInSpaceToTargetDimension {
         Vec3 rotationCorrection;
         if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.9) {
             rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading);
-            if(rotationCorrection.length() > Config.INSTANCE.rocketSpaceTravelRotationRate)
+            if (rotationCorrection.length() > Config.INSTANCE.rocketSpaceTravelRotationRate)
                 rotationCorrection = rotationCorrection.normalize().scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
-        }
-        else
+        } else
             rotationCorrection = rocket.universeFront.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
 
         rocket.universeHeading = rocket.universeHeading.add(rotationCorrection).normalize();
 
-        Vec3 targetFrontValid = rocket.universeHeading.cross(new Vec3(0,1,0).cross(rocket.universeHeading)).normalize();
+        Vec3 targetFrontValid = rocket.universeHeading.cross(new Vec3(0, 1, 0).cross(rocket.universeHeading)).normalize();
         if (targetFrontValid.dot(rocket.universeFront) < -0.9) // get some movement if it is directly on the other side
             targetFrontValid = rocket.universeHeading.cross(rocket.universeFront);
         rotationCorrection = targetFrontValid.subtract(rocket.universeFront).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
@@ -54,8 +53,8 @@ public class NavigateInSpaceToTargetDimension {
 
 
         // move to target dimension
-        Dimension targetDim = DimensionManager.getDimensionManager(rocket.level().isClientSide) .get(target);
-        if(targetDim == null) return true; // client might not have received the dimension sync packet
+        Dimension targetDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(target);
+        if (targetDim == null) return true; // client might not have received the dimension sync packet
         Vec3 targetPosition = targetDim.getPosition(0);
 
         Vec3 nextTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, rocket.universePosition, DimensionManager.getDimensionManager(rocket.level().isClientSide), targetDim instanceof PlanetDimension p ? p : null);
@@ -68,16 +67,16 @@ public class NavigateInSpaceToTargetDimension {
 
         // move forward
         // targetSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
-        double targetSpeed = Math.sqrt(2*Config.INSTANCE.rocketSpaceTravelAcceleration * nextTargetPositionRelative.length());
-        targetSpeed = 0.000001+targetSpeed * Math.max(0,nextTargetDirectiop.dot(rocket.universeHeading)-0.9) * 10;
+        double targetSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * nextTargetPositionRelative.length());
+        targetSpeed = 0.000001 + targetSpeed * Math.max(0, nextTargetDirectiop.dot(rocket.universeHeading) - 0.9) * 10;
         double dspeed = targetSpeed - rocket.universeTravelSpeed;
-        if(Math.abs(dspeed) > Config.INSTANCE.rocketSpaceTravelAcceleration){
+        if (Math.abs(dspeed) > Config.INSTANCE.rocketSpaceTravelAcceleration) {
             dspeed = dspeed / Math.abs(dspeed) * Config.INSTANCE.rocketSpaceTravelAcceleration;
         }
 
-        if(rocket.level().getGameTime() % 20 == 0) {
-            System.out.println(rocket.universeTravelSpeed+":"+dspeed+":"+targetSpeed);
-            System.out.println(nextTargetPositionRelative+":"+nextTargetDirectiop.dot(rocket.universeHeading));
+        if (rocket.level().getGameTime() % 20 == 0) {
+            System.out.println(rocket.universeTravelSpeed + ":" + dspeed + ":" + targetSpeed);
+            System.out.println(nextTargetPositionRelative + ":" + nextTargetDirectiop.dot(rocket.universeHeading));
         }
 
         rocket.universeTravelSpeed += dspeed;
@@ -85,7 +84,7 @@ public class NavigateInSpaceToTargetDimension {
 
         // TODO: make this much better with acceleration, also the pd controls might need tuning
 
-        double entryDistance = Math.max(0.0001,CelestialUtils.toAU((targetDim instanceof PlanetDimension p ?  p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier*1.2));
+        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.2));
 
         if (rocket.level() instanceof ServerLevel serverLevel && rocket.universePosition.distanceTo(targetPosition) < entryDistance) {
             // TODO: ifrocket.hasSatellites && shouldDeployThem -> deploy satellites shortly before dimension jump
@@ -94,10 +93,10 @@ public class NavigateInSpaceToTargetDimension {
             ServerLevel targetLevel = DimensionManager.getServerLevel(serverLevel.getServer(), target);
             Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planetSkyHeight, rocket.getLastLaunchPosition().getZ());
 
-            Vec3 entrySpeed = new Vec3 (
-                    rocket.getRandom().nextDouble() * 2 - 1,
+            Vec3 entrySpeed = new Vec3(
+                    (Math.random() * 2 - 1) * 10,
                     Config.INSTANCE.rocketPlanetEntrySpeedY,
-                    rocket.getRandom().nextDouble() * 2 - 1);
+                    (Math.random() * 2 - 1) * 10);
 
             EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
         }

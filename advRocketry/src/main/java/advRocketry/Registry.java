@@ -79,8 +79,6 @@ public class Registry {
             () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(1000).build(Main.MODID+":rocket")
     );
 
-    public static final Supplier<SimpleParticleType> ROCKET_FLAME = PARTICLES.register("rocketflame",() -> new SimpleParticleType(true));
-
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SOFT_PARTICLE = PARTICLES.register("soft_particle", () -> new SimpleParticleType(false));
 
 

@@ -12,9 +12,11 @@ import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Items.ItemGalaxyStorageDisk;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
+import advRocketry.utils.AxisDirections;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -32,34 +34,181 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class EntityObservatory extends EntityMultiblockMachineMaster {
 
-    public MeshData meshAxle;
-    public MeshData meshScope;
-    public MeshData meshCasingXPlus;
-    public MeshData meshCasingXMinus;
-    public MeshData meshBase;
+    // holds methods and variables for rendering
+    public static class RenderData {
+        public MeshData meshAxle;
+        public MeshData meshScope;
+        public MeshData meshCasingXPlus;
+        public MeshData meshCasingXMinus;
+        public MeshData meshBase;
 
-    public VertexBuffer axle;
-    public VertexBuffer scope;
-    public VertexBuffer casingXPlus;
-    public VertexBuffer casingXMinus;
-    public VertexBuffer base;
+        public VertexBuffer axle;
+        public VertexBuffer scope;
+        public VertexBuffer casingXPlus;
+        public VertexBuffer casingXMinus;
+        public VertexBuffer base;
 
-    public int lastLight;
+        public int lastLight;
 
-    public boolean should_open = false;
-    public int openingTicks = 0;
-    public int openingTicksMax = 300;
-    public float rotationTarget;
+        public boolean should_open = false;
+        public int openingTicks = 0;
+        public int openingTicksMax = 300;
+
+        public float yaw;
+        public float yawD;
+        public float yawSpeed;
+        public float yawTarget;
+
+        public float pitch;
+        public float pitchD;
+        public float pitchSpeed;
+        public float pitchTarget;
+
+        int actionTimeout; // for random movement, when 0 -> select a new target & speed and reset actionTimeout or wait a bit
+
+        // Calculates the shortest difference between two angles (-180 to 180)
+        private float getAngleDifference(float target, float current) {
+            float diff = target - current;
+            // Normalize to -180 to +180
+            return (diff + 540) % 360 - 180;
+        }
+
+        void tick(EntityObservatory observatory) {
+            Task task = observatory.task;
+
+            if (should_open && openingTicks < openingTicksMax)
+                openingTicks++;
+            if (!should_open && openingTicks > 0)
+                openingTicks--;
+
+            if (task == Task.IDLE) {
+                should_open = false;
+                yawTarget = 0; // TODO: maybe look toward the facing or somewhere else??
+                pitchTarget = 0;
+            }
+            if (task == Task.ANALYZE_PLANET ||
+                    task == Task.WRITE_PLANET_TO_CHIP ||
+                    task == Task.SCANNING_FOR_PLANETS ||
+                    task == Task.SCANNING_FOR_ASTEROIDS) {
+
+                should_open = true;
+
+                if (observatory.taskTarget != null) {
+                    Dimension targetDim = DimensionManager.INSTANCE_CLIENT.get(observatory.taskTarget);
+                    Dimension myDim = DimensionManager.INSTANCE_CLIENT.get(observatory.getLevel().dimension().location());
+
+                    if (targetDim != null && myDim != null && myDim != targetDim) {
+                        Pair<Float, Float> yaw_pitch = getYawAndPitch(targetDim, myDim, 0);
+                        if (yaw_pitch.getSecond() > 0) {
+                            yawTarget = yaw_pitch.getFirst() * 180 / (float)Math.PI;
+                            pitchTarget = yaw_pitch.getSecond() * 180 / (float)Math.PI;
+                            actionTimeout = 200; // reset so it doesnt do other things
+                            pitchSpeed = 0.025f;
+                            yawSpeed = 0.05f;
+                        }
+                    }
+                }
+
+                actionTimeout --;
+                if(actionTimeout <= 0){
+                    // first choose a movement time
+                    actionTimeout = (int) Math.min(20*5, Math.random() * 20*20);
+                    yawTarget = (float) (Math.random() * 360);
+                    pitchTarget = (float) (Math.random() * 90);
+                    yawSpeed = getAngleDifference(yawTarget, yaw) / actionTimeout;
+                    pitchSpeed = (pitchTarget - pitch) / actionTimeout;
+                    System.out.println("current:"+yaw+":"+pitch);
+                    System.out.println("target:"+yawTarget+":"+pitchTarget);
+                    // now add idle time after movement
+                    actionTimeout += (int) Math.min(20*1, Math.random() * 20*10);
+                }
+
+
+
+                // --- YAW LOGIC ---
+                // 1. Calculate the shortest distance to the target (handles wrapping)
+                float yawDiff = getAngleDifference(yawTarget, yaw);
+
+                // 2. Check if we are close enough to reach the target this tick
+                if (Math.abs(yawDiff) <= yawSpeed) {
+                    // We can reach the target exactly
+                    yawD = yawDiff;
+                    yaw = yawTarget;
+                } else {
+                    // We need to move towards the target at max speed
+                    // Math.signum returns 1.0 for positive, -1.0 for negative
+                    yawD = Math.signum(yawDiff) * yawSpeed;
+                    yaw += yawD;
+                }
+
+                // Normalize yaw to keep it within 0-360 range
+                if (yaw > 0) yaw -= 360;
+                if (yaw < 0) yaw += 360;
+
+
+                // --- PITCH LOGIC ---
+                // 1. Calculate difference, use normal diff because pitch can not wrap around
+                float pitchDiff = pitchTarget - pitch;
+
+                // 2. Check for overshoot
+                if (Math.abs(pitchDiff) <= pitchSpeed) {
+                    pitchD = pitchDiff;
+                    pitch = pitchTarget;
+                } else {
+                    pitchD = Math.signum(pitchDiff) * pitchSpeed;
+                    pitch += pitchD;
+                }
+
+            }
+
+        }
+
+        public static Pair<Float, Float> getYawAndPitch(Dimension targetDim, Dimension myDim, float partialTick) {
+            float yaw = 0f;
+            float pitch = 0f;
+
+            // try to look to target space object
+            Vec3 targetPos = targetDim.getPosition(partialTick);
+            Vec3 myPos = myDim.getPosition(partialTick);
+
+            Vector3f relative = targetPos.subtract(myPos).toVector3f();
+
+            AxisDirections myGlobalAxis = myDim.getGlobalAxisDirections(partialTick);
+
+            Matrix4f worldMatrix = new Matrix4f().lookAt(
+                    new Vector3f(0, 0, 0),
+                    myGlobalAxis.front.toVector3f(),
+                    myGlobalAxis.up.toVector3f()
+            );
+            Vector3f relativeWorldSpace = worldMatrix.transformDirection(relative);
+
+            // Since the model faces West (-X) by default:
+            // We use Z for the first parameter (the "y" in standard atan2)
+            // We use -X for the second parameter (the "x" in standard atan2)
+            yaw = (float) Math.atan2(relativeWorldSpace.z, -relativeWorldSpace.x);
+
+            // Math.asin(y) gives the elevation angle above the XZ plane
+            pitch = (float) Math.asin(relativeWorldSpace.y);
+
+            return Pair.of(yaw, pitch);
+        }
+    }
+
+    public RenderData renderData = new RenderData();
 
     public ItemStackHandler itemStackHandler;
     int STORAGE_DISK_SLOT_1 = 0;
@@ -93,11 +242,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                axle = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                scope = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                casingXMinus = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                casingXPlus = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                base = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                renderData.axle = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                renderData.scope = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                renderData.casingXMinus = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                renderData.casingXPlus = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                renderData.base = new VertexBuffer(VertexBuffer.Usage.STATIC);
             });
         }
 
@@ -121,8 +270,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                 // make sure the current planet is always unlocked
                 ItemStack stack = getStackInSlot(slot);
-                if(stack.getItem() instanceof ItemGalaxyStorageDisk  && level != null){
-                    ItemGalaxyStorageDisk.setUnlockPoints(stack,level.dimension().location().toString(),ItemGalaxyStorageDisk.UNLOCKED_POINTS);
+                if (stack.getItem() instanceof ItemGalaxyStorageDisk && level != null) {
+                    ItemGalaxyStorageDisk.setUnlockPoints(stack, level.dimension().location().toString(), ItemGalaxyStorageDisk.UNLOCKED_POINTS);
                 }
 
                 EntityObservatory.this.setChanged();
@@ -257,11 +406,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public void setRemoved() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                axle.close();
-                scope.close();
-                casingXPlus.close();
-                casingXMinus.close();
-                base.close();
+                renderData.axle.close();
+                renderData.scope.close();
+                renderData.casingXPlus.close();
+                renderData.casingXMinus.close();
+                renderData.base.close();
             });
         }
     }
@@ -279,10 +428,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             guiHandler.serverTick();
 
 
-            if(!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)){
+            if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 toggleTask(Task.IDLE, null);
-            }
-            else {
+            } else {
 
                 if (task == Task.IDLE) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
@@ -307,18 +455,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             }
         }
 
-        if(level.isClientSide){
-            if(task == Task.IDLE)
-                should_open = false;
-            if (task == Task.ANALYZE_PLANET ||
-                    task == Task.WRITE_PLANET_TO_CHIP ||
-                    task == Task.SCANNING_FOR_PLANETS ||
-                    task == Task.SCANNING_FOR_ASTEROIDS)
-                should_open = true;
-            if (should_open && openingTicks < openingTicksMax)
-                openingTicks++;
-            if (!should_open && openingTicks > 0)
-                openingTicks--;
+        if (level.isClientSide) {
+            renderData.tick(this);
         }
     }
 
@@ -370,7 +508,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
     }
 
-    public CompoundTag getUpdateTag(){
+    public CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
         tag.putInt("task", task.ordinal());
         if (taskTarget != null) {
@@ -379,10 +517,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         return tag;
     }
 
-    public void sendUpdatePacket(ServerPlayer player){
-        if(player != null)
-            PacketDistributor.sendToPlayer(player,PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
-        else{
+    public void sendUpdatePacket(ServerPlayer player) {
+        if (player != null)
+            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
+        else {
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
         }
     }
@@ -391,7 +529,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public void readServer(CompoundTag tag, ServerPlayer player) {
         guiHandler.readServer(tag);
 
-        if(tag.contains("onLoad")){
+        if (tag.contains("onLoad")) {
             sendUpdatePacket(player);
         }
 

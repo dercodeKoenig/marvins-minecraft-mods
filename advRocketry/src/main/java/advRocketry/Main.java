@@ -8,7 +8,6 @@ import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Particles.RocketParticleEngine;
-import advRocketry.Particles.RocketFlameParticleProvider;
 import advRocketry.Particles.RocketParticleProvider;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
@@ -265,7 +264,6 @@ public class Main {
     }
 
     void registerParticles(RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(Registry.ROCKET_FLAME.get(), RocketFlameParticleProvider::new);
         event.registerSpriteSet(Registry.SOFT_PARTICLE.get(), RocketParticleProvider::new);
     }
 

@@ -60,10 +60,10 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
         //this.size *= 0.999f;
 
         if (super.onGround) {
-            float f = this.random.nextFloat() * 0.5F;
+            float f = (float) (Math.random() * 0.5F);
             yd = -yd * f;
-            xd = (this.random.nextFloat() - 0.5) * 0.5F;
-            zd = (this.random.nextFloat() - 0.5) * 0.5F;
+            xd = (Math.random() - 0.5) * 0.5F;
+            zd = (Math.random() - 0.5) * 0.5F;
         }
         if (this.lifetime < 20) {
             this.quadSize = size * (float) this.lifetime / 20f;
