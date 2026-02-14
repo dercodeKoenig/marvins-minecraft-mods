@@ -122,20 +122,28 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         if (propsBase.type == DimensionProperties.DimensionType.PLANET) {
             PlanetDimensionProperties planetProps = gson.fromJson(dimensionProperties, PlanetDimensionProperties.class);
             if (dimensions.containsKey(planetProps.dimensionId)) {
-                // update
                 dimensions.get(planetProps.dimensionId).properties = planetProps;
             } else {
-                // create
                 PlanetDimension dimension = new PlanetDimension(planetProps, this);
                 dimensions.put(dimension.getDimensionId(), dimension);
                 System.out.println("[DimensionManager] created PlanetDimension for " + dimension.getDimensionId());
+            }
+        }
+        if(propsBase.type== DimensionProperties.DimensionType.DUMMY){
+            DummyDimensionProperties properties = gson.fromJson(dimensionProperties, DummyDimensionProperties.class);
+            if(dimensions.containsKey(properties.dimensionId)){
+                dimensions.get(properties.dimensionId).properties = properties;
+            }else{
+                DummyDimension dummyDimension = new DummyDimension(properties,this);
+                dimensions.put(dummyDimension.getDimensionId(), dummyDimension);
+                System.out.println("[DimensionManager] created DummyDimension for " + dummyDimension.getDimensionId());
             }
         }
     }
 
     private void loadDimensionsFromDirectory(Path directory) {
         if (!Files.exists(directory)) {
-            System.out.println("[DimensionManager] Directory does not exist: " + directory);
+            System.out.println("[DimensionManager] Error: Directory does not exist: " + directory);
             return;
         }
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {

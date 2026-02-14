@@ -114,29 +114,26 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     if (targetDim != null && myDim != null && myDim != targetDim) {
                         Pair<Float, Float> yaw_pitch = getYawAndPitch(targetDim, myDim, 0);
                         if (yaw_pitch.getSecond() > 0) {
-                            yawTarget = yaw_pitch.getFirst() * 180 / (float)Math.PI;
-                            pitchTarget = yaw_pitch.getSecond() * 180 / (float)Math.PI;
+                            yawTarget = yaw_pitch.getFirst() * 180 / (float) Math.PI;
+                            pitchTarget = yaw_pitch.getSecond() * 180 / (float) Math.PI;
                             actionTimeout = 200; // reset so it doesnt do other things
-                            pitchSpeed = 0.025f;
-                            yawSpeed = 0.05f;
+                            pitchSpeed = 0.1f;
+                            yawSpeed = 0.1f;
                         }
                     }
                 }
 
-                actionTimeout --;
-                if(actionTimeout <= 0){
+                actionTimeout--;
+                if (actionTimeout <= 0) {
                     // first choose a movement time
-                    actionTimeout = (int) Math.min(20*5, Math.random() * 20*20);
+                    actionTimeout = (int) Math.max(20 * 5, Math.random() * 20 * 30);
                     yawTarget = (float) (Math.random() * 360);
                     pitchTarget = (float) (Math.random() * 90);
-                    yawSpeed = getAngleDifference(yawTarget, yaw) / actionTimeout;
-                    pitchSpeed = (pitchTarget - pitch) / actionTimeout;
-                    System.out.println("current:"+yaw+":"+pitch);
-                    System.out.println("target:"+yawTarget+":"+pitchTarget);
+                    yawSpeed = Math.abs(getAngleDifference(yawTarget, yaw) / actionTimeout);
+                    pitchSpeed = Math.abs((pitchTarget - pitch) / actionTimeout);
                     // now add idle time after movement
-                    actionTimeout += (int) Math.min(20*1, Math.random() * 20*10);
+                    actionTimeout += (int) Math.max(20 * 5, Math.random() * 20 * 20);
                 }
-
 
 
                 // --- YAW LOGIC ---
@@ -418,9 +415,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     @Override
     public void onLoad() {
         super.onLoad();
-        CompoundTag info = new CompoundTag();
-        info.put("onLoad", new CompoundTag());
-        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
+        if (level.isClientSide) {
+            CompoundTag info = new CompoundTag();
+            info.put("onLoad", new CompoundTag());
+            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
+        }
     }
 
     public void tick() {
@@ -475,8 +474,13 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public void toggleTask(Task task, ResourceLocation taskTarget) {
         if (this.task.equals(task)) {
-            task = Task.IDLE;
-            taskTarget = null;
+            // toggle on / off for these tasks:
+            if (task.equals(Task.SCANNING_FOR_PLANETS) ||
+                    task.equals(Task.SCANNING_FOR_ASTEROIDS) ||
+                    task.equals(Task.SYNC_STORAGE_DISKS)) {
+                task = Task.IDLE;
+                taskTarget = null;
+            }
         }
         this.task = task;
         this.taskTarget = taskTarget;

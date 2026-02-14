@@ -193,7 +193,7 @@ public class PlanetDimension extends Dimension {
 
     public Vec3 getPosition(float partialTick) {
         if (properties().parentDimensionId != null) {
-            PlanetDimension parent = (PlanetDimension) dimensionManager.get(properties().parentDimensionId);
+            Dimension parent = dimensionManager.get(properties().parentDimensionId);
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
             double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;

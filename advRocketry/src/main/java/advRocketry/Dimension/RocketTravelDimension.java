@@ -32,6 +32,8 @@ public class RocketTravelDimension extends Dimension {
 
     public RocketTravelDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
+        this.properties.name = "space travel dimension";
+        this.properties.dimensionId = dimId;
         usedChunksMap = new HashMap<>();
     }
 
