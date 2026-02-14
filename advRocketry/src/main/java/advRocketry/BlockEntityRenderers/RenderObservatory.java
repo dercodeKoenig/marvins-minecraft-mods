@@ -169,9 +169,15 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         observatory.axle.draw();
 
 
+        float openProgress = (float) observatory.openingTicks / observatory.openingTicksMax;
+        if(observatory.should_open) openProgress += partialtick / observatory.openingTicksMax;
+        if(!observatory.should_open) openProgress -= partialtick / observatory.openingTicksMax;
+        openProgress = Math.clamp(openProgress,0,1);
+
+
         Matrix4f modelMatCaseXPlus = new Matrix4f(modelMat);
         // open
-        modelMatCaseXPlus.translate(0f,0,1f);
+        modelMatCaseXPlus.translate(0f,0,openProgress);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXPlus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -187,7 +193,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
         Matrix4f modelMatCaseXMinus = new Matrix4f(modelMat);
         // open
-        modelMatCaseXMinus.translate(0f,0,-1f);
+        modelMatCaseXMinus.translate(0f,0,-openProgress);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXMinus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());

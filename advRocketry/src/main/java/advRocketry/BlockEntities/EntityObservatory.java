@@ -3,12 +3,13 @@ package advRocketry.BlockEntities;
 import ARLib.ARLibRegistry;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
+import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
-import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Items.ItemGalaxyStorageDisk;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -19,10 +20,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -53,14 +56,35 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public int lastLight;
 
+    public boolean should_open = false;
+    public int openingTicks = 0;
+    public int openingTicksMax = 300;
+    public float rotationTarget;
 
     public ItemStackHandler itemStackHandler;
+    int STORAGE_DISK_SLOT_1 = 0;
+    int STORAGE_DISK_SLOT_2 = 1;
+    int PLANET_ID_CHIP_SLOT = 2;
 
+
+    public Task task = Task.IDLE;
+    public ResourceLocation taskTarget = null;
 
     public GuiHandlerBlockEntity guiHandler;
     ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot1;
     ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot2;
     ARLib.gui.modules.guiModuleItemHandlerSlot planetIdChipSlot;
+    ARLib.gui.modules.guiModuleText currentTaskText;
+    ARLib.gui.modules.guiModuleButton scanPlanetBtn;
+    ARLib.gui.modules.guiModuleButton scanAsteroidBtn;
+    ARLib.gui.modules.guiModuleButton syncStorageDisksBtn;
+    ARLib.gui.modules.guiModuleProgressBarHorizontal6px guiProgressBar;
+
+    ResourceLocation BTN_BLACK = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png");
+    ResourceLocation BTN_RED = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png");
+    ResourceLocation BTN_GREEN = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_green.png");
+    int BTN_W = 64;
+    int BTN_H = 20;
 
 
     public EntityObservatory(BlockPos pos, BlockState state) {
@@ -80,32 +104,40 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         guiHandler = new GuiHandlerBlockEntity(this);
         itemStackHandler = new ItemStackHandler(3) {
             public boolean isItemValid(int slot, ItemStack stack) {
-                if (slot == 0 || slot == 1)
+                if (slot == STORAGE_DISK_SLOT_1 || slot == STORAGE_DISK_SLOT_2)
                     return stack.getItem().equals(Registry.ITEM_GALAXY_STORAGE_DISK.get());
-                if (slot == 2)
+                if (slot == PLANET_ID_CHIP_SLOT)
                     return stack.getItem().equals(Registry.ITEM_PLANET_ID_CHIP.get());
                 return false;
             }
+
             public void onContentsChanged(int slot) {
+                // move from storage slot 2 to slot 1 if slot 1 is empty
+                if (slot == STORAGE_DISK_SLOT_2 || slot == STORAGE_DISK_SLOT_1) {
+                    if (getStackInSlot(STORAGE_DISK_SLOT_1).isEmpty() && !getStackInSlot(STORAGE_DISK_SLOT_2).isEmpty()) {
+                        insertItem(STORAGE_DISK_SLOT_1, extractItem(STORAGE_DISK_SLOT_2, getStackInSlot(STORAGE_DISK_SLOT_2).getCount(), false), false);
+                    }
+                }
+
                 EntityObservatory.this.setChanged();
             }
         };
-        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 1, 0, guiHandler, 130, 160);
+        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 130, 160);
         guiHandler.modules.add(storageDiskSlot1);
-        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, 1, 1, 0, guiHandler, 150, 160);
+        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 160);
         guiHandler.modules.add(storageDiskSlot2);
         guiHandler.modules.add(
                 new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 163, 0xff000000, false)
         );
 
-        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, 2, 1, 0, guiHandler, 150, 140);
+        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 140);
         guiHandler.modules.add(planetIdChipSlot);
         guiHandler.modules.add(
                 new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 143, 0xff000000, false)
         );
 
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
+                new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
                     public void onButtonClicked() {
                         Minecraft.getInstance().setScreen(
                                 new SpaceMapScreen() {
@@ -125,27 +157,92 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                                     public void interact(ResourceLocation dimensionId) {
                                         CompoundTag info = new CompoundTag();
-                                        info.putString("writeToChip", dimensionId.toString());
+                                        info.putString("interact", dimensionId.toString());
                                         PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
                                     }
 
                                     public String getInteractText(ResourceLocation dimensionId) {
-                                        return "interact with " + dimensionId;
+                                        PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+
+                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.UNLOCKED_POINTS) {
+                                            if (!storageDiskSlot1.client_getItemStackToRender().isEmpty()) {
+                                                return "Analyze";
+                                            }
+                                        }
+                                        if (!planetIdChipSlot.client_getItemStackToRender().isEmpty()) {
+                                            return "burn to chip";
+                                        }
+                                        return "";
                                     }
 
                                     public String getPlanetInfoText(ResourceLocation dimensionId) {
-                                        return "can visit:" + DimensionManager.INSTANCE_CLIENT.get(dimensionId).canVisit();
+
+                                        PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+
+                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.UNLOCKED_POINTS) {
+                                            return "We require more information about this planet.";
+                                        }
+
+                                        return planet.getName() + "\n" +
+                                                "g:" + planet.getGravitationalMultiplier() + "\n";
+                                        // todo: add more information, temperature, atm density/composition
                                     }
 
                                     public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
                                         Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
-                                        return ((PlanetDimension) (d)).isKnown();
+                                        if (((PlanetDimension) (d)).isKnown()) {
+                                            return true;
+                                        }
+
+                                        int discoverStatus = clientGetDiscoverStatusFromCurrentStorageItem(dimensionId);
+                                        if (discoverStatus != -1)
+                                            return true;
+
+                                        return false;
                                     }
                                 }
                         );
                     }
                 }
         );
+
+        currentTaskText = new ARLib.gui.modules.guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
+        guiHandler.modules.add(currentTaskText);
+
+        guiProgressBar = new ARLib.gui.modules.guiModuleProgressBarHorizontal6px(200, 0xffffffff, guiHandler, 10, 40);
+        guiHandler.modules.add(guiProgressBar);
+
+        scanPlanetBtn = new ARLib.gui.modules.guiModuleButton(201, "Scan for Planets", guiHandler, 10, 50, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag info = new CompoundTag();
+                info.putString("setTask", "ScanPlanet");
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
+            }
+        };
+        guiHandler.modules.add(scanPlanetBtn);
+
+
+        scanAsteroidBtn = new ARLib.gui.modules.guiModuleButton(202, "Scan for Asteroids", guiHandler, 10, 70, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag info = new CompoundTag();
+                info.putString("setTask", "ScanAsteroid");
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
+            }
+        };
+        guiHandler.modules.add(scanAsteroidBtn);
+
+        syncStorageDisksBtn = new ARLib.gui.modules.guiModuleButton(203, "Sync Storage Disks", guiHandler, 10, 90, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag info = new CompoundTag();
+                info.putString("setTask", "syncStorageDisks");
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
+            }
+        };
+        guiHandler.modules.add(syncStorageDisksBtn);
+
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(15, 185, 10000, 0, 1, guiHandler));
     }
@@ -163,9 +260,53 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
     }
 
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        CompoundTag info = new CompoundTag();
+        info.put("onLoad", new CompoundTag());
+        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
+    }
+
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+
+
+            if(!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)){
+                toggleTask(Task.IDLE, null);
+            }
+            else {
+
+                if (task == Task.IDLE) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
+                }
+
+                if (task == Task.SCANNING_FOR_PLANETS) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
+                }
+
+                if (task == Task.SYNC_STORAGE_DISKS) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+                }
+
+                if (task == Task.ANALYZE_PLANET) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+                }
+
+                if (task == Task.WRITE_PLANET_TO_CHIP) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+                }
+
+            }
+        }
+
+        if(level.isClientSide){
+            should_open = task != Task.IDLE;
+            if (should_open && openingTicks < openingTicksMax)
+                openingTicks++;
+            if (!should_open && openingTicks > 0)
+                openingTicks--;
         }
     }
 
@@ -177,14 +318,103 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         guiHandler.openGui(200, 210, true);
     }
 
+    // helper methods for gui rendering
+    public int clientGetDiscoverStatusFromCurrentStorageItem(ResourceLocation dimensionId) {
+        return ItemGalaxyStorageDisk.getUnlockPoints(storageDiskSlot1.client_getItemStackToRender(), dimensionId.toString());
+    }
+
+    public void toggleTask(Task task, ResourceLocation taskTarget) {
+        if (this.task.equals(task)) {
+            task = Task.IDLE;
+            taskTarget = null;
+        }
+        this.task = task;
+        this.taskTarget = taskTarget;
+        setChanged();
+        updateActionButtonStates();
+        sendUpdatePacket(null);
+    }
+
+    public void updateActionButtonStates() {
+
+        currentTaskText.setTextAndSync("Task: " + task.name());
+
+        if (task == Task.SCANNING_FOR_PLANETS) {
+            scanPlanetBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+        } else {
+            scanPlanetBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
+        }
+
+        if (task == Task.SCANNING_FOR_ASTEROIDS) {
+            scanAsteroidBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+        } else {
+            scanAsteroidBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
+        }
+
+        if (task == Task.SYNC_STORAGE_DISKS) {
+            syncStorageDisksBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+        } else {
+            syncStorageDisksBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
+        }
+    }
+
+    public CompoundTag getUpdateTag(){
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("task", task.ordinal());
+        if (taskTarget != null) {
+            tag.putString("taskTarget", taskTarget.toString());
+        }
+        return tag;
+    }
+
+    public void sendUpdatePacket(ServerPlayer player){
+        if(player != null)
+            PacketDistributor.sendToPlayer(player,PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
+        else{
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
+        }
+    }
+
     @Override
     public void readServer(CompoundTag tag, ServerPlayer player) {
         guiHandler.readServer(tag);
-        if (tag.contains("writeToChip")) {
-            if (itemStackHandler.getStackInSlot(2).getItem() instanceof ItemPlanetIdChip planetIdChip) {
-                ResourceLocation target = ResourceLocation.parse(tag.getString("writeToChip"));
-                ItemPlanetIdChip.setSelectedDimension(target, itemStackHandler.getStackInSlot(2));
+
+        if(tag.contains("onLoad")){
+            sendUpdatePacket(player);
+        }
+
+        if (tag.contains("interact")) {
+            ResourceLocation target = ResourceLocation.tryParse(tag.getString("interact"));
+            if (target != null && DimensionManager.INSTANCE_SERVER.get(target) instanceof PlanetDimension planet) {
+                boolean isUnlocked = planet.isKnown();
+                if (!isUnlocked) {
+                    ItemStack storageDisk = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
+                    if (ItemGalaxyStorageDisk.isDimensionUnlocked(storageDisk, target.toString())) {
+                        isUnlocked = true;
+                    }
+                }
+                if (isUnlocked) {
+                    toggleTask(Task.WRITE_PLANET_TO_CHIP, target);
+                } else {
+                    toggleTask(Task.ANALYZE_PLANET, target);
+                }
+
+                // make it re-open normal gui
+                CompoundTag info = new CompoundTag();
+                info.put("openGui", new CompoundTag());
+                PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(this, info));
             }
+        }
+
+        if (tag.contains("setTask")) {
+            String taskStr = tag.getString("setTask");
+            if (taskStr.equals("syncStorageDisks"))
+                toggleTask(Task.SYNC_STORAGE_DISKS, null);
+            if (taskStr.equals("ScanPlanet"))
+                toggleTask(Task.SCANNING_FOR_PLANETS, null);
+            if (taskStr.equals("ScanAsteroid"))
+                toggleTask(Task.SCANNING_FOR_ASTEROIDS, null);
+
         }
     }
 
@@ -194,16 +424,33 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         if (tag.contains("openGui")) {
             openGui();
         }
+        if (tag.contains("task")) {
+            task = Task.values()[tag.getInt("task")];
+        }
+        if (tag.contains("taskTarget")) {
+            taskTarget = ResourceLocation.parse(tag.getString("taskTarget"));
+        }
     }
 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("storageItemStackHandler", itemStackHandler.serializeNBT(registries));
+
+        tag.putInt("task", task.ordinal());
+        if (taskTarget != null) {
+            tag.putString("taskTarget", taskTarget.toString());
+        }
     }
 
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         itemStackHandler.deserializeNBT(registries, tag.getCompound("storageItemStackHandler"));
+
+        task = Task.values()[tag.getInt("task")];
+        if (tag.contains("taskTarget")) {
+            taskTarget = ResourceLocation.parse(tag.getString("taskTarget"));
+        }
+        updateActionButtonStates();
     }
 
     public void popInventory() {
@@ -233,11 +480,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             {'s', 'a', 'g', 'a', 's'},
                             {null, 's', 's', 's', null}},
 
-                    {{null, '*', 'c', '*', null},
-                            {'*', 's', 's', 's', '*'},
-                            {'*', 's', 's', 's', '*'},
-                            {'*', 's', 's', 's', '*'},
-                            {null, '*', '*', '*', null}},
+                    {{null, 's', 'c', 's', null},
+                            {'s', 's', 's', 's', 's'},
+                            {'s', 's', 's', 's', 's'},
+                            {'s', 's', 's', 's', 's'},
+                            {null, 's', 's', 's', null}},
 
                     {{null, '*', '*', '*', null},
                             {'*', 't', 't', 't', '*'},
@@ -296,4 +543,12 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         return InteractionResult.SUCCESS;
     }
 
+    public enum Task {
+        IDLE,
+        SCANNING_FOR_PLANETS,
+        SCANNING_FOR_ASTEROIDS,
+        ANALYZE_PLANET,
+        WRITE_PLANET_TO_CHIP,
+        SYNC_STORAGE_DISKS
+    }
 }
