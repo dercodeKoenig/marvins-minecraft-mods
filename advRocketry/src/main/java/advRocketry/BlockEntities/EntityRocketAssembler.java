@@ -60,7 +60,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
-        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID,"textures/gui/gui_button_red.png"),64,20);
+        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
         statusText = new guiModuleText(1, "status:", guiHandler, 10, 30, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
@@ -90,13 +90,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             for (int i = 0; i < offset; i++) {
                 landingPos = landingPos.relative(launchpadDir);
             }
-            return new Vec3(landingPos.getX(), landingPos.getY(), landingPos.getZ());
+            return new Vec3(landingPos.getCenter().x, landingPos.getCenter().y, landingPos.getCenter().z);
         } else {
             // if there is a launchpad, land in center
             Vec3 landingPos = new Vec3(
-                    (double) (areaMin.getX() + areaMax.getX()) / 2,
+                    (double) (areaMin.getX() + areaMax.getX()) / 2 + 0.5,
                     areaMin.getY(),
-                    (double) (areaMin.getZ() + areaMax.getZ()) / 2
+                    (double) (areaMin.getZ() + areaMax.getZ()) / 2 + 0.5
             );
             return landingPos;
         }
@@ -211,8 +211,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                                 areaMax = maxPos;
 
                                 // add 1 block padding to area
-                                areaMin = new BlockPos(areaMin.getX()+1,areaMin.getY(),areaMin.getZ()+1);
-                                areaMax = new BlockPos(areaMax.getX()-1,areaMax.getY(),areaMax.getZ()-1);
+                                areaMin = new BlockPos(areaMin.getX() + 1, areaMin.getY(), areaMin.getZ() + 1);
+                                areaMax = new BlockPos(areaMax.getX() - 1, areaMax.getY(), areaMax.getZ() - 1);
                             }
                         }
                     }
@@ -323,15 +323,15 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         BlockPos pos = new BlockPos(x, y, z);
 
                         // prevent item pops when breaking the block for specific blocks that carry their inventory to the rocket
-                        if(level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer1)
-                            guidanceComputer1.itemStackHandler.setStackInSlot(0,ItemStack.EMPTY);
+                        if (level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer1)
+                            guidanceComputer1.itemStackHandler.setStackInSlot(0, ItemStack.EMPTY);
 
                         // if i understand this correctly, 2 = send to clients, 16 = no neighbor update
-                        level.setBlock(pos,Blocks.AIR.defaultBlockState(),2 | 16);
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2 | 16);
                     }
                 }
             }
-            rocket.moveTo(launchPadCenterX, areaMin.getY()+ 0.02, launchPadCenterZ, 0, 0);
+            rocket.moveTo(launchPadCenterX, areaMin.getY() + 0.02, launchPadCenterZ, 0, 0);
             level.addFreshEntity(rocket);
         }
         return new constuctionInfo(true, "");
@@ -346,7 +346,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             info.putInt("maxX", areaMax.getX());
             info.putInt("maxY", areaMax.getY());
             info.putInt("maxZ", areaMax.getZ());
-        }else{
+        } else {
             info.put("noArea", new CompoundTag());
         }
 
@@ -373,7 +373,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 statusText.setTextAndSync(ret.info);
                 if (ret.canConstruct) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
-                    buildProgress = (int) (buildTimeBase * (areaMax.getY() - areaMin.getY()+2)*1.5);
+                    buildProgress = (int) (buildTimeBase * (areaMax.getY() - areaMin.getY() + 2) * 1.5);
                 }
             }
         }
@@ -394,7 +394,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("maxX") && compoundTag.contains("maxY") && compoundTag.contains("maxZ"))
             areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
 
-        if(compoundTag.contains("buildProgress")){
+        if (compoundTag.contains("buildProgress")) {
             buildProgress = compoundTag.getInt("buildProgress");
         }
 
@@ -405,16 +405,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void tick() {
 
-        if(level.isClientSide){
-            if (clientBuildProgress < buildProgress){
-                clientBuildProgress+=2;
+        if (level.isClientSide) {
+            if (clientBuildProgress < buildProgress) {
+                clientBuildProgress += 2;
                 clientBuildDiffPerTick = 2;
-            }
-            else if(clientBuildProgress > buildProgress){
+            } else if (clientBuildProgress > buildProgress) {
                 clientBuildProgress--;
                 clientBuildDiffPerTick = -1;
-            }
-            else{
+            } else {
                 clientBuildDiffPerTick = 0;
             }
         }
@@ -422,33 +420,33 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (!level.isClientSide) {
             guiHandler.serverTick();
 
-            if(buildProgress > -1){
-                if(areaMin != null && areaMax != null) {
+            if (buildProgress > -1) {
+                if (areaMin != null && areaMax != null) {
                     buildProgress--;
                     if (buildProgress == -1) {
                         buildRocket(false);
                     }
-                }else{
+                } else {
                     buildProgress = -1;
                 }
                 broadcastInformationToPlayers(null);
             }
 
             // remove reference to current rocket if it is removed
-            if(currentRocket!=null && currentRocket.isRemoved())
+            if (currentRocket != null && currentRocket.isRemoved())
                 currentRocket = null;
 
             // scan if there is a new rocket in the landing area to be the new rocket reference
             // TODO: if this takes too long, maybe do it only once per second
             AABB area;
-            if(areaMin == null || areaMax == null){
+            if (areaMin == null || areaMax == null) {
                 Vec3 landingPos = getLandingPos(null);
-                area = new AABB(landingPos.subtract(1,1,1), landingPos.add(1,1,1)).inflate(8);
-            }else{
-                area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX()+1, areaMax.getY(), areaMax.getZ()+1)).inflate(1,2,1);
+                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate(8);
+            } else {
+                area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
-            List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class,area);
-            if(!rockets.isEmpty()) {
+            List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class, area);
+            if (!rockets.isEmpty()) {
                 currentRocket = rockets.getFirst();
             }
         }

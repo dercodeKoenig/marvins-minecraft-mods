@@ -57,8 +57,7 @@ public class RocketController {
         rocket.front = right.cross(rocket.heading).normalize();
     }
 
-    // pd controller mostly written by gemini should be used to have the rocket spawn at some offset and find its way down to the landing area
-    // it should also scan (if no launchpad structure) to land at some area where there is a flat area
+    // pd controller mostly written by gemini
     public void tickController() {
 
         if (rocket.getTargetPosition() == null) {
@@ -141,7 +140,7 @@ public class RocketController {
             // This is the current actually delivered thrust relative to the max possible thrust for rendering and fuel consumption
             double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
             currentThrust = ThrustMultiplier;
-            // TODO: burn rocket fuel
+
             float toBurn = (float) ((float) rocket.getFuelRateMax() * ThrustMultiplier);
             int toBurnInt = (int) toBurn;
             if (toBurnInt == 0 && toBurn > 0 && Math.random() < toBurn)

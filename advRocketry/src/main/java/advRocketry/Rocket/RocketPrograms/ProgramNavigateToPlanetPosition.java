@@ -35,63 +35,69 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             // we are at the correct dimension
 
-            Vec3 targetVec3 = new Vec3(target.getX(), target.getY(), target.getZ());
+            Vec3 targetVec3 = new Vec3(target.getCenter().x, target.getCenter().y, target.getCenter().z);
 
-            if(rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler){
-                targetVec3 =  assembler.getLandingPos(rocket);
+            if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
+                targetVec3 = assembler.getLandingPos(rocket);
             }
 
             double dx = targetVec3.x - rocket.position().x;
             double dz = targetVec3.z - rocket.position().z;
-
-            int y = Utils.findGroundY(rocket.level(), new BlockPos((int) targetVec3.x, rocket.level().getMaxBuildHeight(), (int) targetVec3.z));
-            double dy = y - rocket.position().y;
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
-            double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
-
-            double heightErrorMultiplier = 0.5; // dont close the height error at once, to slowly approach target set the height target to rocketY + dy * heightErrorMultiplier
-            double xzDistanceHeightMultiplier = 2; // target height increases as we move more away from the target position in xz direction
-            double speedHeightMultiplier = 20; // if we move fast, target is higher. we will only land if the movement in xz is close to 0
-            double yOffset = -3; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
-            double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
-
-            double maxDiffY = 500;
-            if (rocket.position().y - targetY > maxDiffY) {
-                targetY = rocket.position().y - maxDiffY;
-            }
-
-            targetVec3 = new Vec3(targetVec3.x,targetY,targetVec3.z);
 
             int yCurrentBelow = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
 
-            if (!isStarted){
+            if (!isStarted) {
                 // make sure it starts correctly
                 rocket.enableSecondaryEngines(false, false);
                 targetVec3 = new Vec3(rocket.position().x, yCurrentBelow + travelHeight, rocket.position().z);
-                if (rocket.position().y > travelHeight / 3 + yCurrentBelow){
+                if (rocket.position().y > travelHeight / 3 + yCurrentBelow) {
                     isStarted = true; // ok, it is in air now
                 }
-            }
-            else if (distanceToTargetXZ > 20) {
+            } else if (distanceToTargetXZ > 20) {
                 // when far away from target, make sure to maintain travel height to go there
                 rocket.enableSecondaryEngines(false, false);
 
                 if (rocket.position().y < 20 + yCurrentBelow) {
                     // too low, pull up
                     targetVec3 = new Vec3(rocket.position().x, yCurrentBelow + travelHeight, rocket.position().z);
-                }else{
+                } else {
                     // travel to target at target height
-                    targetVec3 = new Vec3(targetVec3.x, Math.max(yCurrentBelow + travelHeight, targetVec3.y), targetVec3.z);
+                    // dont move faster than maxDiffxz in xz direction to not crash in ground on long distance
+                    double maxDiffxz = 100;
+                    double xzMultiplier = Math.min(1, (maxDiffxz / distanceToTargetXZ));
+                    double targetX = rocket.position().x + dx * xzMultiplier;
+                    double targetZ = rocket.position().z + dz * xzMultiplier;
+
+                    targetVec3 = new Vec3(targetX, Math.max(yCurrentBelow + travelHeight, targetVec3.y), targetZ);
 
                     // rotate to the target front if it is a rocket assembler there
-                    if(rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler){
+                    if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
                         Direction targetFront = assembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                        rocket.setTargetFront(new Vec3(targetFront.getStepX(),targetFront.getStepY(),targetFront.getStepZ()),false);
+                        rocket.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
                     }
                 }
-            }else{
+            } else {
                 // landing...
                 rocket.enableSecondaryEngines(true, false); // help or it swings around too much
+
+                int y = Utils.findGroundY(rocket.level(), new BlockPos((int) targetVec3.x, rocket.level().getMaxBuildHeight(), (int) targetVec3.z));
+                double dy = y - rocket.position().y;
+                double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
+
+                double heightErrorMultiplier = 0.5; // dont close the height error at once, to slowly approach target set the height target to rocketY + dy * heightErrorMultiplier
+                double xzDistanceHeightMultiplier = 2; // target height increases as we move more away from the target position in xz direction
+                double speedHeightMultiplier = 20; // if we move fast, target is higher. we will only land if the movement in xz is close to 0
+                double yOffset = -3; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
+                double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
+
+                double maxDiffY = 500;
+                if (rocket.position().y - targetY > maxDiffY) {
+                    targetY = rocket.position().y - maxDiffY;
+                }
+
+                targetVec3 = new Vec3(targetVec3.x, targetY, targetVec3.z);
+
             }
 
             rocket.setTargetPosition(targetVec3, false);
