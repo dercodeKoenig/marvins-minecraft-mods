@@ -327,6 +327,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                             guidanceComputer1.itemStackHandler.setStackInSlot(0, ItemStack.EMPTY);
 
                         // if i understand this correctly, 2 = send to clients, 16 = no neighbor update
+                        // neighbor could break some blocks like sign that would pop away
                         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2 | 16);
                     }
                 }

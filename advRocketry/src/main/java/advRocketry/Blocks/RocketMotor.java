@@ -8,7 +8,7 @@ public class RocketMotor extends Block {
     }
 
     public float getThrust(){
-        return 10f;
+        return 3f;
     }
 
     public float getFuelRateMax(){

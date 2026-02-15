@@ -95,9 +95,8 @@ public class RocketController {
         desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity()));
 
         // --- 2. Calculate Thrust & Heading ---
-        // TODO: calculate main thrusters first and use the secondary only for part of the force that was not applied ( sideways/ break )
         if (rocket.canUseSecondaryEngines()) {
-            // use secondary thrusters in space for fine controll
+            // use secondary thrusters for fine control
             Vec3 secondaryThrustersForce = desiredAcceleration.scale(rocket.getMass());
             if (secondaryThrustersForce.length() > SECONDARY_THRUSTERS_FORCE) {
                 secondaryThrustersForce = secondaryThrustersForce.normalize().scale(SECONDARY_THRUSTERS_FORCE);

@@ -461,7 +461,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
 
-            if (fuelTank.isEmpty()) endProgram();
+            // if out of fuel and on planet dimension, end program
+            // in space i just will keep it going anyway
+            if (fuelTank.isEmpty() && DimensionManager.INSTANCE_SERVER.get(level().dimension().location()).getType().equals(DimensionProperties.DimensionType.PLANET))
+                endProgram();
         }
 
         if (firstTick) {
@@ -758,7 +761,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getMass() {
-        return 3f * blocks.size() + 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
+        float mass = 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
+        mass += 3f * blocks.size(); // block weight
+        mass += getFuel() * 0.001f; // fuel weight
+        return mass;
     }
 
     public float getMaxAcceleration() {
