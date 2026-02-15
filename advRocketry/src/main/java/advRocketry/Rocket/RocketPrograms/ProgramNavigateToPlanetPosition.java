@@ -19,7 +19,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public ResourceLocation targetDimensionId;
     public BlockPos target;
 
-    public static double travelHeight = 150;
+    public static double travelHeight = 200;
 
     double lastVy;
     boolean isStarted = false; // make sure at start it actually fly up
@@ -51,7 +51,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // make sure it starts correctly
                 rocket.enableSecondaryEngines(false, false);
                 targetVec3 = new Vec3(rocket.position().x, yCurrentBelow + travelHeight, rocket.position().z);
-                if (rocket.position().y > travelHeight / 3 + yCurrentBelow) {
+                if (rocket.position().y > travelHeight / 2 + yCurrentBelow) {
                     isStarted = true; // ok, it is in air now
                 }
             } else if (distanceToTargetXZ > 20) {

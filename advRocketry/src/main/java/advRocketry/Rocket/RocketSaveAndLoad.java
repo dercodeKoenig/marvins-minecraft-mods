@@ -107,8 +107,10 @@ public class RocketSaveAndLoad {
         if (compoundTag.contains("initialFront"))
             rocket.initialFront = Utils.deSerializeVec3(compoundTag.getCompound("initialFront"));
 
-        if (compoundTag.contains("fuelTank") && compoundTag.contains("fuelCapacity")) {
-            rocket.fuelTank = new FluidTank(compoundTag.getInt("fuelCapacity"));
+        if (compoundTag.contains("fuelCapacity")) {
+            rocket.fuelTank.setCapacity(compoundTag.getInt("fuelCapacity"));
+        }
+        if (compoundTag.contains("fuelTank")) {
             rocket.fuelTank.readFromNBT(rocket.level().registryAccess(), compoundTag.getCompound("fuelTank"));
         }
 

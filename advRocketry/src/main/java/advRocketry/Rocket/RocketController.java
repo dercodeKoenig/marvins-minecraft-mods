@@ -189,38 +189,38 @@ public class RocketController {
                             particleSizeMultiplier = (float) (rocket.getEnginePositions().size() * maxParticlePerEngine) / maxParticlesPerTick;
                         }
 
-                        double speedMultiplier = -1 * (currentThrust + 0.3) * relativeBootTimeLin * particleSizeMultiplier * (1+j*0.1f);
-                        if(!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
+                        double speedMultiplier = -1 * (currentThrust * 0.7 + 0.3) * relativeBootTimeLin * particleSizeMultiplier * (1 + j * 0.1f);
+                        if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
                             // no smoke in space
                             new RocketParticle(
                                     (ClientLevel) rocket.level(),
                                     worldPos.x + (Math.random() - 0.5) * 0.5,
                                     worldPos.y + (Math.random() - 0.5) * 0.5,
                                     worldPos.z + (Math.random() - 0.5) * 0.5,
-                                    rocket.heading.x * speedMultiplier + (Math.random() - 0.5) * 0.5 * speedMultiplier,
-                                    rocket.heading.y * speedMultiplier + (Math.random() - 0.5) * 0.5 * speedMultiplier,
-                                    rocket.heading.z * speedMultiplier + (Math.random() - 0.5) * 0.5 * speedMultiplier,
-                                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
+                                    rocket.heading.x * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    rocket.heading.y * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    rocket.heading.z * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
                                     0.2f,
-                                    particleSizeMultiplier * 1,
+                                    particleSizeMultiplier * 2,
                                     500,
                                     false
                             );
                         }
 
-                        for (int p = 0; p < 1; p++) {
+                        for (int p = 0; p < 2; p++) {
                             new RocketParticle(
                                     (ClientLevel) rocket.level(),
-                                    worldPos.x+ (Math.random()-0.5)*0.5,
-                                    worldPos.y+ (Math.random()-0.5)*0.5,
-                                    worldPos.z+ (Math.random()-0.5)*0.5,
-                                    rocket.heading.x * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
-                                    rocket.heading.y * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
-                                    rocket.heading.z * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
+                                    worldPos.x + (Math.random() - 0.5) * 0.5,
+                                    worldPos.y + (Math.random() - 0.5) * 0.5,
+                                    worldPos.z + (Math.random() - 0.5) * 0.5,
+                                    rocket.heading.x * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
+                                    rocket.heading.y * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
+                                    rocket.heading.z * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
                                     new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
                                     // we not use additive blending in fabulous because it doesnt work so make it more bright
-                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.2f,
-                                    particleSizeMultiplier*0.5f,
+                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
+                                    particleSizeMultiplier * 0.5f,
                                     20,
                                     true
                             );

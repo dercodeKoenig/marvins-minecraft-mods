@@ -1,50 +1,23 @@
 package advRocketry.BlockEntities;
 
 import ARLib.blockentities.EntityFluidInputBlock;
-import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleButton;
-import ARLib.gui.modules.guiModuleText;
-import ARLib.network.PacketBlockEntity;
-import advRocketry.Blocks.GuidanceComputer;
-import advRocketry.Blocks.LaunchPad;
-import advRocketry.Blocks.StructureTower;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.PacketDistributor;
-
-import javax.annotation.Nullable;
-import java.security.cert.TrustAnchor;
-import java.util.*;
 
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
-import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityFuelingStation extends EntityFluidInputBlock implements ItemLinker.linkable, ItemLinker.linkableToEntity {
 

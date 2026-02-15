@@ -1,5 +1,6 @@
 package advRocketry.Blocks;
 
+import ARLib.blocks.BlockFluidInputBlock;
 import advRocketry.BlockEntities.EntityFuelingStation;
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Items.ItemLinker;
@@ -27,7 +28,7 @@ import java.util.Set;
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
-public class FuelingStation extends Block implements EntityBlock {
+public class FuelingStation extends BlockFluidInputBlock implements EntityBlock {
     public FuelingStation() {
         super(Properties.of());
     }
@@ -35,15 +36,6 @@ public class FuelingStation extends Block implements EntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return ENTITY_FUELING_STATION.get().create(blockPos, blockState);
-    }
-
-    @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        BlockEntity b = level.getBlockEntity(pos);
-        if(b instanceof EntityFuelingStation h)
-            if(h.getLevel().isClientSide)
-                h.openGui();
-        return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
     @Override

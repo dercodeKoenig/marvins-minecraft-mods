@@ -148,7 +148,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 fuelCapacity += fuelTank.getFuelCapacity();
             }
         }
-        rocket.fuelTank = new FluidTank(fuelCapacity);
+        rocket.fuelTank = new FluidTank(fuelCapacity){
+            // the weight calculation uses fuel to calculate weight.
+            // the client usually has no idea about the fuel tank so it needs to be synced to client
+            public void onContentsChanged() {
+                CompoundTag info = new CompoundTag();
+                info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
+                rocket.sendToClients(info);
+            }
+        };
         rocket.refreshDimensions();
         rocket.makeGui();
         return rocket;
@@ -763,7 +771,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public float getMass() {
         float mass = 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
         mass += 3f * blocks.size(); // block weight
-        mass += getFuel() * 0.001f; // fuel weight
+        mass += getFuel() * 0.001f; // fuel weight, tank is synced to client
         return mass;
     }
 
