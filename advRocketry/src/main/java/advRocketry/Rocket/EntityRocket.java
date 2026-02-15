@@ -23,6 +23,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -148,7 +149,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 fuelCapacity += fuelTank.getFuelCapacity();
             }
         }
-        rocket.fuelTank = new FluidTank(fuelCapacity){
+        rocket.fuelTank = new FluidTank(fuelCapacity) {
             // the weight calculation uses fuel to calculate weight.
             // the client usually has no idea about the fuel tank so it needs to be synced to client
             public void onContentsChanged() {
@@ -223,7 +224,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 100) { // sometimes for whatever reason the lock is too high maybe because lag?
+        if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 20) { // sometimes for whatever reason the lock is too high maybe because lag?
             openGui();
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
@@ -298,7 +299,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             lerpDeltaMovementSteps = 0;
         } else {
             this.lerpDeltaMovement = new Vec3(x, y, z);
-            this.lerpDeltaMovementSteps = 20 * 120;
+            if(currentProgram != null)
+                // let the program do most of the job or it could jump around if server/client slightly desync
+                this.lerpDeltaMovementSteps = 20 * 120;
+            else
+                // normal lerp on ground
+                this.lerpDeltaMovementSteps = 20 * 1;
         }
     }
 
@@ -311,7 +317,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             this.lerpY = y;
             this.lerpZ = z;
             float distance = (float) position().distanceTo(new Vec3(x, y, z));
-            this.lerpSteps = (int) (20 + distance * 10); // dynamic time, fast sync for little correction, slow sync for large correction
+            this.lerpSteps = (int) (20 + distance * 50); // dynamic time, fast sync for little correction, slow sync for large correction
 
         }
         this.setRot(yRot, xRot);
@@ -708,7 +714,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             public void onButtonClicked() {
                 super.onButtonClicked();
                 LockGuiOpenUntil = GlobalTime.getGlobalTime() + 5;
-                Minecraft.getInstance().setScreen(null);
+                if(EntityRocket.this.guiHandler.screen instanceof Screen screen){
+                    screen.onClose();
+                }
             }
         };
         deconstructButton.color = 0xffffffff;
@@ -717,7 +725,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             public void onButtonClicked() {
                 super.onButtonClicked();
                 LockGuiOpenUntil = GlobalTime.getGlobalTime() + 5;
-                Minecraft.getInstance().setScreen(null);
+                if(EntityRocket.this.guiHandler.screen instanceof Screen screen){
+                    screen.onClose();
+                }
             }
         };
         launchButton.color = 0xffffffff;
@@ -813,7 +823,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Player player = ClientUtils.getSinglePlayer();
         if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
             if (Minecraft.getInstance().options.keyUse.isDown()) {
-                if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 100) { // sometimes for whatever reason the lock is too high maybe because lag?
+                if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 20) { // sometimes for whatever reason the lock is too high maybe because lag?
                     rocket.openGui();
                     Minecraft.getInstance().options.keyUse.consumeClick();
                 }

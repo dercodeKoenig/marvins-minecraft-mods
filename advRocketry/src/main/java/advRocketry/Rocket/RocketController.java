@@ -167,8 +167,17 @@ public class RocketController {
             if (rocket.getMainEnginesBootUp() != 0) {
                 float relativeBootTimeLin = (float) rocket.getMainEnginesBootUp() / EntityRocket.ENGINE_BOOT_TIME;
                 float bootupParticleProb = (float) Math.sqrt(relativeBootTimeLin);
-                int maxParticlesPerTick = 50;
+                int maxParticlesPerTick = 5;
                 int maxParticlePerEngine = 2;
+
+                double particleSpawnProb = (double) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine);
+                if(particleSpawnProb > 1)
+                    particleSpawnProb = 1;
+
+                double tooManyEnginesMultiplier = 1.0/particleSpawnProb;
+
+                double thrustMultiplier = (currentThrust * 0.7 + 0.3);
+
                 for (BlockPos i : rocket.getEnginePositions()) {
                     Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
                     for (int j = 0; j < maxParticlePerEngine; j++) {
@@ -179,17 +188,21 @@ public class RocketController {
                             }
                         }
 
-
-                        // not spawn too many particles. if we have too many, increase particle size and not spawn many new
-                        float particleSizeMultiplier = 1;
-                        if (maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine) < 1) {
-                            if (Math.random() > (float) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine)) {
+                        // not spawn too many particles. if we have too many, increase particle size / speed and not spawn many new
+                        if (particleSpawnProb < 1) {
+                            if (Math.random() > particleSpawnProb) {
                                 continue;
                             }
-                            particleSizeMultiplier = (float) (rocket.getEnginePositions().size() * maxParticlePerEngine) / maxParticlesPerTick;
                         }
 
-                        double speedMultiplier = -1 * (currentThrust * 0.7 + 0.3) * relativeBootTimeLin * particleSizeMultiplier * (1 + j * 0.1f);
+
+                        double speedMultiplier;
+                        float sizeMultiplier;
+
+                        speedMultiplier= -1 * thrustMultiplier * relativeBootTimeLin * Math.pow(tooManyEnginesMultiplier, 0.4) * (1 + j * 0.1f);
+
+                        sizeMultiplier= (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
+
                         if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
                             // no smoke in space
                             new RocketParticle(
@@ -202,11 +215,13 @@ public class RocketController {
                                     rocket.heading.z * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
                                     new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
                                     0.2f,
-                                    particleSizeMultiplier * 2,
+                                    sizeMultiplier * 2,
                                     500,
                                     false
                             );
                         }
+
+                        sizeMultiplier= (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.8) * relativeBootTimeLin);
 
                         for (int p = 0; p < 2; p++) {
                             new RocketParticle(
@@ -220,13 +235,15 @@ public class RocketController {
                                     new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
                                     // we not use additive blending in fabulous because it doesnt work so make it more bright
                                     (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
-                                    particleSizeMultiplier * 0.5f,
+                                    sizeMultiplier * 0.5f,
                                     20,
                                     true
                             );
                         }
+
                     }
                 }
+                //System.out.println(particles);
                 //System.out.println(currentThrust);
             }
         }
