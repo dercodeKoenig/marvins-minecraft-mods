@@ -328,7 +328,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                                 return "Analyze";
                                             }
                                         }
-                                        if (!planetIdChipSlot.client_getItemStackToRender().isEmpty()) {
+                                        if (!planetIdChipSlot.client_getItemStackToRender().isEmpty() && planet.canVisit()) {
                                             return "burn to chip";
                                         }
                                         return "";
