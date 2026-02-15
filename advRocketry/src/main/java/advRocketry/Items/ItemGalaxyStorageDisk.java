@@ -23,7 +23,7 @@ public class ItemGalaxyStorageDisk extends Item {
         );
     }
 
-    public Set<String> getKnownDimensions(ItemStack stack) {
+    public static Set<String> getKnownDimensions(ItemStack stack) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         return tag.getAllKeys();
     }

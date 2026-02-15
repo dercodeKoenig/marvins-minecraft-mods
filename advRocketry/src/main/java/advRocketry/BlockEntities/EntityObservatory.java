@@ -505,6 +505,42 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                 if (task == Task.SYNC_STORAGE_DISKS) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+                    ItemStack storageDisk1 = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
+                    ItemStack storageDisk2 = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_2);
+                    if (!(storageDisk1.getItem() instanceof ItemGalaxyStorageDisk) || !(storageDisk2.getItem() instanceof ItemGalaxyStorageDisk)) {
+                        // has no 2 data disks, can not work
+                        toggleTask(Task.IDLE, null);
+                    } else {
+                        if (hasEnoughEnergy) {
+                            consumeEnergy(ENERGY_PER_TICK);
+                            taskProgress++;
+                            guiProgressBar.setProgressAndSync((double) taskProgress / syncStorageDisksTicks);
+                            guiProgressBar.setHoverInfoAndSync("sync disks...");
+                            if (taskProgress > syncStorageDisksTicks) {
+                                System.out.println("observatory synced disks!");
+                                toggleTask(Task.IDLE, null);
+
+                                HashMap<String, Integer> dimensionData = new HashMap<>();
+                                // accumulate all known planets and their unlock points
+                                for (ItemStack stack : List.of(storageDisk1, storageDisk2)) {
+                                    for (String s : ItemGalaxyStorageDisk.getKnownDimensions(stack)) {
+                                        dimensionData.putIfAbsent(s, 0);
+                                        dimensionData.put(s, Math.max(
+                                                dimensionData.get(s),
+                                                ItemGalaxyStorageDisk.getUnlockPoints(stack, s)
+                                        ));
+                                    }
+                                }
+                                // now write this data into both disks
+                                for (ItemStack stack : List.of(storageDisk1, storageDisk2)) {
+                                    for (String s : dimensionData.keySet()) {
+                                        ItemGalaxyStorageDisk.setUnlockPoints(stack,s,dimensionData.get(s));
+                                    }
+                                }
+                            }
+                            setChanged();
+                        }
+                    }
                 }
 
                 if (task == Task.ANALYZE_PLANET) {
@@ -543,12 +579,12 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             taskProgress++;
                             guiProgressBar.setHoverInfoAndSync("writing to chip...");
                             guiProgressBar.setProgressAndSync((double) taskProgress / writePlanetToChipTicks);
-                            if(taskProgress > writePlanetToChipTicks){
-                                ItemPlanetIdChip.setSelectedDimension(taskTarget,planetChip);
-                                System.out.println("observatory write target to chip: " +taskTarget);
-                                toggleTask(Task.IDLE,null);
-                                setChanged();
+                            if (taskProgress > writePlanetToChipTicks) {
+                                ItemPlanetIdChip.setSelectedDimension(taskTarget, planetChip);
+                                System.out.println("observatory write target to chip: " + taskTarget);
+                                toggleTask(Task.IDLE, null);
                             }
+                            setChanged();
                         }
                     }
                 }

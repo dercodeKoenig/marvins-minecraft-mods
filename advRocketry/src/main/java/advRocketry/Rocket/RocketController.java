@@ -221,7 +221,7 @@ public class RocketController {
                                     rocket.heading.z * speedMultiplier*2 + (Math.random()-0.5)*0.1*speedMultiplier,
                                     new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
                                     // we not use additive blending in fabulous because it doesnt work so make it more bright
-                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
+                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.2f,
                                     particleSizeMultiplier*0.5f,
                                     20,
                                     true
