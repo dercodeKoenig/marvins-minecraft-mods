@@ -1,5 +1,6 @@
 package advRocketry.Items;
 
+import advRocketry.Config;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -11,7 +12,9 @@ import java.util.Set;
 
 public class ItemGalaxyStorageDisk extends Item {
 
-    public static int UNLOCKED_POINTS = 20 * 120;
+    public static int POINTS_UNLOCKED(){
+        return Config.INSTANCE.observatoryAnalyzePlanetTicks;
+    }
 
     public ItemGalaxyStorageDisk() {
         super(new Properties().stacksTo(1));
@@ -38,7 +41,7 @@ public class ItemGalaxyStorageDisk extends Item {
 
     public static void setUnlockPoints(ItemStack stack, String dimensionId, int points) {
         if (points < 0) points = 0;
-        if (points > UNLOCKED_POINTS) points = UNLOCKED_POINTS;
+        if (points > POINTS_UNLOCKED()) points = POINTS_UNLOCKED();
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         tag.putInt(dimensionId, points);
         ItemUtils.setTag(stack, tag);
@@ -49,6 +52,6 @@ public class ItemGalaxyStorageDisk extends Item {
     }
 
     public static boolean isDimensionUnlocked(ItemStack stack, String dimensionId) {
-        return getUnlockPoints(stack, dimensionId) == UNLOCKED_POINTS;
+        return getUnlockPoints(stack, dimensionId) == POINTS_UNLOCKED();
     }
 }

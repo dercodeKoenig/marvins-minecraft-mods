@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.network.PacketBlockEntity;
+import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
@@ -41,7 +42,6 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
-import org.joml.Random;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -125,8 +125,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             yawTarget = yaw_pitch.getFirst() * 180 / (float) Math.PI;
                             pitchTarget = yaw_pitch.getSecond() * 180 / (float) Math.PI;
                             actionTimeout = 200; // reset so it doesnt do other things
-                            pitchSpeed = 0.1f;
-                            yawSpeed = 0.1f;
+                            pitchSpeed = 0.2f;
+                            yawSpeed = 0.2f;
                         }
                     }
                 }
@@ -223,8 +223,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public int taskProgress;
     public static int writePlanetToChipTicks = 20 * 5;
     public static int syncStorageDisksTicks = 20 * 10;
-    public static int discoverPlanetTicks = 20 * 60;
-    public static int discoverAsteroidTicks = 20 * 60;
+
     public static int ENERGY_PER_TICK = 10;
     boolean hasEnoughEnergy = false;
 
@@ -281,7 +280,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 // make sure the current planet is always unlocked
                 ItemStack stack = getStackInSlot(slot);
                 if (stack.getItem() instanceof ItemGalaxyStorageDisk && level != null) {
-                    ItemGalaxyStorageDisk.setUnlockPoints(stack, level.dimension().location().toString(), ItemGalaxyStorageDisk.UNLOCKED_POINTS);
+                    ItemGalaxyStorageDisk.setUnlockPoints(stack, level.dimension().location().toString(), ItemGalaxyStorageDisk.POINTS_UNLOCKED());
                 }
 
                 EntityObservatory.this.setChanged();
@@ -329,7 +328,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                     public String getInteractText(ResourceLocation dimensionId) {
                                         PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
 
-                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.UNLOCKED_POINTS) {
+                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
                                             if (!storageDiskSlot1.client_getItemStackToRender().isEmpty()) {
                                                 return "Analyze";
                                             }
@@ -344,7 +343,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                                         PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
 
-                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.UNLOCKED_POINTS) {
+                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
                                             return "We require more information about this planet.";
                                         }
 
@@ -477,7 +476,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         if (hasEnoughEnergy) {
                             consumeEnergy(ENERGY_PER_TICK);
                             taskProgress++;
-                            if (taskProgress > discoverPlanetTicks) {
+                            if (taskProgress > Config.INSTANCE.observatoryFindPlanetTicks) {
                                 // discover a new random planet that is not already known
                                 List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
                                 Collections.shuffle(randomDimIds);
@@ -534,7 +533,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                 // now write this data into both disks
                                 for (ItemStack stack : List.of(storageDisk1, storageDisk2)) {
                                     for (String s : dimensionData.keySet()) {
-                                        ItemGalaxyStorageDisk.setUnlockPoints(stack,s,dimensionData.get(s));
+                                        ItemGalaxyStorageDisk.setUnlockPoints(stack, s, dimensionData.get(s));
                                     }
                                 }
                             }
@@ -553,9 +552,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         if (hasEnoughEnergy) {
                             consumeEnergy(ENERGY_PER_TICK);
                             taskProgress = ItemGalaxyStorageDisk.getUnlockPoints(storageDisk, taskTarget.toString());
-                            guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyStorageDisk.UNLOCKED_POINTS);
+                            guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyStorageDisk.POINTS_UNLOCKED());
                             guiProgressBar.setHoverInfoAndSync("analyzing planet...");
-                            if (taskProgress < ItemGalaxyStorageDisk.UNLOCKED_POINTS) {
+                            if (taskProgress < ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
                                 ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, taskTarget.toString(), taskProgress + 1);
                             } else {
                                 // fully unlocked!

@@ -10,4 +10,11 @@ public class Config {
     // true scale is way too small, for example earth would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering
     public double planetRenderScaleMultiplier = 10;
+
+
+    public int observatoryFindPlanetTicks = 20 * 120;
+    public int observatoryFindAsteroidTicks = 20 * 120;
+    public int observatoryAnalyzePlanetTicks = 20 * 120;
+
+
 }
