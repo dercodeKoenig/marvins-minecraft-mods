@@ -94,9 +94,9 @@ public class NavigateInSpaceToTargetDimension {
             Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planetSkyHeight, rocket.getLastLaunchPosition().getZ());
 
             Vec3 entrySpeed = new Vec3(
-                    (Math.random() * 2 - 1) * 10,
+                    (Math.random() * 2 - 1) * 1,
                     Config.INSTANCE.rocketPlanetEntrySpeedY,
-                    (Math.random() * 2 - 1) * 10);
+                    (Math.random() * 2 - 1) * 1);
 
             EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
         }

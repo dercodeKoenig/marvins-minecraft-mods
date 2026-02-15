@@ -207,6 +207,10 @@ public class SpaceMapScreen extends Screen {
 
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky().reversed()) {
 
+            // dont test for hidden planets
+            if(!shouldRenderPlanet(planet.getDimensionId()))
+                continue;;
+
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
             Vec3 pos = getPositionScaled(planet, pTicks);
 
