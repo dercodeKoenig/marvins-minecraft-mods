@@ -98,13 +98,18 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             if (!should_open && openingTicks > 0)
                 openingTicks--;
 
+            // for planet write and disk sync i do not change open/close and rotation states
+
+            // close it for this task
             if (task == Task.IDLE) {
                 should_open = false;
                 yawTarget = 0; // TODO: maybe look toward the facing or somewhere else??
                 pitchTarget = 0;
+                yawSpeed = 0.1f;
+                pitchSpeed = 0.1f;
             }
+            // open and animate for these tasks
             if (task == Task.ANALYZE_PLANET ||
-                    task == Task.WRITE_PLANET_TO_CHIP ||
                     task == Task.SCANNING_FOR_PLANETS ||
                     task == Task.SCANNING_FOR_ASTEROIDS) {
 
@@ -191,6 +196,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     myGlobalAxis.up.toVector3f()
             );
             Vector3f relativeWorldSpace = worldMatrix.transformDirection(relative);
+            relativeWorldSpace = relativeWorldSpace.normalize();
 
             // Since the model faces West (-X) by default:
             // We use Z for the first parameter (the "y" in standard atan2)
@@ -217,7 +223,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public int taskProgress;
     public static int writePlanetToChipTicks = 20 * 5;
     public static int syncStorageDisksTicks = 20 * 10;
-    public static int discoverPlanetTicks = 20 * 180;
+    public static int discoverPlanetTicks = 20 * 60;
     public static int discoverAsteroidTicks = 20 * 60;
     public static int ENERGY_PER_TICK = 10;
     boolean hasEnoughEnergy = false;
