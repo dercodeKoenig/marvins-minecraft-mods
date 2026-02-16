@@ -4,6 +4,7 @@ import ARLib.gui.GuiHandlerEntity;
 import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
 import ARLib.utils.DimensionUtils;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
@@ -63,18 +64,23 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
     public RocketFuelTank fuelTank = null;
-    public static class RocketFuelTank extends FluidTank{
+
+    public static class RocketFuelTank extends FluidTank {
         EntityRocket rocket;
+
         public RocketFuelTank(int capacity, EntityRocket rocket) {
             super(capacity);
             this.rocket = rocket;
         }
+
         // the weight calculation uses fuel to calculate weight.
         // the client usually has no idea about the fuel tank so it needs to be synced to client
         public void onContentsChanged() {
-            CompoundTag info = new CompoundTag();
-            info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
-            rocket.sendToClients(info);
+            if (!rocket.level().isClientSide) {
+                CompoundTag info = new CompoundTag();
+                info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
+                rocket.sendToClients(info);
+            }
         }
     }
 
@@ -123,7 +129,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // gui
     public GuiHandlerEntity guiHandler;
-    static long LockGuiOpenUntil = 0; // after i click launch i want to close the gui automatically, but the tick event would instantly open it. so use the global time to block it for a few ticks
+    public ARLib.gui.modules.guiModuleText infoText;
+    public int temporaryInfoTimeout = 0; // for temporary messages like planet can not be reached... display the alternate info for a few ticks
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -232,15 +239,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 20) { // sometimes for whatever reason the lock is too high maybe because lag?
-            openGui();
-        }
+        openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
     @Override
-    public void onBelowWorld(){
-        if(currentProgram == null)
+    public void onBelowWorld() {
+        if (currentProgram == null)
             super.onBelowWorld();
     }
 
@@ -255,7 +260,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return super.hurt(source, amount);
     }
 
-/// / passenger logic ////
+    /// / passenger logic ////
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
@@ -316,7 +321,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             lerpDeltaMovementSteps = 0;
         } else {
             this.lerpDeltaMovement = new Vec3(x, y, z);
-            if(currentProgram != null)
+            if (currentProgram != null)
                 // let the program do most of the job or it could jump around if server/client slightly desync
                 this.lerpDeltaMovementSteps = 20 * 120;
             else
@@ -493,8 +498,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             guiHandler.serverTick();
 
             // if out of fuel, end program
-            if (fuelTank.isEmpty())
+            if (fuelTank.isEmpty() && !level().dimension().location().equals(RocketTravelDimension.dimId))
                 endProgram();
+
+            if (temporaryInfoTimeout > 0) {
+                temporaryInfoTimeout--;
+            } else {
+                String newInfotext = "";
+                newInfotext += "Thrust max: " + ((float) Math.round(getThrustMax() * 100) / 100) + "\n";
+                newInfotext += "Mass: " + ((float) Math.round(getMass() * 100) / 100) + "\n";
+                newInfotext += "Weight: " + ((float) Math.round(getMass() * getGravity() * 100) / 100) + "\n";
+                newInfotext += "Thrust: " + Math.round(controller.getCurrentThrust() * 100) + "%";
+                infoText.setTextAndSync(newInfotext);
+            }
         }
 
         if (firstTick) {
@@ -509,6 +525,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+        // lerp logic for smooth position sync
         if (this.lerpSteps > 0) {
             this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
             --this.lerpSteps;
@@ -529,8 +546,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+        // tick rocket controller
         controller.tick();
 
+        // run program or shutdown
         if (currentProgram != null)
             currentProgram.run(this);
         else {
@@ -540,6 +559,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
 
         applyGravity();
+
 
         Dimension myDimension = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
 
@@ -559,16 +579,17 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         move(MoverType.SELF, getDeltaMovement());
 
-        if (GlobalTime.getGlobalTime() % 100 == 0) {
-            if (!level().isClientSide) {
-                if (level() == DimensionManager.getServerLevel(level().getServer(), RocketTravelDimension.dimId)) {
+        // when in space travel dim, make sure to keep chunk loaded!!
+        if (!level().isClientSide) {
+            if (GlobalTime.getGlobalTime() % 100 == 0) {
+                if (level().dimension().location().equals(RocketTravelDimension.dimId)) {
                     RocketTravelDimension.keepChunkLoaded(chunkPosition());
                 }
             }
         }
     }
 
-    public void launch(ItemStack navigationItem) {
+    public boolean launch(ItemStack navigationItem) {
 
         Level targetLevel = null;
         BlockPos targetPos = null;
@@ -592,16 +613,28 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (targetLevel != null) {
             ResourceLocation targetLevelId = targetLevel.dimension().location();
-            if (DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId).getType() == DimensionProperties.DimensionType.PLANET) {
-                // target level is planet, use planet navigation program
-                ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
-                p.target = targetPos;
-                p.targetDimensionId = targetLevelId;
-                setProgramAndSync(p);
+            Dimension targetDimesion = DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId);
+            if (targetDimesion.canVisit()) {
+                if (targetDimesion.getType() == DimensionProperties.DimensionType.PLANET) {
+                    // target level is planet, use planet navigation program
+                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
+                    p.target = targetPos;
+                    p.targetDimensionId = targetLevelId;
+                    setProgramAndSync(p);
 
-                setLastLaunchPosition(blockPosition(), true);
+                    setLastLaunchPosition(blockPosition(), true);
+                    temporaryInfoTimeout = 0;
+                    return true;
+                }
+            } else {
+                infoText.setTextAndSync("Target invalid");
+                temporaryInfoTimeout = 20 * 15;
             }
+        } else {
+            infoText.setTextAndSync("Target invalid");
+            temporaryInfoTimeout = 20 * 15;
         }
+        return false;
     }
 
     public void deconstruct() {
@@ -679,6 +712,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         RocketSaveAndLoad.addAdditionalSaveData(this, compoundTag);
     }
 
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
@@ -692,11 +726,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             int id = compoundTag.getInt("guiButtonClick");
             if (id == 2) {
                 deconstruct();
+                // closing gui client side on button click because rocket no longer exists
             }
             if (id == 3) {
                 for (BlockEntity i : blockEntities.values()) {
                     if (i instanceof EntityGuidanceComputer computer) {
-                        launch(computer.itemStackHandler.getStackInSlot(0));
+                        if (launch(computer.itemStackHandler.getStackInSlot(0))) {
+                            guiHandler.signalCloseGui(serverPlayer);
+                        }
                     }
                 }
             }
@@ -717,8 +754,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void makeGui() {
         guiHandler.modules.clear();
-        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
-        guiHandler.modules.add(fuelDisplay);
+
         for (BlockEntity i : blockEntities.values()) {
             if (i instanceof EntityGuidanceComputer computer) {
                 guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 10, 10);
@@ -726,10 +762,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
-        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
+        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
+        guiHandler.modules.add(fuelDisplay);
+
+        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20){
             public void onButtonClicked() {
                 super.onButtonClicked();
-                LockGuiOpenUntil = GlobalTime.getGlobalTime() + 5;
+                // close the gui on deconstruct, this packet can not be sent by server because the rocket no longer exists
                 if(EntityRocket.this.guiHandler.screen instanceof Screen screen){
                     screen.onClose();
                 }
@@ -737,17 +776,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         };
         deconstructButton.color = 0xffffffff;
         guiHandler.modules.add(deconstructButton);
-        guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20) {
-            public void onButtonClicked() {
-                super.onButtonClicked();
-                LockGuiOpenUntil = GlobalTime.getGlobalTime() + 5;
-                if(EntityRocket.this.guiHandler.screen instanceof Screen screen){
-                    screen.onClose();
-                }
-            }
-        };
+        guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
         launchButton.color = 0xffffffff;
         guiHandler.modules.add(launchButton);
+
+
+        infoText = new guiModuleText(4, "info", guiHandler, 10, 40, 0xff000000, false);
+        guiHandler.modules.add(infoText);
+
 
         for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
@@ -797,7 +833,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public float getMass() {
         float mass = 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
         mass += 3f * blocks.size(); // block weight
-        mass += getFuel() * 0.001f; // fuel weight, tank is synced to client
+        mass += getFuel() * 0.0005f; // fuel weight, tank is synced to client
         return mass;
     }
 
@@ -839,10 +875,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Player player = ClientUtils.getSinglePlayer();
         if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
             if (Minecraft.getInstance().options.keyUse.isDown()) {
-                if (GlobalTime.getGlobalTime() > LockGuiOpenUntil || Math.abs(GlobalTime.getGlobalTime() - LockGuiOpenUntil) > 20) { // sometimes for whatever reason the lock is too high maybe because lag?
-                    rocket.openGui();
-                    Minecraft.getInstance().options.keyUse.consumeClick();
-                }
+                rocket.openGui();
+                Minecraft.getInstance().options.keyUse.consumeClick();
             }
         }
     }
