@@ -517,7 +517,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     ItemStack storageDisk2 = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_2);
                     if (!(storageDisk1.getItem() instanceof ItemGalaxyStorageDisk) || !(storageDisk2.getItem() instanceof ItemGalaxyStorageDisk)) {
                         // has no 2 data disks, can not work
-                        toggleTask(Task.IDLE, null);
+                        toggleTask(this.lastTask, this.lastTaskTarget);
                     } else {
                         if (hasEnoughEnergy) {
                             consumeEnergy(ENERGY_PER_TICK);
@@ -570,7 +570,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             } else {
                                 // fully unlocked!
                                 System.out.println("observatory unlocked planet: " + taskTarget);
-                                toggleTask(Task.IDLE, null);
+                                toggleTask(this.lastTask, this.lastTaskTarget);
                             }
                             setChanged();
                         }
@@ -582,7 +582,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     ItemStack planetChip = itemStackHandler.getStackInSlot(PLANET_ID_CHIP_SLOT);
                     if (!(planetChip.getItem() instanceof ItemPlanetIdChip)) {
                         // has no id chip, can not work
-                        toggleTask(Task.IDLE, null);
+                        toggleTask(this.lastTask, this.lastTaskTarget);
                     } else {
                         if (hasEnoughEnergy) {
                             consumeEnergy(ENERGY_PER_TICK);
