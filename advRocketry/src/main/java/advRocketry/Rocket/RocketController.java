@@ -1,5 +1,6 @@
 package advRocketry.Rocket;
 
+import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
@@ -37,15 +38,17 @@ public class RocketController {
 
     public void tickRotation() {
         // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-        final double ROTATION_RATE = 0.05;// / rocket.size.getY();
+        final double ROTATION_RATE = 0.05;
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
         Vec3 rotationCorrection;
-        if (targetHeading.dot(rocket.heading) > -0.99)
-            rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE);
-        else
-            rotationCorrection = rocket.front.subtract(rocket.heading).scale(ROTATION_RATE);
+        if (targetHeading.dot(rocket.heading) > -0.99) {
+            rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE); //  scale makes it more smooth so i like to keep it
+            if (rotationCorrection.length() > ROTATION_RATE)
+                rotationCorrection = rotationCorrection.normalize().scale(ROTATION_RATE);
+        }else
+            rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(ROTATION_RATE);
 
         rocket.heading = rocket.heading.add(rotationCorrection).normalize();
 
@@ -114,6 +117,7 @@ public class RocketController {
         }
 
         // on planets, we never want to accelerate down because it can cause problems on low gravity planets
+        // it will fall on its own
         Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
         if (rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET) {
             desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
