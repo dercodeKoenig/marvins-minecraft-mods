@@ -56,6 +56,8 @@ public class NavigateInSpaceToTargetDimension {
         Dimension targetDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(target);
         if (targetDim == null) return true; // client might not have received the dimension sync packet
         Vec3 targetPosition = targetDim.getPosition(0);
+        Vec3 finalTargetPositionRelative = targetPosition.subtract(rocket.universePosition);
+        Vec3 finalTargetDirection = finalTargetPositionRelative.normalize();
 
         Vec3 nextTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, rocket.universePosition, DimensionManager.getDimensionManager(rocket.level().isClientSide), targetDim instanceof PlanetDimension p ? p : null);
 
@@ -67,19 +69,30 @@ public class NavigateInSpaceToTargetDimension {
 
         // move forward
         // maxSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
-        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * nextTargetPositionRelative.length());
+        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * finalTargetPositionRelative.length());
         // base speed
         double e = 0.000001;
         // slow down when off target
         double directionMultiplier1 = Math.max(0, nextTargetDirectiop.dot(rocket.universeHeading) - 0.9) * 10;
+        // slow down when off target
+        double directionMultiplier2 = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
 
-        double targetSpeed = maxSpeed * 0.9 * directionMultiplier1 + e;
-        double dspeed = targetSpeed - rocket.universeTravelSpeed;
-        if (Math.abs(dspeed) > Config.INSTANCE.rocketSpaceTravelAcceleration) {
-            dspeed = dspeed / Math.abs(dspeed) * Config.INSTANCE.rocketSpaceTravelAcceleration;
+        // the change of speed is the acceleration
+        double targetSpeed = maxSpeed * 0.9 * directionMultiplier1 * directionMultiplier2 + e;
+        double targetAcceleration = targetSpeed - rocket.universeTravelSpeed;
+        if (Math.abs(targetAcceleration) > Config.INSTANCE.rocketSpaceTravelAcceleration) {
+            targetAcceleration = Math.signum(targetAcceleration) * Config.INSTANCE.rocketSpaceTravelAcceleration;
         }
 
-        rocket.universeTravelSpeed += dspeed;
+        // the change of acceleration is the acceleration of acceleration
+        double maxAccelerationDiff = Config.INSTANCE.rocketSpaceTravelAcceleration * 0.05;
+        double accelerationDiff = targetAcceleration - rocket.universeTravelAccelerationCurrent;
+        if(Math.abs(accelerationDiff) > maxAccelerationDiff ){
+            accelerationDiff = Math.signum(accelerationDiff) * maxAccelerationDiff;
+        }
+        rocket.universeTravelAccelerationCurrent += accelerationDiff;
+
+        rocket.universeTravelSpeed += rocket.universeTravelAccelerationCurrent;
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(rocket.universeTravelSpeed));
 
         // TODO: make this much better with acceleration, also the pd controls might need tuning

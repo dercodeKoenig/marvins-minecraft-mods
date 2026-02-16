@@ -67,8 +67,13 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
-
     public void saveDimensionProperties(Path saveDir){
+        // save current properties and if required, delete old properties to support dynamic deletion of dimensions
+
+        // the save file name is namespace_path
+        // if a user sets a planet config to planet1 it would still be saved as namespace_planet1 so we need to keep track of the saved filenames to remove invalid ones after save
+        HashMap<ResourceLocation, String> saveFiles = new HashMap<>();
+
         System.out.println("[DimensionManager] saving current dimension properties...");
         try {
             Files.createDirectories(saveDir);
@@ -76,6 +81,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                 Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath());
                 String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i.properties);
                 Files.writeString(saveFile, s, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                saveFiles.put(i.getDimensionId(), saveFile.getFileName().toString());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -89,10 +95,19 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                 if (Files.isRegularFile(file)) {
                     String content = Files.readString(file);
                     DimensionProperties props = new Gson().fromJson(content, DimensionProperties.class);
+                    // delete if the dimension does not exist
                     if (!dimensions.containsKey(props.dimensionId)) {
                         Files.delete(file);
                         System.out.println("[DimensionManager] Deleted file for "+props.dimensionId+" because it no longer exists on server");
                     }
+                    // delete if it was saved under different name
+                    if (saveFiles.containsKey(props.dimensionId)){
+                        if(! saveFiles.get(props.dimensionId).equals(file.getFileName().toString())){
+                            Files.delete(file);
+                            System.out.println("[DimensionManager] Deleted file for "+props.dimensionId+" because it was saved under a different filename: "+saveFiles.get(props.dimensionId));
+                        }
+                    }
+
                 }
             }
         } catch (Exception e) {
@@ -102,12 +117,16 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     public void onServerStop() {
 
-        dimensions.remove(RocketTravelDimension.dimId); // this one does not need to be saved
+        // unload and remove rocket travel dim before saving the other dimensions
+        // this one does not need to be saved
+        dimensions.remove(RocketTravelDimension.dimId);
         DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, PlayerRemover.DEFAULT);
 
+        // save dimension properties
         Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         saveDimensionProperties(saveDir);
 
+        // save dimensions
         System.out.println("[DimensionManager] unloading and saving dimensions...");
         for (Dimension i : dimensions.values()) {
             DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
