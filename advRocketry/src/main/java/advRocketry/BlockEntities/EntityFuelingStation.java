@@ -62,14 +62,11 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
             if (rocketAssembler instanceof EntityRocketAssembler assembler) {
                 if (!myTank.isEmpty()) {
                     EntityRocket currentRocket = assembler.currentRocket;
-                    if (currentRocket != null) {
-                        if (new AABB(assembler.areaMin.getCenter(), assembler.areaMax.getCenter()).inflate(2).contains(currentRocket.position())) {
-                            linkedRocket = currentRocket;
-                        }
+                    if (currentRocket != null && currentRocket.getCurrentProgram() == null) {
+                        linkedRocket = currentRocket;
                     }
                 }
-            }
-            else
+            } else
                 linkedAssemblerPos = null;
         }
 
