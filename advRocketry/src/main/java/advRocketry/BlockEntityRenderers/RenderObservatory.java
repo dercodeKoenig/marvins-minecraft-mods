@@ -201,7 +201,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         modelMatCaseXPlus.rotateY(yaw);
 
         // open
-        modelMatCaseXPlus.translate(0f, 0, openProgress);
+        modelMatCaseXPlus.translate(0f, 0, openProgress*0.9f);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXPlus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -219,7 +219,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         modelMatCaseXMinus.rotateY(yaw);
 
         // open
-        modelMatCaseXMinus.translate(0f, 0, -openProgress);
+        modelMatCaseXMinus.translate(0f, 0, -openProgress*0.9f);
 
         shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXMinus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
