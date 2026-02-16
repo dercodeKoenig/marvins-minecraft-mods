@@ -35,6 +35,7 @@ public class DefaultGalaxy {
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         overworld.hasRingSystem = true;
         overworld.isKnown = true;
+        overworld.canVisit = true;
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
@@ -50,6 +51,7 @@ public class DefaultGalaxy {
         moon.atmosphereDensity = 0;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         moon.hasRingSystem = true;
+        moon.canVisit = true;
         galaxy.add(moon);
 
 
@@ -66,6 +68,7 @@ public class DefaultGalaxy {
         moon2.atmosphereDensity = 0;
         moon2.seaLevel = 50;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
+        moon2.canVisit = true;
         galaxy.add(moon2);
 
 
@@ -79,6 +82,7 @@ public class DefaultGalaxy {
         venus.orbitalDistanceToParent = 0.5f;
         venus.atmosphereDensity = 2;
         venus.cloudColor = new Vector3f(0.8f,1,0.5f);
+        venus.canVisit = true;
         galaxy.add(venus);
 
 
@@ -94,7 +98,7 @@ public class DefaultGalaxy {
         distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
         distantStar.radiationIntensity = 1;
         distantStar.position = new Vec3(20,2,0);
-        //galaxy.add(distantStar);
+        galaxy.add(distantStar);
 
 
 
