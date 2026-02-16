@@ -65,4 +65,8 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public boolean isKnown = false;
 
+    public boolean canVisit = false; // TODO: gas giants or stars should not be visited. observatory can write all planets, rocket should decline if not canvisit
+
+    public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
+
 }
