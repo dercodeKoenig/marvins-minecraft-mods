@@ -74,11 +74,6 @@ public class NavigateInSpaceToTargetDimension {
             dspeed = dspeed / Math.abs(dspeed) * Config.INSTANCE.rocketSpaceTravelAcceleration;
         }
 
-        if (rocket.level().getGameTime() % 20 == 0) {
-            System.out.println(rocket.universeTravelSpeed + ":" + dspeed + ":" + targetSpeed);
-            System.out.println(nextTargetPositionRelative + ":" + nextTargetDirectiop.dot(rocket.universeHeading));
-        }
-
         rocket.universeTravelSpeed += dspeed;
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(rocket.universeTravelSpeed));
 

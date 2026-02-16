@@ -11,6 +11,7 @@ import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.Rocket.RocketProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -43,6 +44,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public static int maxSize = 20;
     public static int buildTimeBase = 5;//20;
 
+    // the current rocket is the one on launchpad.
+    // if there is none on launchpad area, it will keep the reference to the previous one until it is removed or ends its program
     EntityRocket currentRocket;
 
     GuiHandlerBlockEntity guiHandler;
@@ -61,7 +64,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
         buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
-        statusText = new guiModuleText(1, "status:", guiHandler, 10, 30, 0x00000000, false);
+        statusText = new guiModuleText(1, "status:", guiHandler, 10, 35, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
     }
@@ -433,12 +436,18 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 broadcastInformationToPlayers(null);
             }
 
+
             // remove reference to current rocket if it is removed
             if (currentRocket != null && currentRocket.isRemoved())
                 currentRocket = null;
 
+            // remove reference when the rocket program is null,
+            // the following scan will reset it if it is still on launchpad area
+            if (currentRocket != null && currentRocket.getCurrentProgram() == null)
+                currentRocket = null;
+
             // scan if there is a new rocket in the landing area to be the new rocket reference
-            // TODO: if this takes too long, maybe do it only once per second
+            // TODO: if this takes too long, maybe do it only once per second ?
             AABB area;
             if (areaMin == null || areaMax == null) {
                 Vec3 landingPos = getLandingPos(null);
@@ -449,6 +458,23 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class, area);
             if (!rockets.isEmpty()) {
                 currentRocket = rockets.getFirst();
+            }
+
+
+            if (currentRocket != null) {
+
+                // TODO: this with nice vertical / horizontal progress bars?
+                String newStatus = new String();
+                if (currentRocket.getCurrentProgram() == null)
+                    newStatus += "rocket landed\n";
+                else
+                    newStatus += "rocket in flight\n";
+                newStatus += "Thrust: " + ((float)Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
+                newStatus += "Mass: " + ((float)Math.round(currentRocket.getMass() * 100) / 100) + "\n";
+                newStatus += "Weight: " + ((float)Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
+                newStatus += "Thrust: "+ Math.round(currentRocket.controller.getCurrentThrust()*100)+"%\n";
+                newStatus += "Fuel: "+ ((float)currentRocket.getFuel()/1000) + " / " +((float)currentRocket.fuelTank.getCapacity()/1000) +"\n";
+                statusText.setTextAndSync(newStatus);
             }
         }
     }

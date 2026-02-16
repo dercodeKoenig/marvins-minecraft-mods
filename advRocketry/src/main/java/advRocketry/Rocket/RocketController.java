@@ -21,6 +21,10 @@ public class RocketController {
     double currentThrust;
     Vec3 currentSecondaryThrust;
 
+    public double getCurrentThrust(){
+        return currentThrust;
+    }
+
     public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
     }

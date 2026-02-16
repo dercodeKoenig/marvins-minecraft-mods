@@ -61,7 +61,21 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<BlockPos, BlockState> blocks;
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
-    public FluidTank fuelTank = null;
+    public RocketFuelTank fuelTank = null;
+    public static class RocketFuelTank extends FluidTank{
+        EntityRocket rocket;
+        public RocketFuelTank(int capacity, EntityRocket rocket) {
+            super(capacity);
+            this.rocket = rocket;
+        }
+        // the weight calculation uses fuel to calculate weight.
+        // the client usually has no idea about the fuel tank so it needs to be synced to client
+        public void onContentsChanged() {
+            CompoundTag info = new CompoundTag();
+            info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
+            rocket.sendToClients(info);
+        }
+    }
 
     // cached values
     private float cachedThrust = -1;
@@ -81,7 +95,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     private Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
     Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
     private RocketProgram currentProgram = null;
-    RocketController controller;
+    public RocketController controller;
 
     // smooth position interpolation when server sends position update
     private double lerpX, lerpY, lerpZ;
@@ -115,7 +129,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         blocks = new HashMap<>();
         blockEntities = new HashMap<>();
         size = new Vec3i(1, 1, 1);
-        fuelTank = new FluidTank(0);
+        fuelTank = new RocketFuelTank(0, this);
 
         controller = new RocketController(this);
 
@@ -149,15 +163,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 fuelCapacity += fuelTank.getFuelCapacity();
             }
         }
-        rocket.fuelTank = new FluidTank(fuelCapacity) {
-            // the weight calculation uses fuel to calculate weight.
-            // the client usually has no idea about the fuel tank so it needs to be synced to client
-            public void onContentsChanged() {
-                CompoundTag info = new CompoundTag();
-                info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
-                rocket.sendToClients(info);
-            }
-        };
+        rocket.fuelTank = new RocketFuelTank(fuelCapacity, rocket);
         rocket.refreshDimensions();
         rocket.makeGui();
         return rocket;
