@@ -570,7 +570,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             } else {
                                 // fully unlocked!
                                 System.out.println("observatory unlocked planet: " + taskTarget);
-                                toggleTask(this.lastTask, this.lastTaskTarget);
+                                if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
+                                    toggleTask(this.lastTask, this.lastTaskTarget);
+                                else
+                                    toggleTask(Task.IDLE, null);
                             }
                             setChanged();
                         }
@@ -613,7 +616,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     }
 
     public void openGui(ServerPlayer player) {
-        if(level.isClientSide)
+        if (level.isClientSide)
             guiHandler.openGui(200, 210, true);
         else if (player != null)
             guiHandler.signalOpenGui(player, 200, 210, true);
