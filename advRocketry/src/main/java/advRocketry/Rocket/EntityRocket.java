@@ -118,7 +118,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
     public double universeTravelSpeed = 0; // simplified, this should be vec3 but we just float and the direction = heading
-    public double universeTravelAccelerationCurrent = 0; // to make it more smooth, i interpolate to the target acceleration
     public Vec3 universeHeading = new Vec3(0, 1, 0);
     public Vec3 universeTargetHeading = new Vec3(0, 1, 0);
     public Vec3 universeFront = new Vec3(0, 0, 1);

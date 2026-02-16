@@ -67,37 +67,28 @@ public class NavigateInSpaceToTargetDimension {
         rocket.universeTargetHeading = nextTargetDirectiop;
         tickUniverseRotation(rocket);
 
+        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.2));
+
         // move forward
         // maxSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
-        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * finalTargetPositionRelative.length());
+        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * Math.max(0,finalTargetPositionRelative.length()-entryDistance));
         // base speed
-        double e = 0.000001;
+        double e = 0.000005;
         // slow down when off target
         double directionMultiplier1 = Math.max(0, nextTargetDirectiop.dot(rocket.universeHeading) - 0.9) * 10;
         // slow down when off target
         double directionMultiplier2 = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
 
-        // the change of speed is the acceleration
+        // calculate acceleration
         double targetSpeed = maxSpeed * 0.9 * directionMultiplier1 * directionMultiplier2 + e;
         double targetAcceleration = targetSpeed - rocket.universeTravelSpeed;
         if (Math.abs(targetAcceleration) > Config.INSTANCE.rocketSpaceTravelAcceleration) {
             targetAcceleration = Math.signum(targetAcceleration) * Config.INSTANCE.rocketSpaceTravelAcceleration;
         }
 
-        // the change of acceleration is the acceleration of acceleration
-        double maxAccelerationDiff = Config.INSTANCE.rocketSpaceTravelAcceleration * 0.05;
-        double accelerationDiff = targetAcceleration - rocket.universeTravelAccelerationCurrent;
-        if(Math.abs(accelerationDiff) > maxAccelerationDiff ){
-            accelerationDiff = Math.signum(accelerationDiff) * maxAccelerationDiff;
-        }
-        rocket.universeTravelAccelerationCurrent += accelerationDiff;
+        rocket.universeTravelSpeed += targetAcceleration;
 
-        rocket.universeTravelSpeed += rocket.universeTravelAccelerationCurrent;
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(rocket.universeTravelSpeed));
-
-        // TODO: make this much better with acceleration, also the pd controls might need tuning
-
-        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.2));
 
         if (rocket.level() instanceof ServerLevel serverLevel && rocket.universePosition.distanceTo(targetPosition) < entryDistance) {
             // TODO: ifrocket.hasSatellites && shouldDeployThem -> deploy satellites shortly before dimension jump
