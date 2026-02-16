@@ -120,11 +120,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // the position behind & below the assembler
         BlockPos startingPos = getBlockPos().below().offset(facing.getOpposite().getStepX(), facing.getOpposite().getStepY(), facing.getOpposite().getStepZ());
 
-        // going left & right up to 16 blocks to find the largest rectangle area
+        // going left & right up to maxSize blocks to find the largest rectangle area
         // it will use as starting points one of side1 and one of side2 so the area will always include the starting pos
         Set<BlockPos> side1 = new HashSet<>();
         Set<BlockPos> side2 = new HashSet<>();
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < maxSize; i++) {
             Direction side1Direction = facing.getClockWise();
             Direction side2Direction = facing.getCounterClockWise();
             side1.add(new BlockPos(startingPos).offset(side1Direction.getStepX() * i, side1Direction.getStepY() * i, side1Direction.getStepZ() * i));
@@ -451,12 +451,17 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             AABB area;
             if (areaMin == null || areaMax == null) {
                 Vec3 landingPos = getLandingPos(null);
-                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate(8);
+                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) maxSize /2+1);
             } else {
                 area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
             List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class, area);
             if (!rockets.isEmpty()) {
+                rockets.sort((r1,r2)->{
+                    double dr1 = r1.position().distanceTo(getBlockPos().getCenter());
+                    double dr2 = r2.position().distanceTo(getBlockPos().getCenter());
+                    return (dr1 > dr2) ? 1:-1;
+                });
                 currentRocket = rockets.getFirst();
             }
 
@@ -469,12 +474,34 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     newStatus += "rocket landed\n";
                 else
                     newStatus += "rocket in flight\n";
-                newStatus += "Thrust: " + ((float)Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
-                newStatus += "Mass: " + ((float)Math.round(currentRocket.getMass() * 100) / 100) + "\n";
-                newStatus += "Weight: " + ((float)Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
-                newStatus += "Thrust: "+ Math.round(currentRocket.controller.getCurrentThrust()*100)+"%\n";
-                newStatus += "Fuel: "+ ((float)currentRocket.getFuel()/1000) + " / " +((float)currentRocket.fuelTank.getCapacity()/1000) +"\n";
+                newStatus += "Thrust: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
+                newStatus += "Mass: " + ((float) Math.round(currentRocket.getMass() * 100) / 100) + "\n";
+                newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
+                newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
+                newStatus += "Fuel: " + ((float) currentRocket.getFuel() / 1000) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
                 statusText.setTextAndSync(newStatus);
+
+                buildButton.setIsEnabledAndBroadcastUpdate(false);
+            }
+
+            if(currentRocket == null) {
+                if (areaMin == null || areaMax == null) {
+                    if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).getType() != DimensionProperties.DimensionType.SPACE_STATION)
+                        statusText.setTextAndSync("No launchpad detected");
+                    else
+                        statusText.setTextAndSync("Launch zone not detected");
+
+                    buildButton.setIsEnabledAndBroadcastUpdate(false);
+                } else {
+                    buildButton.setIsEnabledAndBroadcastUpdate(true);
+
+                    statusText.setTextAndSync(
+                            "Ready to build a rocket!\n\nA Rocket requires\n" +
+                                    "- 1 Guidance Computer\n"+
+                                    "- Thrusters\n"+
+                                    "- FuelTanks\n"
+                    );
+                }
             }
         }
     }
