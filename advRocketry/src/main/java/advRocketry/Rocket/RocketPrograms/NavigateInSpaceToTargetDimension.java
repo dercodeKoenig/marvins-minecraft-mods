@@ -19,7 +19,8 @@ public class NavigateInSpaceToTargetDimension {
 
         Vec3 rotationCorrection;
         if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.99) {
-            rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading);
+            rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
+            ; // scale makes it more smooth
             if (rotationCorrection.length() > Config.INSTANCE.rocketSpaceTravelRotationRate)
                 rotationCorrection = rotationCorrection.normalize().scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
         } else
@@ -65,9 +66,14 @@ public class NavigateInSpaceToTargetDimension {
         tickUniverseRotation(rocket);
 
         // move forward
-        // targetSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
-        double targetSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * nextTargetPositionRelative.length());
-        targetSpeed = 0.000001 + targetSpeed * Math.max(0, nextTargetDirectiop.dot(rocket.universeHeading) - 0.9) * 10;
+        // maxSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
+        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * nextTargetPositionRelative.length());
+        // base speed
+        double e = 0.000001;
+        // slow down when off target
+        double directionMultiplier1 = Math.max(0, nextTargetDirectiop.dot(rocket.universeHeading) - 0.9) * 10;
+
+        double targetSpeed = maxSpeed * 0.9 * directionMultiplier1 + e;
         double dspeed = targetSpeed - rocket.universeTravelSpeed;
         if (Math.abs(dspeed) > Config.INSTANCE.rocketSpaceTravelAcceleration) {
             dspeed = dspeed / Math.abs(dspeed) * Config.INSTANCE.rocketSpaceTravelAcceleration;
@@ -88,9 +94,9 @@ public class NavigateInSpaceToTargetDimension {
             Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planetSkyHeight, rocket.getLastLaunchPosition().getZ());
 
             Vec3 entrySpeed = new Vec3(
-                    (Math.random() * 2 - 1) * 1,
+                    (Math.random() * 2 - 1) * 0.2,
                     Config.INSTANCE.rocketPlanetEntrySpeedY,
-                    (Math.random() * 2 - 1) * 1);
+                    (Math.random() * 2 - 1) * 0.2);
 
             EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
         }

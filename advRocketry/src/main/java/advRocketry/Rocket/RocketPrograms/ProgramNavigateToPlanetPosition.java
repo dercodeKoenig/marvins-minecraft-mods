@@ -50,6 +50,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             int maxY = Math.max(yTargetBelow, yCurrentBelow);
 
+            double maxDiffY = 300;
+
             if (!isStarted) {
                 // make sure it starts correctly
                 rocket.enableSecondaryEngines(false, false);
@@ -72,7 +74,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                     double targetX = rocket.position().x + dx * xzMultiplier;
                     double targetZ = rocket.position().z + dz * xzMultiplier;
 
-                    targetVec3 = new Vec3(targetX, Math.max(maxY + travelHeight, targetVec3.y), targetZ);
+                    targetVec3 = new Vec3(targetX, Math.max(maxY + travelHeight, rocket.position().y-maxDiffY), targetZ);
 
                     // rotate to the target front if it is a rocket assembler there
                     if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
@@ -93,7 +95,6 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double yOffset = -3; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
                 double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
 
-                double maxDiffY = 500;
                 if (rocket.position().y - targetY > maxDiffY) {
                     targetY = rocket.position().y - maxDiffY;
                 }
@@ -101,6 +102,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 targetVec3 = new Vec3(targetVec3.x, targetY, targetVec3.z);
 
             }
+
 
             rocket.setTargetPosition(targetVec3, false);
 
