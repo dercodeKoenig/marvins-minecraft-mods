@@ -27,7 +27,7 @@ public class Observatory extends BlockMultiblockMaster {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         BlockEntity be = level.getBlockEntity(pos);
-        if(be instanceof EntityObservatory observatory){
+        if(be instanceof EntityObservatory observatory && !state.getBlock().equals(newState.getBlock())){
             observatory.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
