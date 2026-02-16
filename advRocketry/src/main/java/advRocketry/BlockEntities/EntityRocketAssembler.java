@@ -12,6 +12,7 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -378,6 +379,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 if (ret.canConstruct) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
                     buildProgress = (int) (buildTimeBase * (areaMax.getY() - areaMin.getY() + 2) * 1.5);
+
+                    // signal client to close the gui
+                    guiHandler.signalCloseGui(serverPlayer);
                 }
             }
         }
@@ -402,8 +406,6 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             buildProgress = compoundTag.getInt("buildProgress");
         }
 
-        //System.out.println(areaMin);
-        //System.out.println(areaMax);
         guiHandler.readClient(compoundTag);
     }
 
@@ -451,16 +453,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             AABB area;
             if (areaMin == null || areaMax == null) {
                 Vec3 landingPos = getLandingPos(null);
-                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) maxSize /2+1);
+                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) maxSize / 2 + 1);
             } else {
                 area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
             List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class, area);
             if (!rockets.isEmpty()) {
-                rockets.sort((r1,r2)->{
+                rockets.sort((r1, r2) -> {
                     double dr1 = r1.position().distanceTo(getBlockPos().getCenter());
                     double dr2 = r2.position().distanceTo(getBlockPos().getCenter());
-                    return (dr1 > dr2) ? 1:-1;
+                    return (dr1 > dr2) ? 1 : -1;
                 });
                 currentRocket = rockets.getFirst();
             }
@@ -474,17 +476,17 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     newStatus += "rocket landed\n";
                 else
                     newStatus += "rocket in flight\n";
-                newStatus += "Thrust: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
+                newStatus += "\nThrust max: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
                 newStatus += "Mass: " + ((float) Math.round(currentRocket.getMass() * 100) / 100) + "\n";
                 newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
                 newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
-                newStatus += "Fuel: " + ((float) currentRocket.getFuel() / 1000) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
+                newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
                 statusText.setTextAndSync(newStatus);
 
                 buildButton.setIsEnabledAndBroadcastUpdate(false);
             }
 
-            if(currentRocket == null) {
+            if (currentRocket == null) {
                 if (areaMin == null || areaMax == null) {
                     if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).getType() != DimensionProperties.DimensionType.SPACE_STATION)
                         statusText.setTextAndSync("No launchpad detected");
@@ -497,8 +499,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
                     statusText.setTextAndSync(
                             "Ready to build a rocket!\n\nA Rocket requires\n" +
-                                    "- 1 Guidance Computer\n"+
-                                    "- Thrusters\n"+
+                                    "- 1 Guidance Computer\n" +
+                                    "- Thrusters\n" +
                                     "- FuelTanks\n"
                     );
                 }
