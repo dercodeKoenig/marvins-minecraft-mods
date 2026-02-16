@@ -67,7 +67,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
 
         if (linkedRocket != null) {
             if (linkedRocket.getCurrentProgram() == null) {
-                FluidStack available = myTank.drain(10, FluidAction.SIMULATE);
+                FluidStack available = myTank.drain(50, FluidAction.SIMULATE);
                 int canFill = linkedRocket.fuelTank.fill(available, FluidAction.SIMULATE);
                 FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
                 linkedRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
