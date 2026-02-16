@@ -58,14 +58,9 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
         super.tick();
         if (linkedAssemblerPos != null) {
             linkedRocket = null;
-            BlockEntity rocketAssembler = level.getBlockEntity(linkedAssemblerPos);
-            if (rocketAssembler instanceof EntityRocketAssembler assembler) {
-                if (!myTank.isEmpty()) {
-                    EntityRocket currentRocket = assembler.currentRocket;
-                    if (currentRocket != null && currentRocket.getCurrentProgram() == null) {
-                        linkedRocket = currentRocket;
-                    }
-                }
+            BlockEntity be = level.getBlockEntity(linkedAssemblerPos);
+            if (be instanceof EntityRocketAssembler assembler) {
+                linkedRocket = assembler.currentRocket;
             } else
                 linkedAssemblerPos = null;
         }
