@@ -58,14 +58,11 @@ public class NavigateToSpaceTravelDimension {
                     ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
                     BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
-
                     rocket.teleportTo(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0));
-
 
                     // initial command to force load the chunk so that the rocket starts ticking
                     RocketTravelDimension.keepChunkLoaded(targetPos);
 
-                    // newRocket.endProgram();
                 }else{
                     // client side, while waiting on dimension transition do not stop and rotate the rocket midflight, just keep going and wait for teleport to kick in
                     rocket.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
