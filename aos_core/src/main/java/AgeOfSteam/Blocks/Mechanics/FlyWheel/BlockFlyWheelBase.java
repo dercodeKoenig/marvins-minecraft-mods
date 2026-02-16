@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class BlockFlyWheelBase extends Block implements EntityBlock {
 
-    public static EnumProperty<Direction.Axis> ROTATION_AXIS = EnumProperty.create("axis", Direction.Axis.class);
+    public static EnumProperty<Direction.Axis> ROTATION_AXIS = BlockStateProperties.AXIS;
 
     public BlockFlyWheelBase(Properties p) {
         super(p);

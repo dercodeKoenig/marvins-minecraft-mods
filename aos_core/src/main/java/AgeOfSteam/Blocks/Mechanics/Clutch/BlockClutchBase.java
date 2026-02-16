@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class BlockClutchBase extends Block implements EntityBlock {
 
-    public static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
+    public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public BlockClutchBase() {
         super(Properties.of().noOcclusion().strength(1.0f));

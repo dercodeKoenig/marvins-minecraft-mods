@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
@@ -27,7 +28,7 @@ import java.util.Map;
 
 public abstract class BlockGearboxBase extends Block implements EntityBlock {
 
-    public static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
+    public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;;
     public static Map<Direction, BooleanProperty> solidBlockConnections = new HashMap<>();
 
     static {
