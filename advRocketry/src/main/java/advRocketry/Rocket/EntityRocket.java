@@ -46,6 +46,7 @@ import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -111,6 +112,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
     public double universeTravelSpeed = 0; // simplified, this should be vec3 but we just float and the direction = heading
+    public double universeTravelAccelerationCurrent = 0; // to make it more smooth, i interpolate to the target acceleration
     public Vec3 universeHeading = new Vec3(0, 1, 0);
     public Vec3 universeTargetHeading = new Vec3(0, 1, 0);
     public Vec3 universeFront = new Vec3(0, 0, 1);
@@ -237,6 +239,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     @Override
+    public void onBelowWorld(){
+        if(currentProgram == null)
+            super.onBelowWorld();
+    }
+
+    @Override
     public boolean hurt(DamageSource source, float amount) {
         if (source.getEntity() instanceof Player player) {
             if (!level().isClientSide) {
@@ -247,6 +255,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return super.hurt(source, amount);
     }
 
+/// / passenger logic ////
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
@@ -297,6 +306,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return RotationUtils.localToWorld(this, new Vec3(seatPos.getX() + 0.5, seatPos.getY() + 0.2, seatPos.getZ() + 0.5));
     }
 
+
+    /// / smooth Motion / Position lerp system ////
 
     // we need slow movement but also the correct initial positions / movements when the entity loads, for example after dimension change
     public void lerpMotion(double x, double y, double z) {
@@ -481,9 +492,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             guiHandler.serverTick();
 
-            // if out of fuel and on planet dimension, end program
-            // in space i just will keep it going anyway
-            if (fuelTank.isEmpty() && DimensionManager.INSTANCE_SERVER.get(level().dimension().location()).getType().equals(DimensionProperties.DimensionType.PLANET))
+            // if out of fuel, end program
+            if (fuelTank.isEmpty())
                 endProgram();
         }
 
