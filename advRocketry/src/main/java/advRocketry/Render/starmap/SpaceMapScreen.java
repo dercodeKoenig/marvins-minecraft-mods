@@ -132,7 +132,7 @@ public class SpaceMapScreen extends Screen {
         zoom -= (float) (scrollY * zoomSpeed);
 
         // Clamp zoom so we don't go past the planets or infinitely far away
-        zoom = Math.max(1f, Math.min(zoom, 15000f));
+        zoom = Math.max(1f, Math.min(zoom, 2000000f));
 
         return true; // Return true to tell Minecraft we handled the input
     }
@@ -178,7 +178,7 @@ public class SpaceMapScreen extends Screen {
         float fov = (float) Math.toRadians(60.0f); // 60 is usually better for maps than 90
         float aspect = (float) windowWidth / windowHeight;
         float near = 0.1f;
-        float far = 100000f;
+        float far = zoom*2;
         projMatrix.setPerspective(fov, aspect, near, far);
         return projMatrix;
     }
