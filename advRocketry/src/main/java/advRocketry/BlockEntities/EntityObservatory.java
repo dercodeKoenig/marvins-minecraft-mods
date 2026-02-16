@@ -220,6 +220,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public Task task = Task.IDLE;
     public ResourceLocation taskTarget = null;
+    public Task lastTask = Task.IDLE;
+    public ResourceLocation lastTaskTarget = null;
     public int taskProgress;
     public static int writePlanetToChipTicks = 20 * 5;
     public static int syncStorageDisksTicks = 20 * 10;
@@ -300,75 +302,82 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 143, 0xff000000, false)
         );
 
-        guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
-                    public void onButtonClicked() {
-                        Minecraft.getInstance().setScreen(
-                                new SpaceMapScreen() {
-                                    @Override
-                                    public void tick() {
-                                        super.tick();
-                                        // make sure the main gui stays in sync
-                                        EntityObservatory.this.guiHandler.sendPing();
-                                    }
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
+            // can not do new SpaceMapScreen() on server!!!!!
+            guiHandler.modules.add(
+                    new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H)
+            );
+        } else {
+            guiHandler.modules.add(
+                    new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
+                        public void onButtonClicked() {
+                            Minecraft.getInstance().setScreen(
+                                    new SpaceMapScreen() {
+                                        @Override
+                                        public void tick() {
+                                            super.tick();
+                                            // make sure the main gui stays in sync
+                                            EntityObservatory.this.guiHandler.sendPing();
+                                        }
 
-                                    @Override
-                                    public void onClose() {
-                                        super.onClose();
-                                        // open the main gui again
-                                        openGui();
-                                    }
+                                        @Override
+                                        public void onClose() {
+                                            super.onClose();
+                                            // open the main gui again
+                                            openGui(null);
+                                        }
 
-                                    public void interact(ResourceLocation dimensionId) {
-                                        CompoundTag info = new CompoundTag();
-                                        info.putString("interact", dimensionId.toString());
-                                        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
-                                    }
+                                        public void interact(ResourceLocation dimensionId) {
+                                            CompoundTag info = new CompoundTag();
+                                            info.putString("interact", dimensionId.toString());
+                                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
+                                        }
 
-                                    public String getInteractText(ResourceLocation dimensionId) {
-                                        PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+                                        public String getInteractText(ResourceLocation dimensionId) {
+                                            PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
 
-                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
-                                            if (!storageDiskSlot1.client_getItemStackToRender().isEmpty()) {
-                                                return "Analyze";
+                                            if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                                if (!storageDiskSlot1.client_getItemStackToRender().isEmpty()) {
+                                                    return "Analyze";
+                                                }
                                             }
+                                            if (!planetIdChipSlot.client_getItemStackToRender().isEmpty()) {
+                                                return "burn to chip";
+                                            }
+                                            return "";
                                         }
-                                        if (!planetIdChipSlot.client_getItemStackToRender().isEmpty()) {
-                                            return "burn to chip";
+
+                                        public String getPlanetInfoText(ResourceLocation dimensionId) {
+
+                                            PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+
+                                            if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                                return "We require more information about this planet.";
+                                            }
+
+                                            return planet.getName() + "\n" +
+                                                    "g:" + planet.getGravitationalMultiplier() + "\n";
+                                            // todo: add more information, temperature, atm density/composition
                                         }
-                                        return "";
+
+                                        public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
+                                            Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
+                                            if (((PlanetDimension) (d)).isKnown()) {
+                                                return true;
+                                            }
+
+                                            int discoverStatus = clientGetDiscoverStatusFromCurrentStorageItem(dimensionId);
+                                            if (discoverStatus != -1)
+                                                return true;
+
+                                            return false;
+                                        }
                                     }
-
-                                    public String getPlanetInfoText(ResourceLocation dimensionId) {
-
-                                        PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
-
-                                        if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
-                                            return "We require more information about this planet.";
-                                        }
-
-                                        return planet.getName() + "\n" +
-                                                "g:" + planet.getGravitationalMultiplier() + "\n";
-                                        // todo: add more information, temperature, atm density/composition
-                                    }
-
-                                    public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
-                                        Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
-                                        if (((PlanetDimension) (d)).isKnown()) {
-                                            return true;
-                                        }
-
-                                        int discoverStatus = clientGetDiscoverStatusFromCurrentStorageItem(dimensionId);
-                                        if (discoverStatus != -1)
-                                            return true;
-
-                                        return false;
-                                    }
-                                }
-                        );
+                            );
+                        }
                     }
-                }
-        );
+            );
+        }
 
         currentTaskText = new ARLib.gui.modules.guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
         guiHandler.modules.add(currentTaskText);
@@ -517,7 +526,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             guiProgressBar.setHoverInfoAndSync("sync disks...");
                             if (taskProgress > syncStorageDisksTicks) {
                                 System.out.println("observatory synced disks!");
-                                toggleTask(Task.IDLE, null);
 
                                 HashMap<String, Integer> dimensionData = new HashMap<>();
                                 // accumulate all known planets and their unlock points
@@ -536,6 +544,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                         ItemGalaxyStorageDisk.setUnlockPoints(stack, s, dimensionData.get(s));
                                     }
                                 }
+
+                                // resume task
+                                toggleTask(this.lastTask, this.lastTaskTarget);
                             }
                             setChanged();
                         }
@@ -581,7 +592,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             if (taskProgress > writePlanetToChipTicks) {
                                 ItemPlanetIdChip.setSelectedDimension(taskTarget, planetChip);
                                 System.out.println("observatory write target to chip: " + taskTarget);
-                                toggleTask(Task.IDLE, null);
+
+                                // resume task
+                                toggleTask(this.lastTask, this.lastTaskTarget);
                             }
                             setChanged();
                         }
@@ -599,8 +612,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         ((EntityObservatory) t).tick();
     }
 
-    public void openGui() {
-        guiHandler.openGui(200, 210, true);
+    public void openGui(ServerPlayer player) {
+        if(level.isClientSide)
+            guiHandler.openGui(200, 210, true);
+        else if (player != null)
+            guiHandler.signalOpenGui(player, 200, 210, true);
     }
 
     // helper methods for gui rendering
@@ -618,6 +634,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 taskTarget = null;
             }
         }
+        this.lastTask = this.task;
+        this.lastTaskTarget = this.taskTarget;
         this.task = task;
         this.taskTarget = taskTarget;
         this.taskProgress = 0;
@@ -689,10 +707,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     toggleTask(Task.ANALYZE_PLANET, target);
                 }
 
-                // make it re-open normal gui
-                CompoundTag info = new CompoundTag();
-                info.put("openGui", new CompoundTag());
-                PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(this, info));
+                // make player re-open normal gui
+                openGui(player);
             }
         }
 
@@ -711,9 +727,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     @Override
     public void readClient(CompoundTag tag) {
         guiHandler.readClient(tag);
-        if (tag.contains("openGui")) {
-            openGui();
-        }
         if (tag.contains("task")) {
             task = Task.values()[tag.getInt("task")];
         }
@@ -833,9 +846,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!world.isClientSide) {
-            CompoundTag info = new CompoundTag();
-            info.put("openGui", new CompoundTag());
-            PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(this, info));
+            openGui((ServerPlayer) player);
         }
         return InteractionResult.SUCCESS;
     }
