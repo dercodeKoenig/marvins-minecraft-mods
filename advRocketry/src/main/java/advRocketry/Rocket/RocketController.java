@@ -22,7 +22,7 @@ public class RocketController {
     double currentThrust;
     Vec3 currentSecondaryThrust;
 
-    public double getCurrentThrust(){
+    public double getCurrentThrust() {
         return currentThrust;
     }
 
@@ -47,7 +47,7 @@ public class RocketController {
             rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE); //  scale makes it more smooth so i like to keep it
             if (rotationCorrection.length() > ROTATION_RATE)
                 rotationCorrection = rotationCorrection.normalize().scale(ROTATION_RATE);
-        }else
+        } else
             rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(ROTATION_RATE);
 
         rocket.heading = rocket.heading.add(rotationCorrection).normalize();
@@ -57,7 +57,7 @@ public class RocketController {
         Vec3 targetFrontValid = rocket.heading.cross(rocket.getTargetFront().cross(rocket.heading)).normalize();
         if (targetFrontValid.dot(rocket.front) < -0.9) // get some movement if it is directly on the other side
             targetFrontValid = rocket.heading.cross(rocket.front);
-        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(ROTATION_RATE*0.5f);
+        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(ROTATION_RATE * 0.5f);
         Vec3 newFront = rocket.front.add(rotationCorrection).normalize();
         // make sure the front is 100% always orthogonal, just for extra security
         Vec3 right = rocket.heading.cross(newFront).normalize();
@@ -114,6 +114,14 @@ public class RocketController {
 
             currentSecondaryThrust = secondaryThrustersForce;
             // TODO: render secondaryThrustersForce particles based on secondaryThrustersForce
+
+            // burn a fixed fuel amount if secondary engines are on for space navigation
+            double fuelToBurn = (double) rocket.getFuelRateMax() / 1000;
+            int fuelToBurnInt = (int) fuelToBurn;
+            if (fuelToBurnInt == 0 && fuelToBurn > 0) {
+                fuelToBurnInt = Math.random() < fuelToBurn ? 1 : 0;
+            }
+            rocket.fuelTank.drain(fuelToBurnInt, IFluidHandler.FluidAction.EXECUTE);
         }
 
         // on planets, we never want to accelerate down because it can cause problems on low gravity planets
@@ -179,10 +187,10 @@ public class RocketController {
                 int maxParticlePerEngine = 2;
 
                 double particleSpawnProb = (double) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine);
-                if(particleSpawnProb > 1)
+                if (particleSpawnProb > 1)
                     particleSpawnProb = 1;
 
-                double tooManyEnginesMultiplier = 1.0/particleSpawnProb;
+                double tooManyEnginesMultiplier = 1.0 / particleSpawnProb;
 
                 double thrustMultiplier = (currentThrust * 0.7 + 0.3);
 
@@ -207,9 +215,9 @@ public class RocketController {
                         double speedMultiplier;
                         float sizeMultiplier;
 
-                        speedMultiplier= -1 * thrustMultiplier * relativeBootTimeLin * Math.pow(tooManyEnginesMultiplier, 0.4) * (1 + j * 0.1f);
+                        speedMultiplier = -1 * thrustMultiplier * relativeBootTimeLin * Math.pow(tooManyEnginesMultiplier, 0.4) * (1 + j * 0.1f);
 
-                        sizeMultiplier= (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
+                        sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
 
                         if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
                             // no smoke in space
@@ -229,7 +237,7 @@ public class RocketController {
                             );
                         }
 
-                        sizeMultiplier= (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.8) * relativeBootTimeLin);
+                        sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.8) * relativeBootTimeLin);
 
                         for (int p = 0; p < 2; p++) {
                             new RocketParticle(
