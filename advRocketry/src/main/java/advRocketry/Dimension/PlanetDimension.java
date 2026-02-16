@@ -91,9 +91,10 @@ public class PlanetDimension extends Dimension {
         if (properties().dayTimeReference == null) {
             return false;
         }
-        if (properties().radiationIntensity > 0) { // star
+        if(!properties().canVisit) {
             return false;
         }
+
         return true;
     }
 
@@ -122,7 +123,9 @@ public class PlanetDimension extends Dimension {
         return properties().texture;
     }
 
-    public Vector3f getSkyColor() {return new Vector3f(properties().skyColor);}
+    public Vector3f getSkyColor() {
+        return new Vector3f(properties().skyColor);
+    }
 
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
@@ -132,7 +135,9 @@ public class PlanetDimension extends Dimension {
         return new Vector3f(properties().fogColor);
     }
 
-    public Vector3f getReflectiveTextureTintColor() {return new Vector3f(properties().reflectiveTextureTintColor);}
+    public Vector3f getReflectiveTextureTintColor() {
+        return new Vector3f(properties().reflectiveTextureTintColor);
+    }
 
     public boolean hasRings() {
         return properties().hasRingSystem;
@@ -150,13 +155,21 @@ public class PlanetDimension extends Dimension {
         return properties().hasCustomSky;
     }
 
-    public ResourceLocation getParentDimensionId(){ return properties().parentDimensionId; }
+    public ResourceLocation getParentDimensionId() {
+        return properties().parentDimensionId;
+    }
 
-    public float getorbitalDistanceToParent(){ return properties().orbitalDistanceToParent; }
+    public float getorbitalDistanceToParent() {
+        return properties().orbitalDistanceToParent;
+    }
 
-    public float getorbitalBaseOffsetDegrees(){ return properties().orbitalBaseOffsetDegrees; }
+    public float getorbitalBaseOffsetDegrees() {
+        return properties().orbitalBaseOffsetDegrees;
+    }
 
-    public Vec3 getOrbitAxis(){return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);}
+    public Vec3 getOrbitAxis() {
+        return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);
+    }
 
     @Override
     public double getTerrainBrightness(float partialTick) {
@@ -323,15 +336,15 @@ public class PlanetDimension extends Dimension {
 
 
     public float getDayTimePerTick() {
-        if(properties().targetDayLength <= 0)  return 0;
+        if (properties().targetDayLength <= 0) return 0;
         return (float) Level.TICKS_PER_DAY / properties().targetDayLength;
     }
 
     public void trackDayTimeNormal() {
-        if(properties().targetDayLength > 0) {
+        if (properties().targetDayLength > 0) {
             properties().dayTime += getDayTimePerTick();
             properties().dayTime = properties().dayTime % Level.TICKS_PER_DAY;
-        }else{
+        } else {
             properties().dayTime = -properties().targetDayLength;
         }
     }
@@ -339,7 +352,7 @@ public class PlanetDimension extends Dimension {
     public void tick() {
         super.tickStarCache();
 
-        if(!isClientSide){
+        if (!isClientSide) {
             ServerLevel level = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), getDimensionId());
             if (level != null) {
                 if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
@@ -361,7 +374,7 @@ public class PlanetDimension extends Dimension {
             }
         }
 
-        if(isClientSide){
+        if (isClientSide) {
             Dimension myDimension = ClientUtils.getPlayerDimension();
             if (myDimension.getDimensionId().equals(this.getDimensionId())) {
                 if (properties().targetDayLength > 0)
