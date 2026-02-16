@@ -26,36 +26,37 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
     public EntityEnergyInputBlock(BlockPos p_155229_, BlockState p_155230_) {
         this(ENTITY_ENERGY_INPUT_BLOCK.get(), p_155229_, p_155230_);
     }
+
     public EntityEnergyInputBlock(BlockEntityType type, BlockPos p_155229_, BlockState p_155230_) {
         super(type, p_155229_, p_155230_);
         energyStorage = new BlockEntityBattery(this, 10000);
         this.guiHandler = new GuiHandlerBlockEntity(this);
-        this.guiHandler.getModules().add(new guiModuleEnergy(0,this,this.guiHandler,10,10));
+        this.guiHandler.getModules().add(new guiModuleEnergy(0, this, this.guiHandler, 10, 10));
     }
 
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag,registries);
+        super.loadAdditional(tag, registries);
         if (tag.contains("Energy")) {
-            energyStorage.deserializeNBT(registries,tag.get("Energy"));
+            energyStorage.deserializeNBT(registries, tag.get("Energy"));
         }
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag,registries);
+        super.saveAdditional(tag, registries);
         tag.put("Energy", energyStorage.serializeNBT(registries));
     }
 
     @Override
     public int receiveEnergy(int i, boolean b) {
-        return energyStorage.receiveEnergy(i,b);
+        return energyStorage.receiveEnergy(i, b);
     }
 
     @Override
     public int extractEnergy(int i, boolean b) {
-        return energyStorage.extractEnergy(i,b);
+        return energyStorage.extractEnergy(i, b);
     }
 
     @Override
@@ -81,23 +82,21 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
 
     @Override
     public void readServer(CompoundTag tagIn, ServerPlayer p) {
-      this.guiHandler. readServer(tagIn);
+        this.guiHandler.readServer(tagIn);
     }
+
     @Override
     public void readClient(CompoundTag tagIn) {
         this.guiHandler.readClient(tagIn);
-
-        if(tagIn.contains("openGui")){
-            openGui();
-        }
     }
-    public void openGui(){
-        guiHandler.openGui(100,74, true);
+
+    public void signalOpenGui(ServerPlayer player) {
+        guiHandler.signalOpenGui(player, 100, 74, true);
     }
 
     public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
-        if(!level.isClientSide)
-            ((EntityEnergyInputBlock)t).guiHandler.serverTick();
+        if (!level.isClientSide)
+            ((EntityEnergyInputBlock) t).guiHandler.serverTick();
     }
 
 }

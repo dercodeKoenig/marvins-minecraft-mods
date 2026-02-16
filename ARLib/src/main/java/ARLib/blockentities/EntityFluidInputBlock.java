@@ -165,13 +165,10 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
     @Override
     public void readClient(CompoundTag tag) {
         guiHandler.readClient(tag);
-        if(tag.contains("openGui")){
-            openGui();
-        }
     }
 
-    public void openGui() {
-        guiHandler.openGui(176, 165, true);
+    public void signalOpenGui(ServerPlayer player) {
+        guiHandler.signalOpenGui(player, 176, 165, true);
     }
 
     @Override

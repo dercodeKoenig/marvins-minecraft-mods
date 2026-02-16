@@ -1,18 +1,15 @@
 package ARLib.blockentities;
 
 
-import ARLib.gui.IGuiHandler;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.BlockEntityItemStackHandler;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -86,22 +83,20 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
     @Override
     public void readClient(CompoundTag tagIn) {
         this.guiHandler.readClient(tagIn);
-        if (tagIn.contains("openGui")) {
-            openGui();
-        }
     }
 
-    public void openGui() {
-        guiHandler.openGui(176, 126, true);
+    public void signalOpenGui(ServerPlayer player) {
+        guiHandler.signalOpenGui(player,176, 126, true);
     }
 
-    public void popItems() {
+    public void popInventory() {
         if (!level.isClientSide) {
             for (int i = 0; i < inventory.getSlots(); i++) {
                 ItemStack stack = inventory.getStackInSlot(i).copy();
                 popResource(level, getBlockPos(), stack);
                 inventory.setStackInSlot(i, ItemStack.EMPTY);
             }
+            setChanged();
         }
     }
 

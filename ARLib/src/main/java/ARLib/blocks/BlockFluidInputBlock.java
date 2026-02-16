@@ -21,6 +21,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +43,10 @@ public class BlockFluidInputBlock extends BlockMultiblockPart implements EntityB
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!world.isClientSide) {
             if (super.useWithoutItem(state, world, pos, player, hitResult) == InteractionResult.PASS) {
-                CompoundTag info = new CompoundTag();
-                info.putByte("openGui", (byte) 0);
-                PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(world, pos, info));
+                BlockEntity be = world.getBlockEntity(pos);
+                if(be instanceof EntityFluidInputBlock entityFluidInputBlock){
+                    entityFluidInputBlock.signalOpenGui((ServerPlayer) player);
+                }
             }
         }
         return InteractionResult.SUCCESS;
