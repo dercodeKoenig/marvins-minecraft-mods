@@ -17,9 +17,8 @@ public class NavigateInSpaceToTargetDimension {
     // copied from rocketcontroller
     public static void tickUniverseRotation(EntityRocket rocket) {
 
-        // todo shouldnt this be normalized before scale?
         Vec3 rotationCorrection;
-        if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.9) {
+        if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.99) {
             rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading);
             if (rotationCorrection.length() > Config.INSTANCE.rocketSpaceTravelRotationRate)
                 rotationCorrection = rotationCorrection.normalize().scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
@@ -29,7 +28,7 @@ public class NavigateInSpaceToTargetDimension {
         rocket.universeHeading = rocket.universeHeading.add(rotationCorrection).normalize();
 
         Vec3 targetFrontValid = rocket.universeHeading.cross(new Vec3(0, 1, 0).cross(rocket.universeHeading)).normalize();
-        if (targetFrontValid.dot(rocket.universeFront) < -0.9) // get some movement if it is directly on the other side
+        if (targetFrontValid.dot(rocket.universeFront) < -0.99) // get some movement if it is directly on the other side
             targetFrontValid = rocket.universeHeading.cross(rocket.universeFront);
         rotationCorrection = targetFrontValid.subtract(rocket.universeFront).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
         Vec3 newFront = rocket.universeFront.add(rotationCorrection).normalize();
