@@ -50,7 +50,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             int maxY = Math.max(yTargetBelow, yCurrentBelow);
 
-            double maxDiffY = 300;
+            double maxDiffY = 500;
 
             if (!isStarted) {
                 // make sure it starts correctly
