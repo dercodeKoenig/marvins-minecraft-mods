@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -45,9 +46,9 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
         if (level.isClientSide) {
         } else {
             for (int i = 0; i < itemStackHandler.getSlots(); i++) {
-                ItemStack stack = itemStackHandler.getStackInSlot(i).copy();
-                ItemEntity stackEntity = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ(), stack);
-                level.addFreshEntity(stackEntity);
+                ItemStack stack = itemStackHandler.getStackInSlot(i);
+                Block.popResource(level,getBlockPos(),stack);
+                itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
             }
         }
     }
