@@ -34,7 +34,7 @@ public class RocketTravelDimension extends Dimension {
     }
 
     public static ChunkPos getNextFreeChunkPos() {
-        HashMap<ChunkPos, Long> rocketTravelForcedChunks = ForcedChunkManager.INSTANCE.forcedChunks.getOrDefault(dimId, new HashMap<>());
+        HashMap<ChunkPos, Long> rocketTravelForcedChunks = ForcedChunkManager.forcedChunks.getOrDefault(dimId, new HashMap<>());
         int x = 0;
         while (true) {
             x += 50;
