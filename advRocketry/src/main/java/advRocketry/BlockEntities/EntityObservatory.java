@@ -262,6 +262,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         }
 
         guiHandler = new GuiHandlerBlockEntity(this);
+        guiHandler.maxDistance = 16;
+
         itemStackHandler = new ItemStackHandler(3) {
             public boolean isItemValid(int slot, ItemStack stack) {
                 if (slot == STORAGE_DISK_SLOT_1 || slot == STORAGE_DISK_SLOT_2)
