@@ -33,6 +33,7 @@ public class RocketTravelDimension extends Dimension {
         this.properties.dimensionId = dimId;
     }
 
+    /// finds a free chunk position in space where the rocket can be placed during space travel
     public static ChunkPos getNextFreeChunkPos() {
         HashMap<ChunkPos, Long> rocketTravelForcedChunks = ForcedChunkManager.forcedChunks.getOrDefault(dimId, new HashMap<>());
         int x = 0;
