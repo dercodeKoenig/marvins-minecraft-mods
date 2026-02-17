@@ -129,7 +129,6 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
             shader.apply();
             renderData.vertexBuffer.draw();
 
-            NormalMat.set(new Matrix3f()); // reset because for whatever reason minecraft doesnt reload the defaults in future shader draw calls
 
             shader.clear();
             type.clearRenderState();

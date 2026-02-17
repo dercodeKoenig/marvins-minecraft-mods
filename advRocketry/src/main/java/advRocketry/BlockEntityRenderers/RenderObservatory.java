@@ -232,8 +232,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         renderData.casingXMinus.bind();
         renderData.casingXMinus.draw();
 
-        // i think i need to reset it or there might be problems. dont know exactly why but minecraft doesnt know / care about normal mat
-        NormalMat.set(new Matrix3f());
+
         shader.clear();
         VertexBuffer.unbind();
 

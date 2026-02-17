@@ -1,9 +1,11 @@
 package AgeOfSteam.Blocks.Mechanics.CrankShaft;
 
+import ARLib.mixins.ShaderInstanceMixin;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Main;
+import AgeOfSteam.Static;
 import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -84,15 +86,13 @@ public class RenderCrankShaftBase implements BlockEntityRenderer<EntityCrankShaf
         ShaderInstance shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         Uniform NormalMat = shader.getUniform("NormalMat");
-        Matrix3f normalMat = new Matrix3f(modelMat); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
+        NormalMat.set(Static.getNormalMat(modelMat));
         shader.apply();
 
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();
 
-        NormalMat.set(new Matrix3f());
+
         shader.clear();
         VertexBuffer.unbind();
 

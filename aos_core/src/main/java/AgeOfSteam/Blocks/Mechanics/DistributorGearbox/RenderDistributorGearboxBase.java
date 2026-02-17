@@ -1,5 +1,6 @@
 package AgeOfSteam.Blocks.Mechanics.DistributorGearbox;
 
+import ARLib.mixins.ShaderInstanceMixin;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
@@ -98,14 +99,12 @@ public abstract class RenderDistributorGearboxBase implements BlockEntityRendere
                 modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, 14.7f - (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES,new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2) , RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            Matrix3f normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
-            normalMat.invert().transpose(); // compute normal matrix
-            NormalMat.set(normalMat);
+            NormalMat.set(Static.getNormalMat(modelMat2));
             shader.apply();
             tile.vertexBuffer.draw();
         }
 
-        NormalMat.set(new Matrix3f());
+
         shader.clear();
         VertexBuffer.unbind();
 

@@ -5,7 +5,6 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
-import ARLib.utils.BlockEntityItemStackHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -16,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import static net.minecraft.world.level.block.Block.popResource;
 
 public class EntityItemInputBlock extends BlockEntity implements IItemHandler, INetworkTagReceiver {
 
-    public BlockEntityItemStackHandler inventory;
+    public ItemStackHandler inventory;
     public GuiHandlerBlockEntity guiHandler;
 
 
@@ -56,7 +56,12 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
         }
 
 
-        inventory = new BlockEntityItemStackHandler(4, this);
+        inventory = new ItemStackHandler(4){
+            @Override
+            public void onContentsChanged(int slot){
+                setChanged();
+            }
+        };
     }
 
 

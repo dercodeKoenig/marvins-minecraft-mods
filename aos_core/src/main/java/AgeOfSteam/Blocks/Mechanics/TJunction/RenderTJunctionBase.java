@@ -1,5 +1,6 @@
 package AgeOfSteam.Blocks.Mechanics.TJunction;
 
+import ARLib.mixins.ShaderInstanceMixin;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
@@ -117,10 +118,7 @@ public abstract class RenderTJunctionBase implements BlockEntityRenderer<EntityT
 
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         Uniform NormalMat = shader.getUniform("NormalMat");
-        Matrix3f normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
-
+        NormalMat.set(Static.getNormalMat(modelMat2));
         shader.apply();
 
         tile.vertexBuffer.bind();
@@ -142,9 +140,7 @@ public abstract class RenderTJunctionBase implements BlockEntityRenderer<EntityT
 
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         NormalMat = shader.getUniform("NormalMat");
-        normalMat = new Matrix3f(modelMat2); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
+        NormalMat.set(Static.getNormalMat(modelMat2));
         shader.apply();
 
         tile.vertexBuffer2.bind();
@@ -152,7 +148,7 @@ public abstract class RenderTJunctionBase implements BlockEntityRenderer<EntityT
 
 
         VertexBuffer.unbind();
-        NormalMat.set(new Matrix3f());
+
         shader.clear();
 
         LIGHTMAP.clearRenderState();
