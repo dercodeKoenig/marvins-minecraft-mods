@@ -232,9 +232,9 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
     public static class SyncDimensionList implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+
         static class DimensionList { // wrapped for gson to parse so it has the type of the list
             ArrayList<ResourceLocation> dimensionIds;
-
             public DimensionList(ArrayList<ResourceLocation> dimensionIds) {
                 this.dimensionIds = dimensionIds;
             }

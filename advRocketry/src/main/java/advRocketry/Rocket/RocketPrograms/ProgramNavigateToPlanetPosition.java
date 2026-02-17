@@ -69,7 +69,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 } else {
                     // travel to target at target height
                     // dont move faster than maxDiffxz in xz direction to not crash in ground on long distance
-                    double maxDiffxz = 100;
+                    double maxDiffxz = 300;
                     double xzMultiplier = Math.min(1, (maxDiffxz / distanceToTargetXZ));
                     double targetX = rocket.position().x + dx * xzMultiplier;
                     double targetZ = rocket.position().z + dz * xzMultiplier;
@@ -125,6 +125,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     @Override
     public void readFromNbt(CompoundTag nbt) {
         target = NbtUtils.readBlockPos(nbt, "target").get();
+        isStarted = nbt.getBoolean("isStarted");
         targetDimensionId = ResourceLocation.parse(nbt.getString("targetDimensionId"));
     }
 
@@ -132,6 +133,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public CompoundTag saveToNbt() {
         CompoundTag tag = new CompoundTag();
         tag.put("target", NbtUtils.writeBlockPos(target));
+        tag.putBoolean("isStarted", isStarted);
         tag.putString("targetDimensionId", targetDimensionId.toString());
         return tag;
     }

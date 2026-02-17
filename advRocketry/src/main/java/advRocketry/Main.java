@@ -133,6 +133,7 @@ public class Main {
     void onServerTick(ServerTickEvent.Post event) {
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
+        ForcedChunkManager.tick();
     }
 
     void onClientTick(ClientTickEvent.Post event) {

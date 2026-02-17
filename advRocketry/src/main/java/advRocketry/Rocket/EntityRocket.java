@@ -34,12 +34,14 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -133,6 +135,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
+
         guiHandler = new GuiHandlerEntity(this);
         blocks = new HashMap<>();
         blockEntities = new HashMap<>();
@@ -575,17 +578,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
-
         move(MoverType.SELF, getDeltaMovement());
 
-        // when in space travel dim, make sure to keep chunk loaded!!
         if (!level().isClientSide) {
-            if (GlobalTime.getGlobalTime() % 100 == 0) {
-                if (level().dimension().location().equals(RocketTravelDimension.dimId)) {
-                    RocketTravelDimension.keepChunkLoaded(chunkPosition());
-                }
+            if (currentProgram != null) {
+                ChunkPos nextChunkPos = chunkPosition();
+                // keep the chunk force loaded
+                ForcedChunkManager.keepChunkForceLoaded(level(), nextChunkPos);
+
+                System.out.println(getUUID() + " rocket is ticking... " + GlobalTime.getGlobalTime() + ":" + nextChunkPos + ":" + position());
             }
         }
+
     }
 
     public boolean launch(ItemStack navigationItem) {
@@ -696,6 +700,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         // fix passengers positions
         newRocket.setPassengersPositions(newPassengerPositions);
 
+        // keep the chunk loaded initially
+        ForcedChunkManager.keepChunkForceLoaded(target, newRocket.chunkPosition());
+
         return newRocket;
     }
 
@@ -764,11 +771,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
         guiHandler.modules.add(fuelDisplay);
 
-        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20){
+        guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
                 // close the gui on deconstruct, this packet can not be sent by server because the rocket no longer exists
-                if(EntityRocket.this.guiHandler.screen instanceof Screen screen){
+                if (EntityRocket.this.guiHandler.screen instanceof Screen screen) {
                     screen.onClose();
                 }
             }

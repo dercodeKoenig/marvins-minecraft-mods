@@ -7,6 +7,7 @@ import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -26,38 +27,19 @@ public class RocketTravelDimension extends Dimension {
 
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
-    // a rocket should every tick or every few ticks update its chunkpos with the current global time
-    // when the travel manager updates, it will remove force loaded chunks where the time was not reset for a few seconds
-    HashMap<ChunkPos, Long> usedChunksMap;
-
     public RocketTravelDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
         this.properties.name = "space travel dimension";
         this.properties.dimensionId = dimId;
-        usedChunksMap = new HashMap<>();
-    }
-
-    public static void keepChunkLoaded(ChunkPos pos) {
-        RocketTravelDimension INSTANCE = (RocketTravelDimension) DimensionManager.INSTANCE_SERVER.get(dimId);
-        if (!INSTANCE.usedChunksMap.containsKey(pos)) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-            level.setChunkForced(pos.x, pos.z, true);
-            System.out.println("there are " + level.getForcedChunks().size() + " chunk force loaded in space travel dimension");
-        }
-        System.out.println("set chunk force loaded:" + pos.x + ":" + pos.z);
-        INSTANCE.usedChunksMap.put(pos, GlobalTime.getGlobalTime());
     }
 
     public static ChunkPos getNextFreeChunkPos() {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        ServerLevel level = DimensionManager.getServerLevel(server, dimId);
+        HashMap<ChunkPos, Long> rocketTravelForcedChunks = ForcedChunkManager.INSTANCE.forcedChunks.getOrDefault(dimId, new HashMap<>());
         int x = 0;
-        LongSet forcedChunks = level.getForcedChunks();
         while (true) {
             x += 50;
             ChunkPos p = new ChunkPos(x, 0);
-            if (!forcedChunks.contains(p.toLong())) {
+            if (!rocketTravelForcedChunks.containsKey(p)) {
                 return p;
             }
         }
@@ -127,7 +109,9 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public float getGravitationalMultiplier() {return 0f;}
+    public float getGravitationalMultiplier() {
+        return 0f;
+    }
 
     @Override
     public Vector3f getEmissiveColor() {
@@ -182,25 +166,7 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public void tick(){
-        if(!isClientSide) {
-            if (GlobalTime.getGlobalTime() % 200 == 59) {
-                MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-                ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-                for (long i : level.getForcedChunks()) {
-                    ChunkPos pos = new ChunkPos(i);
-                    long currentTime = GlobalTime.getGlobalTime();
-                    usedChunksMap.putIfAbsent(pos, currentTime);
-                    if (usedChunksMap.get(pos) + 20 * 120 < currentTime) {
-                        level.setChunkForced(pos.x, pos.z, false);
-                        System.out.println("remove forced chunk at " + pos.x + ":" + pos.z);
-                        usedChunksMap.remove(pos);
-                        break; // prevent  exceptions
-                    }
-                }
-            }
-        }else{
-            super.tickStarCache();
-        }
+    public void tick() {
+
     }
 }
