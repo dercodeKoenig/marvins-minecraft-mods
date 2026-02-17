@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.predicate.BlockStatePredicate;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -26,12 +25,10 @@ import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 // Launchpad area can have 2 modes: normal pad and station docking area. it should scan for the alternative pad in space
 // a rocket can be instructed to go to a specific location. if the block at this location is a rocket assembler, it should go to the launchpad / docking area
-// a rocket should enter space from where the planet is in universe space. this has to be translated in world coordinates. the rocket should navigate to below the docket area and then start the docking
-// the station docking area can not be constructed in a non-space dimension
-// if the assembler has no area, the rocket should enter on a point x blocks in front of the assembler
-
+// for station, spawn a rocket far away in xz plane. decide to dock from top or bottom and navigate toward the station
 
 public class RocketAssembler extends Block implements EntityBlock {
+
     public RocketAssembler() {
         super(Properties.of());
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
@@ -52,11 +49,46 @@ public class RocketAssembler extends Block implements EntityBlock {
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof EntityRocketAssembler rocketAssembler) {
+            if (rocketAssembler.isRedstoneOutputActive()) {
+                return 15;
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return ENTITY_ROCKET_ASSEMBLER.get().create(blockPos, blockState);
+    }
+
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        BlockEntity b = level.getBlockEntity(pos);
+        if (b instanceof EntityRocketAssembler h)
+            h.openGui();
+        return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return EntityRocketAssembler::tick;
+    }
+
 
     // when a launch pad structure is placed or removed, trigger a rescan of all nearby rocket assembling machines
     public static void propagateScanRequestToMaster(Set<BlockPos> completed, BlockPos current, Level level) {
         if (completed.contains(current)) return;
-        if(level.isClientSide)return;
+        if (level.isClientSide) return;
         completed.add(current);
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
@@ -75,25 +107,6 @@ public class RocketAssembler extends Block implements EntityBlock {
                 }
             }
         }
-    }
-
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_ROCKET_ASSEMBLER.get().create(blockPos, blockState);
-    }
-
-
-    @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        BlockEntity b = level.getBlockEntity(pos);
-        if(b instanceof EntityRocketAssembler h)
-            h.openGui();
-        return InteractionResult.SUCCESS_NO_ITEM_USED;
-    }
-
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityRocketAssembler::tick;
     }
 
 }

@@ -11,8 +11,6 @@ import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Rocket.EntityRocket;
-import advRocketry.Rocket.RocketProgram;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -48,6 +46,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     // the current rocket is the one on launchpad.
     // if there is none on launchpad area, it will keep the reference to the previous one until it is removed or ends its program
     EntityRocket currentRocket;
+
+    // we output redstone to a comparator when a rocket is landed and has no program running
+    boolean isRedstoneOutputActive = false;
 
     GuiHandlerBlockEntity guiHandler;
     guiModuleButton buildButton;
@@ -109,6 +110,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public EntityRocket getRocket() {
         // return current rocket reference
         return currentRocket;
+    }
+
+    public boolean isRedstoneOutputActive(){
+        return this.isRedstoneOutputActive;
     }
 
     public void scanForSpaceDockingArea() {
@@ -412,6 +417,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public void tick() {
 
         if (level.isClientSide) {
+            // build progress logic client
             if (clientBuildProgress < buildProgress) {
                 clientBuildProgress += 2;
                 clientBuildDiffPerTick = 2;
@@ -426,6 +432,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (!level.isClientSide) {
             guiHandler.serverTick();
 
+            // build progress logic server
             if (buildProgress > -1) {
                 if (areaMin != null && areaMax != null) {
                     buildProgress--;
@@ -436,6 +443,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     buildProgress = -1;
                 }
                 broadcastInformationToPlayers(null);
+            }
+
+            // recalculate redstone output and notify level of change
+            boolean shouldOutputRedstone = currentRocket != null && currentRocket.getCurrentProgram() == null;
+            if(shouldOutputRedstone != isRedstoneOutputActive){
+                isRedstoneOutputActive = shouldOutputRedstone;
+                level.updateNeighbourForOutputSignal(getBlockPos(),getBlockState().getBlock());
             }
 
 
@@ -468,9 +482,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             }
 
 
+            // update gui
             if (currentRocket != null) {
-
-                // TODO: this with nice vertical / horizontal progress bars?
                 String newStatus = new String();
                 if (currentRocket.getCurrentProgram() == null)
                     newStatus += "rocket landed\n";
