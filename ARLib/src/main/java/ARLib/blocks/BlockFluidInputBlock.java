@@ -32,6 +32,7 @@ public class BlockFluidInputBlock extends BlockMultiblockPart implements EntityB
 
     public BlockFluidInputBlock(Properties properties) {
         super(properties);
+        this.isSpecialBlock = true;
     }
 
     @Override

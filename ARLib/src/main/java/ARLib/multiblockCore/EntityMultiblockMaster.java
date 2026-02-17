@@ -74,6 +74,15 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
     // set this to true to make the master block gui open for a click on any machine part block
     // must be implemented on the machine part block
     public boolean forwardInteractionToMaster = false;
+    // special blocks like IO have their own flag of forwarding interaction to the master
+    // you might want your multiBlock to open the main gui wherever you click, but you might still require the IO blocks to be clickable
+    public boolean forwardSpecialBlockInteractionToMaster = false;
+    // some ppl might prefer a set method
+    public void setInteractionForwarding(boolean forwardInteractionToMaster, boolean forwardSpecialBlockInteractionToMaster){
+        this.forwardSpecialBlockInteractionToMaster = forwardSpecialBlockInteractionToMaster;
+        this.forwardInteractionToMaster = forwardInteractionToMaster;
+    }
+
 
     // called after the structure is completed, it will scan during onLoad() and complete structure if possible
     // on client it will execute if the structure is completed during onLoad()
@@ -168,7 +177,6 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
 
     void replace_blocks() {
         Object[][][] structure = getStructure();
-        boolean[][][] hideBlocks = hideBlocks();
         Direction front = getFront();
         if (front == null) return;
 

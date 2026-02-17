@@ -30,6 +30,7 @@ import static ARLib.ARLibRegistry.ENTITY_ENERGY_INPUT_BLOCK;
 public class BlockEnergyInputBlock extends BlockMultiblockPart implements EntityBlock {
     public BlockEnergyInputBlock(Properties p_49795_) {
         super(p_49795_);
+        this.isSpecialBlock = true;
     }
 
 

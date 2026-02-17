@@ -26,6 +26,7 @@ import static ARLib.ARLibRegistry.*;
 public class BlockItemInputBlock extends BlockMultiblockPart implements EntityBlock {
     public BlockItemInputBlock(Properties p_49795_) {
         super(p_49795_);
+        this.isSpecialBlock = true;
     }
 
 
