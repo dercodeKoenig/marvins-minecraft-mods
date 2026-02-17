@@ -583,10 +583,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (!level().isClientSide) {
             if (currentProgram != null) {
                 ChunkPos nextChunkPos = chunkPosition();
-                // keep the chunk force loaded
                 ForcedChunkManager.keepChunkForceLoaded(level(), nextChunkPos);
-
-                System.out.println(getUUID() + " rocket is ticking... " + GlobalTime.getGlobalTime() + ":" + nextChunkPos + ":" + position());
             }
         }
 
