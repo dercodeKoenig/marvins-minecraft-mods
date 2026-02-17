@@ -5,7 +5,6 @@ import ARLib.holoProjector.itemHoloProjector;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.MillStone.MillStoneConfig;
 import AOSWorkshopExpansion.MillStone.RenderMillStone;
-import AOSWorkshopExpansion.MillStone.ScreenMillStone;
 import AOSWorkshopExpansion.Sieve.RenderSieve;
 import AOSWorkshopExpansion.Sieve.SieveConfig;
 import AOSWorkshopExpansion.SpinningWheel.RenderSpinningWheel;
@@ -18,19 +17,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,13 +48,8 @@ public class Main {
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::registerScreens);
         Registry.register(modEventBus);
 
-    }
-
-    public void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(MENU_MILLSTONE.get(), ScreenMillStone::new);
     }
 
     public void onServerStarting(ServerStartingEvent event) {

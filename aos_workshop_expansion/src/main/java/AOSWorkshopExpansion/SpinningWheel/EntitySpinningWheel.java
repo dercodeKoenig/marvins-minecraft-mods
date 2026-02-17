@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.*;
 
@@ -50,8 +51,8 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public SpinningWheelConfig.SpinningWheelRecipe currentRecipe = null;
     public double currentProgress;
 
-    public BlockEntityItemStackHandler inventoryOutput;
-    public BlockEntityItemStackHandler inventoryInput;
+    public ItemStackHandler inventoryOutput;
+    public ItemStackHandler inventoryInput;
 
     public GuiHandlerBlockEntity guiHandler;
 
@@ -90,8 +91,18 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public EntitySpinningWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_SPINNING_WHEEL.get(), pos, blockState);
 
-        inventoryInput = new BlockEntityItemStackHandler(9, this);
-        inventoryOutput = new BlockEntityItemStackHandler(9, this);
+        inventoryInput = new ItemStackHandler(9){
+            @Override
+            public void onContentsChanged(int slot){
+                EntitySpinningWheel.this.setChanged();
+            }
+        };
+        inventoryOutput = new ItemStackHandler(9){
+            @Override
+            public void onContentsChanged(int slot){
+                EntitySpinningWheel.this.setChanged();
+            }
+        };
 
 
         guiHandler = new GuiHandlerBlockEntity(this);
