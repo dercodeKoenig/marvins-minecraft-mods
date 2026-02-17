@@ -59,7 +59,7 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
         inventory = new ItemStackHandler(4){
             @Override
             public void onContentsChanged(int slot){
-                setChanged();
+               EntityItemInputBlock.this.setChanged();
             }
         };
     }

@@ -4,6 +4,7 @@ import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AWGenerators.Main;
+import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
@@ -118,7 +119,7 @@ tile.lastLight = packedLight;
 
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
         m1 = m1.translate(0.5f, 0.5f, 0.5f);
         float rotationMultiplier = 0;
@@ -153,7 +154,8 @@ tile.lastLight = packedLight;
         Matrix4f m2 = new Matrix4f(m1);
         m2 = m2.translate(0, 0, -0.11f);
         m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_wheel.bind();
         tile.vertexBuffer_wheel.draw();

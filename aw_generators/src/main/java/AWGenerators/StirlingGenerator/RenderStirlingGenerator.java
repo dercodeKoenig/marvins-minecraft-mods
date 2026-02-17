@@ -146,7 +146,7 @@ tile.lastLight = packedLight;
         }
         stack.translate(-0.5f, -0.5f, -0.5f);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
 
         float rotation = (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
@@ -161,21 +161,24 @@ tile.lastLight = packedLight;
 
         Matrix4f m2 = new Matrix4f(m1);
         m2 = m2.rotateAround(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, rotation), 0.5f, 0.5f, 0f);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES,new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_flywheel.bind();
         tile.vertexBuffer_flywheel.draw();
 
         m2 = new Matrix4f(m1);
         m2 = m2.rotateAround(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, -rotation), 0.75f, 0.75f, 0f);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_piston_crank1.bind();
         tile.vertexBuffer_piston_crank1.draw();
 
         m2 = new Matrix4f(m1);
         m2 = m2.rotateAround(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, rotation), 0.75f, 0.6875f, 0f);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_piston_crank2.bind();
         tile.vertexBuffer_piston_crank2.draw();
@@ -186,7 +189,8 @@ tile.lastLight = packedLight;
         float tx = (float) (Math.cos((rotation * rotationMultiplier) / 180f * Math.PI) * r_arm);
         float ty = (float) (Math.sin((rotation * rotationMultiplier) / 180f * Math.PI) * r_arm);
         m2 = m2.translate(tx, ty, 0);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_flywheel_arm.bind();
         tile.vertexBuffer_flywheel_arm.draw();
@@ -199,7 +203,8 @@ tile.lastLight = packedLight;
         float c1ArmLen = 0.7f;
         float c1Rotation = (float) (Math.asin(ty / c1ArmLen) * 180 / Math.PI);
         m2 = m2.rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1f, c1Rotation), 0.75f, 0.75f + ty, 0f);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_piston_arm1.bind();
         tile.vertexBuffer_piston_arm1.draw();
@@ -210,7 +215,8 @@ tile.lastLight = packedLight;
         float c2ArmLen = 0.7f;
         float c2Rotation = (float) -(Math.asin(tx / c2ArmLen) * 180 / Math.PI);
         m2 = m2.rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1f, c2Rotation), 0.75f, 0.75f + ty, 0f);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_piston_arm2.bind();
         tile.vertexBuffer_piston_arm2.draw();
