@@ -70,7 +70,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     public void saveDimensionProperties(Path saveDir){
         // save current properties and if required, delete old properties to support dynamic deletion of dimensions
 
-        // the save file name is namespace_path
+        // the save file name is namespace_path.json
         // if a user sets a planet config to planet1 it would still be saved as namespace_planet1 so we need to keep track of the saved filenames to remove invalid ones after save
         HashMap<ResourceLocation, String> saveFiles = new HashMap<>();
 
@@ -78,9 +78,9 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         try {
             Files.createDirectories(saveDir);
             for (Dimension i : dimensions.values()) {
-                Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath());
+                Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath()+".json");
                 String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i.properties);
-                Files.writeString(saveFile, s, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                Files.writeString(saveFile, s);
                 saveFiles.put(i.getDimensionId(), saveFile.getFileName().toString());
             }
         } catch (IOException e) {
@@ -187,7 +187,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     public void onServerStart() {
 
-        dimensions = new HashMap<>();
+        dimensions = new HashMap<>(); // clear from old sessions
 
         Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
         Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveDir);
