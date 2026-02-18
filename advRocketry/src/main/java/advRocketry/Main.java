@@ -44,6 +44,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -82,7 +83,7 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
 
         // mod loading
-        modEventBus.addListener(this::loadShaders);
+        modEventBus.addListener(this::registerShaders);
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerEntityRenderers);
@@ -90,6 +91,7 @@ public class Main {
         modEventBus.addListener(this::registerParticles);
         modEventBus.addListener(this::registerClientExtensions);
         modEventBus.addListener(this::loadComplete);
+        modEventBus.addListener(this::registerTickets);
 
         Registry.BLOCKS.register(modEventBus);
         Registry.ITEMS.register(modEventBus);
@@ -154,12 +156,14 @@ public class Main {
     void onServerStarted(ServerStartedEvent event) {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + worldPath);
-        GlobalTime.load();
+        GlobalTime.load(); // important to load the time first!
         DimensionManager.INSTANCE_SERVER.onServerStart();
+        ForcedChunkManager.restoreForcedChunks(); // restore forced chunks after dimensions are created
     }
 
     void onServerStop(ServerStoppingEvent event) {
         GlobalTime.save();
+        ForcedChunkManager.saveForcedChunks();
         DimensionManager.INSTANCE_SERVER.onServerStop();
     }
 
@@ -226,7 +230,7 @@ public class Main {
         event.registerBlockEntityRenderer(Registry.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
     }
 
-    void loadShaders(RegisterShadersEvent event) {
+    void registerShaders(RegisterShadersEvent event) {
         // 3. Register the shader and set the static field in the callback
         try {
             shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
@@ -286,6 +290,10 @@ public class Main {
                     }
                 }, Registry.ROCKET_FUEL_TYPE.get()
         );
+    }
+
+    void registerTickets(RegisterTicketControllersEvent event){
+        event.register(ForcedChunkManager.ticketController);
     }
 
     void loadComplete(FMLLoadCompleteEvent e) {
