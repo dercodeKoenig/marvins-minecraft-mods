@@ -2,8 +2,10 @@ package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
+import ARLib.gui.modules.guiModuleEnergy;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockEntityBattery;
 import advRocketry.Blocks.GuidanceComputer;
 import advRocketry.Blocks.LaunchPad;
 import advRocketry.Blocks.StructureTower;
@@ -31,6 +33,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
@@ -42,6 +45,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public static int maxSize = 20;
     public static int buildTimeBase = 5;//20;
+    public static int ENERGY_PER_TICK = 100;
 
     // the current rocket is the one on launchpad.
     // if there is none on launchpad area, it will keep the reference to the previous one until it is removed or ends its program
@@ -49,6 +53,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     // we output redstone to a comparator when a rocket is landed and has no program running
     boolean isRedstoneOutputActive = false;
+
+    public BlockEntityBattery battery;
 
     GuiHandlerBlockEntity guiHandler;
     guiModuleButton buildButton;
@@ -64,11 +70,18 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+
+        battery = new BlockEntityBattery(this, 10000,1000);
+
         guiHandler = new GuiHandlerBlockEntity(this);
         buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
         statusText = new guiModuleText(1, "status:", guiHandler, 10, 35, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
+
+        guiHandler.modules.add(
+                new guiModuleEnergy(2,battery,guiHandler,175,10)
+        );
     }
 
     @Override
@@ -435,9 +448,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             // build progress logic server
             if (buildProgress > -1) {
                 if (areaMin != null && areaMax != null) {
-                    buildProgress--;
-                    if (buildProgress == -1) {
-                        buildRocket(false);
+                    boolean shouldConsumeEnergy = buildTimeBase <= (areaMax.getY() - areaMin.getY() + 2);
+                    if(battery.getEnergyStored() >= ENERGY_PER_TICK || !shouldConsumeEnergy) {
+                        buildProgress--;
+                        if(shouldConsumeEnergy)
+                            battery.extractEnergy(ENERGY_PER_TICK,false);
+                        if (buildProgress == -1) {
+                            buildRocket(false);
+                        }
                     }
                 } else {
                     buildProgress = -1;
@@ -524,11 +542,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("buildProgress", buildProgress);
+        tag.put("battery", battery.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         buildProgress = tag.getInt("buildProgress");
+        battery.deserializeNBT(registries, tag.getCompound("battery"));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {

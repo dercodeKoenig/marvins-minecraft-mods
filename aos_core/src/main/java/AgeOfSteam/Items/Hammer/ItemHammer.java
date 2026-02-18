@@ -21,15 +21,6 @@ public class ItemHammer extends Item {
 
         BlockEntity tile =context.getLevel().getBlockEntity(context.getClickedPos());
 
-        if(tile instanceof EntityTJunctionBase i){
-            BlockState s  = i.getBlockState();
-            if(!context.getLevel().isClientSide()) {
-                s = s.setValue(BlockTJunctionBase.INVERTED, !s.getValue(BlockTJunctionBase.INVERTED));
-                context.getLevel().setBlock(context.getClickedPos(), s, 3);
-            }
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
-        }
-
         if(tile instanceof EntityCrankShaftBase i) {
             if(!context.getLevel().isClientSide()) {
                 i.incRotationOffset();

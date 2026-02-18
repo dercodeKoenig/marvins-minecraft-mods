@@ -217,6 +217,7 @@ public class Main {
     void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer) x).itemStackHandler));
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.myTank);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x,y) -> x.battery);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
