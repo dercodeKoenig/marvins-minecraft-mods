@@ -539,13 +539,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("buildProgress", buildProgress);
-        tag.put("battery", battery.serializeNBT(registries));
+        tag.putInt("energy", battery.getEnergyStored());
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         buildProgress = tag.getInt("buildProgress");
-        battery.deserializeNBT(registries, tag.getCompound("battery"));
+        battery.setEnergy(tag.getInt("energy"));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
