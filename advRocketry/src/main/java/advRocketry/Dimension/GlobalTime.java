@@ -80,7 +80,7 @@ public class GlobalTime implements SimpleNetworkPacket.SimpleNetworkDataReceiver
         Path saveFile = Path.of(String.valueOf(Main.worldPath), GlobalTime.saveFile);
         System.out.println("saving universal time...");
         try {
-            Files.writeString(saveFile, String.valueOf(INSTANCE.universalTimeServer), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(saveFile, String.valueOf(INSTANCE.universalTimeServer));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
