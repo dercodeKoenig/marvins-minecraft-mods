@@ -1,6 +1,7 @@
 package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.BlockEntities.EntityRocketAssembler;
+import advRocketry.Dimension.DimensionManager;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
 import advRocketry.utils.Utils;
@@ -69,12 +70,17 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 } else {
                     // travel to target at target height
                     // dont move faster than maxDiffxz in xz direction to not crash in ground on long distance
-                    double maxDiffxz = 300;
+                    double maxDiffxz = 200;
+
+                    // navigation is a bit more difficult on low gravity planets so dont move too fast there
+                    double g = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location()).getGravitationalMultiplier();
+                    maxDiffxz *= Math.pow(g, 0.25);
+
                     double xzMultiplier = Math.min(1, (maxDiffxz / distanceToTargetXZ));
                     double targetX = rocket.position().x + dx * xzMultiplier;
                     double targetZ = rocket.position().z + dz * xzMultiplier;
 
-                    targetVec3 = new Vec3(targetX, Math.max(maxY + travelHeight, rocket.position().y-maxDiffY), targetZ);
+                    targetVec3 = new Vec3(targetX, Math.max(maxY + travelHeight, rocket.position().y - maxDiffY), targetZ);
 
                     // rotate to the target front if it is a rocket assembler there
                     if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {

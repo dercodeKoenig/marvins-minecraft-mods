@@ -570,7 +570,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             float atmDensity = 0;
             if (myDimension != null)
                 atmDensity = myDimension.getAtmosphereDensity();
-            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
+            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getX() * size.getZ() * getDeltaMovement().length() * 0.02 / getMass());
             if (airBreak.length() > getDeltaMovement().length()) {
                 setDeltaMovement(0, 0, 0);
             } else {

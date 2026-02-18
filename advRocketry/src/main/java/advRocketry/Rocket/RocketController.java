@@ -99,7 +99,9 @@ public class RocketController {
 
         // NOTE: If you needed to factor in gravity/other external forces, you would
         // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
-        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity()));
+        Vec3 antiGravityAcceleration = new Vec3(0, 1, 0).scale(rocket.getGravity());
+        desiredAcceleration = desiredAcceleration.add(antiGravityAcceleration);
+
 
         // --- 2. Calculate Thrust & Heading ---
         if (rocket.canUseSecondaryEngines()) {
@@ -113,7 +115,6 @@ public class RocketController {
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(secondaryThrustersAcceleration));
 
             currentSecondaryThrust = secondaryThrustersForce;
-            // TODO: render secondaryThrustersForce particles based on secondaryThrustersForce
 
             // burn a fixed fuel amount if secondary engines are on for space navigation
             double fuelToBurn = (double) rocket.getFuelRateMax() / 1000;
@@ -124,10 +125,12 @@ public class RocketController {
             rocket.fuelTank.drain(fuelToBurnInt, IFluidHandler.FluidAction.EXECUTE);
         }
 
-        // on planets, we never want to accelerate down because it can cause problems on low gravity planets
-        // it will fall on its own
+        // Determine if we are on a planet to apply gravity/tilt rules
         Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
-        if (rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET) {
+        boolean isPlanet = rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET;
+
+        if (isPlanet) {
+            // never thrust down
             desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
         }
 
@@ -138,6 +141,30 @@ public class RocketController {
             // This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
             final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
             // The heading the rocket *needs* to point towards to achieve the desired acceleration.
+
+            double requiredY = 0;
+            // --- TILT LIMITING LOGIC (Prioritize Y-axis thrust on planets) ---
+            if (isPlanet && MAX_ALLOWED_ACCEL > 0) {
+                // 1. Determine the vertical acceleration we need (capped by our absolute max engine limit)
+                requiredY = Math.min(desiredAcceleration.y, MAX_ALLOWED_ACCEL);
+                // Limit to anti-gravity + 1% to hover/climb slowly
+                requiredY = Math.min(requiredY, antiGravityAcceleration.y*1.01);
+
+                // 2. Calculate the remaining acceleration budget for the XZ plane (a^2 + b^2 = c^2)
+                double maxXZ_sq = (MAX_ALLOWED_ACCEL * MAX_ALLOWED_ACCEL) - (requiredY * requiredY);
+                double maxXZ = maxXZ_sq > 0 ? Math.sqrt(maxXZ_sq) : 0;
+
+                // 3. Calculate how much horizontal acceleration the PD controller is asking for
+                double currentXZ = Math.sqrt(desiredAcceleration.x * desiredAcceleration.x + desiredAcceleration.z * desiredAcceleration.z);
+
+                // 4. If the PD controller wants more horizontal movement than our remaining budget, scale the XZ axes down
+                if (currentXZ > maxXZ) {
+                    double scaleXZ = maxXZ / currentXZ;
+                    desiredAcceleration = new Vec3(desiredAcceleration.x * scaleXZ, requiredY, desiredAcceleration.z * scaleXZ);
+                }
+            }
+            // -----------------------------------------------------------------
+
             targetHeading = desiredAcceleration.normalize();
             // Calculate the magnitude of acceleration needed from the PD controller.
             double neededAcceleration = desiredAcceleration.length();
@@ -145,12 +172,38 @@ public class RocketController {
             // We only need to use the MAX_ALLOWED_ACCEL cap here.
             double effectiveAcceleration = Math.min(neededAcceleration, MAX_ALLOWED_ACCEL);
             // The component of the effective acceleration that aligns with the current (limited) heading.
-            // This ensures we only thrust in the direction we are currently pointing.
-            double actualThrustAccel = effectiveAcceleration * Math.max(0, rocket.heading.dot(targetHeading) - 0.9) * 10;
+            // This ensures we only thrust if we point towards the target direction.
+            double e = 0.000001;
+            double dotMultiplier = Math.max(0, rocket.heading.dot(targetHeading) - 0.9) * 10;
+            double thrustScaleDot = (1 - e) * dotMultiplier + e;
+            double actualThrustAccel = effectiveAcceleration * thrustScaleDot;
+
+            // The Failsafe: Override the magnitude if we need to fight gravity while rotating
+            if (isPlanet) {
+                // Only apply the failsafe if we are pointing UP.
+                // If we are pointing down or flat, thrusting won't help us fight gravity!
+                if (rocket.heading.y > 0) {
+                    // Calculate the total magnitude needed along our CURRENT heading to get 'requiredY' lift
+                    double magnitudeForHover = requiredY / rocket.heading.y;
+
+                    // Use the hover magnitude if it's higher than our dot-scaled magnitude
+                    actualThrustAccel = Math.max(actualThrustAccel, magnitudeForHover);
+
+                    // But NEVER exceed the physical limits of the engine
+                    actualThrustAccel = Math.min(actualThrustAccel, MAX_ALLOWED_ACCEL);
+                } else {
+                    // If pointing downwards/horizontally, cut thrust entirely so we don't accelerate into the ground
+                    // Just let gravity pull us while the tickRotation() method tries to point us back up.
+                    actualThrustAccel = 0;
+                }
+            }
+
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
             Vec3 thrustVector = rocket.heading.scale(actualThrustAccel);
+            
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(thrustVector));
+
             // Calculate the Thrust Multiplier (0.0 to 1.0)
             // This is the current actually delivered thrust relative to the max possible thrust for rendering and fuel consumption
             double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
