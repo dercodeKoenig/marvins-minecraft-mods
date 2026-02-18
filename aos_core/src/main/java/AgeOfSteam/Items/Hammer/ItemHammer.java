@@ -22,16 +22,6 @@ public class ItemHammer extends Item {
     @Override
     public InteractionResult useOn(UseOnContext context) {
 
-        BlockEntity tile =context.getLevel().getBlockEntity(context.getClickedPos());
-
-        if(tile instanceof EntityCrankShaftBase i) {
-            if(!context.getLevel().isClientSide()) {
-                i.incRotationOffset();
-                i.myMechanicalBlock.propagateResetRotation(0, null, new HashSet<>());
-            }
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
-        }
-
         BlockState blockState = context.getLevel().getBlockState(context.getClickedPos());
         if(blockState.getBlock() instanceof HammerInteractionBlock hammerInteractionBlock){
             return hammerInteractionBlock.onHammer(context.getItemInHand(), context.getLevel(), context.getClickedPos(), blockState, context.getPlayer(), context.getHand());
