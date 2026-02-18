@@ -1,5 +1,6 @@
 package ARLib.gui.modules;
 
+import ARLib.ARLib;
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,6 +10,15 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.Objects;
 
 public class guiModuleButton extends GuiModuleBase {
+
+    public static class BuiltinButtons{
+        public static ResourceLocation BTN_BLACK = ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/gui_button_black.png");
+        public static ResourceLocation BTN_RED = ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/gui_button_red.png");
+        public static ResourceLocation BTN_GREEN = ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/gui_button_green.png");
+        public static int BTN_W = 64;
+        public static int BTN_H = 20;
+    }
+
     public int w, h;
     public int textureW, textureH;
     public ResourceLocation image;

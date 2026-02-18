@@ -74,10 +74,7 @@ public class ItemUtils {
             return new ItemStack(itemsInTag.getFirst(),count);
         }
 
-        ResourceLocation itemId = ResourceLocation.tryParse(id);
-        Item item = BuiltInRegistries.ITEM.get(itemId);
-        if(item == Items.AIR)return null;
-        return new ItemStack(item, count);
+        return getItemStackFromid(id, count);
     }
 
     // id is the item ID string, e.g., "minecraft:diamond"
