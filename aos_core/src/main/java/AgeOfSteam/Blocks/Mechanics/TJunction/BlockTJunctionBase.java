@@ -5,6 +5,7 @@ import AgeOfSteam.Items.Hammer.ItemHammer;
 import AgeOfSteam.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -34,7 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public abstract class BlockTJunctionBase extends Block implements EntityBlock {
+public abstract class BlockTJunctionBase extends Block implements EntityBlock, ItemHammer.HammerInteractionBlock {
 
     public static EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
     public static EnumProperty<Direction> FACING = BlockStateProperties.FACING;
@@ -74,36 +75,34 @@ public abstract class BlockTJunctionBase extends Block implements EntityBlock {
     }
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (player.getMainHandItem().getItem() instanceof ItemHammer) {
-            BlockEntity tile = level.getBlockEntity(pos);
-            if (tile instanceof EntityTJunctionBase tj) {
-                if (player.isShiftKeyDown()) {
-                    // rotate the ending
-                    Direction cf = state.getValue(FACING);
-                    Direction nf = cf;
-                    Direction.Axis ca = state.getValue(AXIS);
-                    if (ca == Direction.Axis.X) {
-                        if (cf == Direction.UP) nf = Direction.NORTH;
-                        if (cf == Direction.NORTH) nf = Direction.DOWN;
-                        if (cf == Direction.DOWN) nf = Direction.SOUTH;
-                        if (cf == Direction.SOUTH) nf = Direction.UP;
-                    }
-                    if (ca == Direction.Axis.Z) {
-                        if (cf == Direction.UP) nf = Direction.EAST;
-                        if (cf == Direction.EAST) nf = Direction.DOWN;
-                        if (cf == Direction.DOWN) nf = Direction.WEST;
-                        if (cf == Direction.WEST) nf = Direction.UP;
-                    }
-                    state = state.setValue(FACING, nf);
-                } else {
-                    // invert
-                    state = state.setValue(BlockTJunctionBase.INVERTED, !state.getValue(BlockTJunctionBase.INVERTED));
+    public InteractionResult onHammer(ItemStack hammer, Level level, BlockPos pos,BlockState state, Player player, InteractionHand hand) {
+        BlockEntity tile = level.getBlockEntity(pos);
+        if (tile instanceof EntityTJunctionBase tj) {
+            if (player.isShiftKeyDown()) {
+                // rotate the ending
+                Direction cf = state.getValue(FACING);
+                Direction nf = cf;
+                Direction.Axis ca = state.getValue(AXIS);
+                if (ca == Direction.Axis.X) {
+                    if (cf == Direction.UP) nf = Direction.NORTH;
+                    if (cf == Direction.NORTH) nf = Direction.DOWN;
+                    if (cf == Direction.DOWN) nf = Direction.SOUTH;
+                    if (cf == Direction.SOUTH) nf = Direction.UP;
                 }
-                level.setBlock(pos, state, 3);
-                tj.myMechanicalBlock.propagateResetRotation(0, null, new HashSet<AbstractMechanicalBlock>());
-                return InteractionResult.SUCCESS_NO_ITEM_USED;
+                if (ca == Direction.Axis.Z) {
+                    if (cf == Direction.UP) nf = Direction.EAST;
+                    if (cf == Direction.EAST) nf = Direction.DOWN;
+                    if (cf == Direction.DOWN) nf = Direction.WEST;
+                    if (cf == Direction.WEST) nf = Direction.UP;
+                }
+                state = state.setValue(FACING, nf);
+            } else {
+                // invert
+                state = state.setValue(BlockTJunctionBase.INVERTED, !state.getValue(BlockTJunctionBase.INVERTED));
             }
+            level.setBlock(pos, state, 3);
+            tj.myMechanicalBlock.propagateResetRotation(0, null, new HashSet<>());
+            return InteractionResult.SUCCESS_NO_ITEM_USED;
         }
         return InteractionResult.PASS;
     }

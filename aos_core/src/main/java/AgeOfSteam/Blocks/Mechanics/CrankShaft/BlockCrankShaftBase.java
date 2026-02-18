@@ -1,5 +1,6 @@
 package AgeOfSteam.Blocks.Mechanics.CrankShaft;
 
+import AgeOfSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +22,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockCrankShaftBase extends Block implements EntityBlock {
+public abstract class BlockCrankShaftBase extends Block implements EntityBlock, ItemHammer.HammerInteractionBlock {
 
     public static EnumProperty<Direction.Axis> ROTATION_AXIS = BlockStateProperties.AXIS;
 
