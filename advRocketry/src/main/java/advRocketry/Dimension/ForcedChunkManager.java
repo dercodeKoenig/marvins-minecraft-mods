@@ -116,7 +116,7 @@ public class ForcedChunkManager {
             }
         }
 
-        levelForcedChunks.put(pos, GlobalTime.getGlobalTime() + 20 * 60);
+        levelForcedChunks.put(pos, GlobalTime.getGlobalTime() + 20 * 10);
     }
 
     /// cleans up force loaded chunks after some time
