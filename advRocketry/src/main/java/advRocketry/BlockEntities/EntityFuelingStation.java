@@ -10,6 +10,7 @@ import advRocketry.Items.ItemLinker;
 import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -20,7 +21,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
@@ -40,15 +44,16 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
 
     public EntityFuelingStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_FUELING_STATION.get(), pos, blockState);
-        battery = new BlockEntityBattery(this,10000);
+
+        battery = new BlockEntityBattery(this, 10000);
 
         guiHandler.modules.add(
-                new guiModuleEnergy(11000,battery,guiHandler,155,7)
+                new guiModuleEnergy(11000, battery, guiHandler, 155, 7)
         );
 
-        drainFillToggleButton = new guiModuleButton(11001,"text", guiHandler,70,10,40,15,BTN_GREEN,BTN_W,BTN_H){
+        drainFillToggleButton = new guiModuleButton(11001, "text", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
             @Override
-            public void onButtonClicked(){
+            public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
                 info.put("toggleDrainFill", new CompoundTag());
                 PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityFuelingStation.this, info));
@@ -61,7 +66,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         super.readServer(compoundTag, serverPlayer);
-        if(compoundTag.contains("toggleDrainFill")){
+        if (compoundTag.contains("toggleDrainFill")) {
             isDrain = !isDrain;
             setChanged();
         }
@@ -92,7 +97,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
 
     public void tick() {
         super.tick();
-        if(!level.isClientSide) {
+        if (!level.isClientSide) {
             if (linkedAssemblerPos != null) {
                 linkedRocket = null;
                 BlockEntity be = level.getBlockEntity(linkedAssemblerPos);
@@ -133,6 +138,22 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
             if (isDrain) {
                 drainFillToggleButton.setBackgroundAndSync(BTN_BLACK, BTN_W, BTN_H);
                 drainFillToggleButton.setTextAndSync("DRAIN");
+
+                // try to output fluid to nearby fluid handlers
+                if (!myTank.isEmpty()) {
+                    for (Direction i : Direction.values()) {
+                        IFluidHandler neighborFluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(i), i.getOpposite());
+                        if (neighborFluidHandler != null) {
+                            int maxDrain = Config.INSTANCE.fuelingStationFuelPerTick;
+                            FluidStack available = myTank.drain(maxDrain, FluidAction.SIMULATE);
+                            int canFill = neighborFluidHandler.fill(available, FluidAction.SIMULATE);
+                            if (canFill > 0) {
+                                neighborFluidHandler.fill(myTank.drain(canFill, FluidAction.EXECUTE), FluidAction.EXECUTE);
+                                setChanged();
+                            }
+                        }
+                    }
+                }
             } else {
                 drainFillToggleButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
                 drainFillToggleButton.setTextAndSync("FUEL");
