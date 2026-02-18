@@ -33,10 +33,10 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
             }
         };
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 0, 1, guiHandler, 50, 20));
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 110, 1000, 1, 0, guiHandler)) {
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 50, 2000, 1, 0, guiHandler)) {
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
 
@@ -86,6 +86,6 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(180, 140, true);
+            guiHandler.openGui(176, 140, true);
     }
 }

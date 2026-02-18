@@ -49,6 +49,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
+
 public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     // holds methods and variables for rendering
@@ -239,11 +241,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     ARLib.gui.modules.guiModuleProgressBarHorizontal6px guiProgressBar;
     ARLib.gui.modules.guiModuleVerticalProgressBar energyBar;
 
-    ResourceLocation BTN_BLACK = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png");
-    ResourceLocation BTN_RED = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png");
-    ResourceLocation BTN_GREEN = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_green.png");
-    int BTN_W = 64;
-    int BTN_H = 20;
+
 
 
     public EntityObservatory(BlockPos pos, BlockState state) {
@@ -289,18 +287,18 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 EntityObservatory.this.setChanged();
             }
         };
-        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 130, 160);
+        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 130, 150);
         guiHandler.modules.add(storageDiskSlot1);
-        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 160);
+        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 150);
         guiHandler.modules.add(storageDiskSlot2);
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 163, 0xff000000, false)
+                new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 153, 0xff000000, false)
         );
 
-        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 140);
+        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 130);
         guiHandler.modules.add(planetIdChipSlot);
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 143, 0xff000000, false)
+                new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 133, 0xff000000, false)
         );
 
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
@@ -383,10 +381,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         currentTaskText = new ARLib.gui.modules.guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
         guiHandler.modules.add(currentTaskText);
 
-        guiProgressBar = new ARLib.gui.modules.guiModuleProgressBarHorizontal6px(200, 0xffffffff, guiHandler, 10, 40);
+        guiProgressBar = new ARLib.gui.modules.guiModuleProgressBarHorizontal6px(200, 0xffffffff, guiHandler, 10, 50);
         guiHandler.modules.add(guiProgressBar);
 
-        scanPlanetBtn = new ARLib.gui.modules.guiModuleButton(201, "Scan for Planets", guiHandler, 10, 50, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        scanPlanetBtn = new ARLib.gui.modules.guiModuleButton(201, "Scan for Planets", guiHandler, 10, 60, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -397,7 +395,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         guiHandler.modules.add(scanPlanetBtn);
 
 
-        scanAsteroidBtn = new ARLib.gui.modules.guiModuleButton(202, "Scan for Asteroids", guiHandler, 10, 70, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        scanAsteroidBtn = new ARLib.gui.modules.guiModuleButton(202, "Scan for Asteroids", guiHandler, 10, 80, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -407,7 +405,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         };
         guiHandler.modules.add(scanAsteroidBtn);
 
-        syncStorageDisksBtn = new ARLib.gui.modules.guiModuleButton(203, "Sync Storage Disks", guiHandler, 10, 90, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        syncStorageDisksBtn = new ARLib.gui.modules.guiModuleButton(203, "Sync Storage Disks", guiHandler, 10, 100, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -417,10 +415,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         };
         guiHandler.modules.add(syncStorageDisksBtn);
 
-        energyBar = new ARLib.gui.modules.guiModuleVerticalProgressBar(300, guiHandler, 175, 10);
+        energyBar = new ARLib.gui.modules.guiModuleVerticalProgressBar(300, guiHandler, 155, 10);
         guiHandler.modules.add(energyBar);
 
-        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(15, 185, 10000, 0, 1, guiHandler));
+        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 0, 1, guiHandler));
     }
 
     @Override
@@ -466,7 +464,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 if (!hasEnoughEnergy) {
                     currentTaskText.setTextAndSync("OUT OF ENERGY!");
                 } else {
-                    currentTaskText.setTextAndSync("Task: " + task.name());
+                    currentTaskText.setTextAndSync("Task:\n" + task.name());
                 }
 
                 energyBar.setProgressAndSync((double) energy / maxEnergy);
@@ -618,9 +616,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public void openGui(ServerPlayer player) {
         if (level.isClientSide)
-            guiHandler.openGui(200, 210, true);
+            guiHandler.openGui(176, 200, true);
         else if (player != null)
-            guiHandler.signalOpenGui(player, 200, 210, true);
+            guiHandler.signalOpenGui(player, 176, 200, true);
     }
 
     // helper methods for gui rendering
@@ -724,7 +722,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 toggleTask(Task.SCANNING_FOR_PLANETS, null);
             if (taskStr.equals("ScanAsteroid"))
                 toggleTask(Task.SCANNING_FOR_ASTEROIDS, null);
-
         }
     }
 

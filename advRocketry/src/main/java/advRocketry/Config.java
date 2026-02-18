@@ -23,5 +23,9 @@ public class Config {
     public int rocketAssemblerEnergyPerTick = 100;
 
 
+    public int fuelingStationEnergyPerTick = 100;
+    public int fuelingStationFuelPerTick = 10;
+
+
 
 }

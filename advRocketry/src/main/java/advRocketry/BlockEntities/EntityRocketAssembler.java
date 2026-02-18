@@ -19,7 +19,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -34,12 +33,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
@@ -71,13 +70,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         battery = new BlockEntityBattery(this, 10000,1000);
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20);
-        statusText = new guiModuleText(1, "status:", guiHandler, 10, 35, 0x00000000, false);
+        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, BTN_BLACK, BTN_W, BTN_W);
+        statusText = new guiModuleText(1, "status:", guiHandler, 10, 10, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
 
         guiHandler.modules.add(
-                new guiModuleEnergy(2,battery,guiHandler,175,10)
+                new guiModuleEnergy(2,battery,guiHandler,138,7)
         );
     }
 
@@ -254,10 +253,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         //System.out.println("scan complete in " +(t1-t0) +"ms");
     }
 
-    public constuctionInfo buildRocket(boolean simulate) {
-        if (areaMin == null) return new constuctionInfo(false, "invalid launchpad");
-        if (areaMax == null) return new constuctionInfo(false, "invalid launchpad");
-        if (level.isClientSide) return new constuctionInfo(false, "");
+    public ConstructionResult buildRocket(boolean simulate) {
+        if (level.isClientSide) return null;
+
+        if (areaMin == null) return ConstructionResult.INVALID_LAUNCHPAD;
+        if (areaMax == null) return ConstructionResult.INVALID_LAUNCHPAD;
 
         EntityGuidanceComputer guidanceComputer = null;
 
@@ -319,14 +319,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
                     if (state.getBlock() instanceof GuidanceComputer) {
                         if (guidanceComputer != null)
-                            return new constuctionInfo(false, "multiple guidance computers found");
+                            return ConstructionResult.TOO_MANY_GUIDANCE_COMPUTERS;
                         guidanceComputer = (EntityGuidanceComputer) level.getBlockEntity(pos);
                     }
                 }
             }
         }
         if (guidanceComputer == null) {
-            return new constuctionInfo(false, "missing guidance computer");
+            return ConstructionResult.NO_GUIDANCE_COMPUTER;
         }
 
         if (!simulate) {
@@ -354,7 +354,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             rocket.moveTo(launchPadCenterX, areaMin.getY() + 0.02, launchPadCenterZ, 0, 0);
             level.addFreshEntity(rocket);
         }
-        return new constuctionInfo(true, "");
+        return ConstructionResult.SUCCESS;
     }
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
@@ -389,9 +389,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("guiButtonClick")) {
             int id = compoundTag.getInt("guiButtonClick");
             if (id == 0) {
-                constuctionInfo ret = buildRocket(true);
-                statusText.setTextAndSync(ret.info);
-                if (ret.canConstruct) {
+                ConstructionResult ret = buildRocket(true);
+                if (ret == ConstructionResult.SUCCESS) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
                     buildProgress = (int) (Config.INSTANCE.rocketAssemblerBuildTimeBase * (areaMax.getY() - areaMin.getY() + 2) * 1.5);
 
@@ -526,7 +525,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     buildButton.setIsEnabledAndBroadcastUpdate(true);
 
                     statusText.setTextAndSync(
-                            "Ready to build a rocket!\n\nA Rocket requires\n" +
+                            "\n\n\nReady to build a rocket!\n\nA Rocket requires\n" +
                                     "- 1 Guidance Computer\n" +
                                     "- Thrusters\n" +
                                     "- FuelTanks\n"
@@ -554,15 +553,17 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(200, 200, true);
+            guiHandler.openGui(160, 100, true);
     }
 
-    public static class constuctionInfo {
-        boolean canConstruct = false;
-        String info = "";
-
-        constuctionInfo(boolean canConstruct, String info) {
-            this.canConstruct = canConstruct;
+    public enum ConstructionResult{
+        SUCCESS(""),
+        NO_GUIDANCE_COMPUTER("NO_GUIDANCE_COMPUTER"),
+        TOO_MANY_GUIDANCE_COMPUTERS("TOO_MANY_GUIDANCE_COMPUTERS"),
+        INVALID_LAUNCHPAD("INVALID_LAUNCHPAD")
+        ;
+        final String info;
+        ConstructionResult(String info){
             this.info = info;
         }
     }
