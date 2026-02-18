@@ -15,6 +15,13 @@ public class Config {
     public int observatoryFindPlanetTicks = 20 * 120;
     public int observatoryFindAsteroidTicks = 20 * 120;
     public int observatoryAnalyzePlanetTicks = 20 * 120;
+    public int observatoryEnergyPerTick = 10;
+
+
+    public int rocketAssemblerMaxSize = 20;
+    public int rocketAssemblerBuildTimeBase = 12;
+    public int rocketAssemblerEnergyPerTick = 100;
+
 
 
 }

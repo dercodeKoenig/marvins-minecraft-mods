@@ -226,7 +226,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public static int writePlanetToChipTicks = 20 * 5;
     public static int syncStorageDisksTicks = 20 * 10;
 
-    public static int ENERGY_PER_TICK = 10;
     boolean hasEnoughEnergy = false;
 
     public GuiHandlerBlockEntity guiHandler;
@@ -458,7 +457,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 int energy = this.getTotalEnergyStored();
                 int maxEnergy = this.getMaxEnergyStored();
 
-                boolean newHasEnoughEnergy = energy > ENERGY_PER_TICK;
+                boolean newHasEnoughEnergy = energy > Config.INSTANCE.observatoryEnergyPerTick;
                 if (newHasEnoughEnergy != hasEnoughEnergy) {
                     hasEnoughEnergy = newHasEnoughEnergy;
                     sendUpdatePacket(null); // client needs to know about energy to stop the rotate animations
@@ -485,7 +484,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     } else {
                         guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
                         if (hasEnoughEnergy) {
-                            consumeEnergy(ENERGY_PER_TICK);
+                            consumeEnergy(Config.INSTANCE.observatoryEnergyPerTick);
                             taskProgress++;
                             if (taskProgress > Config.INSTANCE.observatoryFindPlanetTicks) {
                                 // discover a new random planet that is not already known
@@ -522,7 +521,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         toggleTask(this.lastTask, this.lastTaskTarget);
                     } else {
                         if (hasEnoughEnergy) {
-                            consumeEnergy(ENERGY_PER_TICK);
+                            consumeEnergy(Config.INSTANCE.observatoryEnergyPerTick);
                             taskProgress++;
                             guiProgressBar.setProgressAndSync((double) taskProgress / syncStorageDisksTicks);
                             guiProgressBar.setHoverInfoAndSync("sync disks...");
@@ -563,7 +562,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         toggleTask(Task.IDLE, null);
                     } else {
                         if (hasEnoughEnergy) {
-                            consumeEnergy(ENERGY_PER_TICK);
+                            consumeEnergy(Config.INSTANCE.observatoryEnergyPerTick);
                             taskProgress = ItemGalaxyStorageDisk.getUnlockPoints(storageDisk, taskTarget.toString());
                             guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyStorageDisk.POINTS_UNLOCKED());
                             guiProgressBar.setHoverInfoAndSync("analyzing planet...");
@@ -590,7 +589,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         toggleTask(this.lastTask, this.lastTaskTarget);
                     } else {
                         if (hasEnoughEnergy) {
-                            consumeEnergy(ENERGY_PER_TICK);
+                            consumeEnergy(Config.INSTANCE.observatoryEnergyPerTick);
                             taskProgress++;
                             guiProgressBar.setHoverInfoAndSync("writing to chip...");
                             guiProgressBar.setProgressAndSync((double) taskProgress / writePlanetToChipTicks);
