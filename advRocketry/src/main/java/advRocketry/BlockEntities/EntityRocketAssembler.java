@@ -44,7 +44,7 @@ import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
     public static int maxSize = 20;
-    public static int buildTimeBase = 5;//20;
+    public static int buildTimeBase = 10;
     public static int ENERGY_PER_TICK = 100;
 
     // the current rocket is the one on launchpad.
@@ -448,7 +448,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             // build progress logic server
             if (buildProgress > -1) {
                 if (areaMin != null && areaMax != null) {
-                    boolean shouldConsumeEnergy = buildTimeBase <= (areaMax.getY() - areaMin.getY() + 2);
+                    boolean shouldConsumeEnergy = buildProgress <= buildTimeBase * (areaMax.getY() - areaMin.getY()+2);
                     if(battery.getEnergyStored() >= ENERGY_PER_TICK || !shouldConsumeEnergy) {
                         buildProgress--;
                         if(shouldConsumeEnergy)
