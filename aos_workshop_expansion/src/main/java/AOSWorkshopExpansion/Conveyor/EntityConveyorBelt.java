@@ -2,6 +2,8 @@ package AOSWorkshopExpansion.Conveyor;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.InventoryUtils;
+import ARLib.utils.ItemUtils;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
@@ -171,15 +173,15 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                             initialProgress = 0;
                         }
                     } else {
-                        if (items_progress.isEmpty() ||Collections.max(items_progress.values()) < 0.6) {
+                        if (items_progress.isEmpty() || Collections.max(items_progress.values()) < 0.6) {
                             canExtract = true;
                             initialProgress = 1;
                         }
                     }
-                    if(canExtract){
+                    if (canExtract) {
                         for (int i = 0; i < neighbor.getSlots(); i++) {
-                            ItemStack extracted = neighbor.extractItem(i,1,false);
-                            if(!extracted.isEmpty()) {
+                            ItemStack extracted = neighbor.extractItem(i, 1, false);
+                            if (!extracted.isEmpty()) {
                                 Long id = new Random().nextLong();
                                 addItem(id, extracted.copy(), initialProgress, true, level.registryAccess());
                             }
@@ -221,7 +223,35 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                         neighbor.addItem(id, stack, newProgress, false, level.registryAccess());
                         removeItem(id, false);
                     } else {
-                        popItem(id, target);
+                        if (!level.isClientSide) {
+                            // check if the neighbor has a itemhandler to insert items into an inventory
+                            IItemHandler neighborItemHandler = level.getCapability(
+                                    Capabilities.ItemHandler.BLOCK,
+                                    getBlockPos().relative(target),
+                                    target.getOpposite()
+                            );
+
+                            ItemStack remaining = stack;
+
+                            if (neighborItemHandler != null) {
+                                for (int i = 0; i < neighborItemHandler.getSlots(); i++) {
+                                    if (remaining.isEmpty())
+                                        break;
+                                    remaining = neighborItemHandler.insertItem(i, remaining.copy(), false);
+                                }
+
+                                // pop to the side when there is an itemhandler in front or it will land on the belt again
+                                if (new Random().nextBoolean())
+                                    target = target.getClockWise();
+                                else
+                                    target = target.getCounterClockWise();
+                            }
+
+                            // pop remaining items
+                            id_items.put(id, remaining);
+                            items_progress.put(remaining, 0f);
+                            popItem(id, target);
+                        }
                     }
                 }
             }
