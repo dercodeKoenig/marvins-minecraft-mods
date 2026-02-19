@@ -26,12 +26,12 @@ import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_ENGINE;
 
 public class ConveyorBelt extends Block implements EntityBlock {
 
-    public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
     public ConveyorBelt() {
         super(Properties.of().noOcclusion());
         BlockState state = this.stateDefinition.any();
-        state = state.setValue(FACING, Direction.NORTH);
+        state = state.setValue(AXIS, Direction.Axis.X);
         this.registerDefaultState(state);
     }
 
@@ -42,18 +42,17 @@ public class ConveyorBelt extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(AXIS);
         super.createBlockStateDefinition(builder);
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            if (!placer.isShiftKeyDown())
-                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getClockWise()), 3);
-            else
-                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getCounterClockWise()), 3);
+            state = state.setValue(AXIS, placer.getDirection().getAxis());
+            level.setBlock(pos, state, 3);
         }
+        super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
     }
 
     @Override

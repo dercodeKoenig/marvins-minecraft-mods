@@ -1,20 +1,8 @@
 {
     "variants": {
-        "facing=north": {
+        "": {
             "model": "aos_workshop_expansion:block/conveyor_belt",
             "y": 0
-        },
-        "facing=south": {
-            "model": "aos_workshop_expansion:block/conveyor_belt",
-            "y": 90
-        },
-        "facing=east": {
-            "model": "aos_workshop_expansion:block/conveyor_belt",
-            "y": 90
-        },
-        "facing=west": {
-            "model": "aos_workshop_expansion:block/conveyor_belt",
-            "y": 90
         }
     }
 }

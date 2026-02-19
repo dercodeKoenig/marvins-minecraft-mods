@@ -1,6 +1,7 @@
 package AOSWorkshopExpansion;
 
 
+import AOSWorkshopExpansion.Conveyor.RenderConveyorBelt;
 import ARLib.holoProjector.itemHoloProjector;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.MillStone.MillStoneConfig;
@@ -75,6 +76,9 @@ public class Main {
         event.registerBlockEntityRenderer(ENTITY_WOODMILL.get(), RenderWoodMill::new);
         event.registerBlockEntityRenderer(ENTITY_SPINNING_WHEEL.get(), RenderSpinningWheel::new);
         event.registerBlockEntityRenderer(ENTITY_MILLSTONE.get(), RenderMillStone::new);
+
+        event.registerBlockEntityRenderer(ENTITY_CONVEYOR_BELT.get(), RenderConveyorBelt::new);
+
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
@@ -92,6 +96,10 @@ public class Main {
 
             e.accept(MILLSTONE.get());
             e.accept(FLOUR.get());
+
+
+            e.accept(CONVEYOR_BELT.get());
+            e.accept(CONVEYOR_ENGINE.get());
         }
     }
 
