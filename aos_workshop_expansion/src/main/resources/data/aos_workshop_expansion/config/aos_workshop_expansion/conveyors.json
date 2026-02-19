@@ -2,6 +2,7 @@
   "conveyorResistance": 1,
   "conveyorInertia": 1,
   "conveyorMaxStress": 600,
+
   "conveyorEngineResistance": 1,
   "conveyorEngineInertia": 1,
   "conveyorEngineMaxStress": 600

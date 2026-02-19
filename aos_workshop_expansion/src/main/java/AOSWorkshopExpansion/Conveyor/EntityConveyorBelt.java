@@ -5,6 +5,7 @@ import ARLib.network.PacketBlockEntity;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
+import BetterPipes.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -27,6 +28,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
@@ -34,13 +37,13 @@ import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 
-public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, IItemHandler {
 
 
     // items and progress
     public HashMap<ItemStack, Float> items_progress = new HashMap<>();
     // unique id and same item reference for server/client sync
-    public HashMap<Long, ItemStack> id_items = new HashMap<>();
+    public HashMap<Long, ItemStack> id_items = new LinkedHashMap<>();
 
     public int lastLight;
     public boolean lastDiagonal;
@@ -130,32 +133,78 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             }
         }
 
-        // move items
+
         float progress = (float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS / 360);
         if (progress != 0) {
+
             Direction facing = getBlockState().getValue(ConveyorBelt.FACING);
             Direction.Axis axis = facing.getAxis();
             boolean isDiagonal = getBlockState().getValue(ConveyorBelt.DIAGONAL);
 
+            Direction target = null;
+            if (progress > 0) {
+                target = Direction.NORTH;
+                if (axis == Direction.Axis.X)
+                    target = Direction.EAST;
+            }
+            if (progress < 0) {
+                target = Direction.SOUTH;
+                if (axis == Direction.Axis.X)
+                    target = Direction.WEST;
+            }
+
+            // pull from inventories
+            if (!level.isClientSide) {
+                IItemHandler neighbor = level.getCapability(
+                        Capabilities.ItemHandler.BLOCK,
+                        getBlockPos().relative(target.getOpposite()),
+                        target
+                );
+                if (neighbor != null && !(neighbor instanceof EntityConveyorBelt)) {
+                    // see if we can extract something
+                    // but do not extract too fast
+                    boolean canExtract = false;
+                    float initialProgress = 0;
+                    if (progress > 0) {
+                        if (items_progress.isEmpty() || Collections.min(items_progress.values()) > 0.4) {
+                            canExtract = true;
+                            initialProgress = 0;
+                        }
+                    } else {
+                        if (items_progress.isEmpty() ||Collections.max(items_progress.values()) < 0.6) {
+                            canExtract = true;
+                            initialProgress = 1;
+                        }
+                    }
+                    if(canExtract){
+                        for (int i = 0; i < neighbor.getSlots(); i++) {
+                            ItemStack extracted = neighbor.extractItem(i,1,false);
+                            if(!extracted.isEmpty()) {
+                                Long id = new Random().nextLong();
+                                addItem(id, extracted.copy(), initialProgress, true, level.registryAccess());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // move items
             for (Long id : new ArrayList<>(id_items.keySet())) {
                 ItemStack stack = id_items.get(id);
                 items_progress.put(stack, items_progress.get(stack) + progress);
                 float newProgress = items_progress.get(stack);
 
-                Direction target = null;
-                if (newProgress > 1) {
-                    target = Direction.NORTH;
-                    if (axis == Direction.Axis.X)
-                        target = Direction.EAST;
-                    newProgress -= 1;
-                }
+                boolean doOutput = false;
                 if (newProgress < 0) {
-                    target = Direction.SOUTH;
-                    if (axis == Direction.Axis.X)
-                        target = Direction.WEST;
                     newProgress += 1;
+                    doOutput = true;
                 }
-                if (target != null) {
+                if (newProgress > 1) {
+                    newProgress -= 1;
+                    doOutput = true;
+                }
+
+                if (doOutput) {
                     // output to next conveyor or pop item
                     // there are 2 conveyors to check:
                     // if diagonal: neighbor & above neighbor
@@ -411,5 +460,46 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     @Override
     public BlockEntity getBlockEntity() {
         return this;
+    }
+
+    @Override
+    public int getSlots() {
+        return id_items.size();
+    }
+
+    @Override
+    public ItemStack getStackInSlot(int i) {
+        if (i < id_items.size())
+            return new ArrayList<>(id_items.values()).get(i);
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack insertItem(int ignored, ItemStack itemStack, boolean simulate) {
+        // i do not allow insertion, i pull from inventories myself
+        return itemStack;
+    }
+
+    @Override
+    public ItemStack extractItem(int slot, int amount, boolean simulate) {
+        if (slot < id_items.size()) {
+            Long id = new ArrayList<>(id_items.keySet()).get(slot);
+            ItemStack item = id_items.get(id);
+            if (!simulate)
+                removeItem(id, true);
+            return item.copyWithCount(1);
+        }
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public int getSlotLimit(int i) {
+        return 99;
+    }
+
+    @Override
+    public boolean isItemValid(int i, ItemStack itemStack) {
+        // i do not allow insertion, i pull from inventories myself
+        return false;
     }
 }
