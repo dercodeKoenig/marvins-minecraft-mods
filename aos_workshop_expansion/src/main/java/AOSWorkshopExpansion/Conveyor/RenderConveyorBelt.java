@@ -34,7 +34,7 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
     @Override
     public void render(EntityConveyorBelt tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        if(tile.vertexBuffer == null)return;
+        if(tile.vertexBuffer.isInvalid())return;
         BlockState state = tile.getBlockState();
         if (!(state.getBlock() instanceof ConveyorBelt)) return;
 
