@@ -215,36 +215,44 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                     if (target == facing && isDiagonal)
                         targetPos = targetPos.above();
 
-                    EntityConveyorBelt neighbor = getConnectedConveyor(targetPos);
-                    if (neighbor == null)
-                        neighbor = getConnectedConveyor(targetPos.below());
+                    EntityConveyorBelt targetBelt = getConnectedConveyor(targetPos);
+                    if (targetBelt == null)
+                        targetBelt = getConnectedConveyor(targetPos.below());
 
-                    if (neighbor != null) {
-                        neighbor.addItem(id, stack, newProgress, false, level.registryAccess());
+                    if (targetBelt != null) {
+                        targetBelt.addItem(id, stack, newProgress, false, level.registryAccess());
                         removeItem(id, false);
                     } else {
                         if (!level.isClientSide) {
                             // check if the neighbor has a itemhandler to insert items into an inventory
+                            targetPos = getBlockPos().relative(target);
                             IItemHandler neighborItemHandler = level.getCapability(
                                     Capabilities.ItemHandler.BLOCK,
-                                    getBlockPos().relative(target),
+                                    targetPos,
                                     target.getOpposite()
                             );
 
                             ItemStack remaining = stack;
 
-                            if (neighborItemHandler != null) {
+                            // special case: neighbor is a conveyor but it is wrong oriented
+                            if(neighborItemHandler instanceof EntityConveyorBelt neighborBelt){
+                                neighborBelt.addItem(id, stack, 0.5f,true, level.registryAccess());
+                                remaining = ItemStack.EMPTY;
+                            }
+                            else if (neighborItemHandler != null) {
                                 for (int i = 0; i < neighborItemHandler.getSlots(); i++) {
                                     if (remaining.isEmpty())
                                         break;
                                     remaining = neighborItemHandler.insertItem(i, remaining.copy(), false);
                                 }
 
-                                // pop to the side when there is an itemhandler in front or it will land on the belt again
-                                if (new Random().nextBoolean())
-                                    target = target.getClockWise();
-                                else
-                                    target = target.getCounterClockWise();
+                                if(level.getBlockState(targetPos).isCollisionShapeFullBlock(level, targetPos)) {
+                                    // pop to the side when there is an itemhandler in front or it will land on the belt again
+                                    if (new Random().nextBoolean())
+                                        target = target.getClockWise();
+                                    else
+                                        target = target.getCounterClockWise();
+                                }
                             }
 
                             // pop remaining items
