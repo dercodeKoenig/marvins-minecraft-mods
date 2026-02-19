@@ -2,8 +2,7 @@
   "parent": "block/block",
   "textures": {
     "0": "age_of_steam:block/andesite_casing",
-    "1": "age_of_steam:block/gearbox2_closed",
-    "2": "age_of_steam:block/andesite_casing_horizontal_support",
+    "1": "aos_workshop_expansion:block/conveyor_engine",
     "particle": "age_of_steam:block/andesite_casing"
   },
   "elements": [
@@ -25,8 +24,8 @@
       "from": [0, 2, 0.95],
       "to": [16, 14, 15.05],
       "faces": {
-        "north": {"uv": [0, 0, 16, 16], "texture": "#2"},
-        "south": {"uv": [0, 0, 16, 16], "texture": "#2"},
+        "north": {"uv": [0, 0, 16, 16], "texture": "#0"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#0"},
         "east": {"uv": [0, 0, 16, 16], "texture": "#1"},
         "west": {"uv": [0, 0, 16, 16], "texture": "#1"}
       }
