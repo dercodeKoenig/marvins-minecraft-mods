@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -35,7 +36,7 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
     @Override
     public void render(EntityConveyorBelt tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        if(tile.vertexBuffer.isInvalid())return;
+        if (tile.vertexBuffer.isInvalid()) return;
         BlockState state = tile.getBlockState();
         if (!(state.getBlock() instanceof ConveyorBelt)) return;
 
@@ -58,15 +59,16 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
 
         Direction.Axis axis = state.getValue(ConveyorBelt.AXIS);
 
-        stack.translate(0.5f, 2f/16f, 0.5f);
+        stack.translate(0.5f, 2f / 16f, 0.5f);
         if (axis == Direction.Axis.X) {
-            stack.mulPose(new Quaternionf().fromAxisAngleDeg(0,1,0,-90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
         }
 
         Matrix4f modelMat = new Matrix4f();
         modelMat = modelMat.mul(stack.last().pose());
 
-        float rotation = (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
+        float partialRotation = (float) (rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
+        float rotation = (float) (tile.myMechanicalBlock.currentRotation + partialRotation);
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
         LIGHTMAP.setupRenderState();
@@ -87,11 +89,11 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
         VertexBuffer.unbind();
 
 
-        for(ItemStack itemStack : tile.items_progress.keySet()){
+        for (ItemStack itemStack : tile.items_progress.keySet()) {
             float progress = tile.items_progress.get(itemStack);
 
             stack.pushPose();
-            stack.translate(0, 0.1, -progress+0.5f);
+            stack.translate(0, 0.1, -progress - partialRotation / 360f + 0.5f);
             float scale = 0.6f;
             stack.scale(scale, scale, scale);
             Minecraft.getInstance().getItemRenderer().renderStatic(itemStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, stack, bufferSource, null, 0);

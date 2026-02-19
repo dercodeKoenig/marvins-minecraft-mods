@@ -1,5 +1,6 @@
 package AOSWorkshopExpansion.Conveyor;
 
+import com.ibm.icu.text.AlphabeticIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,6 +21,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_ENGINE;
@@ -53,6 +56,17 @@ public class ConveyorBelt extends Block implements EntityBlock {
             level.setBlock(pos, state, 3);
         }
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof EntityConveyorBelt conveyorBelt) {
+            for(Long id : new ArrayList<>(conveyorBelt.id_items.keySet())) {
+                conveyorBelt.popItem(id, Direction.UP);
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override
