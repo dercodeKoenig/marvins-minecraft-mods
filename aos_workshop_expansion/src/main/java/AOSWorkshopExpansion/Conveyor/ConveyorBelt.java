@@ -1,6 +1,5 @@
 package AOSWorkshopExpansion.Conveyor;
 
-import com.ibm.icu.text.AlphabeticIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -25,16 +25,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
-import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_ENGINE;
 
 public class ConveyorBelt extends Block implements EntityBlock {
 
-    public static EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
+    public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static BooleanProperty DIAGONAL = BooleanProperty.create("diagonal");
 
     public ConveyorBelt() {
         super(Properties.of().noOcclusion());
         BlockState state = this.stateDefinition.any();
-        state = state.setValue(AXIS, Direction.Axis.X);
+        state = state.setValue(FACING, Direction.NORTH).setValue(DIAGONAL, false);
         this.registerDefaultState(state);
     }
 
@@ -45,14 +45,16 @@ public class ConveyorBelt extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(AXIS);
+        builder.add(FACING);
+        builder.add(DIAGONAL);
         super.createBlockStateDefinition(builder);
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            state = state.setValue(AXIS, placer.getDirection().getAxis());
+            state = state.setValue(FACING, placer.getDirection());
+            state = state.setValue(DIAGONAL, true);
             level.setBlock(pos, state, 3);
         }
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior

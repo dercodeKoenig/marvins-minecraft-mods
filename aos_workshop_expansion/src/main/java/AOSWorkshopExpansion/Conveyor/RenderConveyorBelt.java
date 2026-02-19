@@ -40,15 +40,27 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
         BlockState state = tile.getBlockState();
         if (!(state.getBlock() instanceof ConveyorBelt)) return;
 
+        Direction facing = state.getValue(ConveyorBelt.FACING);
+        Direction.Axis axis = facing.getAxis();
+
+        int y0 = 0;
+        int y1 = 0;
+        if(state.getValue(ConveyorBelt.DIAGONAL)) {
+            if(facing == Direction.SOUTH || facing == Direction.WEST)
+                y0 = 1;
+            else
+                y1 = 1;
+        }
+
         if (tile.lastLight != packedLight || true) {
             tile.lastLight = packedLight;
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
             BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
 
-            b.addVertex(-0.5f, 0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 1).setOverlay(0).setLight(packedLight);
-            b.addVertex(0.5f, 0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 1).setOverlay(0).setLight(packedLight);
-            b.addVertex(0.5f, 0, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 0).setOverlay(0).setLight(packedLight);
-            b.addVertex(-0.5f, 0, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 0).setOverlay(0).setLight(packedLight);
+            b.addVertex(-0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 1).setOverlay(0).setLight(packedLight);
+            b.addVertex(0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 1).setOverlay(0).setLight(packedLight);
+            b.addVertex(0.5f, y1, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 0).setOverlay(0).setLight(packedLight);
+            b.addVertex(-0.5f, y1, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 0).setOverlay(0).setLight(packedLight);
 
             tile.mesh = b.build();
             tile.vertexBuffer.bind();
@@ -56,8 +68,6 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
             byteBuffer.close();
         }
 
-
-        Direction.Axis axis = state.getValue(ConveyorBelt.AXIS);
 
         stack.translate(0.5f, 2f / 16f, 0.5f);
         if (axis == Direction.Axis.X) {
@@ -92,8 +102,10 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
         for (ItemStack itemStack : tile.items_progress.keySet()) {
             float progress = tile.items_progress.get(itemStack);
 
+            float yOffset = progress * y1  + (1 - progress) * y0;
+
             stack.pushPose();
-            stack.translate(0, 0.1, -progress - partialRotation / 360f + 0.5f);
+            stack.translate(0, 0.1 + yOffset, -progress - partialRotation / 360f + 0.5f);
             float scale = 0.6f;
             stack.scale(scale, scale, scale);
             Minecraft.getInstance().getItemRenderer().renderStatic(itemStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, stack, bufferSource, null, 0);

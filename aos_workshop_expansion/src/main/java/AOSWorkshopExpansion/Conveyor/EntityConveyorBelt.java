@@ -144,7 +144,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                 float newProgress = items_progress.get(stack);
 
                 if (newProgress > 1) {
-                    Direction.Axis axis = getBlockState().getValue(ConveyorBelt.AXIS);
+                    Direction.Axis axis = getBlockState().getValue(ConveyorBelt.FACING).getAxis();
 
                     Direction target = Direction.NORTH;
                     if (axis == Direction.Axis.X)
@@ -152,7 +152,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                     BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
                     if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        if(neighbor.getBlockState().getValue(ConveyorBelt.AXIS) == getBlockState().getValue(ConveyorBelt.AXIS))
+                        if(neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
                             neighborBelt.addItem(id, stack, newProgress - 1, false, level.registryAccess());
                         else
                             neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
@@ -162,7 +162,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                     }
                 }
                 if (newProgress < 0) {
-                    Direction.Axis axis = getBlockState().getValue(ConveyorBelt.AXIS);
+                    Direction.Axis axis = getBlockState().getValue(ConveyorBelt.FACING).getAxis();
 
                     Direction target = Direction.SOUTH;
                     if (axis == Direction.Axis.X)
@@ -170,7 +170,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                     BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
                     if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        if(neighbor.getBlockState().getValue(ConveyorBelt.AXIS) == getBlockState().getValue(ConveyorBelt.AXIS))
+                        if(neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
                             neighborBelt.addItem(id, stack, newProgress + 1, false, level.registryAccess());
                         else
                             neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
@@ -293,12 +293,12 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                 // below check for engine block
                 BlockState below = level.getBlockState(getBlockPos().below());
                 if (below.getBlock() instanceof ConveyorEngine) {
-                    if (below.getValue(ConveyorEngine.AXIS) != getBlockState().getValue(ConveyorBelt.AXIS))
+                    if (below.getValue(ConveyorEngine.AXIS) != getBlockState().getValue(ConveyorBelt.FACING).getAxis())
                         return myMechanicalBlock;
                 }
             }
 
-            if (direction.getAxis() == getBlockState().getValue(ConveyorBelt.AXIS)) {
+            if (direction.getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis()) {
                 // next to me check if it is a conveyor too and if it is in my correct direction
                 BlockState neighbor = level.getBlockState(getBlockPos().relative(direction));
                 if (neighbor.getBlock() instanceof ConveyorBelt) {
