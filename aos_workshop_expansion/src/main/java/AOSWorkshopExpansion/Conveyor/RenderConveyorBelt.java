@@ -63,11 +63,11 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
         modelMat = modelMat.translate(0.5f, 2/16f, 0.5f);
 
         if (axis == Direction.Axis.X) {
-
+            modelMat = modelMat.rotate((float) (-90f*Math.PI/180f),0,1,0);
         }else{
 
         }
-       
+
         float rotation = (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);

@@ -48,7 +48,9 @@ public class EntityConveyorEngine extends BlockEntity implements IMechanicalBloc
 
         @Override
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
-            return 1;
+            if(receivingFace == Direction.UP)
+                return -1;
+            else return 1;
         }
     };
 
