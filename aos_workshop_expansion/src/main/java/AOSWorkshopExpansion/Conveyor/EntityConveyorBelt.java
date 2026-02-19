@@ -137,42 +137,43 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         // move items
         float progress = (float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS / 360);
         if (progress != 0) {
+            Direction facing = getBlockState().getValue(ConveyorBelt.FACING);
+            Direction.Axis axis = facing.getAxis();
+            boolean isDiagonal = getBlockState().getValue(ConveyorBelt.DIAGONAL);
+
             for (Long id : new ArrayList<>(id_items.keySet())) {
                 ItemStack stack = id_items.get(id);
                 items_progress.put(stack, items_progress.get(stack) + progress);
                 float newProgress = items_progress.get(stack);
 
+                Direction target = null;
                 if (newProgress > 1) {
-                    Direction.Axis axis = getBlockState().getValue(ConveyorBelt.FACING).getAxis();
-
-                    Direction target = Direction.NORTH;
+                    target = Direction.NORTH;
                     if (axis == Direction.Axis.X)
                         target = Direction.EAST;
-
-                    BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
-                    if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        if (neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
-                            neighborBelt.addItem(id, stack, newProgress - 1, false, level.registryAccess());
-                        else
-                            neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
-                        removeItem(id, false);
-                    } else {
-                        popItem(id, target);
-                    }
+                    newProgress -= 1;
                 }
                 if (newProgress < 0) {
-                    Direction.Axis axis = getBlockState().getValue(ConveyorBelt.FACING).getAxis();
-
-                    Direction target = Direction.SOUTH;
+                    target = Direction.SOUTH;
                     if (axis == Direction.Axis.X)
                         target = Direction.WEST;
+                    newProgress += 1;
+                }
+                if (target != null) {
+                    // output to next conveyor or pop item
+                    // there are 2 conveyors to check:
+                    // if diagonal: neighbor & above neighbor
+                    // else: neighbor & below neighbor
+                    BlockPos targetPos = getBlockPos().relative(target);
+                    if (target == facing && isDiagonal)
+                        targetPos = targetPos.above();
 
-                    BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
-                    if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        if (neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
-                            neighborBelt.addItem(id, stack, newProgress + 1, false, level.registryAccess());
-                        else
-                            neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
+                    EntityConveyorBelt neighbor = getConnectedConveyor(targetPos);
+                    if (neighbor == null)
+                        neighbor = getConnectedConveyor(targetPos.below());
+
+                    if (neighbor != null) {
+                        neighbor.addItem(id, stack, newProgress, false, level.registryAccess());
                         removeItem(id, false);
                     } else {
                         popItem(id, target);
@@ -305,7 +306,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     }
 
 
-    public BlockEntity getConnectedConveyor(BlockPos otherPos) {
+    public EntityConveyorBelt getConnectedConveyor(BlockPos otherPos) {
 
         Direction myFacing = getBlockState().getValue(ConveyorBelt.FACING);
         BlockPos myPos = getBlockPos();

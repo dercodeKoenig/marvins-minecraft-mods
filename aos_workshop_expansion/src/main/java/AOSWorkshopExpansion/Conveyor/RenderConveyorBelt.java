@@ -46,8 +46,8 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
 
         int y0 = 0;
         int y1 = 0;
-        if(isDiagonal) {
-            if(facing == Direction.SOUTH || facing == Direction.WEST)
+        if (isDiagonal) {
+            if (facing == Direction.SOUTH || facing == Direction.WEST)
                 y0 = 1;
             else
                 y1 = 1;
@@ -103,12 +103,10 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
 
 
         for (ItemStack itemStack : tile.items_progress.keySet()) {
-            float progress = tile.items_progress.get(itemStack);
-
-            float yOffset = progress * y1  + (1 - progress) * y0;
-
+            float progress = tile.items_progress.get(itemStack) + partialRotation / 360f;
+            float yOffset = progress * y1 + (1 - progress) * y0;
             stack.pushPose();
-            stack.translate(0, 0.1 + yOffset, -progress - partialRotation / 360f + 0.5f);
+            stack.translate(0, 0.1 + yOffset, -progress + 0.5f);
             float scale = 0.6f;
             stack.scale(scale, scale, scale);
             Minecraft.getInstance().getItemRenderer().renderStatic(itemStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, stack, bufferSource, null, 0);
