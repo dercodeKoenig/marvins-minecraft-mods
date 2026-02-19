@@ -6,6 +6,6 @@
     "flip_v": true,
     "emissive_ambient": false,
     "textures": {
-        "particle": "aos_workshop_expansion:block/andesite_casing"
+        "particle": "age_of_steam:block/andesite_casing"
     }
 }

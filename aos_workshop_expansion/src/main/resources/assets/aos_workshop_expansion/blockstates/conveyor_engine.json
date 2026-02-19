@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "axis=x": {
+            "model": "age_of_steam:block/clutch",
+            "y": 0
+        },
+        "axis=z": {
+            "model": "age_of_steam:block/clutch",
+            "y": 90
+        }
+    }
+}
