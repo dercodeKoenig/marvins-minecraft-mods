@@ -1,8 +1,10 @@
 package AOSWorkshopExpansion.Conveyor;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
+import AgeOfSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -10,12 +12,24 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 
@@ -25,6 +39,11 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public double myInertia = 1;
     public double myFriction = 1;
     public double maxStress = 600;
+
+    // items and progress
+    public HashMap<ItemStack, Float> items_progress = new HashMap<>();
+    // unique id and same item reference for server/client sync
+    public HashMap<Long, ItemStack> id_items = new HashMap<>();
 
     public int lastLight;
     public MeshData mesh;
@@ -85,10 +104,87 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+        float progress = (float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS / 360);
+        if (!level.isClientSide) {
+            AABB scanningArea = new AABB(getBlockPos());
+            List<ItemEntity> itemEntities = level.getEntitiesOfClass(ItemEntity.class, scanningArea);
+            for (ItemEntity item : itemEntities) {
+                ItemStack stack = item.getItem().copy();
+                item.discard();
+                Long id = new Random().nextLong();
+                addItem(id, stack, 0.5f, true);
+            }
+        }
+
+        for (Long id : new ArrayList<>(id_items.keySet())) {
+            ItemStack stack = id_items.get(id);
+            items_progress.put(stack, items_progress.get(stack) + progress);
+            float newProgress = items_progress.get(stack);
+
+            if (newProgress > 1) {
+                Direction.Axis axis = getBlockState().getValue(ConveyorBelt.AXIS);
+
+                Direction target = Direction.NORTH;
+                if (axis == Direction.Axis.X)
+                    target = Direction.EAST;
+
+                BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
+                if (neighbor instanceof EntityConveyorBelt neighborBelt) {
+                    neighborBelt.addItem(id, stack, newProgress - 1, false);
+                    removeItem(id, false);
+                } else {
+                    Block.popResource(level, getBlockPos().relative(target), stack);
+                    removeItem(id, true);
+                }
+            }
+            if (newProgress < 0) {
+                Direction.Axis axis = getBlockState().getValue(ConveyorBelt.AXIS);
+
+                Direction target = Direction.SOUTH;
+                if (axis == Direction.Axis.X)
+                    target = Direction.WEST;
+
+                BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
+                if (neighbor instanceof EntityConveyorBelt neighborBelt) {
+                    neighborBelt.addItem(id, stack, newProgress + 1, false);
+                    removeItem(id, false);
+                } else {
+                    Block.popResource(level, getBlockPos().relative(target), stack);
+                    removeItem(id, true);
+                }
+
+            }
+        }
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityConveyorBelt) t).tick();
+    }
+
+    public void addItem(Long id, ItemStack stack, float progress, boolean syncToClient) {
+        items_progress.put(stack, progress);
+        id_items.put(id, stack);
+        if (syncToClient && !level.isClientSide) {
+            CompoundTag addTag = new CompoundTag();
+            addTag.putLong("id", id);
+            addTag.put("stack", stack.save(level.registryAccess()));
+            addTag.putFloat("progress", progress);
+            CompoundTag info = new CompoundTag();
+            info.put("addItem", addTag);
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
+        }
+    }
+
+    public void removeItem(Long id, boolean syncToClient) {
+        ItemStack stack = id_items.get(id);
+        id_items.remove(id);
+        items_progress.remove(stack);
+
+        if (syncToClient && !level.isClientSide) {
+            CompoundTag info = new CompoundTag();
+            info.putLong("removeId", id);
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
+        }
     }
 
     @Override
@@ -99,6 +195,21 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     @Override
     public void readClient(CompoundTag compoundTag) {
         myMechanicalBlock.mechanicalReadClient(compoundTag);
+
+        if (compoundTag.contains("removeId")) {
+            Long id = compoundTag.getLong("removeId");
+            ItemStack stack = id_items.get(id);
+            id_items.remove(id);
+            items_progress.remove(stack);
+        }
+        if (compoundTag.contains("addItem")) {
+            CompoundTag addItemTag = compoundTag.getCompound("addItem");
+            Long id = addItemTag.getLong("id");
+            ItemStack stack = ItemStack.parse(level.registryAccess(), addItemTag.get("stack")).get();
+            float progress = addItemTag.getFloat("progress");
+            id_items.put(id, stack);
+            items_progress.put(stack, progress);
+        }
     }
 
     @Override
@@ -122,7 +233,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                 // below check for engine block
                 BlockState below = level.getBlockState(getBlockPos().below());
                 if (below.getBlock() instanceof ConveyorEngine) {
-                    if(below.getValue(ConveyorEngine.AXIS) != getBlockState().getValue(ConveyorBelt.AXIS))
+                    if (below.getValue(ConveyorEngine.AXIS) != getBlockState().getValue(ConveyorBelt.AXIS))
                         return myMechanicalBlock;
                 }
             }
