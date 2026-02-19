@@ -6,14 +6,12 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.BlockEntityItemStackHandler;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,10 +27,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
-
-import java.util.UUID;
 
 import static AWGenerators.Registry.ENTITY_STIRLING_GENERATOR;
 
@@ -66,7 +62,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
     public double myForce = 0;
 
     public GuiHandlerBlockEntity guiHandler;
-    public BlockEntityItemStackHandler inventory;
+    public ItemStackHandler inventory;
 
     public int currentBurnTime;
 
@@ -101,12 +97,15 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         super(ENTITY_STIRLING_GENERATOR.get(), pos, blockState);
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        inventory = new BlockEntityItemStackHandler(1, this) {
+        inventory = new ItemStackHandler(1) {
             public boolean isItemValid(int slot, ItemStack stack) {
                 if (stack.getItem().getBurnTime(stack, null) > 0) {
                     return true;
                 }
                 return false;
+            }
+            public void onContentsChanged(int slot){
+                EntityStirlingGenerator.this.setChanged();
             }
         };
 

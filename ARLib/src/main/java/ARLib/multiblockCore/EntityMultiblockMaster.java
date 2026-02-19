@@ -47,6 +47,7 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
     // returns the array with the same shape as structure and tells if this block should be hidden
     // if a value is false, a multiblock part will not be set to STATE_MULTIBLOCK_FORMED and a placeholder will render the replaced block
     // the master will always be set to STATE_MULTIBLOCK_FORMED and will ignore this
+    // also look at the method below this one for alternative way of hiding or not hiding a block
     public boolean[][][] hideBlocks() {
         Object[][][] structure = getStructure();
         boolean[][][] booleanArray = new boolean[structure.length][][];
@@ -64,10 +65,24 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
         }
         return booleanArray;
     }
+    // this can also be modified to hide a block based on its blockstate or not
+    public boolean shouldHideBlock(int y, int z, int x, BlockState stateInWorld){
+        boolean[][][] hideBlocks = hideBlocks();
+        return hideBlocks[y][z][x];
+    }
 
     // set this to true to make the master block gui open for a click on any machine part block
     // must be implemented on the machine part block
     public boolean forwardInteractionToMaster = false;
+    // special blocks like IO have their own flag of forwarding interaction to the master
+    // you might want your multiBlock to open the main gui wherever you click, but you might still require the IO blocks to be clickable
+    public boolean forwardSpecialBlockInteractionToMaster = false;
+    // some ppl might prefer a set method
+    public void setInteractionForwarding(boolean forwardInteractionToMaster, boolean forwardSpecialBlockInteractionToMaster){
+        this.forwardSpecialBlockInteractionToMaster = forwardSpecialBlockInteractionToMaster;
+        this.forwardInteractionToMaster = forwardInteractionToMaster;
+    }
+
 
     // called after the structure is completed, it will scan during onLoad() and complete structure if possible
     // on client it will execute if the structure is completed during onLoad()
@@ -162,7 +177,6 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
 
     void replace_blocks() {
         Object[][][] structure = getStructure();
-        boolean[][][] hideBlocks = hideBlocks();
         Direction front = getFront();
         if (front == null) return;
 
@@ -171,8 +185,8 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
         for (int y = 0; y < structure.length; y++) {
             for (int z = 0; z < structure[y].length; z++) {
                 for (int x = 0; x < structure[y][z].length; x++) {
-                    //Ignore nulls / air blocks
-                    if (structure[y][z][x] == null || structure[y][z][x].equals(Blocks.AIR))
+                    //Ignore nulls
+                    if (structure[y][z][x] == null)
                         continue;
 
                     int globalX = getBlockPos().getX() + (x - offset.getX()) * front.getStepZ() - (z - offset.getZ()) * front.getStepX();
@@ -187,6 +201,11 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
 
                     // replace blocks that are not multiblock parts with placeholders to make them not render
                     BlockState blockState = level.getBlockState(globalPos);
+
+                    // ignore air
+                    if(blockState.getBlock().equals(Blocks.AIR))
+                        continue;
+
                     if (!(blockState.getBlock() instanceof BlockMultiblockPart) &&
                             !(blockState.getBlock() instanceof BlockMultiblockMaster)
                     ) {
@@ -195,12 +214,12 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
                         level.setBlock(globalPos, newState, 3);
                         EntityMultiblockPlaceholder tile = (EntityMultiblockPlaceholder) level.getBlockEntity(globalPos);
                         tile.replacedState = blockState;
-                        tile.renderBlock = !hideBlocks[y][z][x];
+                        tile.renderBlock = !shouldHideBlock(y,z,x,blockState);
                     }
 
                     // at this point the block is a multiBlockPart or multiBlockMaster
                     blockState = level.getBlockState(globalPos);
-                    if (hideBlocks[y][z][x] || blockState.getBlock() instanceof BlockMultiblockMaster) // always set master to be formed
+                    if (shouldHideBlock(y,z,x,blockState) || blockState.getBlock() instanceof BlockMultiblockMaster) // always set master to be formed
                         level.setBlock(globalPos, blockState.setValue(STATE_MULTIBLOCK_FORMED, true), 3);
 
                     blockState = level.getBlockState(globalPos);

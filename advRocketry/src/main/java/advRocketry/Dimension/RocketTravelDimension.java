@@ -7,6 +7,7 @@ import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -26,42 +27,20 @@ public class RocketTravelDimension extends Dimension {
 
     public static ResourceLocation dimId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "space_travel");
 
-    public static RocketTravelDimension INSTANCE;
-
-    // a rocket should every tick or every few ticks update its chunkpos with the current global time
-    // when the travel manager updates, it will remove force loaded chunks where the time was not reset for a few seconds
-    HashMap<ChunkPos, Long> usedChunksMap;
-
-    public RocketTravelDimension(DimensionProperties properties) {
-        super(properties);
-        usedChunksMap = new HashMap<>();
+    public RocketTravelDimension(DimensionProperties properties, DimensionManager dimensionManager) {
+        super(properties, dimensionManager);
+        this.properties.name = "space travel dimension";
+        this.properties.dimensionId = dimId;
     }
 
-    public static void init() {
-        INSTANCE = new RocketTravelDimension(new DimensionProperties());
-    }
-
-
-    public void keepChunkLoaded(ChunkPos pos) {
-        if (!usedChunksMap.containsKey(pos)) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-            level.setChunkForced(pos.x, pos.z, true);
-            System.out.println("there are " + level.getForcedChunks().size() + " chunk force loaded in space travel dimension");
-        }
-        System.out.println("set chunk force loaded:" + pos.x + ":" + pos.z);
-        usedChunksMap.put(pos, GlobalTime.getGlobalTime());
-    }
-
-    public ChunkPos getNextFreeChunkPos() {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        ServerLevel level = DimensionManager.getServerLevel(server, dimId);
+    /// finds a free chunk position in space where the rocket can be placed during space travel
+    public static ChunkPos getNextFreeChunkPos() {
+        HashMap<ChunkPos, Long> rocketTravelForcedChunks = ForcedChunkManager.forcedChunks.getOrDefault(dimId, new HashMap<>());
         int x = 0;
-        LongSet forcedChunks = level.getForcedChunks();
         while (true) {
             x += 50;
             ChunkPos p = new ChunkPos(x, 0);
-            if (!forcedChunks.contains(p.toLong())) {
+            if (!rocketTravelForcedChunks.containsKey(p)) {
                 return p;
             }
         }
@@ -70,7 +49,7 @@ public class RocketTravelDimension extends Dimension {
     public void createDimension() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        System.out.println("creating space travel dimension");
+        System.out.println("creating space travel dimension...");
         DynamicDimensionRegistry dynamicDimensionRegistry = DynamicDimensionRegistry.from(server);
 
         ChunkGenerator generator = SpaceDimensionGeneration.makeChunkGenerator();
@@ -132,7 +111,7 @@ public class RocketTravelDimension extends Dimension {
 
     @Override
     public float getGravitationalMultiplier() {
-        return 0.2f;
+        return 0f;
     }
 
     @Override
@@ -187,28 +166,8 @@ public class RocketTravelDimension extends Dimension {
         return new Vec3(0, 0, 0);
     }
 
-
     @Override
-    public void serverTick(ServerTickEvent event) {
-        if (GlobalTime.getGlobalTime() % 200 == 59) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            ServerLevel level = DimensionManager.getServerLevel(server, dimId);
-            for (long i : level.getForcedChunks()) {
-                ChunkPos pos = new ChunkPos(i);
-                long currentTime = GlobalTime.getGlobalTime();
-                usedChunksMap.putIfAbsent(pos, currentTime);
-                if (usedChunksMap.get(pos) + 20 * 120 < currentTime) {
-                    level.setChunkForced(pos.x, pos.z, false);
-                    System.out.println("remove forced chunk at " + pos.x + ":" + pos.z);
-                    usedChunksMap.remove(pos);
-                    break; // prevent  exceptions
-                }
-            }
-        }
-    }
+    public void tick() {
 
-    @Override
-    public void clientTick() {
-        super.tickStarCache();
     }
 }

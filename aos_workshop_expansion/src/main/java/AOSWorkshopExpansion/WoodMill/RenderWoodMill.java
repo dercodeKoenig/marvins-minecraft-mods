@@ -89,7 +89,7 @@ public class RenderWoodMill implements BlockEntityRenderer<EntityWoodMill> {
         if (!(state.getBlock() instanceof BlockWoodMill)) return;
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
         m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
@@ -139,7 +139,8 @@ public class RenderWoodMill implements BlockEntityRenderer<EntityWoodMill> {
         m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 180f));
 
 
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_arm.bind();
         tile.vertexBuffer_arm.draw();
@@ -148,7 +149,8 @@ public class RenderWoodMill implements BlockEntityRenderer<EntityWoodMill> {
         float sawTargetY = 0.4f + (float) (translationY + Math.cos(b) * armLength);
         m2.translate(0, sawTargetY, 0);
 
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer_saw.bind();
         tile.vertexBuffer_saw.draw();

@@ -2,11 +2,12 @@ package AgeOfSteam;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 public class Static {
 
@@ -48,5 +49,12 @@ public class Static {
 
     public static double rad_to_degree(double rad){
         return rad*180.0/Math.PI;
+    }
+
+
+    public static Matrix3f getNormalMat(Matrix4f modelMat) {
+        Matrix3f normalMat = new Matrix3f(modelMat); // take upper-left 3x3
+        normalMat.invert().transpose(); // compute normal matrix
+        return normalMat;
     }
 }

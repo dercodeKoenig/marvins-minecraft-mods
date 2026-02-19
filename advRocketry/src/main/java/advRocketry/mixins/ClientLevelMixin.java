@@ -2,6 +2,7 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.utils.ClientUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -20,8 +21,7 @@ public abstract class ClientLevelMixin {
     @Inject(method = "getSkyDarken", at = @At("HEAD"), cancellable = true)
     public void getSkyDarken(float partialTick, CallbackInfoReturnable<Float> cir) {
         Level level = (Level) (Object) this;
-        ResourceLocation dimensionId = level.dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
+        Dimension dimension = ClientUtils.getPlayerDimension();
         double brightness;
         if (dimension != null) { // registered in DimensionManager
             brightness = dimension.getTerrainBrightness(partialTick);
@@ -46,8 +46,7 @@ public abstract class ClientLevelMixin {
     @Inject(method = "getCloudColor", at = @At("HEAD"), cancellable = true)
     public void getCloudColorOverwrite(float partialTick, CallbackInfoReturnable<Vec3> cir) {
         Level level = (Level) (Object) this;
-        ResourceLocation dimensionId = level.dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
+        Dimension dimension = ClientUtils.getPlayerDimension();
 
         double brightness = 1;
         float f2 = 1.0F;

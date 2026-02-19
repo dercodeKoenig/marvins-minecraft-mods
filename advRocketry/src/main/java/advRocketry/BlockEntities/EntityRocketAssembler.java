@@ -2,11 +2,14 @@ package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
+import ARLib.gui.modules.guiModuleEnergy;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockEntityBattery;
 import advRocketry.Blocks.GuidanceComputer;
 import advRocketry.Blocks.LaunchPad;
 import advRocketry.Blocks.StructureTower;
+import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
@@ -16,7 +19,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -36,14 +38,19 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
-    public static int maxSize = 20;
-    public static int buildTimeBase = 5;//20;
-
+    // the current rocket is the one on launchpad.
+    // if there is none on launchpad area, it will keep the reference to the previous one until it is removed or ends its program
     EntityRocket currentRocket;
+
+    // we output redstone to a comparator when a rocket is landed and has no program running
+    boolean isRedstoneOutputActive = false;
+
+    public BlockEntityBattery battery;
 
     GuiHandlerBlockEntity guiHandler;
     guiModuleButton buildButton;
@@ -59,11 +66,18 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+
+        battery = new BlockEntityBattery(this, 10000,1000);
+
         guiHandler = new GuiHandlerBlockEntity(this);
-        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID,"textures/gui/gui_button_red.png"),64,20);
-        statusText = new guiModuleText(1, "status:", guiHandler, 10, 30, 0x00000000, false);
+        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, BTN_BLACK, BTN_W, BTN_W);
+        statusText = new guiModuleText(1, "status:", guiHandler, 10, 10, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
+
+        guiHandler.modules.add(
+                new guiModuleEnergy(2,battery,guiHandler,138,7)
+        );
     }
 
     @Override
@@ -81,7 +95,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public Vec3 getLandingPos(@Nullable EntityRocket rocket) {
         if (areaMin == null || areaMax == null) {
             // if there is no launchpad area, the rocket should land just behind the assembler
-            int rocketSize = maxSize; // assume max size by default
+            int rocketSize = Config.INSTANCE.rocketAssemblerMaxSize; // assume max size by default
             if (rocket != null)
                 rocketSize = Math.max(rocket.size.getZ(), rocket.size.getX());
             int offset = rocketSize / 2 + 3;
@@ -90,13 +104,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             for (int i = 0; i < offset; i++) {
                 landingPos = landingPos.relative(launchpadDir);
             }
-            return new Vec3(landingPos.getX(), landingPos.getY(), landingPos.getZ());
+            return new Vec3(landingPos.getCenter().x, landingPos.getCenter().y, landingPos.getCenter().z);
         } else {
             // if there is a launchpad, land in center
             Vec3 landingPos = new Vec3(
-                    (double) (areaMin.getX() + areaMax.getX()) / 2,
+                    (double) (areaMin.getX() + areaMax.getX()) / 2 + 0.5,
                     areaMin.getY(),
-                    (double) (areaMin.getZ() + areaMax.getZ()) / 2
+                    (double) (areaMin.getZ() + areaMax.getZ()) / 2 + 0.5
             );
             return landingPos;
         }
@@ -105,6 +119,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public EntityRocket getRocket() {
         // return current rocket reference
         return currentRocket;
+    }
+
+    public boolean isRedstoneOutputActive(){
+        return this.isRedstoneOutputActive;
     }
 
     public void scanForSpaceDockingArea() {
@@ -117,11 +135,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // the position behind & below the assembler
         BlockPos startingPos = getBlockPos().below().offset(facing.getOpposite().getStepX(), facing.getOpposite().getStepY(), facing.getOpposite().getStepZ());
 
-        // going left & right up to 16 blocks to find the largest rectangle area
+        // going left & right up to maxSize blocks to find the largest rectangle area
         // it will use as starting points one of side1 and one of side2 so the area will always include the starting pos
         Set<BlockPos> side1 = new HashSet<>();
         Set<BlockPos> side2 = new HashSet<>();
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < Config.INSTANCE.rocketAssemblerMaxSize; i++) {
             Direction side1Direction = facing.getClockWise();
             Direction side2Direction = facing.getCounterClockWise();
             side1.add(new BlockPos(startingPos).offset(side1Direction.getStepX() * i, side1Direction.getStepY() * i, side1Direction.getStepZ() * i));
@@ -136,11 +154,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // try all combinations of left & right positions with a min and max distance
         for (BlockPos p1 : side1) {
             for (BlockPos p2 : side2) {
-                if (p1.distManhattan(p2) < 2 || p1.distManhattan(p2) > maxSize) {
+                if (p1.distManhattan(p2) < 2 || p1.distManhattan(p2) > Config.INSTANCE.rocketAssemblerMaxSize) {
                     continue;
                 }
                 // try all possible depth values
-                for (int depth = 2; depth < maxSize; depth++) {
+                for (int depth = 2; depth < Config.INSTANCE.rocketAssemblerMaxSize; depth++) {
                     BlockPos p3 = p1.offset(facing.getOpposite().getStepX() * depth, facing.getOpposite().getStepY() * depth, facing.getOpposite().getStepZ() * depth);
                     int minX = Math.min(Math.min(p1.getX(), p2.getX()), p3.getX());
                     int minZ = Math.min(Math.min(p1.getZ(), p2.getZ()), p3.getZ());
@@ -211,8 +229,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                                 areaMax = maxPos;
 
                                 // add 1 block padding to area
-                                areaMin = new BlockPos(areaMin.getX()+1,areaMin.getY(),areaMin.getZ()+1);
-                                areaMax = new BlockPos(areaMax.getX()-1,areaMax.getY(),areaMax.getZ()-1);
+                                areaMin = new BlockPos(areaMin.getX() + 1, areaMin.getY(), areaMin.getZ() + 1);
+                                areaMax = new BlockPos(areaMax.getX() - 1, areaMax.getY(), areaMax.getZ() - 1);
                             }
                         }
                     }
@@ -224,7 +242,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public void scanArea() {
         if (level.isClientSide) return;
         //long t0 = System.currentTimeMillis();
-        Dimension myDim = DimensionManager.get(level.dimension().location());
+        Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (myDim != null && myDim.getType() == DimensionProperties.DimensionType.SPACE_STATION) {
             scanForSpaceDockingArea();
         } else {
@@ -235,10 +253,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         //System.out.println("scan complete in " +(t1-t0) +"ms");
     }
 
-    public constuctionInfo buildRocket(boolean simulate) {
-        if (areaMin == null) return new constuctionInfo(false, "invalid launchpad");
-        if (areaMax == null) return new constuctionInfo(false, "invalid launchpad");
-        if (level.isClientSide) return new constuctionInfo(false, "");
+    public ConstructionResult buildRocket(boolean simulate) {
+        if (level.isClientSide) return null;
+
+        if (areaMin == null) return ConstructionResult.INVALID_LAUNCHPAD;
+        if (areaMax == null) return ConstructionResult.INVALID_LAUNCHPAD;
 
         EntityGuidanceComputer guidanceComputer = null;
 
@@ -300,14 +319,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
                     if (state.getBlock() instanceof GuidanceComputer) {
                         if (guidanceComputer != null)
-                            return new constuctionInfo(false, "multiple guidance computers found");
+                            return ConstructionResult.TOO_MANY_GUIDANCE_COMPUTERS;
                         guidanceComputer = (EntityGuidanceComputer) level.getBlockEntity(pos);
                     }
                 }
             }
         }
         if (guidanceComputer == null) {
-            return new constuctionInfo(false, "missing guidance computer");
+            return ConstructionResult.NO_GUIDANCE_COMPUTER;
         }
 
         if (!simulate) {
@@ -323,18 +342,19 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         BlockPos pos = new BlockPos(x, y, z);
 
                         // prevent item pops when breaking the block for specific blocks that carry their inventory to the rocket
-                        if(level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer1)
-                            guidanceComputer1.itemStackHandler.setStackInSlot(0,ItemStack.EMPTY);
+                        if (level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer1)
+                            guidanceComputer1.itemStackHandler.setStackInSlot(0, ItemStack.EMPTY);
 
                         // if i understand this correctly, 2 = send to clients, 16 = no neighbor update
-                        level.setBlock(pos,Blocks.AIR.defaultBlockState(),2 | 16);
+                        // neighbor could break some blocks like sign that would pop away
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2 | 16);
                     }
                 }
             }
-            rocket.moveTo(launchPadCenterX, areaMin.getY()+ 0.02, launchPadCenterZ, 0, 0);
+            rocket.moveTo(launchPadCenterX, areaMin.getY() + 0.02, launchPadCenterZ, 0, 0);
             level.addFreshEntity(rocket);
         }
-        return new constuctionInfo(true, "");
+        return ConstructionResult.SUCCESS;
     }
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
@@ -346,7 +366,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             info.putInt("maxX", areaMax.getX());
             info.putInt("maxY", areaMax.getY());
             info.putInt("maxZ", areaMax.getZ());
-        }else{
+        } else {
             info.put("noArea", new CompoundTag());
         }
 
@@ -369,11 +389,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("guiButtonClick")) {
             int id = compoundTag.getInt("guiButtonClick");
             if (id == 0) {
-                constuctionInfo ret = buildRocket(true);
-                statusText.setTextAndSync(ret.info);
-                if (ret.canConstruct) {
+                ConstructionResult ret = buildRocket(true);
+                if (ret == ConstructionResult.SUCCESS) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
-                    buildProgress = (int) (buildTimeBase * (areaMax.getY() - areaMin.getY()+2)*1.5);
+                    buildProgress = (int) (Config.INSTANCE.rocketAssemblerBuildTimeBase * (areaMax.getY() - areaMin.getY() + 2) * 1.5);
+
+                    // signal client to close the gui
+                    guiHandler.signalCloseGui(serverPlayer);
                 }
             }
         }
@@ -394,27 +416,24 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("maxX") && compoundTag.contains("maxY") && compoundTag.contains("maxZ"))
             areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
 
-        if(compoundTag.contains("buildProgress")){
+        if (compoundTag.contains("buildProgress")) {
             buildProgress = compoundTag.getInt("buildProgress");
         }
 
-        //System.out.println(areaMin);
-        //System.out.println(areaMax);
         guiHandler.readClient(compoundTag);
     }
 
     public void tick() {
 
-        if(level.isClientSide){
-            if (clientBuildProgress < buildProgress){
-                clientBuildProgress+=2;
+        if (level.isClientSide) {
+            // build progress logic client
+            if (clientBuildProgress < buildProgress) {
+                clientBuildProgress += 2;
                 clientBuildDiffPerTick = 2;
-            }
-            else if(clientBuildProgress > buildProgress){
+            } else if (clientBuildProgress > buildProgress) {
                 clientBuildProgress--;
                 clientBuildDiffPerTick = -1;
-            }
-            else{
+            } else {
                 clientBuildDiffPerTick = 0;
             }
         }
@@ -422,34 +441,96 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (!level.isClientSide) {
             guiHandler.serverTick();
 
-            if(buildProgress > -1){
-                if(areaMin != null && areaMax != null) {
-                    buildProgress--;
-                    if (buildProgress == -1) {
-                        buildRocket(false);
+            // build progress logic server
+            if (buildProgress > -1) {
+                if (areaMin != null && areaMax != null) {
+                    boolean shouldConsumeEnergy = buildProgress <= Config.INSTANCE.rocketAssemblerBuildTimeBase * (areaMax.getY() - areaMin.getY()+2);
+                    if(battery.getEnergyStored() >= Config.INSTANCE.rocketAssemblerEnergyPerTick || !shouldConsumeEnergy) {
+                        buildProgress--;
+                        if(shouldConsumeEnergy)
+                            battery.extractEnergy(Config.INSTANCE.rocketAssemblerEnergyPerTick,false);
+                        if (buildProgress == -1) {
+                            buildRocket(false);
+                        }
                     }
-                }else{
+                } else {
                     buildProgress = -1;
                 }
                 broadcastInformationToPlayers(null);
             }
 
+            // recalculate redstone output and notify level of change
+            boolean shouldOutputRedstone = currentRocket != null && currentRocket.getCurrentProgram() == null;
+            if(shouldOutputRedstone != isRedstoneOutputActive){
+                isRedstoneOutputActive = shouldOutputRedstone;
+                level.updateNeighbourForOutputSignal(getBlockPos(),getBlockState().getBlock());
+            }
+
+
             // remove reference to current rocket if it is removed
-            if(currentRocket!=null && currentRocket.isRemoved())
+            if (currentRocket != null && currentRocket.isRemoved())
+                currentRocket = null;
+
+            // remove reference when the rocket program is null,
+            // the following scan will reset it if it is still on launchpad area
+            if (currentRocket != null && currentRocket.getCurrentProgram() == null)
                 currentRocket = null;
 
             // scan if there is a new rocket in the landing area to be the new rocket reference
-            // TODO: if this takes too long, maybe do it only once per second
+            // TODO: if this takes too long, maybe do it only once per second ?
             AABB area;
-            if(areaMin == null || areaMax == null){
+            if (areaMin == null || areaMax == null) {
                 Vec3 landingPos = getLandingPos(null);
-                area = new AABB(landingPos.subtract(1,1,1), landingPos.add(1,1,1)).inflate(8);
-            }else{
-                area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX()+1, areaMax.getY(), areaMax.getZ()+1)).inflate(1,2,1);
+                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) Config.INSTANCE.rocketAssemblerMaxSize / 2 + 1);
+            } else {
+                area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
-            List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class,area);
-            if(!rockets.isEmpty()) {
+            List<EntityRocket> rockets = level.getEntitiesOfClass(EntityRocket.class, area);
+            if (!rockets.isEmpty()) {
+                rockets.sort((r1, r2) -> {
+                    double dr1 = r1.position().distanceTo(getBlockPos().getCenter());
+                    double dr2 = r2.position().distanceTo(getBlockPos().getCenter());
+                    return (dr1 > dr2) ? 1 : -1;
+                });
                 currentRocket = rockets.getFirst();
+            }
+
+
+            // update gui
+            if (currentRocket != null) {
+                String newStatus = new String();
+                if (currentRocket.getCurrentProgram() == null)
+                    newStatus += "rocket landed\n";
+                else
+                    newStatus += "rocket in flight\n";
+                newStatus += "\nThrust max: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
+                newStatus += "Mass: " + ((float) Math.round(currentRocket.getMass() * 100) / 100) + "\n";
+                newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
+                newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
+                newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
+                statusText.setTextAndSync(newStatus);
+
+                buildButton.setIsEnabledAndBroadcastUpdate(false);
+            }
+
+            if (currentRocket == null) {
+                if (areaMin == null || areaMax == null) {
+                    if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).getType() != DimensionProperties.DimensionType.SPACE_STATION)
+                        statusText.setTextAndSync("No launchpad detected");
+                    else
+                        statusText.setTextAndSync("Launch zone not detected");
+
+                    buildButton.setIsEnabledAndBroadcastUpdate(false);
+                } else {
+                    buildButton.setIsEnabledAndBroadcastUpdate(true);
+
+                    statusText.setTextAndSync(
+                            "\n\n\nReady to build a rocket!\n\nA Rocket requires\n" +
+                                    "- 1 Guidance Computer\n" +
+                                    "- Thrusters\n" +
+                                    "- FuelTanks\n"
+                    );
+                }
             }
         }
     }
@@ -457,11 +538,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("buildProgress", buildProgress);
+        tag.putInt("energy", battery.getEnergyStored());
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         buildProgress = tag.getInt("buildProgress");
+        battery.setEnergy(tag.getInt("energy"));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -470,15 +553,17 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(200, 200, true);
+            guiHandler.openGui(160, 100, true);
     }
 
-    public static class constuctionInfo {
-        boolean canConstruct = false;
-        String info = "";
-
-        constuctionInfo(boolean canConstruct, String info) {
-            this.canConstruct = canConstruct;
+    public enum ConstructionResult{
+        SUCCESS(""),
+        NO_GUIDANCE_COMPUTER("NO_GUIDANCE_COMPUTER"),
+        TOO_MANY_GUIDANCE_COMPUTERS("TOO_MANY_GUIDANCE_COMPUTERS"),
+        INVALID_LAUNCHPAD("INVALID_LAUNCHPAD")
+        ;
+        final String info;
+        ConstructionResult(String info){
             this.info = info;
         }
     }

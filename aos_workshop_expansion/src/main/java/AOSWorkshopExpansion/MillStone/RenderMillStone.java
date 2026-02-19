@@ -101,7 +101,7 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
 
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         stack.translate(0.5f, 0.5f, 0.5f);
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
         double directionMultiplier = 1;
         if (facing == Direction.WEST) {
@@ -132,7 +132,8 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
         Matrix4f m2 = new Matrix4f(m1);
 
         m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) rotation));
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBufferAxle.bind();
         tile.vertexBufferAxle.draw();
@@ -145,10 +146,10 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
             NO_TRANSPARENCY.clearRenderState();
             return;
         }
-        ;
 
         RenderSystem.setShaderTexture(0, texStone);
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBufferStone.bind();
         tile.vertexBufferStone.draw();
@@ -157,12 +158,12 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
 
         RenderSystem.setShaderTexture(0, texStoneLarge);
         m3 = m3.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) -rotation * 0.25f));
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m3, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m3), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m3));
         shader.apply();
         tile.vertexBufferPlate.bind();
         tile.vertexBufferPlate.draw();
 
-        long t0 = System.nanoTime();
         for (int i = 0; i < tile.inventory.getSlots(); i++) {
             ItemStack s = tile.inventory.getStackInSlot(i);
             stack.pushPose();
@@ -178,9 +179,6 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
 
             stack.popPose();
         }
-        long t1 = System.nanoTime();
-        // TODO the item rendering is a bit slow....
-        //System.out.println((double)(t1-t0) / 1000 / 1000);
 
         shader.clear();
         VertexBuffer.unbind();

@@ -39,21 +39,21 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public ResourceLocation texture = null;
 
-    public Vector3f skyColor = new Vector3f(0.45f, 0.7f, 1f);
+    public Vector3f skyColor = new Vector3f(0.45f, 0.7f, 1f); // normal sky color
 
     public Vector3f cloudColor = new Vector3f(1,1,1);
 
     public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
 
-    public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.2f);
+    public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.2f); // the atm shading on sunrise
 
-    public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f); // TODO: include this in shader
+    public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f);
 
-    public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with
+    public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
 
     public boolean hasRingSystem = false;
 
-    public float radiationIntensity; // radiation strength, can be used for terrain shading, temperature calculation and maybe more stuff
+    public float radiationIntensity; // radiation strength, used for terrain shading, and temperature calculation and to scale emissive light in planet render
 
     public float atmosphereDensity = 1;
 
@@ -63,6 +63,10 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public float dayTime;
 
-    public boolean isKnown = true; // TODO: planet discovery with telescope / satellites
+    public boolean isKnown = false;
+
+    public boolean canVisit = false; // TODO: gas giants or stars should not be visited. observatory can write all planets, rocket should decline if not canvisit
+
+    public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
 
 }

@@ -32,8 +32,8 @@ public class PlanetDimension extends Dimension {
     // all the gases need to be added too, gascomposition
     // maybe gases underground trapped / frozen that can be freed
 
-    public PlanetDimension(PlanetDimensionProperties properties) {
-        super(properties);
+    public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
+        super(properties, dimensionManager);
     }
 
     private PlanetDimensionProperties properties() {
@@ -91,9 +91,10 @@ public class PlanetDimension extends Dimension {
         if (properties().dayTimeReference == null) {
             return false;
         }
-        if (properties().radiationIntensity > 0) { // star
+        if(!properties().canVisit) {
             return false;
         }
+
         return true;
     }
 
@@ -122,7 +123,9 @@ public class PlanetDimension extends Dimension {
         return properties().texture;
     }
 
-    public Vector3f getSkyColor() {return new Vector3f(properties().skyColor);}
+    public Vector3f getSkyColor() {
+        return new Vector3f(properties().skyColor);
+    }
 
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
@@ -132,7 +135,9 @@ public class PlanetDimension extends Dimension {
         return new Vector3f(properties().fogColor);
     }
 
-    public Vector3f getReflectiveTextureTintColor() {return new Vector3f(properties().reflectiveTextureTintColor);}
+    public Vector3f getReflectiveTextureTintColor() {
+        return new Vector3f(properties().reflectiveTextureTintColor);
+    }
 
     public boolean hasRings() {
         return properties().hasRingSystem;
@@ -150,6 +155,22 @@ public class PlanetDimension extends Dimension {
         return properties().hasCustomSky;
     }
 
+    public ResourceLocation getParentDimensionId() {
+        return properties().parentDimensionId;
+    }
+
+    public float getorbitalDistanceToParent() {
+        return properties().orbitalDistanceToParent;
+    }
+
+    public float getorbitalBaseOffsetDegrees() {
+        return properties().orbitalBaseOffsetDegrees;
+    }
+
+    public Vec3 getOrbitAxis() {
+        return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);
+    }
+
     @Override
     public double getTerrainBrightness(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
@@ -160,7 +181,7 @@ public class PlanetDimension extends Dimension {
     @Override
     public Vector3f getCloudColor(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
         return new Vector3f(properties().cloudColor).mul((float) brightness);
     }
 
@@ -185,7 +206,7 @@ public class PlanetDimension extends Dimension {
 
     public Vec3 getPosition(float partialTick) {
         if (properties().parentDimensionId != null) {
-            PlanetDimension parent = (PlanetDimension) DimensionManager.get(properties().parentDimensionId);
+            Dimension parent = dimensionManager.get(properties().parentDimensionId);
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
             double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
@@ -220,10 +241,26 @@ public class PlanetDimension extends Dimension {
     }
 
     public float getLatitudeFromZPosition(double z) {
-        // TODO: this is not good! it is not equal distribution of latitude because changes at equator are faster
-        //      rework this!!!!
-        double s = z / properties().latitude_len;
-        return (float) Math.sin(s * Math.PI * 2) * 90;
+        // 1. Normalize z into a 0.0 to 1.0 range based on the full length
+        // Use modulo to handle wrapping if z exceeds the latitude_len
+        double s = (z / properties().latitude_len) % 1.0;
+        if (s < 0) s += 1.0; // Ensure positive value for negative z
+
+        float latitude;
+
+        // 2. Map the 0-1 range to a linear "up and down" motion
+        if (s < 0.25) {
+            // Phase 1: 0 to 0.25 -> Maps 0 to 90
+            latitude = (float) (s * 4 * 90);
+        } else if (s < 0.75) {
+            // Phase 2: 0.25 to 0.75 -> Maps 90 down to -90
+            latitude = (float) ((0.5 - s) * 4 * 90);
+        } else {
+            // Phase 3: 0.75 to 1.0 -> Maps -90 back to 0
+            latitude = (float) ((s - 1.0) * 4 * 90);
+        }
+
+        return latitude;
     }
 
     public AxisDirections getGlobalAxisDirections(float partialTick) {
@@ -257,7 +294,7 @@ public class PlanetDimension extends Dimension {
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
-        Dimension dayReference = DimensionManager.get(properties().dayTimeReference);
+        Dimension dayReference = dimensionManager.get(properties().dayTimeReference);
         Vec3 dayRefToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
         Vec3 equatorReference = dayRefToPlanet.cross(properties().rotationAxis).scale(-1);
         return equatorReference;
@@ -272,7 +309,7 @@ public class PlanetDimension extends Dimension {
         if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
         double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
-            Dimension target = DimensionManager.get(targetId);
+            Dimension target = dimensionManager.get(targetId);
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
             double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
@@ -299,58 +336,54 @@ public class PlanetDimension extends Dimension {
 
 
     public float getDayTimePerTick() {
-        if(properties().targetDayLength <= 0)  return 0;
+        if (properties().targetDayLength <= 0) return 0;
         return (float) Level.TICKS_PER_DAY / properties().targetDayLength;
     }
 
     public void trackDayTimeNormal() {
-        if(properties().targetDayLength > 0) {
+        if (properties().targetDayLength > 0) {
             properties().dayTime += getDayTimePerTick();
             properties().dayTime = properties().dayTime % Level.TICKS_PER_DAY;
-        }else{
+        } else {
             properties().dayTime = -properties().targetDayLength;
         }
     }
 
     public void tick() {
         super.tickStarCache();
-    }
 
-    public void serverTick(ServerTickEvent event) {
-        tick();
-
-        ServerLevel level = DimensionManager.getServerLevel(event.getServer(), getDimensionId());
-        if (level != null) {
-            if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
-                level.setDayTimePerTick(getDayTimePerTick());
-                properties().dayTime = level.dayTime();
-            } else
-                properties().dayTime = -properties().targetDayLength;
-        } else {
-            trackDayTimeNormal();
-        }
-
-        if (level != null) {
-            if (!canRain()) {
-                level.setWeatherParameters(100, 0, false, false);
+        if (!isClientSide) {
+            ServerLevel level = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), getDimensionId());
+            if (level != null) {
+                if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
+                    level.setDayTimePerTick(getDayTimePerTick());
+                    properties().dayTime = level.dayTime();
+                } else
+                    properties().dayTime = -properties().targetDayLength;
             } else {
-                //level.setWeatherParameters(0, 100, true, false);
-                // TODO: custom weather logic
+                trackDayTimeNormal();
+            }
+
+            if (level != null) {
+                if (!canRain()) {
+                    level.setWeatherParameters(100, 0, false, false);
+                } else {
+                    //level.setWeatherParameters(0, 100, true, false);
+                    // TODO: custom weather logic
+                }
             }
         }
-    }
 
-
-    public void clientTick() {
-        tick();
-        Level level = ClientUtils.getPlayerLevel();
-        if (level != null && getDimensionId() != null && getDimensionId().equals(level.dimension().location())) {
-            if (properties().targetDayLength > 0)
-                properties().dayTime = level.dayTime();
-            else
-                properties().dayTime = -properties().targetDayLength;
-        } else {
-            trackDayTimeNormal();
+        if (isClientSide) {
+            Dimension myDimension = ClientUtils.getPlayerDimension();
+            if (myDimension.getDimensionId().equals(this.getDimensionId())) {
+                if (properties().targetDayLength > 0)
+                    properties().dayTime = ClientUtils.getPlayerLevel().dayTime();
+                else
+                    properties().dayTime = -properties().targetDayLength;
+            } else {
+                trackDayTimeNormal();
+            }
         }
     }
 }

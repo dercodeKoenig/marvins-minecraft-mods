@@ -30,6 +30,7 @@ import static ARLib.ARLibRegistry.ENTITY_ENERGY_INPUT_BLOCK;
 public class BlockEnergyInputBlock extends BlockMultiblockPart implements EntityBlock {
     public BlockEnergyInputBlock(Properties p_49795_) {
         super(p_49795_);
+        this.isSpecialBlock = true;
     }
 
 
@@ -44,9 +45,10 @@ public class BlockEnergyInputBlock extends BlockMultiblockPart implements Entity
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!world.isClientSide) {
             if (super.useWithoutItem(state, world, pos, player, hitResult) == InteractionResult.PASS) {
-                CompoundTag info = new CompoundTag();
-                info.putByte("openGui", (byte) 0);
-                PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(world, pos, info));
+                BlockEntity be = world.getBlockEntity(pos);
+                if (be instanceof EntityEnergyInputBlock entityEnergyInputBlock) {
+                    entityEnergyInputBlock.signalOpenGui((ServerPlayer) player);
+                }
             }
         }
         return InteractionResult.SUCCESS;

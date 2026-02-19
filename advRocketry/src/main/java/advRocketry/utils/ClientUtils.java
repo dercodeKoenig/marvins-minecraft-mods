@@ -1,5 +1,7 @@
 package advRocketry.utils;
 
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -35,6 +37,9 @@ public class ClientUtils {
     }
     public static Level getPlayerLevel(){
         return INSTANCE.clientOnly.getSinglePlayerLevel();
+    }
+    public static Dimension getPlayerDimension(){
+        return DimensionManager.INSTANCE_CLIENT.get(getPlayerLevel().dimension().location());
     }
 
     static class ClientOnly {

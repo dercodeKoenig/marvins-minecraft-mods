@@ -2,6 +2,7 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.utils.ClientUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -18,8 +19,7 @@ public abstract class LevelRendererMixin {
     // skip cloud rendering when it can not rain in this dimension
     @Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true)
     public void renderClouds(PoseStack poseStack, Matrix4f frustumMatrix, Matrix4f projectionMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci) {
-        ResourceLocation dimensionId = Minecraft.getInstance().level.dimension().location();
-        Dimension dimension = DimensionManager.get(dimensionId);
+        Dimension dimension = ClientUtils.getPlayerDimension();
         if(dimension!=null){
             if(!dimension.canRain())
                 ci.cancel();

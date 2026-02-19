@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "ARLib.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+
+  ],
+  "client": [
+    "ShaderInstanceMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

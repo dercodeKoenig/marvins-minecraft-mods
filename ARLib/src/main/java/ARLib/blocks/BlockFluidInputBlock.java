@@ -1,6 +1,7 @@
 package ARLib.blocks;
 
 import ARLib.blockentities.EntityFluidInputBlock;
+import ARLib.blockentities.EntityItemInputBlock;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.multiblockCore.BlockMultiblockPart;
 import ARLib.network.PacketBlockEntity;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class BlockFluidInputBlock extends BlockMultiblockPart implements EntityB
 
     public BlockFluidInputBlock(Properties properties) {
         super(properties);
+        this.isSpecialBlock = true;
     }
 
     @Override
@@ -41,9 +44,10 @@ public class BlockFluidInputBlock extends BlockMultiblockPart implements EntityB
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!world.isClientSide) {
             if (super.useWithoutItem(state, world, pos, player, hitResult) == InteractionResult.PASS) {
-                CompoundTag info = new CompoundTag();
-                info.putByte("openGui", (byte) 0);
-                PacketDistributor.sendToPlayer((ServerPlayer) player, PacketBlockEntity.getBlockEntityPacket(world, pos, info));
+                BlockEntity be = world.getBlockEntity(pos);
+                if(be instanceof EntityFluidInputBlock entityFluidInputBlock){
+                    entityFluidInputBlock.signalOpenGui((ServerPlayer) player);
+                }
             }
         }
         return InteractionResult.SUCCESS;
@@ -57,7 +61,18 @@ public class BlockFluidInputBlock extends BlockMultiblockPart implements EntityB
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         List<ItemStack> drops = new ArrayList<>();
-        drops.add(new ItemStack(this,1));
+        drops.add(new ItemStack(this, 1));
         return drops;
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!level.isClientSide) {
+            BlockEntity me = level.getBlockEntity(pos);
+            if (me instanceof EntityFluidInputBlock i) {
+                i.popItems();
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

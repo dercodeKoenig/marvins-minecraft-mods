@@ -4,6 +4,7 @@ import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -2031,7 +2033,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             ShaderInstance shader = RenderSystem.getShader();
             RenderSystem.setShaderTexture(0, ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_structure.png"));
 
-            Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+            Matrix4f m1 = new Matrix4f();
             m1 = m1.mul(stack.last().pose());
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
@@ -2078,22 +2080,48 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -(float) b * 180f / (float) Math.PI));
             m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 180f));
 
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            Uniform NormalMat = shader.getUniform("NormalMat");
+            Matrix3f normalMat = new Matrix3f(m2); // take upper-left 3x3
+            normalMat.invert().transpose(); // compute normal matrix
+            NormalMat.set(normalMat);
             shader.apply();
             tile.vertexBufferCrankshaftConnection.bind();
             tile.vertexBufferCrankshaftConnection.draw();
             shader.clear();
 
             m2 = new Matrix4f(m1);
-            float pumpCubeTargetX = -0.13f + (float) (translationX + Math.cos(b) * armLength)*0.6f; // this will reduce the movement of the pump cube bc it looks better
+            float pumpCubeTargetX = -0.24f + (float) (translationX + Math.cos(b) * armLength)*0.6f; // this will reduce the movement of the pump cube bc it looks better
             m2.translate(pumpCubeTargetX, 0, 0);
-            //m2.scale(1.15f, 0.98f, 0.98f);
-            m2.scale(1f, 0.75f, 0.75f);
+            m2.scale(1f, 0.6f, 0.6f);
 
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+             NormalMat = shader.getUniform("NormalMat");
+             normalMat = new Matrix3f(m2); // take upper-left 3x3
+            normalMat.invert().transpose(); // compute normal matrix
+            NormalMat.set(normalMat);
             shader.apply();
             tile.vertexBufferPumpCube.bind();
             tile.vertexBufferPumpCube.draw();
+
+
+
+            m2 = new Matrix4f(m1);
+            pumpCubeTargetX = -0.3f;
+            m2.translate(pumpCubeTargetX, 0, 0);
+            m2.scale(1f, 0.75f, 0.75f);
+
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+             NormalMat = shader.getUniform("NormalMat");
+             normalMat = new Matrix3f(m2); // take upper-left 3x3
+            normalMat.invert().transpose(); // compute normal matrix
+            NormalMat.set(normalMat);
+            shader.apply();
+            tile.vertexBufferPumpCube.bind();
+            tile.vertexBufferPumpCube.draw();
+
+
+            NormalMat.set(new Matrix3f());
             shader.clear();
         }
 

@@ -59,7 +59,7 @@ public class ModularScreen extends Screen {
             GuiModuleBase m = c.getModules().get(i);
             m.client_onMouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -82,7 +82,7 @@ public class ModularScreen extends Screen {
             c.sendToServer(tag);
         }
 
-        return super.mouseClicked(x, y, button);
+        return true;
     }
 
 
@@ -90,9 +90,9 @@ public class ModularScreen extends Screen {
         for (int i = 0; i < c.getModules().size(); i++) {
             if (!(i < c.getModules().size())) break;
             GuiModuleBase m = c.getModules().get(i);
-            m.client_charTyped(codePoint,modifiers);
+            m.client_charTyped(codePoint, modifiers);
         }
-        return super.charTyped(codePoint,modifiers);
+        return true;
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -101,11 +101,14 @@ public class ModularScreen extends Screen {
             GuiModuleBase m = c.getModules().get(i);
             m.client_onKeyClick(keyCode, scanCode, modifiers);
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        if (keyCode == 256) {
+            this.onClose();
+        }
+        return true;
     }
 
 
-        public void calculateGuiOffsetAndNotifyModules() {
+    public void calculateGuiOffsetAndNotifyModules() {
         leftOffset = (this.width - guiW) / 2;
         topOffset = (this.height - guiH) / 2;
         for (int i = 0; i < c.getModules().size(); i++) {

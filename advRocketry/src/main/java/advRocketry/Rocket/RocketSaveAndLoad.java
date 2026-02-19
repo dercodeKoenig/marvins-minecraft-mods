@@ -13,6 +13,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -106,8 +107,12 @@ public class RocketSaveAndLoad {
         if (compoundTag.contains("initialFront"))
             rocket.initialFront = Utils.deSerializeVec3(compoundTag.getCompound("initialFront"));
 
-        if (compoundTag.contains("fuelTank"))
+        if (compoundTag.contains("fuelCapacity")) {
+            rocket.fuelTank.setCapacity(compoundTag.getInt("fuelCapacity"));
+        }
+        if (compoundTag.contains("fuelTank")) {
             rocket.fuelTank.readFromNBT(rocket.level().registryAccess(), compoundTag.getCompound("fuelTank"));
+        }
 
         if (compoundTag.contains("blocks")) {
             rocket.blocks = new HashMap<>();
@@ -170,6 +175,7 @@ public class RocketSaveAndLoad {
         compoundTag.put("targetFront", Utils.serializeVec3(rocket.getTargetFront()));
         compoundTag.put("initialFront", Utils.serializeVec3(rocket.initialFront));
 
+        compoundTag.putInt("fuelCapacity", rocket.fuelTank.getCapacity());
         compoundTag.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
 
         ListTag blockTags = new ListTag(rocket.blocks.size());

@@ -1,9 +1,12 @@
 package AgeOfSteam.Blocks.Mechanics.FlyWheel;
 
+import ARLib.mixins.ShaderInstanceMixin;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Main;
+import AgeOfSteam.Static;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -15,6 +18,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -23,24 +27,20 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderFlyWheelBase implements BlockEntityRenderer<EntityFlyWheelBase> {
 
-    static WavefrontObject axle;
-    static WavefrontObject flywheel;
-
-    static {
-        try {
-            axle = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/rod_new.obj"));
-            flywheel = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/flywheel.obj"));
-        } catch (ModelFormatException ex) {
-            throw new RuntimeException(ex);
-        }
-
-    }
+    WavefrontObject axle;
+    WavefrontObject flywheel;
 
     ResourceLocation tex;
 
     public RenderFlyWheelBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
         super();
         this.tex = texture;
+        try {
+            axle = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/rod_new.obj"));
+            flywheel = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "objmodels/flywheel.obj"));
+        } catch (ModelFormatException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
 
@@ -68,20 +68,20 @@ public class RenderFlyWheelBase implements BlockEntityRenderer<EntityFlyWheelBas
         if (!(axleState.getBlock() instanceof BlockFlyWheelBase)) return;
         Direction.Axis facingAxis = axleState.getValue(BlockFlyWheelBase.ROTATION_AXIS);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
-        m1 = m1.mul(stack.last().pose());
+        Matrix4f modelMat = new Matrix4f();
+        modelMat = modelMat.mul(stack.last().pose());
 
-        m1 = m1.translate(0.5f, 0.5f, 0.5f);
+        modelMat = modelMat.translate(0.5f, 0.5f, 0.5f);
 
         if (facingAxis == Direction.Axis.Z) {
             // no rotation
         } else if (facingAxis == Direction.Axis.X) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
         } else if (facingAxis == Direction.Axis.Y) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
         }
 
-        m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
+        modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
         //System.out.println(tile.currentRotation);
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
@@ -91,11 +91,14 @@ public class RenderFlyWheelBase implements BlockEntityRenderer<EntityFlyWheelBas
         RenderSystem.setShaderTexture(0, tex);
 
         ShaderInstance shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul( modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        Uniform NormalMat = shader.getUniform("NormalMat");
+        NormalMat.set(Static.getNormalMat(modelMat));
         shader.apply();
 
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();
+
 
         shader.clear();
         VertexBuffer.unbind();

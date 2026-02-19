@@ -3,6 +3,7 @@ package advRocketry.Render;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -11,22 +12,19 @@ import java.util.*;
 
 public class PlanetRenderCache {
 
-    static ArrayList<PlanetDimension> planetsToRenderInSky = new ArrayList<>();
+    public ArrayList<PlanetDimension> planetsToRenderInSky = new ArrayList<>();
 
-    public static ArrayList<PlanetDimension> getPlanetsToRenderInSky() {
+    public ArrayList<PlanetDimension> getPlanetsToRenderInSky() {
         return planetsToRenderInSky;
     }
 
+    public static PlanetRenderCache INSTANCE = new PlanetRenderCache();
+
     // depth sorts planets for correct rendering using bubble sort
     // bubble sort is good because it can be distributed over many ticks and will approach target sort fast
-    public static void updatePlanetsToRenderInSky() {
+    public void updatePlanetsToRenderInSky(Vec3 myDimensionPosition) {
 
-        Level level = Minecraft.getInstance().level;
-        if(level == null) return;
-        Dimension myDimension = DimensionManager.get(level.dimension().location());
-        if(myDimension == null) return;
-
-        HashSet<Dimension> allDimensions = new HashSet<>(DimensionManager.INSTANCE.dimensions.values());
+        HashSet<Dimension> allDimensions = new HashSet<>(DimensionManager.INSTANCE_CLIENT.dimensions.values());
         planetsToRenderInSky.removeIf((dimension) -> !allDimensions.contains(dimension));
 
         HashSet<Dimension> planetsToRenderInSkySet = new HashSet<>(planetsToRenderInSky);
@@ -40,13 +38,11 @@ public class PlanetRenderCache {
             }
         }
 
-        Vec3 myPos = myDimension.getPosition(0);
-
         // to avoid recalculating the distance 2 times
         HashMap<PlanetDimension, Double> distanceToObserverMap = new HashMap<>();
         for (int i = 0; i < planetsToRenderInSky.size(); i++) {
             PlanetDimension dim = planetsToRenderInSky.get(i);
-            double distance = dim.getPosition(0).distanceTo(myPos);
+            double distance = dim.getPosition(0).distanceTo(myDimensionPosition);
             distanceToObserverMap.put(dim, distance);
         }
 

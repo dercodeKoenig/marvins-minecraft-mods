@@ -18,7 +18,6 @@ import java.util.UUID;
 
 public interface IGuiHandler {
 
-    //void registerModule(GuiModuleBase guiModule);
     List<GuiModuleBase> getModules();
 
     void broadcastUpdate(CompoundTag tag);

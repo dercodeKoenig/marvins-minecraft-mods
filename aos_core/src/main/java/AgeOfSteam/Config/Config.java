@@ -72,18 +72,14 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
 
     public void readClient(String data) {
-        Config.INSTANCE.loadConfig(data);
+        Config.INSTANCE = new Gson().fromJson(data, Config.class);
+        System.out.println("client load AOS config:" + data);
     }
 
     public void SyncConfig(ServerPlayer p) {
         if (p != null) {
             PacketDistributor.sendToPlayer(p, new SimpleNetworkPacket("aos_config_sync", new Gson().toJson(this)));
         }
-    }
-
-    public void loadConfig(String configString) {
-        Config.INSTANCE = new Gson().fromJson(configString, Config.class);
-        System.out.println("load config:" + configString);
     }
 
     public static Config loadConfig() {

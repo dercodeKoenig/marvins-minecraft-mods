@@ -12,12 +12,19 @@ public abstract class Dimension {
 
     protected StarCache starCache; // holds current main stars
 
+    boolean isClientSide;
 
-    public Dimension(DimensionProperties properties) {
+    DimensionManager dimensionManager;
+
+    public Dimension(DimensionProperties properties, DimensionManager dimensionManager) {
         this.properties = properties;
+        this.dimensionManager =dimensionManager;
+        this.isClientSide = dimensionManager.isClientSide;
 
-        if (getDimensionId().getNamespace().equals(Main.MODID) && canVisit()) {
-            createDimension();
+        if(!isClientSide) {
+            if (getDimensionId().getNamespace().equals(Main.MODID) && canVisit()) {
+                createDimension();
+            }
         }
 
         starCache = new StarCache();
@@ -29,6 +36,10 @@ public abstract class Dimension {
 
     public ResourceLocation getDimensionId() {
         return properties.dimensionId;
+    }
+
+    public String getName(){
+        return properties.name;
     }
 
     abstract public void createDimension();
@@ -74,7 +85,5 @@ public abstract class Dimension {
      */
     abstract public AxisDirections getGlobalAxisDirections(float partialTick);
 
-    abstract public void serverTick(ServerTickEvent event);
-
-    abstract public void clientTick();
+    abstract public void tick();
 }

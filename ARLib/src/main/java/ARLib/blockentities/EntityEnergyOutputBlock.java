@@ -9,7 +9,7 @@ public class EntityEnergyOutputBlock extends EntityEnergyInputBlock {
 
 
     public EntityEnergyOutputBlock(BlockPos p_155229_, BlockState p_155230_) {
-        super(ENTITY_ENERGY_OUTPUT_BLOCK.get(),p_155229_, p_155230_);
+        super(ENTITY_ENERGY_OUTPUT_BLOCK.get(), p_155229_, p_155230_);
     }
 
     @Override

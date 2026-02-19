@@ -1,8 +1,12 @@
 package AgeOfSteam.Blocks.Mechanics.CrankShaft;
 
+import AgeOfSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -13,6 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -20,9 +25,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockCrankShaftBase extends Block implements EntityBlock {
+import java.util.HashSet;
 
-    public static EnumProperty<Direction.Axis> ROTATION_AXIS = EnumProperty.create("axis", Direction.Axis.class);
+public abstract class BlockCrankShaftBase extends Block implements EntityBlock, ItemHammer.HammerInteractionBlock {
+
+    public static EnumProperty<Direction.Axis> ROTATION_AXIS = BlockStateProperties.AXIS;
 
     public BlockCrankShaftBase(Properties p) {
         super(p);
@@ -30,6 +37,19 @@ public abstract class BlockCrankShaftBase extends Block implements EntityBlock {
         state = state.setValue(ROTATION_AXIS, Direction.Axis.Y);
         this.registerDefaultState(state);
     }
+
+    public InteractionResult onHammer(ItemStack hammer, Level level, BlockPos pos, BlockState state, Player player, InteractionHand hand){
+        BlockEntity tile =level.getBlockEntity(pos);
+        if(tile instanceof EntityCrankShaftBase i) {
+            if(!level.isClientSide) {
+                i.incRotationOffset();
+                i.myMechanicalBlock.propagateResetRotation(0, null, new HashSet<>());
+            }
+            return InteractionResult.SUCCESS_NO_ITEM_USED;
+        }
+        return InteractionResult.PASS;
+    }
+
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -59,6 +79,8 @@ public abstract class BlockCrankShaftBase extends Block implements EntityBlock {
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return myShape;
     }
+
+    @Override
     protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }

@@ -1,12 +1,18 @@
 package advRocketry.Rocket;
 
-import ARLib.network.PacketEntity;
-import advRocketry.Registry;
-import advRocketry.utils.Utils;
+import advRocketry.Config;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.DimensionProperties;
+import advRocketry.Dimension.RocketTravelDimension;
+import advRocketry.Particles.RocketParticle;
+import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import org.joml.Vector3f;
 
 public class RocketController {
 
@@ -16,11 +22,15 @@ public class RocketController {
     double currentThrust;
     Vec3 currentSecondaryThrust;
 
-    public RocketController(EntityRocket rocket){
+    public double getCurrentThrust() {
+        return currentThrust;
+    }
+
+    public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
     }
 
-    public void tick(){
+    public void tick() {
         tickController();
         tickRotation();
         makeThrustParticles();
@@ -28,15 +38,17 @@ public class RocketController {
 
     public void tickRotation() {
         // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-        final double ROTATION_RATE = 0.05;// / rocket.size.getY();
+        final double ROTATION_RATE = 0.05;
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
         Vec3 rotationCorrection;
-        if(targetHeading.dot(rocket.heading) > -0.99)
-            rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE);
-        else
-            rotationCorrection = rocket.front.subtract(rocket.heading).scale(ROTATION_RATE);
+        if (targetHeading.dot(rocket.heading) > -0.99) {
+            rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE); //  scale makes it more smooth so i like to keep it
+            if (rotationCorrection.length() > ROTATION_RATE)
+                rotationCorrection = rotationCorrection.normalize().scale(ROTATION_RATE);
+        } else
+            rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(ROTATION_RATE);
 
         rocket.heading = rocket.heading.add(rotationCorrection).normalize();
 
@@ -45,21 +57,20 @@ public class RocketController {
         Vec3 targetFrontValid = rocket.heading.cross(rocket.getTargetFront().cross(rocket.heading)).normalize();
         if (targetFrontValid.dot(rocket.front) < -0.9) // get some movement if it is directly on the other side
             targetFrontValid = rocket.heading.cross(rocket.front);
-        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(ROTATION_RATE);
+        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(ROTATION_RATE * 0.5f);
         Vec3 newFront = rocket.front.add(rotationCorrection).normalize();
         // make sure the front is 100% always orthogonal, just for extra security
         Vec3 right = rocket.heading.cross(newFront).normalize();
         rocket.front = right.cross(rocket.heading).normalize();
     }
 
-    // pd controller mostly written by gemini should be used to have the rocket spawn at some offset and find its way down to the landing area
-    // it should also scan (if no launchpad structure) to land at some area where there is a flat area
+    // pd controller mostly written by gemini
     public void tickController() {
 
-        if(rocket.getTargetPosition() == null){
+        if (rocket.getTargetPosition() == null) {
             targetHeading = rocket.getDefaultTargetHeading();
             currentThrust = 0;
-            currentSecondaryThrust = new Vec3(0,0,0);
+            currentSecondaryThrust = new Vec3(0, 0, 0);
             return;
         }
 
@@ -88,12 +99,13 @@ public class RocketController {
 
         // NOTE: If you needed to factor in gravity/other external forces, you would
         // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
-        desiredAcceleration = desiredAcceleration.add(new Vec3(0, 1, 0).scale(rocket.getGravity()));
+        Vec3 antiGravityAcceleration = new Vec3(0, 1, 0).scale(rocket.getGravity());
+        desiredAcceleration = desiredAcceleration.add(antiGravityAcceleration);
+
 
         // --- 2. Calculate Thrust & Heading ---
-        // TODO: calculate main thrusters first and use the secondary only for part of the force that was not applied ( sideways/ break )
         if (rocket.canUseSecondaryEngines()) {
-            // use secondary thrusters in space for fine controll
+            // use secondary thrusters for fine control
             Vec3 secondaryThrustersForce = desiredAcceleration.scale(rocket.getMass());
             if (secondaryThrustersForce.length() > SECONDARY_THRUSTERS_FORCE) {
                 secondaryThrustersForce = secondaryThrustersForce.normalize().scale(SECONDARY_THRUSTERS_FORCE);
@@ -103,7 +115,23 @@ public class RocketController {
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(secondaryThrustersAcceleration));
 
             currentSecondaryThrust = secondaryThrustersForce;
-            // TODO: render secondaryThrustersForce particles based on secondaryThrustersForce
+
+            // burn a fixed fuel amount if secondary engines are on for space navigation
+            double fuelToBurn = (double) rocket.getFuelRateMax() / 1000;
+            int fuelToBurnInt = (int) fuelToBurn;
+            if (fuelToBurnInt == 0 && fuelToBurn > 0) {
+                fuelToBurnInt = Math.random() < fuelToBurn ? 1 : 0;
+            }
+            rocket.fuelTank.drain(fuelToBurnInt, IFluidHandler.FluidAction.EXECUTE);
+        }
+
+        // Determine if we are on a planet to apply gravity/tilt rules
+        Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
+        boolean isPlanet = rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET;
+
+        if (isPlanet) {
+            // never thrust down
+            desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
         }
 
         if (desiredAcceleration.length() > 0.0001 && rocket.canUseMainEngines()) {
@@ -113,24 +141,77 @@ public class RocketController {
             // This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
             final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
             // The heading the rocket *needs* to point towards to achieve the desired acceleration.
+
+            double requiredY = 0;
+            // --- TILT LIMITING LOGIC (Prioritize Y-axis thrust on planets) ---
+            if (isPlanet && MAX_ALLOWED_ACCEL > 0) {
+                // 1. Determine the vertical acceleration we need (capped by our absolute max engine limit)
+                requiredY = Math.min(desiredAcceleration.y, MAX_ALLOWED_ACCEL);
+                // Limit to anti-gravity + 1% to hover/climb slowly
+                requiredY = Math.min(requiredY, antiGravityAcceleration.y*1.01);
+
+                // 2. Calculate the remaining acceleration budget for the XZ plane (a^2 + b^2 = c^2)
+                double maxXZ_sq = (MAX_ALLOWED_ACCEL * MAX_ALLOWED_ACCEL) - (requiredY * requiredY);
+                double maxXZ = maxXZ_sq > 0 ? Math.sqrt(maxXZ_sq) : 0;
+
+                // 3. Calculate how much horizontal acceleration the PD controller is asking for
+                double currentXZ = Math.sqrt(desiredAcceleration.x * desiredAcceleration.x + desiredAcceleration.z * desiredAcceleration.z);
+
+                // 4. If the PD controller wants more horizontal movement than our remaining budget, scale the XZ axes down
+                if (currentXZ > maxXZ) {
+                    double scaleXZ = maxXZ / currentXZ;
+                    desiredAcceleration = new Vec3(desiredAcceleration.x * scaleXZ, requiredY, desiredAcceleration.z * scaleXZ);
+                }
+            }
+            // -----------------------------------------------------------------
+
             targetHeading = desiredAcceleration.normalize();
+
             // Calculate the magnitude of acceleration needed from the PD controller.
-            double neededAcceleration = desiredAcceleration.length();
+            double accelerationMagnitude= desiredAcceleration.length();
+
+            // This ensures we only thrust if we point towards the target direction.
+            double dotMultiplier = Math.max(0, rocket.heading.dot(targetHeading) - 0.9) * 10;
+            accelerationMagnitude = accelerationMagnitude * dotMultiplier;
+
+            // The Failsafe: Override the magnitude if we need to fight gravity while rotating
+            if (isPlanet) {
+                // Only apply the failsafe if we are pointing UP.
+                // If we are pointing down or flat, thrusting won't help us fight gravity!
+                if (rocket.heading.y > 0) {
+                    // Calculate the total magnitude needed along our CURRENT heading to get 'requiredY' lift
+                    double magnitudeForHover = requiredY / rocket.heading.y;
+
+                    // Use the hover magnitude if it's higher than our dot-scaled magnitude
+                    accelerationMagnitude = Math.max(accelerationMagnitude, magnitudeForHover);
+                } else {
+                    // If pointing downwards/horizontally, cut thrust entirely so we don't accelerate into the ground
+                    // Just let gravity pull us while the tickRotation() method tries to point us back up.
+                    accelerationMagnitude = 0;
+                }
+            }
+
             // Cap the needed acceleration by the final allowed limit.
-            // We only need to use the MAX_ALLOWED_ACCEL cap here.
-            double effectiveAcceleration = Math.min(neededAcceleration, MAX_ALLOWED_ACCEL);
-            // The component of the effective acceleration that aligns with the current (limited) heading.
-            // This ensures we only thrust in the direction we are currently pointing.
-            double actualThrustAccel = effectiveAcceleration * Math.max(0, rocket.heading.dot(targetHeading) - 0.9)*10;
+            accelerationMagnitude = Math.min(accelerationMagnitude, MAX_ALLOWED_ACCEL);
+
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
-            Vec3 thrustVector = rocket.heading.scale(actualThrustAccel);
+            Vec3 thrustVector = rocket.heading.scale(accelerationMagnitude);
+            
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(thrustVector));
+
             // Calculate the Thrust Multiplier (0.0 to 1.0)
             // This is the current actually delivered thrust relative to the max possible thrust for rendering and fuel consumption
-            double ThrustMultiplier = (actualThrustAccel * rocket.getMass()) / rocket.getThrustMax();
+            double ThrustMultiplier = (accelerationMagnitude * rocket.getMass()) / rocket.getThrustMax();
             currentThrust = ThrustMultiplier;
-            // TODO: burn rocket fuel
+
+            float toBurn = (float) ((float) rocket.getFuelRateMax() * ThrustMultiplier);
+            int toBurnInt = (int) toBurn;
+            if (toBurnInt == 0 && toBurn > 0 && Math.random() < toBurn)
+                toBurnInt = 1;
+            if (!rocket.level().isClientSide) {
+                rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
+            }
 
         } else {
             targetHeading = rocket.getDefaultTargetHeading();
@@ -145,42 +226,89 @@ public class RocketController {
     }
 
 
-    public void makeThrustParticles(){
+    public void makeThrustParticles() {
 
         if (rocket.level().isClientSide) {
             if (rocket.getMainEnginesBootUp() != 0) {
-                float relativeBootTimeLin = (float) rocket.getMainEnginesBootUp() / EntityRocket. ENGINE_BOOT_TIME;
-                float bootupParticleProb = (float)Math.sqrt(relativeBootTimeLin);
-                int maxParticlesPerTick = 50;
-                int maxParticlePerEngine = 3;
+                float relativeBootTimeLin = (float) rocket.getMainEnginesBootUp() / EntityRocket.ENGINE_BOOT_TIME;
+                float bootupParticleProb = (float) Math.sqrt(relativeBootTimeLin);
+                int maxParticlesPerTick = 5;
+                int maxParticlePerEngine = 2;
+
+                double particleSpawnProb = (double) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine);
+                if (particleSpawnProb > 1)
+                    particleSpawnProb = 1;
+
+                double tooManyEnginesMultiplier = 1.0 / particleSpawnProb;
+
+                double thrustMultiplier = (currentThrust * 0.7 + 0.3);
+
                 for (BlockPos i : rocket.getEnginePositions()) {
                     Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));
                     for (int j = 0; j < maxParticlePerEngine; j++) {
+
                         if (relativeBootTimeLin < 0.99) {
-                            if (rocket.level().random.nextFloat() > bootupParticleProb) {
+                            if (Math.random() > bootupParticleProb) {
                                 continue;
                             }
                         }
 
-                        float engineNumSpeedMultiplier = 1;
-                        if (rocket.getEnginePositions().size() * maxParticlePerEngine > maxParticlesPerTick) {
-                            if (rocket.level().random.nextFloat() > (float) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine)) {
+                        // not spawn too many particles. if we have too many, increase particle size / speed and not spawn many new
+                        if (particleSpawnProb < 1) {
+                            if (Math.random() > particleSpawnProb) {
                                 continue;
                             }
-                            engineNumSpeedMultiplier = (float) (rocket.getEnginePositions().size() * maxParticlePerEngine) / maxParticlesPerTick;
                         }
 
-                        rocket.level().addParticle(
-                                Registry.ROCKET_FLAME.get(),
-                                worldPos.x,
-                                worldPos.y,
-                                worldPos.z,
-                                rocket.heading.x * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().x,
-                                rocket.heading.y * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().y,
-                                rocket.heading.z * -1 * (currentThrust + 0.2) * relativeBootTimeLin * engineNumSpeedMultiplier + rocket.getDeltaMovement().z
-                        );
+
+                        double speedMultiplier;
+                        float sizeMultiplier;
+
+                        speedMultiplier = -1 * thrustMultiplier * relativeBootTimeLin * Math.pow(tooManyEnginesMultiplier, 0.4) * (1 + j * 0.1f);
+
+                        sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
+
+                        if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
+                            // no smoke in space
+                            new RocketParticle(
+                                    (ClientLevel) rocket.level(),
+                                    worldPos.x + (Math.random() - 0.5) * 0.5,
+                                    worldPos.y + (Math.random() - 0.5) * 0.5,
+                                    worldPos.z + (Math.random() - 0.5) * 0.5,
+                                    rocket.heading.x * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    rocket.heading.y * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    rocket.heading.z * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
+                                    0.2f,
+                                    sizeMultiplier * 2,
+                                    500,
+                                    false
+                            );
+                        }
+
+                        sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.8) * relativeBootTimeLin);
+
+                        for (int p = 0; p < 2; p++) {
+                            new RocketParticle(
+                                    (ClientLevel) rocket.level(),
+                                    worldPos.x + (Math.random() - 0.5) * 0.5,
+                                    worldPos.y + (Math.random() - 0.5) * 0.5,
+                                    worldPos.z + (Math.random() - 0.5) * 0.5,
+                                    rocket.heading.x * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
+                                    rocket.heading.y * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
+                                    rocket.heading.z * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
+                                    new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
+                                    // we not use additive blending in fabulous because it doesnt work so make it more bright
+                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
+                                    sizeMultiplier * 0.5f,
+                                    20,
+                                    true
+                            );
+                        }
+
                     }
                 }
+                //System.out.println(particles);
                 //System.out.println(currentThrust);
             }
         }

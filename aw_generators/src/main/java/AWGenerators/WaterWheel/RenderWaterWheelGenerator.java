@@ -70,7 +70,7 @@ public class RenderWaterWheelGenerator implements BlockEntityRenderer<EntityWate
         if (!(state.getBlock() instanceof BlockWaterWheelGenerator)) return;
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
         m1 = m1.translate(0.5f, 0.5f, 0.5f);
         float rotationMultiplier = 0;
@@ -104,7 +104,8 @@ public class RenderWaterWheelGenerator implements BlockEntityRenderer<EntityWate
         Matrix4f m2 = new Matrix4f(m1);
         m2 = m2.translate(0, 0, -0.2f);
         m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();

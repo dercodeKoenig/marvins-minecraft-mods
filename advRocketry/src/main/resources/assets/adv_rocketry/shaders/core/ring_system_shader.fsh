@@ -90,7 +90,6 @@ void main() {
     float alphaMultiplier = 0.5;
     // TODO: tint color?, specular color?
 
-    //vec4 baseColor = pow(texture(Sampler0, texcoord), vec4(2.2));
     vec4 baseColor = texture(Sampler0, texcoord);
 
     float alpha = baseColor.a * alphaMultiplier;
@@ -140,7 +139,7 @@ void main() {
         }
 
         // diffuse - brignt when face is facing the star
-        float diffuse = pow(max(0,dot(L, normalUniverseSpaceAdjusted)*0.95+0.05), 0.5);
+        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted)*0.8+0.2);
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission

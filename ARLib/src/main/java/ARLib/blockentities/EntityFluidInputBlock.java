@@ -25,6 +25,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +33,12 @@ import java.util.List;
 import static ARLib.ARLibRegistry.ENTITY_FLUID_INPUT_BLOCK;
 import static net.minecraft.world.level.block.Block.popResource;
 
-public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,IFluidHandler, INetworkTagReceiver {
+public class EntityFluidInputBlock extends BlockEntity implements IItemHandler, IFluidHandler, INetworkTagReceiver {
 
-    FluidTank myTank;
-    GuiHandlerBlockEntity guiHandler;
+    public FluidTank myTank;
+    public GuiHandlerBlockEntity guiHandler;
 
-    List<ItemStack> inventory;
+    public ItemStackHandler inventory;
 
     public EntityFluidInputBlock(BlockPos pos, BlockState blockState) {
         this(ENTITY_FLUID_INPUT_BLOCK.get(), pos, blockState);
@@ -45,12 +46,24 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
 
     public EntityFluidInputBlock(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
-        myTank = new FluidTank(4000);
+        myTank = new FluidTank(4000) {
+            @Override
+            protected void onContentsChanged() {
+                EntityFluidInputBlock.this.setChanged();
+            }
+        };
+        inventory = new ItemStackHandler(2) {
+            @Override
+            protected void onContentsChanged(int slot) {
+                EntityFluidInputBlock.this.setChanged();
+            }
+            // no isItemValid filter here, we do our own filter to allow insert into slot 2 only from our internal logic
+        };
 
         guiHandler = new GuiHandlerBlockEntity(this);
         guiHandler.getModules().add(new guiModuleFluidTankDisplay(0, this, 0, guiHandler, 10, 10));
         guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(1, this, 0, 1, 0, guiHandler, 30, 10);
-        s1.setSlotBackground(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background_bucket.png"), 18,18);
+        s1.setSlotBackground(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background_bucket.png"), 18, 18);
         guiHandler.getModules().add(s1);
         guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, this, 1, 1, 0, guiHandler, 30, 45));
 
@@ -62,23 +75,19 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
         }
         ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png");
         guiHandler.getModules().add(new guiModuleImage(guiHandler, 32, 28, 16, 16, arrow, 12, 16));
-
-        inventory = new ArrayList<>();
-        inventory.add(ItemStack.EMPTY);
-        inventory.add(ItemStack.EMPTY);
     }
 
-    @Override
-    public void setRemoved(){
-        if(!level.isClientSide) {
-            ItemStack stack1 = inventory.get(0).copy();
+    public void popItems() {
+        if (!level.isClientSide) {
+            ItemStack stack1 = inventory.getStackInSlot(0).copy();
             popResource(level, getBlockPos(), stack1);
+            inventory.setStackInSlot(0, ItemStack.EMPTY);
 
-            ItemStack stack2 = inventory.get(1).copy();
+            ItemStack stack2 = inventory.getStackInSlot(1).copy();
             popResource(level, getBlockPos(), stack2);
+            inventory.setStackInSlot(1, ItemStack.EMPTY);
 
-            inventory.set(0, ItemStack.EMPTY);
-            inventory.set(1, ItemStack.EMPTY);
+            setChanged();
         }
         super.setRemoved();
     }
@@ -87,10 +96,7 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         myTank.readFromNBT(registries, tag.getCompound("tank"));
-        if (tag.getBoolean("inv1"))
-            inventory.set(0, ItemStack.parse(registries, tag.getCompound("inventorySlot1")).get());
-        if (tag.getBoolean("inv2"))
-            inventory.set(1, ItemStack.parse(registries, tag.getCompound("inventorySlot2")).get());
+        inventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 
     @Override
@@ -100,21 +106,23 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
         myTank.writeToNBT(registries, tankNBT);
         tag.put("tank", tankNBT);
 
-        if (!inventory.get(0).isEmpty()) {
-            Tag inventorySlot = inventory.get(0).save(registries);
-            tag.put("inventorySlot1", inventorySlot);
-            tag.putBoolean("inv1", true);
-        } else {
-            tag.putBoolean("inv1", false);
-        }
-        if (!inventory.get(1).isEmpty()) {
-            Tag inventorySlot = inventory.get(1).save(registries);
-            tag.put("inventorySlot2", inventorySlot);
-            tag.putBoolean("inv2", true);
-        } else {
-            tag.putBoolean("inv2", false);
-        }
+        CompoundTag inventoryTag = inventory.serializeNBT(registries);
+        tag.put("inventory", inventoryTag);
 
+    }
+
+    @Override
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        guiHandler.readServer(tag);
+    }
+
+    @Override
+    public void readClient(CompoundTag tag) {
+        guiHandler.readClient(tag);
+    }
+
+    public void signalOpenGui(ServerPlayer player) {
+        guiHandler.signalOpenGui(player, 176, 165, true);
     }
 
     @Override
@@ -134,48 +142,22 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
 
     @Override
     public boolean isFluidValid(int tank, FluidStack stack) {
-        return myTank.isFluidValid(tank,stack);
+        return myTank.isFluidValid(tank, stack);
     }
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        int filled = myTank.fill(resource, action);
-        if (filled > 0)
-            this.setChanged();
-        return filled;
+        return myTank.fill(resource, action);
     }
 
     @Override
     public FluidStack drain(FluidStack resource, FluidAction action) {
-        FluidStack drained = myTank.drain(resource, action);
-        if (drained != FluidStack.EMPTY)
-            this.setChanged();
-        return drained;
+        return myTank.drain(resource, action);
     }
 
     @Override
     public FluidStack drain(int maxDrain, FluidAction action) {
-        FluidStack drained = myTank.drain(maxDrain, action);
-        if (drained != FluidStack.EMPTY)
-            this.setChanged();
-        return drained;
-    }
-
-    @Override
-    public void readServer(CompoundTag tag, ServerPlayer p) {
-        guiHandler.readServer(tag);
-    }
-
-    @Override
-    public void readClient(CompoundTag tag) {
-        guiHandler.readClient(tag);
-        if(tag.contains("openGui")){
-            openGui();
-        }
-    }
-
-    public void openGui() {
-        guiHandler.openGui(176, 165, true);
+        return myTank.drain(maxDrain, action);
     }
 
     @Override
@@ -185,140 +167,89 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
 
     @Override
     public ItemStack getStackInSlot(int slot) {
-        return inventory.get(slot);
+        return inventory.getStackInSlot(slot);
     }
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return insertItem(slot, stack, simulate, false);
+        if (isItemValid(slot, stack)) // inventory has all valid because we need to allow insert into slot 2 from internal logic
+            return inventory.insertItem(slot, stack, simulate);
+        else return stack;
     }
 
-    public ItemStack insertItem(int slot, ItemStack stack, boolean simulate, boolean ignore_filter) {
-        // slot 0 is for insert, slot 1 for extract so do not allow insert into slot 1
-        if (slot == 1 && !ignore_filter) return stack;
-
-        if (!isItemValid(slot, stack) && !ignore_filter) return stack;
-
-        int stackLimit = stack.getMaxStackSize();
-        ItemStack existing = inventory.get(slot);
-        if (existing.isEmpty()) {
-            int toInsert = Math.min(stack.getCount(), stackLimit);
-            if (!simulate) {
-                inventory.set(slot, stack.copyWithCount(toInsert));
-                setChanged();
-            }
-            return stack.copyWithCount(stack.getCount() - toInsert);
-        } else if (ItemStack.isSameItemSameComponents(stack, existing)) {
-            int existingCount = existing.getCount();
-            int toInsert = Math.min(stackLimit - existingCount, stack.getCount());
-            if (!simulate) {
-                inventory.set(slot, stack.copyWithCount(toInsert+existingCount));
-                setChanged();
-            }
-            return stack.copyWithCount(stack.getCount() - toInsert);
-        }
-        return stack;
+    public ItemStack insertItemIgnoreFilter(int slot, ItemStack stack, boolean simulate) {
+        return inventory.insertItem(slot, stack, simulate);
     }
+
 
     @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        if (!inventory.get(slot).isEmpty()) {
-            int toExtract = Math.min(amount, inventory.get(slot).getCount());
-            ItemStack ret = inventory.get(slot).copyWithCount(toExtract);
-            if (!simulate) {
-                inventory.get(slot).shrink(toExtract);
-                setChanged();
-            }
-            return ret;
-        }
-        return ItemStack.EMPTY;
+        return inventory.extractItem(slot, amount, simulate);
     }
 
     @Override
     public int getSlotLimit(int slot) {
-        return 99;
+        return inventory.getSlotLimit(slot);
     }
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        if (slot == 1) return false; // extraction slot
-        return stack.getCapability(Capabilities.FluidHandler.ITEM) != null;
+        return slot == 0 && stack.getCapability(Capabilities.FluidHandler.ITEM) != null; // slot 1 is output only
     }
 
-
-    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+    public void tick() {
         if (!level.isClientSide) {
-            ((EntityFluidInputBlock) t).guiHandler.serverTick();
+            guiHandler.serverTick();
 
-
-            EntityFluidInputBlock tile = (EntityFluidInputBlock) t;
-            ItemStack stack = tile.getStackInSlot(0);
+            ItemStack stack = getStackInSlot(0);
             if (!stack.isEmpty()) {
 
                 // Make a single-item copy to operate on
-                ItemStack currentItem = stack.copyWithCount(1);
-                IFluidHandlerItem fluidHandler = currentItem.getCapability(Capabilities.FluidHandler.ITEM);
+                ItemStack stackCopy = stack.copyWithCount(1);
+                IFluidHandlerItem fluidHandlerCopy = stackCopy.getCapability(Capabilities.FluidHandler.ITEM);
 
-                if (fluidHandler != null) {
-                    FluidStack drained;
-                    FluidStack fluidInTank = ((IFluidHandler) tile).getFluidInTank(0);
-                    int tankCapacity = ((IFluidHandler) tile).getTankCapacity(0);
+                if (fluidHandlerCopy != null) {
+                    FluidStack fluidInTank = getFluidInTank(0);
+                    int tankCapacity = getTankCapacity(0);
 
                     // 1. Try to drain fluid from the item into the tank
-                    if (fluidInTank.isEmpty()) {
-                        // Tank is empty; try to drain as much as possible from the item
-                        drained = fluidHandler.drain(tankCapacity, FluidAction.EXECUTE);
-                        // Get the resulting container item after executing the drain
-                        ItemStack resultItem = fluidHandler.getContainer();
+                    int maxFill = tankCapacity - fluidInTank.getAmount();
+                    FluidStack drained = fluidHandlerCopy.drain(maxFill, FluidAction.EXECUTE);
+                    int canFill = fill(drained, FluidAction.SIMULATE);
+                    ItemStack resultItem = fluidHandlerCopy.getContainer();
 
-                        // Try inserting result item into slot 1
-                        if (!drained.isEmpty()&&tile.insertItem(1, resultItem, true, true).isEmpty()) {
-                            // Commit the drain, fluid transfer, and item movement
-                            ((IFluidHandler) tile).fill(drained, FluidAction.EXECUTE);
-                            tile.extractItem(0, 1, false);
-                            tile.insertItem(1, resultItem, false, true);
-
-                        }
-                    } else {
-                        // Tank has fluid; calculate maximum fillable amount
-                        int maxFill = tankCapacity - fluidInTank.getAmount();
-                        drained = fluidHandler.drain(maxFill, FluidAction.EXECUTE);
-                        int filled = tile.fill(drained, FluidAction.SIMULATE);
-                        ItemStack resultItem = fluidHandler.getContainer();
-
-                        // Try inserting result item into slot 1
-                        if(!drained.isEmpty() && filled == drained.getAmount()) {
-                            if (tile.insertItem(1, resultItem, true, true).isEmpty()) {
-                                // Commit the drain, fluid transfer, and item movement
-                                ((IFluidHandler) tile).fill(drained, FluidAction.EXECUTE);
-                                tile.extractItem(0, 1, false);
-                                tile.insertItem(1, resultItem, false, true);
-                            }
-                        }else{
-                            drained = FluidStack.EMPTY;
-                        }
+                    // If all drained can fit into the tank, and we can insert result item into slot 1, commit!
+                    if (!drained.isEmpty() && canFill == drained.getAmount() && insertItemIgnoreFilter(1, resultItem, true).isEmpty()) {
+                        // Commit the drain, fluid transfer, and item movement
+                        fill(drained, FluidAction.EXECUTE);
+                        extractItem(0, 1, false);
+                        insertItemIgnoreFilter(1, resultItem, false);
                     }
 
-                    // 2. If draining yielded no fluid, try filling the item instead
-                    if (drained.isEmpty()) {
+                    // 2. If draining did not work, try filling the item instead
+                    else {
                         //make new copy because it may have been modified in tee code above
-                        currentItem = stack.copyWithCount(1);
-                        fluidHandler = currentItem.getCapability(Capabilities.FluidHandler.ITEM);
+                        stackCopy = stack.copyWithCount(1);
+                        fluidHandlerCopy = stackCopy.getCapability(Capabilities.FluidHandler.ITEM);
 
-                        FluidStack wasInTank = fluidInTank.copy();
                         // Execute the fill operation and get the transformed container item
-                        int filled = fluidHandler.fill(wasInTank, FluidAction.EXECUTE);
-                        ItemStack resultItem = fluidHandler.getContainer();
+                        // make a copy of the fluidStack so that the original tank is not modified
+                        int filled = fluidHandlerCopy.fill(fluidInTank.copy(), FluidAction.EXECUTE);
+                        resultItem = fluidHandlerCopy.getContainer();
                         // Try inserting result item into slot 1
-                        if (tile.insertItem(1, resultItem, true, true).isEmpty()) {
+                        if (insertItemIgnoreFilter(1, resultItem, true).isEmpty()) {
                             // Commit the fill, fluid transfer, and item movement
-                            ((IFluidHandler) tile).drain(wasInTank.copyWithAmount(filled), FluidAction.EXECUTE);
-                            tile.extractItem(0, 1, false);
-                            tile.insertItem(1, resultItem, false, true);
+                            drain(fluidInTank.copyWithAmount(filled), FluidAction.EXECUTE);
+                            extractItem(0, 1, false);
+                            insertItemIgnoreFilter(1, resultItem, false);
                         }
                     }
                 }
             }
         }
+    }
+
+    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+        ((EntityFluidInputBlock) t).tick();
     }
 }

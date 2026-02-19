@@ -142,7 +142,6 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
             Level world = DimensionUtils.getDimensionLevelServer(itemTag.getString("dimension"));
             List<BlockInfo> machineBlocks = structureBlocks.get(itemTag.getString("selectedMachine"));
             BlockPos clickedPos = new BlockPos(itemTag.getInt("posX"), itemTag.getInt("posY"), itemTag.getInt("posZ"));
-            BlockPos offset = new BlockPos(0, machineHeight(itemTag.getString("selectedMachine")), 0);
             int stepX = itemTag.getInt("stepX");
             int stepZ = itemTag.getInt("stepZ");
             for (BlockInfo i : machineBlocks) {
@@ -150,9 +149,9 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
                 int y = i.pos.getY();
                 int z = i.pos.getZ();
                 if (y == itemTag.getInt("y")) {
-                    int globalX = clickedPos.getX() + (x - offset.getX()) * stepZ - (z - offset.getZ()) * stepX;
-                    int globalY = clickedPos.getY() - y + offset.getY();
-                    int globalZ = clickedPos.getZ() - (x - offset.getX()) * stepX - (z - offset.getZ()) * stepZ;
+                    int globalX = clickedPos.getX() + (x) * stepZ - (z) * stepX;
+                    int globalY = clickedPos.getY() + machineHeight(itemTag.getString("selectedMachine")) - y;
+                    int globalZ = clickedPos.getZ() - (x) * stepX - (z) * stepZ;
                     BlockPos globalPos = new BlockPos(globalX, globalY, globalZ);
                     if (world.getBlockState(globalPos).canBeReplaced()) {
                         if (!i.allowedBlocks.contains(Blocks.AIR)) {
@@ -177,16 +176,15 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
             Level world = DimensionUtils.getDimensionLevelServer(itemTag.getString("dimension"));
             List<BlockInfo> machineBlocks = structureBlocks.get(itemTag.getString("selectedMachine"));
             BlockPos clickedPos = new BlockPos(itemTag.getInt("posX"), itemTag.getInt("posY"), itemTag.getInt("posZ"));
-            BlockPos offset = new BlockPos(0, machineHeight(itemTag.getString("selectedMachine")), 0);
             int stepX = itemTag.getInt("stepX");
             int stepZ = itemTag.getInt("stepZ");
             for (BlockInfo i : machineBlocks) {
                 int x = i.pos.getX();
                 int y = i.pos.getY();
                 int z = i.pos.getZ();
-                int globalX = clickedPos.getX() + (x - offset.getX()) * stepZ - (z - offset.getZ()) * stepX;
-                int globalY = clickedPos.getY() - y + offset.getY();
-                int globalZ = clickedPos.getZ() - (x - offset.getX()) * stepX - (z - offset.getZ()) * stepZ;
+                int globalX = clickedPos.getX() + (x) * stepZ - (z) * stepX;
+                int globalY = clickedPos.getY() + machineHeight(itemTag.getString("selectedMachine")) - y;
+                int globalZ = clickedPos.getZ() - (x) * stepX - (z) * stepZ;
                 BlockPos globalPos = new BlockPos(globalX, globalY, globalZ);
                 if (world.getBlockState(globalPos).getBlock().equals(BLOCK_STRUCTURE_PREVIEW.get())) {
                     world.setBlock(globalPos, Blocks.AIR.defaultBlockState(), 3);
@@ -202,18 +200,20 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
             Direction facing = context.getHorizontalDirection().getOpposite();
             BlockPos clickedPos = context.getClickedPos().above();
             CompoundTag tag = getStacktagOrEmpty(stack);
-            removeLastPreview(tag);
-            tag.putInt("y", 0);
-            tag.putInt("posX", clickedPos.getX());
-            tag.putInt("posY", clickedPos.getY());
-            tag.putInt("posZ", clickedPos.getZ());
-            tag.putInt("stepX", facing.getStepX());
-            tag.putInt("stepZ", facing.getStepZ());
-            tag.putString("dimension", DimensionUtils.getLevelId(context.getLevel()));
-            setTag(stack, tag);
-            placeLayer(tag);
+            if (tag.contains("selectedMachine")) {
+                removeLastPreview(tag);
+                tag.putInt("y", machineHeight(tag.getString("selectedMachine")));
+                tag.putInt("posX", clickedPos.getX());
+                tag.putInt("posY", clickedPos.getY());
+                tag.putInt("posZ", clickedPos.getZ());
+                tag.putInt("stepX", facing.getStepX());
+                tag.putInt("stepZ", facing.getStepZ());
+                tag.putString("dimension", DimensionUtils.getLevelId(context.getLevel()));
+                setTag(stack, tag);
+                placeLayer(tag);
+            }
         }
-        if (!!context.getLevel().isClientSide && context.getPlayer().isShiftKeyDown()) {
+        if (!context.getLevel().isClientSide && context.getPlayer().isShiftKeyDown()) {
             use(context.getLevel(), context.getPlayer(), context.getHand());
         }
         return InteractionResult.SUCCESS;

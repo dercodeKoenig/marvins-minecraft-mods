@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
@@ -33,7 +34,7 @@ import static AgeOfSteam.Registry.ENTITY_HAND_GENERATOR;
 
 public class BlockHandGenerator extends Block implements EntityBlock {
 
-    public static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
+    public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;;
 
     public BlockHandGenerator() {
         super(Properties.of().noOcclusion().strength(1.0f));

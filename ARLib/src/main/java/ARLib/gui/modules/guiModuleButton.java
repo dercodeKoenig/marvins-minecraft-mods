@@ -1,5 +1,6 @@
 package ARLib.gui.modules;
 
+import ARLib.ARLib;
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,6 +10,15 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.Objects;
 
 public class guiModuleButton extends GuiModuleBase {
+
+    public static class BuiltinButtons{
+        public static ResourceLocation BTN_BLACK = ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/gui_button_black.png");
+        public static ResourceLocation BTN_RED = ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/gui_button_red.png");
+        public static ResourceLocation BTN_GREEN = ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/gui_button_green.png");
+        public static int BTN_W = 64;
+        public static int BTN_H = 20;
+    }
+
     public int w, h;
     public int textureW, textureH;
     public ResourceLocation image;
@@ -16,7 +26,7 @@ public class guiModuleButton extends GuiModuleBase {
     public int color;
     public boolean makeShadow = false;
 
-    public void onButtonClicked(){
+    public void onButtonClicked() {
         CompoundTag tag = new CompoundTag();
         tag.putInt("guiButtonClick", id);
         guiHandler.sendToServer(tag);
@@ -39,6 +49,19 @@ public class guiModuleButton extends GuiModuleBase {
         }
     }
 
+
+    public void setBackgroundAndSync(ResourceLocation background, int texW, int texH) {
+        boolean needsUpdate = !Objects.equals(this.image, background) ||
+                !Objects.equals(this.textureH, texH) ||
+                Objects.equals(this.textureW, texW);
+        this.image = background;
+        this.textureH = texH;
+        this.textureW = texW;
+        if (needsUpdate) {
+            broadcastModuleUpdate();
+        }
+    }
+
     public void setColorAndSync(int color) {
         boolean needsUpdate = this.color != color;
         this.color = color;
@@ -52,6 +75,9 @@ public class guiModuleButton extends GuiModuleBase {
         CompoundTag myTag = new CompoundTag();
         myTag.putString("text", this.text);
         myTag.putInt("color", this.color);
+        myTag.putInt("texW", this.textureW);
+        myTag.putInt("texH", this.textureH);
+        myTag.putString("image", this.image.toString());
         tag.put(getMyTagKey(), myTag);
 
         super.server_writeDataToSyncToClient(tag);
@@ -66,6 +92,15 @@ public class guiModuleButton extends GuiModuleBase {
             }
             if (myTag.contains("color")) {
                 this.color = myTag.getInt("color");
+            }
+            if (myTag.contains("texW")) {
+                this.textureW = myTag.getInt("texW");
+            }
+            if (myTag.contains("texH")) {
+                this.textureH = myTag.getInt("texH");
+            }
+            if (myTag.contains("image")) {
+                this.image = ResourceLocation.parse(myTag.getString("image"));
             }
         }
         super.client_handleDataSyncedToClient(tag);

@@ -7,13 +7,12 @@ import org.joml.Vector4f;
 
 
 public class DimensionProperties {
-    // TODO: add always rain / always thunder values or custom rain times
 
     public String name = "";
     public DimensionType type = DimensionType.DUMMY;
     public ResourceLocation dimensionId = null;
 
-    public static enum DimensionType {
+    public enum DimensionType {
         PLANET,
         SPACE_STATION,
         DUMMY;

@@ -1,14 +1,20 @@
 package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
+import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
+import ARLib.utils.DimensionUtils;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
 import advRocketry.Dimension.*;
+import advRocketry.Items.ItemLinker;
+import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Items.ItemUtils;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.utils.CelestialUtils;
@@ -18,20 +24,24 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,6 +49,7 @@ import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -54,12 +65,30 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<BlockPos, BlockState> blocks;
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
-    public FluidTank fuelTank = null;
+    public RocketFuelTank fuelTank = null;
 
-    public ItemStack usedNavigationItem = ItemStack.EMPTY; // the current one used (guidance computer item can be overwritten in launch terminal)
+    public static class RocketFuelTank extends FluidTank {
+        EntityRocket rocket;
+
+        public RocketFuelTank(int capacity, EntityRocket rocket) {
+            super(capacity);
+            this.rocket = rocket;
+        }
+
+        // the weight calculation uses fuel to calculate weight.
+        // the client usually has no idea about the fuel tank so it needs to be synced to client
+        public void onContentsChanged() {
+            if (!rocket.level().isClientSide) {
+                CompoundTag info = new CompoundTag();
+                info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
+                rocket.sendToClients(info);
+            }
+        }
+    }
 
     // cached values
     private float cachedThrust = -1;
+    private int cachedFuelRate = -1;
     private ArrayList<BlockPos> cachedEnginePositions = null;
     private ArrayList<BlockPos> cachedSeatPositions = null;
 
@@ -75,7 +104,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     private Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
     Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
     private RocketProgram currentProgram = null;
-    RocketController controller;
+    public RocketController controller;
 
     // smooth position interpolation when server sends position update
     private double lerpX, lerpY, lerpZ;
@@ -90,6 +119,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
+    public double universeTravelSpeed = 0; // simplified, this should be vec3 but we just float and the direction = heading
     public Vec3 universeHeading = new Vec3(0, 1, 0);
     public Vec3 universeTargetHeading = new Vec3(0, 1, 0);
     public Vec3 universeFront = new Vec3(0, 0, 1);
@@ -98,15 +128,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     Map<UUID, BlockPos> passengers = new HashMap<>();
     private boolean firstTick = true; // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
 
+    // gui
     public GuiHandlerEntity guiHandler;
+    public ARLib.gui.modules.guiModuleText infoText;
+    public int temporaryInfoTimeout = 0; // for temporary messages like planet can not be reached... display the alternate info for a few ticks
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
+
         guiHandler = new GuiHandlerEntity(this);
         blocks = new HashMap<>();
         blockEntities = new HashMap<>();
         size = new Vec3i(1, 1, 1);
-        fuelTank = new FluidTank(0);
+        fuelTank = new RocketFuelTank(0, this);
 
         controller = new RocketController(this);
 
@@ -140,9 +174,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 fuelCapacity += fuelTank.getFuelCapacity();
             }
         }
-        rocket.fuelTank = new FluidTank(fuelCapacity);
-        rocket.makeGui();
+        rocket.fuelTank = new RocketFuelTank(fuelCapacity, rocket);
         rocket.refreshDimensions();
+        rocket.makeGui();
         return rocket;
     }
 
@@ -197,8 +231,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public double getDefaultGravity() {
-        if (level().dimension().location().equals(RocketTravelDimension.dimId))
-            return 0;
         return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
 
@@ -214,16 +246,23 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     @Override
+    public void onBelowWorld() {
+        if (currentProgram == null)
+            super.onBelowWorld();
+    }
+
+    @Override
     public boolean hurt(DamageSource source, float amount) {
         if (source.getEntity() instanceof Player player) {
             if (!level().isClientSide) {
                 player.startRiding(this);
             }
-            return true;
+            return false;
         }
         return super.hurt(source, amount);
     }
 
+    /// / passenger logic ////
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
@@ -275,6 +314,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
 
+    /// / smooth Motion / Position lerp system ////
+
     // we need slow movement but also the correct initial positions / movements when the entity loads, for example after dimension change
     public void lerpMotion(double x, double y, double z) {
         if (lerpDeltaMovementSteps < 0) {
@@ -282,7 +323,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             lerpDeltaMovementSteps = 0;
         } else {
             this.lerpDeltaMovement = new Vec3(x, y, z);
-            this.lerpDeltaMovementSteps = 20 * 120;
+            if (currentProgram != null)
+                // let the program do most of the job or it could jump around if server/client slightly desync
+                this.lerpDeltaMovementSteps = 20 * 120;
+            else
+                // normal lerp on ground
+                this.lerpDeltaMovementSteps = 20 * 1;
         }
     }
 
@@ -295,7 +341,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             this.lerpY = y;
             this.lerpZ = z;
             float distance = (float) position().distanceTo(new Vec3(x, y, z));
-            this.lerpSteps = (int) (20 + distance * 10); // dynamic time, fast sync for little correction, slow sync for large correction
+            this.lerpSteps = (int) (20 + distance * 50); // dynamic time, fast sync for little correction, slow sync for large correction
 
         }
         this.setRot(yRot, xRot);
@@ -442,9 +488,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void endProgram() {
         setProgramAndSync(null);
-        setTargetPosition(null, true);
-        enableSecondaryEngines(false, true);
-        enableMainEngines(false, true);
     }
 
 
@@ -455,6 +498,21 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (!level().isClientSide) {
             guiHandler.serverTick();
+
+            // if out of fuel, end program
+            if (fuelTank.isEmpty() && !level().dimension().location().equals(RocketTravelDimension.dimId))
+                endProgram();
+
+            if (temporaryInfoTimeout > 0) {
+                temporaryInfoTimeout--;
+            } else {
+                String newInfotext = "";
+                newInfotext += "Thrust max: " + ((float) Math.round(getThrustMax() * 100) / 100) + "\n";
+                newInfotext += "Mass: " + ((float) Math.round(getMass() * 100) / 100) + "\n";
+                newInfotext += "Weight: " + ((float) Math.round(getMass() * getGravity() * 100) / 100) + "\n";
+                newInfotext += "Thrust: " + Math.round(controller.getCurrentThrust() * 100) + "%";
+                infoText.setTextAndSync(newInfotext);
+            }
         }
 
         if (firstTick) {
@@ -469,6 +527,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+        // lerp logic for smooth position sync
         if (this.lerpSteps > 0) {
             this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
             --this.lerpSteps;
@@ -489,21 +548,29 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+        // tick rocket controller
         controller.tick();
 
+        // run program or shutdown
         if (currentProgram != null)
             currentProgram.run(this);
+        else {
+            setTargetPosition(null, false);
+            enableSecondaryEngines(false, false);
+            enableMainEngines(false, false);
+        }
 
         applyGravity();
 
-        Dimension myDimension = DimensionManager.get(level().dimension().location());
+
+        Dimension myDimension = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
 
         // simulate some air friction
         if (getDeltaMovement().length() > 0.01) { // you really dont want to normalize 0 vector. velocity will become like (NaN, Infinity, NaN) and the game freezes forever. took me 2 hours to realize this
             float atmDensity = 0;
             if (myDimension != null)
                 atmDensity = myDimension.getAtmosphereDensity();
-            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getY() * getDeltaMovement().length() * 0.01 / getMass());
+            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getX() * size.getZ() * getDeltaMovement().length() * 0.02 / getMass());
             if (airBreak.length() > getDeltaMovement().length()) {
                 setDeltaMovement(0, 0, 0);
             } else {
@@ -511,33 +578,63 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
-
         move(MoverType.SELF, getDeltaMovement());
 
-        if (GlobalTime.getGlobalTime() % 100 == 0) {
-            if (!level().isClientSide) {
-                if (level() == DimensionManager.getServerLevel(level().getServer(), RocketTravelDimension.dimId)) {
-                    RocketTravelDimension.INSTANCE.keepChunkLoaded(chunkPosition());
-                }
+        if (!level().isClientSide) {
+            if (currentProgram != null) {
+                ChunkPos nextChunkPos = chunkPosition();
+                ForcedChunkManager.keepChunkForceLoaded(level(), nextChunkPos);
             }
         }
+
     }
 
-    public void launch() {
-        setLastLaunchPosition(blockPosition(), true);
-        ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
-        p.targetDimensionId = level().dimension().location();
+    public boolean launch(ItemStack navigationItem) {
 
-        if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld")))
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
-        else if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon")))
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
-        else if (level().dimension().location().equals(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus")))
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
-        else
-            p.targetDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        p.target = new BlockPos((int) position().x, 0, (int) position().z);
-        setProgramAndSync(p);
+        Level targetLevel = null;
+        BlockPos targetPos = null;
+
+        if (navigationItem.getItem() instanceof ItemLinker linker) {
+            // navigate using linker item
+            CompoundTag tag = ItemUtils.getStacktagOrEmpty(navigationItem);
+            if (tag.contains("p") && tag.contains("l")) {
+                // extract level & pos
+                targetPos = NbtUtils.readBlockPos(tag, "p").get();
+                targetLevel = DimensionUtils.getDimensionLevelServer(tag.getString("l"));
+            }
+        }
+        if (navigationItem.getItem() instanceof ItemPlanetIdChip idChip) {
+            ResourceLocation targetLocation = ItemPlanetIdChip.getSelectedDimension(navigationItem);
+            if (targetLocation != null) {
+                targetPos = getOnPos();
+                targetLevel = DimensionUtils.getDimensionLevelServer(targetLocation.toString());
+            }
+        }
+
+        if (targetLevel != null) {
+            ResourceLocation targetLevelId = targetLevel.dimension().location();
+            Dimension targetDimesion = DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId);
+            if (targetDimesion.canVisit()) {
+                if (targetDimesion.getType() == DimensionProperties.DimensionType.PLANET) {
+                    // target level is planet, use planet navigation program
+                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
+                    p.target = targetPos;
+                    p.targetDimensionId = targetLevelId;
+                    setProgramAndSync(p);
+
+                    setLastLaunchPosition(blockPosition(), true);
+                    temporaryInfoTimeout = 0;
+                    return true;
+                }
+            } else {
+                infoText.setTextAndSync("Target invalid");
+                temporaryInfoTimeout = 20 * 15;
+            }
+        } else {
+            infoText.setTextAndSync("Target invalid");
+            temporaryInfoTimeout = 20 * 15;
+        }
+        return false;
     }
 
     public void deconstruct() {
@@ -600,6 +697,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         // fix passengers positions
         newRocket.setPassengersPositions(newPassengerPositions);
 
+        // keep the chunk loaded initially
+        ForcedChunkManager.keepChunkForceLoaded(target, newRocket.chunkPosition());
+
         return newRocket;
     }
 
@@ -615,6 +715,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         RocketSaveAndLoad.addAdditionalSaveData(this, compoundTag);
     }
 
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
@@ -628,9 +729,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             int id = compoundTag.getInt("guiButtonClick");
             if (id == 2) {
                 deconstruct();
+                // closing gui client side on button click because rocket no longer exists
             }
             if (id == 3) {
-                launch();
+                for (BlockEntity i : blockEntities.values()) {
+                    if (i instanceof EntityGuidanceComputer computer) {
+                        if (launch(computer.itemStackHandler.getStackInSlot(0))) {
+                            guiHandler.signalCloseGui(serverPlayer);
+                        }
+                    }
+                }
             }
         }
     }
@@ -649,8 +757,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void makeGui() {
         guiHandler.modules.clear();
-        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
-        guiHandler.modules.add(fuelDisplay);
+
         for (BlockEntity i : blockEntities.values()) {
             if (i instanceof EntityGuidanceComputer computer) {
                 guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 10, 10);
@@ -658,10 +765,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+        guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
+        guiHandler.modules.add(fuelDisplay);
+
         guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
-                Minecraft.getInstance().setScreen(null);
+                // close the gui on deconstruct, this packet can not be sent by server because the rocket no longer exists
+                if (EntityRocket.this.guiHandler.screen instanceof Screen screen) {
+                    screen.onClose();
+                }
             }
         };
         deconstructButton.color = 0xffffffff;
@@ -669,6 +782,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
         launchButton.color = 0xffffffff;
         guiHandler.modules.add(launchButton);
+
+
+        infoText = new guiModuleText(4, "info", guiHandler, 10, 40, 0xff000000, false);
+        guiHandler.modules.add(infoText);
+
 
         for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
@@ -680,7 +798,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void openGui() {
         if (level().isClientSide) {
-            //makeGui();
             guiHandler.openGui(180, 200, true);
         }
     }
@@ -704,8 +821,23 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return fuelTank.getFluidAmount();
     }
 
+    public int getFuelRateMax() {
+        if (cachedFuelRate < 0) {
+            cachedFuelRate = 0;
+            for (BlockState state : blocks.values()) {
+                if (state.getBlock() instanceof RocketMotor motor) {
+                    cachedFuelRate += motor.getFuelRateMax();
+                }
+            }
+        }
+        return cachedFuelRate;
+    }
+
     public float getMass() {
-        return 3f * blocks.size() + 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
+        float mass = 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
+        mass += 3f * blocks.size(); // block weight
+        mass += getFuel() * 0.0005f; // fuel weight, tank is synced to client
+        return mass;
     }
 
     public float getMaxAcceleration() {

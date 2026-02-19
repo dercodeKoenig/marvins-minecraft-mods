@@ -2,6 +2,7 @@ package ARLib.gui.modules;
 
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -71,8 +72,20 @@ public class guiModuleText extends GuiModuleBase {
             int mouseY,
             float partialTick
     ) {
-        if (isEnabled) {
-            guiGraphics.drawString(Minecraft.getInstance().font, text, onGuiX, onGuiY, color, makeShadow);
+        if (isEnabled && text != null) {
+            Font font = Minecraft.getInstance().font;
+
+            // Split the text into an array of lines wherever there is a newline
+            String[] lines = text.split("\n");
+            int currentY = onGuiY;
+
+            // Loop through each line and draw it
+            for (String line : lines) {
+                guiGraphics.drawString(font, line, onGuiX, currentY, color, makeShadow);
+
+                // Increase the Y position by the font's standard line height
+                currentY += font.lineHeight;
+            }
         }
     }
 }

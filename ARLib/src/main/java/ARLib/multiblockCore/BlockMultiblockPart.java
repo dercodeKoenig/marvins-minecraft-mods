@@ -22,6 +22,8 @@ public class BlockMultiblockPart extends Block {
 
     static final Map<BlockIdentifier, BlockPos> multiblockMasterPositions = new HashMap<>();
 
+    public boolean isSpecialBlock = false; // special blocks have their own flag of forward interaction to master
+
     public BlockMultiblockPart(Properties properties) {
         super(properties.noOcclusion().pushReaction(PushReaction.DESTROY));
         this.registerDefaultState(this.stateDefinition.any().setValue(STATE_MULTIBLOCK_FORMED, false));
@@ -67,15 +69,16 @@ public class BlockMultiblockPart extends Block {
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         // because client does not have the map for master blocks I just return OK
-        // I dont want to implement a custom network packet for this bc
-        // when mc updates and changes shit around again it would just be additional work for something that has not
-        // too much of an impact. if it is a PASS and a block can be placed the server should update the blockstate to the client
-        // if it is a SUCCESS and item is used the server should update the inventory and send the changes
         if (level.isClientSide) return InteractionResult.SUCCESS_NO_ITEM_USED;
 
         BlockPos master = getMaster(new BlockIdentifier(level, pos));
-        if (master != null && level.getBlockEntity(master) instanceof EntityMultiblockMaster masterTile && masterTile.forwardInteractionToMaster) {
-            return masterTile.useWithoutItem(state, level, pos, player, hitResult);
+        if (master != null && level.getBlockEntity(master) instanceof EntityMultiblockMaster masterTile) {
+            // if this is not a special block, use the normal flag
+            if (masterTile.forwardInteractionToMaster && !isSpecialBlock)
+                return masterTile.useWithoutItem(state, level, pos, player, hitResult);
+            // if this IS a special block, use the special block flag
+            if (masterTile.forwardSpecialBlockInteractionToMaster && isSpecialBlock)
+                return masterTile.useWithoutItem(state, level, pos, player, hitResult);
         }
 
         return InteractionResult.PASS;

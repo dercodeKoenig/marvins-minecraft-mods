@@ -1,10 +1,12 @@
 package AgeOfSteam.Blocks.Mechanics.BlockMotor;
 
+import ARLib.mixins.ShaderInstanceMixin;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import AgeOfSteam.Main;
 import AgeOfSteam.Static;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -62,28 +64,28 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
         if (!(axleState.getBlock() instanceof BlockMotor)) return;
         Direction facing = axleState.getValue(BlockMotor.FACING);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
-        m1 = m1.mul(stack.last().pose());
-        m1 = m1.translate(0.5f, 0.5f, 0.5f);
+        Matrix4f modelMat = new Matrix4f();
+        modelMat = modelMat.mul(stack.last().pose());
+        modelMat = modelMat.translate(0.5f, 0.5f, 0.5f);
 
         double rotorRotationMultiplier = 1;
         if (facing == Direction.WEST) {
             // all good
         }
         if (facing == Direction.EAST) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 180f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 180f));
             rotorRotationMultiplier = -1;
         }
         if (facing == Direction.SOUTH) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 90f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 90f));
             rotorRotationMultiplier = -1;
         }
         if (facing == Direction.NORTH) {
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 270f));
+            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1.0f, 0, 270f));
             //rotorRotationMultiplier = -1;
         }
 
-        m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1.0f, (float) 0, 0, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
+        modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(1.0f, (float) 0, 0, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
         LIGHTMAP.setupRenderState();
@@ -92,11 +94,14 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
         RenderSystem.setShaderTexture(0, tex);
 
         ShaderInstance shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat) , RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        Uniform NormalMat = shader.getUniform("NormalMat");
+        NormalMat.set(Static.getNormalMat(modelMat));
         shader.apply();
 
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();
+
 
         shader.clear();
         VertexBuffer.unbind();

@@ -137,7 +137,7 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
 
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
         m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
@@ -182,7 +182,8 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
 
         BlockEntity t = tile.getLevel().getBlockEntity(tile.getBlockPos().relative(facing));
         if (t instanceof EntityCrankShaftBase cs) {
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
             shader.apply();
             tile.vertexBuffer3.bind();
             tile.vertexBuffer3.draw();
@@ -192,7 +193,8 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
         float sieveTargetX = 0.4f + (float) (translationX + Math.cos(b) * armLength);
         m2.translate(sieveTargetX, 0, 0);
 
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBuffer.bind();
         tile.vertexBuffer.draw();
@@ -205,8 +207,6 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
             Matrix4f m3 = new Matrix4f(m2);
             m3.translate(0, -0.01f, 0);
             m3.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 180f));
-
-            Matrix4f m5 = new Matrix4f(m3);
 
 
             if (tile.myInputs.getItem() instanceof BlockItem bi) {

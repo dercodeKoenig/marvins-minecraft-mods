@@ -1,6 +1,7 @@
 package AOSWorkshopExpansion.MillStone;
 
 import ARLib.ARLibRegistry;
+import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.holoProjector.itemHoloProjector;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMaster;
@@ -62,6 +63,7 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     public MeshData meshAxle;
     public int lastLight;
 
+    public GuiHandlerBlockEntity guiHandler;
 
     // aw npc compat
     public static Set<BlockIdentifier> knownBlockEntities = new HashSet<>();
@@ -130,6 +132,24 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
                 vertexBufferAxle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+
+        guiHandler = new GuiHandlerBlockEntity(this);
+        guiHandler.modules.addAll(
+                ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 135, 1000, 0, 1, guiHandler)
+        );
+        guiHandler.modules.addAll(
+                ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 75, 2000, 0, 1, guiHandler)
+        );
+        for (int x = 0; x < 9; x++) {
+            for (int y = 0; y < 2; y++) {
+                int slotId = x + y * 9;
+                int slotx = 10 + x * 18;
+                int sloty = 10 + y * 18;
+                guiHandler.modules.add(
+                        new ARLib.gui.modules.guiModuleItemHandlerSlot(slotId, inventory, slotId, 1, 0, guiHandler, slotx, sloty)
+                );
+            }
+        }
     }
 
     @Override
@@ -194,11 +214,8 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (player instanceof ServerPlayer sp) {
-            sp.openMenu(new SimpleMenuProvider((x, y, z) ->
-                    new MenuMillStone(x, y, this), Component.literal("MillStone")
-            ));
-        }
+        if (player instanceof ServerPlayer serverPlayer)
+            guiHandler.signalOpenGui(serverPlayer, 190, 160, true);
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
@@ -226,6 +243,8 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     public void tick() {
         myMechanicalBlock.mechanicalTick();
         if (!level.isClientSide) {
+            guiHandler.serverTick();
+
             if (getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 double directionMultiplier = 1;
                 Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -366,6 +385,7 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     @Override
     public void readClient(CompoundTag tag) {
         myMechanicalBlock.mechanicalReadClient(tag);
+        guiHandler.readClient(tag);
         if (tag.contains("inventory")) {
             inventory.deserializeNBT(level.registryAccess(), tag.getCompound("inventory"));
         }
@@ -375,8 +395,9 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     @Override
     public void readServer(CompoundTag tag, ServerPlayer p) {
         myMechanicalBlock.mechanicalReadServer(tag, p);
+        guiHandler.readServer(tag);
         if (tag.contains("ping")) {
-                sendUpdateTag(p);
+            sendUpdateTag(p);
         }
         super.readServer(tag, p);
     }

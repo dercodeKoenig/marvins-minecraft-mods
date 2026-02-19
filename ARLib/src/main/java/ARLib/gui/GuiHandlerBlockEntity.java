@@ -5,7 +5,6 @@ import ARLib.network.PacketBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,9 +12,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -159,9 +155,33 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
     @Override
     public void readClient(CompoundTag tag) {
         IGuiHandler.super.readClient(tag);
-        if (tag.contains("closeGui"))
-            Minecraft.getInstance().setScreen(null);
+        if (tag.contains("guiHandler_closeGui"))
+            if(screen instanceof Screen)
+                ((Screen) screen).onClose();
+        if(tag.contains("guiHandler_openGui")){
+            CompoundTag openGuiTag = tag.getCompound("guiHandler_openGui");
+            int w = openGuiTag.getInt("w");
+            int h = openGuiTag.getInt("h");
+            boolean renderBackground = openGuiTag.getBoolean("renderBackground");
+            openGui(w,h,renderBackground);
+        }
     }
+
+    public void signalCloseGui(ServerPlayer player){
+        CompoundTag closeGuiTag = new CompoundTag();
+        closeGuiTag.putInt("guiHandler_closeGui", 0);
+        PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(parentBE, closeGuiTag));
+    }
+
+    public void signalOpenGui(ServerPlayer player,  int w, int h, boolean renderBackground) {{
+        CompoundTag openGuiTag = new CompoundTag();
+        openGuiTag.putInt("w", w);
+        openGuiTag.putInt("h", h);
+        openGuiTag.putBoolean("renderBackground", renderBackground);
+        CompoundTag infoTag = new CompoundTag();
+        infoTag.put("guiHandler_openGui", openGuiTag);
+        PacketDistributor.sendToPlayer(player,PacketBlockEntity.getBlockEntityPacket(parentBE, infoTag));
+    }}
 
     @Override
     public void serverTick() {
@@ -178,9 +198,7 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
                 Entity entity = ((ServerLevel) parentBE.getLevel()).getEntity(uid);
                 if (entity instanceof ServerPlayer player && entity.position().distanceTo(parentBE.getBlockPos().getCenter()) > maxDistance) {
                     removePlayerFromGui(uid);
-                    CompoundTag closeGuiTag = new CompoundTag();
-                    closeGuiTag.putInt("closeGui", 0);
-                    PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(parentBE, closeGuiTag));
+                    signalCloseGui(player);
                 }
             }
         }

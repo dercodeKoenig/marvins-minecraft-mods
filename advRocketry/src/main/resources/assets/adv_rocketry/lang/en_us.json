@@ -15,5 +15,11 @@
   "item.adv_rocketry.fuel_tank": "Fuel Tank",
 
   "block.adv_rocketry.guidance_computer": "Guidance Computer",
-  "item.adv_rocketry.guidance_computer": "Guidance Computer"
+  "item.adv_rocketry.guidance_computer": "Guidance Computer",
+
+  "block.adv_rocketry.fueling_station": "Fueling Station",
+  "item.adv_rocketry.fueling_station": "Fueling Station",
+
+  "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
+  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel"
 }

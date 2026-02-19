@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -32,10 +33,10 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
             }
         };
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 0, 1, guiHandler, 50, 20));
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 110, 1000, 1, 0, guiHandler)) {
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 50, 2000, 1, 0, guiHandler)) {
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
 
@@ -45,9 +46,9 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
         if (level.isClientSide) {
         } else {
             for (int i = 0; i < itemStackHandler.getSlots(); i++) {
-                ItemStack stack = itemStackHandler.getStackInSlot(i).copy();
-                ItemEntity stackEntity = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ(), stack);
-                level.addFreshEntity(stackEntity);
+                ItemStack stack = itemStackHandler.getStackInSlot(i);
+                Block.popResource(level,getBlockPos(),stack);
+                itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
             }
         }
     }
@@ -85,6 +86,6 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(180, 140, true);
+            guiHandler.openGui(176, 140, true);
     }
 }
