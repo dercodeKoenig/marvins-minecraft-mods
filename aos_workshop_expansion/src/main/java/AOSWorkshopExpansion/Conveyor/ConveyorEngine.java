@@ -2,8 +2,11 @@ package AOSWorkshopExpansion.Conveyor;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -16,6 +19,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_ENGINE;
 
 
@@ -27,6 +32,14 @@ public class ConveyorEngine extends Block implements EntityBlock {
         BlockState state = this.stateDefinition.any();
         state = state.setValue(AXIS, Direction.Axis.X);
         this.registerDefaultState(state);
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.literal("Max Stress: "+ ConveyorConfig.INSTANCE.conveyorEngineMaxStress));
+        tooltipComponents.add(Component.literal("Friction: "+ConveyorConfig.INSTANCE.conveyorEngineResistance));
+        tooltipComponents.add(Component.literal("Inertia: "+ConveyorConfig.INSTANCE.conveyorEngineInertia));
+        tooltipComponents.add(Component.literal("place below conveyor belt"));
     }
 
     @Override

@@ -1,6 +1,7 @@
 package AOSWorkshopExpansion;
 
 
+import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import AOSWorkshopExpansion.Conveyor.RenderConveyorBelt;
 import ARLib.holoProjector.itemHoloProjector;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
@@ -60,6 +61,7 @@ public class Main {
         SimpleNetworkPacket.registerReceiver(WoodMillConfig.packetConfigSyncID, WoodMillConfig.INSTANCE);
         SimpleNetworkPacket.registerReceiver(MillStoneConfig.packetConfigSyncID, MillStoneConfig.INSTANCE);
         SimpleNetworkPacket.registerReceiver(SpinningWheelConfig.packetConfigSyncID, SpinningWheelConfig.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(ConveyorConfig.packetConfigSyncID, ConveyorConfig.INSTANCE);
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
@@ -68,6 +70,7 @@ public class Main {
             SpinningWheelConfig.SyncConfig(p);
             WoodMillConfig.SyncConfig(p);
             MillStoneConfig.SyncConfig(p);
+            ConveyorConfig.SyncConfig(p);
         }
     }
 

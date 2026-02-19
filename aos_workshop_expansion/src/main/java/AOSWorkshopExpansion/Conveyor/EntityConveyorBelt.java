@@ -37,10 +37,6 @@ import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
 
-    public double myInertia = 1;
-    public double myFriction = 1;
-    public double maxStress = 600;
-
     // items and progress
     public HashMap<ItemStack, Float> items_progress = new HashMap<>();
     // unique id and same item reference for server/client sync
@@ -54,17 +50,17 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return ConveyorConfig.INSTANCE.conveyorMaxStress;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return ConveyorConfig.INSTANCE.conveyorInertia;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return myFriction;
+            return ConveyorConfig.INSTANCE.conveyorResistance;
         }
 
         @Override

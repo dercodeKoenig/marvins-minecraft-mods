@@ -3,11 +3,14 @@ package AOSWorkshopExpansion.Conveyor;
 import AgeOfSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -27,6 +30,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 
@@ -40,6 +44,14 @@ public class ConveyorBelt extends Block implements EntityBlock , ItemHammer.Hamm
         BlockState state = this.stateDefinition.any();
         state = state.setValue(FACING, Direction.NORTH).setValue(DIAGONAL, false);
         this.registerDefaultState(state);
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.literal("Max Stress: "+ ConveyorConfig.INSTANCE.conveyorMaxStress));
+        tooltipComponents.add(Component.literal("Friction: "+ConveyorConfig.INSTANCE.conveyorResistance));
+        tooltipComponents.add(Component.literal("Inertia: "+ConveyorConfig.INSTANCE.conveyorInertia));
+        tooltipComponents.add(Component.literal("place above conveyor engine"));
     }
 
     @Override
