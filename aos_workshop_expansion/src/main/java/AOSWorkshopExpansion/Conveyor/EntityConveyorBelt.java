@@ -152,7 +152,10 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                     BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
                     if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        neighborBelt.addItem(id, stack, newProgress - 1, false, level.registryAccess());
+                        if(neighbor.getBlockState().getValue(ConveyorBelt.AXIS) == getBlockState().getValue(ConveyorBelt.AXIS))
+                            neighborBelt.addItem(id, stack, newProgress - 1, false, level.registryAccess());
+                        else
+                            neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
                         removeItem(id, false);
                     } else {
                         popItem(id, target);
@@ -167,7 +170,10 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                     BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
                     if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        neighborBelt.addItem(id, stack, newProgress + 1, false, level.registryAccess());
+                        if(neighbor.getBlockState().getValue(ConveyorBelt.AXIS) == getBlockState().getValue(ConveyorBelt.AXIS))
+                            neighborBelt.addItem(id, stack, newProgress + 1, false, level.registryAccess());
+                        else
+                            neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
                         removeItem(id, false);
                     } else {
                         popItem(id, target);
