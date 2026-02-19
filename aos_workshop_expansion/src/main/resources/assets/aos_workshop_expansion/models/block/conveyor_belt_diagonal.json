@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "aos_workshop_expansion:models/block/conveyor_belt_diagonal.obj",
+  "mtl_override": "aos_workshop_expansion:models/block/conveyor_belt_diagonal.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "age_of_steam:block/andesite_casing"
+  }
+}
