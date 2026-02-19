@@ -29,10 +29,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import javax.annotation.Nullable;
+import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 
@@ -49,6 +47,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public HashMap<Long, ItemStack> id_items = new HashMap<>();
 
     public int lastLight;
+    public boolean lastDiagonal;
     public MeshData mesh;
     public VertexBuffer vertexBuffer;
 
@@ -93,9 +92,9 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public void onLoad() {
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
-        if(level.isClientSide){
+        if (level.isClientSide) {
             CompoundTag ping = new CompoundTag();
-            ping.putInt("ping",0);
+            ping.putInt("ping", 0);
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, ping));
         }
     }
@@ -152,7 +151,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                     BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
                     if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        if(neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
+                        if (neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
                             neighborBelt.addItem(id, stack, newProgress - 1, false, level.registryAccess());
                         else
                             neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
@@ -170,7 +169,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                     BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(target));
                     if (neighbor instanceof EntityConveyorBelt neighborBelt) {
-                        if(neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
+                        if (neighbor.getBlockState().getValue(ConveyorBelt.FACING).getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis())
                             neighborBelt.addItem(id, stack, newProgress + 1, false, level.registryAccess());
                         else
                             neighborBelt.addItem(id, stack, 0.5f, false, level.registryAccess());
@@ -188,34 +187,37 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         ((EntityConveyorBelt) t).tick();
     }
 
-    public CompoundTag writeEntry(Long id, ItemStack stack, float progress, HolderLookup.Provider registryAccess){
+    public CompoundTag writeEntry(Long id, ItemStack stack, float progress, HolderLookup.Provider registryAccess) {
         CompoundTag addTag = new CompoundTag();
         addTag.putLong("id", id);
         addTag.put("stack", stack.save(registryAccess));
         addTag.putFloat("progress", progress);
         return addTag;
     }
-    public void loadEntry(CompoundTag addItemTag, HolderLookup.Provider registryAccess){
+
+    public void loadEntry(CompoundTag addItemTag, HolderLookup.Provider registryAccess) {
         Long id = addItemTag.getLong("id");
         ItemStack stack = ItemStack.parse(registryAccess, addItemTag.get("stack")).get();
         float progress = addItemTag.getFloat("progress");
         id_items.put(id, stack);
         items_progress.put(stack, progress);
     }
-    public void loadItemsFromTag(CompoundTag tag, HolderLookup.Provider registryAccess){
-        if(tag.contains("id_item_progress_entries")) {
+
+    public void loadItemsFromTag(CompoundTag tag, HolderLookup.Provider registryAccess) {
+        if (tag.contains("id_item_progress_entries")) {
             ListTag entries = tag.getList("id_item_progress_entries", Tag.TAG_COMPOUND);
             for (int i = 0; i < entries.size(); i++) {
                 loadEntry(entries.getCompound(0), registryAccess);
             }
         }
     }
-    public void writeItemsToTag(CompoundTag tag, HolderLookup.Provider registryAccess){
+
+    public void writeItemsToTag(CompoundTag tag, HolderLookup.Provider registryAccess) {
         ListTag items_tag = new ListTag();
-        for(Long id : id_items.keySet()){
+        for (Long id : id_items.keySet()) {
             ItemStack item = id_items.get(id);
             float progress = items_progress.get(item);
-            CompoundTag entry= writeEntry(id, item, progress, registryAccess);
+            CompoundTag entry = writeEntry(id, item, progress, registryAccess);
             items_tag.add(entry);
         }
         tag.put("id_item_progress_entries", items_tag);
@@ -247,7 +249,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         myMechanicalBlock.mechanicalReadServer(compoundTag, serverPlayer);
-        if(compoundTag.contains("ping")){
+        if (compoundTag.contains("ping")) {
             CompoundTag info = new CompoundTag();
             writeItemsToTag(info, level.registryAccess());
             PacketDistributor.sendToPlayer(serverPlayer, PacketBlockEntity.getBlockEntityPacket(this, info));
@@ -274,21 +276,20 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
-        loadItemsFromTag(tag,registries);
+        loadItemsFromTag(tag, registries);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
-        writeItemsToTag(tag,registries);
+        writeItemsToTag(tag, registries);
     }
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
         BlockState myState = getBlockState();
         if (myState.getBlock() instanceof ConveyorBelt) {
-
             if (direction == Direction.DOWN) {
                 // below check for engine block
                 BlockState below = level.getBlockState(getBlockPos().below());
@@ -297,16 +298,117 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                         return myMechanicalBlock;
                 }
             }
-
-            if (direction.getAxis() == getBlockState().getValue(ConveyorBelt.FACING).getAxis()) {
-                // next to me check if it is a conveyor too and if it is in my correct direction
-                BlockState neighbor = level.getBlockState(getBlockPos().relative(direction));
-                if (neighbor.getBlock() instanceof ConveyorBelt) {
-                    return myMechanicalBlock;
-                }
-            }
         }
+        // connections to other conveyor belts we will handle ourselves in getConnectedParts
+        // we do not expose the mechanical block to anyone else
         return null;
+    }
+
+
+    public BlockEntity getConnectedConveyor(BlockPos otherPos) {
+
+        Direction myFacing = getBlockState().getValue(ConveyorBelt.FACING);
+        BlockPos myPos = getBlockPos();
+        boolean isDiagonal = getBlockState().getValue(ConveyorBelt.DIAGONAL);
+
+        BlockState otherState = level.getBlockState(otherPos);
+        if (!(otherState.getBlock() instanceof ConveyorBelt))
+            return null;
+        Direction otherFacing = otherState.getValue(ConveyorBelt.FACING);
+        boolean otherIsDiagonal = otherState.getValue(ConveyorBelt.DIAGONAL);
+        BlockEntity other = level.getBlockEntity(otherPos);
+        if (!(other instanceof EntityConveyorBelt otherConveyor))
+            return null;
+
+        if (otherFacing.getAxis() != myFacing.getAxis())
+            // not same axis
+            return null;
+
+        BlockPos behind = myPos.relative(myFacing.getOpposite());
+        if (otherPos.equals(behind)) {
+            // behind can be flat (__> or _/>)
+            if (!otherIsDiagonal)
+                return otherConveyor;
+            // if behind is not flat, it has to be facing away (\_> or \/>)
+            if ((otherIsDiagonal && otherFacing.getOpposite() == myFacing))
+                return otherConveyor;
+        }
+
+        BlockPos behind_below = behind.below();
+        if (otherPos.equals(behind_below)) {
+            // it has to be diagonal and facing toward us (/‾>)
+            if ((otherIsDiagonal && otherFacing == myFacing))
+                return otherConveyor;
+        }
+
+        BlockPos infront = myPos.relative(myFacing);
+        if (otherPos.equals(infront)) {
+            // both can be flat (_>_)
+            if (!isDiagonal && !otherIsDiagonal)
+                return otherConveyor;
+            // we can be flat and the other is diagonal away from us (_>/)
+            if (!isDiagonal && otherIsDiagonal && otherFacing == myFacing)
+                return otherConveyor;
+            // we can be diagonal, but then the other has to be diagonal and facing toward us (/>\)
+            if (isDiagonal && otherIsDiagonal && otherFacing == myFacing.getOpposite())
+                return otherConveyor;
+        }
+
+        BlockPos infront_below = infront.below();
+        if (otherPos.equals(infront_below)) {
+            // only 1 option - we are flat and other is diagonal toward us (‾>\)
+            if (!isDiagonal && otherIsDiagonal && otherFacing == myFacing.getOpposite())
+                return otherConveyor;
+        }
+
+        BlockPos infront_above = infront.above();
+        if (otherPos.equals(infront_above)) {
+            //  we are diagonal and the other is flat (/>‾)
+            if (isDiagonal && !otherIsDiagonal)
+                return otherConveyor;
+            //  we are diagonal and the other is also diagonal but facing away (/>/)
+            if (isDiagonal && otherIsDiagonal && otherFacing == myFacing)
+                return otherConveyor;
+
+        }
+
+        return null;
+    }
+
+    // the default method only checks all directions, but we need to check diagonal too
+    public Map<Direction, AbstractMechanicalBlock> getConnectedParts(IMechanicalBlockProvider mechanicalBlockProvider, @Nullable AbstractMechanicalBlock MechanicalBlock) {
+        Map<Direction, AbstractMechanicalBlock> connectedBlocks = new HashMap();
+
+        // check for engine below
+        AbstractMechanicalBlock mechanicalBlock = mechanicalBlockProvider.getMechanicalBlock(Direction.DOWN);
+        if (mechanicalBlock != null) {
+            // getMechanicalBlock already checks for direction below if there is a engine in correct rotation
+            connectedBlocks.put(Direction.DOWN, mechanicalBlock);
+        }
+
+        // check for conveyor
+        // we consider 3 blocks behind and 3 blocks infront
+        // we first check flat connections and then diagonal if flat has no connections
+        BlockPos myPos = getBlockPos();
+        Direction myFacing = getBlockState().getValue(ConveyorBelt.FACING);
+        Direction myFacingOpposite = myFacing.getOpposite();
+
+        if (getConnectedConveyor(myPos.relative(myFacing)) instanceof EntityConveyorBelt otherBelt)
+            connectedBlocks.put(myFacing, otherBelt.myMechanicalBlock);
+        else if (getConnectedConveyor(myPos.relative(myFacing).above()) instanceof EntityConveyorBelt otherBelt)
+            connectedBlocks.put(myFacing, otherBelt.myMechanicalBlock);
+        else if (getConnectedConveyor(myPos.relative(myFacing).below()) instanceof EntityConveyorBelt otherBelt)
+            connectedBlocks.put(myFacing, otherBelt.myMechanicalBlock);
+
+        if (getConnectedConveyor(myPos.relative(myFacingOpposite)) instanceof EntityConveyorBelt otherBelt)
+            connectedBlocks.put(myFacingOpposite, otherBelt.myMechanicalBlock);
+        else if (getConnectedConveyor(myPos.relative(myFacingOpposite).above()) instanceof EntityConveyorBelt otherBelt)
+            connectedBlocks.put(myFacingOpposite, otherBelt.myMechanicalBlock);
+        else if (getConnectedConveyor(myPos.relative(myFacingOpposite).below()) instanceof EntityConveyorBelt otherBelt)
+            connectedBlocks.put(myFacingOpposite, otherBelt.myMechanicalBlock);
+
+
+        return connectedBlocks;
     }
 
     @Override

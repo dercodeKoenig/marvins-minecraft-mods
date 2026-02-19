@@ -1,8 +1,12 @@
 package AOSWorkshopExpansion.Conveyor;
 
+import AgeOfSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -26,7 +30,7 @@ import java.util.ArrayList;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_BELT;
 
-public class ConveyorBelt extends Block implements EntityBlock {
+public class ConveyorBelt extends Block implements EntityBlock , ItemHammer.HammerInteractionBlock {
 
     public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static BooleanProperty DIAGONAL = BooleanProperty.create("diagonal");
@@ -54,7 +58,7 @@ public class ConveyorBelt extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
             state = state.setValue(FACING, placer.getDirection());
-            state = state.setValue(DIAGONAL, true);
+            state = state.setValue(DIAGONAL, false);
             level.setBlock(pos, state, 3);
         }
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
@@ -86,4 +90,13 @@ public class ConveyorBelt extends Block implements EntityBlock {
         return false;
     }
 
+    @Override
+    public InteractionResult onHammer(ItemStack itemStack, Level level, BlockPos blockPos, BlockState blockState, Player player, InteractionHand interactionHand) {
+        BlockState block = level.getBlockState(blockPos);
+        if(block.getBlock() instanceof ConveyorBelt){
+            block = block.setValue(DIAGONAL, !block.getValue(DIAGONAL));
+            level.setBlock(blockPos, block, 3);
+        }
+        return InteractionResult.SUCCESS;
+    }
 }

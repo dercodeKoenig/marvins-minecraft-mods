@@ -42,18 +42,21 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
 
         Direction facing = state.getValue(ConveyorBelt.FACING);
         Direction.Axis axis = facing.getAxis();
+        boolean isDiagonal = state.getValue(ConveyorBelt.DIAGONAL);
 
         int y0 = 0;
         int y1 = 0;
-        if(state.getValue(ConveyorBelt.DIAGONAL)) {
+        if(isDiagonal) {
             if(facing == Direction.SOUTH || facing == Direction.WEST)
                 y0 = 1;
             else
                 y1 = 1;
         }
 
-        if (tile.lastLight != packedLight || true) {
+        if (tile.lastLight != packedLight || tile.lastDiagonal != isDiagonal) {
             tile.lastLight = packedLight;
+            tile.lastDiagonal = isDiagonal;
+
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
             BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
 
