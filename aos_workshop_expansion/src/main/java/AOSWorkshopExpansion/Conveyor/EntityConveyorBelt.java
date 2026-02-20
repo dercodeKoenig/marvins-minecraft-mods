@@ -142,6 +142,8 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public void popItem(Long id, Direction target) {
         ItemStack stack = id_items.get(id);
         Vec3 pos = getBlockPos().getCenter().relative(target, 0.7);
+        if(target == getBlockState().getValue(ConveyorBelt.FACING) && getBlockState().getValue(ConveyorBelt.DIAGONAL))
+            pos = pos.add(0,1,0); // offset above
         ItemEntity ie = new ItemEntity(level, pos.x, pos.y, pos.z, stack.copy());
         float speed = 0.05f;
         ie.setDeltaMovement(target.getStepX() * speed, speed * 2, target.getStepZ() * speed);
