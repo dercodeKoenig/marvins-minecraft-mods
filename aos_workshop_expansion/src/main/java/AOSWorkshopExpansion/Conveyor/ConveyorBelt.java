@@ -95,10 +95,7 @@ public class ConveyorBelt extends Block implements EntityBlock , ItemHammer.Hamm
     VoxelShape myShape = Shapes.create(0, 0, 0, 1, (double) 2 / 16, 1);
 
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if(state.getValue(DIAGONAL))
-            return Shapes.block();
-        else
-            return myShape;
+        return myShape;
     }
 
     protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {

@@ -235,24 +235,23 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                             ItemStack remaining = stack;
 
                             // special case: neighbor is a conveyor but it is wrong oriented
-                            if(neighborItemHandler instanceof EntityConveyorBelt neighborBelt){
-                                neighborBelt.addItem(id, stack, 0.5f,true, level.registryAccess());
+                            if (neighborItemHandler instanceof EntityConveyorBelt neighborBelt) {
+                                neighborBelt.addItem(id, stack, 0.5f, true, level.registryAccess());
                                 remaining = ItemStack.EMPTY;
-                            }
-                            else if (neighborItemHandler != null) {
+                            } else if (neighborItemHandler != null) {
                                 for (int i = 0; i < neighborItemHandler.getSlots(); i++) {
                                     if (remaining.isEmpty())
                                         break;
                                     remaining = neighborItemHandler.insertItem(i, remaining.copy(), false);
                                 }
 
-                                if(level.getBlockState(targetPos).isCollisionShapeFullBlock(level, targetPos)) {
-                                    // pop to the side when there is an itemhandler in front or it will land on the belt again
-                                    if (new Random().nextBoolean())
-                                        target = target.getClockWise();
-                                    else
-                                        target = target.getCounterClockWise();
-                                }
+
+                                // pop to the side when there is an itemhandler in front or it will land on the belt again
+                                if (new Random().nextBoolean())
+                                    target = target.getClockWise();
+                                else
+                                    target = target.getCounterClockWise();
+
                             }
 
                             // pop remaining items
