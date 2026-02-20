@@ -3,6 +3,7 @@ package AOSWorkshopExpansion;
 
 import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import AOSWorkshopExpansion.Conveyor.RenderConveyorBelt;
+import AOSWorkshopExpansion.Piston.RenderPiston;
 import ARLib.holoProjector.itemHoloProjector;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.MillStone.MillStoneConfig;
@@ -82,6 +83,7 @@ public class Main {
         event.registerBlockEntityRenderer(ENTITY_SPINNING_WHEEL.get(), RenderSpinningWheel::new);
         event.registerBlockEntityRenderer(ENTITY_MILLSTONE.get(), RenderMillStone::new);
         event.registerBlockEntityRenderer(ENTITY_CONVEYOR_BELT.get(), RenderConveyorBelt::new);
+        event.registerBlockEntityRenderer(ENTITY_PISTON.get(), RenderPiston::new);
     }
 
 

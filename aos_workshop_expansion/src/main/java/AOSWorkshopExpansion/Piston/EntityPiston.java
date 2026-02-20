@@ -33,6 +33,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
     HashMap<BlockPos, BlockState> movingBlocks = new HashMap<>();
     int movingTicks = 0;
+    int currentAction =0; // 1 = extend, -1 = unextend for render
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -159,6 +160,8 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
         movingTicks = 0;
+        if(extend)currentAction = 1;
+        else currentAction = -1;
         level.setBlock(getBlockPos(), getBlockState().setValue(Piston.STATE1, true), 3);
     }
 
@@ -207,6 +210,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
                 movingBlocks.clear();
                 movingTicks = 0;
                 level.setBlock(getBlockPos(), getBlockState().setValue(Piston.STATE1, false), 3);
+                currentAction = 0;
             }
         }
         lastRotation = myMechanicalBlock.currentRotation;
