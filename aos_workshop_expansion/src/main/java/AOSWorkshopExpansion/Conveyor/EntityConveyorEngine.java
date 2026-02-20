@@ -1,7 +1,6 @@
 package AOSWorkshopExpansion.Conveyor;
 
 import ARLib.network.INetworkTagReceiver;
-import AgeOfSteam.Blocks.Mechanics.Axle.EntityAxleBase;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import net.minecraft.core.BlockPos;
@@ -10,35 +9,27 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_ENGINE;
 
 public class EntityConveyorEngine extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    public double myInertia = 1;
-    public double myFriction = 1;
-    public double maxStress = 600;
-
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return maxStress;
+            return ConveyorConfig.INSTANCE.conveyorEngineMaxStress;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return myInertia;
+            return ConveyorConfig.INSTANCE.conveyorEngineInertia;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return myFriction;
+            return ConveyorConfig.INSTANCE.conveyorEngineResistance;
         }
 
         @Override

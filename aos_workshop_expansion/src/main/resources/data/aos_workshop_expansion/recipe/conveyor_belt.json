@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "AGA",
+    "   "
+  ],
+  "key": {
+    "L": {
+      "tag": "c:leathers"
+    },
+    "A": {
+      "tag": "c:axles"
+    },
+    "G": {
+      "item": "age_of_steam:wooden_gear"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:conveyor_belt",
+    "count": 8
+  }
+}
