@@ -53,6 +53,24 @@
         },
         "facing=up,state1=true": {
             "model": "aos_workshop_expansion:block/piston_base2"
+        },
+        "facing=down2,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "x": 180,
+            "y": 90
+        },
+        "facing=down2,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "x": 180,
+            "y": 90
+        },
+        "facing=up2,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 90
+        },
+        "facing=up2,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 90
         }
     }
 }
