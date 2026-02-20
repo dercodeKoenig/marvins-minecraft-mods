@@ -257,13 +257,13 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
         } else {
             // vertical facing, we need to consider rotation
             if (facing == Piston.SpecialFacing.UP2)
-                return Direction.Axis.X;
+                return Direction.Axis.Z;
             if (facing == Piston.SpecialFacing.UP)
-                return Direction.Axis.Z;
-            if (facing == Piston.SpecialFacing.DOWN2)
                 return Direction.Axis.X;
-            if (facing == Piston.SpecialFacing.DOWN)
+            if (facing == Piston.SpecialFacing.DOWN2)
                 return Direction.Axis.Z;
+            if (facing == Piston.SpecialFacing.DOWN)
+                return Direction.Axis.X;
         }
         return null;
     }

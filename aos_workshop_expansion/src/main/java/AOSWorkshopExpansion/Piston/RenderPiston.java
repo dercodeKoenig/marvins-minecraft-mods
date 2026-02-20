@@ -77,6 +77,7 @@ public class RenderPiston implements BlockEntityRenderer<EntityPiston> {
             Vector3f end = p.getCenter().toVector3f();
             Vector3f direction = end.sub(start);
             float progress = (float) tile.movingTicks / tile.moveTicksMax + partialTick / tile.moveTicksMax;
+            progress = Math.min(1,progress);
             Vector3f position = start.add(direction.mul(progress));
             BlockState state = movingBlocks.get(p);
             stack.pushPose();
