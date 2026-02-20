@@ -61,6 +61,10 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
             Piston.SpecialFacing facing = getBlockState().getValue(SPECIALFACING);
             if (facing == Piston.SpecialFacing.NORTH)
                 return -1;
+            if (facing == Piston.SpecialFacing.DOWN)
+                return -1;
+            if (facing == Piston.SpecialFacing.EAST)
+                return -1;
             return 1;
         }
     };
