@@ -60,8 +60,12 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
             BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
 
-            b.addVertex(-0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 1).setOverlay(0).setLight(packedLight);
-            b.addVertex(0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 1).setOverlay(0).setLight(packedLight);
+            float v1 = 1;
+            if(y1 != 0 || y0 != 0)
+                v1 = 1.41f; //diagonal, extended uv
+
+            b.addVertex(-0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, v1).setOverlay(0).setLight(packedLight);
+            b.addVertex(0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, v1).setOverlay(0).setLight(packedLight);
             b.addVertex(0.5f, y1, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 0).setOverlay(0).setLight(packedLight);
             b.addVertex(-0.5f, y1, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 0).setOverlay(0).setLight(packedLight);
 

@@ -77,6 +77,35 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
+
+        @Override
+        ///  Updates to offset rotation for diagonal belts to avoid stretching
+        ///  Diagonal belts have a length of about sqrt(2) ~ 1.41
+        ///  The propagation can happen bidirectional, but because of uv rendering the position of offset injection is important
+        public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+            if (!workedPositions.contains(this)) {
+                workedPositions.add(this);
+
+                // for these sides, we need to offset the rotation ourselves
+                if (receivingFace == Direction.SOUTH || receivingFace == Direction.WEST)
+                    if (getBlockState().getValue(ConveyorBelt.DIAGONAL))
+                        rotation -= 0.41 * 360f;
+
+                this.currentRotation = rotation;
+
+                Map<Direction, AbstractMechanicalBlock> connections = this.me.getConnectedParts(this.me, this);
+                for (Direction i : connections.keySet()) {
+                    double rotationToOutside = this.currentRotation;
+
+                    // for these sides, we will offset the rotation for the next belt
+                    if (i == Direction.SOUTH || i == Direction.WEST)
+                        if (getBlockState().getValue(ConveyorBelt.DIAGONAL))
+                            rotationToOutside += 0.41 * 360f;
+
+                    connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
+                }
+            }
+        }
     };
 
 
@@ -142,6 +171,9 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             Direction facing = getBlockState().getValue(ConveyorBelt.FACING);
             Direction.Axis axis = facing.getAxis();
             boolean isDiagonal = getBlockState().getValue(ConveyorBelt.DIAGONAL);
+
+            if (isDiagonal)
+                progress /= 1.41f; // diagonal goes slower because it has a longer length (sqrt(2))
 
             Direction target = null;
             if (progress > 0) {
