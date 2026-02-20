@@ -47,10 +47,10 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     // unique id and same item reference for server/client sync
     public HashMap<Long, ItemStack> id_items = new LinkedHashMap<>();
 
-    public int lastLight;
-    public boolean requiresMeshUpdate;
-    public MeshData mesh;
-    public VertexBuffer vertexBuffer;
+    int lastLight;
+    BlockState lastRenderedBlockState;
+    MeshData mesh;
+    VertexBuffer vertexBuffer;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override

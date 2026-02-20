@@ -72,20 +72,33 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
         if (placer != null) {
             state = state.setValue(FACING, placer.getDirection());
             state = state.setValue(DIAGONAL, false);
+            level.setBlock(pos, state, 3); // set the block in its correct location to create the blockEntity so that conveyorBelt.getConnectedParts() in updateShape works
+
+            // trigger auto-alignment
             state = updateFromNeighbourShapes(state, level, pos);
             level.setBlock(pos, state, 3);
+            // this should now update neighbor blocks of the change
+            // but diagonal blocks could update too, so we need to update them ourselves
+            for(Direction i : Direction.values()){
+                if(i == Direction.UP || i == Direction.DOWN) continue;
+                for (int y : List.of(-1,1)) {
+                    BlockPos otherPos = (pos.relative(i).relative(Direction.UP, y));
+                    BlockState otherState = level.getBlockState(otherPos);
+                    otherState = Block.updateFromNeighbourShapes(otherState,level,otherPos);
+                    level.setBlock(otherPos,otherState,3);
+                }
+            }
         }
     }
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
 
-        if(direction == Direction.DOWN || direction == Direction.UP)
+        if (direction == Direction.DOWN || direction == Direction.UP)
             return state;
 
         BlockEntity tile = level.getBlockEntity(pos);
-        BlockEntity other = level.getBlockEntity(neighborPos);
-        if (tile instanceof EntityConveyorBelt conveyorBelt){
+        if (tile instanceof EntityConveyorBelt conveyorBelt) {
             if (!conveyorBelt.getConnectedParts(conveyorBelt, null).isEmpty() && direction.getAxis() != state.getValue(FACING).getAxis()) {
                 // can not rotate to a different direction if already connected
                 // but we still can see if we might need to change the diagonal
@@ -93,14 +106,30 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
             }
         }
 
-        if(other instanceof EntityConveyorBelt otherBelt){
-            // if the neighbor aligns with the axis we rotate towards it
-            // if the neighbor has no connected parts, we rotate there even if it doesn't align because it will align in next tick
-            if(otherBelt.getConnectedParts(otherBelt,null).isEmpty() || neighborState.getValue(FACING).getAxis() == direction.getAxis()){
-                state = state.setValue(FACING, direction);
+        // for y in -1,1,0, do this and keep the last state?
+        for (int y : List.of(-1, 1, 0)) {
+            BlockEntity other = level.getBlockEntity(neighborPos.relative(Direction.UP, y));
+            if (other instanceof EntityConveyorBelt otherBelt) {
+                // if the neighbor aligns with the axis we rotate towards it
+                // if the neighbor has no connected parts, we rotate there even if it doesn't align because it will align in next tick
+                if (otherBelt.getConnectedParts(otherBelt, null).isEmpty() || other.getBlockState().getValue(FACING).getAxis() == direction.getAxis()) {
+                    if (y == 1) {
+                        // rotate in the direction to align the diagonal
+                        state = state.setValue(DIAGONAL, true);
+                        state = state.setValue(FACING, direction);
+                    } else {
+                        // diagonal is not required, so rotate away in case the diagonal is required on other side
+                        state = state.setValue(FACING, direction.getOpposite());
+                        // to know if we should be diagonal we need to check the block on the other direction and the one above
+                        BlockState otherDirectionAbove = level.getBlockState(pos.relative(direction.getOpposite()).above());
+                        if (otherDirectionAbove.getBlock() instanceof ConveyorBelt)
+                            state = state.setValue(DIAGONAL, true);
+                        else
+                            state = state.setValue(DIAGONAL, false);
+                    }
+                }
             }
         }
-
         return state;
     }
 
@@ -121,9 +150,13 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
     }
 
     VoxelShape myShape = Shapes.create(0, 0, 0, 1, (double) 2 / 16, 1);
+    VoxelShape myShapeDiagonal = Shapes.create(0, 0, 0, 1, (double) 8 / 16, 1);
 
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return myShape;
+        if(state.getValue(DIAGONAL))
+            return myShapeDiagonal;
+        else
+            return myShape;
     }
 
     protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
@@ -133,19 +166,13 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
     @Override
     public InteractionResult onHammer(ItemStack itemStack, Level level, BlockPos blockPos, BlockState blockState, Player player, InteractionHand interactionHand) {
         if (player == null) return InteractionResult.PASS;
-
         BlockState block = level.getBlockState(blockPos);
         if (block.getBlock() instanceof ConveyorBelt) {
-            if (player.isShiftKeyDown())
+            if (player.isShiftKeyDown()) {
                 block = block.setValue(DIAGONAL, !block.getValue(DIAGONAL));
-            else
+            }else
                 block = block.setValue(FACING, block.getValue(FACING).getClockWise());
             level.setBlock(blockPos, block, 3);
-
-            // after state change, make sure the BE updates its meshdata for render
-            BlockEntity entity = level.getBlockEntity(blockPos);
-            if (entity instanceof EntityConveyorBelt entityConveyorBelt)
-                entityConveyorBelt.requiresMeshUpdate = true;
         }
         return InteractionResult.SUCCESS;
     }

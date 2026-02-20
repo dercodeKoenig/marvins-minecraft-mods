@@ -53,9 +53,9 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
                 y1 = 1;
         }
 
-        if (tile.lastLight != packedLight || tile.requiresMeshUpdate) {
+        if (tile.lastLight != packedLight || tile.lastRenderedBlockState != state) {
             tile.lastLight = packedLight;
-            tile.requiresMeshUpdate = false;
+            tile.lastRenderedBlockState = state;
 
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
             BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
