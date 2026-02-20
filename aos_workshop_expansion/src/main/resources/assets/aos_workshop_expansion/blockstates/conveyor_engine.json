@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "axis=x": {
+            "model": "aos_workshop_expansion:block/conveyor_engine",
+            "y": 0
+        },
+        "axis=z": {
+            "model": "aos_workshop_expansion:block/conveyor_engine",
+            "y": 90
+        }
+    }
+}

@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
 
-///  this mixin adds support for NormalMat in some shaders
+///  this mixin adds support for NormalMat / UVOffset in some shaders
 
 @Mixin(ShaderInstance.class)
 public abstract class ShaderInstanceMixin {
@@ -30,20 +30,24 @@ public abstract class ShaderInstanceMixin {
     @Unique
     @Nullable
     private Uniform NormalMat;
+    private Uniform UVOffset;
 
     // 2. Inject into the constructor to find the uniform ONCE when the shader loads
     @Inject(method = "<init>*", at = @At("RETURN"))
     private void cacheNormalUniform(ResourceProvider provider, ResourceLocation location, VertexFormat format, CallbackInfo ci) {
         this.NormalMat = this.getUniform("NormalMat");
-        System.out.println("NormalMat Shader Mixin for " + location + ":" + (NormalMat != null));
+        this.UVOffset = this.getUniform("UVOffset");
+        System.out.println("Shader Mixin for " + location + " - NormalMat:" + (NormalMat != null) + " - UVOffset:" + (UVOffset != null));
     }
 
     // 3. Inject into setDefaultUniforms to use the cached field
     @Inject(method = "setDefaultUniforms", at = @At("RETURN"))
     private void setNormalUniform(VertexFormat.Mode mode, Matrix4f frustumMatrix, Matrix4f projectionMatrix, Window window, CallbackInfo ci) {
         if (this.NormalMat != null) {
-            // JOML's new Matrix3f() defaults to Identity
             this.NormalMat.set(new Matrix3f());
+        }
+        if (this.UVOffset != null) {
+            this.UVOffset.set(0f,0f);
         }
     }
 }

@@ -17,8 +17,12 @@ import static AOSWorkshopExpansion.Main.configDir;
 public class ConfigUtils {
     public static <T> T loadConfig(Class<T> configClass, String configFileName) {
         T config = null;
-        if(ServerLifecycleHooks.getCurrentServer() == null) return config;
+        if (ServerLifecycleHooks.getCurrentServer() == null) return config;
         Path filePath = configDir.resolve(configFileName);
+        if (!Files.exists(filePath)) {
+            System.out.println("missing config file: " + filePath + " - configuration will reset");
+            DataFiles.copyDataFiles("config/aos_workshop_expansion", configDir);
+        }
         try {
             String jsonContent = Files.readString(filePath);
             Gson gson = new Gson();
@@ -31,7 +35,7 @@ public class ConfigUtils {
 
     public static <R> List<R> loadRecipes(Class<R> recipeClass, String recipesDir) {
         List<R> recipes = new ArrayList<>();
-        if(ServerLifecycleHooks.getCurrentServer() == null) return recipes;
+        if (ServerLifecycleHooks.getCurrentServer() == null) return recipes;
         Path configRecipesDir = configDir.resolve(recipesDir);
         DirectoryStream<Path> stream = null;
         try {

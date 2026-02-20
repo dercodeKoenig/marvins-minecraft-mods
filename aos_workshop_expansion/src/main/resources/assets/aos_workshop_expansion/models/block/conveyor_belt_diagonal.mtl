@@ -1,4 +1,4 @@
-# Blender 4.2.3 LTS MTL File: 'mechanical_sieve.blend'
+# Blender 4.2.3 LTS MTL File: 'conveyor_belt_diagonal.blend'
 # www.blender.org
 
 newmtl Material
@@ -9,4 +9,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd age_of_steam:block/andesite_casing
+map_Kd aos_workshop_expansion:block/andesite_casing_stretched

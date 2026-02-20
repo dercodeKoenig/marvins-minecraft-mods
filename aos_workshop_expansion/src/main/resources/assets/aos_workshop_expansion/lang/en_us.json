@@ -15,7 +15,14 @@
 
 
   "block.aos_workshop_expansion.spinning_wheel": "Manual Spinning Wheel",
-  "item.aos_workshop_expansion.spinning_wheel": "Manual Spinning Wheel"
+  "item.aos_workshop_expansion.spinning_wheel": "Manual Spinning Wheel",
+
+
+
+  "block.aos_workshop_expansion.conveyor_belt": "Conveyor Belt",
+  "item.aos_workshop_expansion.conveyor_belt": "Conveyor Belt",
+  "block.aos_workshop_expansion.conveyor_engine": "Conveyor Engine",
+  "item.aos_workshop_expansion.conveyor_engine": "Conveyor Engine"
 
 }
 

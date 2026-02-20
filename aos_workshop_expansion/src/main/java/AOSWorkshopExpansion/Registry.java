@@ -1,5 +1,9 @@
 package AOSWorkshopExpansion;
 
+import AOSWorkshopExpansion.Conveyor.ConveyorBelt;
+import AOSWorkshopExpansion.Conveyor.ConveyorEngine;
+import AOSWorkshopExpansion.Conveyor.EntityConveyorBelt;
+import AOSWorkshopExpansion.Conveyor.EntityConveyorEngine;
 import AOSWorkshopExpansion.MillStone.BlockMillStone;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.Sieve.Items.ItemSieveUpgrade;
@@ -24,8 +28,8 @@ public class Registry {
     public static final net.neoforged.neoforge.registries.DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, Main.MODID);
     public static final net.neoforged.neoforge.registries.DeferredRegister<Item> ITEMS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.ITEM, Main.MODID);
 
-    public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b){
-        return ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
+    public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {
+        return ITEMS.register(name, () -> new BlockItem(b.get(), new Item.Properties()));
     }
 
     public static final Supplier<Block> SIEVE = BLOCKS.register(
@@ -42,10 +46,10 @@ public class Registry {
             () -> new ItemSieveUpgrade()
     );
 
-public static final Supplier<Item> STRING_MESH = ITEMS.register(
-        "string_mesh",
-        () -> new StringMesh()
-);
+    public static final Supplier<Item> STRING_MESH = ITEMS.register(
+            "string_mesh",
+            () -> new StringMesh()
+    );
 
 
     public static final Supplier<Block> WOODMILL = BLOCKS.register(
@@ -58,7 +62,6 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
     );
 
 
-
     public static final Supplier<Block> SPINNING_WHEEL = BLOCKS.register(
             "spinning_wheel",
             () -> new BlockSpinningWheel()
@@ -67,7 +70,6 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
             "entity_spinning_wheel",
             () -> BlockEntityType.Builder.of(EntitySpinningWheel::new, SPINNING_WHEEL.get()).build(null)
     );
-
 
 
     public static final Supplier<Block> MILLSTONE = BLOCKS.register(
@@ -80,11 +82,32 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
     );
     public static final Supplier<Item> FLOUR = ITEMS.register("flour", () -> new Item(new Item.Properties()));
 
+
+
+    public static final Supplier<Block> CONVEYOR_ENGINE = BLOCKS.register(
+            "conveyor_engine",
+            () -> new ConveyorEngine()
+    );
+    public static final Supplier<BlockEntityType<EntityConveyorEngine>> ENTITY_CONVEYOR_ENGINE = BLOCK_ENTITIES.register(
+            "entity_conveyor_engine",
+            () -> BlockEntityType.Builder.of(EntityConveyorEngine::new, CONVEYOR_ENGINE.get()).build(null)
+    );
+    public static final Supplier<Block> CONVEYOR_BELT = BLOCKS.register(
+            "conveyor_belt",
+            () -> new ConveyorBelt()
+    );
+    public static final Supplier<BlockEntityType<EntityConveyorBelt>> ENTITY_CONVEYOR_BELT = BLOCK_ENTITIES.register(
+            "entity_conveyor_belt",
+            () -> BlockEntityType.Builder.of(EntityConveyorBelt::new, CONVEYOR_BELT.get()).build(null)
+    );
+
     static {
         registerBlockItem("sieve", SIEVE);
         registerBlockItem("spinning_wheel", SPINNING_WHEEL);
         registerBlockItem("woodmill", WOODMILL);
         registerBlockItem("millstone", MILLSTONE);
+        registerBlockItem("conveyor_engine", CONVEYOR_ENGINE);
+        registerBlockItem("conveyor_belt", CONVEYOR_BELT);
     }
 
     public static void register(IEventBus modBus) {
