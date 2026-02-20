@@ -8,6 +8,7 @@ import AOSWorkshopExpansion.MillStone.BlockMillStone;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.Piston.EntityPiston;
 import AOSWorkshopExpansion.Piston.Piston;
+import AOSWorkshopExpansion.Piston.PistonExtension;
 import AOSWorkshopExpansion.Piston.PistonHead;
 import AOSWorkshopExpansion.Sieve.Items.ItemSieveUpgrade;
 import AOSWorkshopExpansion.Sieve.Items.Mesh.StringMesh;
@@ -118,6 +119,10 @@ public class Registry {
             "piston_head",
             () -> new PistonHead()
     );
+    public static final Supplier<Block> PISTON_EXTENSION = BLOCKS.register(
+            "piston_extension",
+            () -> new PistonExtension()
+    );
 
     static {
         registerBlockItem("sieve", SIEVE);
@@ -127,6 +132,8 @@ public class Registry {
         registerBlockItem("conveyor_engine", CONVEYOR_ENGINE);
         registerBlockItem("conveyor_belt", CONVEYOR_BELT);
         registerBlockItem("piston", PISTON);
+        registerBlockItem("piston_head", PISTON_HEAD);
+        registerBlockItem("piston_extension", PISTON_EXTENSION);
     }
 
     public static void register(IEventBus modBus) {

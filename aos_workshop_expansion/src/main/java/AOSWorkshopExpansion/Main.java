@@ -106,6 +106,8 @@ public class Main {
             e.accept(CONVEYOR_ENGINE.get());
 
             e.accept(PISTON.get());
+            e.accept(PISTON_HEAD.get());
+            e.accept(PISTON_EXTENSION.get());
         }
     }
 

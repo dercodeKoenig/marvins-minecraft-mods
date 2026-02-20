@@ -1,0 +1,17 @@
+{
+    "variants": {
+        "axis=x": {
+            "model": "aos_workshop_expansion:block/piston_extension",
+            "y": 90,
+            "x": 90
+        },
+        "axis=z": {
+            "model": "aos_workshop_expansion:block/piston_extension",
+            "y": 0,
+            "x": 90
+        },
+        "axis=y": {
+            "model": "aos_workshop_expansion:block/piston_extension"
+        }
+    }
+}
