@@ -95,7 +95,10 @@ public class ConveyorBelt extends Block implements EntityBlock , ItemHammer.Hamm
     VoxelShape myShape = Shapes.create(0, 0, 0, 1, (double) 2 / 16, 1);
 
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return myShape;
+        if(state.getValue(DIAGONAL))
+            return Shapes.block();
+        else
+            return myShape;
     }
 
     protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
@@ -104,10 +107,20 @@ public class ConveyorBelt extends Block implements EntityBlock , ItemHammer.Hamm
 
     @Override
     public InteractionResult onHammer(ItemStack itemStack, Level level, BlockPos blockPos, BlockState blockState, Player player, InteractionHand interactionHand) {
+        if(player == null)return InteractionResult.PASS;
+
         BlockState block = level.getBlockState(blockPos);
         if(block.getBlock() instanceof ConveyorBelt){
-            block = block.setValue(DIAGONAL, !block.getValue(DIAGONAL));
+            if(player.isShiftKeyDown())
+                block = block.setValue(DIAGONAL, !block.getValue(DIAGONAL));
+            else
+                block = block.setValue(FACING, block.getValue(FACING).getClockWise());
             level.setBlock(blockPos, block, 3);
+
+            // after state change, make sure the BE updates its meshdata for render
+            BlockEntity entity = level.getBlockEntity(blockPos);
+            if(entity instanceof EntityConveyorBelt entityConveyorBelt)
+                entityConveyorBelt.requiresMeshUpdate = true;
         }
         return InteractionResult.SUCCESS;
     }

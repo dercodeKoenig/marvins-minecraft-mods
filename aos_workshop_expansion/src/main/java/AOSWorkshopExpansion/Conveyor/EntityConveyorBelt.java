@@ -48,7 +48,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public HashMap<Long, ItemStack> id_items = new LinkedHashMap<>();
 
     public int lastLight;
-    public boolean lastDiagonal;
+    public boolean requiresMeshUpdate;
     public MeshData mesh;
     public VertexBuffer vertexBuffer;
 
