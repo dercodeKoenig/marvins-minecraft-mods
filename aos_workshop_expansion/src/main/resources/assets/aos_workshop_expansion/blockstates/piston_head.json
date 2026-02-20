@@ -1,0 +1,31 @@
+{
+    "variants": {
+        "facing=north": {
+            "model": "aos_workshop_expansion:block/piston_head",
+            "y": 0,
+            "x": 90
+        },
+        "facing=east": {
+            "model": "aos_workshop_expansion:block/piston_head",
+            "y": 90,
+            "x": 90
+        },
+        "facing=south": {
+            "model": "aos_workshop_expansion:block/piston_head",
+            "y": 180,
+            "x": 90
+        },
+        "facing=west": {
+            "model": "aos_workshop_expansion:block/piston_head",
+            "y": 270,
+            "x": 90
+        },
+        "facing=down": {
+            "model": "aos_workshop_expansion:block/piston_head",
+            "x": 180
+        },
+        "facing=up": {
+            "model": "aos_workshop_expansion:block/piston_head"
+        }
+    }
+}

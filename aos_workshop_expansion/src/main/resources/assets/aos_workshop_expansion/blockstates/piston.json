@@ -1,0 +1,24 @@
+{
+    "variants": {
+        "facing=north,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 0,
+            "x": 90
+        },
+        "facing=north,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 0,
+            "x": 90
+        },
+        "facing=east,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 90,
+            "x": 90
+        },
+        "facing=east,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 90,
+            "x": 90
+        }
+    }
+}

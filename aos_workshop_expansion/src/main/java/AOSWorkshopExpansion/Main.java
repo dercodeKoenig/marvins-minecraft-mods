@@ -104,6 +104,8 @@ public class Main {
 
             e.accept(CONVEYOR_BELT.get());
             e.accept(CONVEYOR_ENGINE.get());
+
+            e.accept(PISTON.get());
         }
     }
 
