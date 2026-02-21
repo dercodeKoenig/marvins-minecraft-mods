@@ -7,5 +7,93 @@
     "emissive_ambient": false,
     "textures": {
         "particle": "age_of_steam:block/andesite_casing"
+    },
+    "display": {
+        "gui": {
+            "rotation": [
+                20,
+                10,
+                10
+            ],
+            "translation": [
+                4,
+                -4,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        },
+        "firstperson_righthand": {
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "translation": [
+                4,
+                -8,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        },
+        "firstperson_lefthand": {
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "translation": [
+                0,
+                -8,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        },
+        "thirdperson_lefthand": {
+            "rotation": [
+                90,
+                0,
+                0
+            ],
+            "translation": [
+                0,
+                8,
+                -8
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        },
+
+        "thirdperson_righthand": {
+            "rotation": [
+                90,
+                0,
+                0
+            ],
+            "translation": [
+                0,
+                8,
+                -8
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        }
     }
 }
