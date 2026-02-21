@@ -31,7 +31,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
     double extraResistance = 0;
     double perBlockResistance = 5;
     double baseResistance = 5;
-    int moveTicksMax = 5; // higher time can make falling sand pop
+    int moveTicksMax = 3; // higher time can make falling sand pop or entities glitch into the block below when going down
 
 
     HashMap<BlockPos, BlockState> movingBlocks = new HashMap<>();
