@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IRI",
+    "IPI",
+    "GCG"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "C": {
+      "item": "age_of_steam:casing"
+    },
+    "G": {
+      "item": "age_of_steam:wooden_gear"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:piston",
+    "count": 1
+  }
+}

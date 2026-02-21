@@ -1,6 +1,5 @@
 package AOSWorkshopExpansion.Piston;
 
-import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import AgeOfSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -74,7 +73,7 @@ public class Piston extends Block implements EntityBlock, ItemHammer.HammerInter
 
 
     public Piston() {
-        super(Properties.of().noOcclusion().dynamicShape());
+        super(Properties.of().noOcclusion().strength(1));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(SPECIALFACING, SpecialFacing.NORTH).setValue(STATE1, false);
         this.registerDefaultState(state);

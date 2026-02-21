@@ -14,11 +14,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.Nullable;
 
 import static AOSWorkshopExpansion.Piston.Piston.SPECIALFACING;
@@ -28,7 +26,7 @@ public class PistonHead extends Block implements SimpleWaterloggedBlock {
     public static EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
     public PistonHead() {
-        super(Properties.of().noOcclusion());
+        super(Properties.of().noOcclusion().strength(1));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(FACING, Direction.NORTH);
         this.registerDefaultState(state);

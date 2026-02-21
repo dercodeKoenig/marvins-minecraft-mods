@@ -27,7 +27,7 @@ public class PistonExtension extends Block implements SimpleWaterloggedBlock {
     public static EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
     public PistonExtension() {
-        super(Properties.of().noOcclusion().dynamicShape());
+        super(Properties.of().noOcclusion().strength(0.5f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(AXIS, Direction.Axis.X);
         this.registerDefaultState(state);
