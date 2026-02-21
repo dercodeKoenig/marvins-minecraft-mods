@@ -37,6 +37,7 @@ public class BlockSieve extends Block implements EntityBlock {
         state = state.setValue(HOPPER_UPGRADE, false);
         this.registerDefaultState(state);
     }
+
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         if (state.getValue(HOPPER_UPGRADE))
             return Shapes.create((double) 0F, (double) 0F, (double) 0F, (double) 1F, (double) 1F, (double) 1F);
@@ -59,23 +60,25 @@ public class BlockSieve extends Block implements EntityBlock {
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockEntity b = level.getBlockEntity(pos);
-        if(b instanceof EntitySieve h)
+        if (b instanceof EntitySieve h)
             return h.use(player);
         return InteractionResult.PASS;
     }
+
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if(blockEntity instanceof EntitySieve s){
+        if (blockEntity instanceof EntitySieve s && newState.getBlock() != state.getBlock()) {
             s.removeMyMesh();
             s.removeHopperUpgrade();
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }
+
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            if(placer.isShiftKeyDown())
+            if (placer.isShiftKeyDown())
                 level.setBlock(pos, state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection()), 3);
             else
                 level.setBlock(pos, state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite()), 3);
@@ -83,8 +86,7 @@ public class BlockSieve extends Block implements EntityBlock {
     }
 
 
-
-        @Override
+    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntitySieve::tick;
     }
