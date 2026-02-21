@@ -257,7 +257,7 @@ public abstract class AbstractMechanicalBlock {
     // axle 1 now has a stress of 1 from axle2 + 5 from sawmill = 6
     // motor has a stress of 1+1+5 from axle1,2 and sawmill and 1 from axle3, so stress = 8
     // since the motor is the only origin of force, it has to cover all resistance so a stress of 8 for a total resistance of 8 sounds correct!
-    
+
     public class nodeInfo {
         public Direction nextInputFace;
         public AbstractMechanicalBlock nextTarget;
