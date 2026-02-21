@@ -33,7 +33,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
     HashMap<BlockPos, BlockState> movingBlocks = new HashMap<>();
     int movingTicks = 0;
-    int currentAction =0; // 1 = extend, -1 = unextend for render
+    int currentAction = 0; // 1 = extend, -1 = unextend for render
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -141,12 +141,14 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
     }
 
     public void destroyBlocks(List<BlockPos> blocks) {
+        if(level.isClientSide)return;
         for (BlockPos p : blocks) {
             level.destroyBlock(p, true);
         }
     }
 
     public void placeBlocks(HashMap<BlockPos, BlockState> blocks) {
+        if(level.isClientSide)return;
         for (BlockPos p : blocks.keySet()) {
             level.setBlock(p, blocks.get(p), 3);
         }
@@ -164,7 +166,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
         movingTicks = 0;
-        if(extend)currentAction = 1;
+        if (extend) currentAction = 1;
         else currentAction = -1;
         level.setBlock(getBlockPos(), getBlockState().setValue(Piston.STATE1, true), 3);
     }
@@ -172,10 +174,11 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
     public void tick() {
         myMechanicalBlock.mechanicalTick();
 
-        // The following logic runs client & server so that the client already knows when to start
-        // moving and placing and does not need to wait for server network packets.
+        // Some of the following logic runs client & server.
+        // Initiate movement is client & server. Client will start movement on its own and sets blocks to air.
+        // End movement is server side. Client should not place final blocks on its own or there is ghost block risk.
 
-        if (movingBlocks.isEmpty()) { // do never overwrite existing moving blocks, only update once move is complete
+        if (movingBlocks.isEmpty()) {
             int action = 0;
             if (myMechanicalBlock.currentRotation < 180 && lastRotation >= 180) {
                 // extending...
@@ -198,9 +201,11 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
                         // do not initiate on first rotation, I want it to consume some power first
                         // it will require 1 startup rotation to consume some power if it was idle
 
+                        // destroy the blocks that pop on removal
+                        destroyBlocks(toDestroy);
+
                         // initiate movement
                         // this is what i want client to register so it doesn't need to wait for network packet
-                        destroyBlocks(toDestroy);
                         startPushing(toMove, extend);
                     }
                     extraResistance = newResistance;
@@ -210,11 +215,23 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
         } else {
             movingTicks++;
             if (movingTicks > moveTicksMax) {
-                placeBlocks(movingBlocks);
-                movingBlocks.clear();
-                movingTicks = 0;
-                level.setBlock(getBlockPos(), getBlockState().setValue(Piston.STATE1, false), 3);
-                currentAction = 0;
+                if (!level.isClientSide) {
+                    // server can place blocks
+                    placeBlocks(movingBlocks);
+                    movingBlocks.clear();
+                    movingTicks = 0;
+                    currentAction = 0;
+                    // server will reset blockstate
+                    level.setBlock(getBlockPos(), getBlockState().setValue(Piston.STATE1, false), 3);
+                } else {
+                    // on client, wait for the new blockstate to arrive
+                    // when the blockstate updates, the other blocks are probably placed so end the render
+                    if (!getBlockState().getValue(Piston.STATE1)) {
+                        movingBlocks.clear();
+                        movingTicks = 0;
+                        currentAction = 0;
+                    }
+                }
             }
         }
         lastRotation = myMechanicalBlock.currentRotation;
