@@ -243,7 +243,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
                             travelDirection.getStepX(),
                             travelDirection.getStepY(),
                             travelDirection.getStepZ()
-                    ).scale((double) 1 / moveTicksMax);
+                    ).scale((double) 1);
                     e.move(MoverType.PISTON, move);
                 }
             }
