@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,7 +18,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.Nullable;
+
+import static AOSWorkshopExpansion.Piston.Piston.SPECIALFACING;
+import static AOSWorkshopExpansion.Piston.PistonExtension.AXIS;
 
 public class PistonHead extends Block implements SimpleWaterloggedBlock {
     public static EnumProperty<Direction> FACING = BlockStateProperties.FACING;
@@ -39,8 +44,25 @@ public class PistonHead extends Block implements SimpleWaterloggedBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer instanceof Player player) {
             state = state.setValue(FACING, player.getNearestViewDirection().getOpposite());
+            state = updateFromNeighbourShapes(state,level,pos);
             level.setBlock(pos, state, 3);
         }
+    }
+
+    @Override
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        Direction facing = state.getValue(FACING);
+        BlockState behind = level.getBlockState(pos.relative(facing.getOpposite()));
+        if(behind.getBlock() instanceof Piston && behind.getValue(SPECIALFACING).direction == facing)
+            return state;
+        if(behind.getBlock() instanceof PistonExtension && behind.getValue(AXIS) == facing.getAxis())
+            return state;
+
+        if(neighborState.getBlock() instanceof Piston && neighborState.getValue(SPECIALFACING).direction == direction.getOpposite())
+            state = state.setValue(FACING, direction.getOpposite());
+        if(neighborState.getBlock() instanceof PistonExtension && neighborState.getValue(AXIS) == direction.getAxis())
+            state = state.setValue(FACING, direction.getOpposite());
+        return state;
     }
 
     @Override
