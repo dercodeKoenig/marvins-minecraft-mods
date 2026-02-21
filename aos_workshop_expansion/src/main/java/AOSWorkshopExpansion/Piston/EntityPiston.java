@@ -9,15 +9,18 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static AOSWorkshopExpansion.Piston.Piston.SPECIALFACING;
 import static AOSWorkshopExpansion.Registry.ENTITY_PISTON;
@@ -32,6 +35,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
 
     HashMap<BlockPos, BlockState> movingBlocks = new HashMap<>();
+    HashMap<Entity, Vec3> movingEntities = new HashMap<>();
     int movingTicks = 0;
     int currentAction = 0; // 1 = extend, -1 = unextend for render
 
@@ -160,6 +164,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
     }
 
     public void startPushing(List<BlockPos> toMove, boolean extend) {
+        movingEntities.clear();
         for (BlockPos pos : toMove) {
             Direction toPush = getBlockState().getValue(SPECIALFACING).direction;
             if (!extend)
@@ -169,6 +174,11 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
                 targetPos = targetPos.relative(toPush);
             movingBlocks.put(targetPos, level.getBlockState(pos));
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+
+            List<Entity> entities = level.getEntities(null,new AABB(targetPos));
+            for(Entity e : entities) {
+                movingEntities.put(e, e.position());
+            }
         }
         movingTicks = 0;
         if (extend) currentAction = 1;
@@ -184,6 +194,9 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
         // End movement is server side. Client should not place final blocks on its own or there is ghost block risk.
 
         if (movingBlocks.isEmpty()) {
+            if(myMechanicalBlock.internalVelocity == 0){
+                extraResistance = 0;
+            }
             int action = 0;
             if (myMechanicalBlock.currentRotation < 180 && lastRotation >= 180) {
                 // extending...
@@ -219,7 +232,23 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
         } else {
             movingTicks++;
-            if (movingTicks > moveTicksMax) {
+            Direction travelDirection = getBlockState().getValue(Piston.SPECIALFACING).direction;
+            if (currentAction == -1)
+                travelDirection = travelDirection.getOpposite();
+
+            // move entities every tick
+            if(movingTicks<=moveTicksMax) {
+                for (Entity e : movingEntities.keySet()) {
+                    Vec3 move = new Vec3(
+                            travelDirection.getStepX(),
+                            travelDirection.getStepY(),
+                            travelDirection.getStepZ()
+                    ).scale((double) 1 / moveTicksMax);
+                    e.move(MoverType.PISTON, move);
+                }
+            }
+
+            if (movingTicks >= moveTicksMax) {
                 if (!level.isClientSide) {
                     // server can place blocks
                     placeBlocks(movingBlocks);
