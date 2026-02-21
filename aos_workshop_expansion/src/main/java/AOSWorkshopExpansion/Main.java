@@ -3,6 +3,8 @@ package AOSWorkshopExpansion;
 
 import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import AOSWorkshopExpansion.Conveyor.RenderConveyorBelt;
+import AOSWorkshopExpansion.Piston.PistonConfig;
+import AOSWorkshopExpansion.Piston.RenderPiston;
 import ARLib.holoProjector.itemHoloProjector;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.MillStone.MillStoneConfig;
@@ -27,10 +29,9 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static AOSWorkshopExpansion.Registry.*;
@@ -46,7 +47,7 @@ public class Main {
     public Main(IEventBus modEventBus, ModContainer modContaine) throws IOException {
         //modEventBus.register(this);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
-        NeoForge.EVENT_BUS.addListener(this::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(this::onServerStarted);
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
@@ -54,16 +55,14 @@ public class Main {
         modEventBus.addListener(this::registerCapabilities);
         Registry.register(modEventBus);
 
-    }
 
-    public void onServerStarting(ServerStartingEvent event) {
-        if(!Files.exists(configDir))
-            DataFiles.copyDataFiles("config/aos_workshop_expansion", configDir);
-        SimpleNetworkPacket.registerReceiver(SieveConfig.packetConfigSyncID, SieveConfig.INSTANCE);
-        SimpleNetworkPacket.registerReceiver(WoodMillConfig.packetConfigSyncID, WoodMillConfig.INSTANCE);
-        SimpleNetworkPacket.registerReceiver(MillStoneConfig.packetConfigSyncID, MillStoneConfig.INSTANCE);
-        SimpleNetworkPacket.registerReceiver(SpinningWheelConfig.packetConfigSyncID, SpinningWheelConfig.INSTANCE);
-        SimpleNetworkPacket.registerReceiver(ConveyorConfig.packetConfigSyncID, ConveyorConfig.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(SieveConfig.packetConfigSyncID, new SieveConfig());
+        SimpleNetworkPacket.registerReceiver(WoodMillConfig.packetConfigSyncID, new WoodMillConfig());
+        SimpleNetworkPacket.registerReceiver(MillStoneConfig.packetConfigSyncID, new MillStoneConfig());
+        SimpleNetworkPacket.registerReceiver(SpinningWheelConfig.packetConfigSyncID, new SpinningWheelConfig());
+        SimpleNetworkPacket.registerReceiver(ConveyorConfig.packetConfigSyncID, new ConveyorConfig());
+        SimpleNetworkPacket.registerReceiver(PistonConfig.packetConfigSyncID, new PistonConfig());
+
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
@@ -73,7 +72,17 @@ public class Main {
             WoodMillConfig.SyncConfig(p);
             MillStoneConfig.SyncConfig(p);
             ConveyorConfig.SyncConfig(p);
+            PistonConfig.SyncConfig(p);
         }
+    }
+
+    public void onServerStarted(ServerStartedEvent event){
+        SieveConfig.load();
+        SpinningWheelConfig.load();
+        WoodMillConfig.load();
+        MillStoneConfig.load();
+        ConveyorConfig.load();
+        PistonConfig.load();
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -82,6 +91,7 @@ public class Main {
         event.registerBlockEntityRenderer(ENTITY_SPINNING_WHEEL.get(), RenderSpinningWheel::new);
         event.registerBlockEntityRenderer(ENTITY_MILLSTONE.get(), RenderMillStone::new);
         event.registerBlockEntityRenderer(ENTITY_CONVEYOR_BELT.get(), RenderConveyorBelt::new);
+        event.registerBlockEntityRenderer(ENTITY_PISTON.get(), RenderPiston::new);
     }
 
 
@@ -104,6 +114,10 @@ public class Main {
 
             e.accept(CONVEYOR_BELT.get());
             e.accept(CONVEYOR_ENGINE.get());
+
+            e.accept(PISTON.get());
+            e.accept(PISTON_HEAD.get());
+            e.accept(PISTON_EXTENSION.get());
         }
     }
 

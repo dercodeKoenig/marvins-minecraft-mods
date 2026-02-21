@@ -15,7 +15,7 @@ import java.util.Objects;
 
 public class WoodMillConfig implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-    public static WoodMillConfig INSTANCE = ConfigUtils.loadConfig(WoodMillConfig.class, "woodmill.json");
+    public static WoodMillConfig INSTANCE = new WoodMillConfig();
 
     public static String packetConfigSyncID = Main.MODID + "packet_woodmill_config";
 
@@ -27,10 +27,11 @@ public class WoodMillConfig implements SimpleNetworkPacket.SimpleNetworkDataRece
 
     public static Runnable jeiRunnableOnConfigLoad = null;
 
-    public WoodMillConfig() {
-            for(WoodMillRecipe i : ConfigUtils.loadRecipes(WoodMillRecipe.class,"woodmill_recipes")){
-                addRecipe(i);
-            }
+    public static void load() {
+        INSTANCE = ConfigUtils.loadConfig(WoodMillConfig.class, "woodmill.json");
+        for (WoodMillRecipe i : ConfigUtils.loadRecipes(WoodMillRecipe.class, "woodmill_recipes")) {
+            INSTANCE.addRecipe(i);
+        }
     }
 
     public void addRecipe(WoodMillRecipe r) {

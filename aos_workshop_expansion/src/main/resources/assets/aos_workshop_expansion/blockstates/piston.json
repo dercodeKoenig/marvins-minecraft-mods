@@ -1,0 +1,76 @@
+{
+    "variants": {
+        "facing=south,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 180,
+            "x": 90
+        },
+        "facing=south,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 180,
+            "x": 90
+        },
+        "facing=east,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 90,
+            "x": 90
+        },
+        "facing=east,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 90,
+            "x": 90
+        },
+        "facing=north,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 0,
+            "x": 90
+        },
+        "facing=north,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 0,
+            "x": 90
+        },
+        "facing=west,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 270,
+            "x": 90
+        },
+        "facing=west,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 270,
+            "x": 90
+        },
+        "facing=down,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "x": 180
+        },
+        "facing=down,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "x": 180
+        },
+        "facing=up,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1"
+        },
+        "facing=up,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2"
+        },
+        "facing=down2,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "x": 180,
+            "y": 90
+        },
+        "facing=down2,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "x": 180,
+            "y": 90
+        },
+        "facing=up2,state1=false": {
+            "model": "aos_workshop_expansion:block/piston_base1",
+            "y": 90
+        },
+        "facing=up2,state1=true": {
+            "model": "aos_workshop_expansion:block/piston_base2",
+            "y": 90
+        }
+    }
+}

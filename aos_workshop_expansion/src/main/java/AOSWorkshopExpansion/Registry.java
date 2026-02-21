@@ -6,6 +6,10 @@ import AOSWorkshopExpansion.Conveyor.EntityConveyorBelt;
 import AOSWorkshopExpansion.Conveyor.EntityConveyorEngine;
 import AOSWorkshopExpansion.MillStone.BlockMillStone;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
+import AOSWorkshopExpansion.Piston.EntityPiston;
+import AOSWorkshopExpansion.Piston.Piston;
+import AOSWorkshopExpansion.Piston.PistonExtension;
+import AOSWorkshopExpansion.Piston.PistonHead;
 import AOSWorkshopExpansion.Sieve.Items.ItemSieveUpgrade;
 import AOSWorkshopExpansion.Sieve.Items.Mesh.StringMesh;
 import AOSWorkshopExpansion.Sieve.BlockSieve;
@@ -19,6 +23,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 
 import java.util.function.Supplier;
@@ -101,6 +106,24 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityConveyorBelt::new, CONVEYOR_BELT.get()).build(null)
     );
 
+
+    public static final Supplier<Block> PISTON = BLOCKS.register(
+            "piston",
+            () -> new Piston()
+    );
+    public static final Supplier<BlockEntityType<EntityPiston>> ENTITY_PISTON = BLOCK_ENTITIES.register(
+            "entity_piston",
+            () -> BlockEntityType.Builder.of(EntityPiston::new, PISTON.get()).build(null)
+    );
+    public static final Supplier<Block> PISTON_HEAD = BLOCKS.register(
+            "piston_head",
+            () -> new PistonHead()
+    );
+    public static final Supplier<Block> PISTON_EXTENSION = BLOCKS.register(
+            "piston_extension",
+            () -> new PistonExtension()
+    );
+
     static {
         registerBlockItem("sieve", SIEVE);
         registerBlockItem("spinning_wheel", SPINNING_WHEEL);
@@ -108,6 +131,9 @@ public class Registry {
         registerBlockItem("millstone", MILLSTONE);
         registerBlockItem("conveyor_engine", CONVEYOR_ENGINE);
         registerBlockItem("conveyor_belt", CONVEYOR_BELT);
+        registerBlockItem("piston", PISTON);
+        registerBlockItem("piston_head", PISTON_HEAD);
+        registerBlockItem("piston_extension", PISTON_EXTENSION);
     }
 
     public static void register(IEventBus modBus) {

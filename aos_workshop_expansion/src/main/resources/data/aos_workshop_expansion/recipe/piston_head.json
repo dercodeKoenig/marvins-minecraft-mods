@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IPI",
+    " E ",
+    "   "
+  ],
+  "key": {
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "aos_workshop_expansion:piston_extension"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:piston_head",
+    "count": 1
+  }
+}

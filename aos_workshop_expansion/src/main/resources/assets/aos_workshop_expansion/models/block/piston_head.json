@@ -1,13 +1,14 @@
 {
     "loader": "neoforge:obj",
-    "model": "aos_workshop_expansion:models/block/mechanical_sieve_hopper.obj",
-    "mtl_override": "aos_workshop_expansion:models/block/mechanical_sieve_hopper.mtl",
+    "model": "aos_workshop_expansion:models/block/piston_head.obj",
+    "mtl_override": "aos_workshop_expansion:models/block/piston_head.mtl",
     "automatic_culling": false,
     "flip_v": true,
     "emissive_ambient": false,
     "textures": {
         "particle": "age_of_steam:block/andesite_casing"
     },
+
     "display": {
         "gui": {
             "rotation": [
@@ -16,83 +17,84 @@
                 10
             ],
             "translation": [
-                4,
-                -4,
+                0,
+                0,
                 0
             ],
             "scale": [
-                1,
-                1,
-                1
+                0.5,
+                0.5,
+                0.5
             ]
         },
+
         "firstperson_righthand": {
             "rotation": [
-                0,
-                0,
+                10,
+                -90,
                 0
             ],
             "translation": [
-                4,
-                -8,
+                0,
+                0,
                 0
             ],
             "scale": [
-                1,
-                1,
-                1
+                0.5,
+                0.5,
+                0.5
             ]
         },
         "firstperson_lefthand": {
             "rotation": [
-                0,
-                0,
+                10,
+                90,
                 0
             ],
             "translation": [
                 0,
-                -8,
+                0,
                 0
             ],
             "scale": [
-                1,
-                1,
-                1
+                0.5,
+                0.5,
+                0.5
             ]
         },
         "thirdperson_lefthand": {
             "rotation": [
-                90,
+                0,
                 0,
                 0
             ],
             "translation": [
                 0,
-                8,
-                -8
+                0,
+                0
             ],
             "scale": [
-                1,
-                1,
-                1
+                0.5,
+                0.5,
+                0.5
             ]
         },
 
         "thirdperson_righthand": {
             "rotation": [
-                90,
+                0,
                 0,
                 0
             ],
             "translation": [
                 0,
-                8,
-                -8
+                0,
+                0
             ],
             "scale": [
-                1,
-                1,
-                1
+                0.5,
+                0.5,
+                0.5
             ]
         }
     }

@@ -2,26 +2,19 @@ package AOSWorkshopExpansion.SpinningWheel;
 
 import AOSWorkshopExpansion.ConfigUtils;
 import AOSWorkshopExpansion.Main;
-import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
 import ARLib.network.SimpleNetworkPacket;
 import ARLib.utils.RecipePartWithProbability;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static AOSWorkshopExpansion.Main.configDir;
-
 public class SpinningWheelConfig implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-    public static SpinningWheelConfig INSTANCE = ConfigUtils.loadConfig(SpinningWheelConfig.class, "spinning_wheel.json");
+    public static SpinningWheelConfig INSTANCE = new SpinningWheelConfig();
 
     public static String packetConfigSyncID = Main.MODID + "packet_spinningwheel_config";
 
@@ -32,10 +25,11 @@ public class SpinningWheelConfig implements SimpleNetworkPacket.SimpleNetworkDat
 
     public static Runnable jeiRunnableOnConfigLoad = null;
 
-    public SpinningWheelConfig() {
-            for (SpinningWheelConfig.SpinningWheelRecipe i : ConfigUtils.loadRecipes(SpinningWheelConfig.SpinningWheelRecipe.class, "spinning_wheel_recipes")) {
-                addRecipe(i);
-            }
+    public static void load() {
+        INSTANCE = ConfigUtils.loadConfig(SpinningWheelConfig.class, "spinning_wheel.json");
+        for (SpinningWheelRecipe i : ConfigUtils.loadRecipes(SpinningWheelRecipe.class, "spinning_wheel_recipes")) {
+            INSTANCE.addRecipe(i);
+        }
     }
 
     public void addRecipe(SpinningWheelRecipe r) {

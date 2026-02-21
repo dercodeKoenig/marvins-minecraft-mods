@@ -239,6 +239,25 @@ public abstract class AbstractMechanicalBlock {
 
     // all the following is for stress calculations.
     // I do not claim to fully understand it all, sometimes i just changed around some +/- until it worked
+
+    // After reading it a year later, it appears to work like this:
+    // When velocity changes, we calculate the force required for the acceleration.
+    // For example a flywheel does not produce force directly, but when you slow it down by connecting other parts,
+    // it will slow down more than it would without connected parts, and it will create an opposite force.
+    // In other words, a sawmill has high resistance. If it is connected to a flywheel,
+    // the flywheel provides force to spin the sawmill even if it does not directly produce force.
+    // This force will propagate to all connected parts until it is fully exhausted, and once exhausted the stress on every part is calculated.
+    // picture this: axle3 <- motor -> axle1 -> axle2 -> sawmill
+    // motor makes 10 force and consumes 1 as friction and forwards 9 force to axle1 and axle3
+    // axle1 gets 9 force, consumes 1 as friction and forwards 8 to the next axle. it adds 1 stress to all previous parts until it gets to motor
+    // axle3 gets 9 force, consumes 1 as friction and has no more parts to forward. it adds 1 stress to motor.
+    // axle2 gets 8 force, consumes 1 as friction and forwards 7 to sawmill. it adds 1 stress to axle1 and 1 stress to motor
+    // sawmill gets 7 force, consumes 5 as friction and has no part to forward to. it adds 5 stress to axle2, axle1 and motor.
+    // since total force (10) is higher than resistance(1+1+1+5=8) the network will probably accelerate next tick
+    // axle 1 now has a stress of 1 from axle2 + 5 from sawmill = 6
+    // motor has a stress of 1+1+5 from axle1,2 and sawmill and 1 from axle3, so stress = 8
+    // since the motor is the only origin of force, it has to cover all resistance so a stress of 8 for a total resistance of 8 sounds correct!
+
     public class nodeInfo {
         public Direction nextInputFace;
         public AbstractMechanicalBlock nextTarget;

@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,7 +25,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockAxleBase extends BlockMultiblockPart implements EntityBlock {
+public abstract class BlockAxleBase extends BlockMultiblockPart implements EntityBlock, SimpleWaterloggedBlock {
 
     public static EnumProperty<Direction.Axis> ROTATION_AXIS = BlockStateProperties.AXIS;
 
