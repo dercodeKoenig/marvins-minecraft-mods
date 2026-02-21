@@ -70,8 +70,41 @@ public class PistonHead extends Block implements SimpleWaterloggedBlock {
         super.onRemove(state, level, pos, newState, isMoving);
     }
 
-    VoxelShape notFullBlock = Shapes.create(new AABB(0.01,0.01,0.01,0.99,0.99,0.99));
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return notFullBlock;
+    // The piston platform (16x16x4) and the central pole (4x4x12) combined for each direction
+    protected static final VoxelShape UP_SHAPE = Shapes.or(
+            Block.box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(6.0D, 0.0D, 6.0D, 10.0D, 12.0D, 10.0D)
+    );
+    protected static final VoxelShape DOWN_SHAPE = Shapes.or(
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 4.0D, 16.0D),
+            Block.box(6.0D, 4.0D, 6.0D, 10.0D, 16.0D, 10.0D)
+    );
+    protected static final VoxelShape NORTH_SHAPE = Shapes.or(
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 4.0D),
+            Block.box(6.0D, 6.0D, 4.0D, 10.0D, 10.0D, 16.0D)
+    );
+    protected static final VoxelShape SOUTH_SHAPE = Shapes.or(
+            Block.box(0.0D, 0.0D, 12.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 12.0D)
+    );
+    protected static final VoxelShape WEST_SHAPE = Shapes.or(
+            Block.box(0.0D, 0.0D, 0.0D, 4.0D, 16.0D, 16.0D),
+            Block.box(4.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D)
+    );
+    protected static final VoxelShape EAST_SHAPE = Shapes.or(
+            Block.box(12.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 6.0D, 6.0D, 12.0D, 10.0D, 10.0D)
+    );
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return switch (state.getValue(FACING)) {
+            case DOWN -> DOWN_SHAPE;
+            case UP -> UP_SHAPE;
+            case NORTH -> NORTH_SHAPE;
+            case SOUTH -> SOUTH_SHAPE;
+            case WEST -> WEST_SHAPE;
+            case EAST -> EAST_SHAPE;
+        };
     }
 }
