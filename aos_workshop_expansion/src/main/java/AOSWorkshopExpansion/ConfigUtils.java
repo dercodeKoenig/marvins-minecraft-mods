@@ -17,6 +17,12 @@ import static AOSWorkshopExpansion.Main.configDir;
 public class ConfigUtils {
     public static <T> T loadConfig(Class<T> configClass, String configFileName) {
         T config = null;
+        try {
+            // do not return null on client or it crashes before config is synced
+            config = configClass.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
         if (ServerLifecycleHooks.getCurrentServer() == null) return config;
         Path filePath = configDir.resolve(configFileName);
         if (!Files.exists(filePath)) {

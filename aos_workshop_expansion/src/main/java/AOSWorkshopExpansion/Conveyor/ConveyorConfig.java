@@ -9,7 +9,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public class ConveyorConfig implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-    public static ConveyorConfig INSTANCE = ConfigUtils.loadConfig(ConveyorConfig.class, "conveyors.json");
+    public static ConveyorConfig INSTANCE = new ConveyorConfig();
 
     public static String packetConfigSyncID = Main.MODID + "packet_conveyor_config";
 
@@ -21,12 +21,16 @@ public class ConveyorConfig implements SimpleNetworkPacket.SimpleNetworkDataRece
     public float conveyorEngineInertia = 1;
     public float conveyorEngineMaxStress = 600;
 
+    public static void load() {
+        INSTANCE = ConfigUtils.loadConfig(ConveyorConfig.class, "conveyors.json");
+    }
 
     public static void SyncConfig(ServerPlayer p) {
         if (p != null) {
             PacketDistributor.sendToPlayer(p, new SimpleNetworkPacket(packetConfigSyncID, new Gson().toJson(ConveyorConfig.INSTANCE)));
         }
     }
+
     public void readClient(String data) {
         ConveyorConfig.INSTANCE = new Gson().fromJson(data, ConveyorConfig.class);
         System.out.println("client loaded conveyor config:" + data);

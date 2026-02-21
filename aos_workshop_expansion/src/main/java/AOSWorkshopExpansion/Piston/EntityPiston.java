@@ -29,8 +29,6 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
     double lastRotation;
     double extraResistance = 0;
-    double perBlockResistance = 5;
-    double baseResistance = 5;
     int moveTicksMax = 3; // higher time can make falling sand pop or entities glitch into the block below when going down
 
 
@@ -42,17 +40,17 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return 600;
+            return PistonConfig.INSTANCE.maxStress;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return 1;
+            return PistonConfig.INSTANCE.inertia;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return baseResistance + extraResistance;
+            return PistonConfig.INSTANCE.baseResistance + extraResistance;
         }
 
         @Override
@@ -214,7 +212,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
                 } else {
                     List<BlockPos> toDestroy = toDestroyToMove.getFirst();
                     List<BlockPos> toMove = toDestroyToMove.getSecond();
-                    double newResistance = (toDestroy.size() + toMove.size()) * perBlockResistance;
+                    double newResistance = (toDestroy.size() + toMove.size()) * PistonConfig.INSTANCE.perBlockResistance;
                     if (extraResistance != 0) {
                         // do not initiate on first rotation, I want it to consume some power first
                         // it will require 1 startup rotation to consume some power if it was idle
@@ -243,7 +241,7 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
                             travelDirection.getStepX(),
                             travelDirection.getStepY(),
                             travelDirection.getStepZ()
-                    ).scale((double) 1);
+                    ).scale(1);
                     e.move(MoverType.PISTON, move);
                 }
             }

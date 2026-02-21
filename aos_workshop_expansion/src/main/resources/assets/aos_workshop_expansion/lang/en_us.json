@@ -18,11 +18,18 @@
   "item.aos_workshop_expansion.spinning_wheel": "Manual Spinning Wheel",
 
 
-
   "block.aos_workshop_expansion.conveyor_belt": "Conveyor Belt",
   "item.aos_workshop_expansion.conveyor_belt": "Conveyor Belt",
   "block.aos_workshop_expansion.conveyor_engine": "Conveyor Engine",
-  "item.aos_workshop_expansion.conveyor_engine": "Conveyor Engine"
+  "item.aos_workshop_expansion.conveyor_engine": "Conveyor Engine",
+
+
+  "block.aos_workshop_expansion.piston": "Mechanical Piston",
+  "item.aos_workshop_expansion.piston": "Mechanical Piston",
+  "block.aos_workshop_expansion.piston_head": "Piston Head",
+  "item.aos_workshop_expansion.piston_head": "Piston Head",
+  "block.aos_workshop_expansion.piston_extension": "Piston Extension",
+  "item.aos_workshop_expansion.piston_extension": "Piston Extension"
 
 }
 

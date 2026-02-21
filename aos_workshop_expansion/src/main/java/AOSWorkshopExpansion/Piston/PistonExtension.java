@@ -9,6 +9,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import static AOSWorkshopExpansion.Piston.Piston.SPECIALFACING;
 import static AOSWorkshopExpansion.Piston.PistonHead.FACING;
 
-public class PistonExtension extends Block {
+public class PistonExtension extends Block implements SimpleWaterloggedBlock {
 
     public static EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 

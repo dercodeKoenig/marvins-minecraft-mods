@@ -8,7 +8,6 @@ import ARLib.utils.RecipePartWithProbability;
 import com.google.gson.Gson;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,13 +15,7 @@ import java.util.Objects;
 
 public class SieveConfig implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-    public static SieveConfig INSTANCE = ConfigUtils.loadConfig(SieveConfig.class, "sieve.json");
-
-    static{
-        for (SieveConfig.SieveRecipe i : ConfigUtils.loadRecipes(SieveConfig.SieveRecipe.class, "sieve_recipes")) {
-            INSTANCE.addRecipe(i);
-        }
-    }
+    public static SieveConfig INSTANCE = new SieveConfig();
 
     public static String packetConfigSyncID = Main.MODID + "packet_sieve_config";
 
@@ -34,6 +27,13 @@ public class SieveConfig implements SimpleNetworkPacket.SimpleNetworkDataReceive
     public int inventorySizeHopper;
 
     public static Runnable jeiRunnableOnConfigLoad = null;
+
+    public static void load(){
+        INSTANCE = ConfigUtils.loadConfig(SieveConfig.class, "sieve.json");
+        for (SieveConfig.SieveRecipe i : ConfigUtils.loadRecipes(SieveConfig.SieveRecipe.class, "sieve_recipes")) {
+            INSTANCE.addRecipe(i);
+        }
+    }
 
     public void addRecipe(SieveRecipe r) {
         for (RecipePartWithProbability i : r.outputItems) {
