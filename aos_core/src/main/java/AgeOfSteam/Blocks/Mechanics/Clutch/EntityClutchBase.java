@@ -29,7 +29,7 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
 
     int timeSinceConnectStart;
     boolean isFullyConnected;
-    public boolean last_wasPowered = false;
+    boolean last_wasPowered = false;
     double currentForceA;
     double currentForceB;
     double currentResistanceA;
