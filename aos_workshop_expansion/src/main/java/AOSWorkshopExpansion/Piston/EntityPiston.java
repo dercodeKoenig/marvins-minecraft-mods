@@ -26,9 +26,9 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
     double lastRotation;
     double extraResistance = 0;
-    double perBlockResistance = 10;
-    double baseResistance = 10;
-    int moveTicksMax = 10;
+    double perBlockResistance = 5;
+    double baseResistance = 5;
+    int moveTicksMax = 5;
 
 
     HashMap<BlockPos, BlockState> movingBlocks = new HashMap<>();
@@ -83,7 +83,12 @@ public class EntityPiston extends BlockEntity implements IMechanicalBlockProvide
 
         // search for head pos
         int headOffset = 1;
-        while (headOffset <= 12) {
+        int maxHeadOffset = 12;
+        if(!extend)
+            // add 1 more because on offset 12 with extension it will be pushed to offset 13
+            // with only 12 we would not catch the last possible position
+            maxHeadOffset = 13;
+        while (headOffset <= maxHeadOffset) {
             BlockPos currentPos = pos.relative(facing, headOffset);
             BlockState infront = level.getBlockState(currentPos);
             boolean validHead = (infront.getBlock() instanceof PistonHead && infront.getValue(PistonHead.FACING) == facing);
