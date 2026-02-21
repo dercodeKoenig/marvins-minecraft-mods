@@ -202,11 +202,6 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
 
         if (tile.myMesh.getItem() instanceof IMesh mesh) {
 
-            Matrix4f ModelMatSieveItems = new Matrix4f(ModelMatSieveCase);
-            Matrix4f ModelMatSieveItemsBottom = new Matrix4f(ModelMatSieveItems);
-            ModelMatSieveItemsBottom.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 180f));
-
-
             if (tile.myInputs.getItem() instanceof BlockItem bi) {
                 if (!tile.lastInputStackForRender.getItem().equals(tile.myInputs.getItem())) {
                     updateRenderData(tile, packedLight);
@@ -215,12 +210,16 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
                 RenderSystem.setShaderTexture(0, tile.inputStackTexture);
                 float maxTranslateUp = 0.065f;
                 float translateUp = (float) (((float) tile.myInputs.getCount() - tile.currentProgress / tile.client_syncedCurrentRecipeTime) / SieveConfig.INSTANCE.inventorySize * maxTranslateUp + 0.001f);
+
+                Matrix4f ModelMatSieveItems = new Matrix4f(ModelMatSieveCase);
                 ModelMatSieveItems.translate(0, translateUp, 0);
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(ModelMatSieveItems), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
                 shader.apply();
                 tile.myInputRendererBuffer.bind();
                 tile.myInputRendererBuffer.draw();
 
+                Matrix4f ModelMatSieveItemsBottom = new Matrix4f(ModelMatSieveItems);
+                ModelMatSieveItemsBottom.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 180f));
                 ModelMatSieveItemsBottom.translate(0, -0.01f, 0);
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(ModelMatSieveItemsBottom), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
                 shader.getUniform("NormalMat").set(Static.getNormalMat(ModelMatSieveItemsBottom)); // this is rotated
