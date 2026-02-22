@@ -760,8 +760,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
             be.loadCustomOnly(blockTag.getCompound("blockEntity"), registryAccess());
             blockEntities.put(p, be);
-            makeGui();
-            requiresMeshUpdate = true;
         }
     }
 
@@ -853,7 +851,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 }
             }
         }
-
     }
 
     public void openGui() {
