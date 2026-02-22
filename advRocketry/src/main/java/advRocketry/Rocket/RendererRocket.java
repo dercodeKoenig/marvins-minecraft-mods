@@ -142,7 +142,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
             poseStack.translate(p.getX(), p.getY(), p.getZ());
             BlockEntityRenderer<BlockEntity> blockentityrenderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(be);
             if (blockentityrenderer != null) {
-                blockentityrenderer.render(be, 0, poseStack, bufferSource, packedLight, OverlayTexture.NO_OVERLAY);
+                blockentityrenderer.render(be, partialTick, poseStack, bufferSource, packedLight, OverlayTexture.NO_OVERLAY);
             }
             poseStack.popPose();
         }

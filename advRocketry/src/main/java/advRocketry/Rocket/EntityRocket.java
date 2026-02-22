@@ -66,26 +66,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<BlockPos, BlockState> blocks;
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
-    public RocketFuelTank fuelTank = null;
+    public FluidTank fuelTank;
+    public float currentMass;
 
-    public static class RocketFuelTank extends FluidTank {
-        EntityRocket rocket;
-
-        public RocketFuelTank(int capacity, EntityRocket rocket) {
-            super(capacity);
-            this.rocket = rocket;
-        }
-
-        // the weight calculation uses fuel to calculate weight.
-        // the client usually has no idea about the fuel tank so it needs to be synced to client
-        public void onContentsChanged() {
-            if (!rocket.level().isClientSide) {
-                CompoundTag info = new CompoundTag();
-                info.put("fuelTank", rocket.fuelTank.writeToNBT(rocket.level().registryAccess(), new CompoundTag()));
-                rocket.sendToClients(info);
-            }
-        }
-    }
 
     // cached values
     private float cachedThrust = -1;
@@ -141,7 +124,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         blocks = new HashMap<>();
         blockEntities = new HashMap<>();
         size = new Vec3i(1, 1, 1);
-        fuelTank = new RocketFuelTank(0, this);
+        fuelTank = new FluidTank(0);
 
         controller = new RocketController(this);
 
@@ -175,7 +158,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 fuelCapacity += fuelTank.getFuelCapacity();
             }
         }
-        rocket.fuelTank = new RocketFuelTank(fuelCapacity, rocket);
+        rocket.fuelTank = new FluidTank(fuelCapacity);
         rocket.refreshDimensions();
         rocket.makeGui();
         return rocket;
@@ -515,6 +498,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 newInfotext += "Thrust: " + Math.round(controller.getCurrentThrust() * 100) + "%";
                 infoText.setTextAndSync(newInfotext);
             }
+
+            recalculateMass();
         }
 
         if (firstTick) {
@@ -705,6 +690,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return newRocket;
     }
 
+    // sync changes to client for render (for example the fluid level in a fluid container)
+    public void onBlockEntityChanged(BlockPos position) {
+        System.out.println("onBlockEntityChanged: " + position);
+    }
+
     /// / save, load and sync ////
 
     @Override
@@ -749,6 +739,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
         readAdditionalSaveData(compoundTag);
+        if (compoundTag.contains("currentMass"))
+            currentMass = compoundTag.getFloat("currentMass");
     }
 
     public void sendToClients(CompoundTag compoundTag) {
@@ -805,7 +797,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         // add inventory slots for cargo hold
         guiModuleScrollContainer inventoriesContainer =
-                new guiModuleScrollContainer(new ArrayList<>(),0xffa0a0a0,guiHandler, 10,80,162,40);
+                new guiModuleScrollContainer(new ArrayList<>(), 0xffa0a0a0, guiHandler, 10, 80, 162, 40);
         guiHandler.modules.add(inventoriesContainer);
 
         int x = 0;
@@ -823,12 +815,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                                 guiHandler,
                                 x * 18,
                                 y * 18
-                        );
+                        ) {
+                            @Override
+                            public void server_handleInventoryClick(Player player, int button, boolean isShift) {
+                                super.server_handleInventoryClick(player, button, isShift);
+                                onBlockEntityChanged(cargoHold.getBlockPos());
+                            }
+                        };
                 inventoriesContainer.modules.add(slot);
                 id++;
                 x++;
-                if(x > 9){
-                    x=0;
+                if (x > 9) {
+                    x = 0;
                     y++;
                 }
             }
@@ -873,11 +871,31 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return cachedFuelRate;
     }
 
-    public float getMass() {
-        float mass = 0.00001f; // prevent divide by 0 if no blocks for some reason very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
+    public void recalculateMass() {
+        float mass = 0;
         mass += 3f * blocks.size(); // block weight
-        mass += getFuel() * 0.0005f; // fuel weight, tank is synced to client
-        return mass;
+        mass += getFuel() * 0.0005f; // fuel weight
+        for (BlockEntity e : blockEntities.values()) {
+            if (e instanceof EntityCargoHold entityCargoHold) {
+                ItemStack carried = entityCargoHold.itemStackHandler.getStackInSlot(0);
+                if (!carried.isEmpty()) {
+                    float relativeFill = (float) carried.getCount() / carried.getMaxStackSize();
+                    mass += relativeFill * 3;
+                }
+            }
+        }
+        if (mass != currentMass) {
+            currentMass = mass;
+            CompoundTag info = new CompoundTag();
+            info.putFloat("currentMass", mass);
+            sendToClients(info);
+        }
+    }
+
+    public float getMass() {
+        // prevent divide by 0 caused by mass = 0 if no blocks for some reason (for example blocks not yet synced)
+        // very important or the game will freeze forever because it might get inf velocity vectors and tries to check inf blocks for collision
+        return Math.max(0.00001f, currentMass);
     }
 
     public float getMaxAcceleration() {

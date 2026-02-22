@@ -27,5 +27,7 @@ public class Config {
     public int fuelingStationFuelPerTick = 10;
 
 
+    public float rocket
+
 
 }
