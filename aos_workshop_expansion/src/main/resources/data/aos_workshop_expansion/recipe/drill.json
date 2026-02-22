@@ -6,9 +6,6 @@
     "GCG"
   ],
   "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
     "I": {
       "tag": "c:ingots/iron"
     },
@@ -23,7 +20,7 @@
     }
   },
   "result": {
-    "id": "aos_workshop_expansion:piston",
+    "id": "aos_workshop_expansion:drill",
     "count": 1
   }
 }

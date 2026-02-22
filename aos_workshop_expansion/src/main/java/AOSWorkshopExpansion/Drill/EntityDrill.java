@@ -97,7 +97,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
                     currentDestroyProgress = 0;
                 } else if (renderDestroyProgress != lastRenderDestroyProgressSynced) {
                     lastRenderDestroyProgressSynced = renderDestroyProgress;
-                    int mySpecialId = -122353; // just a random value
+                    int mySpecialId = getBlockPos().hashCode();
                     level.destroyBlockProgress(mySpecialId, infrontPos, renderDestroyProgress);
                 }
                 extraResistance = DrillConfig.INSTANCE.miningResistance;
