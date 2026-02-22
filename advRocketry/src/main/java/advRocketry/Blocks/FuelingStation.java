@@ -2,31 +2,16 @@ package advRocketry.Blocks;
 
 import ARLib.blocks.BlockFluidInputBlock;
 import advRocketry.BlockEntities.EntityFuelingStation;
-import advRocketry.BlockEntities.EntityRocketAssembler;
-import advRocketry.Items.ItemLinker;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
-import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
 public class FuelingStation extends BlockFluidInputBlock implements EntityBlock {
     public FuelingStation() {
@@ -36,6 +21,24 @@ public class FuelingStation extends BlockFluidInputBlock implements EntityBlock 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return ENTITY_FUELING_STATION.get().create(blockPos, blockState);
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof EntityFuelingStation fuelingStation) {
+            if (fuelingStation.linkedRocket != null) {
+                if(fuelingStation.linkedRocket.fuelTank.getCapacity() == fuelingStation.linkedRocket.getFuel()) {
+                    return 15;
+                }
+            }
+        }
+        return 0;
     }
 
     @Override
