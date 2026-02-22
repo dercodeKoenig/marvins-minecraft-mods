@@ -2,12 +2,9 @@ package AOSWorkshopExpansion.Conveyor;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.InventoryUtils;
-import ARLib.utils.ItemUtils;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
-import BetterPipes.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -46,12 +43,6 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public HashMap<ItemStack, Float> items_progress = new HashMap<>();
     // unique id and same item reference for server/client sync
     public HashMap<Long, ItemStack> id_items = new LinkedHashMap<>();
-
-    int lastLight;
-    BlockState lastRenderedBlockState;
-    MeshData mesh;
-    VertexBuffer vertexBuffer;
-
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -107,6 +98,10 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             }
         }
     };
+    int lastLight;
+    BlockState lastRenderedBlockState;
+    MeshData mesh;
+    VertexBuffer vertexBuffer;
 
 
     public EntityConveyorBelt(BlockPos pos, BlockState blockState) {
@@ -116,6 +111,10 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityConveyorBelt) t).tick();
     }
 
     @Override
@@ -222,6 +221,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                             if (!extracted.isEmpty()) {
                                 Long id = new Random().nextLong();
                                 addItem(id, extracted.copy(), initialProgress, true, level.registryAccess());
+                                break;
                             }
                         }
                     }
@@ -245,7 +245,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                 }
 
                 if (doOutput) {
-                    // output to next conveyor or pop item
+                    // output to next conveyor or other inventory or pop item
                     // there are 2 conveyors to check:
                     // if diagonal: neighbor & above neighbor
                     // else: neighbor & below neighbor
@@ -272,6 +272,8 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
 
                             ItemStack remaining = stack;
 
+                            Direction popTarget = target;
+
                             // special case: neighbor is a conveyor but it is wrong oriented
                             if (neighborItemHandler instanceof EntityConveyorBelt neighborBelt) {
                                 neighborBelt.addItem(id, stack, 0.5f, true, level.registryAccess());
@@ -283,12 +285,11 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                                     remaining = neighborItemHandler.insertItem(i, remaining.copy(), false);
                                 }
 
-
                                 // pop to the side when there is an itemhandler in front or it will land on the belt again
                                 if (new Random().nextBoolean())
-                                    target = target.getClockWise();
+                                    popTarget = target.getClockWise();
                                 else
-                                    target = target.getCounterClockWise();
+                                    popTarget = target.getCounterClockWise();
                             }
 
                             if (remaining.isEmpty()) {
@@ -297,7 +298,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                                 // pop remaining items
                                 id_items.put(id, remaining);
                                 items_progress.put(remaining, 0f);
-                                popItem(id, target);
+                                popItem(id, popTarget);
                             }
                         } else {
                             removeItem(id, false);
@@ -307,10 +308,6 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             }
             setChanged();
         }
-    }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityConveyorBelt) t).tick();
     }
 
     public CompoundTag writeEntry(Long id, ItemStack stack, float progress, HolderLookup.Provider registryAccess) {
