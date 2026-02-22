@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -60,7 +61,7 @@ public class Drill extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer instanceof Player player) {
-            state = state.setValue(FACING, player.getNearestViewDirection());
+            state = state.setValue(FACING, player.getNearestViewDirection().getOpposite());
             level.setBlock(pos, state, 3);
         }
     }
@@ -82,6 +83,13 @@ public class Drill extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.block();
+        Direction facing = state.getValue(FACING);
+        return Shapes.create(
+                new AABB(0,0,0,1,1,1)
+                        .expandTowards(
+                                facing.getStepX()*-0.5f,
+                                facing.getStepY()*-0.5f,
+                                facing.getStepZ()*-0.5f)
+        );
     }
 }

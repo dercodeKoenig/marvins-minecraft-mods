@@ -90,18 +90,15 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
             if (!infront.isAir()) {
                 float destroyTime = infront.getDestroySpeed(level, infrontPos);
                 float destroySpeed = (float) Math.abs(myMechanicalBlock.internalVelocity);
-                currentDestroyProgress += destroySpeed / 100f;
-
+                currentDestroyProgress += destroySpeed / 500f;
                 int renderDestroyProgress = (int) (currentDestroyProgress / destroyTime * 10);
-                if (renderDestroyProgress != lastRenderDestroyProgressSynced) {
-                    lastRenderDestroyProgressSynced = renderDestroyProgress;
-                    int mySpecialId = -122353; // just a random value
-                    level.destroyBlockProgress(mySpecialId, infrontPos, renderDestroyProgress);
-                }
-
                 if (renderDestroyProgress > 10) {
                     level.destroyBlock(infrontPos, true);
                     currentDestroyProgress = 0;
+                } else if (renderDestroyProgress != lastRenderDestroyProgressSynced) {
+                    lastRenderDestroyProgressSynced = renderDestroyProgress;
+                    int mySpecialId = -122353; // just a random value
+                    level.destroyBlockProgress(mySpecialId, infrontPos, renderDestroyProgress);
                 }
                 extraResistance = 100;
             } else {
