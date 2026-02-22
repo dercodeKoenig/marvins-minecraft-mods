@@ -26,6 +26,7 @@ public class Config {
     public int fueling_Station_Energy_Per_Tick = 100;
     public int fueling_Station_Fuel_Per_Tick = 10;
 
+    public int item_Loader_Energy_Per_Tick = 100;
 
     public float rocket_Block_Weight = 3;
     public float rocket_ItemStack_Weight = 3;

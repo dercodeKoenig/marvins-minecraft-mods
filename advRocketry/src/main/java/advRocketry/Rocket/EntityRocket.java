@@ -825,29 +825,31 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         int id = 20000;
         for (BlockEntity i : blockEntities.values()) {
             if (i instanceof EntityCargoHold cargoHold) {
-                guiModuleItemHandlerSlot slot =
-                        new guiModuleItemHandlerSlot(
-                                id,
-                                cargoHold.itemStackHandler,
-                                0,
-                                0,
-                                1,
-                                guiHandler,
-                                x * 18,
-                                y * 18
-                        ) {
-                            @Override
-                            public void server_handleInventoryClick(Player player, int button, boolean isShift) {
-                                super.server_handleInventoryClick(player, button, isShift);
-                                onBlockEntityChanged(cargoHold.getBlockPos());
-                            }
-                        };
-                inventoriesContainer.modules.add(slot);
-                id++;
-                x++;
-                if (x > 9) {
-                    x = 0;
-                    y++;
+                for (int slotIndex = 0; slotIndex < cargoHold.itemStackHandler.getSlots(); slotIndex++) {
+                    guiModuleItemHandlerSlot slot =
+                            new guiModuleItemHandlerSlot(
+                                    id,
+                                    cargoHold.itemStackHandler,
+                                    slotIndex,
+                                    0,
+                                    1,
+                                    guiHandler,
+                                    x * 18,
+                                    y * 18
+                            ) {
+                                @Override
+                                public void server_handleInventoryClick(Player player, int button, boolean isShift) {
+                                    super.server_handleInventoryClick(player, button, isShift);
+                                    onBlockEntityChanged(cargoHold.getBlockPos());
+                                }
+                            };
+                    inventoriesContainer.modules.add(slot);
+                    id++;
+                    x++;
+                    if (x > 9) {
+                        x = 0;
+                        y++;
+                    }
                 }
             }
         }

@@ -74,6 +74,9 @@ public class Registry {
     public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());
     public static final Supplier<BlockEntityType<EntityCargoHold>> ENTITY_CARGO_HOLD = BLOCK_ENTITIES.register("cargo_hold", () -> BlockEntityType.Builder.of(EntityCargoHold::new, CARGO_HOLD.get()).build(null));
 
+    public static final Supplier<Block> ROCKET_ITEM_LOADER = BLOCKS.register("rocket_item_loader", () -> new RocketItemLoader());
+    public static final Supplier<BlockEntityType<EntityRocketItemLoader>> ENTITY_ROCKET_ITEM_LOADER = BLOCK_ENTITIES.register("rocket_item_loader", () -> BlockEntityType.Builder.of(EntityRocketItemLoader::new, ROCKET_ITEM_LOADER.get()).build(null));
+
 
 
 
@@ -96,5 +99,6 @@ public class Registry {
         registerBlockItem("seat", SEAT);
         registerBlockItem("fueling_station", FUELING_STATION);
         registerBlockItem("observatory", OBSERVATORY);
+        registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
     }
 }
