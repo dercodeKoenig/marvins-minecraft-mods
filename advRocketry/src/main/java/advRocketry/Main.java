@@ -223,6 +223,8 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x,y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.myTank);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x,y) -> x.battery);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x,y) -> x.battery);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
