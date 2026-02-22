@@ -29,7 +29,11 @@
   "block.aos_workshop_expansion.piston_head": "Piston Head",
   "item.aos_workshop_expansion.piston_head": "Piston Head",
   "block.aos_workshop_expansion.piston_extension": "Piston Extension",
-  "item.aos_workshop_expansion.piston_extension": "Piston Extension"
+  "item.aos_workshop_expansion.piston_extension": "Piston Extension",
+
+
+  "block.aos_workshop_expansion.drill": "Mechanical Drill",
+  "item.aos_workshop_expansion.drill": "Mechanical Drill"
 
 }
 

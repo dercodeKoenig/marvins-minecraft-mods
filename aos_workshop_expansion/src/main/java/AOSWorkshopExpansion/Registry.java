@@ -1,9 +1,8 @@
 package AOSWorkshopExpansion;
 
-import AOSWorkshopExpansion.Conveyor.ConveyorBelt;
-import AOSWorkshopExpansion.Conveyor.ConveyorEngine;
-import AOSWorkshopExpansion.Conveyor.EntityConveyorBelt;
-import AOSWorkshopExpansion.Conveyor.EntityConveyorEngine;
+import AOSWorkshopExpansion.Conveyor.*;
+import AOSWorkshopExpansion.Drill.Drill;
+import AOSWorkshopExpansion.Drill.EntityDrill;
 import AOSWorkshopExpansion.MillStone.BlockMillStone;
 import AOSWorkshopExpansion.MillStone.EntityMillStone;
 import AOSWorkshopExpansion.Piston.EntityPiston;
@@ -124,6 +123,16 @@ public class Registry {
             () -> new PistonExtension()
     );
 
+
+    public static final Supplier<Block> DRILL = BLOCKS.register(
+            "drill",
+            () -> new Drill()
+    );
+    public static final Supplier<BlockEntityType<EntityDrill>> ENTITY_DRILL = BLOCK_ENTITIES.register(
+            "entity_drill",
+            () -> BlockEntityType.Builder.of(EntityDrill::new, DRILL.get()).build(null)
+    );
+
     static {
         registerBlockItem("sieve", SIEVE);
         registerBlockItem("spinning_wheel", SPINNING_WHEEL);
@@ -134,6 +143,7 @@ public class Registry {
         registerBlockItem("piston", PISTON);
         registerBlockItem("piston_head", PISTON_HEAD);
         registerBlockItem("piston_extension", PISTON_EXTENSION);
+        registerBlockItem("drill", DRILL);
     }
 
     public static void register(IEventBus modBus) {
