@@ -1,0 +1,6 @@
+{
+  "baseResistance": 5,
+  "miningResistance": 50,
+  "inertia": 10,
+  "maxStress": 1800
+}

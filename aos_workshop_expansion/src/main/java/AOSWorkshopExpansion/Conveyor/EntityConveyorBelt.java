@@ -159,7 +159,11 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             AABB scanningArea = new AABB(getBlockPos());
             List<ItemEntity> itemEntities = level.getEntitiesOfClass(ItemEntity.class, scanningArea);
             for (ItemEntity item : itemEntities) {
+                if(item.isRemoved())
+                    continue;
                 ItemStack stack = item.getItem().copy();
+                if (stack.isEmpty())
+                    continue;
                 item.discard();
                 Long id = new Random().nextLong();
                 addItem(id, stack, 0.5f, true, level.registryAccess());

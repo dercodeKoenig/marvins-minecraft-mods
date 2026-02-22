@@ -3,6 +3,7 @@ package AOSWorkshopExpansion;
 
 import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import AOSWorkshopExpansion.Conveyor.RenderConveyorBelt;
+import AOSWorkshopExpansion.Drill.DrillConfig;
 import AOSWorkshopExpansion.Drill.RenderDrill;
 import AOSWorkshopExpansion.Piston.PistonConfig;
 import AOSWorkshopExpansion.Piston.RenderPiston;
@@ -63,6 +64,7 @@ public class Main {
         SimpleNetworkPacket.registerReceiver(SpinningWheelConfig.packetConfigSyncID, new SpinningWheelConfig());
         SimpleNetworkPacket.registerReceiver(ConveyorConfig.packetConfigSyncID, new ConveyorConfig());
         SimpleNetworkPacket.registerReceiver(PistonConfig.packetConfigSyncID, new PistonConfig());
+        SimpleNetworkPacket.registerReceiver(DrillConfig.packetConfigSyncID, new DrillConfig());
 
     }
 
@@ -74,6 +76,7 @@ public class Main {
             MillStoneConfig.SyncConfig(p);
             ConveyorConfig.SyncConfig(p);
             PistonConfig.SyncConfig(p);
+            DrillConfig.SyncConfig(p);
         }
     }
 
@@ -84,6 +87,7 @@ public class Main {
         MillStoneConfig.load();
         ConveyorConfig.load();
         PistonConfig.load();
+        DrillConfig.load();
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

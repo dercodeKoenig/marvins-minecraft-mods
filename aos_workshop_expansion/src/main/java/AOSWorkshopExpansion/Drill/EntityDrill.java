@@ -33,17 +33,17 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return 600;
+            return DrillConfig.INSTANCE.maxStress;
         }
 
         @Override
         public double getInertia(Direction face) {
-            return 1;
+            return DrillConfig.INSTANCE.inertia;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return 10 + extraResistance;
+            return DrillConfig.INSTANCE.baseResistance + extraResistance;
         }
 
         @Override
@@ -100,7 +100,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
                     int mySpecialId = -122353; // just a random value
                     level.destroyBlockProgress(mySpecialId, infrontPos, renderDestroyProgress);
                 }
-                extraResistance = 100;
+                extraResistance = DrillConfig.INSTANCE.miningResistance;
             } else {
                 currentDestroyProgress = 0;
                 extraResistance = 0;

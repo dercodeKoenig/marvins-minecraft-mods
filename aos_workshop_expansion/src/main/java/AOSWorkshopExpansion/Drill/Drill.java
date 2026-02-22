@@ -45,7 +45,9 @@ public class Drill extends Block implements EntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-
+        tooltipComponents.add(Component.literal("Friction: " + DrillConfig.INSTANCE.baseResistance));
+        tooltipComponents.add(Component.literal("Mining Resistance: " + DrillConfig.INSTANCE.miningResistance));
+        tooltipComponents.add(Component.literal("Inertia: " + DrillConfig.INSTANCE.inertia));
     }
 
     @Override
