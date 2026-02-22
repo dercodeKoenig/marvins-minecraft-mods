@@ -142,8 +142,8 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public void popItem(Long id, Direction target) {
         ItemStack stack = id_items.get(id);
         Vec3 pos = getBlockPos().getCenter().relative(target, 0.7);
-        if(target == getBlockState().getValue(ConveyorBelt.FACING) && getBlockState().getValue(ConveyorBelt.DIAGONAL))
-            pos = pos.add(0,1,0); // offset above
+        if (target == getBlockState().getValue(ConveyorBelt.FACING) && getBlockState().getValue(ConveyorBelt.DIAGONAL))
+            pos = pos.add(0, 1, 0); // offset above
         ItemEntity ie = new ItemEntity(level, pos.x, pos.y, pos.z, stack.copy());
         float speed = 0.05f;
         ie.setDeltaMovement(target.getStepX() * speed, speed * 2, target.getStepZ() * speed);
@@ -159,7 +159,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             AABB scanningArea = new AABB(getBlockPos());
             List<ItemEntity> itemEntities = level.getEntitiesOfClass(ItemEntity.class, scanningArea);
             for (ItemEntity item : itemEntities) {
-                if(item.isRemoved())
+                if (item.isRemoved())
                     continue;
                 ItemStack stack = item.getItem().copy();
                 if (stack.isEmpty())
@@ -289,13 +289,18 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                                     target = target.getClockWise();
                                 else
                                     target = target.getCounterClockWise();
-
                             }
 
-                            // pop remaining items
-                            id_items.put(id, remaining);
-                            items_progress.put(remaining, 0f);
-                            popItem(id, target);
+                            if (remaining.isEmpty()) {
+                                removeItem(id, true);
+                            } else {
+                                // pop remaining items
+                                id_items.put(id, remaining);
+                                items_progress.put(remaining, 0f);
+                                popItem(id, target);
+                            }
+                        } else {
+                            removeItem(id, false);
                         }
                     }
                 }
