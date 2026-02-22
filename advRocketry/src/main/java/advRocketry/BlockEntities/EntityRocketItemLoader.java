@@ -1,8 +1,11 @@
 package advRocketry.BlockEntities;
 
 import ARLib.blockentities.EntityItemInputBlock;
+import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleEnergy;
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import advRocketry.Config;
@@ -20,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
@@ -43,11 +47,31 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
     public EntityRocketItemLoader(BlockPos pos, BlockState blockState) {
         super(ENTITY_ROCKET_ITEM_LOADER.get(), pos, blockState);
 
+        this.guiHandler = new GuiHandlerBlockEntity(this);
+        int containergroup = 0;
+        int playerinventorygroup = 1;
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0, this, 0, containergroup, playerinventorygroup, this.guiHandler, 10, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1, this, 1, containergroup, playerinventorygroup, this.guiHandler, 10, 30));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, this, 2, containergroup, playerinventorygroup, this.guiHandler, 30, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3, this, 3, containergroup, playerinventorygroup, this.guiHandler, 30, 30));
+
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 100, playerinventorygroup, containergroup, this.guiHandler)) {
+            this.guiHandler.getModules().add(i);
+        }
+
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 65, 200, playerinventorygroup, containergroup, this.guiHandler)) {
+            this.guiHandler.getModules().add(i);
+        }
+
+        this.inventory = new ItemStackHandler(4) {
+            public void onContentsChanged(int slot) {
+                EntityRocketItemLoader.this.setChanged();
+            }
+        };
+
         battery = new BlockEntityBattery(this, 10000);
 
-        guiHandler.modules.add(
-                new guiModuleEnergy(11000, battery, guiHandler, 155, 7)
-        );
+        guiHandler.modules.add(new guiModuleEnergy(11000, battery, guiHandler, 155, 7));
 
         drainFillToggleButton = new guiModuleButton(11001, "text", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
             @Override
@@ -59,6 +83,15 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
         };
 
         guiHandler.modules.add(drainFillToggleButton);
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityRocketItemLoader) t).tick();
+    }
+
+    @Override
+    public void signalOpenGui(ServerPlayer player) {
+        this.guiHandler.signalOpenGui(player, 176, 150, true);
     }
 
     @Override
@@ -77,8 +110,7 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (linkedAssemblerPos != null)
-            tag.put("linkedAssemblerPos", NbtUtils.writeBlockPos(linkedAssemblerPos));
+        if (linkedAssemblerPos != null) tag.put("linkedAssemblerPos", NbtUtils.writeBlockPos(linkedAssemblerPos));
         tag.putInt("energy", battery.getEnergyStored());
     }
 
@@ -153,8 +185,7 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
                 BlockEntity be = level.getBlockEntity(linkedAssemblerPos);
                 if (be instanceof EntityRocketAssembler assembler) {
                     linkedRocket = assembler.currentRocket;
-                } else
-                    linkedAssemblerPos = null;
+                } else linkedAssemblerPos = null;
             }
 
             if (linkedRocket != null) {
@@ -195,11 +226,6 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
             }
         }
     }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityRocketItemLoader) t).tick();
-    }
-
 
     @Override
     public boolean link(BlockPos otherpos, Level otherLevel) {
