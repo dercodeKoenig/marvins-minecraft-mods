@@ -52,7 +52,7 @@ public class SpaceNavigation {
 
         double requiredDistance =
                 CelestialUtils.toAU(
-                        Config.INSTANCE.planetRenderScaleMultiplier
+                        Config.INSTANCE.planet_Render_Scale_Multiplier
                                 * closestPlanet.getEarthRadiusMultiplier()
                                 * CelestialUtils.EARTH_RADIUS
                                 * 2

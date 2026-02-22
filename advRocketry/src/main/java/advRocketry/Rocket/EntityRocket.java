@@ -12,6 +12,7 @@ import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
+import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
@@ -44,6 +45,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.DimensionTransition;
@@ -692,7 +694,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // sync changes to client for render (for example the fluid level in a fluid container)
     public void onBlockEntityChanged(BlockPos position) {
-        System.out.println("onBlockEntityChanged: " + position);
+        BlockEntity blockEntity = blockEntities.get(position);
+        CompoundTag blockEntityTag = new CompoundTag();
+        blockEntityTag.put("blockPos", NbtUtils.writeBlockPos(position));
+        blockEntityTag.put("blockEntity", blockEntity.saveCustomOnly(registryAccess()));
+        CompoundTag info = new CompoundTag();
+        info.put("updateBlockEntity", blockEntityTag);
+        sendToClients(info);
     }
 
     /// / save, load and sync ////
@@ -739,8 +747,22 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
         readAdditionalSaveData(compoundTag);
+
+        // notification about mass change
         if (compoundTag.contains("currentMass"))
             currentMass = compoundTag.getFloat("currentMass");
+
+        // notification about change in blockentity (useful for rendering)
+        if (compoundTag.contains("updateBlockEntity")) {
+            CompoundTag blockTag = compoundTag.getCompound("updateBlockEntity");
+            BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
+            BlockState state = blocks.get(p);
+            BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
+            be.loadCustomOnly(blockTag.getCompound("blockEntity"), registryAccess());
+            blockEntities.put(p, be);
+            makeGui();
+            requiresMeshUpdate = true;
+        }
     }
 
     public void sendToClients(CompoundTag compoundTag) {
@@ -873,14 +895,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void recalculateMass() {
         float mass = 0;
-        mass += 3f * blocks.size(); // block weight
-        mass += getFuel() * 0.0005f; // fuel weight
+        mass += blocks.size() * Config.INSTANCE.rocket_Block_Weight; // block weight
+        mass += getFuel() * Config.INSTANCE.rocket_Fuel_Weight_Per_MB; // fuel weight
         for (BlockEntity e : blockEntities.values()) {
             if (e instanceof EntityCargoHold entityCargoHold) {
                 ItemStack carried = entityCargoHold.itemStackHandler.getStackInSlot(0);
                 if (!carried.isEmpty()) {
                     float relativeFill = (float) carried.getCount() / carried.getMaxStackSize();
-                    mass += relativeFill * 3;
+                    mass += relativeFill * Config.INSTANCE.rocket_ItemStack_Weight;
                 }
             }
         }

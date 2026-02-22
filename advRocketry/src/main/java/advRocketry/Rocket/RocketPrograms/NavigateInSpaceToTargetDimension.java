@@ -19,19 +19,19 @@ public class NavigateInSpaceToTargetDimension {
 
         Vec3 rotationCorrection;
         if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.99) {
-            rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
+            rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
             ; // scale makes it more smooth
-            if (rotationCorrection.length() > Config.INSTANCE.rocketSpaceTravelRotationRate)
-                rotationCorrection = rotationCorrection.normalize().scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
+            if (rotationCorrection.length() > Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate)
+                rotationCorrection = rotationCorrection.normalize().scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
         } else
-            rotationCorrection = rocket.universeFront.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
+            rotationCorrection = rocket.universeFront.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
 
         rocket.universeHeading = rocket.universeHeading.add(rotationCorrection).normalize();
 
         Vec3 targetFrontValid = rocket.universeHeading.cross(new Vec3(0, 1, 0).cross(rocket.universeHeading)).normalize();
         if (targetFrontValid.dot(rocket.universeFront) < -0.99) // get some movement if it is directly on the other side
             targetFrontValid = rocket.universeHeading.cross(rocket.universeFront);
-        rotationCorrection = targetFrontValid.subtract(rocket.universeFront).scale(Config.INSTANCE.rocketSpaceTravelRotationRate);
+        rotationCorrection = targetFrontValid.subtract(rocket.universeFront).scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
         Vec3 newFront = rocket.universeFront.add(rotationCorrection).normalize();
 
         Vec3 right = rocket.universeHeading.cross(newFront).normalize();
@@ -67,11 +67,11 @@ public class NavigateInSpaceToTargetDimension {
         rocket.universeTargetHeading = nextTargetDirectiop;
         tickUniverseRotation(rocket);
 
-        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.2));
+        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
 
         // move forward
         // maxSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
-        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocketSpaceTravelAcceleration * Math.max(0,finalTargetPositionRelative.length()-entryDistance));
+        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocket_SpaceTravel_Acceleration * Math.max(0,finalTargetPositionRelative.length()-entryDistance));
         // base speed
         double e = 0.000005;
         // slow down when off target
@@ -82,8 +82,8 @@ public class NavigateInSpaceToTargetDimension {
         // calculate acceleration
         double targetSpeed = maxSpeed * 0.9 * directionMultiplier1 * directionMultiplier2 + e;
         double targetAcceleration = targetSpeed - rocket.universeTravelSpeed;
-        if (Math.abs(targetAcceleration) > Config.INSTANCE.rocketSpaceTravelAcceleration) {
-            targetAcceleration = Math.signum(targetAcceleration) * Config.INSTANCE.rocketSpaceTravelAcceleration;
+        if (Math.abs(targetAcceleration) > Config.INSTANCE.rocket_SpaceTravel_Acceleration) {
+            targetAcceleration = Math.signum(targetAcceleration) * Config.INSTANCE.rocket_SpaceTravel_Acceleration;
         }
 
         rocket.universeTravelSpeed += targetAcceleration;
@@ -95,11 +95,11 @@ public class NavigateInSpaceToTargetDimension {
 
             // get the teleportation target
             ServerLevel targetLevel = DimensionManager.getServerLevel(serverLevel.getServer(), target);
-            Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planetSkyHeight, rocket.getLastLaunchPosition().getZ());
+            Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planet_Sky_Height, rocket.getLastLaunchPosition().getZ());
 
             Vec3 entrySpeed = new Vec3(
                     (Math.random() * 2 - 1) * 0.2,
-                    Config.INSTANCE.rocketPlanetEntrySpeedY,
+                    Config.INSTANCE.rocket_Planet_Entry_Speed_Y,
                     (Math.random() * 2 - 1) * 0.2);
 
             EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);

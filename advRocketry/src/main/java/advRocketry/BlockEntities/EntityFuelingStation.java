@@ -20,11 +20,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
@@ -109,26 +107,26 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
 
             if (linkedRocket != null) {
                 if (linkedRocket.getCurrentProgram() == null) {
-                    if (battery.getEnergyStored() >= Config.INSTANCE.fuelingStationEnergyPerTick) {
+                    if (battery.getEnergyStored() >= Config.INSTANCE.fueling_Station_Energy_Per_Tick) {
                         if (!isDrain) {
                             // FUEL the rocket
-                            FluidStack available = myTank.drain(Config.INSTANCE.fuelingStationFuelPerTick, FluidAction.SIMULATE);
+                            FluidStack available = myTank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
                             int canFill = linkedRocket.fuelTank.fill(available, FluidAction.SIMULATE);
                             FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
                             linkedRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
                             if (canFill > 0) {
                                 setChanged();
-                                battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fuelingStationEnergyPerTick);
+                                battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fueling_Station_Energy_Per_Tick);
                             }
                         } else {
                             // DRAIN the rocket fuel tanks
-                            FluidStack available = linkedRocket.fuelTank.drain(Config.INSTANCE.fuelingStationFuelPerTick, FluidAction.SIMULATE);
+                            FluidStack available = linkedRocket.fuelTank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
                             int canFill = myTank.fill(available, FluidAction.SIMULATE);
                             FluidStack drained = linkedRocket.fuelTank.drain(canFill, FluidAction.EXECUTE);
                             myTank.fill(drained, FluidAction.EXECUTE);
                             if (canFill > 0) {
                                 setChanged();
-                                battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fuelingStationEnergyPerTick);
+                                battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fueling_Station_Energy_Per_Tick);
                             }
                         }
                     }
@@ -144,7 +142,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
                     for (Direction i : Direction.values()) {
                         IFluidHandler neighborFluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(i), i.getOpposite());
                         if (neighborFluidHandler != null) {
-                            int maxDrain = Config.INSTANCE.fuelingStationFuelPerTick;
+                            int maxDrain = Config.INSTANCE.fueling_Station_Fuel_Per_Tick;
                             FluidStack available = myTank.drain(maxDrain, FluidAction.SIMULATE);
                             int canFill = neighborFluidHandler.fill(available, FluidAction.SIMULATE);
                             if (canFill > 0) {

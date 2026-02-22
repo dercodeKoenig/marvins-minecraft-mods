@@ -226,7 +226,7 @@ public class SkyRenderer {
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
 
-        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
 
         shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
@@ -283,7 +283,7 @@ public class SkyRenderer {
 
         shader.getUniform("playerHeight").set(playerHeightAboveSea);
 
-        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planetSkyHeight);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
 
         Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentFogColor);
         shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
@@ -430,7 +430,7 @@ public class SkyRenderer {
                         (float) (CelestialUtils.toAU(
                                 ((PlanetDimension) myCurrentSpaceObject).getEarthRadiusMultiplier()
                                         * CelestialUtils.EARTH_RADIUS
-                                        * Config.INSTANCE.planetRenderScaleMultiplier
+                                        * Config.INSTANCE.planet_Render_Scale_Multiplier
                                         * 1.0
                                         + Minecraft.getInstance().player.position().y * 1
                         ));
@@ -464,7 +464,7 @@ public class SkyRenderer {
             // to scale correctly we need to convert the radius (in earth radius multiplier) to astronomical units
             double trueRadius = CelestialUtils.fromEarthRadius(otherDimension.getEarthRadiusMultiplier());
             double scaleAU = CelestialUtils.toAU(trueRadius); // bc we do not render at true distance multiplier ( 1AU is too large to handle ) we need to also scale the size correctly
-            double planetGeometryScale = (scaleAU * distance_multiplier * Config.INSTANCE.planetRenderScaleMultiplier);
+            double planetGeometryScale = (scaleAU * distance_multiplier * Config.INSTANCE.planet_Render_Scale_Multiplier);
             planetMatrix.scale((float) planetGeometryScale);
 
             // custom proj matrix for every draw because of high potential distance range

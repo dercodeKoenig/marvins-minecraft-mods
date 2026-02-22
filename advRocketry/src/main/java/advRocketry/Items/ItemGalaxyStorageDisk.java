@@ -13,7 +13,7 @@ import java.util.Set;
 public class ItemGalaxyStorageDisk extends Item {
 
     public static int POINTS_UNLOCKED(){
-        return Config.INSTANCE.observatoryAnalyzePlanetTicks;
+        return Config.INSTANCE.observatory_Analyze_Planet_Ticks;
     }
 
     public ItemGalaxyStorageDisk() {

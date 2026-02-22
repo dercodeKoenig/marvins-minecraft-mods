@@ -80,7 +80,7 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
 
 
         float partialTickOffset = entity.clientBuildDiffPerTick*partialTick;
-        float h = (float) (entity.clientBuildProgress+partialTickOffset) / Config.INSTANCE.rocketAssemblerBuildTimeBase;
+        float h = (float) (entity.clientBuildProgress+partialTickOffset) / Config.INSTANCE.rocket_Assembler_Build_Time_Base;
 
         int scanHeightMax = entity.areaMax.getY()-entity.areaMin.getY()+1;
 
@@ -133,7 +133,7 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         vertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(round_h));
 
         // render the scanning glowing thing not while it goes up, but only after it went up and activate it while it waits shortly before going back down
-        if (entity.buildProgress > -1 && (float)entity.buildProgress / Config.INSTANCE.rocketAssemblerBuildTimeBase < scanHeightMax+0.5f) {
+        if (entity.buildProgress > -1 && (float)entity.buildProgress / Config.INSTANCE.rocket_Assembler_Build_Time_Base < scanHeightMax+0.5f) {
             if (myFacingAxis == Direction.Axis.X) {
                 // normal uv
                 RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1 + (z1 - z0), packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);

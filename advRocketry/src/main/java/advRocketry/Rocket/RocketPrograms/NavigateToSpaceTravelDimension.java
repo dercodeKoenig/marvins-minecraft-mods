@@ -9,8 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.*;
-
 // just a helper program, is not actually a real full program
 public class NavigateToSpaceTravelDimension {
 
@@ -32,16 +30,16 @@ public class NavigateToSpaceTravelDimension {
             // normal logic; just fly high up!
             rocket.enableMainEngines(true, false);
             rocket.enableSecondaryEngines(false, false);
-            rocket.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planetSkyHeight + 5000, rocket.position().z), false);
+            rocket.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
 
-            if(rocket.position().y > Config.INSTANCE.planetSkyHeight) {
+            if(rocket.position().y > Config.INSTANCE.planet_Sky_Height) {
                 if (rocket.level() instanceof ServerLevel serverLevel) {
                     // teleport to space travel dimension
 
                     if (myDim != null) {
                         // for planets, move to the correct position relative to the planet.
                         if (myDim instanceof PlanetDimension p) {
-                            double r = CelestialUtils.toAU(p.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planetRenderScaleMultiplier * 1.1 + Config.INSTANCE.planetSkyHeight * 10);
+                            double r = CelestialUtils.toAU(p.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.1 + Config.INSTANCE.planet_Sky_Height * 10);
                             Vec3 planetUp = p.getGlobalAxisDirections(0, p.getLatitudeFromZPosition(rocket.position().z)).up;
                             rocket.universePosition = myDim.getPosition(0).add(planetUp.scale(r));
                             rocket.universeHeading = planetUp.normalize();

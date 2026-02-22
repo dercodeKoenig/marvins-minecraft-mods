@@ -96,7 +96,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public Vec3 getLandingPos(@Nullable EntityRocket rocket) {
         if (areaMin == null || areaMax == null) {
             // if there is no launchpad area, the rocket should land just behind the assembler
-            int rocketSize = Config.INSTANCE.rocketAssemblerMaxSize; // assume max size by default
+            int rocketSize = Config.INSTANCE.rocket_Assembler_Max_Size; // assume max size by default
             if (rocket != null)
                 rocketSize = Math.max(rocket.size.getZ(), rocket.size.getX());
             int offset = rocketSize / 2 + 3;
@@ -140,7 +140,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // it will use as starting points one of side1 and one of side2 so the area will always include the starting pos
         Set<BlockPos> side1 = new HashSet<>();
         Set<BlockPos> side2 = new HashSet<>();
-        for (int i = 0; i < Config.INSTANCE.rocketAssemblerMaxSize; i++) {
+        for (int i = 0; i < Config.INSTANCE.rocket_Assembler_Max_Size; i++) {
             Direction side1Direction = facing.getClockWise();
             Direction side2Direction = facing.getCounterClockWise();
             side1.add(new BlockPos(startingPos).offset(side1Direction.getStepX() * i, side1Direction.getStepY() * i, side1Direction.getStepZ() * i));
@@ -155,11 +155,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // try all combinations of left & right positions with a min and max distance
         for (BlockPos p1 : side1) {
             for (BlockPos p2 : side2) {
-                if (p1.distManhattan(p2) < 2 || p1.distManhattan(p2) > Config.INSTANCE.rocketAssemblerMaxSize) {
+                if (p1.distManhattan(p2) < 2 || p1.distManhattan(p2) > Config.INSTANCE.rocket_Assembler_Max_Size) {
                     continue;
                 }
                 // try all possible depth values
-                for (int depth = 2; depth < Config.INSTANCE.rocketAssemblerMaxSize; depth++) {
+                for (int depth = 2; depth < Config.INSTANCE.rocket_Assembler_Max_Size; depth++) {
                     BlockPos p3 = p1.offset(facing.getOpposite().getStepX() * depth, facing.getOpposite().getStepY() * depth, facing.getOpposite().getStepZ() * depth);
                     int minX = Math.min(Math.min(p1.getX(), p2.getX()), p3.getX());
                     int minZ = Math.min(Math.min(p1.getZ(), p2.getZ()), p3.getZ());
@@ -397,7 +397,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 ConstructionResult ret = buildRocket(true);
                 if (ret == ConstructionResult.SUCCESS) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
-                    buildProgress = (int) (Config.INSTANCE.rocketAssemblerBuildTimeBase * (areaMax.getY() - areaMin.getY() + 2) * 1.5);
+                    buildProgress = (int) (Config.INSTANCE.rocket_Assembler_Build_Time_Base * (areaMax.getY() - areaMin.getY() + 2) * 1.5);
 
                     // signal client to close the gui
                     guiHandler.signalCloseGui(serverPlayer);
@@ -449,11 +449,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             // build progress logic server
             if (buildProgress > -1) {
                 if (areaMin != null && areaMax != null) {
-                    boolean shouldConsumeEnergy = buildProgress <= Config.INSTANCE.rocketAssemblerBuildTimeBase * (areaMax.getY() - areaMin.getY()+2);
-                    if(battery.getEnergyStored() >= Config.INSTANCE.rocketAssemblerEnergyPerTick || !shouldConsumeEnergy) {
+                    boolean shouldConsumeEnergy = buildProgress <= Config.INSTANCE.rocket_Assembler_Build_Time_Base * (areaMax.getY() - areaMin.getY()+2);
+                    if(battery.getEnergyStored() >= Config.INSTANCE.rocket_Assembler_Energy_Per_Tick || !shouldConsumeEnergy) {
                         buildProgress--;
                         if(shouldConsumeEnergy)
-                            battery.extractEnergy(Config.INSTANCE.rocketAssemblerEnergyPerTick,false);
+                            battery.extractEnergy(Config.INSTANCE.rocket_Assembler_Energy_Per_Tick,false);
                         if (buildProgress == -1) {
                             buildRocket(false);
                         }
@@ -487,7 +487,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             AABB area;
             if (areaMin == null || areaMax == null) {
                 Vec3 landingPos = getLandingPos(null);
-                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) Config.INSTANCE.rocketAssemblerMaxSize / 2 + 1);
+                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) Config.INSTANCE.rocket_Assembler_Max_Size / 2 + 1);
             } else {
                 area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
