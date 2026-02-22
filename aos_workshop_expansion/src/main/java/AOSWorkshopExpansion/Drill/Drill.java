@@ -26,6 +26,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_DRILL;
@@ -81,15 +82,20 @@ public class Drill extends Block implements EntityBlock {
     }
 
 
+    static HashMap<Direction, VoxelShape> shapes = new HashMap<>();
+
+    static {
+        shapes.put(Direction.DOWN, Shapes.create(new AABB(0, 0.25, 0, 1, 1, 1)));
+        shapes.put(Direction.UP, Shapes.create(new AABB(0, 0, 0, 1, 0.75, 1)));
+        shapes.put(Direction.EAST, Shapes.create(new AABB(0, 0, 0, 0.75, 1, 1)));
+        shapes.put(Direction.WEST, Shapes.create(new AABB(0.25, 0, 0, 1, 1, 1)));
+        shapes.put(Direction.SOUTH, Shapes.create(new AABB(0, 0, 0, 1, 1, 0.75)));
+        shapes.put(Direction.NORTH, Shapes.create(new AABB(0, 0, 0.25, 1, 1, 1)));
+    }
+
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         Direction facing = state.getValue(FACING);
-        return Shapes.create(
-                new AABB(0,0,0,1,1,1)
-                        .expandTowards(
-                                facing.getStepX()*-0.5f,
-                                facing.getStepY()*-0.5f,
-                                facing.getStepZ()*-0.5f)
-        );
+        return shapes.get(facing);
     }
 }

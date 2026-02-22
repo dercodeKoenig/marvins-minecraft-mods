@@ -92,7 +92,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
                 float destroySpeed = (float) Math.abs(myMechanicalBlock.internalVelocity);
                 currentDestroyProgress += destroySpeed / 500f;
                 int renderDestroyProgress = (int) (currentDestroyProgress / destroyTime * 10);
-                if (renderDestroyProgress > 10) {
+                if (renderDestroyProgress >= 10) {
                     level.destroyBlock(infrontPos, true);
                     currentDestroyProgress = 0;
                 } else if (renderDestroyProgress != lastRenderDestroyProgressSynced) {
