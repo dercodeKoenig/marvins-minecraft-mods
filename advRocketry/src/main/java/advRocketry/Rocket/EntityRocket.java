@@ -7,6 +7,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
 import ARLib.utils.DimensionUtils;
+import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
@@ -241,6 +242,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
+        makeGui(); // TODO: remove after testing
         openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
@@ -758,6 +760,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void makeGui() {
         guiHandler.modules.clear();
 
+        // add guidance computer slot
         for (BlockEntity i : blockEntities.values()) {
             if (i instanceof EntityGuidanceComputer computer) {
                 guiModuleItemHandlerSlot chipSlot = new guiModuleItemHandlerSlot(0, computer.itemStackHandler, 0, 0, 1, guiHandler, 10, 10);
@@ -765,9 +768,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+        // add fuel slot
         guiModuleFluidTankDisplay fuelDisplay = new guiModuleFluidTankDisplay(1, fuelTank, 0, guiHandler, 155, 10);
         guiHandler.modules.add(fuelDisplay);
 
+        // deconstruct button
         guiModuleButton deconstructButton = new guiModuleButton(2, "deconstruct", guiHandler, 30, 10, 70, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_red.png"), 64, 20) {
             public void onButtonClicked() {
                 super.onButtonClicked();
@@ -779,26 +784,61 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         };
         deconstructButton.color = 0xffffffff;
         guiHandler.modules.add(deconstructButton);
+
+        // launch button
         guiModuleButton launchButton = new guiModuleButton(3, "launch", guiHandler, 110, 10, 40, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_button_black.png"), 64, 20);
         launchButton.color = 0xffffffff;
         guiHandler.modules.add(launchButton);
 
-
+        // status / info
         infoText = new guiModuleText(4, "info", guiHandler, 10, 40, 0xff000000, false);
         guiHandler.modules.add(infoText);
 
 
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 1, 0, guiHandler)) {
+        // add player inventory slots
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 190, 1000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 110, 2000, 1, 0, guiHandler)) {
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 130, 2000, 1, 0, guiHandler)) {
             guiHandler.modules.add(i);
         }
+
+        // add inventory slots for cargo hold
+        guiModuleScrollContainer inventoriesContainer =
+                new guiModuleScrollContainer(new ArrayList<>(),0xffa0a0a0,guiHandler, 10,80,162,40);
+        guiHandler.modules.add(inventoriesContainer);
+
+        int x = 0;
+        int y = 0;
+        int id = 20000;
+        for (BlockEntity i : blockEntities.values()) {
+            if (i instanceof EntityCargoHold cargoHold) {
+                guiModuleItemHandlerSlot slot =
+                        new guiModuleItemHandlerSlot(
+                                id,
+                                cargoHold.itemStackHandler,
+                                0,
+                                0,
+                                1,
+                                guiHandler,
+                                x * 18,
+                                y * 18
+                        );
+                inventoriesContainer.modules.add(slot);
+                id++;
+                x++;
+                if(x > 9){
+                    x=0;
+                    y++;
+                }
+            }
+        }
+
     }
 
     public void openGui() {
         if (level().isClientSide) {
-            guiHandler.openGui(180, 200, true);
+            guiHandler.openGui(180, 220, true);
         }
     }
 

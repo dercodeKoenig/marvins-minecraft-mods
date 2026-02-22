@@ -1,4 +1,8 @@
 {
+  "item.adv_rocketry.linker": "Linker",
+  "item.adv_rocketry.planet_id_chip": "Planet ID Chip",
+  "item.adv_rocketry.galaxy_storage_disk": "Galaxy Data Storage Disk",
+
   "block.adv_rocketry.launchpad": "Launch Pad",
   "item.adv_rocketry.launchpad": "Launch Pad",
 
@@ -17,9 +21,18 @@
   "block.adv_rocketry.guidance_computer": "Guidance Computer",
   "item.adv_rocketry.guidance_computer": "Guidance Computer",
 
+  "block.adv_rocketry.cargo_hold": "Cargo Hold",
+  "item.adv_rocketry.cargo_hold": "Cargo Hold",
+
   "block.adv_rocketry.fueling_station": "Fueling Station",
   "item.adv_rocketry.fueling_station": "Fueling Station",
 
   "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
-  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel"
+  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel",
+
+  "block.adv_rocketry.seat": "Seat",
+  "item.adv_rocketry.seat": "Seat",
+
+  "block.adv_rocketry.observatory": "Observatory",
+  "item.adv_rocketry.observatory": "Observatory"
 }
