@@ -26,6 +26,10 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
     MeshData mesh;
     int lastLight;
 
+    double extraResistance = 0;
+    int lastRenderDestroyProgressSynced = 0;
+    float currentDestroyProgress = 0;
+
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -39,14 +43,18 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return 10;
+            return 10 + extraResistance;
         }
 
         @Override
-        public double getTorqueProduced(Direction face) {return 0;}
+        public double getTorqueProduced(Direction face) {
+            return 0;
+        }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {return 1;}
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
+            return 1;
+        }
     };
 
     public EntityDrill(BlockPos pos, BlockState blockState) {
@@ -59,7 +67,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
     }
 
     @Override
-    public void onLoad(){
+    public void onLoad() {
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
     }
@@ -76,6 +84,31 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+        if (!level.isClientSide) {
+            BlockPos infrontPos = getBlockPos().relative(getBlockState().getValue(FACING));
+            BlockState infront = level.getBlockState(infrontPos);
+            if (!infront.isAir()) {
+                float destroyTime = infront.getDestroySpeed(level, infrontPos);
+                float destroySpeed = (float) Math.abs(myMechanicalBlock.internalVelocity);
+                currentDestroyProgress += destroySpeed / 100f;
+
+                int renderDestroyProgress = (int) (currentDestroyProgress / destroyTime * 10);
+                if (renderDestroyProgress != lastRenderDestroyProgressSynced) {
+                    lastRenderDestroyProgressSynced = renderDestroyProgress;
+                    int mySpecialId = -122353; // just a random value
+                    level.destroyBlockProgress(mySpecialId, infrontPos, renderDestroyProgress);
+                }
+
+                if (renderDestroyProgress > 10) {
+                    level.destroyBlock(infrontPos, true);
+                    currentDestroyProgress = 0;
+                }
+                extraResistance = 100;
+            } else {
+                currentDestroyProgress = 0;
+                extraResistance = 0;
+            }
+        }
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -84,7 +117,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
-        myMechanicalBlock.mechanicalReadServer(compoundTag,serverPlayer);
+        myMechanicalBlock.mechanicalReadServer(compoundTag, serverPlayer);
     }
 
     @Override
@@ -107,7 +140,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
         BlockState myState = getBlockState();
-        if(direction == myState.getValue(FACING).getOpposite())
+        if (direction == myState.getValue(FACING).getOpposite())
             return myMechanicalBlock;
         return null;
     }
