@@ -56,8 +56,8 @@ public class RenderDrill implements BlockEntityRenderer<EntityDrill> {
         if (tile.lastLight != packedLight) {
             tile.lastLight = packedLight;
 
-            ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
-            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
+            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
 
             for (Face i : model.groupObjects.get("head").faces) {
                 i.addFaceForRender(new PoseStack(), b, packedLight, 0, 0xffffffff);
@@ -69,32 +69,37 @@ public class RenderDrill implements BlockEntityRenderer<EntityDrill> {
             byteBuffer.close();
         }
 
-
+        float directionMultiplier = 1;
         stack.translate(0.5f, 0.5f, 0.5f);
         if (facing == Direction.NORTH) {
-            //stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, -90));
+            directionMultiplier = -1;
         }
         if (facing == Direction.WEST) {
-            //stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 0, 1, 90));
+            directionMultiplier = -1;
         }
         if (facing == Direction.EAST) {
-            //stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 0, 1, -90));
         }
         if (facing == Direction.SOUTH) {
-            //stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 90));
         }
         if (facing == Direction.UP) {
-            //stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
+
         }
         if (facing == Direction.DOWN) {
-            //stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(1, 0, 0, 180));
+            directionMultiplier = -1;
         }
 
         Matrix4f modelMat = new Matrix4f();
         modelMat = modelMat.mul(stack.last().pose());
 
         float partialRotation = (float) (rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
-        float rotation = (float) (tile.myMechanicalBlock.currentRotation + partialRotation);
+        float rotation = directionMultiplier * (float) (tile.myMechanicalBlock.currentRotation + partialRotation);
+
+        modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0, 1, 0, rotation));
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
         LIGHTMAP.setupRenderState();

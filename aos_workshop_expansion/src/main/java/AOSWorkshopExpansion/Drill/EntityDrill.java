@@ -39,7 +39,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return 100;
+            return 10;
         }
 
         @Override
