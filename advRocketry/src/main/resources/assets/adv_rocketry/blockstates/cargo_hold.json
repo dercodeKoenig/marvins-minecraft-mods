@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "": {
+            "model": "adv_rocketry:block/cargo_hold"
+        }
+    }
+}

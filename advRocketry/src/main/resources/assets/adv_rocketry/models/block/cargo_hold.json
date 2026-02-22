@@ -1,0 +1,11 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "adv_rocketry:block/cargo_hold",
+    "up": "adv_rocketry:block/cargo_hold",
+    "north": "adv_rocketry:block/cargo_hold",
+    "south": "adv_rocketry:block/cargo_hold",
+    "west": "adv_rocketry:block/cargo_hold",
+    "east": "adv_rocketry:block/cargo_hold"
+  }
+}

@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModuleEnergy;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
+import advRocketry.Blocks.CargoHold;
 import advRocketry.Blocks.GuidanceComputer;
 import advRocketry.Blocks.LaunchPad;
 import advRocketry.Blocks.StructureTower;
@@ -304,6 +305,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         boolean shouldSaveNbt = false; // only save for some BEs
                         if (entityBlock instanceof GuidanceComputer)
                             shouldSaveNbt = true;
+                        if (entityBlock instanceof CargoHold)
+                            shouldSaveNbt = true;
 
                         CompoundTag tag = null;
                         if (shouldSaveNbt) {
@@ -344,6 +347,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         // prevent item pops when breaking the block for specific blocks that carry their inventory to the rocket
                         if (level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer1)
                             guidanceComputer1.itemStackHandler.setStackInSlot(0, ItemStack.EMPTY);
+                        if (level.getBlockEntity(pos) instanceof EntityCargoHold cargoHold)
+                            cargoHold.itemStackHandler.setStackInSlot(0, ItemStack.EMPTY);
 
                         // if i understand this correctly, 2 = send to clients, 16 = no neighbor update
                         // neighbor could break some blocks like sign that would pop away
@@ -463,7 +468,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             boolean shouldOutputRedstone = currentRocket != null && currentRocket.getCurrentProgram() == null;
             if(shouldOutputRedstone != isRedstoneOutputActive){
                 isRedstoneOutputActive = shouldOutputRedstone;
-                level.updateNeighbourForOutputSignal(getBlockPos(),getBlockState().getBlock());
+                //level.updateNeighbourForOutputSignal(getBlockPos(),getBlockState().getBlock());
+                setChanged(); // <- updates neighbors for redstone signal
             }
 
 

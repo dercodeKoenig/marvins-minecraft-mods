@@ -1,9 +1,6 @@
 package advRocketry;
 
-import advRocketry.BlockEntities.EntityFuelingStation;
-import advRocketry.BlockEntities.EntityGuidanceComputer;
-import advRocketry.BlockEntities.EntityObservatory;
-import advRocketry.BlockEntities.EntityRocketAssembler;
+import advRocketry.BlockEntities.*;
 import advRocketry.Blocks.*;
 import advRocketry.Fluid.RocketFuel;
 import advRocketry.Items.ItemGalaxyStorageDisk;
@@ -74,6 +71,13 @@ public class Registry {
     public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
     public static final Supplier<BlockEntityType<EntityObservatory>> ENTITY_OBSERVATORY = BLOCK_ENTITIES.register("observatory", () -> BlockEntityType.Builder.of(EntityObservatory::new, OBSERVATORY.get()).build(null));
 
+    public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());
+    public static final Supplier<BlockEntityType<EntityCargoHold>> ENTITY_CARGO_HOLD = BLOCK_ENTITIES.register("cargo_hold", () -> BlockEntityType.Builder.of(EntityCargoHold::new, CARGO_HOLD.get()).build(null));
+
+
+
+
+
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
             "rocket",
             () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(1000).build(Main.MODID+":rocket")
@@ -88,6 +92,7 @@ public class Registry {
         registerBlockItem("rocket_motor", ROCKET_MOTOR);
         registerBlockItem("fuel_tank", FUEL_TANK);
         registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
+        registerBlockItem("cargo_hold", CARGO_HOLD);
         registerBlockItem("seat", SEAT);
         registerBlockItem("fueling_station", FUELING_STATION);
         registerBlockItem("observatory", OBSERVATORY);

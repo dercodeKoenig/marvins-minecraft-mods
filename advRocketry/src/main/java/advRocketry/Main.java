@@ -121,7 +121,7 @@ public class Main {
 
     }
 
-    /// level events ////////////////////////////////
+    /// game events ////////////////////////////////
 
     void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer p) {
@@ -309,6 +309,7 @@ public class Main {
             e.accept(Registry.ROCKET_MOTOR.get());
             e.accept(Registry.FUEL_TANK.get());
             e.accept(Registry.GUIDANCE_COMPUTER.get());
+            e.accept(Registry.CARGO_HOLD.get());
             e.accept(Registry.SEAT.get());
             e.accept(Registry.ROCKET_FUEL_BUCKET.get());
             e.accept(Registry.FUELING_STATION.get());
