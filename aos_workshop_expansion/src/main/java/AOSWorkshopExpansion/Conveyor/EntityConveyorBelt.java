@@ -138,8 +138,8 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         super.setRemoved();
     }
 
-    public void popItem(Long id, Direction target) {
-        ItemStack stack = id_items.get(id);
+    public void popItem(ItemStack stack, Direction target) {
+        if (stack.isEmpty()) return;
         Vec3 pos = getBlockPos().getCenter().relative(target, 0.7);
         if (target == getBlockState().getValue(ConveyorBelt.FACING) && getBlockState().getValue(ConveyorBelt.DIAGONAL))
             pos = pos.add(0, 1, 0); // offset above
@@ -147,7 +147,6 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         float speed = 0.05f;
         ie.setDeltaMovement(target.getStepX() * speed, speed * 2, target.getStepZ() * speed);
         level.addFreshEntity(ie);
-        removeItem(id, true);
     }
 
     public void tick() {
@@ -270,38 +269,33 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                                     target.getOpposite()
                             );
 
-                            ItemStack remaining = stack;
-
-                            Direction popTarget = target;
-
                             // special case: neighbor is a conveyor but it is wrong oriented
                             if (neighborItemHandler instanceof EntityConveyorBelt neighborBelt) {
                                 neighborBelt.addItem(id, stack, 0.5f, true, level.registryAccess());
-                                remaining = ItemStack.EMPTY;
                             } else if (neighborItemHandler != null) {
+                                ItemStack remaining = stack;
                                 for (int i = 0; i < neighborItemHandler.getSlots(); i++) {
                                     if (remaining.isEmpty())
                                         break;
                                     remaining = neighborItemHandler.insertItem(i, remaining.copy(), false);
                                 }
 
-                                // pop to the side when there is an itemhandler in front or it will land on the belt again
-                                if (new Random().nextBoolean())
-                                    popTarget = target.getClockWise();
-                                else
-                                    popTarget = target.getCounterClockWise();
+                                if (!remaining.isEmpty()) {
+                                    // pop to the side when there is an itemhandler in front or it will land on the belt again
+                                    Direction popTarget;
+                                    if (new Random().nextBoolean())
+                                        popTarget = target.getClockWise();
+                                    else
+                                        popTarget = target.getCounterClockWise();
+                                    // pop remaining items
+                                    popItem(remaining, popTarget);
+                                }
                             }
 
-                            if (remaining.isEmpty()) {
-                                removeItem(id, true);
-                            } else {
-                                // pop remaining items
-                                id_items.put(id, remaining);
-                                items_progress.put(remaining, 0f);
-                                popItem(id, popTarget);
-                            }
+                            removeItem(id, true);
+
                         } else {
-                            if(items_progress.get(stack) > 3 || items_progress.get(stack) < -2)
+                            if (items_progress.get(stack) > 3 || items_progress.get(stack) < -2)
                                 // i give it some extra room in case it is slightly offset during client/server rotation sync
                                 // the server should notify the client anyway when removing the item so this is just emergency exit when a packet is lost
                                 removeItem(id, false);

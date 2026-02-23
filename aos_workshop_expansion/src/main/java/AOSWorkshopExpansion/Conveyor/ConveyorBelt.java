@@ -138,7 +138,9 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof EntityConveyorBelt conveyorBelt) {
             for (Long id : new ArrayList<>(conveyorBelt.id_items.keySet())) {
-                conveyorBelt.popItem(id, Direction.UP);
+                ItemStack item = conveyorBelt.id_items.get(id);
+                conveyorBelt.popItem(item, Direction.UP);
+                conveyorBelt.removeItem(id, true);
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);
