@@ -15,8 +15,8 @@ import advRocketry.Rocket.RendererRocket;
 import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.BiomeConfig;
 
+import advRocketry.worldgen.presets.HOT;
 import advRocketry.worldgen.presets.HOT_DRY;
-import advRocketry.worldgen.presets.HOT_VERYDRY;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -116,8 +116,8 @@ public class Main {
         }
 
         // write biome presets
+        BiomeConfig.makePresetIfNotExist(HOT.name, HOT.create());
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
-        BiomeConfig.makePresetIfNotExist(HOT_VERYDRY.name, HOT_VERYDRY.create());
 
     }
 

@@ -1,12 +1,10 @@
 package advRocketry.Dimension;
 
-import advRocketry.Main;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.ClientUtils;
 import advRocketry.worldgen.BiomeConfig;
 import advRocketry.worldgen.PlanetDimensionGeneration;
-import advRocketry.worldgen.presets.HOT_DRY;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -16,12 +14,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
-import java.nio.file.Path;
 import java.util.OptionalLong;
 
 import static advRocketry.utils.CelestialUtils.fromAU;

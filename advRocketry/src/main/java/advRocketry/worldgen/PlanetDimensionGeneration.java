@@ -50,7 +50,7 @@ public class PlanetDimensionGeneration {
         RegistryAccess registryAccess = server.registryAccess();
 
         NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
-        
+
         ChunkGenerator generator = new CustomChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeConfig.createBiomeConfig())),
                 Holder.direct(new NoiseGeneratorSettings(
