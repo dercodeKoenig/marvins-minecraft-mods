@@ -23,8 +23,8 @@ public class Config {
     public int rocket_Assembler_Energy_Per_Tick = 100;
 
 
-    public int fueling_Station_Energy_Per_Tick = 100;
-    public int fueling_Station_Fuel_Per_Tick = 10;
+    public int fueling_Station_Energy_Per_Tick = 200;
+    public int fueling_Station_Fuel_Per_Tick = 50;
 
     public int item_Loader_Energy_Per_Tick = 100;
 
