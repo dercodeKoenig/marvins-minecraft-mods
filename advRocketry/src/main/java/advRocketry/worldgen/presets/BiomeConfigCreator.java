@@ -13,8 +13,7 @@ public class BiomeConfigCreator {
             String[] oceansByTemperature,
             String[] deepOceansByTemperature
     ) {
-        // add by temperature first
-
+        // add temperature / humidity table first
         BiomeConfig config = new BiomeConfig();
         for (int temperature = 0; temperature < BiomeConfig.Temperature.values().length; temperature++) {
             for (int humidity = 0; humidity < BiomeConfig.Humidity.values().length; humidity++) {
