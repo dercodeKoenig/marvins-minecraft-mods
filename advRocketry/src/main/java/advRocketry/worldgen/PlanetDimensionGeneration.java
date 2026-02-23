@@ -54,7 +54,7 @@ public class PlanetDimensionGeneration {
         ChunkGenerator generator = new CustomChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeConfig.createBiomeConfig())),
                 Holder.direct(new NoiseGeneratorSettings(
-                        new NoiseSettings(-64, 384, 1, 2), // overworld settings
+                        new NoiseSettings(-64, 384, 2, 2),
                         defaultBlock,
                         defaultFluid,
                         overworldSettings.noiseRouter(),
