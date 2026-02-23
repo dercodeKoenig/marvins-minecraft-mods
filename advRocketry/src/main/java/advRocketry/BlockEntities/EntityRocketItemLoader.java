@@ -122,10 +122,14 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
         battery.setEnergy(tag.getInt("energy"));
     }
 
-    public boolean loadOneItem(EntityRocket linkedRocket) {
+    /// tries to load 1 item into the rocket
+    /// returns 1 if success, 0 if there are no items to load, -1 if no item could be loaded because rocket is full
+    public int loadOneItem(EntityRocket linkedRocket) {
+        boolean isEmpty = true;
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack canExtract = inventory.extractItem(i, 1, true);
             if (!canExtract.isEmpty()) {
+                isEmpty = false;
                 for (BlockEntity be : linkedRocket.blockEntities.values()) {
                     if (be instanceof EntityCargoHold cargoHold) {
                         for (int j = 0; j < cargoHold.itemStackHandler.getSlots(); j++) {
@@ -135,22 +139,30 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
                                 ItemStack extracted = inventory.extractItem(i, 1, false);
                                 cargoHold.itemStackHandler.insertItem(j, extracted, false);
                                 linkedRocket.onBlockEntityChanged(cargoHold.getBlockPos());
-                                return true;
+                                return 1;
                             }
                         }
                     }
                 }
             }
         }
-        return false;
+        if (isEmpty)
+            return 0;
+        else
+            return -1;
     }
 
-    public boolean unLoadOneItem(EntityRocket linkedRocket) {
+
+    /// tries to load 1 item from the rocket into the internal inventory
+    /// returns: 1 if success, 0 if rocket has no items, -1 if rocket has items but we could not unload them
+    public int unLoadOneItem(EntityRocket linkedRocket) {
+        boolean isEmpty = true;
         for (BlockEntity be : linkedRocket.blockEntities.values()) {
             if (be instanceof EntityCargoHold cargoHold) {
                 for (int j = 0; j < cargoHold.itemStackHandler.getSlots(); j++) {
                     ItemStack canExtract = cargoHold.itemStackHandler.extractItem(j, 1, true);
                     if (!canExtract.isEmpty()) {
+                        isEmpty = false;
                         for (int i = 0; i < inventory.getSlots(); i++) {
                             ItemStack notInserted = inventory.insertItem(i, canExtract, true);
                             if (notInserted.isEmpty()) {
@@ -158,14 +170,17 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
                                 ItemStack extracted = cargoHold.itemStackHandler.extractItem(j, 1, false);
                                 inventory.insertItem(i, extracted, false);
                                 linkedRocket.onBlockEntityChanged(cargoHold.getBlockPos());
-                                return true;
+                                return 1;
                             }
                         }
                     }
                 }
             }
         }
-        return false;
+        if (isEmpty)
+            return 0;
+        else
+            return -1;
     }
 
     public void setOutputSignal(boolean signal) {
@@ -193,18 +208,20 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
                     if (battery.getEnergyStored() >= Config.INSTANCE.item_Loader_Energy_Per_Tick) {
                         if (!isDrain) {
                             // FILL the rocket
-                            if (loadOneItem(linkedRocket)) {
+                            if (loadOneItem(linkedRocket) == -1) {
                                 setOutputSignal(false);
                                 battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
+                                // item loading failed because rocket is full
                                 setOutputSignal(true);
                             }
                         } else {
                             // DRAIN the rocket
-                            if (unLoadOneItem(linkedRocket)) {
+                            if (unLoadOneItem(linkedRocket) != 0) {
                                 setOutputSignal(false);
                                 battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
+                                // rocket is empty
                                 setOutputSignal(true);
                             }
                         }
