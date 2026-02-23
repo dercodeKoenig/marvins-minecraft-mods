@@ -205,7 +205,7 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
                                 setOutputSignal(false);
                                 battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
-                                setOutputSignal(false);
+                                setOutputSignal(true);
                             }
                         }
                     }

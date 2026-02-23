@@ -301,7 +301,10 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                                 popItem(id, popTarget);
                             }
                         } else {
-                            removeItem(id, false);
+                            if(items_progress.get(stack) > 3 || items_progress.get(stack) < -2)
+                                // i give it some extra room in case it is slightly offset during client/server rotation sync
+                                // the server should notify the client anyway when removing the item so this is just emergency exit when a packet is lost
+                                removeItem(id, false);
                         }
                     }
                 }
