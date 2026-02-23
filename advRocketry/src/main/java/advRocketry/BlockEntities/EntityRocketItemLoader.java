@@ -99,6 +99,7 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
         super.readServer(compoundTag, serverPlayer);
         if (compoundTag.contains("toggleDrainFill")) {
             level.setBlock(getBlockPos(), getBlockState().setValue(IS_DRAIN, !getBlockState().getValue(IS_DRAIN)), 3);
+            setChanged();
         }
     }
 
@@ -208,18 +209,28 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
                     if (battery.getEnergyStored() >= Config.INSTANCE.item_Loader_Energy_Per_Tick) {
                         if (!isDrain) {
                             // FILL the rocket
-                            if (loadOneItem(linkedRocket) == -1) {
+                            int res = loadOneItem(linkedRocket);
+                            // -1 = rocket full
+                            // 0 = no item loaded ( item loader empty )
+                            // 1 = item was loaded
+                            if (res != -1) {
                                 setOutputSignal(false);
-                                battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
+                                if (res == 1) // load success
+                                    battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
                                 // item loading failed because rocket is full
                                 setOutputSignal(true);
                             }
                         } else {
                             // DRAIN the rocket
-                            if (unLoadOneItem(linkedRocket) != 0) {
+                            int res = unLoadOneItem(linkedRocket);
+                            // -1 = item unload fail ( inventory full )
+                            // 1 = item unloaded
+                            // 0 = rocket empty
+                            if (res != 0) {
                                 setOutputSignal(false);
-                                battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
+                                if (res == 1) // unload success
+                                    battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
                                 // rocket is empty
                                 setOutputSignal(true);
