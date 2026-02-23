@@ -45,17 +45,16 @@ public class PlanetDimensionGeneration {
     }
 
 
-    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, BiomeConfig biomeConfig, long seed, boolean structuresEnabled) {
+    public static ChunkGenerator makeChunkGenerator(BlockState defaultBlock, BlockState defaultFluid, int sealevel, BiomeConfig biomeConfig, boolean structuresEnabled) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         RegistryAccess registryAccess = server.registryAccess();
 
         NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
-
+        
         ChunkGenerator generator = new CustomChunkGenerator(
-                //MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(dimensionConfig)),
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeConfig.createBiomeConfig())),
                 Holder.direct(new NoiseGeneratorSettings(
-                        new NoiseSettings(-64, 384, 1, 1),
+                        new NoiseSettings(-64, 384, 2, 2),
                         defaultBlock,
                         defaultFluid,
                         overworldSettings.noiseRouter(),
@@ -67,7 +66,6 @@ public class PlanetDimensionGeneration {
                         true,
                         false
                 )),
-                seed,
                 structuresEnabled
         );
 

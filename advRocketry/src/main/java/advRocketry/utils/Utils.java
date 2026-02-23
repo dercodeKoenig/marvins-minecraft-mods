@@ -1,10 +1,16 @@
 package advRocketry.utils;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class Utils {
     public static CompoundTag serializeVec3(Vec3 v) {
@@ -53,5 +59,11 @@ public class Utils {
         return minY ;
     }
 
+
+
+
+    public static Holder<Biome> getBiomeHolder(String biomeId) {
+        return ServerLifecycleHooks.getCurrentServer().registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeId)));
+    }
 
 }

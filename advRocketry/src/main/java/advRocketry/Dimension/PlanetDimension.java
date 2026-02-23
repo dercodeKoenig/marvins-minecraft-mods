@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import advRocketry.Main;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.ClientUtils;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 import java.util.OptionalLong;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
@@ -50,14 +52,11 @@ public class PlanetDimension extends Dimension {
 
         System.out.println("creating dimension for " + getDimensionId());
 
-        long seed = (server.overworld().getSeed() + (long) getDimensionId().hashCode());
-
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(),
                 Blocks.WATER.defaultBlockState(),
                 getSeaLevel(),
-                BiomeConfig.loadPreset(HOT_DRY.name),
-                seed,
+                BiomeConfig.loadPreset( properties().biomePreset),
                 properties().generateStructures
         );
 

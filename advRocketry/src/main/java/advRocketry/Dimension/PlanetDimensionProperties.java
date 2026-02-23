@@ -69,4 +69,6 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
 
+    public String biomePreset = null;
+
 }
