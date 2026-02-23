@@ -42,7 +42,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     // items and progress
     public HashMap<ItemStack, Float> items_progress = new HashMap<>();
     // unique id and same item reference for server/client sync
-    public HashMap<Long, ItemStack> id_items = new LinkedHashMap<>();
+    public LinkedHashMap<Long, ItemStack> id_items = new LinkedHashMap<>();
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -561,6 +561,7 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     @Override
     public ItemStack insertItem(int ignored, ItemStack itemStack, boolean simulate) {
         // i do not allow insertion, i pull from inventories myself
+        // TODO: allow in future
         return itemStack;
     }
 
