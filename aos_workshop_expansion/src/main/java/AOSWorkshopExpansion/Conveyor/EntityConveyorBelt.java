@@ -322,15 +322,14 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         Long id = addItemTag.getLong("id");
         ItemStack stack = ItemStack.parse(registryAccess, addItemTag.get("stack")).get();
         float progress = addItemTag.getFloat("progress");
-        id_items.put(id, stack);
-        items_progress.put(stack, progress);
+        addItem(id, stack, progress, false, registryAccess);
     }
 
     public void loadItemsFromTag(CompoundTag tag, HolderLookup.Provider registryAccess) {
         if (tag.contains("id_item_progress_entries")) {
             ListTag entries = tag.getList("id_item_progress_entries", Tag.TAG_COMPOUND);
             for (int i = 0; i < entries.size(); i++) {
-                loadEntry(entries.getCompound(0), registryAccess);
+                loadEntry(entries.getCompound(i), registryAccess);
             }
         }
     }
@@ -346,7 +345,12 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
         tag.put("id_item_progress_entries", items_tag);
     }
 
-    public void addItem(Long id, ItemStack stack, float progress, boolean syncToClient, RegistryAccess registryAccess) {
+    public void addItem(Long id, ItemStack stack, float progress, boolean syncToClient, HolderLookup.Provider registryAccess) {
+        if (level != null && level.isClientSide && id_items.containsKey(id)) {
+            return; // this should never happen, but just in case i skip adding so items will not be stuck forever
+        }
+        while (id_items.containsKey(id))
+            id++;
         items_progress.put(stack, progress);
         id_items.put(id, stack);
         if (syncToClient && !level.isClientSide) {
