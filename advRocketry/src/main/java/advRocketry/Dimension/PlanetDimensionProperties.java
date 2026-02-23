@@ -23,7 +23,9 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public Vec3 rotationAxis = new Vec3(0.2, 1, 0);
 
-    public int seaLevel = 63;
+    public int seaLevel = 63; // to calculate wet level for terraforming use current sea level - original sea level
+
+    public int originalSeaLevel = 63;
 
     public boolean generateStructures = false;
 
@@ -43,11 +45,11 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public Vector3f cloudColor = new Vector3f(1,1,1);
 
-    public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f);
+    public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f); // base fog color to calculate actual color
 
     public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.2f); // the atm shading on sunrise
 
-    public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f);
+    public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f); // maybe reflect only green light? or red?
 
     public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
 
@@ -55,17 +57,17 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public float radiationIntensity; // radiation strength, used for terrain shading, and temperature calculation and to scale emissive light in planet render
 
-    public float atmosphereDensity = 1;
+    public float atmosphereDensity = 1; // TODO: calculate based on components, co2, o2, and other gases
 
     public int latitude_len = 400000;// how much you have to move in z direction to "go around the planet" 0% = equator, 25% = South Pole, 50% = equator again, 75% = North Pole
 
-    public int targetDayLength = 24000; // set negative for fixed time
+    public int targetDayLength = 24000; // set negative or 0 for fixed time
 
     public float dayTime;
 
-    public boolean isKnown = false;
+    public boolean isKnown = false; // if false it has to be discovered and unlocked in observatory
 
-    public boolean canVisit = false; // TODO: gas giants or stars should not be visited. observatory can write all planets, rocket should decline if not canvisit
+    public boolean canVisit = false;
 
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
 
