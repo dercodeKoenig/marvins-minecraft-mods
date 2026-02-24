@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.VertexBufferCleaner;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -127,6 +128,13 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
                 vertexBuffer_piston_arm2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_piston_crank1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_piston_crank2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+
+                VertexBufferCleaner.register(this, vertexBuffer_flywheel);
+                VertexBufferCleaner.register(this, vertexBuffer_flywheel_arm);
+                VertexBufferCleaner.register(this, vertexBuffer_piston_arm1);
+                VertexBufferCleaner.register(this, vertexBuffer_piston_arm2);
+                VertexBufferCleaner.register(this, vertexBuffer_piston_crank1);
+                VertexBufferCleaner.register(this, vertexBuffer_piston_crank2);
             });
         }
     }
@@ -141,21 +149,6 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         CompoundTag t = new CompoundTag();
         t.putInt("burnTime", currentBurnTime);
         return t;
-    }
-
-    @Override
-    public void setRemoved(){
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer_flywheel.close();
-                vertexBuffer_flywheel_arm.close();
-                vertexBuffer_piston_arm1.close();
-                vertexBuffer_piston_arm2.close();
-                vertexBuffer_piston_crank1.close();
-                vertexBuffer_piston_crank2.close();
-            });
-        }
-        super.setRemoved();
     }
 
     @Override

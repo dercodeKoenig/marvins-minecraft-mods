@@ -1,6 +1,7 @@
 package AWGenerators.WaterWheel;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -71,18 +72,9 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
         }
-    }
-
-    @Override
-    public void setRemoved(){
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-        }
-        super.setRemoved();
     }
 
     @Override

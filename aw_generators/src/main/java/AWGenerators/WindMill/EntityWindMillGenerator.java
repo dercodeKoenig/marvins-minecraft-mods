@@ -4,6 +4,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
 import ARLib.utils.DimensionUtils;
+import ARLib.utils.VertexBufferCleaner;
 import AWGenerators.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -107,6 +108,10 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_wheel = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_axle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+
+                VertexBufferCleaner.register(this, vertexBuffer);
+                VertexBufferCleaner.register(this, vertexBuffer_wheel);
+                VertexBufferCleaner.register(this, vertexBuffer_axle);
             });
         }
     }
@@ -128,13 +133,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-                vertexBuffer_axle.close();
-                vertexBuffer_wheel.close();
-            });
-        }
         if(!level.isClientSide){
             Direction myFacing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
             BlockPos center = getBlockPos().relative(myFacing.getOpposite());
