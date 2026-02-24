@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.VertexBufferCleaner;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
@@ -250,11 +251,17 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                renderData.axle = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                renderData.scope = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                renderData.casingXMinus = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                renderData.casingXPlus = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                renderData.base = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                renderData.axle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                renderData.scope = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                renderData.casingXMinus = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                renderData.casingXPlus = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                renderData.base = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+
+                VertexBufferCleaner.register(this, renderData.axle, "vertexbuffer1 for observatory cleaned");
+                VertexBufferCleaner.register(this, renderData.scope, "vertexbuffer2 for observatory cleaned");
+                VertexBufferCleaner.register(this, renderData.casingXMinus, "vertexbuffer3 for observatory cleaned");
+                VertexBufferCleaner.register(this, renderData.casingXPlus, "vertexbuffer4 for observatory cleaned");
+                VertexBufferCleaner.register(this, renderData.base, "vertexbuffer5 for observatory cleaned");
             });
         }
 
@@ -419,20 +426,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         guiHandler.modules.add(energyBar);
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 0, 1, guiHandler));
-    }
-
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                renderData.axle.close();
-                renderData.scope.close();
-                renderData.casingXPlus.close();
-                renderData.casingXMinus.close();
-                renderData.base.close();
-            });
-        }
     }
 
     @Override

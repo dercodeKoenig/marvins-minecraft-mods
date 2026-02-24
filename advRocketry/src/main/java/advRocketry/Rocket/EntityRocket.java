@@ -1,12 +1,11 @@
 package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
-import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
-import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketEntity;
 import ARLib.utils.DimensionUtils;
+import ARLib.utils.VertexBufferCleaner;
 import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.Blocks.FuelTank;
@@ -36,7 +35,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -52,7 +50,6 @@ import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -60,6 +57,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
+
 
     // static variables
     public static int ENGINE_BOOT_TIME = 100;
@@ -163,20 +161,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                         VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                         data.vertexBuffer = vbo;
                         renderDataMap.put(entityRenderType, data);
+
+                        VertexBufferCleaner.register(this, vbo);
                     }
                 }
                 requiresMeshUpdate = true;
-            });
-        }
-    }
-
-    public void closeVertexBuffer() {
-        if (FMLEnvironment.dist.isClient()) {
-            RenderSystem.recordRenderCall(() -> {
-                for (RenderData data : renderDataMap.values()) {
-                    data.vertexBuffer.close();
-                }
-                System.out.println("rocket close vertex buffers: "+getUUID()+":"+level().isClientSide+":"+level().dimension().location());
             });
         }
     }

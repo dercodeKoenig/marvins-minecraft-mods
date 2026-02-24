@@ -14,8 +14,7 @@ public class DimensionUtils {
     }
 
     public static Level getDimensionLevelServer(String dimensionId) {
-        ResourceLocation location = ResourceLocation.bySeparator(dimensionId, ':');
+        ResourceLocation location = ResourceLocation.parse(dimensionId);
         return ServerLifecycleHooks.getCurrentServer().getLevel(ResourceKey.create(Registries.DIMENSION, location));
-
     }
 }
