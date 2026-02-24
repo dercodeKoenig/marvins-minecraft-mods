@@ -2,6 +2,7 @@ package AgeOfSteam.Blocks.Mechanics.FlyWheel;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -86,20 +87,10 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
         }
     }
-
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-        }
-    }
-
 
     public void tick(){
         myMechanicalBlock.mechanicalTick();

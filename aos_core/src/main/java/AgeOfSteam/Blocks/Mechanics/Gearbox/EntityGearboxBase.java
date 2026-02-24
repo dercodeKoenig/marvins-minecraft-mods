@@ -1,6 +1,7 @@
 package AgeOfSteam.Blocks.Mechanics.Gearbox;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -122,22 +123,12 @@ public class EntityGearboxBase extends BlockEntity implements IMechanicalBlockPr
                 vertexBuffer_in = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_out = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_mid = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer_in);
+                VertexBufferCleaner.register(this, vertexBuffer_out);
+                VertexBufferCleaner.register(this, vertexBuffer_mid);
             });
         }
     }
-
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer_in.close();
-                vertexBuffer_out.close();
-                vertexBuffer_mid.close();
-            });
-        }
-    }
-
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {

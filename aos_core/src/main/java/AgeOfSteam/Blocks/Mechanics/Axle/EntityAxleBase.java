@@ -1,6 +1,7 @@
 package AgeOfSteam.Blocks.Mechanics.Axle;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Main;
@@ -64,18 +65,9 @@ public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvi
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
         }
-    }
-
-    @Override
-    public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-        }
-        super.setRemoved();
     }
 
 

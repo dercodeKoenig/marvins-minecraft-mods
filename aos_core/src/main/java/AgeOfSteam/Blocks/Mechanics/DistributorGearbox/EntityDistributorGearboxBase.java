@@ -1,6 +1,7 @@
 package AgeOfSteam.Blocks.Mechanics.DistributorGearbox;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -129,6 +130,7 @@ public class EntityDistributorGearboxBase extends BlockEntity implements IMechan
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
         }
     }
@@ -170,16 +172,6 @@ public class EntityDistributorGearboxBase extends BlockEntity implements IMechan
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
-    }
-
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-        }
     }
 
     @Override

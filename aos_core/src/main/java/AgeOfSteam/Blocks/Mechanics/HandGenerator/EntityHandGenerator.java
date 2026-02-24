@@ -1,6 +1,7 @@
 package AgeOfSteam.Blocks.Mechanics.HandGenerator;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -80,17 +81,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
     }
 
     @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-                vertexBuffer2.close();
-            });
-        }
-    }
-
-    @Override
     public void readClient(CompoundTag tag) {
         myMechanicalBlock.mechanicalReadClient(tag);
     }
@@ -128,6 +118,8 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
+                VertexBufferCleaner.register(this, vertexBuffer2);
             });
         }
     }
