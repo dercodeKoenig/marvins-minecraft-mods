@@ -53,7 +53,7 @@ public class PlanetRenderCache {
                 PlanetDimension temp = planetsToRenderInSky.get(i);
                 planetsToRenderInSky.set(i, planetsToRenderInSky.get(i + 1));
                 planetsToRenderInSky.set(i + 1, temp);
-                System.out.println("planet render cache switching " + planetsToRenderInSky.get(i) + " with " + planetsToRenderInSky.get(i + 1));
+                // System.out.println("planet render cache switching " + planetsToRenderInSky.get(i) + " with " + planetsToRenderInSky.get(i + 1));
             }
         }
     }

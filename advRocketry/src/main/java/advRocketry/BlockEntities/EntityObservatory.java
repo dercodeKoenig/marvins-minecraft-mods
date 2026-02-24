@@ -257,11 +257,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 renderData.casingXPlus = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 renderData.base = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
 
-                VertexBufferCleaner.register(this, renderData.axle, "vertexbuffer1 for observatory cleaned");
-                VertexBufferCleaner.register(this, renderData.scope, "vertexbuffer2 for observatory cleaned");
-                VertexBufferCleaner.register(this, renderData.casingXMinus, "vertexbuffer3 for observatory cleaned");
-                VertexBufferCleaner.register(this, renderData.casingXPlus, "vertexbuffer4 for observatory cleaned");
-                VertexBufferCleaner.register(this, renderData.base, "vertexbuffer5 for observatory cleaned");
+                VertexBufferCleaner.register(this, renderData.axle);
+                VertexBufferCleaner.register(this, renderData.scope);
+                VertexBufferCleaner.register(this, renderData.casingXMinus);
+                VertexBufferCleaner.register(this, renderData.casingXPlus);
+                VertexBufferCleaner.register(this, renderData.base);
             });
         }
 
