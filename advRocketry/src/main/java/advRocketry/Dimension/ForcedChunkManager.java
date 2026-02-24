@@ -110,7 +110,7 @@ public class ForcedChunkManager {
             ServerLevel level = DimensionManager.getServerLevel(server, l);
             if (level != null) {
                 ticketController.forceChunk(level, ticketOwner, pos.x, pos.z, true, true);
-                System.out.println("Set chunk force loaded: " + pos + " in " + l);
+                //System.out.println("Set chunk force loaded: " + pos + " in " + l);
             } else {
                 System.out.println("error force loading chunk, level is null: " + l);
             }
@@ -141,7 +141,7 @@ public class ForcedChunkManager {
                         // Release the chunk
                         ticketController.forceChunk(level, ticketOwner, pos.x, pos.z, false, true);
 
-                        System.out.println("Released forced chunk: " + levelId + ":" + pos + " at time " + GlobalTime.getGlobalTime());
+                        //System.out.println("Released forced chunk: " + levelId + ":" + pos + " at time " + GlobalTime.getGlobalTime());
                     }
                 }
             }

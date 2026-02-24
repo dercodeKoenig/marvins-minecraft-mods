@@ -423,6 +423,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     @Override
     public void setRemoved() {
+        super.setRemoved();
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 renderData.axle.close();

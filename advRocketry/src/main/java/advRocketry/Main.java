@@ -30,6 +30,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
@@ -49,6 +50,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
@@ -83,8 +85,8 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
         NeoForge.EVENT_BUS.addListener(this::onChunkLoad);
-        NeoForge.EVENT_BUS.addListener(this::onEntityLeaveWorld);
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
+        NeoForge.EVENT_BUS.addListener(this::onLivingFallEvent);
 
         // mod loading
         modEventBus.addListener(this::registerShaders);
@@ -197,15 +199,9 @@ public class Main {
 
     }
 
-    void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
-        if (event.getEntity() instanceof EntityRocket rocket) {
-            rocket.closeVertexBuffer();
-        }
-    }
-
     void onChunkLoad(ChunkEvent.Load event) {
-        if(event.isNewChunk())
-            System.out.println("new chunk: "+event.getChunk().getPos());
+        //if(event.isNewChunk())
+            //System.out.println("new chunk: "+event.getChunk().getPos());
         // TODO: trigger ore replacement
     }
 
@@ -216,7 +212,13 @@ public class Main {
         }
     }
 
-    public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+    void onLivingFallEvent(LivingFallEvent event){
+        Level l = event.getEntity().level();
+        float g =DimensionManager.getDimensionManager(l.isClientSide).get(l.dimension().location()).getGravitationalMultiplier();
+        event.setDamageMultiplier(event.getDamageMultiplier() * g);
+    }
+
+    void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         ItemStack stack = event.getItemStack();
         Player p = event.getEntity();
         Entity target = event.getTarget();

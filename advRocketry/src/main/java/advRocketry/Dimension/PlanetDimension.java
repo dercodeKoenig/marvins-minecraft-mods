@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.biome.OverworldBiomeBuilder;
 import net.minecraft.world.level.block.Blocks;
@@ -80,10 +81,12 @@ public class PlanetDimension extends Dimension {
 
         // maybe get base height from this to copy top blocks without decoration?
        //NoiseColumn nc = l.getChunkSource().getGenerator().getBaseColumn(0,0,l,l.getChunkSource().randomState());
-       //nc.getBlock()
+
 
         // make a table of templates of hot -> cold, high sea level -> low sea level
         // terraformer will choose a template and create a virtual level to generate the new world and copy it
+
+        // maybe when biome changing, pick flower features from biome?
     }
 
     // TODO:
@@ -92,8 +95,6 @@ public class PlanetDimension extends Dimension {
 
     public boolean isKnown() {
         return properties().isKnown;
-        // TODO: maybe make an item that stores the discovered planets per item and only with item you can select a hidden planet to travel to
-        //      telescope can discover short distance planets fast (moons for example)
     }
 
     public boolean canVisit() {

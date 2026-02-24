@@ -18,7 +18,14 @@ public class MOON {
         definition.temperaturesList.addAll(List.of(BiomeConfig.Temperature.values()));
         definition.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
         definition.erosionList.addAll(List.of(BiomeConfig.Erosion.values()));
+        config.biomes.add(definition);
 
+        definition = new BiomeConfig.BiomeDefinition();
+        definition.biome1 = "adv_rocketry:moon_dark";
+        definition.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.OCEAN, BiomeConfig.Continentalness.DEEP_OCEAN));
+        definition.temperaturesList.addAll(List.of(BiomeConfig.Temperature.values()));
+        definition.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
+        definition.erosionList.addAll(List.of(BiomeConfig.Erosion.values()));
         config.biomes.add(definition);
 
         return config;
