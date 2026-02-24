@@ -749,9 +749,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             CompoundTag blockTag = compoundTag.getCompound("updateBlockEntity");
             BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
             BlockState state = blocks.get(p);
-            BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
-            be.loadCustomOnly(blockTag.getCompound("blockEntity"), registryAccess());
-            blockEntities.put(p, be);
+            CompoundTag blockEntityTag = blockTag.getCompound("blockEntity");
+            BlockEntity existingBlockEntity = blockEntities.get(p);
+            if(existingBlockEntity!=null && existingBlockEntity.isValidBlockState(state))
+                existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
+            else {
+                BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
+                be.loadCustomOnly(blockEntityTag, registryAccess());
+                blockEntities.put(p, be);
+            }
         }
     }
 
