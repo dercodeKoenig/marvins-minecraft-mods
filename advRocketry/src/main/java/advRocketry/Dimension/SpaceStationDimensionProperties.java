@@ -20,7 +20,7 @@ public class SpaceStationDimensionProperties extends DimensionProperties{
     // every few seconds this target position and orbit distance can be synced, client will perform same logic
     // targetposition = targetposition + cross(orbitaxis, planetvector) * orbitspeed
     // targetposition = planetposition + (targetposition - planetposition).norm.scale(distance)
-    // position = position + (targetposition - position) * 0.1 or similar
+    // position = position + (targetposition - position) * 0.1 or similar where speed is capped to orbitspeed*1.01 so it can catch up but never be too fast
     public Vec3 targetPosition = new Vec3(0, 0, 0);
 
     public ResourceLocation parentDimensionId = null;       // optional, overwrites position
