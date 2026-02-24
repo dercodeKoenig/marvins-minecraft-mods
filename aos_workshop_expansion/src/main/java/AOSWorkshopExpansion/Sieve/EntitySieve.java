@@ -2,10 +2,7 @@ package AOSWorkshopExpansion.Sieve;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.BlockIdentifier;
-import ARLib.utils.ItemUtils;
-import ARLib.utils.RecipePart;
-import ARLib.utils.RecipePartWithProbability;
+import ARLib.utils.*;
 import AOSWorkshopExpansion.Sieve.Items.ItemSieveUpgrade;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
@@ -137,16 +134,6 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                myInputRendererBuffer.close();
-                myHopperInputRendererBuffer.close();
-                vertexBuffer3.close();
-                vertexBuffer.close();
-                vertexBuffer2.close();
-            });
-        }
-
         if (!level.isClientSide) {
             knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
         }
@@ -265,6 +252,11 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
+                VertexBufferCleaner.register(this, vertexBuffer2);
+                VertexBufferCleaner.register(this, vertexBuffer3);
+                VertexBufferCleaner.register(this, myHopperInputRendererBuffer);
+                VertexBufferCleaner.register(this, myInputRendererBuffer);
             });
         }
     }

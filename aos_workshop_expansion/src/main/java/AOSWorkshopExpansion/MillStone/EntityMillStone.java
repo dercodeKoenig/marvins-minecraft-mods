@@ -9,6 +9,7 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockIdentifier;
 import ARLib.utils.DimensionUtils;
 import ARLib.utils.ItemUtils;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
@@ -130,6 +131,10 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
                 vertexBufferStone = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBufferPlate = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBufferAxle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+
+                VertexBufferCleaner.register(this, vertexBufferStone);
+                VertexBufferCleaner.register(this, vertexBufferPlate);
+                VertexBufferCleaner.register(this, vertexBufferAxle);
             });
         }
 
@@ -170,13 +175,6 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     public void setRemoved() {
         if (!level.isClientSide) {
             knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
-        }
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBufferAxle.close();
-                vertexBufferStone.close();
-                vertexBufferPlate.close();
-            });
         }
         super.setRemoved();
     }

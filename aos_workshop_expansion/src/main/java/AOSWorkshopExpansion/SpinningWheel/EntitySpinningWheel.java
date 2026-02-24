@@ -135,6 +135,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
         }
     }
@@ -151,12 +152,6 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public void setRemoved(){
         if (!level.isClientSide) {
             knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
-        }
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
         }
         super.setRemoved();
     }

@@ -1,6 +1,7 @@
 package AOSWorkshopExpansion.Drill;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -62,6 +63,7 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
         }
     }
@@ -70,16 +72,6 @@ public class EntityDrill extends BlockEntity implements IMechanicalBlockProvider
     public void onLoad() {
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
-    }
-
-    @Override
-    public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-        }
-        super.setRemoved();
     }
 
     public void tick() {

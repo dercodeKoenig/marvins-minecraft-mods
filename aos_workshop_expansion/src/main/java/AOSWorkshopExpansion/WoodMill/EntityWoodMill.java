@@ -4,10 +4,7 @@ import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.BlockIdentifier;
-import ARLib.utils.ItemUtils;
-import ARLib.utils.RecipePart;
-import ARLib.utils.RecipePartWithProbability;
+import ARLib.utils.*;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
@@ -163,13 +160,6 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
         if (!level.isClientSide) {
             knownBlockEntities.remove(new BlockIdentifier(level, getBlockPos()));
         }
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer_saw.close();
-                vertexBuffer_arm.close();
-            });
-        }
-
         super.setRemoved();
     }
 
@@ -236,6 +226,8 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer_arm = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer_saw = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                VertexBufferCleaner.register(this,vertexBuffer_arm);
+                VertexBufferCleaner.register(this,vertexBuffer_saw);
             });
         }
     }
