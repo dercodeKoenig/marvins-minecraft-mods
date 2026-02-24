@@ -1,10 +1,14 @@
 package advRocketry.worldgen;
 
+import advRocketry.Main;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.commands.execution.tasks.BuildContexts;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.BlockTags;
@@ -13,6 +17,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -50,6 +55,23 @@ public class PlanetDimensionGeneration {
         RegistryAccess registryAccess = server.registryAccess();
 
         NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
+        NoiseGeneratorSettings netherSetting = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.NETHER);
+
+        SurfaceRules.RuleSource customBiomeRule = SurfaceRules.ifTrue(
+                SurfaceRules.isBiome(ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon"))),
+                SurfaceRules.sequence(
+                        // The very top block (grass layer)
+                        SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(Blocks.DIAMOND_BLOCK.defaultBlockState())),
+                        // The blocks right under the top block (dirt layer)
+                        SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.state(Blocks.REDSTONE_BLOCK.defaultBlockState()))
+                )
+        );
+
+        SurfaceRules.RuleSource surfaceRules = SurfaceRules.sequence(
+                customBiomeRule,
+                overworldSettings.surfaceRule()
+                //netherSetting.surfaceRule()
+        );
 
         ChunkGenerator generator = new CustomChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeConfig.createBiomeConfig())),
@@ -58,12 +80,12 @@ public class PlanetDimensionGeneration {
                         defaultBlock,
                         defaultFluid,
                         overworldSettings.noiseRouter(),
-                        overworldSettings.surfaceRule(),
+                        surfaceRules,
                         overworldSettings.spawnTarget(),
                         sealevel,
                         true,
                         true,
-                        true,
+                        false,
                         false
                 )),
                 structuresEnabled

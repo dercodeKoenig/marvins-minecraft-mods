@@ -2,6 +2,7 @@ package advRocketry.Dimension;
 
 import advRocketry.worldgen.presets.HOT;
 import advRocketry.worldgen.presets.HOT_DRY;
+import advRocketry.worldgen.presets.MOON;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
@@ -53,7 +54,7 @@ public class DefaultGalaxy {
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         moon.hasRingSystem = true;
         moon.canVisit = true;
-        moon.biomePreset = HOT_DRY.name;
+        moon.biomePreset = MOON.name;
         galaxy.add(moon);
 
 

@@ -17,6 +17,7 @@ import advRocketry.worldgen.BiomeConfig;
 
 import advRocketry.worldgen.presets.HOT;
 import advRocketry.worldgen.presets.HOT_DRY;
+import advRocketry.worldgen.presets.MOON;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -29,6 +30,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -49,6 +51,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -79,6 +82,7 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
+        NeoForge.EVENT_BUS.addListener(this::onChunkLoad);
         NeoForge.EVENT_BUS.addListener(this::onEntityLeaveWorld);
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
 
@@ -118,6 +122,7 @@ public class Main {
         // write biome presets
         BiomeConfig.makePresetIfNotExist(HOT.name, HOT.create());
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
+        BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
 
     }
 
@@ -196,6 +201,12 @@ public class Main {
         if (event.getEntity() instanceof EntityRocket rocket) {
             rocket.closeVertexBuffer();
         }
+    }
+
+    void onChunkLoad(ChunkEvent.Load event) {
+        if(event.isNewChunk())
+            System.out.println("new chunk: "+event.getChunk().getPos());
+        // TODO: trigger ore replacement
     }
 
     void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
