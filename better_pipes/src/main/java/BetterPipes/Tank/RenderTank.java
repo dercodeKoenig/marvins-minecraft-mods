@@ -12,6 +12,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix4f;
 
 import static net.minecraft.client.renderer.RenderStateShard.*;
+import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
 public class RenderTank implements BlockEntityRenderer<EntityTank> {
 
@@ -41,7 +42,7 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
 
 
         //render up face
-        if(renderTop) {
+        if (renderTop) {
             v.addVertex((float) x0, (float) y1, (float) z0).setColor(color).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
             v.addVertex((float) x0, (float) y1, (float) z1).setColor(color).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
             v.addVertex((float) x1, (float) y1, (float) z1).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
@@ -49,7 +50,7 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
         }
 
         //render bottom face
-        if(renderBottom) {
+        if (renderBottom) {
             v.addVertex((float) x1, (float) y0, (float) z0).setColor(color).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
             v.addVertex((float) x1, (float) y0, (float) z1).setColor(color).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
             v.addVertex((float) x0, (float) y0, (float) z1).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, -1, 0);
@@ -106,18 +107,18 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
 
                 boolean renderTop = true;
                 boolean renderBottom = true;
-                if(tile.getBlockState().getValue(BlockTank.connectedBelow)){
+                if (tile.getBlockState().getValue(BlockTank.connectedBelow)) {
                     BlockEntity other = tile.getLevel().getBlockEntity(tile.getBlockPos().below());
                     if (other instanceof EntityTank otherTank) {
-                        if(FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), tile.myTank.getFluid())){
+                        if (FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), tile.myTank.getFluid())) {
                             renderBottom = false;
                         }
                     }
                 }
-                if(tile.getBlockState().getValue(BlockTank.connectedAbove)){
+                if (tile.getBlockState().getValue(BlockTank.connectedAbove)) {
                     BlockEntity other = tile.getLevel().getBlockEntity(tile.getBlockPos().above());
                     if (other instanceof EntityTank otherTank) {
-                        if(FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), tile.myTank.getFluid())){
+                        if (FluidStack.isSameFluidSameComponents(otherTank.myTank.getFluid(), tile.myTank.getFluid())) {
                             renderTop = false;
                         }
                     }
@@ -130,15 +131,17 @@ public class RenderTank implements BlockEntityRenderer<EntityTank> {
                 float z0 = e + 2f / 16;
                 float z1 = 1 - (e + 2f / 16);
 
-                BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+                ByteBufferBuilder myByteBuffer = new ByteBufferBuilder(TRANSIENT_BUFFER_SIZE);
+                BufferBuilder bufferBuilder = new BufferBuilder(myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
                 renderFluidCubeStill(x0, x1, z0, z1, y0, y1,
                         tile.spriteStill.getU0(), tile.spriteStill.getU1(), tile.spriteStill.getV0(), tile.spriteStill.getV1(),
-                        tile.color, bufferBuilder, packedLight, packedOverlay,renderTop, renderBottom);
+                        tile.color, bufferBuilder, packedLight, packedOverlay, renderTop, renderBottom);
 
                 tile.mesh = bufferBuilder.build();
                 if (tile.mesh != null) {
                     tile.vertexBuffer.upload(tile.mesh);
                 }
+                myByteBuffer.close();
             } else {
                 tile.mesh = null;
             }

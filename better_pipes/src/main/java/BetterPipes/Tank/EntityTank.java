@@ -2,6 +2,7 @@ package BetterPipes.Tank;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.VertexBufferCleaner;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -41,7 +42,6 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
     int color;
     boolean requiresMeshUpdate = false;
     VertexBuffer vertexBuffer;
-    ByteBufferBuilder myByteBuffer;
     MeshData mesh;
     int lastLight;
 
@@ -81,21 +81,12 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                myByteBuffer = new ByteBufferBuilder(TRANSIENT_BUFFER_SIZE);
+                VertexBufferCleaner.register(this, vertexBuffer);
             });
             updateSprites(Fluids.WATER);
         }
     }
 
-    @Override
-    public void setRemoved(){
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer .close();
-                myByteBuffer.close();
-            });
-        }
-    }
     @Override
     public void onLoad() {
         if (level.isClientSide) {

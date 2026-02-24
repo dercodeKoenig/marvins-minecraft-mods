@@ -23,6 +23,7 @@ import org.joml.Quaternionf;
 
 import static AgeOfSteam.Static.TPS;
 import static net.minecraft.client.renderer.RenderStateShard.*;
+import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
 public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
@@ -1990,13 +1991,15 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         if (tile.requiresMeshUpdate || packedLight != tile.lastLight) {
 
             // updae the fluid buffer on light change or fluid change
-            BufferBuilder bufferBuilder = new BufferBuilder(tile.myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            ByteBufferBuilder myByteBuffer = new ByteBufferBuilder(TRANSIENT_BUFFER_SIZE);
+            BufferBuilder bufferBuilder = new BufferBuilder(myByteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
             RenderPipe.renderFluids(tile, bufferBuilder, packedLight, 0);
             tile.mesh = bufferBuilder.build();
             if (tile.mesh != null) {
                 tile.vertexBuffer.bind();
                 tile.vertexBuffer.upload(tile.mesh);
             }
+            myByteBuffer.close();
 
             // update the arm only when light changes
             if (tile.lastLight != packedLight) {

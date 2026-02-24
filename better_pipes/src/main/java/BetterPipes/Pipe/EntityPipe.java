@@ -2,6 +2,7 @@ package BetterPipes.Pipe;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
@@ -76,7 +77,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     public VertexBuffer vertexBufferPumpCube;
     public boolean requiresMeshUpdate = false;
     public boolean requiresMeshUpdate2 = false;
-    public ByteBufferBuilder myByteBuffer;
     public int lastLight;
 
     boolean tankNorth = false;
@@ -97,9 +97,12 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                myByteBuffer = new ByteBufferBuilder(TRANSIENT_BUFFER_SIZE);
                 vertexBufferCrankshaftConnection = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 vertexBufferPumpCube = new VertexBuffer(VertexBuffer.Usage.STATIC);
+
+                VertexBufferCleaner.register(this, vertexBuffer);
+                VertexBufferCleaner.register(this, vertexBufferCrankshaftConnection);
+                VertexBufferCleaner.register(this, vertexBufferPumpCube);
             });
         }
     }
@@ -118,19 +121,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, tag));
             setRequiresMeshUpdate();
         }
-    }
-
-    @Override
-    public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-                myByteBuffer.close();
-                vertexBufferCrankshaftConnection.close();
-                vertexBufferPumpCube.close();
-            });
-        }
-        super.setRemoved();
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
