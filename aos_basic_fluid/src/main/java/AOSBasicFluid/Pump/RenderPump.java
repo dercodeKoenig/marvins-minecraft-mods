@@ -13,13 +13,11 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -98,7 +96,7 @@ public class RenderPump implements BlockEntityRenderer<EntityPump> {
 
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         stack.translate(0.5f, 0.5f, 0.5f);
-        Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f m1 = new Matrix4f();
         m1 = m1.mul(stack.last().pose());
 
         // this is rotations mess up the calculations for the angles later. no idea exactly why but i tried around with this values and it seems to work now
@@ -182,9 +180,8 @@ public class RenderPump implements BlockEntityRenderer<EntityPump> {
 
         m2 = m2.rotate(new Quaternionf().fromAxisAngleRad(0f, 0f, -1f, (float) a_angle));
 
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        //shader.getUniform("NormalMatrix").set((new Matrix3f(m2)).invert().transpose());
-        //shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES,new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBufferArm3.bind();
         tile.vertexBufferArm3.draw();
@@ -193,9 +190,8 @@ public class RenderPump implements BlockEntityRenderer<EntityPump> {
         m2.translate(new Vector3f((float) 0, (float) (B_y), 0f));
         m2 = m2.rotate(new Quaternionf().fromAxisAngleRad(0f, 0f, (float) 1, (float) b_angle));
 
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        //shader.getUniform("NormalMatrix").set((new Matrix3f(m2)).invert().transpose());
-        //shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBufferArm1.bind();
         tile.vertexBufferArm1.draw();
@@ -206,9 +202,8 @@ public class RenderPump implements BlockEntityRenderer<EntityPump> {
         double C_y = B_y + Math.sin(-b_angle) * l2;
         m2.translate(new Vector3f((float) (-0.95 * axisMultiplier), (float) (C_y), 0f));
 
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        //shader.getUniform("NormalMatrix").set((new Matrix3f(m2)).invert().transpose());
-        //shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
+        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(m2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+        shader.getUniform("NormalMat").set(Static.getNormalMat(m2));
         shader.apply();
         tile.vertexBufferArm2.bind();
         tile.vertexBufferArm2.draw();

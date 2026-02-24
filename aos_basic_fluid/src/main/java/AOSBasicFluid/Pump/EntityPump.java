@@ -1,6 +1,7 @@
 package AOSBasicFluid.Pump;
 
 import ARLib.network.INetworkTagReceiver;
+import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
@@ -8,7 +9,6 @@ import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
 import FiniteWater.Config;
-import com.mojang.blaze3d.pipeline.RenderCall;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -102,20 +102,12 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                 vertexBufferArm1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBufferArm2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBufferArm3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
-    }
 
-    @Override
-    public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBufferArm1.close();
-                vertexBufferArm2.close();
-                vertexBufferArm3.close();
+                VertexBufferCleaner.register(this, vertexBufferArm1);
+                VertexBufferCleaner.register(this, vertexBufferArm2);
+                VertexBufferCleaner.register(this, vertexBufferArm3);
             });
         }
-        super.setRemoved();
     }
 
     @Override
