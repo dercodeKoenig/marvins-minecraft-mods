@@ -30,6 +30,9 @@ import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
 public class PlanetDimension extends Dimension {
 
+    public Vec3 currentSpeed = new Vec3(0,0,0); // could be used by rockets / stations
+    public Vec3 lastPosition = new Vec3(0,0,0); // could be used by rockets / stations
+
     float targetsealevel; // for ticking, rise or lower sea level
     float temperature; // should be autocalculated, will for example freeze water when cold or evaporate when too hot or superheated
     // all the gases need to be added too, gascomposition
@@ -361,6 +364,10 @@ public class PlanetDimension extends Dimension {
 
     public void tick() {
         super.tickStarCache();
+
+        Vec3 position = getPosition(0);
+        currentSpeed = position.subtract(lastPosition);
+        lastPosition = position;
 
         if (!isClientSide) {
             ServerLevel level = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), getDimensionId());

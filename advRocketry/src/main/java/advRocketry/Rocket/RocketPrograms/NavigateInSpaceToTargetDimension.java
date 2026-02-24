@@ -79,6 +79,10 @@ public class NavigateInSpaceToTargetDimension {
         // slow down when off target
         double directionMultiplier2 = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
 
+        // TODO: use the target planet current speed for more control as we close up on it
+        // planet speed is vec3, so maybe add to target speed
+        // dot(heading, norm(planetspeed)) * planetspeed
+
         // calculate acceleration
         double targetSpeed = maxSpeed * 0.9 * directionMultiplier1 * directionMultiplier2 + e;
         double targetAcceleration = targetSpeed - rocket.universeTravelSpeed;
