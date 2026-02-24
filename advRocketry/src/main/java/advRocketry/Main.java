@@ -331,6 +331,8 @@ public class Main {
             e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
             e.accept(Registry.OBSERVATORY.get());
             e.accept(Registry.ROCKET_ITEM_LOADER.get());
+            e.accept(Registry.MOON_TURF.get());
+            e.accept(Registry.MOON_TURF_DARK.get());
         }
     }
 }

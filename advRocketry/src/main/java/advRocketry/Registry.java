@@ -16,6 +16,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -78,6 +79,8 @@ public class Registry {
     public static final Supplier<Block> ROCKET_ITEM_LOADER = BLOCKS.register("rocket_item_loader", () -> new RocketItemLoader());
     public static final Supplier<BlockEntityType<EntityRocketItemLoader>> ENTITY_ROCKET_ITEM_LOADER = BLOCK_ENTITIES.register("rocket_item_loader", () -> BlockEntityType.Builder.of(EntityRocketItemLoader::new, ROCKET_ITEM_LOADER.get()).build(null));
 
+    public static final Supplier<Block> MOON_TURF = BLOCKS.register("moon_turf", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
+    public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
 
 
 
@@ -101,5 +104,9 @@ public class Registry {
         registerBlockItem("fueling_station", FUELING_STATION);
         registerBlockItem("observatory", OBSERVATORY);
         registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
+
+
+        registerBlockItem("moon_turf", MOON_TURF);
+        registerBlockItem("moon_turf_dark", MOON_TURF_DARK);
     }
 }

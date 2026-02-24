@@ -10,8 +10,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
+import net.minecraft.world.level.biome.OverworldBiomeBuilder;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -70,6 +74,16 @@ public class PlanetDimension extends Dimension {
         } else {
             System.out.println("loaded dimension for " + getDimensionId());
         }
+        // maybe for terraforming to change biomes:
+        // or try to set from a noise source? using the same biome source and level noise source?
+        // ((PalettedContainer) l.getChunk(0,0).getSection(0).getBiomes()).get;
+
+        // maybe get base height from this to copy top blocks without decoration?
+       //NoiseColumn nc = l.getChunkSource().getGenerator().getBaseColumn(0,0,l,l.getChunkSource().randomState());
+       //nc.getBlock()
+
+        // make a table of templates of hot -> cold, high sea level -> low sea level
+        // terraformer will choose a template and create a virtual level to generate the new world and copy it
     }
 
     // TODO:

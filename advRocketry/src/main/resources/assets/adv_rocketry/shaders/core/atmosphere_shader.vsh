@@ -9,7 +9,7 @@ uniform mat4 WorldMat; // Universe space to World space
 uniform mat4 ProjMat;
 
 
-out vec3 normalUniverseSpace;
+out vec3 vertexDirUniverseSpace;
 out vec3 localUpUniverseSpace;
 
 void main() {
@@ -19,8 +19,10 @@ void main() {
     mat3 rotModel = mat3(ModelMat);
     // rotWorldInv transforms vectors from World space to Universe space
     mat3 rotWorldInv = transpose(mat3(WorldMat));
-    // Normal is transformed from Model -> World (rotModel) -> Universe (rotWorldInv)
-    normalUniverseSpace = normalize(rotWorldInv * (rotModel * Normal));
+
+    // We use the local Position as the direction.
+    // This works perfectly for a sphere centered at 0,0,0.
+    vertexDirUniverseSpace = normalize(rotWorldInv * (rotModel * Position));
 
     // World up in universe space
     localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));

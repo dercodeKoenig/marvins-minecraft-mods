@@ -230,9 +230,6 @@ public class SkyRenderer {
 
         shader.getUniform("AtmDensity").set(myCurrentSpaceObject.getAtmosphereDensity());
 
-        //TODO maybe render the planet sphere below??
-        //shader.getUniform("renderDistance").set((float) CelestialUtils.getRealRadiusFromValue(myPlanet.size));
-
         shader.apply();
         vertexBufferSkyBox.bind();
         vertexBufferSkyBox.draw();
