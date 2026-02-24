@@ -130,20 +130,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         controller = new RocketController(this);
 
-        if (FMLEnvironment.dist.isClient()) {
-            RenderSystem.recordRenderCall(() -> {
-                for (RenderType type : RenderType.chunkBufferLayers()) {
-                    RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
-                    if (!renderDataMap.containsKey(entityRenderType)) {
-                        RenderData data = new RenderData();
-                        VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                        data.vertexBuffer = vbo;
-                        renderDataMap.put(entityRenderType, data);
-                    }
-                }
-                requiresMeshUpdate = true;
-            });
-        }
+        initVertexBuffers();
     }
 
     public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size, Vec3 front) {
@@ -166,6 +153,22 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return rocket;
     }
 
+    public void initVertexBuffers(){
+        if (FMLEnvironment.dist.isClient()) {
+            RenderSystem.recordRenderCall(() -> {
+                for (RenderType type : RenderType.chunkBufferLayers()) {
+                    RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
+                    if (!renderDataMap.containsKey(entityRenderType)) {
+                        RenderData data = new RenderData();
+                        VertexBuffer vbo = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                        data.vertexBuffer = vbo;
+                        renderDataMap.put(entityRenderType, data);
+                    }
+                }
+                requiresMeshUpdate = true;
+            });
+        }
+    }
 
     public void closeVertexBuffer() {
         if (FMLEnvironment.dist.isClient()) {
@@ -173,6 +176,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 for (RenderData data : renderDataMap.values()) {
                     data.vertexBuffer.close();
                 }
+                System.out.println("rocket close vertex buffers: "+getUUID()+":"+level().isClientSide+":"+level().dimension().location());
             });
         }
     }
@@ -227,7 +231,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        makeGui(); // TODO: remove after testing
         openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
