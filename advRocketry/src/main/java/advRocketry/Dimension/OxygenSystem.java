@@ -41,7 +41,7 @@ public class OxygenSystem {
     /// oxygenSuppliedBlocks is cleared
     /// For all entries in scannedBlocks, if the OxygenSupplier matched to it is in state "true", this block will be added to oxygenSuppliedBlocks.
 
-    public static HashMap<Level, OxygenSystem> oxygenSystems = new HashMap<>();
+    public static HashMap<ResourceLocation, OxygenSystem> oxygenSystems = new HashMap<>();
     // holds all oxygen suppliers on this level
     HashSet<OxygenSupplier> allRegisteredOxygenSuppliers = new HashSet<>();
     // populated during reset
@@ -57,7 +57,7 @@ public class OxygenSystem {
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).hasEnoughOxygen())
             return true;
 
-        OxygenSystem instance = oxygenSystems.get(level);
+        OxygenSystem instance = oxygenSystems.get(level.dimension().location());
         if (instance != null) {
             if (instance.oxygenSuppliedBlocks.contains(pos))
                 return true;
@@ -81,15 +81,15 @@ public class OxygenSystem {
     // onload the blockentity should register itself here
     public static void registerOxygenSupplier(Level level, OxygenSupplier supplier) {
         if (level.isClientSide) return;
-        oxygenSystems.putIfAbsent(level, new OxygenSystem());
-        oxygenSystems.get(level).allRegisteredOxygenSuppliers.add(supplier);
+        oxygenSystems.putIfAbsent(level.dimension().location(), new OxygenSystem());
+        oxygenSystems.get(level.dimension().location()).allRegisteredOxygenSuppliers.add(supplier);
     }
 
     // on setremoved the blockentity should unregister itself
     public static void removeOxygenSupplier(Level level, OxygenSupplier supplier) {
         if (level.isClientSide) return;
-        oxygenSystems.putIfAbsent(level, new OxygenSystem());
-        oxygenSystems.get(level).allRegisteredOxygenSuppliers.remove(supplier);
+        oxygenSystems.putIfAbsent(level.dimension().location(), new OxygenSystem());
+        oxygenSystems.get(level.dimension().location()).allRegisteredOxygenSuppliers.remove(supplier);
     }
 
     public static void tickAll() {
