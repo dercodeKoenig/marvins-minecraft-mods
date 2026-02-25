@@ -4,11 +4,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
+// a block like oxygen vent is an oxygen supplier or creates an instance of it and registers it to the exygen system
 public class OxygenSupplier {
 
     private int scannedBlocksCounter = 0;
@@ -72,13 +75,42 @@ public class OxygenSupplier {
         // find reachable blocks to scan next
         for (Direction facing : Direction.values()) {
             BlockPos otherPos = current.relative(facing);
-            BlockState otherState = level.getBlockState(otherPos);
-            // if the other block is not a solid full block like slab or torch,
-            // air can flow through so it has to be scanned until we find a solid wall to end the scan
-
             if (scannedBlocks.containsKey(otherPos)) {
+                // early stopping saves iteration steps, but don't forget to add the other supplier!
                 connectedSuppliers.add(scannedBlocks.get(otherPos));
-            } else if (!otherState.isCollisionShapeFullBlock(level, otherPos)) {
+            } else{
+                BlockState otherState = level.getBlockState(otherPos);
+
+                if(otherState.isAir()){
+                    // fast check for air
+                    queue.add(otherPos);
+                    continue;
+                }
+
+                if(otherState.isCollisionShapeFullBlock(level, otherPos))
+                    // full block can not let air through
+                    continue;
+
+                // not air and not solid block, it needs some more analysis....
+                // i will now test if the face that is toward the current position has a full shape
+                // this is not perfect but it allows to work with open/closed doors 
+                List<Direction.Axis> requiresFullShape = null;
+                if(facing.getAxis() == Direction.Axis.X)
+                    requiresFullShape = List.of(Direction.Axis.Y, Direction.Axis.Z);
+                else if(facing.getAxis() == Direction.Axis.Y)
+                    requiresFullShape = List.of(Direction.Axis.X, Direction.Axis.Z);
+                else
+                    requiresFullShape = List.of(Direction.Axis.X, Direction.Axis.Y);
+                boolean bothAxisAreFullShapee = true;
+                VoxelShape shape = otherState.getShape(level, otherPos);
+                for(Direction.Axis axis : requiresFullShape) {
+                    if(shape.max(axis) < 1 || shape.min(axis) > 0) {
+                        bothAxisAreFullShapee = false;
+                    }
+                }
+                if(bothAxisAreFullShapee)
+                    continue;
+
                 queue.add(otherPos);
             }
         }
