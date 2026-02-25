@@ -42,11 +42,6 @@ public class OxygenSupplier {
     // scan all blocks that are connected until the entire area is scanned or we run out of scan limit
     public void tickFloodScan(HashMap<BlockPos, OxygenSupplier> scannedBlocks) {
 
-        // make sure we connect also to indirectly connected oxygen suppliers
-        // we could be 3 or 7 areas separated from a connected supplier over multiple iterations we should catch it
-        // this is important to find the correct max block limit to scan and to sync the final isValidArea state
-        syncConnections();
-
         BlockPos current = queue.poll();
         if (current == null) {
             // ran out of room to scan, the area is probably valid
@@ -95,6 +90,7 @@ public class OxygenSupplier {
     public void syncConnections(){
         // for every connected supplier i will add to my list all the other suppliers connections
         // over multiple ticks this should accumulate all connections
+        // warning, this is slow! so don't call it too often!
         for (OxygenSupplier i : new HashSet<>(connectedSuppliers)){
            connectedSuppliers.addAll(i.connectedSuppliers);
         }
