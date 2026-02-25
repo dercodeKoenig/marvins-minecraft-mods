@@ -114,7 +114,6 @@ public class OxygenSystem {
                     for(Entity e : level.getEntities().getAll()){
                         if(e instanceof LivingEntity livingEntity){
                            if(!hasOxygenAt(level, livingEntity.blockPosition())){
-                               System.out.println(e.blockPosition()+":"+e);
                                livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)),1);
                            }
                         }
