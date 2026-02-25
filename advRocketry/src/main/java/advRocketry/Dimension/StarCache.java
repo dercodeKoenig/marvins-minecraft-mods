@@ -9,9 +9,9 @@ import java.util.*;
 
 public class StarCache {
 
+    public int MAX_LIGHT_SOURCES = 4;
     LinkedHashMap<ResourceLocation, Double> significantLightSourcesCache = new LinkedHashMap<>();
     private Iterator<Dimension> dimIterator1;
-    public int MAX_LIGHT_SOURCES = 4;
 
     // updates the cached light sources that are considered for lighting calculations
     // for simplicity, only self emitted light is considered. if a moon reflects a lot of light, this would be ignored.
@@ -22,14 +22,14 @@ public class StarCache {
             dimIterator1 = new ArrayList<>(myDimension.dimensionManager.dimensions.values()).iterator();
         }
 
-        if (dimIterator1.hasNext()) { // TODO: client and server static variables are shared!!!! this is a problem!!!!
+        if (dimIterator1.hasNext()) {
             Dimension otherDimension = dimIterator1.next();
             ResourceLocation id = otherDimension.getDimensionId();
 
             // skip if it is my id
             if (id.equals(myDimension.getDimensionId())) {
                 return;
-        }
+            }
 
             // Skip if it's already in the top list
             if (significantLightSourcesCache.containsKey(id)) {
