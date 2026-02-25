@@ -57,7 +57,7 @@ public class OxygenSystem {
     }
 
     public static int SCAN_LIMIT() {
-        return 10000; // how much blocks a single oxygen supplier can scan, requires to be same for all blocks or the algorithm will break
+        return 1000; // how much blocks a single oxygen supplier can scan
     }
 
     public static int SCAN_LIMIT_PER_TICK() {

@@ -34,12 +34,18 @@ public class OxygenSupplier {
         isValidArea = false;
         isComplete = false;
         connectedSuppliers.clear();
+        connectedSuppliers.add(this);
         queue.clear();
         queue.add(myPos);
     }
 
     // scan all blocks that are connected until the entire area is scanned or we run out of scan limit
     public void tickFloodScan(HashMap<BlockPos, OxygenSupplier> scannedBlocks) {
+
+        // make sure we connect also to indirectly connected oxygen suppliers
+        // we could be 3 or 7 areas separated from a connected supplier over multiple iterations we should catch it
+        // this is important to find the correct max block limit to scan and to sync the final isValidArea state
+        syncConnections();
 
         BlockPos current = queue.poll();
         if (current == null) {
@@ -51,9 +57,8 @@ public class OxygenSupplier {
         if (scannedBlocks.containsKey(current)) {
             // this block is already processed by another OxygenSupplier or by this one, skip!
             OxygenSupplier otherSupplier = scannedBlocks.get(current);
-            if (otherSupplier != this)
-                // if this block was scanned by another OxygenSupplier, the other one is connected to this one
-                connectedSuppliers.add(otherSupplier);
+            // if this block was scanned by another OxygenSupplier, the other one is connected to this one
+            connectedSuppliers.add(otherSupplier);
             return;
         }
 
@@ -75,13 +80,23 @@ public class OxygenSupplier {
             BlockState otherState = level.getBlockState(otherPos);
             // if the other block is not a solid full block like slab or torch,
             // air can flow through so it has to be scanned until we find a solid wall to end the scan
-            if (!otherState.isCollisionShapeFullBlock(level, otherPos)) {
-                if (!scannedBlocks.containsKey(otherPos)) {
-                    queue.add(otherPos);
-                } else {
-                    connectedSuppliers.add(scannedBlocks.get(otherPos));
-                }
+
+            if (scannedBlocks.containsKey(otherPos)) {
+                connectedSuppliers.add(scannedBlocks.get(otherPos));
+            } else if (!otherState.isCollisionShapeFullBlock(level, otherPos)) {
+                queue.add(otherPos);
             }
+        }
+    }
+
+    // gather all connected suppliers
+    // a supplier might be indirectly connected through multiple other connectors
+    // we need to find and add indirect connections so everything works correctly
+    public void syncConnections(){
+        // for every connected supplier i will add to my list all the other suppliers connections
+        // over multiple ticks this should accumulate all connections
+        for (OxygenSupplier i : new HashSet<>(connectedSuppliers)){
+           connectedSuppliers.addAll(i.connectedSuppliers);
         }
     }
 
@@ -97,7 +112,7 @@ public class OxygenSupplier {
 
     // find the combined remaining scan limit for the oxygen suppliers
     private int getCombinedRemainingScanLimit() {
-        int myScanLimit = getRemainingScanLimit();
+        int myScanLimit = 0;
         for (OxygenSupplier i : connectedSuppliers) {
             myScanLimit += i.getRemainingScanLimit();
         }
