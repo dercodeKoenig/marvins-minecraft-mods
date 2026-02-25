@@ -12,12 +12,14 @@ import java.util.LinkedList;
 // finds oxygen supplied blocks, distributes scanning over many ticks to improve performance
 public class OxygenSystem {
 
-    public static int SCAN_LIMIT(){
-        return 10000; // how much blocks a single oxygen supplier can scan, should be configu
-    }
-    public static int SCAN_LIMIT_PER_TICK(){
-        return 1000; // can only scan this many blocks in total per tick
-    }
+    /// step 4: store results
+    /// oxygenSuppliedBlocks is cleared
+    /// For all entries in scannedBlocks, if the OxygenSupplier matched to it is in state "true", this block will be added to oxygenSuppliedBlocks.
+
+    // holds all oxygen suppliers on this level
+    HashSet<OxygenSupplier> allRegisteredOxygenSuppliers = new HashSet<>();
+    // populated during reset
+    HashSet<OxygenSupplier> activeOxygenSuppliers = new HashSet<>();
 
     /// how it works:
     /// step 1: reset
@@ -35,69 +37,68 @@ public class OxygenSystem {
     /// step 3: gather results (syncAreaState)
     /// Every OxygenSupplier will ask its connected parts if they are invalid and if so, mark itself as invalid.
     /// Meaning if any connected OxygenSupplier exceeded its limit the space is considered "open" and oxygen can not be contained.
-
-    /// step 4: store results
-    /// oxygenSuppliedBlocks is cleared
-    /// For all entries in scannedBlocks, if the OxygenSupplier matched to it is in state "true", this block will be added to oxygenSuppliedBlocks.
-
-    HashSet<OxygenSupplier> allRegisteredOxygenSuppliers = new HashSet<>();
-
     // holds all blocks that are currently supplied with oxygen by oxygen vent or possible other blocks
     HashSet<BlockPos> oxygenSuppliedBlocks = new HashSet<>();
-
     // used during flood scan
     HashMap<BlockPos, OxygenSupplier> scannedBlocks = new HashMap<>();
 
+    public static int SCAN_LIMIT() {
+        return 10000; // how much blocks a single oxygen supplier can scan, should be configu
+    }
 
+    public static int SCAN_LIMIT_PER_TICK() {
+        return 1000; // can only scan this many blocks in total per tick
+    }
 
     // onload the blockentity should register itself here
-    public void registerOxygenSupplier(OxygenSupplier supplier){
+    public void registerOxygenSupplier(OxygenSupplier supplier) {
         allRegisteredOxygenSuppliers.add(supplier);
     }
+
     // on setremoved the blockentity should unregister itself
-    public void removeOxygenSupplier(OxygenSupplier supplier){
+    public void removeOxygenSupplier(OxygenSupplier supplier) {
         allRegisteredOxygenSuppliers.remove(supplier);
     }
 
-    void reset(){
+    void reset() {
         scannedBlocks.clear();
     }
 
-    void tick(){
+    void tick() {
 
         boolean allCompleted = true;
-        for(OxygenSupplier i : allRegisteredOxygenSuppliers){
-            if(i.isActive()) {
-                i.tickFloodScan(scannedBlocks);
-                if(!i.isComplete())
-                    allCompleted = false;
-            }
+        for (OxygenSupplier i : activeOxygenSuppliers) {
+            i.tickFloodScan(scannedBlocks);
+            if (!i.isComplete())
+                allCompleted = false;
         }
 
-        if(allCompleted){
+        if (allCompleted) {
 
             // gather results
-            for(OxygenSupplier i : allRegisteredOxygenSuppliers) {
-                if (i.isActive()) {
-                    i.syncAreaState();
-                }
+            for (OxygenSupplier i : activeOxygenSuppliers) {
+                i.syncAreaState();
             }
 
             // clear existing area
             oxygenSuppliedBlocks.clear();
-            
-            // add all blocks that are currently valid
-            for (BlockPos p : scannedBlocks.keySet()){
+
+            // add all blocks that are currently valid to the main set
+            for (BlockPos p : scannedBlocks.keySet()) {
                 OxygenSupplier supplier = scannedBlocks.get(p);
-                if(supplier.hasValidArea()){
+                if (supplier.hasValidArea()) {
                     oxygenSuppliedBlocks.add(p);
                 }
             }
 
             // reset
             scannedBlocks.clear();
-            for(OxygenSupplier i : allRegisteredOxygenSuppliers) {
-                i.reset();
+            activeOxygenSuppliers.clear();
+            for (OxygenSupplier i : allRegisteredOxygenSuppliers) {
+                if (i.isActive()) {
+                    i.reset();
+                    activeOxygenSuppliers.add(i);
+                }
             }
         }
     }
