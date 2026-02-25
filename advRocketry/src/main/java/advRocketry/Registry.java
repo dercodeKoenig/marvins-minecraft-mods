@@ -82,6 +82,8 @@ public class Registry {
     public static final Supplier<Block> MOON_TURF = BLOCKS.register("moon_turf", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
     public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
 
+    public static final Supplier<Block> OXYGEN_VENT = BLOCKS.register("oxygen_vent", () -> new OxygenVent());
+    public static final Supplier<BlockEntityType<EntityOxygenVent>> ENTITY_OXYGEN_VENT = BLOCK_ENTITIES.register("oxygen_vent", () -> BlockEntityType.Builder.of(EntityOxygenVent::new, OXYGEN_VENT.get()).build(null));
 
 
 
@@ -104,7 +106,7 @@ public class Registry {
         registerBlockItem("fueling_station", FUELING_STATION);
         registerBlockItem("observatory", OBSERVATORY);
         registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
-
+        registerBlockItem("oxygen_vent", OXYGEN_VENT);
 
         registerBlockItem("moon_turf", MOON_TURF);
         registerBlockItem("moon_turf_dark", MOON_TURF_DARK);

@@ -76,7 +76,9 @@ public class OxygenSupplier {
             // if the other block is not a solid full block like slab or torch,
             // air can flow through so it has to be scanned until we find a solid wall to end the scan
             if (!otherState.isCollisionShapeFullBlock(level, otherPos)) {
-                queue.add(otherPos);
+                if(!scannedBlocks.containsKey(otherPos)) {
+                    queue.add(otherPos);
+                }
             }
         }
     }

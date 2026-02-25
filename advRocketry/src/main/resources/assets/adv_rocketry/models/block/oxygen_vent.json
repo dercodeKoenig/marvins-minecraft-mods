@@ -1,0 +1,11 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "arlib:block/machinegeneric",
+    "up": "arlib:block/machinegeneric",
+    "north": "adv_rocketry:block/vent",
+    "south": "adv_rocketry:block/vent",
+    "west": "adv_rocketry:block/vent",
+    "east": "adv_rocketry:block/vent"
+  }
+}

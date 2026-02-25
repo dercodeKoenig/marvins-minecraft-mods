@@ -143,6 +143,7 @@ public class Main {
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
         ForcedChunkManager.tick();
+        OxygenSystem.tickAll();
     }
 
     void onClientTick(ClientTickEvent.Post event) {
@@ -247,7 +248,6 @@ public class Main {
     }
 
     void registerShaders(RegisterShadersEvent event) {
-        // 3. Register the shader and set the static field in the callback
         try {
             shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
             event.registerShader(shaderUtils.localAtmosphereShader, x -> {
@@ -333,6 +333,7 @@ public class Main {
             e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
             e.accept(Registry.OBSERVATORY.get());
             e.accept(Registry.ROCKET_ITEM_LOADER.get());
+            e.accept(Registry.OXYGEN_VENT.get());
             e.accept(Registry.MOON_TURF.get());
             e.accept(Registry.MOON_TURF_DARK.get());
         }

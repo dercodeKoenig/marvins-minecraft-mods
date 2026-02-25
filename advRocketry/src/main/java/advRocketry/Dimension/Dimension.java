@@ -46,6 +46,8 @@ public abstract class Dimension {
 
     abstract public boolean canVisit();
 
+    abstract public boolean hasEnoughOxygen();
+
     abstract public boolean canRain();
 
     abstract public float getGravitationalMultiplier();

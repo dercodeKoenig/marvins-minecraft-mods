@@ -111,6 +111,11 @@ public class PlanetDimension extends Dimension {
         return true;
     }
 
+    @Override
+    public boolean hasEnoughOxygen() {
+        return properties().atmosphereDensity > 0.5f; // TODO: improve this
+    }
+
 
     public boolean canRain() {
         return getAtmosphereDensity() > 0.5f;
