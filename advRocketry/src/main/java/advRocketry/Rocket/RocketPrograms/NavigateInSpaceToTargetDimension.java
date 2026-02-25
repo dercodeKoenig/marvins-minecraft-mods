@@ -92,24 +92,22 @@ public class NavigateInSpaceToTargetDimension {
         double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
 
         // move forward
-        // maxSpeed is calculated so that for given distance and acceleration it will manage to accelerate to 0 when it reaches the target
-        double maxSpeed = Math.sqrt(2 * Config.INSTANCE.rocket_SpaceTravel_Acceleration * distanceToFinalTarget);
-        double nearTargetMultiplier = Math.min(1, Math.max(0,distanceToFinalTarget-entryDistance) / (entryDistance * 10));
+        double maxSpeed = (double) 1 / 20 / 60; // so this should mean in 60s we move 1 AU, 60(s) * 20(tps) * 1(au)
+        double distanceForMaxSpeed = 0.1; // we reach this speed only if we are 0.1 AU away from home / origin
+
+        double nearTargetMultiplier = Math.min(1, Math.max(0,distanceToFinalTarget-entryDistance) / distanceForMaxSpeed);
         maxSpeed *= nearTargetMultiplier; // slow down when near target
         System.out.println("near target: "+nearTargetMultiplier);
         if (originDim != null) {
             // do not go too fast initially, move slowly away first before crazy acceleration
             // slowly enable the target speed as we move away from origin
-            double nearOriginMultiplier = Math.min(1, Math.max(0,distanceToOrigin-entryDistanceOrigin) / (entryDistanceOrigin * 10));
+            double nearOriginMultiplier = Math.min(1, Math.max(0,distanceToOrigin-entryDistanceOrigin) / distanceForMaxSpeed);
             maxSpeed *= nearOriginMultiplier;
             System.out.println("near origin: "+nearOriginMultiplier);
         }
         // base speed
         double e = 0.000005;
-        // slow down when off target
-        double directionMultiplier1 = Math.max(0, nextTargetDirectiop.dot(rocket.universeHeading) - 0.9) * 10;
-        // slow down when off target
-        double directionMultiplier2 = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
+        double offTargetMultiplier = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
 
         // the origin/target can move in space too, so i will add the origin/target dimension speed to the final target speed in case e is too small to catch up with planet movement
         // check if close to target
@@ -142,13 +140,9 @@ public class NavigateInSpaceToTargetDimension {
 
 
         // calculate acceleration
-        double targetSpeed = maxSpeed * directionMultiplier1 * directionMultiplier2 + e + targetDimensionMovementConsideration;
-        double targetAcceleration = targetSpeed - rocket.universeTravelSpeed;
-        if (Math.abs(targetAcceleration) > Config.INSTANCE.rocket_SpaceTravel_Acceleration) {
-            targetAcceleration = Math.signum(targetAcceleration) * Config.INSTANCE.rocket_SpaceTravel_Acceleration;
-        }
+        double targetSpeed = maxSpeed * offTargetMultiplier + e + targetDimensionMovementConsideration;
 
-        rocket.universeTravelSpeed += targetAcceleration;
+        rocket.universeTravelSpeed = targetSpeed;
 
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(rocket.universeTravelSpeed));
 
