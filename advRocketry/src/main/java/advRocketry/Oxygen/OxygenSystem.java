@@ -4,7 +4,14 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.GlobalTime;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,17 +50,23 @@ public class OxygenSystem {
     /// oxygenSuppliedBlocks is cleared
     /// For all entries in scannedBlocks, if the OxygenSupplier matched to it is in state "true", this block will be added to oxygenSuppliedBlocks.
 
-    public static HashMap<ResourceLocation, OxygenSystem> oxygenSystems = new HashMap<>();
+    // one system for every level
+    static HashMap<ResourceLocation, OxygenSystem> oxygenSystems = new HashMap<>();
+
     // holds all oxygen suppliers on this level
     HashSet<OxygenSupplier> allRegisteredOxygenSuppliers = new HashSet<>();
-    // populated during reset
+    // populated during reset and used during scanning
     HashSet<OxygenSupplier> activeOxygenSuppliers = new HashSet<>();
     // holds all blocks that are currently supplied with oxygen by oxygen vent or possible other blocks
     HashSet<BlockPos> oxygenSuppliedBlocks = new HashSet<>();
-    // used during flood scan
+    // used during flood scan to hold the state for every blockPos
     HashMap<BlockPos, OxygenSupplier> scannedBlocks = new HashMap<>();
 
-    long timeLastReset = 0; // so that we do not scan too often
+    // so that we do not scan too often
+    long timeLastReset = 0;
+
+    // set to false when all scanning is complete and to true after reset
+    boolean shouldScanNextTick = false;
 
     public static boolean hasOxygenAt(Level level, BlockPos pos) {
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).hasEnoughOxygen())
@@ -68,12 +81,8 @@ public class OxygenSystem {
         return false;
     }
 
-    public static int SCAN_LIMIT() {
-        return 1000; // how much blocks a single oxygen supplier can scan
-    }
-
     public static int SCAN_LIMIT_PER_TICK() {
-        return 500; // can only scan this many blocks in total per tick
+        return 200; // can only scan this many blocks in total per tick
     }
 
     public static int SECONDS_BETWEEN_FULL_SCAN() {
@@ -94,75 +103,107 @@ public class OxygenSystem {
         oxygenSystems.get(level.dimension().location()).allRegisteredOxygenSuppliers.remove(supplier);
     }
 
-    public static void tickAll() {
-        for (OxygenSystem system : oxygenSystems.values()) {
-            system.tick();
+    public static void serverTick() {
+
+        // check entities and apply no-oxygen damage if required
+        if(GlobalTime.getGlobalTime() % 20 == 0) {
+            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            for (ResourceLocation levelId : DimensionManager.INSTANCE_SERVER.dimensions.keySet()) {
+                if (!DimensionManager.INSTANCE_SERVER.get(levelId).hasEnoughOxygen()) {
+                    ServerLevel level = DimensionManager.getServerLevel(server, levelId);
+                    for(Entity e : level.getEntities().getAll()){
+                        if(e instanceof LivingEntity livingEntity){
+                           if(!hasOxygenAt(level, livingEntity.blockPosition())){
+                               System.out.println(e.blockPosition()+":"+e);
+                               livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)),1);
+                           }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (ResourceLocation levelId : oxygenSystems.keySet()) {
+            // skip the scanning if there is oxygen anyway
+            if(!DimensionManager.INSTANCE_SERVER.get(levelId).hasEnoughOxygen()) {
+                oxygenSystems.get(levelId).tick();
+            }
         }
     }
 
     void tick() {
 
         if (allRegisteredOxygenSuppliers.isEmpty()) return;
-        //long t0 = System.nanoTime();
-        boolean allCompleted = true;
-        for (int i = 0; i < SCAN_LIMIT_PER_TICK(); i++) {
-            allCompleted = true;
+
+        if (shouldScanNextTick) {
+            long t0 = System.nanoTime();
+            boolean allCompleted = true;
+            for (int i = 0; i < SCAN_LIMIT_PER_TICK(); i++) {
+                allCompleted = true;
+                for (OxygenSupplier supplier : activeOxygenSuppliers) {
+                    if (!supplier.isComplete()) {
+                        supplier.tickFloodScan(scannedBlocks);
+                        allCompleted = false;
+                    }
+                }
+                if (allCompleted) {
+                    break;
+                }
+            }
+            // make sure we connect also to indirectly connected oxygen suppliers
+            // we could be 3 or 7 areas separated from a connected supplier over multiple iterations we should catch it
+            // this is important to find the correct max block limit to scan and to sync the final isValidArea state
+            // I choose to sync it only once per tick and not after each block scanned because it is slow.
+            // it only takes 5 ticks to connect to an area 5 sections away and this is rare anyway
+            // having the correct connections is important for:
+            //      - the final isAreaValid calculation (so only at end after all is complete, doesnt need to sync fast)
+            //      - to get the correct remaining scan limit per block, important if any block has a significantly lower scan limit than some other connected block
+            //
             for (OxygenSupplier supplier : activeOxygenSuppliers) {
-                if (!supplier.isComplete()) {
-                    supplier.tickFloodScan(scannedBlocks);
-                    allCompleted = false;
+                supplier.syncConnections();
+            }
+
+            if(allCompleted){
+                shouldScanNextTick = false;
+
+                // gather results
+                for (OxygenSupplier i : activeOxygenSuppliers) {
+                    i.syncAreaState();
                 }
-            }
-            if (allCompleted)
-                break;
-        }
-        // make sure we connect also to indirectly connected oxygen suppliers
-        // we could be 3 or 7 areas separated from a connected supplier over multiple iterations we should catch it
-        // this is important to find the correct max block limit to scan and to sync the final isValidArea state
-        // I choose to sync it only once per tick and not after each block scanned because it is slow.
-        // it only takes 5 ticks to connect to an area 5 sections away and this is rare anyway
-        // having the correct connections is important for:
-        //      - the final isAreaValid calculation (so only at end after all is complete, doesnt need to sync fast)
-        //      - to get the correct remaining scan limit per block, important if any block has a significantly lower scan limit than some other connected block
-        //
-        for (OxygenSupplier supplier : activeOxygenSuppliers) {
-            supplier.syncConnections();
-        }
-        //System.out.println((double) (System.nanoTime() - t0) / 1000000);
+                System.out.println("active:" + activeOxygenSuppliers.size());
 
-        if (allCompleted && timeLastReset + SECONDS_BETWEEN_FULL_SCAN() * 20L < GlobalTime.getGlobalTime()) {
-
-            // gather results
-            for (OxygenSupplier i : activeOxygenSuppliers) {
-                i.syncAreaState();
-            }
-            //System.out.println("active:" + activeOxygenSuppliers.size());
-
-            // clear existing area
-            oxygenSuppliedBlocks.clear();
-
-            // add all blocks that are currently valid to the main set
-            for (BlockPos p : scannedBlocks.keySet()) {
-                OxygenSupplier supplier = scannedBlocks.get(p);
-                if (supplier.hasValidArea()) {
-                    oxygenSuppliedBlocks.add(p);
+                HashSet<BlockPos> newOxygenSuppliedBlocks = new HashSet<>();
+                // add all blocks that are currently valid to the main set
+                for (BlockPos p : scannedBlocks.keySet()) {
+                    OxygenSupplier supplier = scannedBlocks.get(p);
+                    if (supplier.hasValidArea()) {
+                        newOxygenSuppliedBlocks.add(p);
+                    }
                 }
-            }
+                oxygenSuppliedBlocks = newOxygenSuppliedBlocks;
+                System.out.println("Scan complete: there are " + oxygenSuppliedBlocks.size() + " blocks supplied with oxygen");
 
-            // reset
-            scannedBlocks.clear();
-            activeOxygenSuppliers.clear();
-            for (OxygenSupplier i : allRegisteredOxygenSuppliers) {
-                if (i.isActive()) {
-                    i.reset();
-                    activeOxygenSuppliers.add(i);
+            }
+            //System.out.println((double) (System.nanoTime() - t0) / 1000000);
+        } else {
+            // sleep until a new scan is required
+            if (timeLastReset + SECONDS_BETWEEN_FULL_SCAN() * 20L < GlobalTime.getGlobalTime() ) {
+                // reset
+                scannedBlocks.clear();
+                // re-read currently active oxygen suppliers
+                activeOxygenSuppliers.clear();
+                for (OxygenSupplier i : allRegisteredOxygenSuppliers) {
+                    if (i.isActive()) {
+                        i.reset();
+                        activeOxygenSuppliers.add(i);
+                    }
                 }
-            }
 
-            //System.out.println("Scan complete: there are " + oxygenSuppliedBlocks.size() + " blocks supplied with oxygen");
-            timeLastReset = GlobalTime.getGlobalTime();
+                timeLastReset = GlobalTime.getGlobalTime();
+                shouldScanNextTick = true;
+                System.out.println("reset..."+GlobalTime.getGlobalTime());
+            }
         }
     }
-
 
 }

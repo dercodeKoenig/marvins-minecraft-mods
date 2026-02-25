@@ -142,7 +142,7 @@ public class Main {
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
         ForcedChunkManager.tick();
-        OxygenSystem.tickAll();
+        OxygenSystem.serverTick();
     }
 
     void onClientTick(ClientTickEvent.Post event) {
