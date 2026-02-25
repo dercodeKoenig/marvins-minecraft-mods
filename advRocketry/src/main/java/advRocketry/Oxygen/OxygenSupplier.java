@@ -27,9 +27,13 @@ public class OxygenSupplier {
         this.level = level;
         reset();
     }
-
+    // overwrite this
     public boolean isActive() {
         return true;
+    }
+    // overwrite this
+    public int getBlockLimit(){
+        return 1000;
     }
 
     public void reset() {
@@ -150,7 +154,7 @@ public class OxygenSupplier {
     // get my current remaining scan limit
     // TODO: this algorithm should support individual max scan size, so allow each block to have its own block scan limit
     private int getRemainingScanLimit() {
-        return OxygenSystem.SCAN_LIMIT() - scannedBlocksCounter;
+        return getBlockLimit() - scannedBlocksCounter;
     }
 
     public boolean isComplete() {
