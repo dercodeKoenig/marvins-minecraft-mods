@@ -93,7 +93,7 @@ public class OxygenSupplier {
 
                 // not air and not solid block, it needs some more analysis....
                 // i will now test if the face that is toward the current position has a full shape
-                // this is not perfect but it allows to work with open/closed doors 
+                // this is not perfect but it allows to work with open/closed doors
                 List<Direction.Axis> requiresFullShape = null;
                 if(facing.getAxis() == Direction.Axis.X)
                     requiresFullShape = List.of(Direction.Axis.Y, Direction.Axis.Z);
