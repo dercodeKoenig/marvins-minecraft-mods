@@ -480,6 +480,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                             taskProgress++;
                             if (taskProgress > Config.INSTANCE.observatory_Find_Planet_Ticks) {
                                 // discover a new random planet that is not already known
+                                // TODO: while moon, discover parent first
                                 List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
                                 Collections.shuffle(randomDimIds);
                                 boolean allDiscovered = true;
@@ -565,8 +566,30 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                 System.out.println("observatory unlocked planet: " + taskTarget);
                                 if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
                                     toggleTask(this.lastTask, this.lastTaskTarget);
-                                else
-                                    toggleTask(Task.IDLE, null);
+                                else {
+                                    // i want it to continue scanning for other discovered planets if possible
+                                    // find a random planet that is discovered but not unlocked
+                                    List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
+                                    Collections.shuffle(randomDimIds);
+                                    boolean shouldGoIdle = true;
+                                    for (ResourceLocation dimId : randomDimIds) {
+                                        Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
+                                        if (dim instanceof PlanetDimension planetDimension && !planetDimension.isKnown()) {
+                                            // check if known
+                                            if (ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, dimId.toString())) {
+                                                // check if not unlocked
+                                                if(!ItemGalaxyStorageDisk.isDimensionUnlocked(storageDisk,dimId.toString())){
+                                                    toggleTask(Task.ANALYZE_PLANET, dimId);
+                                                    shouldGoIdle = false;
+                                                    System.out.println("observatory picked a new planet to analyze: "+dimId);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if(shouldGoIdle)
+                                        toggleTask(Task.IDLE, null);
+                                }
                             }
                             setChanged();
                         }

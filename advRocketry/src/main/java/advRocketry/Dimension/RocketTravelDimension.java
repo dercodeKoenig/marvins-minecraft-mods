@@ -167,6 +167,11 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
+    public Vec3 getMovement(float partialTick) {
+        return Vec3.ZERO;
+    }
+
+    @Override
     public void tick() {
 
     }

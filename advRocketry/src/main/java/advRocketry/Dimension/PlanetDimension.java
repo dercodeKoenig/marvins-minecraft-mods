@@ -30,8 +30,8 @@ import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 
 public class PlanetDimension extends Dimension {
 
-    public Vec3 currentSpeed = new Vec3(0,0,0); // could be used by rockets / stations
-    public Vec3 lastPosition = new Vec3(0,0,0); // could be used by rockets / stations
+    public Vec3 currentSpeed = new Vec3(0, 0, 0); // could be used by rockets / stations
+    public Vec3 lastPosition = new Vec3(0, 0, 0); // could be used by rockets / stations
 
     float targetsealevel; // for ticking, rise or lower sea level
     float temperature; // should be autocalculated, will for example freeze water when cold or evaporate when too hot or superheated
@@ -60,7 +60,7 @@ public class PlanetDimension extends Dimension {
                 Blocks.STONE.defaultBlockState(),
                 Blocks.WATER.defaultBlockState(),
                 getSeaLevel(),
-                BiomeConfig.loadPreset( properties().biomePreset),
+                BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
 
@@ -83,7 +83,7 @@ public class PlanetDimension extends Dimension {
         // ((PalettedContainer) l.getChunk(0,0).getSection(0).getBiomes()).get;
 
         // maybe get base height from this to copy top blocks without decoration?
-       //NoiseColumn nc = l.getChunkSource().getGenerator().getBaseColumn(0,0,l,l.getChunkSource().randomState());
+        //NoiseColumn nc = l.getChunkSource().getGenerator().getBaseColumn(0,0,l,l.getChunkSource().randomState());
 
 
         // make a table of templates of hot -> cold, high sea level -> low sea level
@@ -104,7 +104,7 @@ public class PlanetDimension extends Dimension {
         if (properties().dayTimeReference == null) {
             return false;
         }
-        if(!properties().canVisit) {
+        if (!properties().canVisit) {
             return false;
         }
 
@@ -215,6 +215,10 @@ public class PlanetDimension extends Dimension {
         double actualDayTime = properties().dayTime + getDayTimePerTick() * partialTick;
         double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
         return rotation;
+    }
+
+    public Vec3 getMovement(float partialTick) {
+        return currentSpeed;
     }
 
     public Vec3 getPosition(float partialTick) {

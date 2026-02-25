@@ -18,6 +18,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public static String id = "ProgramNavigateToPlanetPosition";
 
     public ResourceLocation targetDimensionId;
+    public ResourceLocation originDimensionId;
     public BlockPos target;
 
     public static double travelHeight = 200;
@@ -123,7 +124,12 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             // we are not at target dim, move to space!
             if (NavigateToSpaceTravelDimension.run(rocket)) {
                 // we are in space, navigate to the target planet, the program will teleport the rocket to target dim
-                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId);
+                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId, originDimensionId);
+            }else{
+                // not in space, capture the original dimension for the space navigation program later
+                if(originDimensionId == null){
+                    originDimensionId = rocket.level().dimension().location();
+                }
             }
         }
     }
@@ -133,6 +139,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         target = NbtUtils.readBlockPos(nbt, "target").get();
         isStarted = nbt.getBoolean("isStarted");
         targetDimensionId = ResourceLocation.parse(nbt.getString("targetDimensionId"));
+        if(nbt.contains("originDimensionId"))
+            originDimensionId = ResourceLocation.parse(nbt.getString("originDimensionId"));
     }
 
     @Override
@@ -141,6 +149,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         tag.put("target", NbtUtils.writeBlockPos(target));
         tag.putBoolean("isStarted", isStarted);
         tag.putString("targetDimensionId", targetDimensionId.toString());
+        if(originDimensionId != null)
+            tag.putString("originDimensionId", originDimensionId.toString());
         return tag;
     }
 }

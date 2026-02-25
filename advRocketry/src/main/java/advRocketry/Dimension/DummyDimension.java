@@ -89,6 +89,11 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
+    public Vec3 getMovement(float partialTick) {
+        return Vec3.ZERO;
+    }
+
+    @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         return null;
     }

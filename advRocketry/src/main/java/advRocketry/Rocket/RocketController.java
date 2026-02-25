@@ -144,7 +144,7 @@ public class RocketController {
 
             double requiredY = 0;
             // --- TILT LIMITING LOGIC (Prioritize Y-axis thrust on planets) ---
-            if (isPlanet && MAX_ALLOWED_ACCEL > 0) {
+            if (isPlanet && MAX_ALLOWED_ACCEL > 0 && rocket.position().y < 2000) {
                 // 1. Determine the vertical acceleration we need (capped by our absolute max engine limit)
                 requiredY = Math.min(desiredAcceleration.y, MAX_ALLOWED_ACCEL);
                 // Limit to anti-gravity + 1% to hover/climb slowly
@@ -175,7 +175,7 @@ public class RocketController {
             accelerationMagnitude = accelerationMagnitude * dotMultiplier;
 
             // The Failsafe: Override the magnitude if we need to fight gravity while rotating
-            if (isPlanet) {
+            if (isPlanet && rocket.position().y < 2000)  {
                 // Only apply the failsafe if we are pointing UP.
                 // If we are pointing down or flat, thrusting won't help us fight gravity!
                 if (rocket.heading.y > 0) {
