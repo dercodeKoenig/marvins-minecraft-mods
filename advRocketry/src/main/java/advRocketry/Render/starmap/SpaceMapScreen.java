@@ -1,29 +1,23 @@
 package advRocketry.Render.starmap;
 
-import advRocketry.Config;
 import advRocketry.Dimension.*;
-import advRocketry.Main;
+import advRocketry.GlobalTime;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.utils.CelestialUtils;
-import advRocketry.utils.RenderUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
-import javax.security.auth.callback.Callback;
 import java.lang.Math;
-import java.util.ArrayList;
 
 import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;

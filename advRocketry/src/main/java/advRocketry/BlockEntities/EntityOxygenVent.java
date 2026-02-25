@@ -6,18 +6,12 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import advRocketry.Dimension.OxygenSupplier;
-import advRocketry.Dimension.OxygenSystem;
+import advRocketry.Oxygen.OxygenSupplier;
+import advRocketry.Oxygen.OxygenSystem;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
 
 import static advRocketry.Registry.ENTITY_OXYGEN_VENT;
 

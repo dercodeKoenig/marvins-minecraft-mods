@@ -1,4 +1,4 @@
-package advRocketry.Dimension;
+package advRocketry.Oxygen;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

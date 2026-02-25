@@ -1,6 +1,6 @@
-package advRocketry.Dimension;
+package advRocketry;
 
-import advRocketry.Main;
+import advRocketry.Dimension.DimensionManager;
 import com.google.gson.Gson;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
