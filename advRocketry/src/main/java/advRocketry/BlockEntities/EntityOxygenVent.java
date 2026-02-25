@@ -30,23 +30,25 @@ public class EntityOxygenVent extends EntityFluidInputBlock {
         super(ENTITY_OXYGEN_VENT.get(), pos, blockState);
     }
 
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityOxygenVent) t).tick();
+    }
+
     @Override
-    public void onLoad(){
+    public void onLoad() {
         super.onLoad();
         oxygenSupplier = new OxygenSupplier(level, getBlockPos());
-        OxygenSystem.registerOxygenSupplier(level.dimension().location(),oxygenSupplier);
+        OxygenSystem.registerOxygenSupplier(level, oxygenSupplier);
+
     }
+
     @Override
-    public void setRemoved(){
+    public void setRemoved() {
         super.setRemoved();
-        OxygenSystem.removeOxygenSupplier(level.dimension().location(),oxygenSupplier);
+        OxygenSystem.removeOxygenSupplier(level, oxygenSupplier);
     }
 
     public void tick() {
-      super.tick();
-    }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityOxygenVent) t).tick();
+        super.tick();
     }
 }

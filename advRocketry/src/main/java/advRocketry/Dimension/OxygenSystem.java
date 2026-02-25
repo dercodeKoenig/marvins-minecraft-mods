@@ -31,7 +31,7 @@ public class OxygenSystem {
     /// oxygenSuppliedBlocks is cleared
     /// For all entries in scannedBlocks, if the OxygenSupplier matched to it is in state "true", this block will be added to oxygenSuppliedBlocks.
 
-    public static HashMap<ResourceLocation, OxygenSystem> oxygenSystems = new HashMap<>();
+    public static HashMap<Level, OxygenSystem> oxygenSystems = new HashMap<>();
     // holds all oxygen suppliers on this level
     HashSet<OxygenSupplier> allRegisteredOxygenSuppliers = new HashSet<>();
     // populated during reset
@@ -41,11 +41,13 @@ public class OxygenSystem {
     // used during flood scan
     HashMap<BlockPos, OxygenSupplier> scannedBlocks = new HashMap<>();
 
+    long timeLastReset = 0; // so that we do not scan too often
+
     public static boolean hasOxygenAt(Level level, BlockPos pos) {
-        if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()).hasEnoughOxygen())
+        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).hasEnoughOxygen())
             return true;
 
-        OxygenSystem instance = oxygenSystems.get(level.dimension().location());
+        OxygenSystem instance = oxygenSystems.get(level);
         if (instance != null) {
             if (instance.oxygenSuppliedBlocks.contains(pos))
                 return true;
@@ -55,34 +57,40 @@ public class OxygenSystem {
     }
 
     public static int SCAN_LIMIT() {
-        return 10000; // how much blocks a single oxygen supplier can scan, should be configu
+        return 10000; // how much blocks a single oxygen supplier can scan, requires to be same for all blocks or the algorithm will break
     }
 
     public static int SCAN_LIMIT_PER_TICK() {
         return 500; // can only scan this many blocks in total per tick
     }
 
+    public static int SECONDS_BETWEEN_FULL_SCAN() {
+        return 2;
+    }
+
     // onload the blockentity should register itself here
-    public static void registerOxygenSupplier(ResourceLocation levelId, OxygenSupplier supplier) {
-        oxygenSystems.putIfAbsent(levelId, new OxygenSystem());
-        oxygenSystems.get(levelId).allRegisteredOxygenSuppliers.add(supplier);
+    public static void registerOxygenSupplier(Level level, OxygenSupplier supplier) {
+        if(level.isClientSide)return;
+        oxygenSystems.putIfAbsent(level, new OxygenSystem());
+        oxygenSystems.get(level).allRegisteredOxygenSuppliers.add(supplier);
     }
 
     // on setremoved the blockentity should unregister itself
-    public static void removeOxygenSupplier(ResourceLocation levelId, OxygenSupplier supplier) {
-        oxygenSystems.putIfAbsent(levelId, new OxygenSystem());
-        oxygenSystems.get(levelId).allRegisteredOxygenSuppliers.remove(supplier);
+    public static void removeOxygenSupplier(Level level, OxygenSupplier supplier) {
+        if(level.isClientSide)return;
+        oxygenSystems.putIfAbsent(level, new OxygenSystem());
+        oxygenSystems.get(level).allRegisteredOxygenSuppliers.remove(supplier);
     }
 
-    public static void tickAll(){
-        for (OxygenSystem system : oxygenSystems.values()){
+    public static void tickAll() {
+        for (OxygenSystem system : oxygenSystems.values()) {
             system.tick();
         }
     }
 
     void tick() {
 
-        if(allRegisteredOxygenSuppliers.isEmpty()) return;
+        if (allRegisteredOxygenSuppliers.isEmpty()) return;
 
         boolean allCompleted = true;
         for (int i = 0; i < SCAN_LIMIT_PER_TICK(); i++) {
@@ -97,12 +105,14 @@ public class OxygenSystem {
                 break;
         }
 
-        if (allCompleted && GlobalTime.getGlobalTime() % 1 == 0) {
+        if (allCompleted && timeLastReset + SECONDS_BETWEEN_FULL_SCAN() * 20L < GlobalTime.getGlobalTime()) {
 
             // gather results
             for (OxygenSupplier i : activeOxygenSuppliers) {
                 i.syncAreaState();
+                System.out.println(i.hasValidArea());
             }
+            System.out.println("active:"+activeOxygenSuppliers.size());
 
             // clear existing area
             oxygenSuppliedBlocks.clear();
@@ -125,7 +135,8 @@ public class OxygenSystem {
                 }
             }
 
-            System.out.println("there are "+oxygenSuppliedBlocks.size()+" blocks supplied with oxygen");
+            System.out.println("Scan complete: there are " + oxygenSuppliedBlocks.size() + " blocks supplied with oxygen");
+            timeLastReset = GlobalTime.getGlobalTime();
         }
     }
 

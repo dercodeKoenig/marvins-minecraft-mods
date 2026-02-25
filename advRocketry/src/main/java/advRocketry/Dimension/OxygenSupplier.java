@@ -87,8 +87,9 @@ public class OxygenSupplier {
     // this blocks area is also invalid because it is connected to the invalid area
     public void syncAreaState() {
         for (OxygenSupplier i : connectedSuppliers) {
-            if (!i.hasValidArea())
+            if (!i.hasValidArea()) {
                 isValidArea = false;
+            }
         }
     }
 
