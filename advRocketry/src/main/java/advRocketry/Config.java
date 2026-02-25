@@ -3,7 +3,9 @@ package advRocketry;
 public class Config {
     public static Config INSTANCE= new Config();
     public double planet_Sky_Height = 5000;
-    public double rocket_SpaceTravel_Acceleration = 0.000001;
+    public double rocket_SpaceTravel_AU_Per_Second = 0.02;
+    public double rocket_SpaceTravel_Distance_For_Nax_Speed = 0.1;
+    public double rocket_SpaceTravel_Min_Speed = 0.00001;
     public double rocket_SpaceTravel_Rotation_Rate = 0.02;
     public double rocket_Planet_Entry_Speed_Y = -10;
 

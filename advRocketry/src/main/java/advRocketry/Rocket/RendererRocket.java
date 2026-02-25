@@ -51,7 +51,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
                 RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(type, false);
 
                 if (!rocket.renderDataMap.containsKey(entityRenderType)) {
-                    System.out.println("rendertype not present: " + entityRenderType.name);
+                    //System.out.println("rendertype not present: " + entityRenderType.name);
                     continue;
                 }
 

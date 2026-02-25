@@ -92,21 +92,21 @@ public class NavigateInSpaceToTargetDimension {
         double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
 
         // move forward
-        double maxSpeed = (double) 1 / 20 / 60; // so this should mean in 60s we move 1 AU, 60(s) * 20(tps) * 1(au)
-        double distanceForMaxSpeed = 0.1; // we reach this speed only if we are 0.1 AU away from home / origin
+        double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20; // the maximum travel speed defined as in config adjusted for per tick
+        double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_Distance_For_Nax_Speed; // we reach this speed only if we are 0.1 AU away from home / origin
 
         double nearTargetMultiplier = Math.min(1, Math.max(0,distanceToFinalTarget-entryDistance) / distanceForMaxSpeed);
         maxSpeed *= nearTargetMultiplier; // slow down when near target
-        System.out.println("near target: "+nearTargetMultiplier);
+        //System.out.println("near target: "+nearTargetMultiplier);
         if (originDim != null) {
             // do not go too fast initially, move slowly away first before crazy acceleration
             // slowly enable the target speed as we move away from origin
             double nearOriginMultiplier = Math.min(1, Math.max(0,distanceToOrigin-entryDistanceOrigin) / distanceForMaxSpeed);
             maxSpeed *= nearOriginMultiplier;
-            System.out.println("near origin: "+nearOriginMultiplier);
+            //System.out.println("near origin: "+nearOriginMultiplier);
         }
         // base speed
-        double e = 0.000005;
+        double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
         double offTargetMultiplier = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
 
         // the origin/target can move in space too, so i will add the origin/target dimension speed to the final target speed in case e is too small to catch up with planet movement
