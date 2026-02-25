@@ -12,10 +12,11 @@ public class OxygenSystem {
 
     ///  speed test results:
     ///  0.8ghz cpu clock
-    ///  30 OxygenSuppliers, all connected
+    ///  32 OxygenSuppliers, all connected
     ///  open area -> max scan time
     ///  1k blocks max per supplier, 500 per tick
-    ///  took about 2 - 4 ms per tick
+    ///  took about 4 - 8 ms per tick
+    ///  on normal cpu clock, 1ms per tick
 
     /// how it works:
     /// step 1: reset
