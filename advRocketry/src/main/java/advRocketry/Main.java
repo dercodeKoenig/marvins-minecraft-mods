@@ -152,7 +152,7 @@ public class Main {
         EntityRocket.onClientTickEvent();
 
         Dimension myDimension = ClientUtils.getPlayerDimension();
-        if(myDimension != null) {
+        if (myDimension != null) {
             Vec3 myPos = myDimension.getPosition(0);
             PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
         }
@@ -188,12 +188,12 @@ public class Main {
             // clouds will render next, disable stupid fog
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
 
-            if(is_fabulous)
+            if (is_fabulous)
                 RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
         }
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
             // make it render after clouds then
-            if(!is_fabulous)
+            if (!is_fabulous)
                 RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
         }
 
@@ -201,7 +201,7 @@ public class Main {
 
     void onChunkLoad(ChunkEvent.Load event) {
         //if(event.isNewChunk())
-            //System.out.println("new chunk: "+event.getChunk().getPos());
+        //System.out.println("new chunk: "+event.getChunk().getPos());
         // TODO: trigger ore replacement
     }
 
@@ -212,9 +212,12 @@ public class Main {
         }
     }
 
-    void onLivingFallEvent(LivingFallEvent event){
+    void onLivingFallEvent(LivingFallEvent event) {
         Level l = event.getEntity().level();
-        float g =DimensionManager.getDimensionManager(l.isClientSide).get(l.dimension().location()).getGravitationalMultiplier();
+        float g = 1;
+        Dimension d = DimensionManager.getDimensionManager(l.isClientSide).get(l.dimension().location());
+        if (d != null)
+            g = d.getGravitationalMultiplier();
         event.setDamageMultiplier(event.getDamageMultiplier() * g);
     }
 
@@ -233,14 +236,14 @@ public class Main {
 
     void registerCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer) x).itemStackHandler));
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x,y) -> x.battery);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x,y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.myTank);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x,y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.myTank);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x,y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x,y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -311,12 +314,12 @@ public class Main {
         );
     }
 
-    void registerTickets(RegisterTicketControllersEvent event){
+    void registerTickets(RegisterTicketControllersEvent event) {
         event.register(ForcedChunkManager.ticketController);
     }
 
     void loadComplete(FMLLoadCompleteEvent e) {
-        ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure,EntityObservatory.charMapping);
+        ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
     }
 
     void addCreative(BuildCreativeModeTabContentsEvent e) {

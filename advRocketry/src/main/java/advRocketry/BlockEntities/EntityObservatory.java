@@ -368,6 +368,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
                                         public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
                                             Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
+                                            if (d == null) return false;
+
                                             if (((PlanetDimension) (d)).isKnown()) {
                                                 return true;
                                             }
