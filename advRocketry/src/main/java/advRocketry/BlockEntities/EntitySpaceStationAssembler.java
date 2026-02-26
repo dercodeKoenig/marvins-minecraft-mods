@@ -125,8 +125,12 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         props.owner = owner;
         props.name = name;
         props.orbitalDistanceToParent = 0.01F;
-        props.parentDimensionId = level.dimension().location();
-        props.targetPosition = DimensionManager.INSTANCE_SERVER.get(props.parentDimensionId).getPosition(0);
+        // TODO; this should be set in rocket during launch
+        Dimension parent = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
+        if(parent != null) {
+            props.parentDimensionId = parent.getDimensionId();
+            props.targetPosition = parent.getPosition(0);
+        }
         props.position = props.targetPosition;
         SpaceStationDimension spaceStation = new SpaceStationDimension(props, DimensionManager.INSTANCE_SERVER);
         DimensionManager.INSTANCE_SERVER.addDimension(spaceStation);
