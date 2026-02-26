@@ -56,7 +56,7 @@ public class ItemLinker extends Item {
             }
             tooltipComponents.add(
                     Component.literal(
-                            "level id: " +selectedDimension.getDimensionId()
+                            "level id: " +levelString
                     )
             );
         }
