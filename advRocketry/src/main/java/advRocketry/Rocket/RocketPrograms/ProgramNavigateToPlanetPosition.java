@@ -1,6 +1,7 @@
 package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.BlockEntities.EntityRocketAssembler;
+import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Rocket.EntityRocket;
@@ -11,8 +12,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
@@ -26,6 +29,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
     boolean isStarted = false; // make sure at start it actually fly up
 
+    public ProgramNavigateToPlanetPosition(){
+        // empty constructor required for save & load
+    }
+
     public ProgramNavigateToPlanetPosition(ResourceLocation targetDimensionId, ResourceLocation originDimensionId, BlockPos target){
         this.target = target;
         this.targetDimensionId = targetDimensionId;
@@ -37,11 +44,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         // if rocket.hasSatellites && shouldDeploySatellites: move to space first
 
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
+            // we are at the correct dimension
 
             rocket.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
             rocket.enableMainEngines(true, false);
-
-            // we are at the correct dimension
+            rocket.setRotationRateMultiplier(1,false);
 
             Vec3 targetVec3 = new Vec3(target.getCenter().x, target.getCenter().y, target.getCenter().z);
 
@@ -131,8 +138,19 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         } else {
             // we are not at target dim, move to space!
             if (NavigateToSpaceTravelDimension.run(rocket)) {
-                // we are in space, navigate to the target planet, the program will teleport the rocket to target dim
-                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId, originDimensionId);
+                // we are in space, navigate to the target planet and teleport the rocket to target dim
+                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId, originDimensionId,() -> {
+                    // get the teleportation target
+                    ServerLevel targetLevel = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), targetDimensionId);
+                    Vec3 targetPos = new Vec3(target.getX(), Config.INSTANCE.planet_Sky_Height, target.getZ());
+
+                    Vec3 entrySpeed = new Vec3(
+                            (Math.random() * 2 - 1) * 0.3,
+                            Config.INSTANCE.rocket_Planet_Entry_Speed_Y,
+                            (Math.random() * 2 - 1) * 0.3);
+
+                    rocket.teleportTo(targetLevel, targetPos, entrySpeed);
+                });
             }
         }
     }

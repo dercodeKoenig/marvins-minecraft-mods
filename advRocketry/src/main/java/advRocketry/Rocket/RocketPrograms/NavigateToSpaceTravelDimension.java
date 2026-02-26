@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 // just a helper program, is not actually a real full program
 public class NavigateToSpaceTravelDimension {
@@ -26,6 +27,13 @@ public class NavigateToSpaceTravelDimension {
         if (myDim instanceof SpaceStationDimension spaceStationDimension) {
             // logic for space station
             // undock from station and move to launchpos.y-50, then thrust away
+            if(rocket.level() instanceof ServerLevel serverLevel) {
+                ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), RocketTravelDimension.dimId);
+                ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
+                BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
+
+                rocket.teleportTo(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0));
+            }
         } else {
             // normal logic; just fly high up!
             rocket.enableMainEngines(true, false);

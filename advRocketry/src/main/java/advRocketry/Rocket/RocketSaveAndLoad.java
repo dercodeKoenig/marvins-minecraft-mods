@@ -73,11 +73,13 @@ public class RocketSaveAndLoad {
 
         if (compoundTag.contains("canUseMainEngines"))
             rocket.enableMainEngines(compoundTag.getBoolean("canUseMainEngines"),true);
-
         if (compoundTag.contains("mainEnginesBootup"))
             rocket.setMainEnginesBootup(compoundTag.getInt("mainEnginesBootup"), true);
         if (compoundTag.contains("secondaryEngines"))
             rocket.enableSecondaryEngines(compoundTag.getBoolean("secondaryEngines"), true);
+
+        if(compoundTag.contains("rotationRateMultiplier"))
+            rocket.setRotationRateMultiplier(compoundTag.getDouble("rotationRateMultiplier"),true);
 
         if (compoundTag.contains("currentProgram")) {
             rocket.setProgramAndSync(RocketProgram.createFromNbt(compoundTag.getCompound("currentProgram")));
@@ -160,6 +162,8 @@ public class RocketSaveAndLoad {
         compoundTag.putBoolean("canUseMainEngines", rocket.canUseMainEngines());
         compoundTag.putInt("mainEnginesBootup", rocket.getMainEnginesBootUp());
         compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines());
+
+        compoundTag.putDouble("rotationRateMultiplier", rocket.getRotationRateMultiplier());
 
         compoundTag.put("currentProgram", RocketProgram.saveToNbt(rocket.getCurrentProgram()));
 

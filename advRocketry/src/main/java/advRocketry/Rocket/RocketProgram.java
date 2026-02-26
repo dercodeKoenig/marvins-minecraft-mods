@@ -1,6 +1,7 @@
 package advRocketry.Rocket;
 
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
+import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
 import net.minecraft.nbt.CompoundTag;
 
 import java.lang.reflect.InvocationTargetException;
@@ -35,6 +36,7 @@ public interface RocketProgram {
         static {
             // register known programs here
             registerProgram(ProgramNavigateToPlanetPosition.class, ProgramNavigateToPlanetPosition.id);
+            registerProgram(ProgramNavigateToSpaceStation.class, ProgramNavigateToSpaceStation.id);
         }
     }
 

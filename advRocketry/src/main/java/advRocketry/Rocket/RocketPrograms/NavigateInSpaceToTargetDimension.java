@@ -4,6 +4,7 @@ import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Dimension.RocketTravelDimension;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.SpaceNavigation;
@@ -40,9 +41,14 @@ public class NavigateInSpaceToTargetDimension {
         rocket.universeFront = right.cross(rocket.universeHeading).normalize();
     }
 
-    public static boolean run(EntityRocket rocket, ResourceLocation target, @Nullable ResourceLocation origin) {
+    public static boolean run(EntityRocket rocket, ResourceLocation target, @Nullable ResourceLocation origin, Runnable performTeleport) {
 
         if (rocket.level().dimension().location().equals(target)) {
+            // this should never happen!
+            return true;
+        }
+        if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
+            // this should never happen!
             return true;
         }
 
@@ -150,18 +156,7 @@ public class NavigateInSpaceToTargetDimension {
 
         if (rocket.level() instanceof ServerLevel serverLevel && rocket.universePosition.distanceTo(targetPosition) < entryDistance) {
             // TODO: ifrocket.hasSatellites && shouldDeployThem -> deploy satellites shortly before dimension jump
-
-            // get the teleportation target
-            ServerLevel targetLevel = DimensionManager.getServerLevel(serverLevel.getServer(), target);
-            Vec3 targetPos = new Vec3(rocket.getLastLaunchPosition().getX(), Config.INSTANCE.planet_Sky_Height, rocket.getLastLaunchPosition().getZ());
-
-            Vec3 entrySpeed = new Vec3(
-                    (Math.random() * 2 - 1) * 0.3,
-                    Config.INSTANCE.rocket_Planet_Entry_Speed_Y,
-                    (Math.random() * 2 - 1) * 0.3);
-
-            EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
-            System.out.println("dx:" + newRocket.getDeltaMovement());
+            performTeleport.run();
         }
 
 

@@ -7,13 +7,7 @@ import org.joml.Vector3f;
 import java.util.UUID;
 
 
-public class SpaceStationDimensionProperties extends DimensionProperties{
-
-    public SpaceStationDimensionProperties(){
-        this.type = DimensionType.SPACE_STATION;
-    }
-
-    public Vec3 position = new Vec3(0, 0, 0);
+public class SpaceStationDimensionProperties extends DimensionProperties {
 
     // based on target position, the new target position is calculated during orbit
     // position tries to close up to target position while it maintains a minimum distance to other planets
@@ -23,14 +17,23 @@ public class SpaceStationDimensionProperties extends DimensionProperties{
     // targetposition = targetposition + cross(orbitaxis, planetvector) * orbitspeed
     // targetposition = planetposition + (targetposition - planetposition).norm.scale(distance)
     // position = position + (targetposition - position) * 0.1 or similar where speed is capped to orbitspeed*1.01 so it can catch up but never be too fast
+
+    public Vec3 position = new Vec3(0, 0, 0);
+
     public Vec3 targetPosition = new Vec3(0, 0, 0);
 
-    public ResourceLocation parentDimensionId = null;       // optional, overwrites position
+    public ResourceLocation parentDimensionId = null; // when in orbit
 
-    public float orbitalDistanceToParent = 1;
+    public float orbitalDistanceToParent = 1;// when in orbit
 
     // the space station owner, he should be able to have ways to return to station without id chip
     public UUID owner = null;
+
+    public boolean initialBlocksPlaced = false; // was the station container placed already?
+
+    public SpaceStationDimensionProperties() {
+        this.type = DimensionType.SPACE_STATION;
+    }
 
     // to calculate global axis direction, rotate the front vector around the  y rotation of the stations facing direction?
 

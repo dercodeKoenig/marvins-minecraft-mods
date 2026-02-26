@@ -14,11 +14,13 @@ import advRocketry.Blocks.Seat;
 import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
+import advRocketry.GlobalTime;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemUtils;
 import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
+import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.ClientUtils;
 import advRocketry.utils.Utils;
@@ -83,6 +85,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     private boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
     private boolean canUseMainEngines = false;
     private int mainEnginesBootup = 0;
+    private double rotationRateMultiplier = 1;
     Vec3 heading = new Vec3(0, 1, 0);
     private Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
     Vec3 front = new Vec3(0, 0, 1);
@@ -212,6 +215,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public double getDefaultGravity() {
+        Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
+        if(myDim instanceof RocketTravelDimension || myDim instanceof SpaceStationDimension)
+            return 0;
         return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
 
@@ -358,6 +364,17 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Map<UUID, BlockPos> getPassengersPositions() {
         return passengers;
     }
+
+    public void setRotationRateMultiplier(double multiplier, boolean syncToClient){
+        if (!level().isClientSide && syncToClient && this.rotationRateMultiplier != multiplier) {
+            CompoundTag tag = new CompoundTag();
+            tag.putDouble("rotationRateMultiplier", multiplier);
+            sendToClients(tag);
+        }
+        this.rotationRateMultiplier = multiplier;
+    }
+
+    public double getRotationRateMultiplier(){return rotationRateMultiplier;}
 
     public void enableMainEngines(boolean canUseMainEngines, boolean syncToClient) {
         if (!level().isClientSide && syncToClient && this.canUseMainEngines != canUseMainEngines) {
@@ -602,6 +619,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 if (targetDimension instanceof PlanetDimension) {
                     // target level is planet, use planet navigation program
                     ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition(targetLevelId, level().dimension().location(), targetPos);
+                    setProgramAndSync(p);
+                    if (dockingStationPos != null)
+                        setLastLaunchPosition(dockingStationPos, true);
+                    else
+                        setLastLaunchPosition(blockPosition(), true);
+                    temporaryInfoTimeout = 0;
+                    return true;
+                }
+                if(targetDimension instanceof SpaceStationDimension){
+                    ProgramNavigateToSpaceStation p = new ProgramNavigateToSpaceStation(targetLevelId, level().dimension().location(), targetPos);
                     setProgramAndSync(p);
                     if (dockingStationPos != null)
                         setLastLaunchPosition(dockingStationPos, true);

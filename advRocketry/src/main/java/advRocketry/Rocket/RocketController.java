@@ -1,6 +1,5 @@
 package advRocketry.Rocket;
 
-import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketParticle;
 import net.minecraft.client.GraphicsStatus;
@@ -13,18 +12,20 @@ import org.joml.Vector3f;
 
 public class RocketController {
 
+    // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
+    final double maxRotationRate = 0.05;
     EntityRocket rocket;
-
     Vec3 targetHeading = new Vec3(0, 1, 0);
     double currentThrust;
     Vec3 currentSecondaryThrust;
-
-    public double getCurrentThrust() {
-        return currentThrust;
-    }
+    boolean isReverseThrust = false; // on space station to allow for breaking
 
     public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
+    }
+
+    public double getCurrentThrust() {
+        return currentThrust;
     }
 
     public void tick() {
@@ -34,18 +35,17 @@ public class RocketController {
     }
 
     public void tickRotation() {
-        // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-        final double ROTATION_RATE = 0.05;
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
+        double rotationRate = maxRotationRate * rocket.getRotationRateMultiplier();
         Vec3 rotationCorrection;
         if (targetHeading.dot(rocket.heading) > -0.99) {
-            rotationCorrection = targetHeading.subtract(rocket.heading).scale(ROTATION_RATE); //  scale makes it more smooth so i like to keep it
-            if (rotationCorrection.length() > ROTATION_RATE)
-                rotationCorrection = rotationCorrection.normalize().scale(ROTATION_RATE);
+            rotationCorrection = targetHeading.subtract(rocket.heading).scale(rotationRate); //  scale makes it more smooth so i like to keep it
+            if (rotationCorrection.length() > rotationRate)
+                rotationCorrection = rotationCorrection.normalize().scale(rotationRate);
         } else
-            rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(ROTATION_RATE);
+            rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(rotationRate);
 
         rocket.heading = rocket.heading.add(rotationCorrection).normalize();
 
@@ -54,7 +54,7 @@ public class RocketController {
         Vec3 targetFrontValid = rocket.heading.cross(rocket.getTargetFront().cross(rocket.heading)).normalize();
         if (targetFrontValid.dot(rocket.front) < -0.9) // get some movement if it is directly on the other side
             targetFrontValid = rocket.heading.cross(rocket.front);
-        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(ROTATION_RATE * 0.5f);
+        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(rotationRate * 0.5f);
         Vec3 newFront = rocket.front.add(rotationCorrection).normalize();
         // make sure the front is 100% always orthogonal, just for extra security
         Vec3 right = rocket.heading.cross(newFront).normalize();
@@ -125,6 +125,7 @@ public class RocketController {
         // Determine if we are on a planet to apply gravity/tilt rules
         Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
         boolean isPlanet = rocketDim instanceof PlanetDimension;
+        boolean isSpaceDim = rocketDim instanceof SpaceStationDimension;
 
         if (isPlanet) {
             // never thrust down
@@ -145,7 +146,7 @@ public class RocketController {
                 // 1. Determine the vertical acceleration we need (capped by our absolute max engine limit)
                 requiredY = Math.min(desiredAcceleration.y, MAX_ALLOWED_ACCEL);
                 // Limit to anti-gravity + 1% to hover/climb slowly
-                requiredY = Math.min(requiredY, antiGravityAcceleration.y*1.01);
+                requiredY = Math.min(requiredY, antiGravityAcceleration.y * 1.01);
 
                 // 2. Calculate the remaining acceleration budget for the XZ plane (a^2 + b^2 = c^2)
                 double maxXZ_sq = (MAX_ALLOWED_ACCEL * MAX_ALLOWED_ACCEL) - (requiredY * requiredY);
@@ -161,18 +162,25 @@ public class RocketController {
                 }
             }
             // -----------------------------------------------------------------
-
-            targetHeading = desiredAcceleration.normalize();
+            if (isSpaceDim && rocket.heading.dot(desiredAcceleration) < 0) {
+                // use reverse thrust
+                targetHeading = desiredAcceleration.normalize().scale(-1);
+                isReverseThrust = true;
+            } else {
+                // normal rotation toward desired acceleration vector
+                targetHeading = desiredAcceleration.normalize();
+                isReverseThrust = false;
+            }
 
             // Calculate the magnitude of acceleration needed from the PD controller.
-            double accelerationMagnitude= desiredAcceleration.length();
+            double accelerationMagnitude = desiredAcceleration.length();
 
             // This ensures we only thrust if we point towards the target direction.
             double dotMultiplier = Math.max(0, rocket.heading.dot(targetHeading) - 0.9) * 10;
             accelerationMagnitude = accelerationMagnitude * dotMultiplier;
 
             // The Failsafe: Override the magnitude if we need to fight gravity while rotating
-            if (isPlanet && rocket.position().y < 2000)  {
+            if (isPlanet && rocket.position().y < 2000) {
                 // Only apply the failsafe if we are pointing UP.
                 // If we are pointing down or flat, thrusting won't help us fight gravity!
                 if (rocket.heading.y > 0) {
@@ -194,7 +202,9 @@ public class RocketController {
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
             Vec3 thrustVector = rocket.heading.scale(accelerationMagnitude);
-            
+            if (isReverseThrust)
+                thrustVector = thrustVector.scale(-1);
+
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(thrustVector));
 
             // Calculate the Thrust Multiplier (0.0 to 1.0)
@@ -212,6 +222,7 @@ public class RocketController {
 
         } else {
             targetHeading = rocket.getDefaultTargetHeading();
+            isReverseThrust = false;
         }
     }
 
@@ -265,16 +276,19 @@ public class RocketController {
 
                         sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
 
+                        double reverseThrustMultiplier = isReverseThrust ? -1 : 1;
+                        double reverseThrustInducedParticleSpread = isReverseThrust ? 5 : 1;
+
                         if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
-                            // no smoke in space
+                            // no smoke in space travel, looks very bad...
                             new RocketParticle(
                                     (ClientLevel) rocket.level(),
                                     worldPos.x + (Math.random() - 0.5) * 0.5,
                                     worldPos.y + (Math.random() - 0.5) * 0.5,
                                     worldPos.z + (Math.random() - 0.5) * 0.5,
-                                    rocket.heading.x * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
-                                    rocket.heading.y * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
-                                    rocket.heading.z * speedMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier,
+                                    rocket.heading.x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    rocket.heading.y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    rocket.heading.z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
                                     new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
                                     0.2f,
                                     sizeMultiplier * 2,
@@ -291,9 +305,9 @@ public class RocketController {
                                     worldPos.x + (Math.random() - 0.5) * 0.5,
                                     worldPos.y + (Math.random() - 0.5) * 0.5,
                                     worldPos.z + (Math.random() - 0.5) * 0.5,
-                                    rocket.heading.x * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
-                                    rocket.heading.y * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
-                                    rocket.heading.z * speedMultiplier * 1 + (Math.random() - 0.5) * 0.1 * speedMultiplier,
+                                    rocket.heading.x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    rocket.heading.y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    rocket.heading.z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
                                     new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
                                     // we not use additive blending in fabulous because it doesnt work so make it more bright
                                     (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
