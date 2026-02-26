@@ -3,12 +3,14 @@ package advRocketry.Items;
 import ARLib.utils.DimensionUtils;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.SpaceStationDimension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -43,9 +45,18 @@ public class ItemLinker extends Item {
             );
         }
         if(tag.contains("l")){
+            String levelString = tag.getString("l");
+            Dimension selectedDimension = DimensionManager.INSTANCE_CLIENT.get(ResourceLocation.parse(levelString));
+            if(selectedDimension != null) {
+                tooltipComponents.add(
+                        Component.literal(
+                                "selected level: " + selectedDimension.getName()
+                        )
+                );
+            }
             tooltipComponents.add(
                     Component.literal(
-                            "Selected Level: "+tag.getString("l")
+                            "level id: " +selectedDimension.getDimensionId()
                     )
             );
         }
@@ -56,6 +67,13 @@ public class ItemLinker extends Item {
                     )
             );
         }
+    }
+
+    public static void selectBlockPos(ItemStack stack, String levelId, BlockPos pos){
+        CompoundTag tag = new CompoundTag();
+        tag.put("p", NbtUtils.writeBlockPos(pos));
+        tag.putString("l", levelId);
+        ItemUtils.setTag(stack, tag);
     }
 
     public InteractionResult useOn(UseOnContext context) {
@@ -81,10 +99,10 @@ public class ItemLinker extends Item {
             }
             else {
                 // select block position
-                tag = new CompoundTag();
-                tag.put("p", NbtUtils.writeBlockPos(p));
-                tag.putString("l", levelId);
-                setTag(context.getItemInHand(), tag);
+                if(!tag.isEmpty())
+                    return InteractionResult.FAIL; // only allow on empty tag to avoid replacing entry by accident
+
+                selectBlockPos(context.getItemInHand(),levelId,p);
                 context.getPlayer().sendSystemMessage(Component.literal("set position to " + levelId + ":" + p));
             }
         }
@@ -95,7 +113,9 @@ public class ItemLinker extends Item {
         // select entity
         if(e.level().isClientSide)
             return;
-        CompoundTag tag = new CompoundTag();
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        if(!tag.isEmpty())
+            return; // only allow on empty tag to avoid replacing entry by accident
         tag.putUUID("uuid", e.getUUID());
         setTag(stack, tag);
         p.sendSystemMessage(Component.literal("selected Entity " + e.toString()));

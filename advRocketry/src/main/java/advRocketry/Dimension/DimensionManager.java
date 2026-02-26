@@ -67,6 +67,15 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
     }
 
+
+    public void addDimension(Dimension dimension){
+        dimensions.put(dimension.getDimensionId(), dimension);
+        for(ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+            SyncDimensionProperties.syncDimensionPropertiesToPlayer(p,dimension);
+        }
+    }
+
+
     public void saveDimensionProperties(Path saveDir) {
         // save current properties and if required, delete old properties to support dynamic deletion of dimensions
 
@@ -160,6 +169,16 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                 System.out.println("[DimensionManager] created DummyDimension for " + dummyDimension.getDimensionId());
             }
         }
+        if (propsBase.type == DimensionProperties.DimensionType.SPACE_STATION) {
+            SpaceStationDimensionProperties properties = gson.fromJson(dimensionProperties, SpaceStationDimensionProperties.class);
+            if (dimensions.containsKey(properties.dimensionId)) {
+                dimensions.get(properties.dimensionId).properties = properties;
+            } else {
+                SpaceStationDimension spaceStationDimension = new SpaceStationDimension(properties, this);
+                dimensions.put(spaceStationDimension.getDimensionId(), spaceStationDimension);
+                System.out.println("[DimensionManager] created Space Station for " + spaceStationDimension.getDimensionId() + ":" + spaceStationDimension.getName());
+            }
+        }
     }
 
     private void loadDimensionsFromDirectory(Path directory) {
@@ -209,6 +228,17 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             saveDimensionProperties(defaultDir);
         }
 
+        // make sure every dimension is registered, create dummy dimension for the other dimensions to avoid problems
+        for (ServerLevel level : ServerLifecycleHooks.getCurrentServer().getAllLevels()){
+            ResourceLocation levelId = level.dimension().location();
+            if(!dimensions.containsKey(levelId)){
+                DummyDimensionProperties dummyProps = new DummyDimensionProperties();
+                dummyProps.name = levelId.toString();
+                dummyProps.dimensionId=levelId;
+                dimensions.put(levelId, new DummyDimension(dummyProps,this));
+                System.out.println("[DimensionManager] created dummy dimension for "+levelId);
+            }
+        }
 
         // add the rocket travel dimension
         dimensions.put(RocketTravelDimension.dimId, new RocketTravelDimension(new DimensionProperties(), this));

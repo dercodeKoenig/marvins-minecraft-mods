@@ -4,6 +4,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.UUID;
+
 
 public class SpaceStationDimensionProperties extends DimensionProperties{
 
@@ -28,7 +30,7 @@ public class SpaceStationDimensionProperties extends DimensionProperties{
     public float orbitalDistanceToParent = 1;
 
     // the space station owner, he should be able to have ways to return to station without id chip
-    public String owner = "";
+    public UUID owner = null;
 
     // to calculate global axis direction, rotate the front vector around the  y rotation of the stations facing direction?
 

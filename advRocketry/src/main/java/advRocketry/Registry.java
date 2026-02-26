@@ -6,6 +6,7 @@ import advRocketry.Fluid.RocketFuel;
 import advRocketry.Items.ItemGalaxyStorageDisk;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Items.ItemSpaceStationContainer;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -49,6 +50,7 @@ public class Registry {
     public static final Supplier<Item> ITEM_LINKER = ITEMS.register("linker", () -> new ItemLinker());
     public static final Supplier<Item> ITEM_GALAXY_STORAGE_DISK = ITEMS.register("galaxy_storage_disk", () -> new ItemGalaxyStorageDisk());
     public static final Supplier<Item> ITEM_PLANET_ID_CHIP = ITEMS.register("planet_id_chip", () -> new ItemPlanetIdChip());
+    public static final Supplier<Item> ITEM_SPACE_STATION_CONTAINER = ITEMS.register("space_station_container", () -> new ItemSpaceStationContainer());
 
     public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", LAUNCHPAD);
