@@ -27,4 +27,9 @@ public class SpaceStationDimensionProperties extends DimensionProperties{
 
     public float orbitalDistanceToParent = 1;
 
+    // the space station owner, he should be able to have ways to return to station without id chip
+    public String owner = "";
+
+    // to calculate global axis direction, rotate the front vector around the  y rotation of the stations facing direction?
+
 }

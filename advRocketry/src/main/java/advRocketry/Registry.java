@@ -85,6 +85,9 @@ public class Registry {
     public static final Supplier<Block> OXYGEN_VENT = BLOCKS.register("oxygen_vent", () -> new OxygenVent());
     public static final Supplier<BlockEntityType<EntityOxygenVent>> ENTITY_OXYGEN_VENT = BLOCK_ENTITIES.register("oxygen_vent", () -> BlockEntityType.Builder.of(EntityOxygenVent::new, OXYGEN_VENT.get()).build(null));
 
+    public static final Supplier<Block> SPACE_STATION_ASSEMBLER = BLOCKS.register("space_station_assembler", () -> new SpaceStationAssembler());
+    public static final Supplier<BlockEntityType<EntitySpaceStationAssembler>> ENTITY_SPACE_STATION_ASSEMBLER = BLOCK_ENTITIES.register("space_station_assembler", () -> BlockEntityType.Builder.of(EntitySpaceStationAssembler::new, SPACE_STATION_ASSEMBLER.get()).build(null));
+
 
 
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
@@ -107,6 +110,7 @@ public class Registry {
         registerBlockItem("observatory", OBSERVATORY);
         registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
         registerBlockItem("oxygen_vent", OXYGEN_VENT);
+        registerBlockItem("space_station_assembler", SPACE_STATION_ASSEMBLER);
 
         registerBlockItem("moon_turf", MOON_TURF);
         registerBlockItem("moon_turf_dark", MOON_TURF_DARK);

@@ -236,6 +236,8 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x,y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.myTank);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x,y) -> x.battery);
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.myTank);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x,y) -> x.battery);
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x,y) -> x.battery);
     }
@@ -243,6 +245,7 @@ public class Main {
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
         event.registerBlockEntityRenderer(Registry.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
+        event.registerBlockEntityRenderer(Registry.ENTITY_SPACE_STATION_ASSEMBLER.get(), RenderRocketAssembler::new);
         event.registerBlockEntityRenderer(Registry.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
     }
 
@@ -333,6 +336,7 @@ public class Main {
             e.accept(Registry.OBSERVATORY.get());
             e.accept(Registry.ROCKET_ITEM_LOADER.get());
             e.accept(Registry.OXYGEN_VENT.get());
+            e.accept(Registry.SPACE_STATION_ASSEMBLER.get());
             e.accept(Registry.MOON_TURF.get());
             e.accept(Registry.MOON_TURF_DARK.get());
         }
