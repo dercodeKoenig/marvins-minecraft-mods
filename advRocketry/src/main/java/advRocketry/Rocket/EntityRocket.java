@@ -90,6 +90,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
     private RocketProgram currentProgram = null;
     public RocketController controller;
+    public BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
 
     // smooth position interpolation when server sends position update
     private double lerpX, lerpY, lerpZ;
@@ -534,9 +535,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         controller.tick();
 
         // run program or shutdown
-        if (currentProgram != null)
+        if (currentProgram != null) {
             currentProgram.run(this);
-        else {
+            dockingStationPos = null;
+        }else {
             setTargetPosition(null, false);
             enableSecondaryEngines(false, false);
             enableMainEngines(false, false);
@@ -603,8 +605,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     p.target = targetPos;
                     p.targetDimensionId = targetLevelId;
                     setProgramAndSync(p);
-
-                    setLastLaunchPosition(blockPosition(), true);
+                    if (dockingStationPos != null)
+                        setLastLaunchPosition(dockingStationPos, true);
+                    else
+                        setLastLaunchPosition(blockPosition(), true);
                     temporaryInfoTimeout = 0;
                     return true;
                 }

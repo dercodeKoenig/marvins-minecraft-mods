@@ -504,6 +504,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
             // update gui
             if (currentRocket != null) {
+                currentRocket.dockingStationPos = getBlockPos();
                 String newStatus = new String();
                 if (currentRocket.getCurrentProgram() == null)
                     newStatus += "rocket landed\n";
