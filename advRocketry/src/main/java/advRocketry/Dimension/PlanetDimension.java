@@ -225,6 +225,8 @@ public class PlanetDimension extends Dimension {
     public Vec3 getPosition(float partialTick) {
         if (properties().parentDimensionId != null) {
             Dimension parent = dimensionManager.get(properties().parentDimensionId);
+            if(parent == null) return properties().position;
+
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
             double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
@@ -312,6 +314,8 @@ public class PlanetDimension extends Dimension {
      */
     public Vec3 getEquatorReference(float partialTick) {
         // use main light source as reference for day start
+        // dayReference CAN NEVER NE NULL !!!!
+        // if a star is deleted for whatever reason it should be replaced with a dummy dimension at the same position
         Dimension dayReference = dimensionManager.get(properties().dayTimeReference);
         Vec3 dayRefToPlanet = getPosition(partialTick).subtract(dayReference.getPosition(partialTick));
         Vec3 equatorReference = dayRefToPlanet.cross(properties().rotationAxis).scale(-1);
@@ -328,6 +332,7 @@ public class PlanetDimension extends Dimension {
         double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
             Dimension target = dimensionManager.get(targetId);
+            if(target == null) continue;
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
             double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
