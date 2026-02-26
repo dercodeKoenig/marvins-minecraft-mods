@@ -50,6 +50,10 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         else return INSTANCE_SERVER;
     }
 
+    public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId) {
+        return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
+    }
+
     public Dimension get(ResourceLocation key) {
         if (dimensions.containsKey(key)) return dimensions.get(key);
         return null;
@@ -63,11 +67,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
     }
 
-    public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId) {
-        return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
-    }
-
-    public void saveDimensionProperties(Path saveDir){
+    public void saveDimensionProperties(Path saveDir) {
         // save current properties and if required, delete old properties to support dynamic deletion of dimensions
 
         // the save file name is namespace_path.json
@@ -78,7 +78,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         try {
             Files.createDirectories(saveDir);
             for (Dimension i : dimensions.values()) {
-                Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath()+".json");
+                Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath() + ".json");
                 String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i.properties);
                 Files.writeString(saveFile, s);
                 saveFiles.put(i.getDimensionId(), saveFile.getFileName().toString());
@@ -98,13 +98,13 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                     // delete if the dimension does not exist
                     if (!dimensions.containsKey(props.dimensionId)) {
                         Files.delete(file);
-                        System.out.println("[DimensionManager] Deleted file for "+props.dimensionId+" because it no longer exists on server");
+                        System.out.println("[DimensionManager] Deleted file for " + props.dimensionId + " because it no longer exists on server");
                     }
                     // delete if it was saved under different name
-                    if (saveFiles.containsKey(props.dimensionId)){
-                        if(! saveFiles.get(props.dimensionId).equals(file.getFileName().toString())){
+                    if (saveFiles.containsKey(props.dimensionId)) {
+                        if (!saveFiles.get(props.dimensionId).equals(file.getFileName().toString())) {
                             Files.delete(file);
-                            System.out.println("[DimensionManager] Deleted file for "+props.dimensionId+" because it was saved under a different filename: "+saveFiles.get(props.dimensionId));
+                            System.out.println("[DimensionManager] Deleted file for " + props.dimensionId + " because it was saved under a different filename: " + saveFiles.get(props.dimensionId));
                         }
                     }
 
@@ -120,7 +120,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         // unload and remove rocket travel dim before saving the other dimensions
         // this one does not need to be saved
         dimensions.remove(RocketTravelDimension.dimId);
-        DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, PlayerRemover.DEFAULT);
+        DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, (x, y) -> {
+        });
 
         // save dimension properties
         Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
@@ -129,7 +130,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         // save dimensions
         System.out.println("[DimensionManager] unloading and saving dimensions...");
         for (Dimension i : dimensions.values()) {
-            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), PlayerRemover.DEFAULT);
+            DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(i.getDimensionId(), (x, y) -> {
+            });
         }
         System.out.println("[DimensionManager] saved all dimensions!");
 
@@ -148,12 +150,12 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                 System.out.println("[DimensionManager] created PlanetDimension for " + dimension.getDimensionId());
             }
         }
-        if(propsBase.type== DimensionProperties.DimensionType.DUMMY){
+        if (propsBase.type == DimensionProperties.DimensionType.DUMMY) {
             DummyDimensionProperties properties = gson.fromJson(dimensionProperties, DummyDimensionProperties.class);
-            if(dimensions.containsKey(properties.dimensionId)){
+            if (dimensions.containsKey(properties.dimensionId)) {
                 dimensions.get(properties.dimensionId).properties = properties;
-            }else{
-                DummyDimension dummyDimension = new DummyDimension(properties,this);
+            } else {
+                DummyDimension dummyDimension = new DummyDimension(properties, this);
                 dimensions.put(dummyDimension.getDimensionId(), dummyDimension);
                 System.out.println("[DimensionManager] created DummyDimension for " + dummyDimension.getDimensionId());
             }
@@ -216,11 +218,6 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     public static class SyncDimensionProperties implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-        public void readClient(String props) {
-            System.out.println(props);
-            INSTANCE_CLIENT.loadDimensionFromString(props);
-        }
-
         public static void syncDimensionPropertiesToPlayer(ServerPlayer player, Dimension dimension) {
             PacketDistributor.sendToPlayer(player,
                     new SimpleNetworkPacket(
@@ -229,16 +226,14 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                     )
             );
         }
+
+        public void readClient(String props) {
+            System.out.println(props);
+            INSTANCE_CLIENT.loadDimensionFromString(props);
+        }
     }
 
     public static class SyncDimensionList implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
-
-        static class DimensionList { // wrapped for gson to parse so it has the type of the list
-            ArrayList<ResourceLocation> dimensionIds;
-            public DimensionList(ArrayList<ResourceLocation> dimensionIds) {
-                this.dimensionIds = dimensionIds;
-            }
-        }
 
         public static void syncDimensionListToPlayer(ServerPlayer player) {
             DimensionList list = new DimensionList(new ArrayList<>(INSTANCE_SERVER.dimensions.keySet()));
@@ -254,6 +249,14 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                     INSTANCE_CLIENT.dimensions.remove(i);
                     System.out.println("client removed dimension: " + i);
                 }
+            }
+        }
+
+        static class DimensionList { // wrapped for gson to parse so it has the type of the list
+            ArrayList<ResourceLocation> dimensionIds;
+
+            public DimensionList(ArrayList<ResourceLocation> dimensionIds) {
+                this.dimensionIds = dimensionIds;
             }
         }
     }

@@ -23,8 +23,6 @@ import static advRocketry.utils.CelestialUtils.fromAU;
 import static advRocketry.utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-// TODO: DEPTH SORT for rendering and reverse depth sort for click check so we click top planet
-
 public class SpaceMapScreen extends Screen {
     public SpaceMapScreen() {
         super(Component.literal("space map"));

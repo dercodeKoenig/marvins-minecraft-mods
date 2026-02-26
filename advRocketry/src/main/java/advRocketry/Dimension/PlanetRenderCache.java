@@ -1,11 +1,5 @@
-package advRocketry.Render;
+package advRocketry.Dimension;
 
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.PlanetDimension;
-import advRocketry.utils.ClientUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
