@@ -44,6 +44,13 @@ public class ItemLinker extends Item {
                     )
             );
         }
+        if(tag.contains("p")){
+            tooltipComponents.add(
+                    Component.literal(
+                            "Selected Position: "+NbtUtils.readBlockPos(tag, "p").get()
+                    )
+            );
+        }
         if(tag.contains("l")){
             String levelString = tag.getString("l");
             Dimension selectedDimension = DimensionManager.INSTANCE_CLIENT.get(ResourceLocation.parse(levelString));
@@ -57,13 +64,6 @@ public class ItemLinker extends Item {
             tooltipComponents.add(
                     Component.literal(
                             "level id: " +levelString
-                    )
-            );
-        }
-        if(tag.contains("p")){
-            tooltipComponents.add(
-                    Component.literal(
-                            "Selected Position: "+NbtUtils.readBlockPos(tag, "p").get()
                     )
             );
         }
