@@ -228,18 +228,6 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
             saveDimensionProperties(defaultDir);
         }
 
-        // make sure every dimension is registered, create dummy dimension for the other dimensions to avoid problems
-        for (ServerLevel level : ServerLifecycleHooks.getCurrentServer().getAllLevels()){
-            ResourceLocation levelId = level.dimension().location();
-            if(!dimensions.containsKey(levelId)){
-                DummyDimensionProperties dummyProps = new DummyDimensionProperties();
-                dummyProps.name = levelId.toString();
-                dummyProps.dimensionId=levelId;
-                dimensions.put(levelId, new DummyDimension(dummyProps,this));
-                System.out.println("[DimensionManager] created dummy dimension for "+levelId);
-            }
-        }
-
         // add the rocket travel dimension
         dimensions.put(RocketTravelDimension.dimId, new RocketTravelDimension(new DimensionProperties(), this));
 
