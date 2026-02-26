@@ -341,6 +341,7 @@ public class SkyRenderer {
         int totalLights = 0;
         for (ResourceLocation lightSourceId : myCurrentSpaceObject.getCurrentMainStars()) {
             Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
+            if (star == null) continue;
             Vec3 StarPos = star.getPosition(partialTick);
             Vec3 LightVector = myCurrentPositionInSpace.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
             shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
