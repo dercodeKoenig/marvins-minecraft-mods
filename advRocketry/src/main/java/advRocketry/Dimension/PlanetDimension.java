@@ -61,7 +61,7 @@ public class PlanetDimension extends Dimension {
         );
 
         OptionalLong fixedTime = properties().targetDayLength <= 0 ? OptionalLong.of(-properties().targetDayLength) : OptionalLong.empty();
-        System.out.println("fixed time for " + getDimensionId() + ":" + fixedTime);
+
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType(fixedTime);
         ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(getDimensionId(), generator, type);
         if (l == null) {
