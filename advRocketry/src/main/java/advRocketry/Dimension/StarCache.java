@@ -20,6 +20,7 @@ public class StarCache {
         if (dimIterator1 == null || !dimIterator1.hasNext()) {
             // Restart once we've gone through all dimensions
             dimIterator1 = new ArrayList<>(myDimension.dimensionManager.dimensions.values()).iterator();
+            // TODO remove deleted planets
         }
 
         if (dimIterator1.hasNext()) {
