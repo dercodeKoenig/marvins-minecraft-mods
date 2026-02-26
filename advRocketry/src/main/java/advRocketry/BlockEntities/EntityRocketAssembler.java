@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
@@ -64,12 +65,19 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public int clientBuildProgress = -1; // used for smooth rendering of the build structure tower animation
     public float clientBuildDiffPerTick = 0; // used for smooth rendering of the build structure tower animation
 
-
     public EntityRocketAssembler(BlockPos pos, BlockState blockState) {
-        super(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+        this(ENTITY_ROCKET_ASSEMBLER.get(), pos, blockState);
+    }
+
+    public EntityRocketAssembler(BlockEntityType type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
 
         battery = new BlockEntityBattery(this, 10000,1000);
 
+        makeGui();
+    }
+
+    public void makeGui(){
         guiHandler = new GuiHandlerBlockEntity(this);
         buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, BTN_BLACK, BTN_W, BTN_W);
         statusText = new guiModuleText(1, "status:", guiHandler, 10, 10, 0x00000000, false);
@@ -271,7 +279,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         for (int x = areaMin.getX(); x <= areaMax.getX(); x++) {
             for (int y = areaMin.getY(); y <= areaMax.getY(); y++) {
                 for (int z = areaMin.getZ(); z <= areaMax.getZ(); z++) {
-                    if (level.getBlockState(new BlockPos(x, y, z)) != Blocks.AIR.defaultBlockState()) {
+                    if (!level.getBlockState(new BlockPos(x, y, z)).isAir()) {
                         if (minX > x)
                             minX = x;
                         if (minY > y)
