@@ -1,5 +1,6 @@
 package advRocketry.Oxygen;
 
+import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.GlobalTime;
 import net.minecraft.core.BlockPos;
@@ -69,7 +70,8 @@ public class OxygenSystem {
     boolean shouldScanNextTick = false;
 
     public static boolean hasOxygenAt(Level level, BlockPos pos) {
-        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).hasEnoughOxygen())
+        Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
+        if (dim == null || dim.hasEnoughOxygen())
             return true;
 
         OxygenSystem instance = oxygenSystems.get(level.dimension().location());
@@ -106,16 +108,17 @@ public class OxygenSystem {
     public static void serverTick() {
 
         // check entities and apply no-oxygen damage if required
-        if(GlobalTime.getGlobalTime() % 20 == 0) {
+        if (GlobalTime.getGlobalTime() % 20 == 0) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             for (ResourceLocation levelId : DimensionManager.INSTANCE_SERVER.dimensions.keySet()) {
-                if (!DimensionManager.INSTANCE_SERVER.get(levelId).hasEnoughOxygen()) {
+                Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
+                if (dim != null && !dim.hasEnoughOxygen()) {
                     ServerLevel level = DimensionManager.getServerLevel(server, levelId);
-                    for(Entity e : level.getEntities().getAll()){
-                        if(e instanceof LivingEntity livingEntity){
-                           if(!hasOxygenAt(level, livingEntity.blockPosition())){
-                               livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)),1);
-                           }
+                    for (Entity e : level.getEntities().getAll()) {
+                        if (e instanceof LivingEntity livingEntity) {
+                            if (!hasOxygenAt(level, livingEntity.blockPosition())) {
+                                livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
+                            }
                         }
                     }
                 }
@@ -124,9 +127,10 @@ public class OxygenSystem {
 
         for (ResourceLocation levelId : oxygenSystems.keySet()) {
             // skip the scanning if there is oxygen anyway
-            if(!DimensionManager.INSTANCE_SERVER.get(levelId).hasEnoughOxygen()) {
-                oxygenSystems.get(levelId).tick();
-            }
+            Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
+            if (dim == null || dim.hasEnoughOxygen())
+                continue;
+            oxygenSystems.get(levelId).tick();
         }
     }
 
