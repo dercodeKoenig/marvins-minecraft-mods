@@ -14,6 +14,7 @@ import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.DimensionProperties;
+import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -252,7 +253,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (level.isClientSide) return;
         //long t0 = System.currentTimeMillis();
         Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-        if (myDim != null && myDim.getType() == DimensionProperties.DimensionType.SPACE_STATION) {
+        if (myDim instanceof SpaceStationDimension) {
             scanForSpaceDockingArea();
         } else {
             scanForLaunchPadArea();
@@ -530,7 +531,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
             if (currentRocket == null) {
                 if (areaMin == null || areaMax == null) {
-                    if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()).getType() != DimensionProperties.DimensionType.SPACE_STATION)
+                    if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension)
                         statusText.setTextAndSync("No launchpad detected");
                     else
                         statusText.setTextAndSync("Launch zone not detected");
