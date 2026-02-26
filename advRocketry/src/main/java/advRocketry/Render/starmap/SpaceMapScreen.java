@@ -429,36 +429,38 @@ public class SpaceMapScreen extends Screen {
         if (dimension instanceof PlanetDimension planet) {
             if (planet.getParentDimensionId() != null) {
                 Dimension parent = DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId());
-                double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(planet.getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(planet.getorbitalDistanceToParent()));
-                double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
-                double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + planet.getorbitalBaseOffsetDegrees();
+                if (parent != null) {
+                    double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(planet.getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(planet.getorbitalDistanceToParent()));
+                    double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
+                    double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + planet.getorbitalBaseOffsetDegrees();
 
-                // 1. Define a simple, non-zero vector to use for the cross-product
-                // This is an arbitrary direction, often chosen to align with a major axis.
-                Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
+                    // 1. Define a simple, non-zero vector to use for the cross-product
+                    // This is an arbitrary direction, often chosen to align with a major axis.
+                    Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
 
-                // 2. Find a starting vector orthogonal to the orbitAxis
-                Vec3 startDirection = planet.getOrbitAxis().cross(arbitraryVector);
+                    // 2. Find a starting vector orthogonal to the orbitAxis
+                    Vec3 startDirection = planet.getOrbitAxis().cross(arbitraryVector);
 
-                // 3. Handle the edge case where orbitAxis is parallel to arbitraryVector (e.g., orbitAxis is <0,0,1>)
-                // If the cross-product is zero length, orbitAxis and arbitraryVector are parallel.
-                if (startDirection.length() < 0.0001d) {
-                    // Fallback: cross with a different axis (e.g., the X-axis)
-                    arbitraryVector = new Vec3(1, 0, 0);
-                    startDirection = planet.getOrbitAxis().cross(arbitraryVector);
+                    // 3. Handle the edge case where orbitAxis is parallel to arbitraryVector (e.g., orbitAxis is <0,0,1>)
+                    // If the cross-product is zero length, orbitAxis and arbitraryVector are parallel.
+                    if (startDirection.length() < 0.0001d) {
+                        // Fallback: cross with a different axis (e.g., the X-axis)
+                        arbitraryVector = new Vec3(1, 0, 0);
+                        startDirection = planet.getOrbitAxis().cross(arbitraryVector);
+                    }
+
+                    // 4. Normalize the orthogonal vector and scale it to the orbital distance
+                    // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
+                    float orbitDistance = planet.getorbitalDistanceToParent();
+                    Vec3 baseOffset = startDirection.normalize().scale(Math.pow(orbitDistance, 0.5));
+
+                    // 5. Rotate the baseOffset around the orbitAxis by the current angle
+                    // baseOffset is now the vector V_start, and orbitAxis is the vector A.
+                    Vec3 rotatedOffset = CelestialUtils.rotate(baseOffset, planet.getOrbitAxis(), orbitAngleDegrees);
+
+                    // 6. Add parent's position to get global position
+                    return getPositionScaled(parent, partialTick).add(rotatedOffset);
                 }
-
-                // 4. Normalize the orthogonal vector and scale it to the orbital distance
-                // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
-                float orbitDistance = planet.getorbitalDistanceToParent();
-                Vec3 baseOffset = startDirection.normalize().scale(Math.pow(orbitDistance, 0.5));
-
-                // 5. Rotate the baseOffset around the orbitAxis by the current angle
-                // baseOffset is now the vector V_start, and orbitAxis is the vector A.
-                Vec3 rotatedOffset = CelestialUtils.rotate(baseOffset, planet.getOrbitAxis(), orbitAngleDegrees);
-
-                // 6. Add parent's position to get global position
-                return getPositionScaled(parent, partialTick).add(rotatedOffset);
             }
         }
         return dimension.getPosition(partialTick);

@@ -23,7 +23,7 @@ public class NavigateToSpaceTravelDimension {
         rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
 
         Dimension myDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
-        if (myDim != null && myDim.getType() == DimensionProperties.DimensionType.SPACE_STATION) {
+        if (myDim instanceof SpaceStationDimension spaceStationDimension) {
             // logic for space station
             // undock from station and move to launchpos.y-50, then thrust away
         } else {
@@ -37,8 +37,8 @@ public class NavigateToSpaceTravelDimension {
                     // teleport to space travel dimension
 
                     if (myDim != null) {
-                        // for planets, move to the correct position relative to the planet.
                         if (myDim instanceof PlanetDimension p) {
+                            // for planets, move to the correct position relative to the planet.
                             double r = CelestialUtils.toAU(p.getEarthRadiusMultiplier() * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.1 + Config.INSTANCE.planet_Sky_Height * 10);
                             Vec3 planetUp = p.getGlobalAxisDirections(0, p.getLatitudeFromZPosition(rocket.position().z)).up;
                             rocket.universePosition = myDim.getPosition(0).add(planetUp.scale(r));
@@ -47,6 +47,7 @@ public class NavigateToSpaceTravelDimension {
                             if (rocket.universeFront.length() < 0.01)
                                 rocket.universeFront = rocket.universeHeading.cross(new Vec3(0, 0, 1));
                         } else {
+                            // just move to the position of the origin space object
                             rocket.universePosition = myDim.getPosition(0);
                         }
                     }

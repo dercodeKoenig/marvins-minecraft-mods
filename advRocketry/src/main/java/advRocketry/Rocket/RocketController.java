@@ -1,10 +1,7 @@
 package advRocketry.Rocket;
 
 import advRocketry.Config;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
-import advRocketry.Dimension.RocketTravelDimension;
+import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketParticle;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
@@ -127,7 +124,7 @@ public class RocketController {
 
         // Determine if we are on a planet to apply gravity/tilt rules
         Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
-        boolean isPlanet = rocketDim != null && rocketDim.getType() == DimensionProperties.DimensionType.PLANET;
+        boolean isPlanet = rocketDim instanceof PlanetDimension;
 
         if (isPlanet) {
             // never thrust down

@@ -597,13 +597,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         if (targetLevel != null) {
             ResourceLocation targetLevelId = targetLevel.dimension().location();
-            Dimension targetDimesion = DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId);
-            if (targetDimesion.canVisit()) {
-                if (targetDimesion.getType() == DimensionProperties.DimensionType.PLANET) {
+            Dimension targetDimension = DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId);
+            if (targetDimension != null && targetDimension.canVisit()) {
+                if (targetDimension instanceof PlanetDimension) {
                     // target level is planet, use planet navigation program
-                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition();
-                    p.target = targetPos;
-                    p.targetDimensionId = targetLevelId;
+                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition(targetLevelId, level().dimension().location(), targetPos);
                     setProgramAndSync(p);
                     if (dockingStationPos != null)
                         setLastLaunchPosition(dockingStationPos, true);

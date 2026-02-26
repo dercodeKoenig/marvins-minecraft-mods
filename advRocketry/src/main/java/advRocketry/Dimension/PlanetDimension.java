@@ -403,7 +403,7 @@ public class PlanetDimension extends Dimension {
 
         if (isClientSide) {
             Dimension myDimension = ClientUtils.getPlayerDimension();
-            if (myDimension.getDimensionId().equals(this.getDimensionId())) {
+            if (myDimension != null && myDimension.getDimensionId().equals(this.getDimensionId())) {
                 if (properties().targetDayLength > 0)
                     properties().dayTime = ClientUtils.getPlayerLevel().dayTime();
                 else

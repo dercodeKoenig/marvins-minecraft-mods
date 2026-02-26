@@ -1,6 +1,7 @@
 package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.BlockEntities.EntityRocketAssembler;
+import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
@@ -23,8 +24,13 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
     public static double travelHeight = 200;
 
-    double lastVy;
     boolean isStarted = false; // make sure at start it actually fly up
+
+    public ProgramNavigateToPlanetPosition(ResourceLocation targetDimensionId, ResourceLocation originDimensionId, BlockPos target){
+        this.target = target;
+        this.targetDimensionId = targetDimensionId;
+        this.originDimensionId = originDimensionId;
+    }
 
     public void run(EntityRocket rocket) {
 
@@ -74,7 +80,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                     double maxDiffxz = 200;
 
                     // navigation is a bit more difficult on low gravity planets so dont move too fast there
-                    double g = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location()).getGravitationalMultiplier();
+                    double g = 1;
+                    Dimension myDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
+                    if (myDim != null)
+                        g = myDim.getGravitationalMultiplier();
                     maxDiffxz *= Math.pow(g, 0.25);
 
                     double xzMultiplier = Math.min(1, (maxDiffxz / distanceToTargetXZ));
@@ -119,17 +128,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 rocket.setDeltaMovement(0, 0, 0);
                 rocket.endProgram();
             }
-            lastVy = rocket.getDeltaMovement().y;
         } else {
             // we are not at target dim, move to space!
             if (NavigateToSpaceTravelDimension.run(rocket)) {
                 // we are in space, navigate to the target planet, the program will teleport the rocket to target dim
                 NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId, originDimensionId);
-            }else{
-                // not in space, capture the original dimension for the space navigation program later
-                if(originDimensionId == null){
-                    originDimensionId = rocket.level().dimension().location();
-                }
             }
         }
     }

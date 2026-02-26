@@ -314,7 +314,7 @@ public class SkyRenderer {
         byteBuffer.close();
     }
 
-    public void setupRenderTargets() {
+    private void setupRenderTargets() {
         PlanetsTarget = new HDRTextureTarget(1000, 1000, true, false);
         AtmosphereTarget = new HDRTextureTarget(1000, 1000, false, false);
         bloomBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
@@ -322,8 +322,9 @@ public class SkyRenderer {
         bloomBlurTarget2 = new HDRTextureTarget(1000, 1000, false, false);
     }
 
-    public void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
+    private void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
         Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
+
         Vec3 myCurrentPositionInSpace = myCurrentSpaceObject.getPosition(partialTick);
 
         Matrix4f atmMatrix = new Matrix4f();
@@ -373,9 +374,7 @@ public class SkyRenderer {
         VertexBuffer.unbind();
     }
 
-    public void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
-
-
+    private void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
         Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
 
         // for star background

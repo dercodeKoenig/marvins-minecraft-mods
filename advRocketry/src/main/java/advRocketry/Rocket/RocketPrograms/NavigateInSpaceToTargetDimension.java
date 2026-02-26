@@ -62,9 +62,9 @@ public class NavigateInSpaceToTargetDimension {
         /// we scale the target speed by dot(heading, target) to slow down when off target
 
 
-        // move to target dimension
         Dimension targetDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(target);
-        if (targetDim == null) return true; // client might not have received the dimension sync packet
+        if (targetDim == null) return true;
+
         Vec3 targetPosition = targetDim.getPosition(0);
         Vec3 finalTargetPositionRelative = targetPosition.subtract(rocket.universePosition);
         Vec3 finalTargetDirection = finalTargetPositionRelative.normalize();
@@ -72,7 +72,7 @@ public class NavigateInSpaceToTargetDimension {
 
         Vec3 nextTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, rocket.universePosition, DimensionManager.getDimensionManager(rocket.level().isClientSide), targetDim instanceof PlanetDimension p ? p : null);
         Vec3 nextTargetPositionRelative = nextTarget.subtract(rocket.universePosition);
-        Vec3 nextTargetDirectiop = nextTargetPositionRelative.normalize();
+        Vec3 nextTargetDirection = nextTargetPositionRelative.normalize();
 
         Dimension originDim = null;
         Vec3 originPos;
@@ -80,13 +80,15 @@ public class NavigateInSpaceToTargetDimension {
         double entryDistanceOrigin = -1;
         if (origin != null) {
             originDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(origin);
+        }
+        if(originDim != null){
             originPos = originDim.getPosition(0);
             distanceToOrigin = originPos.subtract(rocket.universePosition).length();
             entryDistanceOrigin = Math.max(0.0001, CelestialUtils.toAU((originDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
         }
 
 
-        rocket.universeTargetHeading = nextTargetDirectiop;
+        rocket.universeTargetHeading = nextTargetDirection;
         tickUniverseRotation(rocket);
 
         double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
