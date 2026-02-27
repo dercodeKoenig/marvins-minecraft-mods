@@ -173,10 +173,11 @@ public class SpaceStationDimension extends Dimension {
         tickRotation();
 
         ///  debug
-        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
-        properties().orbitDistanceTarget = 0.2f;
-        Vec3 targetOrbitAxis = new Vec3(0.1, 1, 0);
+        //properties().parentDimensionId = null;
+        properties().orbitDistanceTarget = 0.5f;
+        Vec3 targetOrbitAxis = new Vec3(0, 1, 0).normalize(); // dont think cross needs normalized but it will not hurt
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.05));
@@ -197,7 +198,8 @@ public class SpaceStationDimension extends Dimension {
             Vec3 right = targetOrbitAxis.cross(directionToParent).normalize();
 
             double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + 10 * properties().orbitDistanceTarget);
-            Vec3 targetPosition = parentPosition.add(directionToParent.scale(-1).scale(orbitDistanceTarget));
+            Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToParent)).normalize();
+            Vec3 targetPosition = parentPosition.add(equator.scale(orbitDistanceTarget));
 
             boolean isCloseEnoughForOrbit = distance < planetRenderRadiusAU * 12;
 

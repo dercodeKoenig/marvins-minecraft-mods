@@ -29,10 +29,13 @@ public class NavigateToSpaceTravelDimension {
             // undock from station and move to launchpos.y-50, then thrust away
             if (rocket.level() instanceof ServerLevel serverLevel) {
                 if (!callback.onSpaceReached()) {
+                    rocket.universePosition = myDim.getPosition(0);
+
                     ServerLevel target = DimensionManager.getServerLevel(serverLevel.getServer(), RocketTravelDimension.dimId);
                     ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
                     BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
                     rocket.teleportTo(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0));
+                    // just move to the position of the origin space object
                 }
             }
         } else {

@@ -136,7 +136,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     }
 
     public void scanForSpaceDockingArea() {
-
+        scanForLaunchPadArea();
     }
 
     public void scanForLaunchPadArea() {

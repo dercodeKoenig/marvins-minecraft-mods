@@ -145,7 +145,11 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
             // set the position and parent for the station depending on where we launch it
             if (DimensionManager.INSTANCE_SERVER.get(originDimensionId) instanceof PlanetDimension planet) {
                 spaceStationDimension.initializePosition(
-                        planet.getPosition(0).add(new Vec3(1, 0, 0).scale(SpaceStationDimension.getPlanetRenderRadiusAU(planet) * 1.5)),
+                        planet.getPosition(0).add(
+                                new Vec3(1, 0, 0).scale(
+                                        SpaceStationDimension.getPlanetRenderRadiusAU(planet) * 1.5
+                                )
+                        ),
                         planet.getDimensionId()
                 );
             } else if (DimensionManager.INSTANCE_SERVER.get(originDimensionId) instanceof SpaceStationDimension originStation) {
