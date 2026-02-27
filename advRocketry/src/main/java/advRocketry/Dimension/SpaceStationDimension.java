@@ -174,15 +174,13 @@ public class SpaceStationDimension extends Dimension {
             Vec3 targetOrbitAxis = properties().orbitAxisTarget;
             Vec3 parentPosition = parentPlanet.getPosition(0);
             double planetRenderRadiusAU = getPlanetRenderRadiusAU(parentPlanet);
-            Vec3 directionToParent = parentPosition.subtract(position).normalize();
             double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + 10 * properties().orbitDistanceTarget);
-            Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToParent)).normalize();
-            Vec3 targetPosition = parentPosition.add(equator.scale(orbitDistanceTarget));
-            properties().position = targetPosition;
+            Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(parentPosition)).normalize();
+            properties().position = parentPosition.add(equator.scale(orbitDistanceTarget));
         } else {
             properties().position = position;
         }
-        
+
         lazyPosition = position;
         properties().parentDimensionId = parentDimensionId;
         properties().positionInitialized = true;
