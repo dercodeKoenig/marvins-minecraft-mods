@@ -95,7 +95,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
         Vec3 toTarget = target.getCenter().subtract(rocket.position());
 
-        rocket.setDefaultTargetHeading(toTarget, false);
+        rocket.setDefaultTargetHeading(rocket.getHeading(), false);
 
         rocket.setTargetFront(new Vec3(0, 1, 0), false);
 
