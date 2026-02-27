@@ -15,6 +15,12 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
 
     public float orbitDistanceTarget = 0.001f;// when in orbit
 
+    public Vec3 front = new Vec3(0,0,1);
+
+    public Vec3 up = new Vec3(0,1,0);
+
+    public Vec3 targetFront = new Vec3(0,0,1);
+
     // the space station owner, he should be able to have ways to return to station without id chip
     public UUID owner = null;
 

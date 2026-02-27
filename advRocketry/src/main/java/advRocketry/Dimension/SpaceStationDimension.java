@@ -1,9 +1,9 @@
 package advRocketry.Dimension;
 
 import advRocketry.Config;
-import advRocketry.Main;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import advRocketry.utils.SpaceNavigation;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +19,8 @@ public class SpaceStationDimension extends Dimension {
 
     private Vec3 lazyPosition = Vec3.ZERO; // interpolate toward position for smooth movement / sync
     private Vec3 movement = Vec3.ZERO;
+
+    private int ticksInSpaceTravel = 0;
 
     public SpaceStationDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
@@ -131,8 +133,8 @@ public class SpaceStationDimension extends Dimension {
     @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         return new AxisDirections(
-                new Vec3(0, 0, 1),
-                new Vec3(0, 1, 0)
+                properties().front,
+                properties().up
         );
     }
 
@@ -140,11 +142,13 @@ public class SpaceStationDimension extends Dimension {
     public void tick() {
         super.tickStarCache();
 
+        tickRotation();
+
         ///  debug
         properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        properties().orbitDistanceTarget = 0.001f;
-
-        Vec3 targetOrbitAxis = new Vec3(0.1,1,0);
+        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        properties().orbitDistanceTarget = 0.2f;
+        Vec3 targetOrbitAxis = new Vec3(0.1, 1, 0);
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.05));
@@ -152,55 +156,111 @@ public class SpaceStationDimension extends Dimension {
         this.lazyPosition = newLazyPosition;
 
         Vec3 position = properties().position;
-        double orbitDistanceTarget = properties().orbitDistanceTarget;
         Vec3 movement = Vec3.ZERO;
 
         if (properties().parentDimensionId != null && dimensionManager.get(properties().parentDimensionId) instanceof PlanetDimension parentPlanet) {
+            // station has a target - fly there!
 
             Vec3 parentPosition = parentPlanet.getPosition(0);
-            double orbitDistance = position.distanceTo(parentPosition);
+            double distance = position.distanceTo(parentPosition);
+            double planetRenderRadiusAU = getPlanetRenderRadiusAU(parentPlanet);
 
-            // add parent movement
-            movement = movement.add(parentPlanet.getMovement());
-            //System.out.println("parent movement:"+movement);
-
-            // add orbit movement at current orbit
-            double requiredOrbitSpeed_m_per_s = CelestialUtils.getSpeedForOrbit(
-                    CelestialUtils.fromEarthMasses(parentPlanet.getGravitationalMultiplier()),
-                    CelestialUtils.fromAU(orbitDistance)
-            );
-            double requiredOrbitSpeed = CelestialUtils.toAU(requiredOrbitSpeed_m_per_s) / 20; // convert back to au and per tick
-            requiredOrbitSpeed = requiredOrbitSpeed * 100; // TODO: remove this line
             Vec3 directionToParent = parentPosition.subtract(position).normalize();
             Vec3 right = targetOrbitAxis.cross(directionToParent).normalize();
-            movement = movement.add(right.scale(requiredOrbitSpeed));
-            //System.out.println("with orbit movement:"+movement);
 
-            // add correction to move to target orbit position / distance
+            double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + 10 * properties().orbitDistanceTarget);
             Vec3 targetPosition = parentPosition.add(directionToParent.scale(-1).scale(orbitDistanceTarget));
-            Vec3 errorToTargetPosition = targetPosition.subtract(position);
-            if(errorToTargetPosition.length() > 0.000001) {
-                // calculate the allowed movement speed
-                double distanceToClosestPlanet = -1;
-                for(Dimension dim : dimensionManager.dimensions.values()){
-                    if(dim instanceof PlanetDimension planetDimension){
-                        Vec3 otherPlanetPosition = planetDimension.getPosition(0);
-                        double d = otherPlanetPosition.distanceTo(position);
-                        if(distanceToClosestPlanet < 0 || d < distanceToClosestPlanet){
-                            distanceToClosestPlanet = d;
-                        }
-                    }
+
+            boolean isCloseEnoughForOrbit = distance < planetRenderRadiusAU * 12;
+
+            if (isCloseEnoughForOrbit) {
+                // add parent movement
+                movement = movement.add(parentPlanet.getMovement());
+
+                // add orbit movement at current orbit
+                double requiredOrbitSpeed_m_per_s = CelestialUtils.getSpeedForOrbit(
+                        CelestialUtils.fromEarthMasses(parentPlanet.getGravitationalMultiplier()),
+                        CelestialUtils.fromAU(distance)
+                );
+                double requiredOrbitSpeed = CelestialUtils.toAU(requiredOrbitSpeed_m_per_s) / 20; // convert back to au and per tick
+                requiredOrbitSpeed = requiredOrbitSpeed * 100; // TODO: remove this line
+                movement = movement.add(right.scale(requiredOrbitSpeed));
+
+                // add correction to move to target orbit position / distance
+                Vec3 errorToTargetPosition = targetPosition.subtract(position);
+                if (errorToTargetPosition.length() > 0.000001) {
+                    double correctionSpeedMax = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
+                    Vec3 errorToTargetPositionSpeedLimited = errorToTargetPosition.scale(100000).normalize().scale(correctionSpeedMax);
+                    if (errorToTargetPosition.length() > errorToTargetPositionSpeedLimited.length())
+                        errorToTargetPosition = errorToTargetPositionSpeedLimited;
+                    movement = movement.add(errorToTargetPosition);
                 }
-                double nearTargetMultiplier = Math.min(1, distanceToClosestPlanet / Config.INSTANCE.rocket_SpaceTravel_Distance_For_Max_Speed);
-                double correctionSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second * nearTargetMultiplier+ Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
-                Vec3 correctionMovement = errorToTargetPosition;
-                Vec3 correctionMovement2 = errorToTargetPosition.scale(100000).normalize().scale(correctionSpeed);
-                if(errorToTargetPosition.length() > correctionMovement2.length())
-                    correctionMovement = correctionMovement2;
-                movement = movement.add(correctionMovement);
             }
+
+            if (!isCloseEnoughForOrbit) {
+                // space navigation logic to move to target position
+                ticksInSpaceTravel++;
+                Vec3 travelTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, position, dimensionManager, parentPlanet);
+
+                Vec3 targetPositionRelative = travelTarget.subtract(position);
+
+                double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20;
+                double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_Distance_For_Max_Speed;
+
+                double nearTargetMultiplier = Math.min(1, targetPositionRelative.length() / distanceForMaxSpeed);
+                maxSpeed *= nearTargetMultiplier; // slow down when near target
+
+                double justStartedMultiplier = Math.min(1, ticksInSpaceTravel / (20 * 10));
+                maxSpeed *= justStartedMultiplier; // slow down when just started
+
+                double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
+                double offTargetMultiplier = Math.max(0, targetPositionRelative.normalize().dot(properties().front) - 0.98) * 50;
+
+                double speed = maxSpeed * offTargetMultiplier + e;
+
+                setTargetFront(targetPositionRelative);
+
+                movement = properties().front.scale(speed);
+            } else {
+                ticksInSpaceTravel = 0;
+            }
+        } else {
+            // station has no target
+            ticksInSpaceTravel = 0;
         }
 
         properties().position = position.add(movement);
+    }
+
+    public void setTargetFront(Vec3 targetFront) {
+        properties().targetFront = targetFront.normalize();
+    }
+
+    // mostly copied from rocket controller
+    public void tickRotation() {
+        double rotationRate = 0.01;
+        Vec3 rotationCorrection;
+        if (properties().targetFront.dot(properties().front) > -0.99) {
+            rotationCorrection = properties().targetFront.subtract(properties().front).scale(rotationRate);
+            if (rotationCorrection.length() > rotationRate)
+                rotationCorrection = rotationCorrection.normalize().scale(rotationRate);
+        } else
+            rotationCorrection = properties().up.subtract(properties().front).normalize().scale(rotationRate);
+
+        properties().front = properties().front.add(rotationCorrection).normalize();
+
+        // always try to head up
+        Vec3 targetUpValid = properties().front.cross(new Vec3(0,1,0).cross(properties().front)).normalize();
+        if (targetUpValid.dot(properties().up) < -0.9)
+            targetUpValid = properties().front.cross(properties().up);
+        rotationCorrection = targetUpValid.subtract(properties().up).scale(rotationRate * 0.5f);
+        Vec3 newUp = properties().up.add(rotationCorrection).normalize();
+
+        Vec3 right = properties().front.cross(newUp).normalize();
+        properties().up = right.cross(properties().front).normalize();
+    }
+
+    double getPlanetRenderRadiusAU(PlanetDimension planet) {
+        return CelestialUtils.toAU(CelestialUtils.fromEarthRadius(planet.getEarthRadiusMultiplier())) * Config.INSTANCE.planet_Render_Scale_Multiplier;
     }
 }

@@ -97,7 +97,7 @@ public class NavigateInSpaceToTargetDimension {
         Vec3 originPos = null;
         double distanceToOrigin = -1;
         double entryDistanceOrigin = -1;
-        if (origin != null) {
+        if (origin != null && !origin.equals(RocketTravelDimension.dimId)) {
             originDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(origin);
         }
         if (originDim != null) {
@@ -170,7 +170,7 @@ public class NavigateInSpaceToTargetDimension {
             double maxDistance = originPos.distanceTo(targetPosition);
             double progress = 1 - (distanceToFinalTarget / maxDistance);
             double progressPercent = (double) Math.round(progress * 100 * 100) / 100;
-            rocket.infoText.setTextAndSync("progress: "+ progressPercent+"%");
+            rocket.infoText.setTextAndSync("progress: " + progressPercent + "%");
             rocket.temporaryInfoTimeout = 10;
         }
 
