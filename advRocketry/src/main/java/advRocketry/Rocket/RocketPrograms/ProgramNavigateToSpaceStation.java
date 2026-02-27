@@ -131,7 +131,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
     void teleportToStation(EntityRocket rocket) {
         ServerLevel targetLevel = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), targetDimensionId);
 
-        Vec3 targetPos = new Vec3(500, 100, 0);
+        Vec3 targetPos = new Vec3(300, 100, 0);
 
         Vec3 entrySpeed = new Vec3(0, 0, 0);
 

@@ -178,6 +178,8 @@ public class SpaceStationDimension extends Dimension {
             Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(parentPosition)).normalize();
             properties().position = parentPosition.add(equator.scale(orbitDistanceTarget));
         } else {
+            if(position == null)
+                throw new RuntimeException("position can not be null here!");
             properties().position = position;
         }
 
