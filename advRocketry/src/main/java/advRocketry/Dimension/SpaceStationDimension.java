@@ -145,11 +145,25 @@ public class SpaceStationDimension extends Dimension {
     public boolean isInOrbit(){
         return isInOrbit;
     }
-    public boolean isInitialized(){
+    public boolean initialBlocksPlaced(){
         return properties().initialBlocksPlaced;
     }
-    public void setInitialized(){
+    public void setInitialBlocksPlaced(){
         properties().initialBlocksPlaced = true;
+        System.out.println("initial blocks placed for station "+getName());
+        DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
+    }
+    public boolean isPositionInitialized(){
+        return properties().positionInitialized;
+    }
+    public void initializePosition(Vec3 position, ResourceLocation parentDimensionId){
+        properties().position = position;
+        properties().parentDimensionId = parentDimensionId;
+        properties().positionInitialized = true;
+        System.out.println("position initialized for station: "+getName());
+        System.out.println("position:"+position);
+        System.out.println("parent:"+parentDimensionId);
+        DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
     }
 
     @Override
@@ -278,7 +292,7 @@ public class SpaceStationDimension extends Dimension {
         properties().up = right.cross(properties().front).normalize();
     }
 
-    double getPlanetRenderRadiusAU(PlanetDimension planet) {
+    public static double getPlanetRenderRadiusAU(PlanetDimension planet) {
         return CelestialUtils.toAU(CelestialUtils.fromEarthRadius(planet.getEarthRadiusMultiplier())) * Config.INSTANCE.planet_Render_Scale_Multiplier;
     }
 }

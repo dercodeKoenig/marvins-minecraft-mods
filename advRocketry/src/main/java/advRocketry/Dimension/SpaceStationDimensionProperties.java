@@ -25,6 +25,7 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
     public UUID owner = null;
 
     public boolean initialBlocksPlaced = false; // was the station container placed already?
+    public boolean positionInitialized = false; // has the station received its initial position?
 
     public SpaceStationDimensionProperties() {
         this.type = DimensionType.SPACE_STATION;

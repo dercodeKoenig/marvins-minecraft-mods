@@ -181,8 +181,9 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
                 }
             }
         }
-        if (blocks.isEmpty())
-            return false;
+        // also allow empty blocks
+        //if (blocks.isEmpty())
+        //    return false;
         if (simulate)
             return true;
 

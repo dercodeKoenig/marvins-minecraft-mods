@@ -68,10 +68,14 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
 
-    public void addDimension(Dimension dimension){
+    public void addDimension(Dimension dimension) {
         dimensions.put(dimension.getDimensionId(), dimension);
-        for(ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
-            SyncDimensionProperties.syncDimensionPropertiesToPlayer(p,dimension);
+        syncDimensionProperties(dimension);
+    }
+
+    public void syncDimensionProperties(Dimension dimension) {
+        for (ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+            SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, dimension);
         }
     }
 
