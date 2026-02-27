@@ -76,7 +76,20 @@ public class NavigateInSpaceToTargetDimension {
         Vec3 finalTargetDirection = finalTargetPositionRelative.normalize();
         double distanceToFinalTarget = finalTargetPositionRelative.length();
 
+        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
+
         Vec3 nextTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, rocket.universePosition, DimensionManager.getDimensionManager(rocket.level().isClientSide), targetDim instanceof PlanetDimension p ? p : null);
+        if(targetPosition == nextTarget){ // the function will return the exact same input vector so on == the next target is final target
+            // do not fly directly in center, fly to the edge
+            if(targetDim instanceof PlanetDimension planetDimension) {
+                // find a possible edge direction
+                Vec3 side = planetDimension.getOrbitAxis().normalize().cross(finalTargetDirection);
+                // offset the target to fly to the edge of the planet
+                nextTarget = nextTarget.add(side.normalize().scale(entryDistance));
+                // this looks like it is risky to target the entry distance when we require it to get < entry distance to teleport,
+                // but as we get closer the side vector will shift behind the planet and it will surely get within tp distance
+            }
+        }
         Vec3 nextTargetPositionRelative = nextTarget.subtract(rocket.universePosition);
         Vec3 nextTargetDirection = nextTargetPositionRelative.normalize();
 
@@ -96,8 +109,6 @@ public class NavigateInSpaceToTargetDimension {
 
         rocket.universeTargetHeading = nextTargetDirection;
         tickUniverseRotation(rocket);
-
-        double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
 
         // move forward
         double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20; // the maximum travel speed defined as in config adjusted for per tick
@@ -123,8 +134,8 @@ public class NavigateInSpaceToTargetDimension {
         double targetDimensionMovementConsideration = 0;
         if (targetMovement.length() > 0) {
             targetDimensionMovementConsideration = getSpeedAdjustment(
-                    entryDistance * 5,
-                    entryDistance * 3,
+                    entryDistance * 10,
+                    entryDistance * 8,
                     distanceToFinalTarget,
                     targetMovement,
                     rocket
@@ -136,8 +147,8 @@ public class NavigateInSpaceToTargetDimension {
             Vec3 originMovement = originDim.getMovement(0);
             if (originMovement.length() > 0 && distanceToOrigin < distanceToFinalTarget) {
                 targetDimensionMovementConsideration = getSpeedAdjustment(
-                        entryDistanceOrigin * 5,
-                        entryDistanceOrigin * 3,
+                        entryDistanceOrigin * 10,
+                        entryDistanceOrigin * 8,
                         distanceToOrigin,
                         originMovement,
                         rocket
