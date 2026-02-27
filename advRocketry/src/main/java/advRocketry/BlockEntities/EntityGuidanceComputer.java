@@ -4,6 +4,8 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import advRocketry.Items.ItemLinker;
+import advRocketry.Items.ItemPlanetIdChip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -30,6 +32,14 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
             @Override
             protected void onContentsChanged(int slot) {
                 setChanged();
+            }
+            @Override
+            public boolean isItemValid(int slot, ItemStack stack){
+                if(stack.getItem() instanceof ItemPlanetIdChip)
+                    return  true;
+                if(stack.getItem() instanceof ItemLinker)
+                    return  true;
+                return  false;
             }
         };
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 0, 1, guiHandler, 50, 20));
