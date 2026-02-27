@@ -79,9 +79,9 @@ public class NavigateInSpaceToTargetDimension {
         double entryDistance = Math.max(0.0001, CelestialUtils.toAU((targetDim instanceof PlanetDimension p ? p.getEarthRadiusMultiplier() : 1) * CelestialUtils.EARTH_RADIUS * Config.INSTANCE.planet_Render_Scale_Multiplier * 1.2));
 
         Vec3 nextTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, rocket.universePosition, DimensionManager.getDimensionManager(rocket.level().isClientSide), targetDim instanceof PlanetDimension p ? p : null);
-        if(targetPosition == nextTarget){ // the function will return the exact same input vector so on == the next target is final target
+        if (targetPosition == nextTarget) { // the function will return the exact same input vector so on == the next target is final target
             // do not fly directly in center, fly to the edge
-            if(targetDim instanceof PlanetDimension planetDimension) {
+            if (targetDim instanceof PlanetDimension planetDimension) {
                 // find a possible edge direction
                 Vec3 side = planetDimension.getOrbitAxis().normalize().cross(finalTargetDirection);
                 // offset the target to fly to the edge of the planet
@@ -94,7 +94,7 @@ public class NavigateInSpaceToTargetDimension {
         Vec3 nextTargetDirection = nextTargetPositionRelative.normalize();
 
         Dimension originDim = null;
-        Vec3 originPos;
+        Vec3 originPos = null;
         double distanceToOrigin = -1;
         double entryDistanceOrigin = -1;
         if (origin != null) {
@@ -170,6 +170,13 @@ public class NavigateInSpaceToTargetDimension {
             performTeleport.run();
         }
 
+        if (originPos != null) {
+            double maxDistance = originPos.distanceTo(targetPosition);
+            double progress = 1 - (distanceToFinalTarget / maxDistance);
+            double progressPercent = (double) Math.round(progress * 100 * 100) / 100;
+            rocket.infoText.setTextAndSync("progress: "+ progressPercent+"%");
+            rocket.temporaryInfoTimeout = 10;
+        }
 
         return false;
     }
