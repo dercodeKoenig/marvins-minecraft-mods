@@ -2,8 +2,7 @@ package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Config;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
 import advRocketry.utils.Utils;
@@ -18,6 +17,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+
+import java.util.Objects;
 
 public class ProgramNavigateToSpaceStation implements RocketProgram {
 
@@ -62,6 +63,13 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
     public void run(EntityRocket rocket) {
 
+        SpaceStationDimension targetDimension = (SpaceStationDimension)DimensionManager.getDimensionManager(rocket.level().isClientSide).get(targetDimensionId);
+        if(targetDimension == null) {
+            rocket.setDeltaMovement(0,0,0);
+            rocket.endProgram();
+            return;
+        }
+
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
 
             if(dockingPosition == null){
@@ -70,25 +78,53 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
 
         } else {
-            // we are not at target dim, move to space!
-            if (NavigateToSpaceTravelDimension.run(rocket)) {
-                // we are in space, navigate to the target planet, the program will teleport the rocket to target dim
-                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId, originDimensionId,() -> {
-
-                    ServerLevel targetLevel = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), targetDimensionId);
-
-                    Vec3 targetPos = new Vec3(1000,100,0);
-
-                    Vec3 entrySpeed = new Vec3(0,0,0);
-
-                    EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
-
-
-                    Vec3 toTarget = target.getCenter().subtract(newRocket.position());
-                    newRocket.setHeadingAndFrontDirect(toTarget,toTarget.cross(new Vec3(0,1,0).cross(toTarget)));
+            if (rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
+                // we are in space, navigate to the target planet and teleport the rocket to target dim
+                NavigateInSpaceToTargetDimension.run(rocket, targetDimensionId, originDimensionId, () -> {
+                    teleportToStation(rocket);
+                });
+            } else {
+                // we are not at target dim, move to space!
+                NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.onSpaceReached() {
+                    @Override
+                    public boolean onSpaceReached() {
+                        Dimension rocketDimension = DimensionManager.INSTANCE_SERVER.get(rocket.level().dimension().location());
+                        if (rocketDimension instanceof SpaceStationDimension otherStation) {
+                            if(Objects.equals(otherStation.getParentDimensionId(), targetDimension.getParentDimensionId())){
+                                if(otherStation.isInOrbit() && targetDimension.isInOrbit()) {
+                                    // skip space travel on station 2 station when in same orbit
+                                    teleportToStation(rocket);
+                                    return true;
+                                }
+                            }
+                        }
+                        if (rocketDimension instanceof PlanetDimension planet) {
+                            if(Objects.equals(planet.getDimensionId(), targetDimension.getParentDimensionId())){
+                                if(targetDimension.isInOrbit()) {
+                                    // skip space travel on planet 2 station when station is in planet orbit
+                                    teleportToStation(rocket);
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }
                 });
             }
         }
+    }
+
+    void teleportToStation(EntityRocket rocket){
+        ServerLevel targetLevel = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), targetDimensionId);
+
+        Vec3 targetPos = new Vec3(1000,100,0);
+
+        Vec3 entrySpeed = new Vec3(0,0,0);
+
+        EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
+
+        Vec3 toTarget = target.getCenter().subtract(newRocket.position());
+        newRocket.setHeadingAndFrontDirect(toTarget,toTarget.cross(new Vec3(0,1,0).cross(toTarget)));
     }
 
     void runWithoutDockingStation(EntityRocket rocket){

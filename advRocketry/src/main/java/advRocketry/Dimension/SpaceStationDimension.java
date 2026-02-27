@@ -19,6 +19,7 @@ public class SpaceStationDimension extends Dimension {
 
     private Vec3 lazyPosition = Vec3.ZERO; // interpolate toward position for smooth movement / sync
     private Vec3 movement = Vec3.ZERO;
+    private boolean isInOrbit;
 
     private int ticksInSpaceTravel = 0;
 
@@ -138,6 +139,13 @@ public class SpaceStationDimension extends Dimension {
         );
     }
 
+    public ResourceLocation getParentDimensionId(){
+        return properties().parentDimensionId;
+    }
+    public boolean isInOrbit(){
+        return isInOrbit;
+    }
+
     @Override
     public void tick() {
         super.tickStarCache();
@@ -145,7 +153,7 @@ public class SpaceStationDimension extends Dimension {
         tickRotation();
 
         ///  debug
-        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         properties().orbitDistanceTarget = 0.2f;
         Vec3 targetOrbitAxis = new Vec3(0.1, 1, 0);
@@ -174,6 +182,9 @@ public class SpaceStationDimension extends Dimension {
             boolean isCloseEnoughForOrbit = distance < planetRenderRadiusAU * 12;
 
             if (isCloseEnoughForOrbit) {
+                isInOrbit = true;
+                ticksInSpaceTravel = 0;
+
                 // add parent movement
                 movement = movement.add(parentPlanet.getMovement());
 
@@ -183,7 +194,7 @@ public class SpaceStationDimension extends Dimension {
                         CelestialUtils.fromAU(distance)
                 );
                 double requiredOrbitSpeed = CelestialUtils.toAU(requiredOrbitSpeed_m_per_s) / 20; // convert back to au and per tick
-                requiredOrbitSpeed = requiredOrbitSpeed * 100; // TODO: remove this line
+                //requiredOrbitSpeed = requiredOrbitSpeed * 100; // TODO: remove this line
                 movement = movement.add(right.scale(requiredOrbitSpeed));
 
                 // add correction to move to target orbit position / distance
@@ -198,8 +209,10 @@ public class SpaceStationDimension extends Dimension {
             }
 
             if (!isCloseEnoughForOrbit) {
-                // space navigation logic to move to target position
+                isInOrbit = false;
                 ticksInSpaceTravel++;
+
+                // space navigation logic to move to target position
                 Vec3 travelTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, position, dimensionManager, parentPlanet);
 
                 Vec3 targetPositionRelative = travelTarget.subtract(position);
@@ -221,12 +234,11 @@ public class SpaceStationDimension extends Dimension {
                 setTargetFront(targetPositionRelative);
 
                 movement = properties().front.scale(speed);
-            } else {
-                ticksInSpaceTravel = 0;
             }
         } else {
             // station has no target
             ticksInSpaceTravel = 0;
+            isInOrbit = false;
         }
 
         properties().position = position.add(movement);
