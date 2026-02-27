@@ -162,7 +162,7 @@ public class RocketController {
                 }
             }
             // -----------------------------------------------------------------
-            if (isSpaceDim && rocket.heading.dot(desiredAcceleration) < 0) {
+            if (isSpaceDim && rocket.heading.dot(desiredAcceleration.normalize()) < -0.8) {
                 // use reverse thrust
                 targetHeading = desiredAcceleration.normalize().scale(-1);
                 isReverseThrust = true;

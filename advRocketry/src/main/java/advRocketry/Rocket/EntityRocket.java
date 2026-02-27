@@ -443,6 +443,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return defaultTargetHeading;
     }
 
+    public Vec3 getHeading() {
+        return heading;
+    }
+
     public void setTargetFront(Vec3 target, boolean syncToClient) {
         if (!level().isClientSide && syncToClient && !Objects.equals(target, targetFront)) {
             CompoundTag tag = new CompoundTag();
@@ -628,7 +632,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     return true;
                 }
                 if(targetDimension instanceof SpaceStationDimension){
-                    ProgramNavigateToSpaceStation p = new ProgramNavigateToSpaceStation(targetLevelId, level().dimension().location(), targetPos);
+                    ProgramNavigateToSpaceStation p = new ProgramNavigateToSpaceStation(targetLevelId, level().dimension().location(), targetPos, this);
                     setProgramAndSync(p);
                     if (dockingStationPos != null)
                         setLastLaunchPosition(dockingStationPos, true);
