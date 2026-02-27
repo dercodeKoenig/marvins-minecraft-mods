@@ -98,12 +98,6 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                     double targetZ = rocket.position().z + dz * xzMultiplier;
 
                     targetVec3 = new Vec3(targetX, Math.max(maxY + travelHeight, rocket.position().y - maxDiffY), targetZ);
-
-                    // rotate to the target front if it is a rocket assembler there
-                    if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
-                        Direction targetFront = assembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                        rocket.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
-                    }
                 }
             } else {
                 // landing...
@@ -124,6 +118,16 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
                 targetVec3 = new Vec3(targetVec3.x, targetY, targetVec3.z);
 
+            }
+
+            // rotate to the target front if it is a rocket assembler there
+            if(rocket.position().y > maxY+1) {
+                if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
+                    Direction targetFront = assembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+                    rocket.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
+                }
+            }else{
+                rocket.setTargetFront(rocket.getTargetFront(),false);
             }
 
 

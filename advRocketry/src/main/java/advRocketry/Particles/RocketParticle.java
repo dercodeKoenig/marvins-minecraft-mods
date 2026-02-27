@@ -5,6 +5,8 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
@@ -70,6 +72,17 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
         } else {
             this.quadSize = size;
         }
+    }
+
+    int lastLight = 0;
+    @Override
+    // modified to skip no light errors
+    protected int getLightColor(float partialTick) {
+        BlockPos blockpos = BlockPos.containing(this.x, this.y, this.z);
+        if(this.level.hasChunkAt(blockpos)){
+            lastLight = LevelRenderer.getLightColor(this.level, blockpos);
+        }
+        return lastLight;
     }
 
     @Override

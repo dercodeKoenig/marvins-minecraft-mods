@@ -103,15 +103,18 @@ public class NavigateInSpaceToTargetDimension {
         double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20; // the maximum travel speed defined as in config adjusted for per tick
         double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_Distance_For_Max_Speed; // we reach this speed only if we are 0.1 AU away from home / origin
 
+        //Config.INSTANCE.rocket_SpaceTravel_Min_Speed =0.000002;
+        //Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate = 0.01;
+
         double nearTargetMultiplier = Math.min(1, Math.max(0,distanceToFinalTarget-entryDistance) / distanceForMaxSpeed);
         maxSpeed *= nearTargetMultiplier; // slow down when near target
-        //System.out.println("near target: "+nearTargetMultiplier);
+        //System.out.println("near target: "+nearTargetMultiplier+":"+maxSpeed);
         if (originDim != null) {
             // do not go too fast initially, move slowly away first before crazy acceleration
             // slowly enable the target speed as we move away from origin
             double nearOriginMultiplier = Math.min(1, Math.max(0,distanceToOrigin-entryDistanceOrigin) / distanceForMaxSpeed);
             maxSpeed *= nearOriginMultiplier;
-            //System.out.println("near origin: "+nearOriginMultiplier);
+            //System.out.println("near origin: "+nearOriginMultiplier+":"+maxSpeed);
         }
         // base speed
         double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;

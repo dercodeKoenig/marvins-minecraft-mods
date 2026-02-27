@@ -5,8 +5,8 @@ public class Config {
     public double planet_Sky_Height = 5000;
     public double rocket_SpaceTravel_AU_Per_Second = 0.01;
     public double rocket_SpaceTravel_Distance_For_Max_Speed = 0.1;
-    public double rocket_SpaceTravel_Min_Speed = 0.00001;
-    public double rocket_SpaceTravel_Rotation_Rate = 0.05;
+    public double rocket_SpaceTravel_Min_Speed = 0.000005;
+    public double rocket_SpaceTravel_Rotation_Rate = 0.01;
     public double rocket_Planet_Entry_Speed_Y = -10;
 
     // true scale is way too small, for example earth would only cover 8px on a 1080p screen.
