@@ -20,6 +20,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
+import static advRocketry.utils.CelestialUtils.getPlanetRenderRadiusAU;
+
 public class SpaceStationDimension extends Dimension {
 
     private Vec3 lazyPosition = Vec3.ZERO; // interpolate toward position for smooth movement / sync
@@ -36,7 +38,6 @@ public class SpaceStationDimension extends Dimension {
     private SpaceStationDimensionProperties properties() {
         return (SpaceStationDimensionProperties) properties;
     }
-
 
     @Override
     public void createDimension() {
@@ -145,33 +146,51 @@ public class SpaceStationDimension extends Dimension {
         );
     }
 
-    public ResourceLocation getParentDimensionId(){
+    public ResourceLocation getParentDimensionId() {
         return properties().parentDimensionId;
     }
-    public boolean isInOrbit(){
+
+    public boolean isInOrbit() {
         return isInOrbit;
     }
-    public boolean initialBlocksPlaced(){
+
+    public boolean initialBlocksPlaced() {
         return properties().initialBlocksPlaced;
     }
-    public void setInitialBlocksPlaced(){
+
+    public void setInitialBlocksPlaced() {
         properties().initialBlocksPlaced = true;
-        System.out.println("initial blocks placed for station "+getName());
+        System.out.println("initial blocks placed for station " + getName());
         DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
     }
-    public boolean isPositionInitialized(){
+
+    public boolean isPositionInitialized() {
         return properties().positionInitialized;
     }
-    public void initializePosition(Vec3 position, ResourceLocation parentDimensionId){
-        properties().position = position;
+
+    public void initializePosition(Vec3 position, ResourceLocation parentDimensionId) {
+
+        if (parentDimensionId != null && DimensionManager.INSTANCE_SERVER.get(parentDimensionId) instanceof PlanetDimension parentPlanet) {
+            Vec3 targetOrbitAxis = properties().orbitAxisTarget;
+            Vec3 parentPosition = parentPlanet.getPosition(0);
+            double planetRenderRadiusAU = getPlanetRenderRadiusAU(parentPlanet);
+            Vec3 directionToParent = parentPosition.subtract(position).normalize();
+            double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + 10 * properties().orbitDistanceTarget);
+            Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToParent)).normalize();
+            Vec3 targetPosition = parentPosition.add(equator.scale(orbitDistanceTarget));
+            properties().position = targetPosition;
+        } else {
+            properties().position = position;
+        }
+        
         lazyPosition = position;
         properties().parentDimensionId = parentDimensionId;
         properties().positionInitialized = true;
-        System.out.println("position initialized for station: "+getName());
-        System.out.println("position:"+position);
-        System.out.println("parent:"+parentDimensionId);
+        System.out.println("position initialized for station: " + getName());
+        System.out.println("position:" + position);
+        System.out.println("parent:" + parentDimensionId);
         DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
-        lazyPositionPacket.syncLazyPosition(getDimensionId(),lazyPosition);
+        lazyPositionPacket.syncLazyPosition(getDimensionId(), lazyPosition);
     }
 
     @Override
@@ -185,7 +204,6 @@ public class SpaceStationDimension extends Dimension {
         //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         //properties().parentDimensionId = null;
         //properties().orbitDistanceTarget = 0.5f;
-        Vec3 targetOrbitAxis = new Vec3(0, 1, 0).normalize(); // dont think cross needs normalized but it will not hurt
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.05));
@@ -197,6 +215,8 @@ public class SpaceStationDimension extends Dimension {
 
         if (properties().parentDimensionId != null && dimensionManager.get(properties().parentDimensionId) instanceof PlanetDimension parentPlanet) {
             // station has a target - fly there!
+
+            Vec3 targetOrbitAxis = properties().orbitAxisTarget.normalize(); // dont think cross needs normalized but it will not hurt
 
             Vec3 parentPosition = parentPlanet.getPosition(0);
             double distance = position.distanceTo(parentPosition);
@@ -292,7 +312,7 @@ public class SpaceStationDimension extends Dimension {
         properties().front = properties().front.add(rotationCorrection).normalize();
 
         // always try to head up, TODO; replace with target up
-        Vec3 targetUpValid = properties().front.cross(new Vec3(0,1,0).cross(properties().front)).normalize();
+        Vec3 targetUpValid = properties().front.cross(new Vec3(0, 1, 0).cross(properties().front)).normalize();
         if (targetUpValid.dot(properties().up) < -0.9)
             targetUpValid = properties().front.cross(properties().up);
         rotationCorrection = targetUpValid.subtract(properties().up).scale(rotationRate * 0.5f);
@@ -302,22 +322,16 @@ public class SpaceStationDimension extends Dimension {
         properties().up = right.cross(properties().front).normalize();
     }
 
-    public static double getPlanetRenderRadiusAU(PlanetDimension planet) {
-        return CelestialUtils.toAU(CelestialUtils.fromEarthRadius(planet.getEarthRadiusMultiplier())) * Config.INSTANCE.planet_Render_Scale_Multiplier;
-    }
-
-
-
     // lazy position not included in properties or it would set on every property sync and not be lazy
-    public static class lazyPositionPacket implements SimpleNetworkPacket.SimpleNetworkDataReceiver{
+    public static class lazyPositionPacket implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-        public static String packetID = Main.MODID+"_space_dimension_lazy_position_packet";
+        public static String packetID = Main.MODID + "_space_dimension_lazy_position_packet";
 
-        public static void syncLazyPosition(ResourceLocation dimId, Vec3 lazyPosition){
+        public static void syncLazyPosition(ResourceLocation dimId, Vec3 lazyPosition) {
             Data data = new Data();
             data.dimensionId = dimId;
             data.lazyPosition = lazyPosition;
-            for(ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+            for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
                 PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket(packetID, new Gson().toJson(data)));
             }
         }
@@ -328,7 +342,7 @@ public class SpaceStationDimension extends Dimension {
             d.lazyPosition = data.lazyPosition;
         }
 
-        public static class Data{
+        public static class Data {
             ResourceLocation dimensionId;
             Vec3 lazyPosition;
         }

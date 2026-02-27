@@ -1,7 +1,9 @@
 package advRocketry.utils;
 
+import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -67,6 +69,11 @@ public class CelestialUtils {
     // mass in kg, distance in m, returns m/s
     public static double getSpeedForOrbit(double mass1, double distance){
         return Math.sqrt(G * mass1 / distance);
+    }
+
+
+    public static double getPlanetRenderRadiusAU(PlanetDimension planet) {
+        return CelestialUtils.toAU(CelestialUtils.fromEarthRadius(planet.getEarthRadiusMultiplier())) * Config.INSTANCE.planet_Render_Scale_Multiplier;
     }
 }
 
