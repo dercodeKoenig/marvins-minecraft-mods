@@ -143,7 +143,6 @@ public class SpaceStationDimension extends Dimension {
         ///  debug
         properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         properties().orbitDistanceTarget = 0.001f;
-        //properties().position = Vec3.ZERO;
 
         Vec3 targetOrbitAxis = new Vec3(0.1,1,0);
 
