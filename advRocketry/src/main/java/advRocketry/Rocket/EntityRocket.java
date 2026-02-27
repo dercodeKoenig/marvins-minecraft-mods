@@ -50,6 +50,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
@@ -223,7 +224,27 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public EntityDimensions getDimensions(Pose pose) {
-        return EntityDimensions.scalable((float) Math.max(size.getX(), size.getZ()), (float) size.getY());
+        return EntityDimensions.fixed((float) Math.max(size.getX(), size.getZ()), (float) size.getY());
+    }
+
+    @Override
+    protected AABB makeBoundingBox() {
+        Vec3 heading = this.getHeading();
+        if (heading == null || size == null) return super.makeBoundingBox();
+
+        double w = Math.max(size.getX(), size.getZ());
+        double h = size.getY();
+        double maxX = Math.abs(heading.x);
+        double maxY = Math.abs(heading.y);
+        double maxZ = Math.abs(heading.z);
+        if (maxX > maxY && maxX > maxZ) {
+            return new AABB(position().x - h / 2, position().y - w / 2 + h / 2, position().z - w / 2, position().x + h / 2, position().y + w / 2 + h / 2, position().z + w / 2);
+        }
+        if (maxZ > maxY && maxZ > maxX) {
+            return new AABB(position().x - w / 2, position().y - w / 2 + h / 2, position().z - h / 2, position().x + w / 2, position().y + w / 2 + h / 2, position().z + h / 2);
+        }
+        // normal bb
+        return new AABB(position().x - w / 2, position().y, position().z - w / 2, position().x + w / 2, position().y + h, position().z + w / 2);
     }
 
     @Override
@@ -459,6 +480,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3 getTargetFront() {
         return targetFront;
     }
+
+    public Vec3 getFront() {
+        return front;
+    }
+
 
     public void setTargetPosition(@Nullable Vec3 target, boolean syncToClient) {
         if (!level().isClientSide && syncToClient && !Objects.equals(target, targetPosition)) {

@@ -146,7 +146,7 @@ public class SpaceStationDimension extends Dimension {
 
         ///  debug
         properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         properties().orbitDistanceTarget = 0.2f;
         Vec3 targetOrbitAxis = new Vec3(0.1, 1, 0);
 
@@ -238,7 +238,7 @@ public class SpaceStationDimension extends Dimension {
 
     // mostly copied from rocket controller
     public void tickRotation() {
-        double rotationRate = 0.01;
+        double rotationRate = 0.002;
         Vec3 rotationCorrection;
         if (properties().targetFront.dot(properties().front) > -0.99) {
             rotationCorrection = properties().targetFront.subtract(properties().front).scale(rotationRate);
@@ -249,7 +249,7 @@ public class SpaceStationDimension extends Dimension {
 
         properties().front = properties().front.add(rotationCorrection).normalize();
 
-        // always try to head up
+        // always try to head up, TODO; replace with target up
         Vec3 targetUpValid = properties().front.cross(new Vec3(0,1,0).cross(properties().front)).normalize();
         if (targetUpValid.dot(properties().up) < -0.9)
             targetUpValid = properties().front.cross(properties().up);

@@ -166,7 +166,7 @@ public class NavigateInSpaceToTargetDimension {
             performTeleport.run();
         }
 
-        if (originPos != null) {
+        if (originPos != null && !rocket.level().isClientSide) {
             double maxDistance = originPos.distanceTo(targetPosition);
             double progress = 1 - (distanceToFinalTarget / maxDistance);
             double progressPercent = (double) Math.round(progress * 100 * 100) / 100;

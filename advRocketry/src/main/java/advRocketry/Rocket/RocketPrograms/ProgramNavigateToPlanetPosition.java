@@ -127,7 +127,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                     rocket.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
                 }
             }else{
-                rocket.setTargetFront(rocket.getTargetFront(),false);
+                rocket.setTargetFront(rocket.getFront(),false);
             }
 
 
