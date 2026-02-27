@@ -181,11 +181,11 @@ public class SpaceStationDimension extends Dimension {
             properties().position = position;
         }
 
-        lazyPosition = position;
+        lazyPosition = properties().position;
         properties().parentDimensionId = parentDimensionId;
         properties().positionInitialized = true;
         System.out.println("position initialized for station: " + getName());
-        System.out.println("position:" + position);
+        System.out.println("position:" + lazyPosition);
         System.out.println("parent:" + parentDimensionId);
         DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
         lazyPositionPacket.syncLazyPosition(getDimensionId(), lazyPosition);
