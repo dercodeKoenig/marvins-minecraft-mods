@@ -80,14 +80,16 @@ public class NavigateInSpaceToTargetDimension {
 
         Vec3 nextTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, rocket.universePosition, DimensionManager.getDimensionManager(rocket.level().isClientSide), targetDim instanceof PlanetDimension p ? p : null);
         if (targetPosition == nextTarget) { // the function will return the exact same input vector so on == the next target is final target
-            // do not fly directly in center, fly to the edge
-            if (targetDim instanceof PlanetDimension planetDimension) {
-                // find a possible edge direction
-                Vec3 side = planetDimension.getOrbitAxis().normalize().cross(finalTargetDirection);
-                // offset the target to fly to the edge of the planet
-                nextTarget = nextTarget.add(side.normalize().scale(entryDistance));
-                // this looks like it is risky to target the entry distance when we require it to get < entry distance to teleport,
-                // but as we get closer the side vector will shift behind the planet and it will surely get within tp distance
+            if(false) { // disabled because i dont like it!
+                // do not fly directly in center, fly to the edge
+                if (targetDim instanceof PlanetDimension planetDimension) {
+                    // find a possible edge direction
+                    Vec3 side = planetDimension.getOrbitAxis().normalize().cross(finalTargetDirection);
+                    // offset the target to fly to the edge of the planet
+                    nextTarget = nextTarget.add(side.normalize().scale(entryDistance));
+                    // this looks like it is risky to target the entry distance when we require it to get < entry distance to teleport,
+                    // but as we get closer the side vector will shift behind the planet and it will surely get within tp distance
+                }
             }
         }
         Vec3 nextTargetPositionRelative = nextTarget.subtract(rocket.universePosition);

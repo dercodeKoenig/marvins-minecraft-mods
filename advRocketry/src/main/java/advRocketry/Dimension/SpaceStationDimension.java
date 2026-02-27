@@ -153,8 +153,8 @@ public class SpaceStationDimension extends Dimension {
         tickRotation();
 
         ///  debug
-        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         properties().orbitDistanceTarget = 0.2f;
         Vec3 targetOrbitAxis = new Vec3(0.1, 1, 0);
 
