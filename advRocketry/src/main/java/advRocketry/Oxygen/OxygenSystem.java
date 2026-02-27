@@ -112,15 +112,17 @@ public class OxygenSystem {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             for (ResourceLocation levelId : DimensionManager.INSTANCE_SERVER.dimensions.keySet()) {
                 Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
-                if (dim != null && !dim.hasEnoughOxygen()) {
-                    ServerLevel level = DimensionManager.getServerLevel(server, levelId);
-                    if(level == null)
-                        continue;
-                    for (Entity e : level.getEntities().getAll()) {
-                        if (e instanceof LivingEntity livingEntity) {
-                            if (!hasOxygenAt(level, livingEntity.blockPosition())) {
-                                livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
-                            }
+                if (dim == null)
+                    continue;
+                if (dim.hasEnoughOxygen())
+                    continue;
+                ServerLevel level = DimensionManager.getServerLevel(server, levelId);
+                if (level == null)
+                    continue;
+                for (Entity e : level.getEntities().getAll()) {
+                    if (e instanceof LivingEntity livingEntity) {
+                        if (!hasOxygenAt(level, livingEntity.blockPosition())) {
+                            livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
                         }
                     }
                 }
