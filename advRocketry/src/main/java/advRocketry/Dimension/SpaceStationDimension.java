@@ -25,6 +25,7 @@ public class SpaceStationDimension extends Dimension {
 
     public SpaceStationDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
+        this.lazyPosition = properties().position; // when first synced to client, set the position direct
     }
 
     private SpaceStationDimensionProperties properties() {
