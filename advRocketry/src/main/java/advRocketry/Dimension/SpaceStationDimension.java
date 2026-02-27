@@ -145,6 +145,12 @@ public class SpaceStationDimension extends Dimension {
     public boolean isInOrbit(){
         return isInOrbit;
     }
+    public boolean isInitialized(){
+        return properties().initialBlocksPlaced;
+    }
+    public void setInitialized(){
+        properties().initialBlocksPlaced = true;
+    }
 
     @Override
     public void tick() {
