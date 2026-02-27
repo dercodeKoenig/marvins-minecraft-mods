@@ -74,7 +74,7 @@ public abstract class Dimension {
 
     abstract public Vec3 getPosition(float partialTick);
 
-    abstract public Vec3 getMovement(float partialTick);
+    abstract public Vec3 getMovement();
 
     protected void tickStarCache(){
         starCache.updateSignificantLightSourcesCache(this);

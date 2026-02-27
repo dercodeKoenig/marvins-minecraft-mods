@@ -218,7 +218,7 @@ public class PlanetDimension extends Dimension {
         return rotation;
     }
 
-    public Vec3 getMovement(float partialTick) {
+    public Vec3 getMovement() {
         return currentSpeed;
     }
 

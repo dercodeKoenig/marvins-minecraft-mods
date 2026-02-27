@@ -59,9 +59,14 @@ public class CelestialUtils {
         return earthRadiusMultiplier * EARTH_RADIUS;
     }
 
+    // mass in kg, distance in m
     public static double calculateOrbitalPeriodTicks(double mass1, double mass2, double distance) {
         double combinedMass = mass1 + mass2;
         return 2 * Math.PI * Math.sqrt(Math.pow(distance, 3) / (G * combinedMass)) * 20;
+    }
+    // mass in kg, distance in m, returns m/s
+    public static double getSpeedForOrbit(double mass1, double distance){
+        return Math.sqrt(G * mass1 / distance);
     }
 }
 

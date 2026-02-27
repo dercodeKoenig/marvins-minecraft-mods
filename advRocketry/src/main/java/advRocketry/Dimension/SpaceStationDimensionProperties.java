@@ -9,22 +9,11 @@ import java.util.UUID;
 
 public class SpaceStationDimensionProperties extends DimensionProperties {
 
-    // based on target position, the new target position is calculated during orbit
-    // position tries to close up to target position while it maintains a minimum distance to other planets
-    // every tick we can calculate the orbit speed and move the target position orthogonal to planet vector
-    // then we scale the targetposition along the planet-target vector to keep the target orbit distance
-    // every few seconds this target position and orbit distance can be synced, client will perform same logic
-    // targetposition = targetposition + cross(orbitaxis, planetvector) * orbitspeed
-    // targetposition = planetposition + (targetposition - planetposition).norm.scale(distance)
-    // position = position + (targetposition - position) * 0.1 or similar where speed is capped to orbitspeed*1.01 so it can catch up but never be too fast
-
     public Vec3 position = new Vec3(0, 0, 0);
-
-    public Vec3 targetPosition = new Vec3(0, 0, 0);
 
     public ResourceLocation parentDimensionId = null; // when in orbit
 
-    public float orbitalDistanceToParent = 1;// when in orbit
+    public float orbitDistanceTarget = 0.001f;// when in orbit
 
     // the space station owner, he should be able to have ways to return to station without id chip
     public UUID owner = null;

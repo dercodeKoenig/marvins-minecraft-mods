@@ -92,7 +92,7 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
-    public Vec3 getMovement(float partialTick) {
+    public Vec3 getMovement() {
         return Vec3.ZERO;
     }
 

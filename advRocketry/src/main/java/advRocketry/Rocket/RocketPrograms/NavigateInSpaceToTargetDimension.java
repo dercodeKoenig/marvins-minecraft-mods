@@ -116,13 +116,9 @@ public class NavigateInSpaceToTargetDimension {
 
         double nearTargetMultiplier = Math.min(1, Math.max(0, distanceToFinalTarget - entryDistance) / distanceForMaxSpeed);
         maxSpeed *= nearTargetMultiplier; // slow down when near target
-        //System.out.println("near target: "+nearTargetMultiplier+":"+maxSpeed);
         if (originDim != null) {
-            // do not go too fast initially, move slowly away first before crazy acceleration
-            // slowly enable the target speed as we move away from origin
             double nearOriginMultiplier = Math.min(1, Math.max(0, distanceToOrigin - entryDistanceOrigin) / distanceForMaxSpeed);
-            maxSpeed *= nearOriginMultiplier;
-            //System.out.println("near origin: "+nearOriginMultiplier+":"+maxSpeed);
+            maxSpeed *= nearOriginMultiplier; // slow down near origin
         }
         // base speed
         double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
@@ -130,7 +126,7 @@ public class NavigateInSpaceToTargetDimension {
 
         // the origin/target can move in space too, so i will add the origin/target dimension speed to the final target speed in case e is too small to catch up with planet movement
         // check if close to target
-        Vec3 targetMovement = targetDim.getMovement(0);
+        Vec3 targetMovement = targetDim.getMovement();
         double targetDimensionMovementConsideration = 0;
         if (targetMovement.length() > 0) {
             targetDimensionMovementConsideration = getSpeedAdjustment(
@@ -144,7 +140,7 @@ public class NavigateInSpaceToTargetDimension {
         }
         // check if close to origin
         if (originDim != null) {
-            Vec3 originMovement = originDim.getMovement(0);
+            Vec3 originMovement = originDim.getMovement();
             if (originMovement.length() > 0 && distanceToOrigin < distanceToFinalTarget) {
                 targetDimensionMovementConsideration = getSpeedAdjustment(
                         entryDistanceOrigin * 10,
