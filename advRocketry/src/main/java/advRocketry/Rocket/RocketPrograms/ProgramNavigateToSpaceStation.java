@@ -115,7 +115,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         rocket.setTargetPosition(targetVec3, false);
 
         // check if stopped (at target or collision maybe)
-        if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 50 && !rocket.level().isClientSide) {
+        if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 50) {
             rocket.setDeltaMovement(0, 0, 0);
             rocket.endProgram();
         }
