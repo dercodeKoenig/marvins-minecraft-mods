@@ -1,10 +1,12 @@
 package advRocketry.worldgen;
 
+import advRocketry.Main;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.BlockTags;
@@ -52,8 +54,9 @@ public class SpaceDimensionGeneration {
         RegistryAccess registryAccess = server.registryAccess();
         Registry<Biome> biomeRegistry = registryAccess.registryOrThrow(Registries.BIOME);
 
+        ResourceKey<Biome> spaceBiome = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(Main.MODID, "space"));
         return new FlatLevelSource(new FlatLevelGeneratorSettings(
-           Optional.empty(),biomeRegistry.getHolderOrThrow(Biomes.THE_VOID),new ArrayList<>()
+                Optional.empty(), biomeRegistry.getHolderOrThrow(spaceBiome), new ArrayList<>()
         ));
     }
 }

@@ -109,16 +109,17 @@ public class ItemLinker extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    public static void useOnEntity(Player p,ItemStack stack, Entity e){
+    public static boolean useOnEntity(Player p,ItemStack stack, Entity e){
         // select entity
-        if(e.level().isClientSide)
-            return;
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         if(!tag.isEmpty())
-            return; // only allow on empty tag to avoid replacing entry by accident
+            return false; // only allow on empty tag to avoid replacing entry by accident
+        if(e.level().isClientSide)
+            return true;
         tag.putUUID("uuid", e.getUUID());
         setTag(stack, tag);
         p.sendSystemMessage(Component.literal("selected Entity " + e.toString()));
+        return true;
     }
 
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {

@@ -226,9 +226,10 @@ public class Main {
         Player p = event.getEntity();
         Entity target = event.getTarget();
         if (stack.getItem() instanceof ItemLinker) {
-            ItemLinker.useOnEntity(p, stack, target);
-            event.setCancellationResult(InteractionResult.SUCCESS);
-            event.setCanceled(true);
+            if(ItemLinker.useOnEntity(p, stack, target)) {
+                event.setCancellationResult(InteractionResult.SUCCESS);
+                event.setCanceled(true);
+            }
         }
     }
 
