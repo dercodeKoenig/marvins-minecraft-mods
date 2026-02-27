@@ -97,9 +97,10 @@ public class GlobalTime implements SimpleNetworkPacket.SimpleNetworkDataReceiver
         } catch (IOException e) {
             System.out.println("could not read universal time from file");
         }
-        //sync
-        //INSTANCE.universalTimeClient = INSTANCE.universalTimeServer;
-        //INSTANCE.universalTimeClientTarget = INSTANCE.universalTimeServer;
+
+        // this is for integrated server
+        INSTANCE.universalTimeClient = INSTANCE.universalTimeServer;
+        INSTANCE.universalTimeClientTarget = INSTANCE.universalTimeServer;
 
         System.out.println("universal time: " + INSTANCE.universalTimeServer);
     }
