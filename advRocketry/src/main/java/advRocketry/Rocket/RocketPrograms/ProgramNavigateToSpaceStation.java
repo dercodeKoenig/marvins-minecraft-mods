@@ -105,8 +105,8 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
         rocket.setRotationRateMultiplier(1, false);
 
-        Vec3 scaledToTarget = toTarget.scale(1);
-        double maxD = 100;
+        Vec3 scaledToTarget = toTarget.scale(0.5);
+        double maxD = 300;
         if(scaledToTarget.length() > maxD){
             scaledToTarget = scaledToTarget.normalize().scale(maxD);
         }
@@ -115,7 +115,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         rocket.setTargetPosition(targetVec3, false);
 
         // check if stopped (at target or collision maybe)
-        if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 50) {
+        if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 50 && !rocket.level().isClientSide) {
             rocket.setDeltaMovement(0, 0, 0);
             rocket.endProgram();
         }

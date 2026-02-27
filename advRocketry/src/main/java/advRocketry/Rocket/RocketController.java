@@ -277,7 +277,7 @@ public class RocketController {
                         sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
 
                         double reverseThrustMultiplier = isReverseThrust ? -1 : 1;
-                        double reverseThrustInducedParticleSpread = isReverseThrust ? 5 : 1;
+                        double reverseThrustInducedParticleSpread = isReverseThrust ? 2 : 1;
 
                         if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
                             // no smoke in space travel, looks very bad...

@@ -495,7 +495,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public void tick() {
-
         super.tick();
 
         if (!level().isClientSide) {
@@ -567,21 +566,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         applyGravity();
 
-
-        Dimension myDimension = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
-
-        // simulate some air friction
-        if (getDeltaMovement().length() > 0.01) { // you really dont want to normalize 0 vector. velocity will become like (NaN, Infinity, NaN) and the game freezes forever. took me 2 hours to realize this
-            float atmDensity = 0;
-            if (myDimension != null)
-                atmDensity = myDimension.getAtmosphereDensity();
-            Vec3 airBreak = getDeltaMovement().normalize().scale(-1 * atmDensity * size.getX() * size.getZ() * getDeltaMovement().length() * 0.02 / getMass());
-            if (airBreak.length() > getDeltaMovement().length()) {
-                setDeltaMovement(0, 0, 0);
-            } else {
-                setDeltaMovement(getDeltaMovement().add(airBreak));
-            }
-        }
+        // this ensures the rocket will not float away in space.
+        setDeltaMovement(getDeltaMovement().scale(0.999));
 
         move(MoverType.SELF, getDeltaMovement());
 
