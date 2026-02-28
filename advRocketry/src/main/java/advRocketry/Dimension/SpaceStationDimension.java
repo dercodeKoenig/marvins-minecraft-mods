@@ -199,11 +199,11 @@ public class SpaceStationDimension extends Dimension {
         tickRotation();
 
         ///  debug
-        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
+        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         //properties().parentDimensionId = null;
         properties().orbitDistanceTarget = 0.3f;
-        properties().orbitAxisTarget = new Vec3(1,0,0);
+        properties().orbitAxisTarget = new Vec3(0,1,0);
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.05));
@@ -244,8 +244,10 @@ public class SpaceStationDimension extends Dimension {
                         CelestialUtils.fromAU(distance)
                 );
                 double requiredOrbitSpeed = CelestialUtils.toAU(requiredOrbitSpeed_m_per_s) / 20; // convert back to au and per tick
-                requiredOrbitSpeed = requiredOrbitSpeed * 100; // TODO: remove this line
+                requiredOrbitSpeed = 20* requiredOrbitSpeed * Config.INSTANCE.planet_Render_Scale_Multiplier; // adjust for the inflated size
                 movement = movement.add(right.scale(requiredOrbitSpeed));
+
+                setTargetFront(new Vec3(-1,0,0));
 
                 // add correction to move to target orbit position / distance
                 Vec3 errorToTargetPosition = targetPosition.subtract(position);
@@ -265,23 +267,28 @@ public class SpaceStationDimension extends Dimension {
                 // space navigation logic to move to target position
                 Vec3 travelTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, position, dimensionManager, parentPlanet);
 
-                Vec3 targetPositionRelative = travelTarget.subtract(position);
+                Vec3 finalTargetPositionRelative = targetPosition.subtract(position);
+                Vec3 nextTargetPositionRelative = travelTarget.subtract(position);
 
-                double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20;
+                double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20 * 5; // 5x faster than rocket
                 double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_Distance_For_Max_Speed;
 
-                double nearTargetMultiplier = Math.min(1, targetPositionRelative.length() / distanceForMaxSpeed);
+                double nearTargetMultiplier = Math.min(1, finalTargetPositionRelative.length() / distanceForMaxSpeed);
                 maxSpeed *= nearTargetMultiplier; // slow down when near target
 
                 double justStartedMultiplier = Math.min(1, ticksInSpaceTravel / (20 * 10));
                 maxSpeed *= justStartedMultiplier; // slow down when just started
 
+                double offTargetMultiplier = Math.max(0, finalTargetPositionRelative.normalize().dot(properties().front) - 0.98) * 50;
+
                 double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
-                double offTargetMultiplier = Math.max(0, targetPositionRelative.normalize().dot(properties().front) - 0.98) * 50;
+                double offNextTargetMultiplier = 1;
+                if(nextTargetPositionRelative.length() > 0.0001)
+                    offNextTargetMultiplier = Math.max(0, nextTargetPositionRelative.scale(10000).normalize().dot(properties().front) - 0.5) * 1.5;
 
-                double speed = maxSpeed * offTargetMultiplier + e;
+                double speed = maxSpeed * offTargetMultiplier + e * offNextTargetMultiplier;
 
-                setTargetFront(targetPositionRelative);
+                setTargetFront(nextTargetPositionRelative);
 
                 movement = properties().front.scale(speed);
             }
@@ -300,14 +307,12 @@ public class SpaceStationDimension extends Dimension {
 
     // mostly copied from rocket controller
     public void tickRotation() {
-        double rotationRate = 0.002;
+        double rotationRate = 0.005;
         Vec3 rotationCorrection;
         if (properties().targetFront.dot(properties().front) > -0.99) {
             rotationCorrection = properties().targetFront.subtract(properties().front).scale(rotationRate);
-            if (rotationCorrection.length() > rotationRate)
-                rotationCorrection = rotationCorrection.normalize().scale(rotationRate);
         } else
-            rotationCorrection = properties().up.subtract(properties().front).normalize().scale(rotationRate);
+            rotationCorrection = properties().up.cross(properties().front).normalize().scale(rotationRate);
 
         properties().front = properties().front.add(rotationCorrection).normalize();
 

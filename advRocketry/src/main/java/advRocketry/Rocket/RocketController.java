@@ -38,13 +38,14 @@ public class RocketController {
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
+
         double rotationRate = maxRotationRate * rocket.getRotationRateMultiplier();
         Vec3 rotationCorrection;
-        if (targetHeading.dot(rocket.heading) > -0.99) {
-            rotationCorrection = targetHeading.subtract(rocket.heading).scale(rotationRate); //  scale makes it more smooth so i like to keep it
-            if (rotationCorrection.length() > rotationRate)
-                rotationCorrection = rotationCorrection.normalize().scale(rotationRate);
-        } else
+        // Note: rotationCorrection points to the target heading and not orthogonal to heading
+        // This is why we can not use normalize().scale(rotationRate)
+        if (targetHeading.dot(rocket.heading) > -0.99)
+            rotationCorrection = targetHeading.subtract(rocket.heading).scale(rotationRate);
+        else
             rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(rotationRate);
 
         rocket.heading = rocket.heading.add(rotationCorrection).normalize();

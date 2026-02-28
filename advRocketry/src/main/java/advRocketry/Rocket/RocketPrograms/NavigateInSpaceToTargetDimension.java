@@ -21,12 +21,9 @@ public class NavigateInSpaceToTargetDimension {
     public static void tickUniverseRotation(EntityRocket rocket) {
 
         Vec3 rotationCorrection;
-        if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.99) {
+        if (rocket.universeTargetHeading.dot(rocket.universeHeading) > -0.99)
             rotationCorrection = rocket.universeTargetHeading.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
-            ; // scale makes it more smooth
-            if (rotationCorrection.length() > Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate)
-                rotationCorrection = rotationCorrection.normalize().scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
-        } else
+        else
             rotationCorrection = rocket.universeFront.subtract(rocket.universeHeading).scale(Config.INSTANCE.rocket_SpaceTravel_Rotation_Rate);
 
         rocket.universeHeading = rocket.universeHeading.add(rotationCorrection).normalize();
