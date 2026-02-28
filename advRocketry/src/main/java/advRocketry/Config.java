@@ -14,6 +14,7 @@ public class Config {
     public double station_SpaceTravel_Distance_For_Max_Speed = 0.1;
     public double station_SpaceTravel_Min_Speed = 0.000002;
     public double station_SpaceTravel_Rotation_Rate = 0.005;
+    public double station_Max_Orbit_R_Factor = 10;
 
     // true scale is way too small, for example earth would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering

@@ -170,12 +170,9 @@ public class SpaceStationDimension extends Dimension {
     public void initializePosition(Vec3 position, ResourceLocation parentDimensionId) {
 
         if (parentDimensionId != null && dimensionManager.get(parentDimensionId) instanceof PlanetDimension parentPlanet) {
-            Vec3 targetOrbitAxis = properties().orbitAxisTarget;
             Vec3 parentPosition = parentPlanet.getPosition(0);
             double planetRenderRadiusAU = getPlanetRenderRadiusAU(parentPlanet);
-            double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + 10 * properties().orbitDistanceTarget);
-            Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(parentPosition)).normalize();
-            properties().position = parentPosition.add(equator.scale(orbitDistanceTarget));
+            properties().position = getTargetPosition(planetRenderRadiusAU,parentPosition);
         } else {
             if(position == null)
                 throw new RuntimeException("position can not be null here!");
@@ -199,6 +196,21 @@ public class SpaceStationDimension extends Dimension {
         }
     }
 
+    public void setTargetOrbitDistance(float targetDistance){
+        if(Math.abs(properties().orbitDistanceTarget - targetDistance) > 0.00001) {
+            properties().orbitDistanceTarget = targetDistance;
+            dimensionManager.syncDimensionProperties(this);
+        }
+    }
+
+    public void setTargetOrbitAxis(Vec3 orbitAxis){
+        Vec3 normalizedOrbit = orbitAxis.normalize();
+        if(normalizedOrbit.dot(properties().orbitAxisTarget) < 0.9999) {
+            properties().orbitAxisTarget = normalizedOrbit;
+            dimensionManager.syncDimensionProperties(this);
+        }
+    }
+
     @Override
     public void tick() {
         super.tickStarCache();
@@ -206,13 +218,14 @@ public class SpaceStationDimension extends Dimension {
         tickRotation();
 
         ///  debug
-        //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
-        setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
-        properties().orbitDistanceTarget = 0.3f;
-        properties().orbitAxisTarget = new Vec3(0,1,0);
+        if(!dimensionManager.isClientSide) {
+            //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
+            setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
+            setTargetOrbitDistance(0.5f);
+        }
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
-        Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.05));
+        Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.01));
         this.movement = newLazyPosition.subtract(lazyPosition);
         this.lazyPosition = newLazyPosition;
 
@@ -223,20 +236,17 @@ public class SpaceStationDimension extends Dimension {
         if (parent instanceof PlanetDimension parentPlanet) {
             // station has a target - fly there!
 
-            Vec3 targetOrbitAxis = properties().orbitAxisTarget.normalize(); // dont think cross needs normalized but it will not hurt
+            Vec3 targetOrbitAxis = properties().orbitAxisTarget;
 
             Vec3 parentPosition = parentPlanet.getPosition(0);
-            double distance = position.distanceTo(parentPosition);
+            double distanceToParent = position.distanceTo(parentPosition);
             double planetRenderRadiusAU = getPlanetRenderRadiusAU(parentPlanet);
-
             Vec3 directionToParent = parentPosition.subtract(position).normalize();
             Vec3 right = targetOrbitAxis.cross(directionToParent).normalize();
 
-            double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + 10 * properties().orbitDistanceTarget);
-            Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToParent)).normalize();
-            Vec3 targetPosition = parentPosition.add(equator.scale(orbitDistanceTarget));
+            Vec3 targetPosition = getTargetPosition(planetRenderRadiusAU,parentPosition);
 
-            boolean isCloseEnoughForOrbit = distance < planetRenderRadiusAU * 12;
+            boolean isCloseEnoughForOrbit = isCloseEnoughForOrbit(planetRenderRadiusAU,distanceToParent);
 
             if (isCloseEnoughForOrbit) {
                 isInOrbit = true;
@@ -247,7 +257,7 @@ public class SpaceStationDimension extends Dimension {
                 // add orbit movement at current orbit
                 double requiredOrbitSpeed_m_per_s = CelestialUtils.getSpeedForOrbit(
                         CelestialUtils.fromEarthMasses(parentPlanet.getGravitationalMultiplier()),
-                        CelestialUtils.fromAU(distance)
+                        CelestialUtils.fromAU(distanceToParent)
                 );
                 double requiredOrbitSpeed = CelestialUtils.toAU(requiredOrbitSpeed_m_per_s) / 20; // convert back to au and per tick
                 requiredOrbitSpeed = requiredOrbitSpeed * Config.INSTANCE.planet_Render_Scale_Multiplier; // adjust for the inflated size
@@ -309,6 +319,20 @@ public class SpaceStationDimension extends Dimension {
 
     public void setTargetFront(Vec3 targetFront) {
         properties().targetFront = targetFront.normalize();
+    }
+
+    public Vec3 getTargetPosition(double planetRenderRadiusAU, Vec3 planetPosition){
+        Vec3 directionToPlanet = planetPosition.subtract(properties().position);
+        double maxR = Config.INSTANCE. station_Max_Orbit_R_Factor;
+        double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + maxR * properties().orbitDistanceTarget);
+        Vec3 targetOrbitAxis = properties().orbitAxisTarget;
+        Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToPlanet)).normalize();
+        Vec3 targetPosition = planetPosition.add(equator.scale(orbitDistanceTarget));
+        return targetPosition;
+    }
+    public boolean isCloseEnoughForOrbit(double planetRenderRadiusAU, double distanceAU){
+        double maxR = Config.INSTANCE. station_Max_Orbit_R_Factor;
+        return distanceAU < planetRenderRadiusAU * maxR * 1.2;
     }
 
     // mostly copied from rocket controller
