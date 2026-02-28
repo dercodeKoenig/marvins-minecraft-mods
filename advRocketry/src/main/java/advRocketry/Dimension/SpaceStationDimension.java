@@ -28,7 +28,7 @@ public class SpaceStationDimension extends Dimension {
 
     private static double lerpFactor = 0.01;
     // interpolate toward target for smooth movement / sync
-    private Vec3 lazyPosition = Vec3.ZERO;
+    private Vec3 lazyPosition;
     private Vec3 lazyFront;
     private Vec3 lazyUp;
     private Vec3 movement = Vec3.ZERO;
@@ -36,6 +36,9 @@ public class SpaceStationDimension extends Dimension {
 
     public SpaceStationDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
+        lazyFront = properties().front;
+        lazyUp = properties().up;
+        lazyPosition = properties().position;
     }
 
     private SpaceStationDimensionProperties properties() {
@@ -364,7 +367,7 @@ public class SpaceStationDimension extends Dimension {
     void setTargetFront(Vec3 targetFront) {
         properties().targetFront = targetFront.normalize();
     }
-    
+
     boolean isCloseEnoughForOrbit(double planetRenderRadiusAU, double distanceAU) {
         double maxR = Config.INSTANCE.station_Max_Orbit_R_Factor;
         return distanceAU < planetRenderRadiusAU * maxR * 1.2;
