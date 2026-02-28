@@ -31,7 +31,7 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
     // TODO: move to dimension class, replace with target YRot & XRot to use when not in space travel
     public Vec3 targetFront = new Vec3(0, 0, 1);
     public Vec3 front = new Vec3(0, 0, 1);
-    public Vec3 targetUp = new Vec3(0, 0, 1);
+    public Vec3 targetUp = new Vec3(0, 1, 0);
     public Vec3 up = new Vec3(0, 1, 0);
 
     // the space station owner, he should be able to have ways to return to station without id chip
