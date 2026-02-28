@@ -20,6 +20,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
+import java.util.Objects;
+
 import static advRocketry.utils.CelestialUtils.getPlanetRenderRadiusAU;
 
 public class SpaceStationDimension extends Dimension {
@@ -27,8 +29,6 @@ public class SpaceStationDimension extends Dimension {
     private Vec3 lazyPosition = Vec3.ZERO; // interpolate toward position for smooth movement / sync
     private Vec3 movement = Vec3.ZERO;
     private boolean isInOrbit;
-
-    private int ticksInSpaceTravel = 0;
 
     public SpaceStationDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
@@ -160,7 +160,7 @@ public class SpaceStationDimension extends Dimension {
     public void setInitialBlocksPlaced() {
         properties().initialBlocksPlaced = true;
         System.out.println("initial blocks placed for station " + getName());
-        DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
+        dimensionManager.syncDimensionProperties(this);
     }
 
     public boolean isPositionInitialized() {
@@ -169,7 +169,7 @@ public class SpaceStationDimension extends Dimension {
 
     public void initializePosition(Vec3 position, ResourceLocation parentDimensionId) {
 
-        if (parentDimensionId != null && DimensionManager.INSTANCE_SERVER.get(parentDimensionId) instanceof PlanetDimension parentPlanet) {
+        if (parentDimensionId != null && dimensionManager.get(parentDimensionId) instanceof PlanetDimension parentPlanet) {
             Vec3 targetOrbitAxis = properties().orbitAxisTarget;
             Vec3 parentPosition = parentPlanet.getPosition(0);
             double planetRenderRadiusAU = getPlanetRenderRadiusAU(parentPlanet);
@@ -188,8 +188,24 @@ public class SpaceStationDimension extends Dimension {
         System.out.println("position initialized for station: " + getName());
         System.out.println("position:" + lazyPosition);
         System.out.println("parent:" + parentDimensionId);
-        DimensionManager.INSTANCE_SERVER.syncDimensionProperties(this);
-        lazyPositionPacket.syncLazyPosition(getDimensionId(), lazyPosition);
+        dimensionManager.syncDimensionProperties(this);
+    }
+
+    public void setTargetPlanet(ResourceLocation targetPlanet){
+        if (!Objects.equals(properties().parentDimensionId, targetPlanet)){
+            properties().lastParentDimensionId = properties().parentDimensionId;
+            properties().parentDimensionId = targetPlanet;
+            dimensionManager.syncDimensionProperties(this);
+        }
+    }
+
+    @Override
+    public void updateDimensionProperties(DimensionProperties properties){
+        if(!properties().positionInitialized && ((SpaceStationDimensionProperties)properties).positionInitialized){
+            // when dimension is initialized, to instant lerp to target
+            lazyPosition = ((SpaceStationDimensionProperties) properties).position;
+        }
+        super.updateDimensionProperties(properties);
     }
 
     @Override
@@ -199,9 +215,8 @@ public class SpaceStationDimension extends Dimension {
         tickRotation();
 
         ///  debug
-        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
-        //properties().parentDimensionId = null;
+        //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
+        setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
         properties().orbitDistanceTarget = 0.3f;
         properties().orbitAxisTarget = new Vec3(0,1,0);
 
@@ -213,7 +228,8 @@ public class SpaceStationDimension extends Dimension {
         Vec3 position = properties().position;
         Vec3 movement = Vec3.ZERO;
 
-        if (properties().parentDimensionId != null && dimensionManager.get(properties().parentDimensionId) instanceof PlanetDimension parentPlanet) {
+        Dimension parent = dimensionManager.get(properties().parentDimensionId);
+        if (parent instanceof PlanetDimension parentPlanet) {
             // station has a target - fly there!
 
             Vec3 targetOrbitAxis = properties().orbitAxisTarget.normalize(); // dont think cross needs normalized but it will not hurt
@@ -233,7 +249,6 @@ public class SpaceStationDimension extends Dimension {
 
             if (isCloseEnoughForOrbit) {
                 isInOrbit = true;
-                ticksInSpaceTravel = 0;
 
                 // add parent movement
                 movement = movement.add(parentPlanet.getMovement());
@@ -250,7 +265,7 @@ public class SpaceStationDimension extends Dimension {
                 // add correction to move to target orbit position / distance
                 Vec3 errorToTargetPosition = targetPosition.subtract(position);
                 if (errorToTargetPosition.length() > 0.000001) {
-                    double correctionSpeedMax = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
+                    double correctionSpeedMax = Config.INSTANCE.station_SpaceTravel_Min_Speed;
                     Vec3 errorToTargetPositionSpeedLimited = errorToTargetPosition.scale(100000).normalize().scale(correctionSpeedMax);
                     if (errorToTargetPosition.length() > errorToTargetPositionSpeedLimited.length())
                         errorToTargetPosition = errorToTargetPositionSpeedLimited;
@@ -260,7 +275,6 @@ public class SpaceStationDimension extends Dimension {
 
             if (!isCloseEnoughForOrbit) {
                 isInOrbit = false;
-                ticksInSpaceTravel++;
 
                 // space navigation logic to move to target position
                 Vec3 travelTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, position, dimensionManager, parentPlanet);
@@ -268,18 +282,22 @@ public class SpaceStationDimension extends Dimension {
                 Vec3 finalTargetPositionRelative = targetPosition.subtract(position);
                 Vec3 nextTargetPositionRelative = travelTarget.subtract(position);
 
-                double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20 * 5; // 5x faster than rocket
-                double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_Distance_For_Max_Speed;
+                double maxSpeed = Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20;
+                double distanceForMaxSpeed = Config.INSTANCE.station_SpaceTravel_Distance_For_Max_Speed;
 
                 double nearTargetMultiplier = Math.min(1, finalTargetPositionRelative.length() / distanceForMaxSpeed);
                 maxSpeed *= nearTargetMultiplier; // slow down when near target
 
-                double justStartedMultiplier = Math.min(1, ticksInSpaceTravel / (20 * 10));
-                maxSpeed *= justStartedMultiplier; // slow down when just started
+                Dimension lastParent = dimensionManager.get(properties().lastParentDimensionId);
+                if(lastParent instanceof PlanetDimension lastParentPlanet) {
+                    double distanceToOrigin = position.distanceTo(lastParentPlanet.getPosition(0));
+                    double nearOriginMultiplier = Math.min(1, distanceToOrigin / distanceForMaxSpeed);
+                    maxSpeed *= nearOriginMultiplier; // slow down when still near origin
+                }
 
                 double offTargetMultiplier = Math.max(0, finalTargetPositionRelative.normalize().dot(properties().front) - 0.98) * 50;
 
-                double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
+                double e = Config.INSTANCE.station_SpaceTravel_Min_Speed;
                 double offNextTargetMultiplier = 1;
                 if(nextTargetPositionRelative.length() > 0.0001)
                     offNextTargetMultiplier = Math.max(0, nextTargetPositionRelative.scale(10000).normalize().dot(properties().front) - 0.5) * 1.5;
@@ -292,7 +310,6 @@ public class SpaceStationDimension extends Dimension {
             }
         } else {
             // station has no target
-            ticksInSpaceTravel = 0;
             isInOrbit = false;
         }
 
@@ -305,7 +322,7 @@ public class SpaceStationDimension extends Dimension {
 
     // mostly copied from rocket controller
     public void tickRotation() {
-        double rotationRate = 0.005;
+        double rotationRate = Config.INSTANCE.station_SpaceTravel_Rotation_Rate;
         Vec3 rotationCorrection;
         if (properties().targetFront.dot(properties().front) > -0.99) {
             rotationCorrection = properties().targetFront.subtract(properties().front).scale(rotationRate);
@@ -323,31 +340,5 @@ public class SpaceStationDimension extends Dimension {
 
         Vec3 right = properties().front.cross(newUp).normalize();
         properties().up = right.cross(properties().front).normalize();
-    }
-
-    // lazy position not included in properties or it would set on every property sync and not be lazy
-    public static class lazyPositionPacket implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
-
-        public static String packetID = Main.MODID + "_space_dimension_lazy_position_packet";
-
-        public static void syncLazyPosition(ResourceLocation dimId, Vec3 lazyPosition) {
-            Data data = new Data();
-            data.dimensionId = dimId;
-            data.lazyPosition = lazyPosition;
-            for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
-                PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket(packetID, new Gson().toJson(data)));
-            }
-        }
-
-        public void readClient(String dataStr) {
-            Data data = new Gson().fromJson(dataStr, Data.class);
-            SpaceStationDimension d = (SpaceStationDimension) DimensionManager.INSTANCE_CLIENT.get(data.dimensionId);
-            d.lazyPosition = data.lazyPosition;
-        }
-
-        public static class Data {
-            ResourceLocation dimensionId;
-            Vec3 lazyPosition;
-        }
     }
 }

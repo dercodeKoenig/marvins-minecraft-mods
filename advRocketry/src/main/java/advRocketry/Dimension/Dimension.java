@@ -4,7 +4,6 @@ import advRocketry.Main;
 import advRocketry.utils.AxisDirections;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Vector3f;
 
 public abstract class Dimension {
@@ -88,6 +87,10 @@ public abstract class Dimension {
      * calculates universe space coordinates for the local font up coordinates of the dimension
      */
     abstract public AxisDirections getGlobalAxisDirections(float partialTick);
+
+    public void updateDimensionProperties(DimensionProperties properties){
+        this.properties = properties;
+    }
 
     abstract public void tick();
 }

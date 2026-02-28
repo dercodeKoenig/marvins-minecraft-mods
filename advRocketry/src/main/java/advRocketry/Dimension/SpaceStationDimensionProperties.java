@@ -2,7 +2,6 @@ package advRocketry.Dimension;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 import java.util.UUID;
 
@@ -12,6 +11,7 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
     public Vec3 position = new Vec3(0, 0, 0);
 
     public ResourceLocation parentDimensionId = null; // when in orbit
+    public ResourceLocation lastParentDimensionId = null;
 
     public float orbitDistanceTarget = 0.001f;// when in orbit
 

@@ -111,7 +111,6 @@ public class Main {
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionListSync, new DimensionManager.SyncDimensionList());
         SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
-        SimpleNetworkPacket.registerReceiver(SpaceStationDimension.lazyPositionPacket.packetID, new SpaceStationDimension.lazyPositionPacket());
 
         // setup config directory
         Path configDir = FMLPaths.CONFIGDIR.get();

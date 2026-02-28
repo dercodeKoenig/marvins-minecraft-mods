@@ -74,6 +74,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
     public void syncDimensionProperties(Dimension dimension) {
+        if(isClientSide) return;
         for (ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
             SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, dimension);
         }
@@ -156,7 +157,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         if (propsBase.type == DimensionProperties.DimensionType.PLANET) {
             PlanetDimensionProperties planetProps = gson.fromJson(dimensionProperties, PlanetDimensionProperties.class);
             if (dimensions.containsKey(planetProps.dimensionId)) {
-                dimensions.get(planetProps.dimensionId).properties = planetProps;
+                dimensions.get(planetProps.dimensionId).updateDimensionProperties(planetProps);
             } else {
                 PlanetDimension dimension = new PlanetDimension(planetProps, this);
                 dimensions.put(dimension.getDimensionId(), dimension);
@@ -166,7 +167,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         if (propsBase.type == DimensionProperties.DimensionType.DUMMY) {
             DummyDimensionProperties properties = gson.fromJson(dimensionProperties, DummyDimensionProperties.class);
             if (dimensions.containsKey(properties.dimensionId)) {
-                dimensions.get(properties.dimensionId).properties = properties;
+                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
             } else {
                 DummyDimension dummyDimension = new DummyDimension(properties, this);
                 dimensions.put(dummyDimension.getDimensionId(), dummyDimension);
@@ -176,7 +177,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         if (propsBase.type == DimensionProperties.DimensionType.SPACE_STATION) {
             SpaceStationDimensionProperties properties = gson.fromJson(dimensionProperties, SpaceStationDimensionProperties.class);
             if (dimensions.containsKey(properties.dimensionId)) {
-                dimensions.get(properties.dimensionId).properties = properties;
+                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
             } else {
                 SpaceStationDimension spaceStationDimension = new SpaceStationDimension(properties, this);
                 dimensions.put(spaceStationDimension.getDimensionId(), spaceStationDimension);
