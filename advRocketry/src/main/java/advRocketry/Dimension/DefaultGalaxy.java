@@ -76,21 +76,20 @@ public class DefaultGalaxy {
         galaxy.add(moon2);
 
 
-
         PlanetDimensionProperties venus = new PlanetDimensionProperties();
         venus.name = "Venus";
         venus.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         venus.parentDimensionId = sun.dimensionId;
         venus.dayTimeReference = sun.dimensionId;
-        venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
+        venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/venus_atm_ico_1k.png");
         venus.orbitalDistanceToParent = 0.5f;
         venus.atmosphereDensity = 2;
-        venus.cloudColor = new Vector3f(0.8f,1,0.5f);
+        venus.cloudColor = new Vector3f(194, 155, 64).mul(1f / 255);
         venus.canVisit = true;
         venus.biomePreset = HOT.name;
+        venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
+        venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
         galaxy.add(venus);
-
-
 
 
         PlanetDimensionProperties distantStar = new PlanetDimensionProperties();
@@ -102,13 +101,12 @@ public class DefaultGalaxy {
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
         distantStar.radiationIntensity = 1;
-        distantStar.position = new Vec3(20,2,0);
+        distantStar.position = new Vec3(20, 2, 0);
         galaxy.add(distantStar);
 
 
-
         List<String> dimensionProperties = new ArrayList<>();
-        for(DimensionProperties i : galaxy){
+        for (DimensionProperties i : galaxy) {
             dimensionProperties.add(new GsonBuilder().setPrettyPrinting().create().toJson(i));
         }
         return dimensionProperties;

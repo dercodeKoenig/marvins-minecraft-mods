@@ -202,7 +202,7 @@ public class SpaceStationDimension extends Dimension {
         //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         //properties().parentDimensionId = null;
-        //properties().orbitDistanceTarget = 0.5f;
+        properties().orbitDistanceTarget = 0.5f;
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(0.05));
