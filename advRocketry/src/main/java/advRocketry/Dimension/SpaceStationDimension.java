@@ -234,8 +234,8 @@ public class SpaceStationDimension extends Dimension {
 
         ///  debug
         if (!dimensionManager.isClientSide) {
-            //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
-            setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
+            setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"));
+            //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
             setTargetOrbitDistance(0.5f);
             setTargetOrbitAxis(new Vec3(0, 1, 1));
         }

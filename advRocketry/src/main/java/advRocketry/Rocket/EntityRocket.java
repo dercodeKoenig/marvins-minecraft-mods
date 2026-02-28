@@ -530,6 +530,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             if (fuelTank.isEmpty() && !level().dimension().location().equals(RocketTravelDimension.dimId))
                 endProgram();
 
+            // display the default info text
             if (temporaryInfoTimeout > 0) {
                 temporaryInfoTimeout--;
             } else {
@@ -541,6 +542,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 infoText.setTextAndSync(newInfotext);
             }
 
+            // update the mass and sync changes to client
             recalculateMass();
         }
 
@@ -548,6 +550,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             firstTick = false;
             // fix the out of sync bug where the player is not where the rocket is
             // unmounting and remounting will trigger some syncing again and make the player at the correct position
+            // TODO: can this issue be resolved by force chunk loading before teleport?
             if (level().isClientSide) {
                 if (Minecraft.getInstance().player.getVehicle() == this) {
                     Minecraft.getInstance().player.stopRiding();
@@ -590,13 +593,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             enableMainEngines(false, false);
         }
 
+        // handle movement logic
         applyGravity();
-
         // this ensures the rocket will not float away in space.
         setDeltaMovement(getDeltaMovement().scale(0.999));
 
         move(MoverType.SELF, getDeltaMovement());
 
+
+        // force load chunks when the rocket does a program
         if (!level().isClientSide) {
             if (currentProgram != null) {
                 ChunkPos nextChunkPos = chunkPosition();
@@ -606,6 +611,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     }
 
+    /// the normal launch code
+    /// missions (asteroid mining, gas mining, satellite deployment) will need their own launch code
     public boolean launch(ItemStack navigationItem) {
 
         Level targetLevel = null;
