@@ -200,7 +200,7 @@ public class SpaceStationDimension extends Dimension {
 
         ///  debug
         properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
-        properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
+        //properties().parentDimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         //properties().parentDimensionId = null;
         properties().orbitDistanceTarget = 0.3f;
         properties().orbitAxisTarget = new Vec3(0,1,0);
@@ -244,10 +244,8 @@ public class SpaceStationDimension extends Dimension {
                         CelestialUtils.fromAU(distance)
                 );
                 double requiredOrbitSpeed = CelestialUtils.toAU(requiredOrbitSpeed_m_per_s) / 20; // convert back to au and per tick
-                requiredOrbitSpeed = 20* requiredOrbitSpeed * Config.INSTANCE.planet_Render_Scale_Multiplier; // adjust for the inflated size
+                requiredOrbitSpeed = requiredOrbitSpeed * Config.INSTANCE.planet_Render_Scale_Multiplier; // adjust for the inflated size
                 movement = movement.add(right.scale(requiredOrbitSpeed));
-
-                setTargetFront(new Vec3(-1,0,0));
 
                 // add correction to move to target orbit position / distance
                 Vec3 errorToTargetPosition = targetPosition.subtract(position);
