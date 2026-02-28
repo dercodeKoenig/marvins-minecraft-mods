@@ -200,15 +200,6 @@ public class SpaceStationDimension extends Dimension {
     }
 
     @Override
-    public void updateDimensionProperties(DimensionProperties properties){
-        if(!properties().positionInitialized && ((SpaceStationDimensionProperties)properties).positionInitialized){
-            // when dimension is initialized, to instant lerp to target
-            lazyPosition = ((SpaceStationDimensionProperties) properties).position;
-        }
-        super.updateDimensionProperties(properties);
-    }
-
-    @Override
     public void tick() {
         super.tickStarCache();
 
@@ -327,7 +318,7 @@ public class SpaceStationDimension extends Dimension {
         if (properties().targetFront.dot(properties().front) > -0.99) {
             rotationCorrection = properties().targetFront.subtract(properties().front).scale(rotationRate);
         } else
-            rotationCorrection = properties().up.cross(properties().front).normalize().scale(rotationRate);
+            rotationCorrection = properties().up.cross(properties().front).scale(rotationRate / 10);
 
         properties().front = properties().front.add(rotationCorrection).normalize();
 
@@ -340,5 +331,14 @@ public class SpaceStationDimension extends Dimension {
 
         Vec3 right = properties().front.cross(newUp).normalize();
         properties().up = right.cross(properties().front).normalize();
+    }
+
+    @Override
+    public void updateDimensionProperties(DimensionProperties properties){
+        if(!properties().positionInitialized && ((SpaceStationDimensionProperties)properties).positionInitialized){
+            // when dimension is initialized, to instant lerp to target
+            lazyPosition = ((SpaceStationDimensionProperties) properties).position;
+        }
+        super.updateDimensionProperties(properties);
     }
 }
