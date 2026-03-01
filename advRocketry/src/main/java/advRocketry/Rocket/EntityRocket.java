@@ -487,6 +487,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         applyGravity();
         // this ensures the rocket will not float away in space.
         setDeltaMovement(getDeltaMovement().scale(0.999));
+        if(currentProgram == null)
+            // more breaking
+            setDeltaMovement(getDeltaMovement().scale(0.99));
 
         move(MoverType.SELF, getDeltaMovement());
 

@@ -84,7 +84,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
     public void render(EntityRocket p_entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
 
-        poseStack.rotateAround(RotationUtils.getCurrentRotation(p_entity),
+        poseStack.rotateAround(RotationUtils.getCurrentRotation(p_entity, partialTick),
                 0, (float) p_entity.size.getY() / 2, 0);
 
 

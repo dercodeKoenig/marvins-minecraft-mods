@@ -20,7 +20,7 @@ import java.util.Objects;
 public class RocketController {
 
     // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-    final double maxRotationRate = 0.05;
+    double maxRotationRate = 0.05;
     // the parent rocket
     EntityRocket rocket;
     double currentThrust;
@@ -48,6 +48,10 @@ public class RocketController {
     Vec3 targetFront = new Vec3(0, 0, 1);
     // the current front, should only be accessed in tickRotation and during save & load
     Vec3 front = new Vec3(0, 0, 1);
+
+    // for smooth render, add rotationRate so it can correctly use partial tick
+    Vec3 headingRotationRate = Vec3.ZERO;
+    Vec3 frontRotationRate = Vec3.ZERO;
 
     // for more smooth rotation, lazy heading and front are used
     Vec3 lazyHeading = heading;
@@ -180,7 +184,6 @@ public class RocketController {
         return targetPosition;
     }
 
-
     public void tick() {
         tickController();
         tickRotation();
@@ -202,6 +205,7 @@ public class RocketController {
     public void tickRotation() {
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
+        double maxRotationRate = 0.1f;
         double rotationRateHeading = maxRotationRate * getRotationRateMultiplier();
         Vec3 rotationCorrection;
         // Note: rotationCorrection points to the target heading and not orthogonal to heading
@@ -228,12 +232,17 @@ public class RocketController {
 
         // tick the lazy heading & front
         // interpolate the lazy values
-        double lerpFactor = 0.05;
+        double lerpFactor = 0.2;
         rotationCorrection = heading.subtract(lazyHeading).scale(lerpFactor);
-        lazyHeading = lazyHeading.add(rotationCorrection).normalize();
+        Vec3 newLazyHeading = lazyHeading.add(rotationCorrection).normalize();
+        headingRotationRate = newLazyHeading.subtract(lazyHeading);
+        lazyHeading = newLazyHeading;
         rotationCorrection = front.subtract(lazyFront).scale(lerpFactor);
         Vec3 lazyFrontInvalid = lazyFront.add(rotationCorrection);
-        lazyFront = lazyHeading.cross(lazyFrontInvalid.cross(lazyHeading)).normalize();
+        Vec3 newLazyFront = lazyHeading.cross(lazyFrontInvalid.cross(lazyHeading)).normalize();
+        frontRotationRate = newLazyFront.subtract(lazyFront);
+        lazyFront = newLazyFront;
+
     }
 
     // pd controller mostly written by gemini

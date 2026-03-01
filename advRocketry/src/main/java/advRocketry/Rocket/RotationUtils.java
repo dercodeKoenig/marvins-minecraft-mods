@@ -6,9 +6,9 @@ import org.joml.Vector3f;
 
 public class RotationUtils {
     // made mostly by gemini, no idea how it works exactly, but it appears to work
-    public static Quaternionf getCurrentRotation(EntityRocket rocket) {
-        Vec3 myHeading = rocket.controller.getHeading().normalize();
-        Vec3 desiredFront = rocket.controller.getFront().normalize();
+    public static Quaternionf getCurrentRotation(EntityRocket rocket, float partialTick) {
+        Vec3 myHeading = rocket.controller.getHeading().subtract(rocket.controller.headingRotationRate.scale(1-partialTick)).normalize();
+        Vec3 desiredFront = rocket.controller.getFront().subtract(rocket.controller.frontRotationRate.scale(1-partialTick)).normalize();
         Vec3 worldUp = new Vec3(0, 1, 0);
 
 // --- Step A: tilt (worldUp -> heading) ---
@@ -65,7 +65,7 @@ public class RotationUtils {
     // rotates around the rocket center. the render code also rotates around the center. should be fine
     public static Vec3 localToWorld(EntityRocket rocket, Vec3 localPos) {
         // Get final rotation quaternion
-        Quaternionf q = getCurrentRotation(rocket);
+        Quaternionf q = getCurrentRotation(rocket, 1);
 
         // Offset local position to rotate around rocket center
         Vector3f lp = new Vector3f(
