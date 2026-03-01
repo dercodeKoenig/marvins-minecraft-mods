@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -69,26 +70,26 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if (placer != null) {
-            state = state.setValue(FACING, placer.getDirection());
-            state = state.setValue(DIAGONAL, false);
-            level.setBlock(pos, state, 3); // set the block in its correct location to create the blockEntity so that conveyorBelt.getConnectedParts() in updateShape works
-
-            // trigger auto-alignment
-            state = updateFromNeighbourShapes(state, level, pos);
-            level.setBlock(pos, state, 3);
-            // this should now update neighbor blocks of the change
-            // but diagonal blocks could update too, so we need to update them ourselves
-            for(Direction i : Direction.values()){
-                if(i == Direction.UP || i == Direction.DOWN) continue;
-                for (int y : List.of(-1,1)) {
-                    BlockPos otherPos = (pos.relative(i).relative(Direction.UP, y));
-                    BlockState otherState = level.getBlockState(otherPos);
-                    otherState = Block.updateFromNeighbourShapes(otherState,level,otherPos);
-                    level.setBlock(otherPos,otherState,3);
-                }
+        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3);
+        // this should now update neighbor blocks of the change
+        // but diagonal blocks could update too, so we need to update them ourselves
+        for(Direction i : Direction.values()){
+            if(i == Direction.UP || i == Direction.DOWN) continue;
+            for (int y : List.of(-1,1)) {
+                BlockPos otherPos = (pos.relative(i).relative(Direction.UP, y));
+                BlockState otherState = level.getBlockState(otherPos);
+                otherState = Block.updateFromNeighbourShapes(otherState,level,otherPos);
+                level.setBlock(otherPos,otherState,3);
             }
         }
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockState state = this.defaultBlockState();
+        state = state.setValue(FACING, context.getHorizontalDirection());
+        state = state.setValue(DIAGONAL, false);
+        return state;
     }
 
     @Override
@@ -106,7 +107,6 @@ public class ConveyorBelt extends Block implements EntityBlock, ItemHammer.Hamme
             }
         }
 
-        // for y in -1,1,0, do this and keep the last state?
         for (int y : List.of(-1, 1, 0)) {
             BlockEntity other = level.getBlockEntity(neighborPos.relative(Direction.UP, y));
             if (other instanceof EntityConveyorBelt otherBelt) {
