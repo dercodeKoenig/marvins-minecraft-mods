@@ -59,7 +59,7 @@ public class RocketItemLoader extends Block implements EntityBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide){
             if (level.getBlockEntity(pos) instanceof EntityRocketItemLoader itemLoader) {
-                itemLoader.guiHandler.openGui(176, 126, true);
+                itemLoader.guiHandler.openGui(176, 148, true);
             }
         }
 

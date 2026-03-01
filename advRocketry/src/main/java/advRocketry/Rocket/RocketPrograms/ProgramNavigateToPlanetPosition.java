@@ -113,10 +113,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double dy = yTargetBelow - rocket.position().y;
                 double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
 
-                double heightErrorMultiplier = 0.5; // dont close the height error at once, to slowly approach target set the height target to rocketY + dy * heightErrorMultiplier
+                double heightErrorMultiplier = 1; // to slowly approach target set the height target to rocketY + dy * heightErrorMultiplier
                 double xzDistanceHeightMultiplier = 2; // target height increases as we move more away from the target position in xz direction
                 double speedHeightMultiplier = 20; // if we move fast, target is higher. we will only land if the movement in xz is close to 0
-                double yOffset = -3; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
+                double yOffset = -1; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset to the downside
                 double targetY = rocket.position().y + dy * heightErrorMultiplier + distanceToTargetXZ * xzDistanceHeightMultiplier + yOffset + speedxz * speedHeightMultiplier;
 
                 if (rocket.position().y - targetY > maxDiffY) {
