@@ -155,8 +155,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 });
             } else {
                 // we are not at target dim, move to space!
-                NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.onSpaceReached() {
-                    @Override
+                NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
                     public boolean onSpaceReached() {
                         Dimension rocketDimension = DimensionManager.INSTANCE_SERVER.get(rocket.level().dimension().location());
                         if (rocketDimension instanceof SpaceStationDimension spaceStationDimension) {

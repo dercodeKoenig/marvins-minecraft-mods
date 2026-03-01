@@ -9,6 +9,8 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
+import javax.security.auth.callback.Callback;
+
 public class StationDockingProgram {
     public  static class DockingProgram {
         public Vec3 dockingPosition;
@@ -111,6 +113,10 @@ public class StationDockingProgram {
             this.moveAwayDirection = moveAwayDirection;
         }
 
+        public void run(EntityRocket rocket){
+
+        }
+
         public void readFromNbt(CompoundTag nbt) {
             undockingDirection = nbt.getInt("undockingDirection");
             checkpointReached = nbt.getBoolean("checkpointReached");
@@ -124,5 +130,13 @@ public class StationDockingProgram {
             tag.put("moveAwayDirection", Utils.serializeVec3(moveAwayDirection));
             return tag;
         }
+
+        public interface CheckpointReachedCallback{
+
+        }
+        public interface SpaceReachedCallback{
+
+        }
+
     }
 }

@@ -6,7 +6,6 @@ import advRocketry.Dimension.*;
 import advRocketry.Items.ItemSpaceStationContainer;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
-import advRocketry.utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -109,8 +108,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
                 });
             } else {
                 // we are not at target dim, move to space!
-                NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.onSpaceReached() {
-                    @Override
+                NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
                     public boolean onSpaceReached() {
                         if (!targetDimension.isPositionInitialized()) {
                             // it has no location in space at this time, it would probably just fly to 0 0 0
