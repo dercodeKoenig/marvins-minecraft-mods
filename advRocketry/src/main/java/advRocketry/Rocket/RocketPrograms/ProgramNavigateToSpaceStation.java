@@ -185,12 +185,11 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
         Vec3 toTarget = target.getCenter().subtract(rocket.position());
 
-        Vec3 scaledToTarget = toTarget.scale(0.5);
         double maxD = 100;
-        if (scaledToTarget.length() > maxD) {
-            scaledToTarget = scaledToTarget.normalize().scale(maxD);
+        if (toTarget.length() > maxD) {
+            toTarget = toTarget.normalize().scale(maxD);
         }
-        Vec3 targetVec3 = rocket.position().add(scaledToTarget);
+        Vec3 targetVec3 = rocket.position().add(toTarget);
 
         rocket.setTargetPosition(targetVec3, false);
 

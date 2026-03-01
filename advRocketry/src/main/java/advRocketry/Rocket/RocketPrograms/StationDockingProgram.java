@@ -36,17 +36,16 @@ public class StationDockingProgram {
 
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
 
-            Vec3 scaledToTarget = toTarget.scale(0.5);
             double maxD = 100;
-            if (scaledToTarget.length() > maxD) {
-                scaledToTarget = scaledToTarget.normalize().scale(maxD);
+            if (toTarget.length() > maxD) {
+                toTarget = toTarget.normalize().scale(maxD);
             }
-            Vec3 targetVec3 = rocket.position().add(scaledToTarget);
-
+            Vec3 targetVec3 = rocket.position().add(toTarget);
             rocket.setTargetPosition(targetVec3, false);
 
+
             // check if stopped (at target or collision maybe)
-            if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 5) {
+            if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 1) {
                 checkpointReached = true;
                 System.out.println("checkpoint reached");
             }

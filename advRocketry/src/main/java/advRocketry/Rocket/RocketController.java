@@ -72,11 +72,17 @@ public class RocketController {
             return;
         }
 
+        Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
+
         // --- Configuration Parameters (Tune these for desired behavior) ---
         // Proportional Gain: How aggressively the rocket tries to close the distance.
         final double K_P = 0.001;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
-        final double K_D = Math.sqrt(K_P) * 2;
+        double K_D = Math.sqrt(K_P) * 2;
+        if(rocketDim instanceof SpaceStationDimension){
+            // more breaking for more stable flight
+            K_D*=2;
+        }
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
         // secondary thruster force
@@ -124,7 +130,6 @@ public class RocketController {
         }
 
         // Determine if we are on a planet to apply gravity/tilt rules
-        Dimension rocketDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
         boolean isPlanet = rocketDim instanceof PlanetDimension;
         boolean isSpaceDim = rocketDim instanceof SpaceStationDimension;
 
