@@ -86,30 +86,31 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public ARLib.gui.modules.guiModuleText infoText;
     public int temporaryInfoTimeout = 0; // for temporary messages like planet can not be reached... display the alternate info for a few ticks
 
+    // rocket control
+    public RocketProgram currentProgram = null;
+    public RocketController controller;
+    BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
+    BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
+    Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
+
     // passenger
     Map<UUID, BlockPos> passengers = new HashMap<>();
+
+    // smooth position interpolation when server sends position update
+    double lerpX, lerpY, lerpZ;
+    Vec3 lerpDeltaMovement;
+    int lerpSteps;
+    int lerpDeltaMovementSteps;
+
+    // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
+    private boolean firstTick = true;
 
     // cached values
     private float cachedThrust = -1;
     private int cachedFuelRate = -1;
     private ArrayList<BlockPos> cachedEnginePositions = null;
     private ArrayList<BlockPos> cachedSeatPositions = null;
-    
-    // rocket control
-    private BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
-    private RocketProgram currentProgram = null;
-    public BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
-    public RocketController controller;
-    Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
 
-    // smooth position interpolation when server sends position update
-     double lerpX, lerpY, lerpZ;
-     Vec3 lerpDeltaMovement;
-     int lerpSteps;
-     int lerpDeltaMovementSteps;
-
-    // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
-    private boolean firstTick = true;
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
