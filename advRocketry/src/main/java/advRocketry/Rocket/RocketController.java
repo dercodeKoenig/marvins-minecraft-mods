@@ -25,7 +25,7 @@ public class RocketController {
     EntityRocket rocket;
     double currentThrust;
     boolean isReverseThrust = false; // on space station to allow for breaking
-    Vec3 currentSecondaryThrust;
+    Vec3 currentSecondaryThrustForce;
 
     // the target for the rocket to move towards
     Vec3 targetPosition = null;
@@ -40,13 +40,18 @@ public class RocketController {
     // TODO: lazy heading / front for more smooth transition
     // the heading that the controller calculates for correct thrust or set to default heading
     Vec3 targetHeading = new Vec3(0, 1, 0);
-    // the current heading
+    // the current heading, should only be accessed in tickRotation and during save & load
     Vec3 heading = new Vec3(0, 1, 0);
     // the default heading when it does not need to rotate for main engine use
     Vec3 defaultTargetHeading = new Vec3(0, 1, 0);
     // the target front, it should rotate around heading to get closer to it
     Vec3 targetFront = new Vec3(0, 0, 1);
+    // the current front, should only be accessed in tickRotation and during save & load
     Vec3 front = new Vec3(0, 0, 1);
+
+    // for more smooth rotation, lazy heading and front are used
+    Vec3 lazyHeading = heading;
+    Vec3 lazyFront = front;
 
     public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
@@ -68,8 +73,10 @@ public class RocketController {
     public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front) {
         this.defaultTargetHeading = heading;
         this.heading = heading;
+        this.lazyHeading = heading;
         this.targetFront = front;
         this.front = front;
+        this.lazyFront = front;
     }
 
     public void setRotationRateMultiplier(double multiplier, boolean syncToClient) {
@@ -140,7 +147,7 @@ public class RocketController {
     }
 
     public Vec3 getHeading() {
-        return heading;
+        return lazyHeading;
     }
 
     public void setTargetFront(Vec3 target, boolean syncToClient) {
@@ -157,7 +164,7 @@ public class RocketController {
     }
 
     public Vec3 getFront() {
-        return front;
+        return lazyFront;
     }
 
     public void setTargetPosition(@Nullable Vec3 target, boolean syncToClient) {
@@ -195,8 +202,6 @@ public class RocketController {
     public void tickRotation() {
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
-        // This simulates the actual rotational speed limit of the rocket.
-
         double rotationRateHeading = maxRotationRate * getRotationRateMultiplier();
         Vec3 rotationCorrection;
         // Note: rotationCorrection points to the target heading and not orthogonal to heading
@@ -204,12 +209,14 @@ public class RocketController {
         if (targetHeading.dot(heading) > -0.99)
             rotationCorrection = targetHeading.subtract(heading).scale(rotationRateHeading);
         else
-            rotationCorrection = getFront().subtract(heading).normalize().scale(rotationRateHeading);
+            rotationCorrection = front.subtract(heading).normalize().scale(rotationRateHeading);
 
         heading = heading.add(rotationCorrection).normalize();
 
         // now try to get the front align more toward the target front
-        // the front is not always valid because of the heading
+        // 1: calculate the valid front from the target front so that it is orthogonal to heading
+        // 2: interpolate front towards valid target front
+        // 3: make sure new front is orthogonal and normalized
         Vec3 targetFrontValid = heading.cross(getTargetFront().cross(heading)).normalize();
         if (targetFrontValid.dot(front) < -0.99) // get some movement if it is directly on the other side
             targetFrontValid = heading.cross(front);
@@ -218,6 +225,15 @@ public class RocketController {
         // make sure the front is 100% always orthogonal, just for extra security
         Vec3 right = heading.cross(newFront).normalize();
         front = right.cross(heading).normalize();
+
+        // tick the lazy heading & front
+        // interpolate the lazy values
+        double lerpFactor = 0.05;
+        rotationCorrection = heading.subtract(lazyHeading).scale(lerpFactor);
+        lazyHeading = lazyHeading.add(rotationCorrection).normalize();
+        rotationCorrection = front.subtract(lazyFront).scale(lerpFactor);
+        Vec3 lazyFrontInvalid = lazyFront.add(rotationCorrection);
+        lazyFront = lazyHeading.cross(lazyFrontInvalid.cross(lazyHeading)).normalize();
     }
 
     // pd controller mostly written by gemini
@@ -226,7 +242,7 @@ public class RocketController {
         if (getTargetPosition() == null) {
             targetHeading = getDefaultTargetHeading();
             currentThrust = 0;
-            currentSecondaryThrust = new Vec3(0, 0, 0);
+            currentSecondaryThrustForce = new Vec3(0, 0, 0);
             return;
         }
 
@@ -276,15 +292,18 @@ public class RocketController {
             desiredAcceleration.subtract(secondaryThrustersAcceleration);
             rocket.setDeltaMovement(rocket.getDeltaMovement().add(secondaryThrustersAcceleration));
 
-            currentSecondaryThrust = secondaryThrustersForce;
+            currentSecondaryThrustForce = secondaryThrustersForce;
 
-            // burn a fixed fuel amount if secondary engines are on for space navigation
-            double fuelToBurn = (double) rocket.getFuelRateMax() / 1000;
-            int fuelToBurnInt = (int) fuelToBurn;
-            if (fuelToBurnInt == 0 && fuelToBurn > 0) {
-                fuelToBurnInt = Math.random() < fuelToBurn ? 1 : 0;
+            // consume some fuel
+            float ThrustMultiplier = (float) (currentSecondaryThrustForce.length() / rocket.getThrustMax());
+            // secondary engines less efficient and burn double fuel
+            float toBurn = (rocket.getFuelRateMax() * ThrustMultiplier * 2);
+            int toBurnInt = (int) toBurn;
+            if (toBurnInt == 0 && toBurn > 0 && Math.random() < toBurn)
+                toBurnInt = 1;
+            if (!rocket.level().isClientSide) {
+                rocket.fuelTank.drain(toBurnInt, IFluidHandler.FluidAction.EXECUTE);
             }
-            rocket.fuelTank.drain(fuelToBurnInt, IFluidHandler.FluidAction.EXECUTE);
         }
 
         // Determine if we are on a planet to apply gravity/tilt rules
