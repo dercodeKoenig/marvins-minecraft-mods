@@ -203,14 +203,14 @@ public class RocketController {
     public void tickRotation() {
         // rotate heading first
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
-        double maxRotationRate = 0.1f;
+        double maxRotationRate = 0.05f;
         double rotationRateHeading = maxRotationRate * getRotationRateMultiplier();
         Vec3 rotationCorrection;
-        // Note: rotationCorrection points to the target heading and not orthogonal to heading
-        // This is why we can not use normalize().scale(rotationRate)
-        if (targetHeading.dot(heading) > -0.99)
-            rotationCorrection = targetHeading.subtract(heading).scale(rotationRateHeading);
-        else
+        if (targetHeading.dot(heading) > -0.99) {
+            rotationCorrection = targetHeading.subtract(heading);
+            if(rotationCorrection.length() > rotationRateHeading)
+                rotationCorrection = rotationCorrection.normalize().scale(rotationRateHeading);
+        }else
             rotationCorrection = front.subtract(heading).normalize().scale(rotationRateHeading);
 
         heading = heading.add(rotationCorrection).normalize();
@@ -230,7 +230,7 @@ public class RocketController {
 
         // tick the lazy heading & front
         // interpolate the lazy values
-        double lerpFactor = 0.2;
+        double lerpFactor = 0.1;
         rotationCorrection = heading.subtract(lazyHeading).scale(lerpFactor);
         Vec3 newLazyHeading = lazyHeading.add(rotationCorrection).normalize();
         headingRotationRate = newLazyHeading.subtract(lazyHeading);
@@ -259,11 +259,13 @@ public class RocketController {
         // Proportional Gain: How aggressively the rocket tries to close the distance.
         final double K_P = 0.001;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
-        double K_D = Math.sqrt(K_P) * 2;
+        double K_D = Math.sqrt(K_P) * 2 * 2;
+        /*
         if (rocketDim instanceof SpaceStationDimension) {
             // more breaking for more stable flight
             K_D *= 2;
         }
+         */
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
         // secondary thruster force
