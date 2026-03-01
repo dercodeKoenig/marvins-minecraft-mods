@@ -16,6 +16,7 @@ import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.AxisDirections;
+import advRocketry.utils.ClientUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -288,7 +289,9 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 // make sure the current planet is always unlocked
                 ItemStack stack = getStackInSlot(slot);
                 if (stack.getItem() instanceof ItemGalaxyStorageDisk && level != null) {
-                    ItemGalaxyStorageDisk.setUnlockPoints(stack, level.dimension().location().toString(), ItemGalaxyStorageDisk.POINTS_UNLOCKED());
+                    if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
+                        ItemGalaxyStorageDisk.setUnlockPoints(stack, level.dimension().location().toString(), ItemGalaxyStorageDisk.POINTS_UNLOCKED());
+                    }
                 }
 
                 EntityObservatory.this.setChanged();
@@ -323,7 +326,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                         public void tick() {
                                             super.tick();
                                             // make sure the main gui stays in sync
-                                            EntityObservatory.this.guiHandler.sendPing();
+                                            EntityObservatory.this.guiHandler.onGuiClientTick(ClientUtils.getSinglePlayer());
                                         }
 
                                         @Override

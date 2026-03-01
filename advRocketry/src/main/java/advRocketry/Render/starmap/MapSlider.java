@@ -26,7 +26,7 @@ public class MapSlider extends AbstractWidget {
 
         // Draw the "thumb" (the part you grab)
         int thumbPos = (int) (getX() + (value * (width - 8)));
-        int color = this.isHoveredOrFocused() ? 0xFFFFFFFF : 0xFFAAAAAA;
+        int color = this.isHovered() ? 0xFFFFFFFF : 0xFFAAAAAA;
         guiGraphics.fill(thumbPos, getY(), thumbPos + 8, getY() + height, color);
     }
 
