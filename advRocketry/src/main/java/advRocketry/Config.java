@@ -8,7 +8,7 @@ public class Config {
     public double rocket_SpaceTravel_Distance_For_Max_Speed = 0.1;
     public double rocket_SpaceTravel_Min_Speed = 0.000002;
     public double rocket_SpaceTravel_Rotation_Rate = 0.02;
-    public double rocket_Planet_Entry_Speed_Y = -10;
+    public double rocket_Planet_Entry_Speed_Y = -5;
     public int rocket_Engine_Boot_Ticks = 100;
 
     public double station_SpaceTravel_AU_Per_Second = 0.01;
