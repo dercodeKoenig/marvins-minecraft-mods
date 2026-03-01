@@ -98,7 +98,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // smooth position interpolation when server sends position update
     double lerpX, lerpY, lerpZ;
-    Vec3 lerpDeltaMovement;
+    Vec3 lerpDeltaMovement = Vec3.ZERO;
     int lerpSteps;
     int lerpDeltaMovementSteps;
 
@@ -330,9 +330,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             lerpDeltaMovementSteps = 0;
         } else {
             this.lerpDeltaMovement = new Vec3(x, y, z);
+            //System.out.println("lerp movement: "+lerpDeltaMovement.y+" - current: "+getDeltaMovement().y);
             if (currentProgram != null)
                 // let the program do most of the job or it could jump around if server/client slightly desync
-                this.lerpDeltaMovementSteps = 20 * 120;
+                this.lerpDeltaMovementSteps = 20 * 10;
             else
                 // normal lerp on ground
                 this.lerpDeltaMovementSteps = 20 * 1;
@@ -340,6 +341,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+        //System.out.println("lerp: "+y+" - expected: "+lerpY);
         if (lerpSteps < 0) {
             setPos(x, y, z);
             lerpSteps = 0;
@@ -347,9 +349,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             this.lerpX = x;
             this.lerpY = y;
             this.lerpZ = z;
-            float distance = (float) position().distanceTo(new Vec3(x, y, z));
-            this.lerpSteps = (int) (20 + distance * 50); // dynamic time, fast sync for little correction, slow sync for large correction
-
+            this.lerpSteps = 50;
         }
         this.setRot(yRot, xRot);
     }
@@ -461,8 +461,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         // lerp logic for smooth position sync
         if (this.lerpSteps > 0) {
-            this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpZ, this.getYRot(), this.getXRot());
+            this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpTargetX(), this.lerpTargetY(), this.lerpTargetZ(), this.getYRot(), this.getXRot());
             --this.lerpSteps;
+            // move lerp target along server motion to forecast the target
+            // in best case, the lerp target should already match the target given in lerpTo when called
+            // it is precise enough
+            lerpX += lerpDeltaMovement.x;
+            lerpY += lerpDeltaMovement.y;
+            lerpZ += lerpDeltaMovement.z;
         }
         if (this.lerpDeltaMovementSteps > 0) {
             this.addDeltaMovement(new Vec3((this.lerpDeltaMovement.x - this.getDeltaMovement().x) / (double) this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.y - this.getDeltaMovement().y) / (double) this.lerpDeltaMovementSteps, (this.lerpDeltaMovement.z - this.getDeltaMovement().z) / (double) this.lerpDeltaMovementSteps));

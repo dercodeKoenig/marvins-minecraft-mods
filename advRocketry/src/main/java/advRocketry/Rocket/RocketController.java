@@ -289,7 +289,6 @@ public class RocketController {
         Vec3 antiGravityAcceleration = new Vec3(0, 1, 0).scale(rocket.getGravity());
         desiredAcceleration = desiredAcceleration.add(antiGravityAcceleration);
 
-
         // --- 2. Calculate Thrust & Heading ---
         if (canUseSecondaryEngines()) {
             // use secondary thrusters for fine control
