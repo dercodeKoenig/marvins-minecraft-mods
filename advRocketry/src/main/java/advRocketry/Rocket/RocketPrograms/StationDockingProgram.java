@@ -60,9 +60,9 @@ public class StationDockingProgram {
             rocket.enableSecondaryEngines(true, false);
             rocket.setRotationRateMultiplier(0.2, false);
             rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
+            rocket.setTargetFront(new Vec3(1,0,0), false); // TODO: set rocket assembler heading or up
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
-            rocket.setTargetFront(toTarget.normalize(), false);
 
             Vec3 scaledToTarget = new Vec3(toTarget.x, toTarget.y / 2, toTarget.z);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);

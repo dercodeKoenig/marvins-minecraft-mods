@@ -87,6 +87,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     private boolean canUseMainEngines = false;
     private int mainEnginesBootup = 0;
     private double rotationRateMultiplier = 1;
+    // TODO: lazy heading / front for more smooth transition
     Vec3 heading = new Vec3(0, 1, 0);
     private Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
     Vec3 front = new Vec3(0, 0, 1);
