@@ -55,7 +55,7 @@ public class RocketController {
         Vec3 targetFrontValid = rocket.heading.cross(rocket.getTargetFront().cross(rocket.heading)).normalize();
         if (targetFrontValid.dot(rocket.front) < -0.9) // get some movement if it is directly on the other side
             targetFrontValid = rocket.heading.cross(rocket.front);
-        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(rotationRate * 0.5f);
+        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(maxRotationRate * 0.5f);
         Vec3 newFront = rocket.front.add(rotationCorrection).normalize();
         // make sure the front is 100% always orthogonal, just for extra security
         Vec3 right = rocket.heading.cross(newFront).normalize();

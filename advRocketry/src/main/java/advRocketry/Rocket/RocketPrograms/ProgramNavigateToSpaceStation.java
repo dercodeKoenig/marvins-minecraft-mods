@@ -182,6 +182,8 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         rocket.enableMainEngines(true, false);
         rocket.enableSecondaryEngines(true, false);
         rocket.setRotationRateMultiplier(1, false);
+        rocket.setDefaultTargetHeading(rocket.getHeading(), false);
+        rocket.setTargetFront(new Vec3(0,1,0), false);
 
         Vec3 toTarget = target.getCenter().subtract(rocket.position());
 

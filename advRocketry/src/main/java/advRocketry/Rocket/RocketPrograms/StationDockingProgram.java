@@ -33,6 +33,8 @@ public class StationDockingProgram {
             rocket.enableMainEngines(true, false);
             rocket.enableSecondaryEngines(true, false);
             rocket.setRotationRateMultiplier(1, false);
+            rocket.setDefaultTargetHeading(rocket.getHeading(), false);
+            rocket.setTargetFront(new Vec3(0,1,0), false);
 
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
 
@@ -60,7 +62,7 @@ public class StationDockingProgram {
             rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
-            rocket.setTargetFront(toTarget, false);
+            rocket.setTargetFront(toTarget.normalize(), false);
 
             Vec3 scaledToTarget = new Vec3(toTarget.x, toTarget.y / 2, toTarget.z);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);
