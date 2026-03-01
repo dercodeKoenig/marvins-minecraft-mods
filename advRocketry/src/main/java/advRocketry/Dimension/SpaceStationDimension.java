@@ -9,6 +9,7 @@ import advRocketry.utils.SpaceNavigation;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import com.google.gson.Gson;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -146,9 +147,13 @@ public class SpaceStationDimension extends Dimension {
 
     @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
+        // don't ask me why, 180 is just the offset that works
+        double angleDeg = properties().frontFacing.toYRot() + 180;
+        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), new Vec3(0,1,0), angleDeg);
+        Vec3 upRotatedToFacing = CelestialUtils.rotate(getUp(), new Vec3(0,1,0), angleDeg);
         return new AxisDirections(
-                getFront(),
-                getUp()
+               frontRotatedToFacing,
+                upRotatedToFacing
         );
     }
 
@@ -234,11 +239,13 @@ public class SpaceStationDimension extends Dimension {
 
         ///  debug
         if (!dimensionManager.isClientSide) {
-            setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon"));
+            setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
             //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
             setTargetOrbitDistance(0.5f);
-            setTargetOrbitAxis(new Vec3(0, 1, 1));
+            setTargetOrbitAxis(new Vec3(0, 1, 0));
         }
+        setTargetFront(new Vec3(-1,0,0));
+        //properties().frontFacing = Direction.SOUTH;
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactor));

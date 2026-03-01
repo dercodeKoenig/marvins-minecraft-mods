@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,6 +42,9 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
     public boolean initialBlocksPlaced = false;
     // has the station received its initial position?
     public boolean positionInitialized = false;
+
+    // this is the front direction of the station
+    public Direction frontFacing = Direction.NORTH;
 
     public SpaceStationDimensionProperties() {
         this.type = DimensionType.SPACE_STATION;
