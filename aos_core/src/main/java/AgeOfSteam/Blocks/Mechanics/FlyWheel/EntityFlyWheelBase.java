@@ -33,7 +33,7 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
 
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
-    public int lastLight = 0;
+    public int lastLight = -1;
 
 
     public double myInertia;

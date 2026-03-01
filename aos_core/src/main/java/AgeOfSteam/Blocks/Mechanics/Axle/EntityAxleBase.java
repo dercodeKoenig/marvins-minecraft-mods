@@ -27,7 +27,7 @@ public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvi
 
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
-    public int lastLight;
+    public int lastLight = -1;
 
     public double myInertia;
     public double myFriction;

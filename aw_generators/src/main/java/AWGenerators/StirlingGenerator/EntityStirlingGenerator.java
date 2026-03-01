@@ -49,7 +49,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
     public MeshData mesh_piston_crank1;
     public VertexBuffer vertexBuffer_piston_crank2;
     public MeshData mesh_piston_crank2;
-    int lastLight;
+    int lastLight = -1;;
 
 
     public  double maxForceMultiplier = Config.INSTANCE.stirlingGenerator_maxForceMultiplier;

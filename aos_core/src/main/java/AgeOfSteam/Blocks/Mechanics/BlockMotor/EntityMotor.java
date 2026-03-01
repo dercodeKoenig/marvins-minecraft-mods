@@ -43,7 +43,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     public  VertexBuffer vertexBuffer;
     public  MeshData mesh;
-    public int lastLight = 0;
+    public int lastLight = -1;
 
 
     double n = 1;

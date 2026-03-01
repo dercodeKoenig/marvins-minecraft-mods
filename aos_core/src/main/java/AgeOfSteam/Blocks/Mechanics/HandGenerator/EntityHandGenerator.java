@@ -30,7 +30,7 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
     public MeshData mesh;
     public     VertexBuffer vertexBuffer2;
     public MeshData mesh2;
-    public int lastLight;
+    public int lastLight = -1;
 
     public double myForce = 0;
 

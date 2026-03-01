@@ -29,7 +29,7 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
 
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
-    public int lastLight;
+    public int lastLight = -1;;
 
     public double myInertia = Config.INSTANCE.waterWheel_inertia;
     public    double maxStress = Config.INSTANCE.waterWheel_maxStress;

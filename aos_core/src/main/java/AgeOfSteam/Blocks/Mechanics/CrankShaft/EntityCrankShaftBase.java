@@ -35,7 +35,7 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
 
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
-    int lastLight;
+    public int lastLight = -1;
 
 
     public double myInertia;

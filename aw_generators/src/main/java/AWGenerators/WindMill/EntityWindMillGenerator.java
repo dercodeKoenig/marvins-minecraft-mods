@@ -45,7 +45,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     public MeshData mesh_axle;
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
-    public int lastLight;
+    public int lastLight = -1;;
 
 
 

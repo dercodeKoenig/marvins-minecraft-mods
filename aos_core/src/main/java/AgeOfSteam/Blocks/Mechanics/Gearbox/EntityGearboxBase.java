@@ -27,7 +27,7 @@ public class EntityGearboxBase extends BlockEntity implements IMechanicalBlockPr
     public MeshData mesh_in;
     public MeshData mesh_out;
     public MeshData mesh_mid;
-    public int lastLight = 0;
+    public int lastLight = -1;
 
 
     double myInertia;

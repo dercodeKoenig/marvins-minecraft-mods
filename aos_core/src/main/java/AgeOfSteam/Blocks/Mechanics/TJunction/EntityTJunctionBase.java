@@ -29,7 +29,7 @@ public abstract class EntityTJunctionBase extends BlockEntity implements IMechan
     public MeshData mesh;
     public     VertexBuffer vertexBuffer2;
     public MeshData mesh2;
-    public int lastLight;
+    public int lastLight = -1;
 
     double myInertia;
     double myFriction;
