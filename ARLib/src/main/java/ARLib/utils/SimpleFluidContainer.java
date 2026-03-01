@@ -1,8 +1,14 @@
 package ARLib.utils;
 
+import ARLib.gui.IGuiHandler;
+import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleFluidTankDisplay;
+import ARLib.gui.modules.guiModuleImage;
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -12,6 +18,9 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static net.minecraft.world.level.block.Block.popResource;
 
@@ -25,6 +34,23 @@ public class SimpleFluidContainer implements IItemHandler, IFluidHandler {
     public SimpleFluidContainer(FluidTank tank, ItemStackHandler itemStackHandler) {
         this.myTank = tank;
         this.inventory = itemStackHandler;
+    }
+
+    public List<GuiModuleBase> makeGuiModules(int startId, int x, int y, IGuiHandler guiHandler) {
+        List<GuiModuleBase> modules = new ArrayList<>();
+
+        modules.add(new guiModuleFluidTankDisplay(startId, this, 0, guiHandler, x, y));
+
+        guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(startId + 1, this, 0, 1, 0, guiHandler, x + 20, y);
+        s1.setSlotBackground(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background_bucket.png"), 18, 18);
+        modules.add(s1);
+
+        modules.add(new guiModuleItemHandlerSlot(startId + 2, this, 1, 1, 0, guiHandler, x + 20, y + 35));
+
+        ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png");
+        modules.add(new guiModuleImage(guiHandler, 32, 28, 16, 16, arrow, 12, 16));
+
+        return modules;
     }
 
     public void popItems(Level level, BlockPos pos) {

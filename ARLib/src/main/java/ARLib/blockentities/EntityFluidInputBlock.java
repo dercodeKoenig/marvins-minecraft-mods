@@ -63,11 +63,7 @@ public class EntityFluidInputBlock extends BlockEntity implements INetworkTagRec
         simpleFluidContainer = new SimpleFluidContainer(myTank, inventory);
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        guiHandler.getModules().add(new guiModuleFluidTankDisplay(0, simpleFluidContainer, 0, guiHandler, 10, 10));
-        guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(1, simpleFluidContainer, 0, 1, 0, guiHandler, 30, 10);
-        s1.setSlotBackground(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background_bucket.png"), 18, 18);
-        guiHandler.getModules().add(s1);
-        guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, simpleFluidContainer, 1, 1, 0, guiHandler, 30, 45));
+        guiHandler.modules.addAll(simpleFluidContainer.makeGuiModules(0, 10, 10, guiHandler));
 
         for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 10, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
@@ -75,8 +71,10 @@ public class EntityFluidInputBlock extends BlockEntity implements INetworkTagRec
         for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 70, 30, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
         }
-        ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png");
-        guiHandler.getModules().add(new guiModuleImage(guiHandler, 32, 28, 16, 16, arrow, 12, 16));
+    }
+
+    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+        ((EntityFluidInputBlock) t).tick();
     }
 
     public void popItems() {
@@ -111,15 +109,10 @@ public class EntityFluidInputBlock extends BlockEntity implements INetworkTagRec
         guiHandler.signalOpenGui(player, 176, 165, true);
     }
 
-
-    public void tick(){
-        if(!level.isClientSide){
+    public void tick() {
+        if (!level.isClientSide) {
             guiHandler.serverTick();
             simpleFluidContainer.performPossibleFluidTransfer();
         }
-    }
-
-    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
-        ((EntityFluidInputBlock) t).tick();
     }
 }

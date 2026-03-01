@@ -45,7 +45,7 @@ public class guiModuleItemGuiItemstackFakeSlot extends guiModuleInventorySlotBas
             } else if (stack.isEmpty() && !carriedStack.isEmpty()) {
                 this.insertItemIntoSlot(player, carriedStack, carriedStack.getCount());
             } else if (!stack.isEmpty() && !carriedStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, carriedStack)) {
-                int transferAmount = Math.min(this.getSlotLimit(player) - stack.getCount(), carriedStack.getCount());
+                int transferAmount = Math.min(this.getSlotLimit(player, stack) - stack.getCount(), carriedStack.getCount());
                 this.insertItemIntoSlot(player, carriedStack, transferAmount);
             } else if (!stack.isEmpty() && !carriedStack.isEmpty() && !ItemStack.isSameItemSameComponents(stack, carriedStack) && stack.getCount() <= stack.getMaxStackSize() && carriedStack.getCount() <= carriedStack.getMaxStackSize()) {
                 this.extractItemFromSlot(player, stack.getCount());
@@ -61,7 +61,7 @@ public class guiModuleItemGuiItemstackFakeSlot extends guiModuleInventorySlotBas
             if (carriedStack.isEmpty() && !stack.isEmpty()) {
                 int halfCount = stack.getCount() / 2;
                 this.extractItemFromSlot(player, halfCount);
-            } else if (stack.getCount() < this.getSlotLimit(player) && !carriedStack.isEmpty()) {
+            } else if (stack.getCount() < this.getSlotLimit(player, stack) && !carriedStack.isEmpty()) {
                 this.insertItemIntoSlot(player, carriedStack, 1);
             }
         }
@@ -82,8 +82,7 @@ public class guiModuleItemGuiItemstackFakeSlot extends guiModuleInventorySlotBas
     public ItemStack extractItemFromSlot(Player p, int amount) {
         return this.itemHandler.extractItem(p.getMainHandItem(), this.targetSlot, amount, false, p.level().registryAccess());
     }
-
-    public int getSlotLimit(Player p) {
-        return this.itemHandler.getSlotLimit(p.getMainHandItem(), this.targetSlot, p.level().registryAccess());
+    int getSlotLimit(Player player, ItemStack stack) {
+        return this.itemHandler.getSlotLimit(player.getMainHandItem(), this.targetSlot, player.level().registryAccess());
     }
 }

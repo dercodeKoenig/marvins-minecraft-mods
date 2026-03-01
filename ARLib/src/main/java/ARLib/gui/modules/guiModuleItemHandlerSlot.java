@@ -81,96 +81,22 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
         lastStack =ItemStack.EMPTY;
     }
 
-    public void server_handleInventoryClick(Player player, int button, boolean isShift) {
-        InventoryMenu inventoryMenu = player.inventoryMenu;
-        ItemStack carriedStack = inventoryMenu.getCarried();
-        ItemStack stack = getStackInSlot();
-
-        if (button == 0 && !isShift) {
-
-            if (carriedStack.isEmpty() && !stack.isEmpty()) {
-                // Pick up the stack
-                int max_pickup = Math.min(stack.getCount(),stack.getMaxStackSize());
-                inventoryMenu.setCarried(extractItemFromSlot(max_pickup));
-
-            } else if (stack.isEmpty() && !carriedStack.isEmpty()) {
-                // Place down the carried item
-                inventoryMenu.setCarried(insertItemIntoSlot(carriedStack,carriedStack.getCount()));
-
-            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, carriedStack)) {
-                // Add to stack
-                int transferAmount = Math.min(getSlotLimit() - stack.getCount(), carriedStack.getCount());
-                inventoryMenu.setCarried(insertItemIntoSlot(carriedStack,transferAmount));
-            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && !ItemStack.isSameItemSameComponents(stack, carriedStack)) {
-                // swap items
-                if (stack.getCount()<=stack.getMaxStackSize() && carriedStack.getCount()<=carriedStack.getMaxStackSize()){
-                    ItemStack stackCopy = stack.copy();
-                    extractItemFromSlot(stack.getCount());
-                    insertItemIntoSlot(carriedStack,carriedStack.getCount());
-                    inventoryMenu.setCarried(stackCopy);
-                }
-            }
-        }
-        if (button == 1 && !isShift) {
-            if (carriedStack.isEmpty() && !stack.isEmpty()) {
-                // Pick up half of the stack
-                int halfCount = stack.getCount() / 2;
-                inventoryMenu.setCarried(extractItemFromSlot(halfCount));
-
-            } else if (stack.getCount() < getSlotLimit() && !carriedStack.isEmpty()) {
-                // Place one item from carried stack
-                ItemStack ret = insertItemIntoSlot(carriedStack,1);
-                inventoryMenu.setCarried(ret);
-            }
-        }
-        if (button == 0 && isShift) {
-            // move all items in the current slot to slots of the instant transfer target group
-            // loop over all modules and try to find a module where the group id matches the transfer target
-
-            List<GuiModuleBase> allModules =new ArrayList<>(this.guiHandler.getModules());
-            for (GuiModuleBase i : new ArrayList<>(allModules)) {
-                if (i instanceof guiModuleScrollContainer container) {
-                    allModules.addAll(container.getAllModulesAndSubModules());
-                }
-            }
-
-            for (GuiModuleBase i : allModules) {
-                if (i instanceof guiModuleItemHandlerSlot j) {
-                    if (j.invGroup == instantTransferTarget) {
-                        ItemStack notInserted = j.insertItemIntoSlot(stack, stack.getCount());
-                        int inserted = stack.getCount() - notInserted.getCount();
-                        extractItemFromSlot(inserted);
-                        stack = notInserted;
-                    }
-                }
-                if (i instanceof guiModulePlayerInventorySlot j) {
-                    if (j.invGroup == instantTransferTarget) {
-                        ItemStack notInserted = j.insertItemIntoSlot(player, stack, stack.getCount());
-                        int inserted = stack.getCount() - notInserted.getCount();
-                        extractItemFromSlot(inserted);
-                        stack = notInserted;
-                    }
-                }
-            }
-        }
-    }
-
-    public ItemStack getStackInSlot() {
+    public ItemStack getStackInSlot(Player player) {
         return itemHandler.getStackInSlot(targetSlot);
     }
 
-    public ItemStack insertItemIntoSlot(ItemStack stack, int amount) {
+    public ItemStack insertItemIntoSlot(Player player,ItemStack stack, int amount) {
             ItemStack toInsert = stack.copyWithCount(amount);
             ItemStack notInserted = itemHandler.insertItem(targetSlot, toInsert, false);
             int inserted = toInsert.getCount() - notInserted.getCount();
             return stack.copyWithCount(stack.getCount() - inserted);
     }
 
-    public ItemStack extractItemFromSlot(int amount) {
+    public ItemStack extractItemFromSlot(Player player,int amount) {
         return itemHandler.extractItem(targetSlot,amount,false);
     }
 
-    public int getSlotLimit() {
+    public int getSlotLimit(Player player, ItemStack stack) {
         return itemHandler.getSlotLimit(targetSlot);
     }
 }
