@@ -68,7 +68,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         public VertexBuffer casingXMinus;
         public VertexBuffer base;
 
-        public int lastLight;
+        public int lastLight = -1;
 
         public boolean should_open = false;
         public int openingTicks = 0;
