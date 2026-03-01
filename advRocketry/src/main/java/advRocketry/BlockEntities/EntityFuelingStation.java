@@ -3,6 +3,7 @@ package advRocketry.BlockEntities;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleEnergy;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
@@ -55,7 +56,6 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
         guiHandler = new GuiHandlerBlockEntity(this);
 
         battery = new BlockEntityBattery(this, 10000);
-
         guiHandler.modules.add(
                 new guiModuleEnergy(11000, battery, guiHandler, 155, 7)
         );
@@ -66,9 +66,7 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
         inventory = new ItemStackHandler(2){
             public void onContentsChanged(int slot){setChanged();}
         };
-
         simpleFluidContainer = new SimpleFluidContainer(tank, inventory);
-
         guiHandler.modules.addAll(simpleFluidContainer.makeGuiModules(0,10,10,guiHandler));
 
         drainFillToggleButton = new guiModuleButton(11001, "text", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
@@ -79,8 +77,11 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
                 PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityFuelingStation.this, info));
             }
         };
-
         guiHandler.modules.add(drainFillToggleButton);
+
+        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 100, 0, 1, this.guiHandler));
+        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 65, 200, 0, 1, this.guiHandler));
+
     }
 
     @Override

@@ -66,7 +66,6 @@ public class EntityRocketItemLoader extends BlockEntity implements ItemLinker.li
 
 
         this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 100, playerInventoryGroup, containerGroup, this.guiHandler));
-
         this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 65, 200, playerInventoryGroup, containerGroup, this.guiHandler));
 
 
