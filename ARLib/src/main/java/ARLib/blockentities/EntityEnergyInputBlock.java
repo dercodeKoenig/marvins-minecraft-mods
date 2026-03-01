@@ -16,7 +16,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import static ARLib.ARLibRegistry.ENTITY_ENERGY_INPUT_BLOCK;
 
-public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorage, INetworkTagReceiver {
+public class EntityEnergyInputBlock extends BlockEntity implements INetworkTagReceiver {
 
     public BlockEntityBattery energyStorage;
     public GuiHandlerBlockEntity guiHandler;
@@ -28,8 +28,10 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
     public EntityEnergyInputBlock(BlockEntityType type, BlockPos p_155229_, BlockState p_155230_) {
         super(type, p_155229_, p_155230_);
         energyStorage = new BlockEntityBattery(this, 10000);
+        energyStorage.canReceive = true;
+        energyStorage.canExtract = false;
         this.guiHandler = new GuiHandlerBlockEntity(this);
-        this.guiHandler.getModules().add(new guiModuleEnergy(0, this, this.guiHandler, 10, 10));
+        this.guiHandler.getModules().add(new guiModuleEnergy(0, energyStorage, this.guiHandler, 10, 10));
     }
 
 
@@ -46,37 +48,6 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
         super.saveAdditional(tag, registries);
         tag.put("Energy", energyStorage.serializeNBT(registries));
     }
-
-    @Override
-    public int receiveEnergy(int i, boolean b) {
-        return energyStorage.receiveEnergy(i, b);
-    }
-
-    @Override
-    public int extractEnergy(int i, boolean b) {
-        return energyStorage.extractEnergy(i, b);
-    }
-
-    @Override
-    public int getEnergyStored() {
-        return energyStorage.getEnergyStored();
-    }
-
-    @Override
-    public int getMaxEnergyStored() {
-        return energyStorage.getMaxEnergyStored();
-    }
-
-    @Override
-    public boolean canExtract() {
-        return false;
-    }
-
-    @Override
-    public boolean canReceive() {
-        return true;
-    }
-
 
     @Override
     public void readServer(CompoundTag tagIn, ServerPlayer p) {

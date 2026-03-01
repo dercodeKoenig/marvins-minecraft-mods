@@ -31,24 +31,24 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
 
     public int getTotalEnergyStored() {
         int totalEnergy = 0;
-        for (IEnergyStorage i : energyInTiles) {
-            totalEnergy += i.getEnergyStored();
+        for (EntityEnergyInputBlock i : energyInTiles) {
+            totalEnergy += i.energyStorage.getEnergyStored();
         }
         return totalEnergy;
     }
 
     public int getMaxEnergyStored() {
         int totalEnergy = 0;
-        for (IEnergyStorage i : energyInTiles) {
-            totalEnergy += i.getMaxEnergyStored();
+        for (EntityEnergyInputBlock i : energyInTiles) {
+            totalEnergy += i.energyStorage.getMaxEnergyStored();
         }
         return totalEnergy;
     }
 
     public void consumeEnergy(int energyToConsume) {
         int consumed = 0;
-        for (IEnergyStorage i : energyInTiles) {
-            consumed += i.extractEnergy(energyToConsume - consumed, false);
+        for (EntityEnergyInputBlock i : energyInTiles) {
+            consumed += i.energyStorage.extractEnergy(energyToConsume - consumed, false);
             if (consumed == energyToConsume) {
                 return;
             }
@@ -61,7 +61,7 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
             String identifier = input.id;
             int totalToConsume = input.getRandomAmount();
             if (totalToConsume > 0) {
-                ItemFluidStacks ret = InventoryUtils.consumeElements(this.fluidInTiles, this.itemInTiles, identifier, totalToConsume, simulate);
+                ItemFluidStacks ret = InventoryUtils.consumeElements(this.fluidInTiles.stream().map(x -> x.myTank).toList(), this.itemInTiles.stream().map(x -> x.inventory).toList(), identifier, totalToConsume, simulate);
                 consumedElements.fluidStacks.addAll(ret.fluidStacks);
                 consumedElements.itemStacks.addAll(ret.itemStacks);
             }
@@ -75,61 +75,60 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
             String identifier = output.id;
             int totalToProduce = output.getRandomAmount();
             if (totalToProduce > 0) {
-                InventoryUtils.createElements(this.fluidOutTiles, this.itemOutTiles, identifier, totalToProduce, level.registryAccess());
+                InventoryUtils.createElements(this.fluidOutTiles.stream().map(x -> x.myTank).toList(), this.itemOutTiles.stream().map(x -> x.inventory).toList(), identifier, totalToProduce, level.registryAccess());
             }
         }
     }
 
-    // both using the max possible inputs/outputs for p >= 1
     public boolean hasinputs(List<RecipePart> inputs) {
-        return InventoryUtils.hasInputs(this.itemInTiles, this.fluidInTiles, inputs);
+        return InventoryUtils.hasInputs(this.itemInTiles.stream().map(x -> x.inventory).toList(), this.fluidInTiles.stream().map(x -> x.myTank).toList(), inputs);
     }
 
     public boolean canFitOutputs(List<RecipePart> outputs) {
-        return InventoryUtils.canFitElements(this.itemOutTiles, this.fluidOutTiles, outputs, level.registryAccess());
+        return InventoryUtils.canFitElements(this.itemOutTiles.stream().map(x -> x.inventory).toList(), this.fluidOutTiles.stream().map(x -> x.myTank).toList(), outputs, level.registryAccess());
     }
 
-void checkTilesStillValidAndRescan(){
-    for(EntityEnergyOutputBlock i:energyOutTiles){
-        if(i.isRemoved()){
-            scan_tiles();
-            return;
+    void checkTilesStillValidAndRescan() {
+        for (EntityEnergyOutputBlock i : energyOutTiles) {
+            if (i.isRemoved()) {
+                scan_tiles();
+                return;
+            }
         }
-    }
-    for(EntityEnergyInputBlock i:energyInTiles){
-        if(i.isRemoved()){
-            scan_tiles();
-            return;
+        for (EntityEnergyInputBlock i : energyInTiles) {
+            if (i.isRemoved()) {
+                scan_tiles();
+                return;
+            }
         }
-    }
 
-    for(EntityItemInputBlock i:itemInTiles){
-        if(i.isRemoved()){
-            scan_tiles();
-            return;
+        for (EntityItemInputBlock i : itemInTiles) {
+            if (i.isRemoved()) {
+                scan_tiles();
+                return;
+            }
         }
-    }
-    for(EntityItemOutputBlock i:itemOutTiles){
-        if(i.isRemoved()){
-            scan_tiles();
-            return;
+        for (EntityItemOutputBlock i : itemOutTiles) {
+            if (i.isRemoved()) {
+                scan_tiles();
+                return;
+            }
         }
-    }
 
-    for(EntityFluidInputBlock i:fluidInTiles){
-        if(i.isRemoved()){
-            scan_tiles();
-            return;
+        for (EntityFluidInputBlock i : fluidInTiles) {
+            if (i.isRemoved()) {
+                scan_tiles();
+                return;
+            }
         }
-    }
-    for(EntityFluidOutputBlock i:fluidOutTiles){
-        if(i.isRemoved()){
-            scan_tiles();
-            return;
+        for (EntityFluidOutputBlock i : fluidOutTiles) {
+            if (i.isRemoved()) {
+                scan_tiles();
+                return;
+            }
         }
-    }
 
-}
+    }
 
     void addStructureTiles(BlockEntity tile) {
         // make sure order is correct, out tiles extend in tiles!
@@ -170,8 +169,8 @@ void checkTilesStillValidAndRescan(){
     }
 
     @Override
-    public void onStructureComplete(){
-        if(!level.isClientSide){
+    public void onStructureComplete() {
+        if (!level.isClientSide) {
             energyInTiles.clear();
             energyOutTiles.clear();
             itemInTiles.clear();

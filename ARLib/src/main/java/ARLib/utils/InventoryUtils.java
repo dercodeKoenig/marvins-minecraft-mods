@@ -12,7 +12,7 @@ import java.util.List;
 import static ARLib.utils.ItemUtils.*;
 
 public class InventoryUtils {
-    public static   <I extends IItemHandler, F extends IFluidHandler> boolean canFitElements(List<I> itemInTiles, List<F> fluidInTiles, List<RecipePart> elements, RegistryAccess registry) {
+    public static <I extends IItemHandler, F extends IFluidHandler> boolean canFitElements(List<I> itemInTiles, List<F> fluidInTiles, List<RecipePart> elements, RegistryAccess registry) {
         List<ItemStack> itemStacks = new ArrayList<>();
         List<FluidStack> fluidStacks = new ArrayList<>();
 
@@ -63,8 +63,8 @@ public class InventoryUtils {
                 // Check if the current slot can accept this item
                 if (simulatedSlot.isEmpty() || ItemStack.isSameItemSameComponents(simulatedSlot, stackToInsert)) {
 
-                    int spaceAvailable =maxSlotSize - simulatedSlot.getCount();
-                    if(!simulatedSlot.isEmpty())
+                    int spaceAvailable = maxSlotSize - simulatedSlot.getCount();
+                    if (!simulatedSlot.isEmpty())
                         spaceAvailable = Math.min(spaceAvailable, stackToInsert.getMaxStackSize() - simulatedSlot.getCount());
 
                     int toInsert = Math.min(spaceAvailable, remainingCount);
@@ -93,7 +93,6 @@ public class InventoryUtils {
         // All items were fully inserted in simulation, return true
         return true;
     }
-
 
 
     public static <F extends IFluidHandler> boolean canInsertAllFluids(List<F> fluidHandlers, List<FluidStack> fluidsToInsert) {
@@ -128,7 +127,7 @@ public class InventoryUtils {
                 int maxCapacity = capacities.get(i);  // Get the corresponding max capacity for this simulated tank
 
                 // Check if the current simulated tank can accept this fluid
-                if (simulatedTanks.get(i).isEmpty() || FluidStack.isSameFluid(simulatedTanks.get(i),fluidToInsert)) {
+                if (simulatedTanks.get(i).isEmpty() || FluidStack.isSameFluidSameComponents(simulatedTanks.get(i), fluidToInsert)) {
                     int spaceAvailable = maxCapacity - simulatedTanks.get(i).getAmount(); // Calculate available space in the tank
                     int toInsert = Math.min(spaceAvailable, remainingAmount);
 
@@ -159,58 +158,56 @@ public class InventoryUtils {
 
     public static <F extends IFluidHandler, I extends IItemHandler> void createElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_produce, int num, RegistryAccess registry) {
         ItemStack istack = getItemStackFromIdOrTag(id_or_tag_to_produce, num, registry);
-        if(istack != null){
+        if (istack != null) {
             for (int i = 0; i < itemHandlers.size(); i++) {
                 for (int o = 0; o < itemHandlers.get(i).getSlots(); o++) {
                     istack = itemHandlers.get(i).insertItem(o, istack, false);
-                    if(istack.isEmpty())return;
+                    if (istack.isEmpty()) return;
                 }
             }
         }
         FluidStack fstack = getFluidStackFromId(id_or_tag_to_produce, num);
-        if(fstack != null){
+        if (fstack != null) {
             for (int i = 0; i < fluidHandlers.size(); i++) {
                 int filled = fluidHandlers.get(i).fill(fstack, IFluidHandler.FluidAction.EXECUTE);
                 fstack.shrink(filled);
-                if(fstack.isEmpty())return;
+                if (fstack.isEmpty()) return;
             }
         }
     }
 
 
-
-public static <F extends IFluidHandler, I extends IItemHandler> ItemFluidStacks consumeElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_consume, int num, boolean simulate) {
+    public static <F extends IFluidHandler, I extends IItemHandler> ItemFluidStacks consumeElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_consume, int num, boolean simulate) {
         ItemFluidStacks consumedStacks = new ItemFluidStacks();
-    for (int i = 0; i < itemHandlers.size(); i++) {
-        for (int o = 0; o < itemHandlers.get(i).getSlots(); o++) {
-            if (!itemHandlers.get(i).getStackInSlot(o).isEmpty()) {
-                if (matches(id_or_tag_to_consume, itemHandlers.get(i).getStackInSlot(o))) {
-                    ItemStack extracted = itemHandlers.get(i).extractItem(o, num, simulate);
-                    consumedStacks.itemStacks.add(extracted);
-                    num -= extracted.getCount();
-                    if (num == 0)
-                        return consumedStacks;
+        for (int i = 0; i < itemHandlers.size(); i++) {
+            for (int o = 0; o < itemHandlers.get(i).getSlots(); o++) {
+                if (!itemHandlers.get(i).getStackInSlot(o).isEmpty()) {
+                    if (matches(id_or_tag_to_consume, itemHandlers.get(i).getStackInSlot(o))) {
+                        ItemStack extracted = itemHandlers.get(i).extractItem(o, num, simulate);
+                        consumedStacks.itemStacks.add(extracted);
+                        num -= extracted.getCount();
+                        if (num == 0)
+                            return consumedStacks;
+                    }
                 }
             }
         }
-    }
 
-    for (int i = 0; i < fluidHandlers.size(); i++) {
-        for (int o = 0; o < fluidHandlers.get(i).getTanks(); o++) {
-            if (!fluidHandlers.get(i).getFluidInTank(o).isEmpty()) {
-                if (matches(id_or_tag_to_consume, fluidHandlers.get(i).getFluidInTank(o))) {
-                    FluidStack drained = fluidHandlers.get(i).drain(fluidHandlers.get(i).getFluidInTank(o).copyWithAmount(num), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
-                    consumedStacks.fluidStacks.add(drained);
-                    num -= drained.getAmount();
-                    if (num == 0)
-                        return consumedStacks;
+        for (int i = 0; i < fluidHandlers.size(); i++) {
+            for (int o = 0; o < fluidHandlers.get(i).getTanks(); o++) {
+                if (!fluidHandlers.get(i).getFluidInTank(o).isEmpty()) {
+                    if (matches(id_or_tag_to_consume, fluidHandlers.get(i).getFluidInTank(o))) {
+                        FluidStack drained = fluidHandlers.get(i).drain(fluidHandlers.get(i).getFluidInTank(o).copyWithAmount(num), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+                        consumedStacks.fluidStacks.add(drained);
+                        num -= drained.getAmount();
+                        if (num == 0)
+                            return consumedStacks;
+                    }
                 }
             }
         }
+        return consumedStacks;
     }
-    return consumedStacks;
-}
-
 
 
     public static <F extends IFluidHandler, I extends IItemHandler> boolean hasInputs(List<I> itemInTiles, List<F> fluidInTiles, List<RecipePart> inputs) {

@@ -22,7 +22,7 @@ import java.util.List;
 import static ARLib.ARLibRegistry.ENTITY_ITEM_INPUT_BLOCK;
 import static net.minecraft.world.level.block.Block.popResource;
 
-public class EntityItemInputBlock extends BlockEntity implements IItemHandler, INetworkTagReceiver {
+public class EntityItemInputBlock extends BlockEntity implements INetworkTagReceiver {
 
     public ItemStackHandler inventory;
     public GuiHandlerBlockEntity guiHandler;
@@ -35,15 +35,21 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
     public EntityItemInputBlock(BlockEntityType t, BlockPos pos, BlockState blockState) {
         super(t, pos, blockState);
 
+        inventory = new ItemStackHandler(4){
+            @Override
+            public void onContentsChanged(int slot){
+                EntityItemInputBlock.this.setChanged();
+            }
+        };
 
         guiHandler = new GuiHandlerBlockEntity(this);
 
         int containergroup = 0;
         int playerinventorygroup = 1;
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0, this, 0, containergroup, playerinventorygroup, this.guiHandler, 45, 10));
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1, this, 1, containergroup, playerinventorygroup, this.guiHandler, 65, 10));
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, this, 2, containergroup, playerinventorygroup, this.guiHandler, 85, 10));
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3, this, 3, containergroup, playerinventorygroup, this.guiHandler, 105, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0, inventory, 0, containergroup, playerinventorygroup, this.guiHandler, 45, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1, inventory, 1, containergroup, playerinventorygroup, this.guiHandler, 65, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, inventory, 2, containergroup, playerinventorygroup, this.guiHandler, 85, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3, inventory, 3, containergroup, playerinventorygroup, this.guiHandler, 105, 10));
 
         List<guiModulePlayerInventorySlot> playerHotBar = guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 100, 100, playerinventorygroup, containergroup, this.guiHandler);
         for (guiModulePlayerInventorySlot i : playerHotBar) {
@@ -54,14 +60,6 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
         for (guiModulePlayerInventorySlot i : playerInv) {
             this.guiHandler.getModules().add(i);
         }
-
-
-        inventory = new ItemStackHandler(4){
-            @Override
-            public void onContentsChanged(int slot){
-               EntityItemInputBlock.this.setChanged();
-            }
-        };
     }
 
 
@@ -71,14 +69,12 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 
-
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         CompoundTag inv = inventory.serializeNBT(registries);
         tag.put("inventory", inv);
     }
-
 
     @Override
     public void readServer(CompoundTag tagIn, ServerPlayer p) {
@@ -103,36 +99,6 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
             }
             setChanged();
         }
-    }
-
-    @Override
-    public int getSlots() {
-        return inventory.getSlots();
-    }
-
-    @Override
-    public ItemStack getStackInSlot(int slot) {
-        return inventory.getStackInSlot(slot);
-    }
-
-    @Override
-    public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return inventory.insertItem(slot, stack, simulate);
-    }
-
-    @Override
-    public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return inventory.extractItem(slot, amount, simulate);
-    }
-
-    @Override
-    public int getSlotLimit(int slot) {
-        return 99;
-    }
-
-    @Override
-    public boolean isItemValid(int slot, ItemStack stack) {
-        return inventory.isItemValid(slot, stack);
     }
 
     public void tick() {
