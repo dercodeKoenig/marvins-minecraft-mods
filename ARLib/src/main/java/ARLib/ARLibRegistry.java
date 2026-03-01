@@ -64,9 +64,9 @@ public class ARLibRegistry {
 
     public static final Supplier<Block> BLOCK_MOTOR = BLOCKS.register("block_motor_block", () -> new BlockMotor(BlockBehaviour.Properties.of().strength(2,2).noOcclusion()));
 
-    public static final Supplier<Block> BLOCK_STRUCTURE = BLOCKS.register("block_structure_block", () -> new BlockStructureBlock(BlockBehaviour.Properties.of().strength(2,2)));
+    public static final Supplier<Block> BLOCK_STRUCTURE = BLOCKS.register("block_structure_block", () -> new Block(BlockBehaviour.Properties.of().strength(2,2)));
 
-    public static final Supplier<Block> BLOCK_COIL_COPPER = BLOCKS.register("block_coilcopper", () -> new BlockCoilCopperBlock(BlockBehaviour.Properties.of().strength(2,2)));
+    public static final Supplier<Block> BLOCK_COIL_COPPER = BLOCKS.register("block_coilcopper", () -> new Block(BlockBehaviour.Properties.of().strength(2,2)));
 
 
     public static final DeferredHolder<Item, Item> ITEM_HOLOPROJECTOR = ITEMS.register("item_holo_projector",

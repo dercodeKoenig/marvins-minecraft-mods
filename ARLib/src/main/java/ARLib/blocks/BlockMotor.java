@@ -39,21 +39,7 @@ public class BlockMotor extends Block {
     }
 
     @Override
-    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nonnull LivingEntity placer, @Nonnull ItemStack stack) {
-        world.setBlock(pos, state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite()), 2);
-    }
-
-
-    @Override
     public int getLightBlock(BlockState state, BlockGetter world, BlockPos pos) {
         return 8;
-    }
-
-
-    @Override
-    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        List<ItemStack> drops = new ArrayList<>();
-        drops.add(new ItemStack(this,1));
-        return drops;
     }
 }
