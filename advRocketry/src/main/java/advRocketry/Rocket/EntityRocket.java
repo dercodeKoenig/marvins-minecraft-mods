@@ -227,8 +227,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     protected AABB makeBoundingBox() {
+        if(controller == null) return super.makeBoundingBox();
+        if (size == null) return super.makeBoundingBox();
+        
         Vec3 heading = controller.getHeading();
-        if (heading == null || size == null) return super.makeBoundingBox();
 
         double w = Math.max(size.getX(), size.getZ());
         double h = size.getY();
