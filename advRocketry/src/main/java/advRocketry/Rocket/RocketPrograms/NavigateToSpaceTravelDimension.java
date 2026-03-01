@@ -19,10 +19,6 @@ public class NavigateToSpaceTravelDimension {
             return true;
         }
 
-        rocket.enableMainEngines(true, false);
-        rocket.enableSecondaryEngines(false, false);
-        rocket.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
-
         Dimension myDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
         if (myDim instanceof SpaceStationDimension spaceStationDimension) {
             // logic for space station
@@ -42,6 +38,9 @@ public class NavigateToSpaceTravelDimension {
             // normal logic; just fly high up!
             rocket.enableMainEngines(true, false);
             rocket.enableSecondaryEngines(false, false);
+            rocket.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
+            rocket.setRotationRateMultiplier(1,false);
+
             rocket.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
 
             if (rocket.position().y > Config.INSTANCE.planet_Sky_Height) {

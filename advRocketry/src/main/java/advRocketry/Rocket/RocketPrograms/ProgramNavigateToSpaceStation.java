@@ -2,7 +2,6 @@ package advRocketry.Rocket.RocketPrograms;
 
 import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityRocketAssembler;
-import advRocketry.Blocks.CargoHold;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemSpaceStationContainer;
 import advRocketry.Rocket.EntityRocket;
@@ -22,7 +21,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,11 +32,14 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
     public ResourceLocation originDimensionId;
     public BlockPos target;
 
-    // for docking mode
-    Vec3 dockingPosition = null;
-    int dockingDirection = 0;
+    // the position where we will spawn depends on where the docking station is placed and how it is rotated
+    // using random position when no docking station is there
+    BlockPos spawnPos;
 
-    boolean isStarted = false;
+    // for docking to a rocket assembler
+    StationDockingProgram.DockingProgram dockingProgram;
+    // for navigating from one docking station to another on same station, we need to undock first
+    StationDockingProgram.UnDockingProgram unDockingProgram;
 
     public ProgramNavigateToSpaceStation() {
         // empty constructor required for save & load
@@ -48,8 +49,6 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         this.target = target;
         this.targetDimensionId = targetDimensionId;
         this.originDimensionId = originDimensionId;
-        if (!originDimensionId.equals(targetDimensionId))
-            isStarted = true;
 
         // docking detection, has to be here because client can not force load chunk and cannot detect in flight
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
@@ -58,10 +57,27 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
             targetLevel.getChunk(target); // should load the chunk
             BlockEntity targetBE = targetLevel.getBlockEntity(target);
             if (targetBE instanceof EntityRocketAssembler rocketAssembler) {
-                dockingPosition = rocketAssembler.getLandingPos(rocket);
+                Vec3 dockingPosition = rocketAssembler.getLandingPos(rocket);
                 Direction dockingStationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                dockingDirection = -1;
+                BlockPos dockingStationPosition = rocketAssembler.getBlockPos();
+                Direction dockingDirection = Direction.DOWN;
                 System.out.println("docking station found!");
+                spawnPos = dockingStationPosition.relative(dockingStationFacing.getOpposite(), 200);
+                dockingProgram = new StationDockingProgram.DockingProgram(dockingPosition, dockingDirection);
+            } else {
+                spawnPos = target.relative(Direction.getRandom(rocket.level().random), 200);
+            }
+
+            if (originDimensionId.equals(targetDimensionId)) {
+                BlockPos undockingStationPos = rocket.dockingStationPos;
+                if(undockingStationPos != null){
+                    targetLevel.getChunk(undockingStationPos); // should load the chunk
+                    BlockEntity originBe = targetLevel.getBlockEntity(undockingStationPos);
+                    if(originBe instanceof EntityRocketAssembler undockingStation){
+                        // fetch docking direction & facing to move away....
+
+                    }
+                }
             }
         }
 
@@ -78,8 +94,10 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
 
-            if (dockingPosition == null) {
+            if (dockingProgram == null) {
                 runWithoutDockingStation(rocket);
+            }else{
+                dockingProgram.run(rocket);
             }
 
 
@@ -94,7 +112,6 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
                 NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.onSpaceReached() {
                     @Override
                     public boolean onSpaceReached() {
-
                         if (!targetDimension.isPositionInitialized()) {
                             // it has no location in space at this time, it would probably just fly to 0 0 0
                             // the position will be initialized on space reached, no going to travel dimension
@@ -131,7 +148,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
     void teleportToStation(EntityRocket rocket) {
         ServerLevel targetLevel = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), targetDimensionId);
 
-        Vec3 targetPos = new Vec3(800, 100, 0);
+        Vec3 targetPos = spawnPos.getCenter();
 
         Vec3 entrySpeed = new Vec3(0, 0, 0);
 
@@ -140,6 +157,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         Vec3 toTarget = target.getCenter().subtract(newRocket.position());
         newRocket.setHeadingAndFrontDirect(toTarget, toTarget.cross(new Vec3(0, 1, 0).cross(toTarget)));
 
+        // if station is first visited, set position and parent dimension
         SpaceStationDimension spaceStationDimension = (SpaceStationDimension) DimensionManager.INSTANCE_SERVER.get(targetDimensionId);
         if (!spaceStationDimension.isPositionInitialized()) {
             // set the position and parent for the station depending on where we launch it
@@ -161,17 +179,11 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
     void runWithoutDockingStation(EntityRocket rocket) {
 
-        Vec3 toTarget = target.getCenter().subtract(rocket.position());
-
-        rocket.setDefaultTargetHeading(rocket.getHeading(), false);
-
-        rocket.setTargetFront(new Vec3(0, 1, 0), false);
-
         rocket.enableMainEngines(true, false);
-
         rocket.enableSecondaryEngines(true, false);
-
         rocket.setRotationRateMultiplier(1, false);
+
+        Vec3 toTarget = target.getCenter().subtract(rocket.position());
 
         Vec3 scaledToTarget = toTarget.scale(0.5);
         double maxD = 100;
@@ -237,24 +249,32 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
     @Override
     public void readFromNbt(CompoundTag nbt) {
         target = NbtUtils.readBlockPos(nbt, "target").get();
-        isStarted = nbt.getBoolean("isStarted");
         targetDimensionId = ResourceLocation.parse(nbt.getString("targetDimensionId"));
         if (nbt.contains("originDimensionId"))
             originDimensionId = ResourceLocation.parse(nbt.getString("originDimensionId"));
-        dockingDirection = nbt.getInt("dockingDirection");
-        dockingPosition = Utils.deSerializeVec3(nbt.getCompound("dockingPosition"));
+        if (nbt.contains("dockingProgram")) {
+            dockingProgram = new StationDockingProgram.DockingProgram(Vec3.ZERO,Direction.UP);
+            dockingProgram.readFromNbt(nbt.getCompound("dockingProgram"));
+        }
+        if (nbt.contains("unDockingProgram")) {
+            unDockingProgram = new StationDockingProgram.UnDockingProgram(0, Vec3.ZERO);
+            unDockingProgram.readFromNbt(nbt.getCompound("unDockingProgram"));
+        }
     }
 
     @Override
     public CompoundTag saveToNbt() {
         CompoundTag tag = new CompoundTag();
         tag.put("target", NbtUtils.writeBlockPos(target));
-        tag.putBoolean("isStarted", isStarted);
         tag.putString("targetDimensionId", targetDimensionId.toString());
         if (originDimensionId != null)
             tag.putString("originDimensionId", originDimensionId.toString());
-        tag.put("dockingPosition", Utils.serializeVec3(dockingPosition));
-        tag.putInt("dockingDirection", dockingDirection);
+        if(dockingProgram != null) {
+            tag.put("dockingProgram", dockingProgram.saveToNbt());
+        }
+        if(unDockingProgram != null){
+            tag.put("unDockingProgram", unDockingProgram.saveToNbt());
+        }
         return tag;
     }
 }

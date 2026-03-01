@@ -373,6 +373,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         this.defaultTargetHeading = heading;
         this.heading = heading;
         this.front = front;
+        this.targetFront = front;
     }
 
     public void setPassengersPositions(Map<UUID, BlockPos> passengers) {
