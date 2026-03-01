@@ -7,6 +7,7 @@ import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.utils.BlockEntityBattery;
+import ARLib.utils.SimpleFluidContainer;
 import advRocketry.Oxygen.OxygenSupplier;
 import advRocketry.Oxygen.OxygenSystem;
 import net.minecraft.core.BlockPos;
@@ -17,10 +18,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import static advRocketry.Registry.ENTITY_OXYGEN_VENT;
 
 
-public class EntityOxygenVent extends EntityFluidInputBlock {
+public class EntityOxygenVent extends BlockEntity {
 
     OxygenSupplier oxygenSupplier;
     public BlockEntityBattery battery;
+
+    SimpleFluidContainer fluidContainer;
+    // TODO: THIS ALL HERE IS NOT COMPLETE
 
     public EntityOxygenVent(BlockPos pos, BlockState blockState) {
         super(ENTITY_OXYGEN_VENT.get(), pos, blockState);
@@ -46,6 +50,6 @@ public class EntityOxygenVent extends EntityFluidInputBlock {
     }
 
     public void tick() {
-        super.tick();
+
     }
 }

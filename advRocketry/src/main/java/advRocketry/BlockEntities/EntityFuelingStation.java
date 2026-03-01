@@ -1,10 +1,12 @@
 package advRocketry.BlockEntities;
 
-import ARLib.blockentities.EntityFluidInputBlock;
+import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleEnergy;
+import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
+import ARLib.utils.SimpleFluidContainer;
 import advRocketry.Config;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Registry;
@@ -23,18 +25,25 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
 
-public class EntityFuelingStation extends EntityFluidInputBlock implements ItemLinker.linkable, ItemLinker.linkableToEntity {
+public class EntityFuelingStation extends BlockEntity implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 
     public BlockPos linkedAssemblerPos = null;
     public EntityRocket linkedRocket = null;
 
     public BlockEntityBattery battery;
+    public FluidTank tank;
+    public ItemStackHandler inventory;
 
+    public GuiHandlerBlockEntity guiHandler;
+    public SimpleFluidContainer simpleFluidContainer;
     public guiModuleButton drainFillToggleButton;
     public boolean isDrain;
 
@@ -43,11 +52,24 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
     public EntityFuelingStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_FUELING_STATION.get(), pos, blockState);
 
+        guiHandler = new GuiHandlerBlockEntity(this);
+
         battery = new BlockEntityBattery(this, 10000);
 
         guiHandler.modules.add(
                 new guiModuleEnergy(11000, battery, guiHandler, 155, 7)
         );
+
+        tank = new FluidTank(10){
+            public void onContentsChanged(){setChanged();}
+        };
+        inventory = new ItemStackHandler(2){
+            public void onContentsChanged(int slot){setChanged();}
+        };
+
+        simpleFluidContainer = new SimpleFluidContainer(tank, inventory);
+
+        guiHandler.modules.addAll(simpleFluidContainer.makeGuiModules(0,10,10,guiHandler));
 
         drainFillToggleButton = new guiModuleButton(11001, "text", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
             @Override
@@ -63,7 +85,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
-        super.readServer(compoundTag, serverPlayer);
+        guiHandler.readServer(compoundTag);
         if (compoundTag.contains("toggleDrainFill")) {
             isDrain = !isDrain;
             setChanged();
@@ -72,7 +94,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        super.readClient(compoundTag);
+        guiHandler.readClient(compoundTag);
     }
 
     @Override
@@ -82,6 +104,7 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
             tag.put("linkedAssemblerPos", NbtUtils.writeBlockPos(linkedAssemblerPos));
         tag.putInt("energy", battery.getEnergyStored());
         tag.putBoolean("isDrain", isDrain);
+        simpleFluidContainer.saveAdditional(tag, registries);
     }
 
     @Override
@@ -91,11 +114,14 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
             linkedAssemblerPos = NbtUtils.readBlockPos(tag, "linkedAssemblerPos").get();
         battery.setEnergy(tag.getInt("energy"));
         isDrain = tag.getBoolean("isDrain");
+        simpleFluidContainer.loadAdditional(tag, registries);
     }
 
     public void tick() {
-        super.tick();
         if (!level.isClientSide) {
+            guiHandler.serverTick();
+            simpleFluidContainer.performPossibleFluidTransfer();
+
             if (linkedAssemblerPos != null) {
                 linkedRocket = null;
                 BlockEntity be = level.getBlockEntity(linkedAssemblerPos);
@@ -110,9 +136,9 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
                     if (battery.getEnergyStored() >= Config.INSTANCE.fueling_Station_Energy_Per_Tick) {
                         if (!isDrain) {
                             // FUEL the rocket
-                            FluidStack available = myTank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
-                            int canFill = linkedRocket.fuelTank.fill(available, FluidAction.SIMULATE);
-                            FluidStack drained = myTank.drain(canFill, FluidAction.EXECUTE);
+                            FluidStack available = tank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
+                            int canFill = linkedRocket.fuelTank.fill(available, IFluidHandler.FluidAction.SIMULATE);
+                            FluidStack drained = tank.drain(canFill, IFluidHandler.FluidAction.EXECUTE);
                             linkedRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
                             if (canFill > 0) {
                                 setChanged();
@@ -121,9 +147,9 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
                         } else {
                             // DRAIN the rocket fuel tanks
                             FluidStack available = linkedRocket.fuelTank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
-                            int canFill = myTank.fill(available, FluidAction.SIMULATE);
+                            int canFill = tank.fill(available, FluidAction.SIMULATE);
                             FluidStack drained = linkedRocket.fuelTank.drain(canFill, FluidAction.EXECUTE);
-                            myTank.fill(drained, FluidAction.EXECUTE);
+                            tank.fill(drained, FluidAction.EXECUTE);
                             if (canFill > 0) {
                                 setChanged();
                                 battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fueling_Station_Energy_Per_Tick);
@@ -138,15 +164,15 @@ public class EntityFuelingStation extends EntityFluidInputBlock implements ItemL
                 drainFillToggleButton.setTextAndSync("DRAIN");
 
                 // try to output fluid to nearby fluid handlers
-                if (!myTank.isEmpty()) {
+                if (!tank.isEmpty()) {
                     for (Direction i : Direction.values()) {
                         IFluidHandler neighborFluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(i), i.getOpposite());
                         if (neighborFluidHandler != null) {
                             int maxDrain = Config.INSTANCE.fueling_Station_Fuel_Per_Tick;
-                            FluidStack available = myTank.drain(maxDrain, FluidAction.SIMULATE);
+                            FluidStack available = tank.drain(maxDrain, FluidAction.SIMULATE);
                             int canFill = neighborFluidHandler.fill(available, FluidAction.SIMULATE);
                             if (canFill > 0) {
-                                neighborFluidHandler.fill(myTank.drain(canFill, FluidAction.EXECUTE), FluidAction.EXECUTE);
+                                neighborFluidHandler.fill(tank.drain(canFill, FluidAction.EXECUTE), FluidAction.EXECUTE);
                                 setChanged();
                             }
                         }

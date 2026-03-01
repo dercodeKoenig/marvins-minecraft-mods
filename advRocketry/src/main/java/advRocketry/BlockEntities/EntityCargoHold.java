@@ -32,23 +32,20 @@ public class EntityCargoHold extends BlockEntity implements ARLib.network.INetwo
             }
         };
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 0, 1, guiHandler, 50, 20));
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler)) {
-            guiHandler.modules.add(i);
-        }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler)) {
-            guiHandler.modules.add(i);
-        }
+
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler));
 
     }
 
     public void popInventory() {
-        if (level.isClientSide) {
-        } else {
+        if (!level.isClientSide) {
             for (int i = 0; i < itemStackHandler.getSlots(); i++) {
                 ItemStack stack = itemStackHandler.getStackInSlot(i);
                 Block.popResource(level,getBlockPos(),stack);
                 itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
             }
+            setChanged();
         }
     }
 

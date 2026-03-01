@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleEnergy;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import advRocketry.Config;
@@ -30,7 +31,7 @@ import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Blocks.RocketItemLoader.IS_DRAIN;
 import static advRocketry.Registry.ENTITY_ROCKET_ITEM_LOADER;
 
-public class EntityRocketItemLoader extends EntityItemInputBlock implements ItemLinker.linkable, ItemLinker.linkableToEntity {
+public class EntityRocketItemLoader extends BlockEntity implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 
     public static float maxDistance = 30;
 
@@ -38,7 +39,9 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
     public EntityRocket linkedRocket = null;
 
     public BlockEntityBattery battery;
+    public ItemStackHandler inventory;
 
+    public GuiHandlerBlockEntity guiHandler;
     public guiModuleButton drainFillToggleButton;
 
     public boolean shouldOutputSignal = false;
@@ -48,29 +51,27 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
         super(ENTITY_ROCKET_ITEM_LOADER.get(), pos, blockState);
 
         this.guiHandler = new GuiHandlerBlockEntity(this);
-        int containergroup = 0;
-        int playerinventorygroup = 1;
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0, this, 0, containergroup, playerinventorygroup, this.guiHandler, 10, 10));
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1, this, 1, containergroup, playerinventorygroup, this.guiHandler, 10, 30));
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, this, 2, containergroup, playerinventorygroup, this.guiHandler, 30, 10));
-        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3, this, 3, containergroup, playerinventorygroup, this.guiHandler, 30, 30));
-
-        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 100, playerinventorygroup, containergroup, this.guiHandler)) {
-            this.guiHandler.getModules().add(i);
-        }
-
-        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 65, 200, playerinventorygroup, containergroup, this.guiHandler)) {
-            this.guiHandler.getModules().add(i);
-        }
 
         this.inventory = new ItemStackHandler(4) {
             public void onContentsChanged(int slot) {
-                EntityRocketItemLoader.this.setChanged();
+                setChanged();
             }
         };
+        int containerGroup = 0;
+        int playerInventoryGroup = 1;
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0, inventory, 0, containerGroup, playerInventoryGroup, this.guiHandler, 10, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1, inventory, 1, containerGroup, playerInventoryGroup, this.guiHandler, 10, 30));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, inventory, 2, containerGroup, playerInventoryGroup, this.guiHandler, 30, 10));
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3, inventory, 3, containerGroup, playerInventoryGroup, this.guiHandler, 30, 30));
+
+
+        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 100, playerInventoryGroup, containerGroup, this.guiHandler));
+
+        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 65, 200, playerInventoryGroup, containerGroup, this.guiHandler));
+
+
 
         battery = new BlockEntityBattery(this, 10000);
-
         guiHandler.modules.add(new guiModuleEnergy(11000, battery, guiHandler, 155, 7));
 
         drainFillToggleButton = new guiModuleButton(11001, "text", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
@@ -90,13 +91,8 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
     }
 
     @Override
-    public void signalOpenGui(ServerPlayer player) {
-        this.guiHandler.signalOpenGui(player, 176, 150, true);
-    }
-
-    @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
-        super.readServer(compoundTag, serverPlayer);
+        guiHandler.readServer(compoundTag);
         if (compoundTag.contains("toggleDrainFill")) {
             level.setBlock(getBlockPos(), getBlockState().setValue(IS_DRAIN, !getBlockState().getValue(IS_DRAIN)), 3);
             setChanged();
@@ -105,7 +101,7 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        super.readClient(compoundTag);
+        guiHandler.readClient(compoundTag);
     }
 
     @Override
@@ -113,6 +109,8 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
         super.saveAdditional(tag, registries);
         if (linkedAssemblerPos != null) tag.put("linkedAssemblerPos", NbtUtils.writeBlockPos(linkedAssemblerPos));
         tag.putInt("energy", battery.getEnergyStored());
+        CompoundTag inv = this.inventory.serializeNBT(registries);
+        tag.put("inventory", inv);
     }
 
     @Override
@@ -121,6 +119,20 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
         if (tag.contains("linkedAssemblerPos"))
             linkedAssemblerPos = NbtUtils.readBlockPos(tag, "linkedAssemblerPos").get();
         battery.setEnergy(tag.getInt("energy"));
+        this.inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+    }
+
+    public void popInventory() {
+        if (!this.level.isClientSide) {
+            for(int i = 0; i < this.inventory.getSlots(); ++i) {
+                ItemStack stack = this.inventory.getStackInSlot(i).copy();
+                Block.popResource(this.level, this.getBlockPos(), stack);
+                this.inventory.setStackInSlot(i, ItemStack.EMPTY);
+            }
+
+            this.setChanged();
+        }
+
     }
 
     /// tries to load 1 item into the rocket
@@ -192,8 +204,10 @@ public class EntityRocketItemLoader extends EntityItemInputBlock implements Item
     }
 
     public void tick() {
-        super.tick();
+
         if (!level.isClientSide) {
+            this.guiHandler.serverTick();
+
             boolean isDrain = getBlockState().getValue(IS_DRAIN);
 
             if (linkedAssemblerPos != null) {

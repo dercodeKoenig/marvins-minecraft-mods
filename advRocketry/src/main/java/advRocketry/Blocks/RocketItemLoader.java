@@ -1,10 +1,9 @@
 package advRocketry.Blocks;
 
-import ARLib.blocks.BlockItemInputBlock;
-import ARLib.multiblockCore.BlockMultiblockMaster;
-import advRocketry.BlockEntities.EntityFuelingStation;
 import advRocketry.BlockEntities.EntityRocketItemLoader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -14,19 +13,18 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import static advRocketry.Registry.ENTITY_ROCKET_ITEM_LOADER;
 
-public class RocketItemLoader extends BlockItemInputBlock implements EntityBlock {
+public class RocketItemLoader extends Block implements EntityBlock {
 
     public static BooleanProperty IS_DRAIN = BooleanProperty.create("is_drain");
 
     public RocketItemLoader() {
         super(Properties.of());
-        BlockState state = getStateDefinition().any()
-                .setValue(IS_DRAIN, false)
-                .setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED, false);
+        BlockState state = getStateDefinition().any().setValue(IS_DRAIN, false);
         registerDefaultState(state);
     }
 
@@ -55,6 +53,29 @@ public class RocketItemLoader extends BlockItemInputBlock implements EntityBlock
             }
         }
         return 0;
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide){
+            if (level.getBlockEntity(pos) instanceof EntityRocketItemLoader itemLoader) {
+                itemLoader.guiHandler.openGui(176, 126, true);
+            }
+        }
+
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!level.isClientSide) {
+            if (level.getBlockEntity(pos) instanceof EntityRocketItemLoader itemLoader) {
+                if (!newState.getBlock().equals(state.getBlock())) {
+                    itemLoader.popInventory();
+                }
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

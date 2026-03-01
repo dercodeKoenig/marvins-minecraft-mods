@@ -78,8 +78,10 @@ public class EntityFluidInputBlock extends BlockEntity implements INetworkTagRec
     }
 
     public void popItems() {
-        simpleFluidContainer.popItems(level, getBlockPos());
-        super.setRemoved();
+        if(!level.isClientSide) {
+            simpleFluidContainer.popItems(level, getBlockPos());
+            setChanged();
+        }
     }
 
     @Override
