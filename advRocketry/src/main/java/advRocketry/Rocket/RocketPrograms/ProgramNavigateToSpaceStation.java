@@ -155,7 +155,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
 
         Vec3 toTarget = target.getCenter().subtract(newRocket.position());
-        newRocket.setHeadingAndFrontDirect(toTarget, toTarget.cross(new Vec3(0, 1, 0).cross(toTarget)));
+        newRocket.controller.setHeadingAndFrontDirect(toTarget, toTarget.cross(new Vec3(0, 1, 0).cross(toTarget)));
 
         // if station is first visited, set position and parent dimension
         SpaceStationDimension spaceStationDimension = (SpaceStationDimension) DimensionManager.INSTANCE_SERVER.get(targetDimensionId);
@@ -179,11 +179,11 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
 
     void runWithoutDockingStation(EntityRocket rocket) {
 
-        rocket.enableMainEngines(true, false);
-        rocket.enableSecondaryEngines(true, false);
-        rocket.setRotationRateMultiplier(1, false);
-        rocket.setDefaultTargetHeading(rocket.getHeading(), false);
-        rocket.setTargetFront(new Vec3(0,1,0), false);
+        rocket.controller.enableMainEngines(true, false);
+        rocket.controller.enableSecondaryEngines(true, false);
+        rocket.controller.setRotationRateMultiplier(1, false);
+        rocket.controller.setDefaultTargetHeading(rocket.controller.getHeading(), false);
+        rocket.controller.setTargetFront(new Vec3(0,1,0), false);
 
         Vec3 toTarget = target.getCenter().subtract(rocket.position());
 
@@ -193,7 +193,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         }
         Vec3 targetVec3 = rocket.position().add(toTarget);
 
-        rocket.setTargetPosition(targetVec3, false);
+        rocket.controller.setTargetPosition(targetVec3, false);
 
         // check if stopped (at target or collision maybe)
         if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 50) {

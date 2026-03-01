@@ -36,12 +36,12 @@ public class NavigateToSpaceTravelDimension {
             }
         } else {
             // normal logic; just fly high up!
-            rocket.enableMainEngines(true, false);
-            rocket.enableSecondaryEngines(false, false);
-            rocket.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
-            rocket.setRotationRateMultiplier(1,false);
+            rocket.controller.enableMainEngines(true, false);
+            rocket.controller.enableSecondaryEngines(false, false);
+            rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
+            rocket.controller.setRotationRateMultiplier(1,false);
 
-            rocket.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
+            rocket.controller.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
 
             if (rocket.position().y > Config.INSTANCE.planet_Sky_Height) {
                 if (rocket.level() instanceof ServerLevel serverLevel) {
@@ -72,7 +72,7 @@ public class NavigateToSpaceTravelDimension {
                     }
                 } else {
                     // client side, while waiting on dimension transition do not stop and rotate the rocket midflight, just keep going and wait for teleport to kick in
-                    rocket.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
+                    rocket.controller.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
                 }
             }
         }

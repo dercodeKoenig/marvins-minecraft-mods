@@ -49,12 +49,12 @@ public class NavigateInSpaceToTargetDimension {
             return true;
         }
 
-        // all movement is virtual
-        rocket.enableMainEngines(true, false);
-        rocket.enableSecondaryEngines(false, false);
-        rocket.setTargetPosition(null, false);
+        // all movement is virtual, but enable main engines for particles
+        rocket.controller.enableMainEngines(true, false);
+        rocket.controller.enableSecondaryEngines(false, false);
+        rocket.controller.setTargetPosition(null, false);
         rocket.setDeltaMovement(0, 0, 0);
-        rocket.setHeadingAndFrontDirect(new Vec3(0, 0, -1), new Vec3(0, 1, 0)); // default heading for space travel, rocket travel dim expects the rocket to head north for render
+        rocket.controller.setHeadingAndFrontDirect(new Vec3(0, 0, -1), new Vec3(0, 1, 0)); // default heading for space travel, rocket travel dim expects the rocket to head north for render
 
 
         /// So this is a bit hacky because we want to be able to travel to far away planets like venus in reasonable time

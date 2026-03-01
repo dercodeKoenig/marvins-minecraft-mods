@@ -30,11 +30,11 @@ public class StationDockingProgram {
                     ).scale(10+rocket.size.getY())
             );
 
-            rocket.enableMainEngines(true, false);
-            rocket.enableSecondaryEngines(true, false);
-            rocket.setRotationRateMultiplier(1, false);
-            rocket.setDefaultTargetHeading(rocket.getHeading(), false);
-            rocket.setTargetFront(new Vec3(0,1,0), false);
+            rocket.controller.enableMainEngines(true, false);
+            rocket.controller.enableSecondaryEngines(true, false);
+            rocket.controller.setRotationRateMultiplier(1, false);
+            rocket.controller.setDefaultTargetHeading(rocket.controller.getHeading(), false);
+            rocket.controller.setTargetFront(new Vec3(0,1,0), false);
 
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
 
@@ -43,7 +43,7 @@ public class StationDockingProgram {
                 toTarget = toTarget.normalize().scale(maxD);
             }
             Vec3 targetVec3 = rocket.position().add(toTarget);
-            rocket.setTargetPosition(targetVec3, false);
+            rocket.controller.setTargetPosition(targetVec3, false);
 
 
             // check if stopped (at target or collision maybe)
@@ -56,18 +56,18 @@ public class StationDockingProgram {
 
         void moveToDockingStation(EntityRocket rocket) {
 
-            rocket.enableMainEngines(false, false);
-            rocket.enableSecondaryEngines(true, false);
-            rocket.setRotationRateMultiplier(0.2, false);
-            rocket.setDefaultTargetHeading(new Vec3(0,1,0), false);
-            rocket.setTargetFront(new Vec3(1,0,0), false); // TODO: set rocket assembler heading or up
+            rocket.controller.enableMainEngines(false, false);
+            rocket.controller.enableSecondaryEngines(true, false);
+            rocket.controller.setRotationRateMultiplier(0.2, false);
+            rocket.controller.setDefaultTargetHeading(new Vec3(0,1,0), false);
+            rocket.controller.setTargetFront(new Vec3(1,0,0), false); // TODO: set rocket assembler heading or up
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
 
             Vec3 scaledToTarget = new Vec3(toTarget.x, toTarget.y / 2, toTarget.z);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);
 
-            rocket.setTargetPosition(targetVec3, false);
+            rocket.controller.setTargetPosition(targetVec3, false);
 
             if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 0.1) {
                 rocket.setDeltaMovement(0,0,0);

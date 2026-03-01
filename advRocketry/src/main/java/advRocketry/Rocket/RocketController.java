@@ -1,37 +1,195 @@
 package advRocketry.Rocket;
 
+import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Particles.RocketParticle;
+import advRocketry.utils.Utils;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.joml.Vector3f;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class RocketController {
 
     // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
     final double maxRotationRate = 0.05;
+    // the parent rocket
     EntityRocket rocket;
-    Vec3 targetHeading = new Vec3(0, 1, 0);
     double currentThrust;
-    Vec3 currentSecondaryThrust;
     boolean isReverseThrust = false; // on space station to allow for breaking
+    Vec3 currentSecondaryThrust;
+
+    // the target for the rocket to move towards
+    Vec3 targetPosition = null;
+    // enable in space for breaking and fine steering, can thrust in any direction without need for rotation
+    boolean canUseSecondaryEngines = true;
+    // main engines allowed?
+    boolean canUseMainEngines = false;
+    int mainEnginesBootup = 0;
+
+    // modifier on how fast the rocket can change heading
+    double rotationRateMultiplier = 1;
+    // TODO: lazy heading / front for more smooth transition
+    // the heading that the controller calculates for correct thrust or set to default heading
+    Vec3 targetHeading = new Vec3(0, 1, 0);
+    // the current heading
+    Vec3 heading = new Vec3(0, 1, 0);
+    // the default heading when it does not need to rotate for main engine use
+    Vec3 defaultTargetHeading = new Vec3(0, 1, 0);
+    // the target front, it should rotate around heading to get closer to it
+    Vec3 targetFront = new Vec3(0, 0, 1);
+    Vec3 front = new Vec3(0, 0, 1);
 
     public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
     }
 
+    Level level() {
+        return rocket.level();
+    }
+
+    void sendToClients(CompoundTag tag) {
+        rocket.sendToClients(tag);
+    }
+
+
     public double getCurrentThrust() {
         return currentThrust;
     }
+
+    public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front) {
+        this.defaultTargetHeading = heading;
+        this.heading = heading;
+        this.targetFront = front;
+        this.front = front;
+    }
+
+    public void setRotationRateMultiplier(double multiplier, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && this.rotationRateMultiplier != multiplier) {
+            CompoundTag tag = new CompoundTag();
+            tag.putDouble("rotationRateMultiplier", multiplier);
+            sendToClients(tag);
+        }
+        this.rotationRateMultiplier = multiplier;
+    }
+
+    public double getRotationRateMultiplier() {
+        return rotationRateMultiplier;
+    }
+
+    public void enableMainEngines(boolean canUseMainEngines, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && this.canUseMainEngines != canUseMainEngines) {
+            CompoundTag tag = new CompoundTag();
+            tag.putBoolean("canUseMainEngines", canUseMainEngines);
+            tag.putInt("mainEnginesBootup", mainEnginesBootup);
+            sendToClients(tag);
+        }
+        this.canUseMainEngines = canUseMainEngines;
+    }
+
+    public boolean canUseMainEngines() {
+        return canUseMainEngines;
+    }
+
+    public void setMainEnginesBootup(int bootup, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && this.mainEnginesBootup != bootup) {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("mainEnginesBootup", bootup);
+            sendToClients(tag);
+        }
+        this.mainEnginesBootup = bootup;
+    }
+
+    public int getMainEnginesBootUp() {
+        return this.mainEnginesBootup;
+    }
+
+    public void enableSecondaryEngines(boolean canUseSecondaryEngines, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && this.canUseSecondaryEngines != canUseSecondaryEngines) {
+            CompoundTag tag = new CompoundTag();
+            tag.putBoolean("secondaryEngines", canUseSecondaryEngines);
+            sendToClients(tag);
+        }
+        this.canUseSecondaryEngines = canUseSecondaryEngines;
+    }
+
+    public boolean canUseSecondaryEngines() {
+        return canUseSecondaryEngines;
+    }
+
+    public void setDefaultTargetHeading(Vec3 target, boolean syncToClient) {
+        target = target.normalize();
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, defaultTargetHeading)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("defaultTargetHeading", Utils.serializeVec3(target));
+            sendToClients(tag);
+        }
+        defaultTargetHeading = target;
+    }
+
+    public Vec3 getDefaultTargetHeading() {
+        return defaultTargetHeading;
+    }
+
+    public Vec3 getHeading() {
+        return heading;
+    }
+
+    public void setTargetFront(Vec3 target, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, targetFront)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("targetFront", Utils.serializeVec3(target));
+            sendToClients(tag);
+        }
+        targetFront = target;
+    }
+
+    public Vec3 getTargetFront() {
+        return targetFront;
+    }
+
+    public Vec3 getFront() {
+        return front;
+    }
+
+    public void setTargetPosition(@Nullable Vec3 target, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, targetPosition)) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("targetPosition", Utils.serializeVec3(target));
+            sendToClients(tag);
+        }
+        targetPosition = target;
+    }
+
+    public Vec3 getTargetPosition() {
+        return targetPosition;
+    }
+
 
     public void tick() {
         tickController();
         tickRotation();
         makeThrustParticles();
+
+
+        // tick engine bootup / shutdown
+        if (canUseMainEngines) {
+            if (mainEnginesBootup < Config.INSTANCE.rocket_Engine_Boot_Ticks) {
+                mainEnginesBootup++;
+            }
+        } else {
+            if (mainEnginesBootup > 0) {
+                mainEnginesBootup--;
+            }
+        }
     }
 
     public void tickRotation() {
@@ -39,34 +197,34 @@ public class RocketController {
         // Slowly interpolate the rocket's current 'heading' vector towards the 'targetHeading'.
         // This simulates the actual rotational speed limit of the rocket.
 
-        double rotationRate = maxRotationRate * rocket.getRotationRateMultiplier();
+        double rotationRateHeading = maxRotationRate * getRotationRateMultiplier();
         Vec3 rotationCorrection;
         // Note: rotationCorrection points to the target heading and not orthogonal to heading
         // This is why we can not use normalize().scale(rotationRate)
-        if (targetHeading.dot(rocket.heading) > -0.99)
-            rotationCorrection = targetHeading.subtract(rocket.heading).scale(rotationRate);
+        if (targetHeading.dot(heading) > -0.99)
+            rotationCorrection = targetHeading.subtract(heading).scale(rotationRateHeading);
         else
-            rotationCorrection = rocket.front.subtract(rocket.heading).normalize().scale(rotationRate);
+            rotationCorrection = getFront().subtract(heading).normalize().scale(rotationRateHeading);
 
-        rocket.heading = rocket.heading.add(rotationCorrection).normalize();
+        heading = heading.add(rotationCorrection).normalize();
 
         // now try to get the front align more toward the target front
         // the front is not always valid because of the heading
-        Vec3 targetFrontValid = rocket.heading.cross(rocket.getTargetFront().cross(rocket.heading)).normalize();
-        if (targetFrontValid.dot(rocket.front) < -0.9) // get some movement if it is directly on the other side
-            targetFrontValid = rocket.heading.cross(rocket.front);
-        rotationCorrection = targetFrontValid.subtract(rocket.front).scale(maxRotationRate * 0.5f);
-        Vec3 newFront = rocket.front.add(rotationCorrection).normalize();
+        Vec3 targetFrontValid = heading.cross(getTargetFront().cross(heading)).normalize();
+        if (targetFrontValid.dot(front) < -0.99) // get some movement if it is directly on the other side
+            targetFrontValid = heading.cross(front);
+        rotationCorrection = targetFrontValid.subtract(front).scale(maxRotationRate * 0.5f);
+        Vec3 newFront = front.add(rotationCorrection).normalize();
         // make sure the front is 100% always orthogonal, just for extra security
-        Vec3 right = rocket.heading.cross(newFront).normalize();
-        rocket.front = right.cross(rocket.heading).normalize();
+        Vec3 right = heading.cross(newFront).normalize();
+        front = right.cross(heading).normalize();
     }
 
     // pd controller mostly written by gemini
     public void tickController() {
 
-        if (rocket.getTargetPosition() == null) {
-            targetHeading = rocket.getDefaultTargetHeading();
+        if (getTargetPosition() == null) {
+            targetHeading = getDefaultTargetHeading();
             currentThrust = 0;
             currentSecondaryThrust = new Vec3(0, 0, 0);
             return;
@@ -79,9 +237,9 @@ public class RocketController {
         final double K_P = 0.001;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
         double K_D = Math.sqrt(K_P) * 2;
-        if(rocketDim instanceof SpaceStationDimension){
+        if (rocketDim instanceof SpaceStationDimension) {
             // more breaking for more stable flight
-            K_D*=2;
+            K_D *= 2;
         }
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
@@ -91,7 +249,7 @@ public class RocketController {
         // --- 1. Calculate Required Acceleration (The PD Controller) ---
 
         // B. Position Error (p_target - p)
-        Vec3 positionError = rocket.getTargetPosition().subtract(rocket.getPosition(0));
+        Vec3 positionError = getTargetPosition().subtract(rocket.getPosition(0));
 
         // C. Damping (Velocity Error - using current velocity for simplicity)
         Vec3 currentVelocity = rocket.getDeltaMovement();
@@ -108,7 +266,7 @@ public class RocketController {
 
 
         // --- 2. Calculate Thrust & Heading ---
-        if (rocket.canUseSecondaryEngines()) {
+        if (canUseSecondaryEngines()) {
             // use secondary thrusters for fine control
             Vec3 secondaryThrustersForce = desiredAcceleration.scale(rocket.getMass());
             if (secondaryThrustersForce.length() > SECONDARY_THRUSTERS_FORCE) {
@@ -138,7 +296,7 @@ public class RocketController {
             desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
         }
 
-        if (desiredAcceleration.length() > 0.0001 && rocket.canUseMainEngines()) {
+        if (desiredAcceleration.length() > 0.0001 && canUseMainEngines()) {
             // 1. Max Acceleration the engine can *possibly* deliver. ( including scale for bootup time )
             final double MAX_PHYSICAL_ACCEL = rocket.getThrustMax() / rocket.getMass() * getBootTimeThrustMultiplier(rocket);
             // 2. The absolute maximum acceleration we are allowed to use this frame.
@@ -168,7 +326,7 @@ public class RocketController {
                 }
             }
             // -----------------------------------------------------------------
-            if (isSpaceDim && rocket.heading.dot(desiredAcceleration.normalize()) < -0.8) {
+            if (isSpaceDim && getHeading().dot(desiredAcceleration.normalize()) < -0.8) {
                 // use reverse thrust
                 targetHeading = desiredAcceleration.normalize().scale(-1);
                 isReverseThrust = true;
@@ -182,16 +340,16 @@ public class RocketController {
             double accelerationMagnitude = desiredAcceleration.length();
 
             // This ensures we only thrust if we point towards the target direction.
-            double dotMultiplier = Math.max(0, rocket.heading.dot(targetHeading) - 0.9) * 10;
+            double dotMultiplier = Math.max(0, getHeading().dot(targetHeading) - 0.9) * 10;
             accelerationMagnitude = accelerationMagnitude * dotMultiplier;
 
             // The Failsafe: Override the magnitude if we need to fight gravity while rotating
             if (isPlanet && rocket.position().y < 2000) {
                 // Only apply the failsafe if we are pointing UP.
                 // If we are pointing down or flat, thrusting won't help us fight gravity!
-                if (rocket.heading.y > 0) {
+                if (getHeading().y > 0) {
                     // Calculate the total magnitude needed along our CURRENT heading to get 'requiredY' lift
-                    double magnitudeForHover = requiredY / rocket.heading.y;
+                    double magnitudeForHover = requiredY / getHeading().y;
 
                     // Use the hover magnitude if it's higher than our dot-scaled magnitude
                     accelerationMagnitude = Math.max(accelerationMagnitude, magnitudeForHover);
@@ -207,7 +365,7 @@ public class RocketController {
 
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
-            Vec3 thrustVector = rocket.heading.scale(accelerationMagnitude);
+            Vec3 thrustVector = getHeading().scale(accelerationMagnitude);
             if (isReverseThrust)
                 thrustVector = thrustVector.scale(-1);
 
@@ -227,24 +385,24 @@ public class RocketController {
             }
 
         } else {
-            targetHeading = rocket.getDefaultTargetHeading();
+            targetHeading = getDefaultTargetHeading();
             isReverseThrust = false;
         }
     }
 
 
     public float getBootTimeThrustMultiplier(EntityRocket rocket) {
-        int halfBootTime = EntityRocket.ENGINE_BOOT_TIME / 2;
-        if (rocket.getMainEnginesBootUp() < halfBootTime) return 0;
-        return (float) Math.pow((float) (rocket.getMainEnginesBootUp() - halfBootTime) / halfBootTime, 2);
+        int halfBootTime = Config.INSTANCE.rocket_Engine_Boot_Ticks / 2;
+        if (getMainEnginesBootUp() < halfBootTime) return 0;
+        return (float) Math.pow((float) (getMainEnginesBootUp() - halfBootTime) / halfBootTime, 2);
     }
 
 
     public void makeThrustParticles() {
 
         if (rocket.level().isClientSide) {
-            if (rocket.getMainEnginesBootUp() != 0) {
-                float relativeBootTimeLin = (float) rocket.getMainEnginesBootUp() / EntityRocket.ENGINE_BOOT_TIME;
+            if (getMainEnginesBootUp() != 0) {
+                float relativeBootTimeLin = (float) getMainEnginesBootUp() / Config.INSTANCE.rocket_Engine_Boot_Ticks;
                 float bootupParticleProb = (float) Math.sqrt(relativeBootTimeLin);
                 int maxParticlesPerTick = 5;
                 int maxParticlePerEngine = 2;
@@ -292,9 +450,9 @@ public class RocketController {
                                     worldPos.x + (Math.random() - 0.5) * 0.5,
                                     worldPos.y + (Math.random() - 0.5) * 0.5,
                                     worldPos.z + (Math.random() - 0.5) * 0.5,
-                                    rocket.heading.x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    rocket.heading.y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    rocket.heading.z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    getHeading().x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    getHeading().y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
                                     new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
                                     0.2f,
                                     sizeMultiplier * 2,
@@ -311,9 +469,9 @@ public class RocketController {
                                     worldPos.x + (Math.random() - 0.5) * 0.5,
                                     worldPos.y + (Math.random() - 0.5) * 0.5,
                                     worldPos.z + (Math.random() - 0.5) * 0.5,
-                                    rocket.heading.x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    rocket.heading.y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    rocket.heading.z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    getHeading().x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    getHeading().y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                    getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
                                     new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
                                     // we not use additive blending in fabulous because it doesnt work so make it more bright
                                     (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,

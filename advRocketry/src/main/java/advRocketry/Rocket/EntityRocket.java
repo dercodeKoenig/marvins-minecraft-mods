@@ -62,10 +62,6 @@ import java.util.*;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
 
-
-    // static variables
-    public static int ENGINE_BOOT_TIME = 100;
-
     // rocket structure
     public Map<BlockPos, BlockState> blocks;
     public Map<BlockPos, BlockEntity> blockEntities;
@@ -82,20 +78,10 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // rocket control
     private BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
-    private Vec3 targetPosition = null; // the target for the rocket to move towards
-    private boolean canUseSecondaryEngines = true; // enable in space for breaking and fine steering,
-    private boolean canUseMainEngines = false;
-    private int mainEnginesBootup = 0;
-    private double rotationRateMultiplier = 1;
-    // TODO: lazy heading / front for more smooth transition
-    Vec3 heading = new Vec3(0, 1, 0);
-    private Vec3 defaultTargetHeading = new Vec3(0, 1, 0); // the default heading when it does not need to rotate for main engine use
-    Vec3 front = new Vec3(0, 0, 1);
-    private Vec3 targetFront = new Vec3(0, 0, 1); // the target front, it should rotate around heading to get closer to it
+    public BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
     Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
     private RocketProgram currentProgram = null;
     public RocketController controller;
-    public BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
 
     // smooth position interpolation when server sends position update
     private double lerpX, lerpY, lerpZ;
@@ -105,7 +91,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // render variables
     public Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
-    public int lastLight = 0;
+    public int lastLight = -1;
     public boolean requiresMeshUpdate = false;
 
     // for space travel
@@ -142,8 +128,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
         rocket.blockEntities = blockEntities;
         rocket.blocks = blocks;
-        rocket.front = front;
-        rocket.targetFront = front;
+        rocket.controller.setHeadingAndFrontDirect(new Vec3(0,1,0), front);
         rocket.initialFront = front;
         rocket.size = size;
         int fuelCapacity = 0;
@@ -230,7 +215,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     protected AABB makeBoundingBox() {
-        Vec3 heading = this.getHeading();
+        Vec3 heading = controller.getHeading();
         if (heading == null || size == null) return super.makeBoundingBox();
 
         double w = Math.max(size.getX(), size.getZ());
@@ -370,13 +355,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / get and set methods ////
 
-    public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front) {
-        this.defaultTargetHeading = heading;
-        this.heading = heading;
-        this.front = front;
-        this.targetFront = front;
-    }
-
     public void setPassengersPositions(Map<UUID, BlockPos> passengers) {
         this.passengers = passengers;
         CompoundTag tag = new CompoundTag();
@@ -386,57 +364,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public Map<UUID, BlockPos> getPassengersPositions() {
         return passengers;
-    }
-
-    public void setRotationRateMultiplier(double multiplier, boolean syncToClient){
-        if (!level().isClientSide && syncToClient && this.rotationRateMultiplier != multiplier) {
-            CompoundTag tag = new CompoundTag();
-            tag.putDouble("rotationRateMultiplier", multiplier);
-            sendToClients(tag);
-        }
-        this.rotationRateMultiplier = multiplier;
-    }
-
-    public double getRotationRateMultiplier(){return rotationRateMultiplier;}
-
-    public void enableMainEngines(boolean canUseMainEngines, boolean syncToClient) {
-        if (!level().isClientSide && syncToClient && this.canUseMainEngines != canUseMainEngines) {
-            CompoundTag tag = new CompoundTag();
-            tag.putBoolean("canUseMainEngines", canUseMainEngines);
-            tag.putInt("mainEnginesBootup", mainEnginesBootup);
-            sendToClients(tag);
-        }
-        this.canUseMainEngines = canUseMainEngines;
-    }
-
-    public boolean canUseMainEngines() {
-        return canUseMainEngines;
-    }
-
-    public void setMainEnginesBootup(int bootup, boolean syncToClient) {
-        if (!level().isClientSide && syncToClient && this.mainEnginesBootup != bootup) {
-            CompoundTag tag = new CompoundTag();
-            tag.putInt("mainEnginesBootup", bootup);
-            sendToClients(tag);
-        }
-        this.mainEnginesBootup = bootup;
-    }
-
-    public int getMainEnginesBootUp() {
-        return this.mainEnginesBootup;
-    }
-
-    public void enableSecondaryEngines(boolean canUseSecondaryEngines, boolean syncToClient) {
-        if (!level().isClientSide && syncToClient && this.canUseSecondaryEngines != canUseSecondaryEngines) {
-            CompoundTag tag = new CompoundTag();
-            tag.putBoolean("secondaryEngines", canUseSecondaryEngines);
-            sendToClients(tag);
-        }
-        this.canUseSecondaryEngines = canUseSecondaryEngines;
-    }
-
-    public boolean canUseSecondaryEngines() {
-        return canUseSecondaryEngines;
     }
 
     public void setLastLaunchPosition(BlockPos target, boolean syncToClient) {
@@ -450,55 +377,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public BlockPos getLastLaunchPosition() {
         return lastLaunchPosition;
-    }
-
-    public void setDefaultTargetHeading(Vec3 target, boolean syncToClient) {
-        target = target.normalize();
-        if (!level().isClientSide && syncToClient && !Objects.equals(target, defaultTargetHeading)) {
-            CompoundTag tag = new CompoundTag();
-            tag.put("defaultTargetHeading", Utils.serializeVec3(target));
-            sendToClients(tag);
-        }
-        defaultTargetHeading = target;
-    }
-
-    public Vec3 getDefaultTargetHeading() {
-        return defaultTargetHeading;
-    }
-
-    public Vec3 getHeading() {
-        return heading;
-    }
-
-    public void setTargetFront(Vec3 target, boolean syncToClient) {
-        if (!level().isClientSide && syncToClient && !Objects.equals(target, targetFront)) {
-            CompoundTag tag = new CompoundTag();
-            tag.put("targetFront", Utils.serializeVec3(target));
-            sendToClients(tag);
-        }
-        targetFront = target;
-    }
-
-    public Vec3 getTargetFront() {
-        return targetFront;
-    }
-
-    public Vec3 getFront() {
-        return front;
-    }
-
-
-    public void setTargetPosition(@Nullable Vec3 target, boolean syncToClient) {
-        if (!level().isClientSide && syncToClient && !Objects.equals(target, targetPosition)) {
-            CompoundTag tag = new CompoundTag();
-            tag.put("targetPosition", Utils.serializeVec3(target));
-            sendToClients(tag);
-        }
-        targetPosition = target;
-    }
-
-    public Vec3 getTargetPosition() {
-        return targetPosition;
     }
 
     public void setProgramAndSync(RocketProgram program) {
@@ -571,28 +449,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             --this.lerpDeltaMovementSteps;
         }
 
-        // tick engine bootup / shutdown
-        if (canUseMainEngines) {
-            if (mainEnginesBootup < ENGINE_BOOT_TIME) {
-                mainEnginesBootup++;
-            }
-        } else {
-            if (mainEnginesBootup > 0) {
-                mainEnginesBootup--;
-            }
-        }
-
         // tick rocket controller
         controller.tick();
 
         // run program or shutdown
         if (currentProgram != null) {
             currentProgram.run(this);
+            // remove docking position because we no longer docked when program is started
             dockingStationPos = null;
         }else {
-            setTargetPosition(null, false);
-            enableSecondaryEngines(false, false);
-            enableMainEngines(false, false);
+           controller. setTargetPosition(null, false);
+            controller.enableSecondaryEngines(false, false);
+            controller.enableMainEngines(false, false);
         }
 
         // handle movement logic
@@ -694,7 +562,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos, Vec3 velocity) {
 
-        setTargetPosition(null, false); // position is probably invalid because dimension change
+       controller.setTargetPosition(null, false); // position is probably invalid because dimension change
 
         // the dimension change is like this:
         // 1: unmount entities, but store where they were seated

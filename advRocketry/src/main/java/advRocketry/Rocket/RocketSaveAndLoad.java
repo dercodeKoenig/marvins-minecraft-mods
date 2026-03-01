@@ -72,14 +72,14 @@ public class RocketSaveAndLoad {
             rocket.universeHeading =  Utils.deSerializeVec3(compoundTag.getCompound("universeHeading"));
 
         if (compoundTag.contains("canUseMainEngines"))
-            rocket.enableMainEngines(compoundTag.getBoolean("canUseMainEngines"),true);
+            rocket.controller.enableMainEngines(compoundTag.getBoolean("canUseMainEngines"),true);
         if (compoundTag.contains("mainEnginesBootup"))
-            rocket.setMainEnginesBootup(compoundTag.getInt("mainEnginesBootup"), true);
+            rocket.controller.setMainEnginesBootup(compoundTag.getInt("mainEnginesBootup"), true);
         if (compoundTag.contains("secondaryEngines"))
-            rocket.enableSecondaryEngines(compoundTag.getBoolean("secondaryEngines"), true);
+            rocket.controller.enableSecondaryEngines(compoundTag.getBoolean("secondaryEngines"), true);
 
         if(compoundTag.contains("rotationRateMultiplier"))
-            rocket.setRotationRateMultiplier(compoundTag.getDouble("rotationRateMultiplier"),true);
+            rocket.controller.setRotationRateMultiplier(compoundTag.getDouble("rotationRateMultiplier"),true);
 
         if (compoundTag.contains("currentProgram")) {
             rocket.setProgramAndSync(RocketProgram.createFromNbt(compoundTag.getCompound("currentProgram")));
@@ -96,16 +96,16 @@ public class RocketSaveAndLoad {
         }
 
         if(compoundTag.contains("targetPosition"))
-            rocket.setTargetPosition(Utils.deSerializeVec3(compoundTag.getCompound("targetPosition")), false);
+            rocket.controller.setTargetPosition(Utils.deSerializeVec3(compoundTag.getCompound("targetPosition")), false);
 
         if (compoundTag.contains("heading"))
-            rocket.heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
+            rocket.controller.heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
         if (compoundTag.contains("defaultTargetHeading"))
-            rocket.setDefaultTargetHeading(Utils.deSerializeVec3(compoundTag.getCompound("defaultTargetHeading")), true);
+            rocket.controller.setDefaultTargetHeading(Utils.deSerializeVec3(compoundTag.getCompound("defaultTargetHeading")), true);
         if (compoundTag.contains("front"))
-            rocket.front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
+            rocket.controller.front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
         if (compoundTag.contains("targetFront"))
-            rocket.setTargetFront(Utils.deSerializeVec3(compoundTag.getCompound("targetFront")), true);
+            rocket.controller.setTargetFront(Utils.deSerializeVec3(compoundTag.getCompound("targetFront")), true);
         if (compoundTag.contains("initialFront"))
             rocket.initialFront = Utils.deSerializeVec3(compoundTag.getCompound("initialFront"));
 
@@ -159,11 +159,11 @@ public class RocketSaveAndLoad {
         compoundTag.put("universeFront", Utils.serializeVec3(rocket.universeFront));
         compoundTag.put("universeHeading", Utils.serializeVec3(rocket.universeHeading));
 
-        compoundTag.putBoolean("canUseMainEngines", rocket.canUseMainEngines());
-        compoundTag.putInt("mainEnginesBootup", rocket.getMainEnginesBootUp());
-        compoundTag.putBoolean("secondaryEngines", rocket.canUseSecondaryEngines());
+        compoundTag.putBoolean("canUseMainEngines", rocket.controller.canUseMainEngines());
+        compoundTag.putInt("mainEnginesBootup", rocket.controller.getMainEnginesBootUp());
+        compoundTag.putBoolean("secondaryEngines", rocket.controller.canUseSecondaryEngines());
 
-        compoundTag.putDouble("rotationRateMultiplier", rocket.getRotationRateMultiplier());
+        compoundTag.putDouble("rotationRateMultiplier", rocket.controller.getRotationRateMultiplier());
 
         compoundTag.put("currentProgram", RocketProgram.saveToNbt(rocket.getCurrentProgram()));
 
@@ -171,12 +171,12 @@ public class RocketSaveAndLoad {
 
         compoundTag.put("size", Utils.serializeVec3i(rocket.size));
 
-        compoundTag.put("targetPosition", Utils.serializeVec3(rocket.getTargetPosition()));
+        compoundTag.put("targetPosition", Utils.serializeVec3(rocket.controller.getTargetPosition()));
 
-        compoundTag.put("heading", Utils.serializeVec3(rocket.heading));
-        compoundTag.put("defaultTargetHeading", Utils.serializeVec3(rocket.getDefaultTargetHeading()));
-        compoundTag.put("front", Utils.serializeVec3(rocket.front));
-        compoundTag.put("targetFront", Utils.serializeVec3(rocket.getTargetFront()));
+        compoundTag.put("heading", Utils.serializeVec3(rocket.controller.heading));
+        compoundTag.put("defaultTargetHeading", Utils.serializeVec3(rocket.controller.getDefaultTargetHeading()));
+        compoundTag.put("front", Utils.serializeVec3(rocket.controller.front));
+        compoundTag.put("targetFront", Utils.serializeVec3(rocket.controller.getTargetFront()));
         compoundTag.put("initialFront", Utils.serializeVec3(rocket.initialFront));
 
         compoundTag.putInt("fuelCapacity", rocket.fuelTank.getCapacity());

@@ -53,9 +53,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         if (rocket.level().dimension().location().equals(targetDimensionId)) {
             // we are at the correct dimension
 
-            rocket.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
-            rocket.enableMainEngines(true, false);
-            rocket.setRotationRateMultiplier(1, false);
+            rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
+            rocket.controller.enableMainEngines(true, false);
+            rocket.controller.setRotationRateMultiplier(1, false);
 
             Vec3 targetVec3 = new Vec3(target.getCenter().x, target.getCenter().y, target.getCenter().z);
 
@@ -76,14 +76,14 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             if (!isStarted) {
                 // make sure it starts correctly
-                rocket.enableSecondaryEngines(false, false);
+                rocket.controller.enableSecondaryEngines(false, false);
                 targetVec3 = new Vec3(rocket.position().x, maxY + travelHeight, rocket.position().z);
                 if (rocket.position().y > travelHeight / 3 + maxY) {
                     isStarted = true; // ok, it is in air now
                 }
             } else if (distanceToTargetXZ > 50) {
                 // when far away from target, make sure to maintain travel height to go there
-                rocket.enableSecondaryEngines(false, false);
+                rocket.controller.enableSecondaryEngines(false, false);
 
                 if (rocket.position().y < 20 + maxY) {
                     // too low, pull up
@@ -108,7 +108,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 }
             } else {
                 // landing...
-                rocket.enableSecondaryEngines(true, false); // help or it swings around too much
+                rocket.controller.enableSecondaryEngines(true, false); // help or it swings around too much
 
                 double dy = yTargetBelow - rocket.position().y;
                 double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
@@ -131,14 +131,14 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             if (rocket.position().y > maxY + 1) {
                 if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
                     Direction targetFront = assembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                    rocket.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
+                    rocket.controller.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
                 }
             } else {
-                rocket.setTargetFront(rocket.getFront(), false);
+                rocket.controller.setTargetFront(rocket.controller.getFront(), false);
             }
 
 
-            rocket.setTargetPosition(targetVec3, false);
+            rocket.controller.setTargetPosition(targetVec3, false);
 
             // check if landed
             // WARNING: onGround() appears to only work server side - it appears the server syncs it for 1 tick to client

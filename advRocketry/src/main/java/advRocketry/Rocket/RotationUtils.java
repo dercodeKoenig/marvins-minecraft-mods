@@ -7,8 +7,8 @@ import org.joml.Vector3f;
 public class RotationUtils {
     // made mostly by gemini, no idea how it works exactly, but it appears to work
     public static Quaternionf getCurrentRotation(EntityRocket rocket) {
-        Vec3 myHeading = rocket.heading.normalize();
-        Vec3 desiredFront = rocket.front.normalize();
+        Vec3 myHeading = rocket.controller.getHeading().normalize();
+        Vec3 desiredFront = rocket.controller.getFront().normalize();
         Vec3 worldUp = new Vec3(0, 1, 0);
 
 // --- Step A: tilt (worldUp -> heading) ---
