@@ -93,8 +93,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // render variables
     Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
-    int lastLight = -1;
-    boolean requiresMeshUpdate = false;
+    int lastLight = 0;
+    boolean requiresMeshUpdate = true;
 
     // smooth position interpolation when server sends position update
     double lerpX, lerpY, lerpZ;
@@ -229,7 +229,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     protected AABB makeBoundingBox() {
         if(controller == null) return super.makeBoundingBox();
         if (size == null) return super.makeBoundingBox();
-        
+
         Vec3 heading = controller.getHeading();
 
         double w = Math.max(size.getX(), size.getZ());
