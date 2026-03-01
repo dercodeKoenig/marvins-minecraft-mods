@@ -69,11 +69,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public FluidTank fuelTank;
     public float currentMass;
 
-    // render variables
-    public Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
-    public int lastLight = -1;
-    public boolean requiresMeshUpdate = false;
-
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
     public double universeTravelSpeed = 0; // simplified, this should be vec3 but we just float and the direction = heading
@@ -95,6 +90,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // passenger
     Map<UUID, BlockPos> passengers = new HashMap<>();
+
+    // render variables
+    Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
+    int lastLight = -1;
+    boolean requiresMeshUpdate = false;
 
     // smooth position interpolation when server sends position update
     double lerpX, lerpY, lerpZ;
