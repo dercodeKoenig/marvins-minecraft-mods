@@ -69,7 +69,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
             }
 
             if (originDimensionId.equals(targetDimensionId)) {
-                BlockPos undockingStationPos = rocket.dockingStationPos;
+                BlockPos undockingStationPos = rocket.getDockingStationPos();
                 if(undockingStationPos != null){
                     targetLevel.getChunk(undockingStationPos); // should load the chunk
                     BlockEntity originBe = targetLevel.getBlockEntity(undockingStationPos);

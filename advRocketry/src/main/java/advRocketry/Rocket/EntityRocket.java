@@ -390,6 +390,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return lastLaunchPosition;
     }
 
+    public void setDockingStationPos(BlockPos pos) {
+        dockingStationPos = pos;
+    }
+
+    public BlockPos getDockingStationPos() {
+        return dockingStationPos;
+    }
+
     public void setProgramAndSync(RocketProgram program) {
         if (!level().isClientSide) {
             CompoundTag tag = new CompoundTag();
