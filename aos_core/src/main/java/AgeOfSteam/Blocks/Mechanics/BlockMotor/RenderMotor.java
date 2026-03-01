@@ -47,7 +47,10 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
     @Override
     public void render(EntityMotor tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        if (tile.lastLight != packedLight) {
+        if(tile.vertexBuffer == null || tile.vertexBuffer.isInvalid())
+            return;
+
+        if (tile.lastLight != packedLight || tile.mesh == null) {
             tile.lastLight = packedLight;
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
             BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
