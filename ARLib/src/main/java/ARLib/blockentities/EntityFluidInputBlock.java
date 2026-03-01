@@ -68,7 +68,7 @@ public class EntityFluidInputBlock extends BlockEntity implements INetworkTagRec
         for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 10, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
         }
-        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 70, 30, 0, 1, guiHandler)) {
+        for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 75, 30, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
         }
     }

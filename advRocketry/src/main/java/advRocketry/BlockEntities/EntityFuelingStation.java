@@ -36,19 +36,16 @@ import static advRocketry.Registry.ENTITY_FUELING_STATION;
 
 public class EntityFuelingStation extends BlockEntity implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 
+    public static float maxDistance = 30;
     public BlockPos linkedAssemblerPos = null;
     public EntityRocket linkedRocket = null;
-
     public BlockEntityBattery battery;
     public FluidTank tank;
     public ItemStackHandler inventory;
-
     public GuiHandlerBlockEntity guiHandler;
     public SimpleFluidContainer simpleFluidContainer;
     public guiModuleButton drainFillToggleButton;
     public boolean isDrain;
-
-    public static float maxDistance = 30;
 
     public EntityFuelingStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_FUELING_STATION.get(), pos, blockState);
@@ -60,14 +57,18 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
                 new guiModuleEnergy(11000, battery, guiHandler, 155, 7)
         );
 
-        tank = new FluidTank(10){
-            public void onContentsChanged(){setChanged();}
+        tank = new FluidTank(4000) {
+            public void onContentsChanged() {
+                setChanged();
+            }
         };
-        inventory = new ItemStackHandler(2){
-            public void onContentsChanged(int slot){setChanged();}
+        inventory = new ItemStackHandler(2) {
+            public void onContentsChanged(int slot) {
+                setChanged();
+            }
         };
         simpleFluidContainer = new SimpleFluidContainer(tank, inventory);
-        guiHandler.modules.addAll(simpleFluidContainer.makeGuiModules(0,10,10,guiHandler));
+        guiHandler.modules.addAll(simpleFluidContainer.makeGuiModules(0, 10, 10, guiHandler));
 
         drainFillToggleButton = new guiModuleButton(11001, "text", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
             @Override
@@ -79,9 +80,13 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
         };
         guiHandler.modules.add(drainFillToggleButton);
 
-        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 100, 0, 1, this.guiHandler));
-        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 65, 200, 0, 1, this.guiHandler));
+        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100, 0, 1, this.guiHandler));
+        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 75, 200, 0, 1, this.guiHandler));
 
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityFuelingStation) t).tick();
     }
 
     @Override
@@ -190,11 +195,6 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
             }
         }
     }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityFuelingStation) t).tick();
-    }
-
 
     @Override
     public boolean link(BlockPos otherpos, Level otherLevel) {
