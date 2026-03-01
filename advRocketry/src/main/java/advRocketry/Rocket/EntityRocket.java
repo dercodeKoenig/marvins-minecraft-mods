@@ -69,26 +69,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public FluidTank fuelTank;
     public float currentMass;
 
-
-    // cached values
-    private float cachedThrust = -1;
-    private int cachedFuelRate = -1;
-    private ArrayList<BlockPos> cachedEnginePositions = null;
-    private ArrayList<BlockPos> cachedSeatPositions = null;
-
-    // rocket control
-    private BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
-    public BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
-    Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
-    private RocketProgram currentProgram = null;
-    public RocketController controller;
-
-    // smooth position interpolation when server sends position update
-    private double lerpX, lerpY, lerpZ;
-    int lerpSteps;
-    private Vec3 lerpDeltaMovement;
-    int lerpDeltaMovementSteps;
-
     // render variables
     public Map<RenderType, RenderData> renderDataMap = new LinkedHashMap<>();
     public int lastLight = -1;
@@ -101,14 +81,35 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3 universeTargetHeading = new Vec3(0, 1, 0);
     public Vec3 universeFront = new Vec3(0, 0, 1);
 
-    // passenger
-    Map<UUID, BlockPos> passengers = new HashMap<>();
-    private boolean firstTick = true; // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
-
     // gui
     public GuiHandlerEntity guiHandler;
     public ARLib.gui.modules.guiModuleText infoText;
     public int temporaryInfoTimeout = 0; // for temporary messages like planet can not be reached... display the alternate info for a few ticks
+
+    // passenger
+    Map<UUID, BlockPos> passengers = new HashMap<>();
+
+    // cached values
+    private float cachedThrust = -1;
+    private int cachedFuelRate = -1;
+    private ArrayList<BlockPos> cachedEnginePositions = null;
+    private ArrayList<BlockPos> cachedSeatPositions = null;
+    
+    // rocket control
+    private BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
+    private RocketProgram currentProgram = null;
+    public BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
+    public RocketController controller;
+    Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
+
+    // smooth position interpolation when server sends position update
+     double lerpX, lerpY, lerpZ;
+     Vec3 lerpDeltaMovement;
+     int lerpSteps;
+     int lerpDeltaMovementSteps;
+
+    // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
+    private boolean firstTick = true;
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -128,7 +129,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
         rocket.blockEntities = blockEntities;
         rocket.blocks = blocks;
-        rocket.controller.setHeadingAndFrontDirect(new Vec3(0,1,0), front);
+        rocket.controller.setHeadingAndFrontDirect(new Vec3(0, 1, 0), front);
         rocket.initialFront = front;
         rocket.size = size;
         int fuelCapacity = 0;
@@ -143,7 +144,17 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return rocket;
     }
 
-    public void initVertexBuffers(){
+    public static void onClientTickEvent() {
+        Player player = ClientUtils.getSinglePlayer();
+        if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
+            if (Minecraft.getInstance().options.keyUse.isDown()) {
+                rocket.openGui();
+                Minecraft.getInstance().options.keyUse.consumeClick();
+            }
+        }
+    }
+
+    public void initVertexBuffers() {
         if (FMLEnvironment.dist.isClient()) {
             RenderSystem.recordRenderCall(() -> {
                 for (RenderType type : RenderType.chunkBufferLayers()) {
@@ -203,7 +214,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     @Override
     public double getDefaultGravity() {
         Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
-        if(myDim instanceof RocketTravelDimension || myDim instanceof SpaceStationDimension)
+        if (myDim instanceof RocketTravelDimension || myDim instanceof SpaceStationDimension)
             return 0;
         return 0.08 * CelestialUtils.getGravityMultiplier(this);
     }
@@ -307,7 +318,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return RotationUtils.localToWorld(this, new Vec3(seatPos.getX() + 0.5, seatPos.getY() + 0.2, seatPos.getZ() + 0.5));
     }
 
-
     /// / smooth Motion / Position lerp system ////
 
     // we need slow movement but also the correct initial positions / movements when the entity loads, for example after dimension change
@@ -355,15 +365,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / get and set methods ////
 
+    public Map<UUID, BlockPos> getPassengersPositions() {
+        return passengers;
+    }
+
     public void setPassengersPositions(Map<UUID, BlockPos> passengers) {
         this.passengers = passengers;
         CompoundTag tag = new CompoundTag();
         tag.put("passengers", RocketSaveAndLoad.savePassengerPositions(passengers));
         sendToClients(tag);
-    }
-
-    public Map<UUID, BlockPos> getPassengersPositions() {
-        return passengers;
     }
 
     public void setLastLaunchPosition(BlockPos target, boolean syncToClient) {
@@ -397,7 +407,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void endProgram() {
         setProgramAndSync(null);
     }
-
 
     @Override
     public void tick() {
@@ -457,8 +466,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             currentProgram.run(this);
             // remove docking position because we no longer docked when program is started
             dockingStationPos = null;
-        }else {
-           controller. setTargetPosition(null, false);
+        } else {
+            controller.setTargetPosition(null, false);
             controller.enableSecondaryEngines(false, false);
             controller.enableMainEngines(false, false);
         }
@@ -520,7 +529,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     temporaryInfoTimeout = 0;
                     return true;
                 }
-                if(targetDimension instanceof SpaceStationDimension){
+                if (targetDimension instanceof SpaceStationDimension) {
                     ProgramNavigateToSpaceStation p = new ProgramNavigateToSpaceStation(targetLevelId, level().dimension().location(), targetPos, this);
                     setProgramAndSync(p);
                     if (dockingStationPos != null)
@@ -562,7 +571,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos, Vec3 velocity) {
 
-       controller.setTargetPosition(null, false); // position is probably invalid because dimension change
+        controller.setTargetPosition(null, false); // position is probably invalid because dimension change
 
         // the dimension change is like this:
         // 1: unmount entities, but store where they were seated
@@ -630,7 +639,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         RocketSaveAndLoad.addAdditionalSaveData(this, compoundTag);
     }
 
-
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
@@ -674,7 +682,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             BlockState state = blocks.get(p);
             CompoundTag blockEntityTag = blockTag.getCompound("blockEntity");
             BlockEntity existingBlockEntity = blockEntities.get(p);
-            if(existingBlockEntity!=null && existingBlockEntity.isValidBlockState(state))
+            if (existingBlockEntity != null && existingBlockEntity.isValidBlockState(state))
                 existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
             else {
                 BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
@@ -782,7 +790,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
     }
 
-
     /// / other rocket methods ////
 
     public float getThrustMax() {
@@ -858,7 +865,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return cachedEnginePositions;
     }
 
-
     public ArrayList<BlockPos> getSeatPositions() {
         if (cachedSeatPositions == null) {
             if (blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
@@ -871,16 +877,5 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         return cachedSeatPositions;
-    }
-
-
-    public static void onClientTickEvent() {
-        Player player = ClientUtils.getSinglePlayer();
-        if (player != null && player.getVehicle() instanceof EntityRocket rocket) {
-            if (Minecraft.getInstance().options.keyUse.isDown()) {
-                rocket.openGui();
-                Minecraft.getInstance().options.keyUse.consumeClick();
-            }
-        }
     }
 }
