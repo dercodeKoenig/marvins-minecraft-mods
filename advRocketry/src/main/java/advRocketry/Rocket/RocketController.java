@@ -19,8 +19,6 @@ import java.util.Objects;
 
 public class RocketController {
 
-    // Rotation Speed: How quickly the rocket can turn its heading towards the target acceleration vector.
-    double maxRotationRate = 0.05;
     // the parent rocket
     EntityRocket rocket;
     double currentThrust;
