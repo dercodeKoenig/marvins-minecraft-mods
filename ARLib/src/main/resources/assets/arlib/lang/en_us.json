@@ -1,0 +1,27 @@
+{
+  "item.arlib.item_holo_projector": "Holo Projector",
+
+  "block.arlib.block_structure_block": "Machine Structure",
+  "item.arlib.block_structure_block": "Machine Structure",
+
+  "block.arlib.block_motor_block": "Small Motor",
+  "item.arlib.block_motor_block": "Small Motor",
+
+  "block.arlib.block_item_input_block": "Item Input Block",
+  "item.arlib.block_item_input_block": "Item Input Block",
+
+  "block.arlib.block_item_output_block": "Item Output Block",
+  "item.arlib.block_item_output_block": "Item Output Block",
+
+  "block.arlib.block_fluid_input_block": "Fluid Input Block",
+  "item.arlib.block_fluid_input_block": "Fluid Input Block",
+
+  "block.arlib.block_fluid_output_block": "Fluid Output Block",
+  "item.arlib.block_fluid_output_block": "Fluid Output Block",
+
+  "block.arlib.block_energy_input_block": "Energy Input Block",
+  "item.arlib.block_energy_input_block": "Energy Input Block",
+
+  "block.arlib.block_energy_output_block": "Energy Output Block",
+  "item.arlib.block_energy_output_block": "Energy Output Block"
+}

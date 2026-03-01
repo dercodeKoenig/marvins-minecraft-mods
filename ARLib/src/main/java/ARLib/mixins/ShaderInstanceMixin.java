@@ -37,7 +37,8 @@ public abstract class ShaderInstanceMixin {
     private void cacheNormalUniform(ResourceProvider provider, ResourceLocation location, VertexFormat format, CallbackInfo ci) {
         this.NormalMat = this.getUniform("NormalMat");
         this.UVOffset = this.getUniform("UVOffset");
-        System.out.println("Shader Mixin for " + location + " - NormalMat:" + (NormalMat != null) + " - UVOffset:" + (UVOffset != null));
+        if(NormalMat != null || UVOffset != null)
+            System.out.println("Shader Mixin for " + location + " - NormalMat:" + (NormalMat != null) + " - UVOffset:" + (UVOffset != null));
     }
 
     // 3. Inject into setDefaultUniforms to use the cached field
