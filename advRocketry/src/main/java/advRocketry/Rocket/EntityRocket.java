@@ -489,8 +489,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         // run program or shutdown
         if (currentProgram != null) {
+            setDockingStationPos(null, false); // reset it by default BEFORE the program runs so the program can pre-set the next docking station
             currentProgram.run(this);
-            setDockingStationPos(null, false);
         } else {
             controller.setTargetPosition(null, false);
             controller.enableSecondaryEngines(false, false);
