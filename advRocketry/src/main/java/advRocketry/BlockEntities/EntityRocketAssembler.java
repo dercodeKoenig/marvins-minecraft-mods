@@ -642,7 +642,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         tag.putInt("buildProgress", buildProgress);
         tag.putInt("energy", battery.getEnergyStored());
         tag.putInt("dockingDirection", dockingDirection.ordinal());
-        tag.putBoolean("dockingDirection", horizontalDocking);
+        tag.putBoolean("horizontalDocking", horizontalDocking);
     }
 
     @Override
@@ -651,7 +651,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         buildProgress = tag.getInt("buildProgress");
         battery.setEnergy(tag.getInt("energy"));
         dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
-        horizontalDocking = tag.getBoolean("dockingDirection");
+        horizontalDocking = tag.getBoolean("horizontalDocking");
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
