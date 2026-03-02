@@ -138,7 +138,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double d = Math.max(0.1, rocket.position().y - targetY); // make it have a base speed for lower
                 double a = rocket.getThrustMax() / rocket.getMass();
                 double g = rocket.getGravity();
-                double aEff = Math.min(a, rocket.getMaxAcceleration()) - g;
+                double aEff = Math.max(0,Math.min(a, rocket.getMaxAcceleration()) - g); // never have it go negative
                 double vTarget = -Math.sqrt(2 * d * aEff) * 0.8; // scaling a bit down just for safety
                 double vCurrent = -rocket.getDeltaMovement().length(); // including all movement, not only on y axis
                 double error = vTarget - vCurrent;
