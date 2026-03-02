@@ -144,8 +144,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                     targetY = rocket.position().y - maxD;
                 targetY = Math.max(targetY, yCurrentBelow-yOffset-10);
 
+                // in the end it is not a true suicide burn,
+                // but it should make heavy rockets with low acceleration thrust early and no smash into ground
+
                 targetVec3 = new Vec3(targetVec3.x, targetY, targetVec3.z);
-                System.out.println(rocket.level().isClientSide+":"+rocket.position().y+":"+vCurrent+":"+targetY+":"+vTarget+":"+rocket.controller.getCurrentThrust());
             }
 
             // rotate to the target front if it is a rocket assembler there
