@@ -68,14 +68,15 @@ public class StationDockingProgram {
 
             rocket.controller.enableMainEngines(false, false);
             rocket.controller.enableSecondaryEngines(true, false);
-            rocket.controller.setRotationRateMultiplier(0.2, false);
 
             if(rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
                 Direction stationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
                 if (rocketAssembler.horizontalDocking) {
+                    rocket.controller.setRotationRateMultiplier(0.5, false);
                     rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
                     rocket.controller.setDefaultTargetHeading(new Vec3(stationFacing.getOpposite().getStepX(), stationFacing.getOpposite().getStepY(), stationFacing.getOpposite().getStepZ()), false);
                 } else {
+                    rocket.controller.setRotationRateMultiplier(0.2, false);
                     rocket.controller.setTargetFront(new Vec3(stationFacing.getStepX(), stationFacing.getStepY(), stationFacing.getStepZ()), false);
                     rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
                 }
