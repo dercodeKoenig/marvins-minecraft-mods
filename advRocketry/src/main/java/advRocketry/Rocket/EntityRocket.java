@@ -186,6 +186,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             lerpSteps = -1;
             lerpDeltaMovementSteps = -1;
         }
+        reapplyPosition(); // make correct bounding box
     }
 
     @Override
