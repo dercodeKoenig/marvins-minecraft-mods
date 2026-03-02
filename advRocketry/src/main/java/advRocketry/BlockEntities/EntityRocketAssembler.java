@@ -321,6 +321,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     BlockState state = level.getBlockState(pos);
+                    if(state.isAir())
+                        continue;
 
                     BlockPos inRocketPos = pos.subtract(new BlockPos(minX, minY, minZ));
                     blocks.put(inRocketPos, state);
@@ -357,12 +359,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
 
         if (!simulate) {
-            Vec3i size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
-            Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-            Vec3 front = new Vec3(facing.getStepX(), 0, facing.getStepZ());
-            EntityRocket rocket = EntityRocket.create(level, blocks, blockEntities, size, front);
-            double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2 + 0.5;
-            double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2 + 0.5;
+
+            // remove blocks
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     for (int z = minZ; z <= maxZ; z++) {
@@ -380,6 +378,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     }
                 }
             }
+
+            // spawn rocket
+            Vec3i size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+            Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            Vec3 front = new Vec3(facing.getStepX(), 0, facing.getStepZ());
+            EntityRocket rocket = EntityRocket.create(level, blocks, blockEntities, size, front);
+            double launchPadCenterX = (double) (areaMax.getX() + areaMin.getX()) / 2 + 0.5;
+            double launchPadCenterZ = (double) (areaMax.getZ() + areaMin.getZ()) / 2 + 0.5;
             rocket.moveTo(launchPadCenterX, areaMin.getY() + 0.02, launchPadCenterZ, 0, 0);
             level.addFreshEntity(rocket);
         }
