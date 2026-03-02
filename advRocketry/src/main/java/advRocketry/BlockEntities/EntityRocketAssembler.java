@@ -113,7 +113,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, ping));
         } else {
             scanArea();
-            updateGuiDockingSettings();
+            onDockingSettingsChanged();
         }
     }
 
@@ -422,6 +422,22 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         return ConstructionResult.SUCCESS;
     }
 
+    public void onDockingSettingsChanged() {
+        if (!(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)) {
+            dockingDirectionButton.setIsEnabledAndBroadcastUpdate(false);
+            horizontalDockingButton.setIsEnabledAndBroadcastUpdate(false);
+            dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(false);
+        } else {
+            dockingDirectionButton.setIsEnabledAndBroadcastUpdate(true);
+            horizontalDockingButton.setIsEnabledAndBroadcastUpdate(true);
+            dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(true);
+        }
+        dockingDirectionButton.setTextAndSync(dockingDirection.getName());
+        horizontalDockingButton.setTextAndSync(horizontalDocking ? "horizontal" : "vertical");
+        broadcastInformationToPlayers(null);
+        setChanged();
+    }
+
     public void broadcastInformationToPlayers(ServerPlayer p) {
         CompoundTag info = new CompoundTag();
         if (areaMin != null && areaMax != null) {
@@ -437,26 +453,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
         info.putInt("buildProgress", buildProgress);
 
+        // this needs to be synced so the rocket programs know the correct mode client side too
+        info.putInt("dockingDirection", dockingDirection.ordinal());
+        info.putBoolean("horizontalDocking", horizontalDocking);
+
         PacketBlockEntity packet = PacketBlockEntity.getBlockEntityPacket(this, info);
         if (p == null) {
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), packet);
         } else {
             PacketDistributor.sendToPlayer(p, packet);
         }
-    }
-
-    public void updateGuiDockingSettings() {
-        if (!(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)) {
-            dockingDirectionButton.setIsEnabledAndBroadcastUpdate(false);
-            horizontalDockingButton.setIsEnabledAndBroadcastUpdate(false);
-            dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(false);
-        } else {
-            dockingDirectionButton.setIsEnabledAndBroadcastUpdate(true);
-            horizontalDockingButton.setIsEnabledAndBroadcastUpdate(true);
-            dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(true);
-        }
-        dockingDirectionButton.setTextAndSync(dockingDirection.getName());
-        horizontalDockingButton.setTextAndSync(horizontalDocking ? "horizontal" : "vertical");
     }
 
     @Override
@@ -485,11 +491,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     dockingDirection = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
                 else
                     dockingDirection = Direction.UP;
-                updateGuiDockingSettings();
+                onDockingSettingsChanged();
             }
             if(id==31){
                 horizontalDocking = !horizontalDocking;
-                updateGuiDockingSettings();
+                onDockingSettingsChanged();
             }
             setChanged();
         }
@@ -510,9 +516,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (compoundTag.contains("maxX") && compoundTag.contains("maxY") && compoundTag.contains("maxZ"))
             areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
 
-        if (compoundTag.contains("buildProgress")) {
+        if (compoundTag.contains("buildProgress"))
             buildProgress = compoundTag.getInt("buildProgress");
-        }
+
+        if (compoundTag.contains("dockingDirection"))
+            dockingDirection = Direction.values()[compoundTag.getInt("dockingDirection")];
+
+        if (compoundTag.contains("horizontalDocking"))
+            horizontalDocking = compoundTag.getBoolean("horizontalDocking");
 
         guiHandler.readClient(compoundTag);
     }

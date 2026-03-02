@@ -119,7 +119,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
     }
 
     @Override
-    public void updateGuiDockingSettings() {
+    public void onDockingSettingsChanged() {
 // empty, does not exist here but if it is called in onload it would crash because the gui modules are not initialized
     }
 
