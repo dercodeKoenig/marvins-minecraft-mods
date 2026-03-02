@@ -53,13 +53,13 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
     }
 
     public void popInventory() {
-        if (level.isClientSide) {
-        } else {
+        if (!level.isClientSide) {
             for (int i = 0; i < itemStackHandler.getSlots(); i++) {
                 ItemStack stack = itemStackHandler.getStackInSlot(i);
                 Block.popResource(level,getBlockPos(),stack);
                 itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
             }
+            setChanged();
         }
     }
 
@@ -76,11 +76,13 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.put("inventory", itemStackHandler.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 

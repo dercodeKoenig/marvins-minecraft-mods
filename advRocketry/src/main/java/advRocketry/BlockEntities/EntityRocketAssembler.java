@@ -50,7 +50,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public EntityRocket currentRocket;
 
     // we output redstone to a comparator when a rocket is landed and has no program running
-    boolean isRedstoneOutputActive = false;
+    public boolean isRedstoneOutputActive = false;
 
     public BlockEntityBattery battery;
 
@@ -66,7 +66,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     // for space stations: docking mode settings
     public Direction dockingDirection = Direction.DOWN;
-    boolean horizontalDocking = false;
+    public boolean horizontalDocking = false;
 
     public int buildProgress = -1;
     public int clientBuildProgress = -1; // used for smooth rendering of the build structure tower animation
@@ -133,18 +133,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     }
 
     public Vec3 getLandingPos(@Nullable EntityRocket rocket) {
+        Vec3 landPos = Vec3.ZERO;
+        Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (areaMin == null || areaMax == null) {
             // if there is no launchpad area, the rocket should land just behind the assembler
             int rocketSize = Config.INSTANCE.rocket_Assembler_Max_Size; // assume max size by default
             if (rocket != null)
                 rocketSize = Math.max(rocket.size.getZ(), rocket.size.getX());
-            int offset = rocketSize / 2 + 3;
-            Direction launchpadDir = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
-            BlockPos landingPos = getBlockPos();
-            for (int i = 0; i < offset; i++) {
-                landingPos = landingPos.relative(launchpadDir);
-            }
-            return new Vec3(landingPos.getCenter().x, landingPos.getCenter().y, landingPos.getCenter().z);
+            int offset = rocketSize / 2 + 2;
+            BlockPos landingPos = getBlockPos().relative(facing.getOpposite(), offset);
+            landPos = new Vec3(landingPos.getCenter().x, landingPos.getY(), landingPos.getCenter().z);
         } else {
             // if there is a launchpad, land in center
             Vec3 landingPos = new Vec3(
@@ -152,8 +150,25 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     areaMin.getY(),
                     (double) (areaMin.getZ() + areaMax.getZ()) / 2 + 0.5
             );
-            return landingPos;
+            landPos = landingPos;
         }
+
+        // if in space station with horizontal docking, the position has to be adjusted
+        // this can only be done if rocket is supplied, the programs should supply the current rocket for calculations
+        if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension) {
+            if (horizontalDocking && rocket != null) {
+                // a horizontal rocket rotates around center, so size.Y / 2
+                // so the docking position needs to be lowered by half y size
+                int sizeY = rocket.size.getY();
+                double halfY = (double) sizeY / 2;
+                landPos = new Vec3(landPos.x, landPos.y - halfY, landPos.z);
+
+                // the rocket will also need to move more away
+                landPos = landPos.relative(facing.getOpposite(),halfY);
+            }
+        }
+
+        return landPos;
     }
 
     public EntityRocket getRocket() {
@@ -476,6 +491,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 horizontalDocking = !horizontalDocking;
                 updateGuiDockingSettings();
             }
+            setChanged();
         }
 
         guiHandler.readServer(compoundTag);
@@ -530,6 +546,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         if (buildProgress == -1) {
                             buildRocket(false);
                         }
+                        setChanged();
                     }
                 } else {
                     buildProgress = -1;
@@ -621,6 +638,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putInt("buildProgress", buildProgress);
         tag.putInt("energy", battery.getEnergyStored());
         tag.putInt("dockingDirection", dockingDirection.ordinal());
@@ -629,6 +647,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         buildProgress = tag.getInt("buildProgress");
         battery.setEnergy(tag.getInt("energy"));
         dockingDirection = Direction.values()[tag.getInt("dockingDirection")];

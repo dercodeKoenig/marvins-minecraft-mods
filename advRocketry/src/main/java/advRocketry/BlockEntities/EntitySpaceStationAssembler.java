@@ -238,6 +238,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
                     stationOwner = serverPlayer.getUUID(); // set the owner for when the build completes
                 }
             }
+            setChanged();
         }
     }
 
@@ -276,6 +277,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
                         if (buildProgress == -1) {
                             buildStation(false);
                         }
+                        setChanged();
                     }
                 } else {
                     buildProgress = -1;

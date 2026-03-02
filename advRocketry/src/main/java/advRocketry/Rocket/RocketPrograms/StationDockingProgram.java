@@ -69,16 +69,21 @@ public class StationDockingProgram {
             rocket.controller.enableMainEngines(false, false);
             rocket.controller.enableSecondaryEngines(true, false);
             rocket.controller.setRotationRateMultiplier(0.2, false);
-            rocket.controller.setDefaultTargetHeading(new Vec3(0,1,0), false);
 
             if(rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
-                Direction targetFront = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                rocket.controller.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
+                Direction stationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+                if (rocketAssembler.horizontalDocking) {
+                    rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+                    rocket.controller.setDefaultTargetHeading(new Vec3(stationFacing.getOpposite().getStepX(), stationFacing.getOpposite().getStepY(), stationFacing.getOpposite().getStepZ()), false);
+                } else {
+                    rocket.controller.setTargetFront(new Vec3(stationFacing.getStepX(), stationFacing.getStepY(), stationFacing.getStepZ()), false);
+                    rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
+                }
             }
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
 
-            Vec3 scaledToTarget = new Vec3(toTarget.x*2, toTarget.y / 1.5, toTarget.z*2);
+            Vec3 scaledToTarget = new Vec3(toTarget.x*1, toTarget.y*1, toTarget.z*1);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);
 
             rocket.controller.setTargetPosition(targetVec3, false);

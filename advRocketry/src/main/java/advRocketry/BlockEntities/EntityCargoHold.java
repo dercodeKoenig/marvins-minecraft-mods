@@ -62,11 +62,13 @@ public class EntityCargoHold extends BlockEntity implements ARLib.network.INetwo
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.put("inventory", itemStackHandler.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 

@@ -144,21 +144,21 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
                             // FUEL the rocket
                             FluidStack available = tank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
                             int canFill = linkedRocket.fuelTank.fill(available, IFluidHandler.FluidAction.SIMULATE);
-                            FluidStack drained = tank.drain(canFill, IFluidHandler.FluidAction.EXECUTE);
-                            linkedRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
                             if (canFill > 0) {
-                                setChanged();
                                 battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fueling_Station_Energy_Per_Tick);
+                                FluidStack drained = tank.drain(canFill, IFluidHandler.FluidAction.EXECUTE);
+                                linkedRocket.fuelTank.fill(drained, FluidAction.EXECUTE);
+                                setChanged();
                             }
                         } else {
                             // DRAIN the rocket fuel tanks
                             FluidStack available = linkedRocket.fuelTank.drain(Config.INSTANCE.fueling_Station_Fuel_Per_Tick, FluidAction.SIMULATE);
                             int canFill = tank.fill(available, FluidAction.SIMULATE);
-                            FluidStack drained = linkedRocket.fuelTank.drain(canFill, FluidAction.EXECUTE);
-                            tank.fill(drained, FluidAction.EXECUTE);
                             if (canFill > 0) {
-                                setChanged();
                                 battery.setEnergy(battery.getEnergyStored() - Config.INSTANCE.fueling_Station_Energy_Per_Tick);
+                                FluidStack drained = linkedRocket.fuelTank.drain(canFill, FluidAction.EXECUTE);
+                                tank.fill(drained, FluidAction.EXECUTE);
+                                setChanged();
                             }
                         }
                     }
