@@ -38,6 +38,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -354,9 +355,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         this.setRot(yRot, xRot);
     }
 
-    public double lerpTargetX() {
-        return this.lerpSteps > 0 ? this.lerpX : this.getX();
-    }
+    public double lerpTargetX() {return this.lerpSteps > 0 ? this.lerpX : this.getX();}
 
     public double lerpTargetY() {
         return this.lerpSteps > 0 ? this.lerpY : this.getY();
@@ -364,6 +363,18 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public double lerpTargetZ() {
         return this.lerpSteps > 0 ? this.lerpZ : this.getZ();
+    }
+
+    @Override
+    // i use move and not setPos to get the collision, this is important because I forecast lerp target and without collision i can move into ground
+    protected void lerpPositionAndRotationStep(int steps, double targetX, double targetY, double targetZ, double targetYRot, double targetXRot) {
+        double d0 = (double)1.0F / (double)steps;
+        Vec3 movement = new Vec3(targetX, targetY, targetZ).subtract(new Vec3(getX(), getY(), getZ())).scale(d0);
+        move(MoverType.SELF, movement);
+
+        float f = (float)Mth.rotLerp(d0, (double)this.getYRot(), targetYRot);
+        float f1 = (float)Mth.lerp(d0, (double)this.getXRot(), targetXRot);
+        this.setRot(f, f1);
     }
 
     /// / get and set methods ////
@@ -475,6 +486,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             --this.lerpDeltaMovementSteps;
         }
 
+        // apply before rocket controller / program runs so they have the correct movement data to work with
+        applyGravity();
+
         // tick rocket controller
         controller.tick();
 
@@ -489,14 +503,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             controller.enableMainEngines(false, false);
         }
 
-        // handle movement logic
-        applyGravity();
+
         // this ensures the rocket will not float away in space.
         setDeltaMovement(getDeltaMovement().scale(0.999));
         if(currentProgram == null)
             // more breaking
             setDeltaMovement(getDeltaMovement().scale(0.99));
 
+        // apply the movement
         move(MoverType.SELF, getDeltaMovement());
 
 

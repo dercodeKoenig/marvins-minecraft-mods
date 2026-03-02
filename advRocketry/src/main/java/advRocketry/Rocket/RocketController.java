@@ -198,6 +198,26 @@ public class RocketController {
                 mainEnginesBootup--;
             }
         }
+
+
+        // simulate air friction
+        if( DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location()) instanceof PlanetDimension planet){
+            Vec3 movement = rocket.getDeltaMovement();
+            double speed = movement.length();
+            if (speed > 0.01) {
+                // k is chosen so that a 2x4x2 rocket on normal gravity and atm
+                // should reach final speed of 7-8 blocks / tick when every block has weight of 1
+                double k = 0.0001;
+                double atmDensity = planet.getAtmosphereDensity();
+                double airBreakForce = rocket.size.getX() * rocket.size.getZ() * atmDensity * speed * speed * k;
+                double airAcceleration = airBreakForce / rocket.getMass();
+                Vec3 breakMovement = movement.normalize().scale(-1 * airAcceleration);
+                if(breakMovement.length() >= speed)
+                    rocket.setDeltaMovement(0,0,0);
+                else
+                    rocket.setDeltaMovement(movement.add(breakMovement));
+            }
+        }
     }
 
     public void tickRotation() {
@@ -284,8 +304,7 @@ public class RocketController {
         // The result is the absolute acceleration vector the rocket *needs* to follow the path.
         Vec3 desiredAcceleration = positionError.scale(K_P).subtract(currentVelocity.scale(K_D));
 
-        // NOTE: If you needed to factor in gravity/other external forces, you would
-        // add an opposing vector here: desiredAcceleration = ... .add(Vec3.GRAVITY.scale(-1));
+        // factor in gravity
         Vec3 antiGravityAcceleration = new Vec3(0, 1, 0).scale(rocket.getGravity());
         desiredAcceleration = desiredAcceleration.add(antiGravityAcceleration);
 
