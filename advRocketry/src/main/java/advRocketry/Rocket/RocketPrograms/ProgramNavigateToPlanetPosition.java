@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -41,7 +42,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
         if (!Objects.equals(originDimensionId, targetDimensionId)) {
             // we need to go to other dimension
-            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(rocket.level().getBlockEntity(rocket.getDockingStationPos()), rocket);
+            BlockEntity dockingStation = null;
+            if(rocket.getDockingStationPos() != null)
+                dockingStation = rocket.level().getBlockEntity(rocket.getDockingStationPos());
+            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(dockingStation, rocket);
         }
     }
 
