@@ -1,6 +1,7 @@
 package advRocketry.Particles;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Camera;
@@ -127,7 +128,9 @@ public class RocketParticleEngine {
         boolean is_fabulous = Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS;
         RenderSystem.setShader(GameRenderer::getParticleShader);
         ShaderInstance shader = RenderSystem.getShader();
-        shader.getUniform("alphaCut").set(0f); // uniform added in shader overwrite
+        Uniform alphaCut = shader.getUniform("alphaCut");  // uniform added in shader overwrite
+        if(alphaCut != null)
+            shader.getUniform("alphaCut").set(0f);
         PARTICLES_TARGET.setupRenderState();
         TRANSLUCENT_TRANSPARENCY.setupRenderState();
         LIGHTMAP.setupRenderState();
@@ -163,7 +166,8 @@ public class RocketParticleEngine {
         }
 
         // clear render state
-        shader.getUniform("alphaCut").set(0.1f); // reset uniform back to default value
+        if(alphaCut != null)
+            alphaCut.set(0.1f); // reset uniform back to default value
         RenderSystem.depthMask(true);
         TRANSLUCENT_TRANSPARENCY.clearRenderState();
         PARTICLES_TARGET.clearRenderState();
