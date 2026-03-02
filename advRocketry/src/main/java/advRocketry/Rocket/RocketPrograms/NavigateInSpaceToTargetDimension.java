@@ -38,7 +38,7 @@ public class NavigateInSpaceToTargetDimension {
         rocket.universeFront = right.cross(rocket.universeHeading).normalize();
     }
 
-    public static boolean run(EntityRocket rocket, ResourceLocation target, @Nullable ResourceLocation origin, Runnable performTeleport) {
+    public static boolean run(EntityRocket rocket, ResourceLocation target, @Nullable ResourceLocation origin, Runnable onTargetReached) {
 
         if (rocket.level().dimension().location().equals(target)) {
             // this should never happen!
@@ -160,9 +160,8 @@ public class NavigateInSpaceToTargetDimension {
 
         rocket.universePosition = rocket.universePosition.add(rocket.universeHeading.scale(rocket.universeTravelSpeed));
 
-        if (rocket.level() instanceof ServerLevel serverLevel && rocket.universePosition.distanceTo(targetPosition) < entryDistance) {
-            // TODO: ifrocket.hasSatellites && shouldDeployThem -> deploy satellites shortly before dimension jump
-            performTeleport.run();
+        if (rocket.universePosition.distanceTo(targetPosition) < entryDistance) {
+            onTargetReached.run();
         }
 
         if (originPos != null && !rocket.level().isClientSide) {

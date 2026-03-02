@@ -382,7 +382,7 @@ public class PlanetDimension extends Dimension {
         lastPosition = position;
 
         if (!isClientSide) {
-            ServerLevel level = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), getDimensionId());
+            ServerLevel level = DimensionManager.getServerLevel(getDimensionId());
             if (level != null) {
                 if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
                     level.setDayTimePerTick(getDayTimePerTick());

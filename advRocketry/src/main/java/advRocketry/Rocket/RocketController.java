@@ -339,7 +339,8 @@ public class RocketController {
 
         if (isPlanet) {
             // never thrust down
-            desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(0, desiredAcceleration.y), desiredAcceleration.z);
+            // always keep some anti-gravity thrust, this should prevent it from too much tilt
+            desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(antiGravityAcceleration.y * 0.1, desiredAcceleration.y), desiredAcceleration.z);
         }
 
         if (desiredAcceleration.length() > 0.0001 && canUseMainEngines()) {

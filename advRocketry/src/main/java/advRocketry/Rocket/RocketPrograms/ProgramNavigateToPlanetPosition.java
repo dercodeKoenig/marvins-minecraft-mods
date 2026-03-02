@@ -6,6 +6,7 @@ import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
 import advRocketry.utils.Utils;
+import mezz.jei.library.gui.recipes.layout.builder.IngredientAcceptorVoid;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -27,14 +28,21 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     public BlockPos target;
     boolean isStarted = false; // make sure at start it actually fly up
 
+    NavigateToSpaceTravelDimension navigateToSpaceTravelDimension;
+
     public ProgramNavigateToPlanetPosition() {
         // empty constructor required for save & load
     }
 
-    public ProgramNavigateToPlanetPosition(ResourceLocation targetDimensionId, ResourceLocation originDimensionId, BlockPos target) {
+    public ProgramNavigateToPlanetPosition(EntityRocket rocket, ResourceLocation targetDimensionId, BlockPos target) {
         this.target = target;
         this.targetDimensionId = targetDimensionId;
-        this.originDimensionId = originDimensionId;
+        this.originDimensionId = rocket.level().dimension().location();
+
+        if (!Objects.equals(originDimensionId, targetDimensionId)) {
+            // we need to go to other dimension
+            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(rocket.level().getBlockEntity(rocket.getDockingStationPos()), rocket);
+        }
     }
 
     public void run(EntityRocket rocket) {
@@ -43,9 +51,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         // or make a custom program for it?
         // custom program is better....
 
-        PlanetDimension targetDimension = (PlanetDimension)DimensionManager.getDimensionManager(rocket.level().isClientSide).get(targetDimensionId);
-        if(targetDimension == null) {
-            rocket.setDeltaMovement(0,0,0);
+        PlanetDimension targetDimension = (PlanetDimension) DimensionManager.getDimensionManager(rocket.level().isClientSide).get(targetDimensionId);
+        if (targetDimension == null) {
+            rocket.setDeltaMovement(0, 0, 0);
             rocket.endProgram();
             return;
         }
@@ -140,9 +148,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // but in reality it does not face up
                 // so here, i limit max speed and max downside
                 double maxD = 1000;
-                if(rocket.position().y - targetY > maxD)
+                if (rocket.position().y - targetY > maxD)
                     targetY = rocket.position().y - maxD;
-                targetY = Math.max(targetY, yCurrentBelow-yOffset-10);
+                targetY = Math.max(targetY, yCurrentBelow - 15); // some y offset or it would approach infinite slow
 
                 // in the end it is not a true suicide burn,
                 // but it should make heavy rockets with low acceleration thrust early and no smash into ground
@@ -179,13 +187,15 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 });
             } else {
                 // we are not at target dim, move to space!
-                NavigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
+                navigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
                     public boolean onSpaceReached() {
+                        if(rocket.level().isClientSide) return false;
+
+                        // if we come from a pace station that orbits the planet,
+                        // skip space travel and go to target instantly
                         Dimension rocketDimension = DimensionManager.INSTANCE_SERVER.get(rocket.level().dimension().location());
                         if (rocketDimension instanceof SpaceStationDimension spaceStationDimension) {
-                            if(Objects.equals(spaceStationDimension.getParentDimensionId(), targetDimensionId) && spaceStationDimension.isInOrbit()){
-                                // if we come from a pace station that orbits the planet,
-                                // skip space travel and go to target instantly
+                            if (Objects.equals(spaceStationDimension.getParentDimensionId(), targetDimensionId) && spaceStationDimension.isInOrbit()) {
                                 teleportToPlanet(rocket);
                                 return true;
                             }
@@ -198,8 +208,10 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     }
 
     void teleportToPlanet(EntityRocket rocket) {
+        if(rocket.level().isClientSide)return;
+
         // get the teleportation target
-        ServerLevel targetLevel = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), targetDimensionId);
+        ServerLevel targetLevel = DimensionManager.getServerLevel(targetDimensionId);
         Vec3 targetPos = new Vec3(target.getX(), Config.INSTANCE.planet_Sky_Height, target.getZ());
 
         Vec3 entrySpeed = new Vec3(
@@ -215,8 +227,11 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         target = NbtUtils.readBlockPos(nbt, "target").get();
         isStarted = nbt.getBoolean("isStarted");
         targetDimensionId = ResourceLocation.parse(nbt.getString("targetDimensionId"));
-        if (nbt.contains("originDimensionId"))
-            originDimensionId = ResourceLocation.parse(nbt.getString("originDimensionId"));
+        originDimensionId = ResourceLocation.parse(nbt.getString("originDimensionId"));
+        if(nbt.contains("navigateToSpaceTravelDimension")) {
+            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension();
+            navigateToSpaceTravelDimension.readFromNbt(nbt.getCompound("navigateToSpaceTravelDimension"));
+        }
     }
 
     @Override
@@ -225,8 +240,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         tag.put("target", NbtUtils.writeBlockPos(target));
         tag.putBoolean("isStarted", isStarted);
         tag.putString("targetDimensionId", targetDimensionId.toString());
-        if (originDimensionId != null)
-            tag.putString("originDimensionId", originDimensionId.toString());
+        tag.putString("originDimensionId", originDimensionId.toString());
+        if(navigateToSpaceTravelDimension != null)
+            tag.put("navigateToSpaceTravelDimension", navigateToSpaceTravelDimension.saveToNbt());
         return tag;
     }
 }

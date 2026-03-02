@@ -102,6 +102,21 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
+    public Direction getDockingDirection(){
+        if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof  SpaceStationDimension){
+            return Direction.DOWN; // the chosen direction for docking space stations
+        }
+        return Direction.UP; // this should not even be required anywhere but just for having it correct
+    }
+    public Vec3 getMoveAwayDirection(){
+        Direction moveAwayDirection = Direction.UP;
+        if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof  SpaceStationDimension){
+            moveAwayDirection = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
+        }
+        Vec3 moveAway = new Vec3(moveAwayDirection.getStepX(), moveAwayDirection.getStepY(), moveAwayDirection.getStepZ());
+        return moveAway;
+    }
+
     public Vec3 getLandingPos(@Nullable EntityRocket rocket) {
         if (areaMin == null || areaMax == null) {
             // if there is no launchpad area, the rocket should land just behind the assembler
@@ -477,7 +492,6 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             boolean shouldOutputRedstone = currentRocket != null && currentRocket.getCurrentProgram() == null;
             if(shouldOutputRedstone != isRedstoneOutputActive){
                 isRedstoneOutputActive = shouldOutputRedstone;
-                //level.updateNeighbourForOutputSignal(getBlockPos(),getBlockState().getBlock());
                 setChanged(); // <- updates neighbors for redstone signal
             }
 
@@ -511,7 +525,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             }
 
             if(currentRocket != null) {
-                currentRocket.setDockingStationPos(getBlockPos());
+                if(currentRocket.getCurrentProgram() == null) {
+                    // when the rocket is landed, set its docking station position to this
+                    currentRocket.setDockingStationPos(getBlockPos(), true);
+                }
             }
 
             // update gui

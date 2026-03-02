@@ -85,9 +85,9 @@ public class RocketSaveAndLoad {
             rocket.setProgramAndSync(RocketProgram.createFromNbt(compoundTag.getCompound("currentProgram")));
         }
 
-        if (compoundTag.contains("lastLaunchPosition")) {
-            Vec3i lastLaunchPosition = Utils.deSerializeVec3i(compoundTag.getCompound("lastLaunchPosition"));
-            rocket.setLastLaunchPosition(new BlockPos(lastLaunchPosition.getX(), lastLaunchPosition.getY(), lastLaunchPosition.getZ()), true);
+        if (compoundTag.contains("dockingStationPos")) {
+            Vec3i dockingStationPos = Utils.deSerializeVec3i(compoundTag.getCompound("dockingStationPos"));
+            rocket.setDockingStationPos(dockingStationPos, true);
         }
 
         if (compoundTag.contains("size")) {
@@ -167,7 +167,7 @@ public class RocketSaveAndLoad {
 
         compoundTag.put("currentProgram", RocketProgram.saveToNbt(rocket.getCurrentProgram()));
 
-        compoundTag.put("lastLaunchPosition", Utils.serializeVec3i(rocket.getLastLaunchPosition()));
+        compoundTag.put("dockingStationPos", Utils.serializeVec3i(rocket.getDockingStationPos()));
 
         compoundTag.put("size", Utils.serializeVec3i(rocket.size));
 

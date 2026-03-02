@@ -116,7 +116,7 @@ public class OxygenSystem {
                     continue;
                 if (dim.hasEnoughOxygen())
                     continue;
-                ServerLevel level = DimensionManager.getServerLevel(server, levelId);
+                ServerLevel level = DimensionManager.getServerLevel(levelId);
                 if (level == null)
                     continue;
                 for (Entity e : level.getEntities().getAll()) {

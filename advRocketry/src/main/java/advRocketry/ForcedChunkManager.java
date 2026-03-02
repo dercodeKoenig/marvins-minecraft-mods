@@ -64,7 +64,7 @@ public class ForcedChunkManager {
 
             ResourceLocation levelId = ResourceLocation.parse(entry.levelId);
             ChunkPos pos = new ChunkPos(entry.chunkPos);
-            ServerLevel level = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), levelId);
+            ServerLevel level = DimensionManager.getServerLevel(levelId);
 
             // The callback to release tickets does not trigger for dynamic dimensions because they are created after the server is started.
             // If we just forceChunk (... true ...) it will not force load the chunk, idk why exactly this happens.
@@ -106,8 +106,7 @@ public class ForcedChunkManager {
         HashMap<ChunkPos, Long> levelForcedChunks = forcedChunks.get(l);
 
         if (!levelForcedChunks.containsKey(pos)) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            ServerLevel level = DimensionManager.getServerLevel(server, l);
+            ServerLevel level = DimensionManager.getServerLevel(l);
             if (level != null) {
                 ticketController.forceChunk(level, ticketOwner, pos.x, pos.z, true, true);
                 //System.out.println("Set chunk force loaded: " + pos + " in " + l);
@@ -122,11 +121,10 @@ public class ForcedChunkManager {
     /// cleans up force loaded chunks after some time
     public static void tick() {
         if (GlobalTime.getGlobalTime() % 20 == 17) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 
             for (ResourceLocation levelId : forcedChunks.keySet()) {
                 HashMap<ChunkPos, Long> levelForcedChunks = forcedChunks.get(levelId);
-                ServerLevel level = DimensionManager.getServerLevel(server, levelId);
+                ServerLevel level = DimensionManager.getServerLevel(levelId);
                 if (level == null) {
                     forcedChunks.remove(levelId);
                     System.out.println("Level for " + levelId + " is null. If a dynamic dimension was removed, this is normal.");

@@ -85,8 +85,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // rocket control
     public RocketProgram currentProgram = null;
     public RocketController controller;
-    BlockPos dockingStationPos = null; // should be set by rocket assembler when rocket is landed, no need to save it to nbt
-    BlockPos lastLaunchPosition = new BlockPos(0, 0, 0);
+    BlockPos dockingStationPos = null;
     Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
 
     // passenger
@@ -390,21 +389,17 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         sendToClients(tag);
     }
 
-    public void setLastLaunchPosition(BlockPos target, boolean syncToClient) {
-        if (!level().isClientSide && syncToClient && !Objects.equals(target, lastLaunchPosition)) {
+    public void setDockingStationPos(Vec3i target, boolean syncToClient) {
+        if (!level().isClientSide && syncToClient && !Objects.equals(target, dockingStationPos)) {
             CompoundTag tag = new CompoundTag();
-            tag.put("lastLaunchPosition", Utils.serializeVec3i(target));
+            tag.put("dockingStationPos", Utils.serializeVec3i(target));
             sendToClients(tag);
         }
-        lastLaunchPosition = target;
-    }
-
-    public BlockPos getLastLaunchPosition() {
-        return lastLaunchPosition;
-    }
-
-    public void setDockingStationPos(BlockPos pos) {
-        dockingStationPos = pos;
+        if(target == null)
+            dockingStationPos = null;
+        else {
+            dockingStationPos = new BlockPos(target.getX(), target.getY(), target.getZ());
+        }
     }
 
     public BlockPos getDockingStationPos() {
@@ -495,8 +490,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         // run program or shutdown
         if (currentProgram != null) {
             currentProgram.run(this);
-            // remove docking position because we no longer docked when program is started
-            dockingStationPos = null;
+            setDockingStationPos(null, false);
         } else {
             controller.setTargetPosition(null, false);
             controller.enableSecondaryEngines(false, false);
@@ -554,22 +548,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             if (targetDimension != null && targetDimension.canVisit()) {
                 if (targetDimension instanceof PlanetDimension) {
                     // target level is planet, use planet navigation program
-                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition(targetLevelId, level().dimension().location(), targetPos);
+                    ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition(this, targetLevelId, targetPos);
                     setProgramAndSync(p);
-                    if (dockingStationPos != null)
-                        setLastLaunchPosition(dockingStationPos, true);
-                    else
-                        setLastLaunchPosition(blockPosition(), true);
                     temporaryInfoTimeout = 0;
                     return true;
                 }
                 if (targetDimension instanceof SpaceStationDimension) {
-                    ProgramNavigateToSpaceStation p = new ProgramNavigateToSpaceStation(targetLevelId, level().dimension().location(), targetPos, this);
+                    ProgramNavigateToSpaceStation p = new ProgramNavigateToSpaceStation(this, targetLevelId, targetPos);
                     setProgramAndSync(p);
-                    if (dockingStationPos != null)
-                        setLastLaunchPosition(dockingStationPos, true);
-                    else
-                        setLastLaunchPosition(blockPosition(), true);
                     temporaryInfoTimeout = 0;
                     return true;
                 }
@@ -603,51 +589,58 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         kill();
     }
 
-    public EntityRocket teleportTo(ServerLevel target, Vec3 targetPos, Vec3 velocity) {
+    public EntityRocket teleportTo(Level level, Vec3 targetPos, Vec3 velocity) {
 
         controller.setTargetPosition(null, false); // position is probably invalid because dimension change
 
-        // the dimension change is like this:
-        // 1: unmount entities, but store where they were seated
-        // 1: teleport every entity to the new dimension and put the new uuid to the new seat map
-        // 2: teleport rocket
-        // 3: find the entities by the new uuid and mount them at random position
-        // 4: fix the seat position
-        // 5: on client side: trigger remount on first tick because minecraft fails to sync correctly
+        if (level != level() && level instanceof ServerLevel target) {
 
-        // store the passengers to remount them after dimension change at correct positions
-        Map<UUID, BlockPos> newPassengerPositions = new HashMap<>();
+            // the dimension change is like this:
+            // 1: unmount entities, but store where they were seated
+            // 1: teleport every entity to the new dimension and put the new uuid to the new seat map
+            // 2: teleport rocket
+            // 3: find the entities by the new uuid and mount them at random position
+            // 4: fix the seat position
+            // 5: on client side: trigger remount on first tick because minecraft fails to sync correctly
 
-        // unmount, teleport and store new uuid
-        for (Entity passenger : getPassengers()) {
-            if (passenger != null) {
-                DimensionTransition transition = new DimensionTransition(target, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
-                BlockPos seatPos = getPassengersPositions().get(passenger.getUUID());
-                passenger.stopRiding();
-                Entity newEntity = passenger.changeDimension(transition);
-                newPassengerPositions.put(newEntity.getUUID(), seatPos);
+            // store the passengers to remount them after dimension change at correct positions
+            Map<UUID, BlockPos> newPassengerPositions = new HashMap<>();
+
+            // unmount, teleport and store new uuid
+            for (Entity passenger : getPassengers()) {
+                if (passenger != null) {
+                    DimensionTransition transition = new DimensionTransition(target, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+                    BlockPos seatPos = getPassengersPositions().get(passenger.getUUID());
+                    passenger.stopRiding();
+                    Entity newEntity = passenger.changeDimension(transition);
+                    newPassengerPositions.put(newEntity.getUUID(), seatPos);
+                }
             }
-        }
 
-        // teleport rocket
-        DimensionTransition transition = new DimensionTransition(target, targetPos, velocity, getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
-        EntityRocket newRocket = (EntityRocket) changeDimension(transition);
+            // teleport rocket
+            DimensionTransition transition = new DimensionTransition(target, targetPos, velocity, getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+            EntityRocket newRocket = (EntityRocket) changeDimension(transition);
 
-        // remount passengers
-        for (UUID passengerUUID : newPassengerPositions.keySet()) {
-            Entity e = (target).getEntity(passengerUUID);
-            if (e != null) {
-                e.startRiding(newRocket);
+            // remount passengers
+            for (UUID passengerUUID : newPassengerPositions.keySet()) {
+                Entity e = (target).getEntity(passengerUUID);
+                if (e != null) {
+                    e.startRiding(newRocket);
+                }
             }
+
+            // fix passengers positions
+            newRocket.setPassengersPositions(newPassengerPositions);
+
+            // keep the chunk loaded initially
+            ForcedChunkManager.keepChunkForceLoaded(target, newRocket.chunkPosition());
+
+            return newRocket;
+        } else {
+            setPos(targetPos);
+            setDeltaMovement(velocity);
+            return this;
         }
-
-        // fix passengers positions
-        newRocket.setPassengersPositions(newPassengerPositions);
-
-        // keep the chunk loaded initially
-        ForcedChunkManager.keepChunkForceLoaded(target, newRocket.chunkPosition());
-
-        return newRocket;
     }
 
     // sync changes to client for render (for example the fluid level in a fluid container)

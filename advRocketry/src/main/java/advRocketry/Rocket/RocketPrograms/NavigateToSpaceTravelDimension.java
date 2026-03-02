@@ -1,59 +1,42 @@
 package advRocketry.Rocket.RocketPrograms;
 
+import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.utils.CelestialUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+
+import javax.annotation.Nullable;
 
 // just a helper program, is not actually a real full program
 public class NavigateToSpaceTravelDimension {
 
-    public static boolean run(EntityRocket rocket, SpaceReachedCallback callback) {
+    public StationDockingProgram.UnDockingProgram unDockingProgram;
 
-        if (rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
-            return true;
-        }
+    public NavigateToSpaceTravelDimension() {
 
-        Dimension myDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
-        if (myDim instanceof SpaceStationDimension spaceStationDimension) {
-            // logic for space station
-            // undock from station and move to launchpos.y-50, then thrust away
-            if (rocket.level() instanceof ServerLevel serverLevel) {
-                if (!callback.onSpaceReached()) {
-                    teleportToSpaceTravel(rocket, myDim);
-                }
-            }
-        } else {
-            // normal logic; just fly high up!
-            rocket.controller.enableMainEngines(true, false);
-            rocket.controller.enableSecondaryEngines(false, false);
-            rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
-            rocket.controller.setRotationRateMultiplier(1,false);
-
-            rocket.controller.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
-
-            if (rocket.position().y > Config.INSTANCE.planet_Sky_Height) {
-                if (rocket.level() instanceof ServerLevel serverLevel) {
-                    // teleport to space travel dimension
-                    if (!callback.onSpaceReached()) {
-                       teleportToSpaceTravel(rocket, myDim);
-                    }
-                } else {
-                    // client side, while waiting on dimension transition do not stop and rotate the rocket midflight, just keep going and wait for teleport to kick in
-                    rocket.controller.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
-                }
-            }
-        }
-
-        return false;
     }
 
-    public static void teleportToSpaceTravel(EntityRocket rocket, Dimension myDim){
+    public NavigateToSpaceTravelDimension(@Nullable BlockEntity dockingStation, @Nullable EntityRocket rocket) {
+        if (dockingStation instanceof EntityRocketAssembler rocketAssembler && DimensionManager.INSTANCE_SERVER.get(rocket.level().dimension().location()) instanceof SpaceStationDimension) {
+            unDockingProgram = new StationDockingProgram.UnDockingProgram(
+                    rocketAssembler.getLandingPos(rocket),
+                    rocketAssembler.getDockingDirection(),
+                    rocketAssembler.getMoveAwayDirection()
+            );
+        }
+    }
+
+    public static void teleportToSpaceTravel(EntityRocket rocket, Dimension myDim) {
         if (myDim != null) {
             if (myDim instanceof PlanetDimension p) {
                 // for planets, move to the correct position relative to the planet.
@@ -71,11 +54,72 @@ public class NavigateToSpaceTravelDimension {
         }
 
         // get the teleportation target
-        ServerLevel target = DimensionManager.getServerLevel(ServerLifecycleHooks.getCurrentServer(), RocketTravelDimension.dimId);
+        ServerLevel target = DimensionManager.getServerLevel(RocketTravelDimension.dimId);
         ChunkPos targetPos = RocketTravelDimension.getNextFreeChunkPos();
         BlockPos targetBlockPos = targetPos.getMiddleBlockPosition(100);
 
         rocket.teleportTo(target, targetBlockPos.getCenter(), new Vec3(0, 0, 0));
+    }
+
+    public boolean run(EntityRocket rocket, SpaceReachedCallback callback) {
+
+        if (rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
+            return true;
+        }
+
+        Dimension myDim = DimensionManager.getDimensionManager(rocket.level().isClientSide).get(rocket.level().dimension().location());
+        if (myDim instanceof SpaceStationDimension spaceStationDimension) {
+            // logic for space station
+
+            if (unDockingProgram != null) {
+                unDockingProgram.run(rocket, () -> {
+                }, () -> {
+                    unDockingProgram = null;
+                });
+            }
+            if (unDockingProgram == null) {
+                // undock from station and move to launchpos.y-50, then thrust away
+                if (!callback.onSpaceReached()) {
+                    if (rocket.level() instanceof ServerLevel serverLevel) {
+                        teleportToSpaceTravel(rocket, myDim);
+                    }
+                }
+            }
+        } else {
+            // normal logic; just fly high up!
+            rocket.controller.enableMainEngines(true, false);
+            rocket.controller.enableSecondaryEngines(false, false);
+            rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
+            rocket.controller.setRotationRateMultiplier(1, false);
+
+            rocket.controller.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
+
+            if (rocket.position().y > Config.INSTANCE.planet_Sky_Height) {
+                if (!callback.onSpaceReached()) {
+                    if (rocket.level() instanceof ServerLevel) {
+                        teleportToSpaceTravel(rocket, myDim);
+                    } else {
+                        // client side, while waiting on dimension transition do not stop and rotate the rocket midflight, just keep going and wait for teleport to kick in
+                        rocket.controller.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public void readFromNbt(CompoundTag nbt) {
+        if (nbt.contains("unDockingProgram")) {
+            unDockingProgram = new StationDockingProgram.UnDockingProgram();
+            unDockingProgram.readFromNbt(nbt.getCompound("unDockingProgram"));
+        }
+    }
+
+    public CompoundTag saveToNbt() {
+        CompoundTag tag = new CompoundTag();
+        if (unDockingProgram != null)
+            tag.put("unDockingProgram", unDockingProgram.saveToNbt());
+        return tag;
     }
 
     public interface SpaceReachedCallback {

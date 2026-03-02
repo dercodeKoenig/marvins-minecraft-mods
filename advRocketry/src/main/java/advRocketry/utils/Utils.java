@@ -31,12 +31,17 @@ public class Utils {
 
     public static CompoundTag serializeVec3i(Vec3i v) {
         CompoundTag Tag = new CompoundTag();
-        Tag.putInt("x", v.getX());
-        Tag.putInt("y", v.getY());
-        Tag.putInt("z", v.getZ());
+        if(v == null){
+            Tag.putInt("null",0);
+        }else {
+            Tag.putInt("x", v.getX());
+            Tag.putInt("y", v.getY());
+            Tag.putInt("z", v.getZ());
+        }
         return Tag;
     }
     public static Vec3i deSerializeVec3i(CompoundTag tag) {
+        if(tag.contains("null"))return null;
         return new Vec3i(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
     }
 

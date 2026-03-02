@@ -50,7 +50,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         else return INSTANCE_SERVER;
     }
 
-    public static ServerLevel getServerLevel(MinecraftServer server, ResourceLocation dimensionId) {
+    public static ServerLevel getServerLevel(ResourceLocation dimensionId) {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         return server.getLevel(ResourceKey.create(Registries.DIMENSION, dimensionId));
     }
 
