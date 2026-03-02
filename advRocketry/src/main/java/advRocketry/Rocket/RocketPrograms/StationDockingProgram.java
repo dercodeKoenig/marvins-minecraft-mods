@@ -37,7 +37,7 @@ public class StationDockingProgram {
                     ).scale(10+rocket.size.getY())
             );
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
-            if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 5)
+            if (rocket.getDeltaMovement().length() < 0.03 && toTarget.length() < 5)
                 rocket.controller.enableMainEngines(false, false);
             else
                 rocket.controller.enableMainEngines(true, false);
@@ -74,12 +74,12 @@ public class StationDockingProgram {
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
 
-            Vec3 scaledToTarget = new Vec3(toTarget.x, toTarget.y / 2, toTarget.z);
+            Vec3 scaledToTarget = new Vec3(toTarget.x, toTarget.y / 1.5, toTarget.z);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);
 
             rocket.controller.setTargetPosition(targetVec3, false);
 
-            if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 0.1) {
+            if (rocket.getDeltaMovement().length() < 0.005 && toTarget.length() < 0.1) {
                 if(!rocket.level().isClientSide) {
                     rocket.setPos(dockingPosition);
                     rocket.setDeltaMovement(0,0,0);
