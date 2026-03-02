@@ -31,6 +31,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -226,22 +227,34 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return EntityDimensions.fixed((float) Math.max(size.getX(), size.getZ()), (float) size.getY());
     }
 
-    @Override
-    protected AABB makeBoundingBox() {
-        if(controller == null) return super.makeBoundingBox();
-        if (size == null) return super.makeBoundingBox();
-
-        Vec3 heading = controller.getHeading();
-
-        double w = Math.max(size.getX(), size.getZ());
-        double h = size.getY();
-        double maxX = Math.abs(heading.x);
-        double maxY = Math.abs(heading.y);
-        double maxZ = Math.abs(heading.z);
+    public Direction.Axis findClosestAxis(Vec3 direction){
+        double maxX = Math.abs(direction.x);
+        double maxY = Math.abs(direction.y);
+        double maxZ = Math.abs(direction.z);
         if (maxX > maxY && maxX > maxZ) {
-            return new AABB(position().x - h / 2, position().y - w / 2 + h / 2, position().z - w / 2, position().x + h / 2, position().y + w / 2 + h / 2, position().z + w / 2);
+            return Direction.Axis.X;
         }
         if (maxZ > maxY && maxZ > maxX) {
+            return Direction.Axis.Z;
+        }
+        return Direction.Axis.Y;
+    }
+
+    @Override
+    public AABB makeBoundingBox() {
+        if (controller == null) return super.makeBoundingBox();
+        if (size == null) return super.makeBoundingBox();
+        Vec3 heading = controller.getHeading();
+        return makeBoundingBox(findClosestAxis(heading));
+    }
+
+    public AABB makeBoundingBox(Direction.Axis axis) {
+        double w = Math.max(size.getX(), size.getZ());
+        double h = size.getY();
+        if (axis == Direction.Axis.X) {
+            return new AABB(position().x - h / 2, position().y - w / 2 + h / 2, position().z - w / 2, position().x + h / 2, position().y + w / 2 + h / 2, position().z + w / 2);
+        }
+        if (axis == Direction.Axis.Z) {
             return new AABB(position().x - w / 2, position().y - w / 2 + h / 2, position().z - h / 2, position().x + w / 2, position().y + w / 2 + h / 2, position().z + h / 2);
         }
         // normal bb

@@ -8,6 +8,7 @@ import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -54,6 +55,9 @@ public class RocketController {
     // for more smooth rotation, lazy heading and front are used
     Vec3 lazyHeading = heading;
     Vec3 lazyFront = front;
+
+    // when the heading changes we might need to update the bounding box
+    Direction.Axis lastBBAxis = null;
 
     public RocketController(EntityRocket rocket) {
         this.rocket = rocket;
@@ -260,6 +264,13 @@ public class RocketController {
         Vec3 newLazyFront = lazyHeading.cross(lazyFrontInvalid.cross(lazyHeading)).normalize();
         frontRotationRate = newLazyFront.subtract(lazyFront);
         lazyFront = newLazyFront;
+
+        // update bounding box after rotation
+        Direction.Axis newHeadingAxis = rocket.findClosestAxis(getHeading());
+        if(newHeadingAxis != lastBBAxis){
+            rocket.setBoundingBox(rocket.makeBoundingBox(newHeadingAxis));
+            lastBBAxis = newHeadingAxis;
+        }
 
     }
 
