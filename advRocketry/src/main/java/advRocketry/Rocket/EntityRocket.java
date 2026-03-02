@@ -849,7 +849,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void recalculateMass() {
         float mass = 0;
-        mass += blocks.size() * Config.INSTANCE.rocket_Block_Weight; // block weight
+        for(BlockState block : blocks.values()){
+            if(!block.isAir()) {
+                mass += 1 * Config.INSTANCE.rocket_Block_Weight; // block weight
+            }
+        }
         mass += getFuel() * Config.INSTANCE.rocket_Fuel_Weight_Per_MB; // fuel weight
         for (BlockEntity e : blockEntities.values()) {
             if (e instanceof EntityCargoHold entityCargoHold) {
