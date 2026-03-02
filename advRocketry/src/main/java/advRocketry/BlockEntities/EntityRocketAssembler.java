@@ -161,10 +161,12 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 // so the docking position needs to be lowered by half y size
                 int sizeY = rocket.size.getY();
                 double halfY = (double) sizeY / 2;
-                landPos = new Vec3(landPos.x, landPos.y - halfY, landPos.z);
+                int sizeHorizontal = Math.max(rocket.size.getX(), rocket.size.getZ());
+                double halfSizeHorizontal = (double) sizeHorizontal / 2;
+                landPos = new Vec3(landPos.x, landPos.y - halfY + halfSizeHorizontal, landPos.z);
 
                 // the rocket will also need to move more away
-                landPos = landPos.relative(facing.getOpposite(),halfY);
+                landPos = landPos.relative(facing.getOpposite(),halfY - halfSizeHorizontal);
             }
         }
 
