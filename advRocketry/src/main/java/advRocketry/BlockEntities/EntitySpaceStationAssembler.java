@@ -84,7 +84,6 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
 
     @Override
     public void makeGui() {
-        // guihandler needs redesign
         guiHandler = new GuiHandlerBlockEntity(this);
 
         // use 1 as id, 0 would trigger rocket build
@@ -119,7 +118,12 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 100, 200, 0, 1, guiHandler));
     }
 
-    public SpaceStationDimension createNewSpaceStationDimension(String name, UUID owner) {
+    @Override
+    public void updateGuiDockingSettings() {
+// empty, does not exist here but if it is called in onload it would crash because the gui modules are not initialized
+    }
+
+        public SpaceStationDimension createNewSpaceStationDimension(String name, UUID owner) {
         SpaceStationDimensionProperties props = new SpaceStationDimensionProperties();
         props.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, UUID.randomUUID().toString());
         props.owner = owner;
@@ -242,6 +246,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         super.readClient(compoundTag);
     }
 
+    @Override
     public void tick() {
 
         if (level.isClientSide) {
@@ -292,6 +297,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 
+    @Override
     public void openGui() {
         if (level.isClientSide)
             guiHandler.openGui(176, 190, true);

@@ -13,7 +13,6 @@ import advRocketry.Blocks.StructureTower;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.DimensionProperties;
 import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
@@ -48,19 +47,26 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     // the current rocket is the one on launchpad.
     // if there is none on launchpad area, it will keep the reference to the previous one until it is removed or ends its program
-    EntityRocket currentRocket;
+    public EntityRocket currentRocket;
 
     // we output redstone to a comparator when a rocket is landed and has no program running
     boolean isRedstoneOutputActive = false;
 
     public BlockEntityBattery battery;
 
-    GuiHandlerBlockEntity guiHandler;
-    guiModuleButton buildButton;
-    guiModuleText statusText;
+    public GuiHandlerBlockEntity guiHandler;
+    public guiModuleButton buildButton;
+    public guiModuleButton dockingDirectionButton;
+    public guiModuleButton horizontalDockingButton;
+    public guiModuleText dockingSettingsTitle;
+    public guiModuleText statusText;
 
     public BlockPos areaMin;
     public BlockPos areaMax;
+
+    // for space stations: docking mode settings
+    public Direction dockingDirection = Direction.DOWN;
+    boolean horizontalDocking = false;
 
     public int buildProgress = -1;
     public int clientBuildProgress = -1; // used for smooth rendering of the build structure tower animation
@@ -88,6 +94,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         guiHandler.modules.add(
                 new guiModuleEnergy(2,battery,guiHandler,138,7)
         );
+
+
+        dockingDirectionButton = new guiModuleButton(30, "direction", guiHandler, 10, 100, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiHandler.modules.add(dockingDirectionButton);
+        horizontalDockingButton = new guiModuleButton(31, "mode", guiHandler, 90, 100, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiHandler.modules.add(horizontalDockingButton);
+        dockingSettingsTitle = new guiModuleText(32, "Docking Settings:", guiHandler, 10, 85, 0x00000000, false);
+        guiHandler.modules.add(dockingSettingsTitle);
     }
 
     @Override
@@ -99,12 +113,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, ping));
         } else {
             scanArea();
+            updateGuiDockingSettings();
         }
     }
 
     public Direction getDockingDirection(){
         if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof  SpaceStationDimension){
-            return Direction.DOWN; // the chosen direction for docking space stations
+            return dockingDirection;
         }
         return Direction.UP; // this should not even be required anywhere but just for having it correct
     }
@@ -415,6 +430,20 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
+    public void updateGuiDockingSettings() {
+        if (!(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)) {
+            dockingDirectionButton.setIsEnabledAndBroadcastUpdate(false);
+            horizontalDockingButton.setIsEnabledAndBroadcastUpdate(false);
+            dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(false);
+        } else {
+            dockingDirectionButton.setIsEnabledAndBroadcastUpdate(true);
+            horizontalDockingButton.setIsEnabledAndBroadcastUpdate(true);
+            dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(true);
+        }
+        dockingDirectionButton.setTextAndSync(dockingDirection.getName());
+        horizontalDockingButton.setTextAndSync(horizontalDocking ? "horizontal" : "vertical");
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         if (compoundTag.contains("ping")) {
@@ -432,6 +461,20 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     // signal client to close the gui
                     guiHandler.signalCloseGui(serverPlayer);
                 }
+            }
+
+            if(id==30){
+                if(dockingDirection == Direction.UP)
+                    dockingDirection = Direction.DOWN;
+                else if(dockingDirection == Direction.DOWN)
+                    dockingDirection = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
+                else
+                    dockingDirection = Direction.UP;
+                updateGuiDockingSettings();
+            }
+            if(id==31){
+                horizontalDocking = !horizontalDocking;
+                updateGuiDockingSettings();
             }
         }
 
@@ -580,12 +623,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("buildProgress", buildProgress);
         tag.putInt("energy", battery.getEnergyStored());
+        tag.putInt("dockingDirection", dockingDirection.ordinal());
+        tag.putBoolean("dockingDirection", horizontalDocking);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         buildProgress = tag.getInt("buildProgress");
         battery.setEnergy(tag.getInt("energy"));
+        dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
+        horizontalDocking = tag.getBoolean("dockingDirection");
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -593,8 +640,12 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     }
 
     public void openGui() {
-        if (level.isClientSide)
-            guiHandler.openGui(160, 100, true);
+        if (level.isClientSide) {
+            int h = 100;
+            if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)
+                h = 130; // the docking mode buttons
+            guiHandler.openGui(160, h, true);
+        }
     }
 
     public enum ConstructionResult{
