@@ -59,7 +59,6 @@ public class StationDockingProgram {
             // check if stopped (at target or collision maybe)
             if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 2) {
                 checkpointReached = true;
-                System.out.println("checkpoint reached");
             }
         }
 
