@@ -99,9 +99,11 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
             if(unDockingProgram != null) {
                 unDockingProgram.run(rocket,
                         () -> {
+                            // when on same dimension, stop after undocked from other station
                             unDockingProgram = null;
                         },
                         () -> {
+                            // if we are already undocked for some reason but still run this program, end it here!
                             unDockingProgram = null;
                         });
             }
