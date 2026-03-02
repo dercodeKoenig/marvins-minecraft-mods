@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 
 public class StationDockingProgram {
@@ -69,7 +70,11 @@ public class StationDockingProgram {
             rocket.controller.enableSecondaryEngines(true, false);
             rocket.controller.setRotationRateMultiplier(0.2, false);
             rocket.controller.setDefaultTargetHeading(new Vec3(0,1,0), false);
-            rocket.controller.setTargetFront(new Vec3(1,0,0), false); // TODO: set rocket assembler heading or up
+
+            if(rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
+                Direction targetFront = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+                rocket.controller.setTargetFront(new Vec3(targetFront.getStepX(), targetFront.getStepY(), targetFront.getStepZ()), false);
+            }
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
 
