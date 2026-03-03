@@ -1,23 +1,17 @@
 package advRocketry.Dimension;
 
-import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Config;
-import advRocketry.Main;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.SpaceNavigation;
 import advRocketry.worldgen.SpaceDimensionGeneration;
-import com.google.gson.Gson;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
@@ -149,10 +143,10 @@ public class SpaceStationDimension extends Dimension {
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         // don't ask me why, 180 is just the offset that works
         double angleDeg = properties().frontFacing.toYRot() + 180;
-        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), new Vec3(0,1,0), angleDeg);
-        Vec3 upRotatedToFacing = CelestialUtils.rotate(getUp(), new Vec3(0,1,0), angleDeg);
+        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), new Vec3(0, 1, 0), angleDeg);
+        Vec3 upRotatedToFacing = CelestialUtils.rotate(getUp(), new Vec3(0, 1, 0), angleDeg);
         return new AxisDirections(
-               frontRotatedToFacing,
+                frontRotatedToFacing,
                 upRotatedToFacing
         );
     }
@@ -224,6 +218,10 @@ public class SpaceStationDimension extends Dimension {
         }
     }
 
+    public float getTargetOrbitDistance() {
+        return properties().orbitDistanceTarget;
+    }
+
     public void setTargetOrbitAxis(Vec3 orbitAxis) {
         Vec3 normalizedOrbit = orbitAxis.normalize();
         if (normalizedOrbit.dot(properties().orbitAxisTarget) < 0.9999) {
@@ -232,12 +230,44 @@ public class SpaceStationDimension extends Dimension {
         }
     }
 
+    public Vec3 getTargetOrbitAxis() {
+        return properties().orbitAxisTarget;
+    }
+
     public Vec3 getFront() {
         return lazyFront;
     }
 
     public Vec3 getUp() {
         return lazyUp;
+    }
+
+    public void setRotationSettings(double yaw, double roll, double pitch, SpaceStationDimensionProperties.RotationMode mode) {
+        boolean requiresUpdate = false;
+        if (properties().yaw != yaw)
+            requiresUpdate = true;
+        if (properties().roll != roll)
+            requiresUpdate = true;
+        if (properties().pitch != pitch)
+            requiresUpdate = true;
+        if (properties().rotationMode != mode)
+            requiresUpdate = true;
+
+        properties().yaw = yaw;
+        properties().roll = roll;
+        properties().pitch = pitch;
+        properties().rotationMode = mode;
+
+        if (requiresUpdate)
+            dimensionManager.syncDimensionProperties(this);
+    }
+
+    public Vec3 getRotationSettings() {
+        return new Vec3(properties().yaw, properties().roll, properties().pitch);
+    }
+
+    public SpaceStationDimensionProperties.RotationMode getRotationMode() {
+        return properties().rotationMode;
     }
 
     @Override
@@ -250,11 +280,7 @@ public class SpaceStationDimension extends Dimension {
         if (!dimensionManager.isClientSide) {
             //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
             setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
-            setTargetOrbitDistance(0.5f);
-            setTargetOrbitAxis(new Vec3(0, 1, 0));
         }
-        setTargetFront(new Vec3(-1,0,0));
-        //properties().frontFacing = Direction.SOUTH;
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactor));
@@ -389,10 +415,14 @@ public class SpaceStationDimension extends Dimension {
         return distanceAU < planetRenderRadiusAU * maxR * 1.2;
     }
 
+    public static double getOrbitDistanceTarget(double planetRenderRadiusAU, double orbitDistanceTarget) {
+        double maxR = Config.INSTANCE.station_Max_Orbit_R_Factor;
+        return planetRenderRadiusAU * (1.5 + maxR * orbitDistanceTarget);
+    }
+
     Vec3 getTargetPosition(double planetRenderRadiusAU, Vec3 planetPosition) {
         Vec3 directionToPlanet = planetPosition.subtract(properties().position);
-        double maxR = Config.INSTANCE.station_Max_Orbit_R_Factor;
-        double orbitDistanceTarget = planetRenderRadiusAU * (1.5 + maxR * properties().orbitDistanceTarget);
+        double orbitDistanceTarget = getOrbitDistanceTarget(planetRenderRadiusAU, properties().orbitDistanceTarget);
         Vec3 targetOrbitAxis = properties().orbitAxisTarget;
         Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToPlanet)).normalize();
         Vec3 targetPosition = planetPosition.add(equator.scale(orbitDistanceTarget));
