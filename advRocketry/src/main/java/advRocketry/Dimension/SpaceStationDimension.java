@@ -211,6 +211,10 @@ public class SpaceStationDimension extends Dimension {
         }
     }
 
+    public float getTargetOrbitDistance() {
+        return properties().orbitDistanceTarget;
+    }
+
     public void setTargetOrbitDistance(float targetDistance) {
         if (Math.abs(properties().orbitDistanceTarget - targetDistance) > 0.00001) {
             properties().orbitDistanceTarget = targetDistance;
@@ -218,8 +222,8 @@ public class SpaceStationDimension extends Dimension {
         }
     }
 
-    public float getTargetOrbitDistance() {
-        return properties().orbitDistanceTarget;
+    public Vec3 getTargetOrbitAxis() {
+        return properties().orbitAxisTarget;
     }
 
     public void setTargetOrbitAxis(Vec3 orbitAxis) {
@@ -228,10 +232,6 @@ public class SpaceStationDimension extends Dimension {
             properties().orbitAxisTarget = normalizedOrbit;
             dimensionManager.syncDimensionProperties(this);
         }
-    }
-
-    public Vec3 getTargetOrbitAxis() {
-        return properties().orbitAxisTarget;
     }
 
     public Vec3 getFront() {
@@ -415,7 +415,7 @@ public class SpaceStationDimension extends Dimension {
         return distanceAU < planetRenderRadiusAU * maxR * 1.2;
     }
 
-    public static double getOrbitDistanceTarget(double planetRenderRadiusAU, double orbitDistanceTarget) {
+    public double getOrbitDistanceTarget(double planetRenderRadiusAU, double orbitDistanceTarget) {
         double maxR = Config.INSTANCE.station_Max_Orbit_R_Factor;
         return planetRenderRadiusAU * (1.5 + maxR * orbitDistanceTarget);
     }
