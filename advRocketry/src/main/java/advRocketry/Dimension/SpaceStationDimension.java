@@ -305,7 +305,7 @@ public class SpaceStationDimension extends Dimension {
         // planets only variably for position is the global time, but here it is more difficult
         // i will send the properties to the client every few seconds
         // but only to the players on this dimension
-        if (GlobalTime.getGlobalTime() % 20 * 10 == 0) {
+        if (GlobalTime.getGlobalTime() % (20 * 10) == 0) {
             dimensionManager.syncDimensionProperties(this, true);
         }
         if (dimensionManager.isClientSide && !Objects.equals(getDimensionId(), ClientUtils.getPlayerLevel().dimension().location()))

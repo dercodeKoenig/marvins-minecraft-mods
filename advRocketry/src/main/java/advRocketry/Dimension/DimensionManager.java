@@ -77,7 +77,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     public void syncDimensionProperties(Dimension dimension, boolean sameLevelOnly) {
         if (isClientSide) return;
         for (ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
-            if (sameLevelOnly && !p.level().dimension().equals(dimension.getDimensionId()))
+            if (sameLevelOnly && !p.level().dimension().location().equals(dimension.getDimensionId()))
                 continue;
             SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, dimension);
         }
@@ -258,7 +258,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
 
         public void readClient(String props) {
-            System.out.println(props);
+            //System.out.println(props);
             INSTANCE_CLIENT.loadDimensionFromString(props);
         }
     }
