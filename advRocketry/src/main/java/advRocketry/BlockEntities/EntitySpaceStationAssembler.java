@@ -123,7 +123,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
 // empty, does not exist here but if it is called in onload it would crash because the gui modules are not initialized
     }
 
-        public SpaceStationDimension createNewSpaceStationDimension(String name, UUID owner) {
+    public SpaceStationDimension createNewSpaceStationDimension(String name, UUID owner) {
         SpaceStationDimensionProperties props = new SpaceStationDimensionProperties();
         props.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, UUID.randomUUID().toString());
         props.owner = owner;
@@ -248,6 +248,18 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
     }
 
     @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("inventory", inventory.serializeNBT(registries));
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+    }
+
+    @Override
     public void tick() {
 
         if (level.isClientSide) {
@@ -285,18 +297,6 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
                 broadcastInformationToPlayers(null);
             }
         }
-    }
-
-    @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("inventory", inventory.serializeNBT(registries));
-    }
-
-    @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        inventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 
     @Override

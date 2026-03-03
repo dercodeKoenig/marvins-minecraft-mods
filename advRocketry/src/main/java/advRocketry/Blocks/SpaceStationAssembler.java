@@ -37,7 +37,6 @@ public class SpaceStationAssembler extends RocketAssembler implements EntityBloc
         return false;
     }
 
-
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return ENTITY_SPACE_STATION_ASSEMBLER.get().create(blockPos, blockState);

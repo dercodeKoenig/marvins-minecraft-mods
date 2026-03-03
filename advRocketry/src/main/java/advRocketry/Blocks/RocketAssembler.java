@@ -7,6 +7,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -34,6 +35,39 @@ public class RocketAssembler extends Block implements EntityBlock {
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
+    // when a launch pad structure is placed or removed, trigger a rescan of all nearby rocket assembling machines
+    public static void propagateScanRequestToMaster(Set<BlockPos> completed, BlockPos current, Level level) {
+        if (completed.contains(current)) return;
+        if (level.isClientSide) return;
+        completed.add(current);
+
+        if (level.getBlockEntity(current) instanceof EntityRocketAssembler rocketAssembler) {
+            rocketAssembler.scanArea();
+        }
+
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockPos next = new BlockPos(current.offset(x, y, z));
+                    Block nextBlock = level.getBlockState(next).getBlock();
+                    if (
+                            nextBlock instanceof LaunchPad ||
+                                    nextBlock instanceof StructureTower ||
+                                    nextBlock instanceof RocketAssembler
+                    ) {
+                        if (!completed.contains(next))
+                            propagateScanRequestToMaster(completed, next, level);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return ENTITY_ROCKET_ASSEMBLER.get().create(blockPos, blockState);
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
@@ -41,12 +75,15 @@ public class RocketAssembler extends Block implements EntityBlock {
     }
 
     @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable LivingEntity placer, ItemStack stack) {
-        state = level.getBlockState(pos);
-        if (placer != null) {
-            state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite());
+        if (level.getBlockEntity(pos) instanceof EntityRocketAssembler rocketAssembler) {
+            rocketAssembler.scanArea();
         }
-        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 
     @Override
@@ -66,12 +103,6 @@ public class RocketAssembler extends Block implements EntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_ROCKET_ASSEMBLER.get().create(blockPos, blockState);
-    }
-
-
-    @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockEntity b = level.getBlockEntity(pos);
         if (b instanceof EntityRocketAssembler h)
@@ -83,30 +114,4 @@ public class RocketAssembler extends Block implements EntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityRocketAssembler::tick;
     }
-
-
-    // when a launch pad structure is placed or removed, trigger a rescan of all nearby rocket assembling machines
-    public static void propagateScanRequestToMaster(Set<BlockPos> completed, BlockPos current, Level level) {
-        if (completed.contains(current)) return;
-        if (level.isClientSide) return;
-        completed.add(current);
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    BlockPos next = new BlockPos(current.offset(x, y, z));
-                    Block nextBlock = level.getBlockState(next).getBlock();
-                    if (
-                            nextBlock instanceof LaunchPad ||
-                                    nextBlock instanceof StructureTower) {
-                        propagateScanRequestToMaster(completed, next, level);
-                    }
-                    BlockEntity be = level.getBlockEntity(next);
-                    if (be instanceof EntityRocketAssembler rocketAssembler) {
-                        rocketAssembler.scanArea();
-                    }
-                }
-            }
-        }
-    }
-
 }

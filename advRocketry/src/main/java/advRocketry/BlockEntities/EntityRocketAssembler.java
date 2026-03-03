@@ -60,6 +60,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public guiModuleButton horizontalDockingButton;
     public guiModuleText dockingSettingsTitle;
     public guiModuleText statusText;
+    public guiModuleEnergy energyBar;
 
     public BlockPos areaMin;
     public BlockPos areaMax;
@@ -84,17 +85,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         makeGui();
     }
 
-    public void makeGui(){
+    public void makeGui() {
         guiHandler = new GuiHandlerBlockEntity(this);
         buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, BTN_BLACK, BTN_W, BTN_W);
         statusText = new guiModuleText(1, "status:", guiHandler, 10, 10, 0x00000000, false);
         guiHandler.modules.add(buildButton);
         guiHandler.modules.add(statusText);
-
-        guiHandler.modules.add(
-                new guiModuleEnergy(2,battery,guiHandler,138,7)
-        );
-
+        energyBar = new guiModuleEnergy(2, battery, guiHandler, 138, 7);
+        guiHandler.modules.add(energyBar);
 
         dockingDirectionButton = new guiModuleButton(30, "direction", guiHandler, 10, 100, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(dockingDirectionButton);
@@ -112,7 +110,6 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             ping.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, ping));
         } else {
-            scanArea();
             onDockingSettingsChanged();
         }
     }
@@ -201,8 +198,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         for (int i = 0; i < Config.INSTANCE.rocket_Assembler_Max_Size; i++) {
             Direction side1Direction = facing.getClockWise();
             Direction side2Direction = facing.getCounterClockWise();
-            side1.add(new BlockPos(startingPos).offset(side1Direction.getStepX() * i, side1Direction.getStepY() * i, side1Direction.getStepZ() * i));
-            side2.add(new BlockPos(startingPos).offset(side2Direction.getStepX() * i, side2Direction.getStepY() * i, side2Direction.getStepZ() * i));
+            BlockPos side1Next = new BlockPos(startingPos).offset(side1Direction.getStepX() * i, side1Direction.getStepY() * i, side1Direction.getStepZ() * i);
+            BlockPos side2Next = new BlockPos(startingPos).offset(side2Direction.getStepX() * i, side2Direction.getStepY() * i, side2Direction.getStepZ() * i);
+            // early check if there is a launchpad because if not, the entire row can be ignored
+            // this makes significant speedup
+            if(level.getBlockState(side1Next).getBlock() instanceof LaunchPad)
+                side1.add(side1Next);
+            if(level.getBlockState(side2Next).getBlock() instanceof LaunchPad)
+                side2.add(side2Next);
         }
 
         // we keep the area with the largest volume because there can be many possible areas
@@ -236,13 +239,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
                             // make sure chunk is loaded to scan
                             ChunkPos pos = new ChunkPos(target);
-                            level.getChunk(pos.x, pos.z, ChunkStatus.FULL, true);
+                            level.getChunk(pos.x, pos.z);
 
                             Block block = level.getBlockState(target).getBlock();
                             if (!(block instanceof LaunchPad)) {
                                 isAllValid = false;
+                                break;
                             }
                         }
+                        if(!isAllValid)
+                            break;
                     }
                     if (isAllValid) {
                         // all of the blocks are a launchpad. good.
@@ -303,7 +309,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     //       or another thread?
     public void scanArea() {
         if (level.isClientSide) return;
-        //long t0 = System.currentTimeMillis();
+        long t0 = System.currentTimeMillis();
         Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (myDim instanceof SpaceStationDimension) {
             scanForSpaceDockingArea();
@@ -311,8 +317,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             scanForLaunchPadArea();
         }
         broadcastInformationToPlayers(null);
-        //long t1 = System.currentTimeMillis();
-        //System.out.println("scan complete in " +(t1-t0) +"ms");
+        long t1 = System.currentTimeMillis();
+        System.out.println("scan complete in " +(t1-t0) +"ms");
     }
 
     public ConstructionResult buildRocket(boolean simulate) {
@@ -447,23 +453,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void broadcastInformationToPlayers(ServerPlayer p) {
         CompoundTag info = new CompoundTag();
-        if (areaMin != null && areaMax != null) {
-            info.putInt("minX", areaMin.getX());
-            info.putInt("minY", areaMin.getY());
-            info.putInt("minZ", areaMin.getZ());
-            info.putInt("maxX", areaMax.getX());
-            info.putInt("maxY", areaMax.getY());
-            info.putInt("maxZ", areaMax.getZ());
-        } else {
-            info.put("noArea", new CompoundTag());
-        }
-
-        info.putInt("buildProgress", buildProgress);
-
-        // this needs to be synced so the rocket programs know the correct mode client side too
-        info.putInt("dockingDirection", dockingDirection.ordinal());
-        info.putBoolean("horizontalDocking", horizontalDocking);
-
+        saveAdditional(info, level.registryAccess()); // most of the save data is required on client side so just send it all
         PacketBlockEntity packet = PacketBlockEntity.getBlockEntityPacket(this, info);
         if (p == null) {
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), packet);
@@ -491,16 +481,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 }
             }
 
-            if(id==30){
-                if(dockingDirection == Direction.UP)
+            if (id == 30) {
+                if (dockingDirection == Direction.UP)
                     dockingDirection = Direction.DOWN;
-                else if(dockingDirection == Direction.DOWN)
+                else if (dockingDirection == Direction.DOWN)
                     dockingDirection = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
                 else
                     dockingDirection = Direction.UP;
                 onDockingSettingsChanged();
             }
-            if(id==31){
+            if (id == 31) {
                 horizontalDocking = !horizontalDocking;
                 onDockingSettingsChanged();
             }
@@ -512,27 +502,48 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        if (compoundTag.contains("noArea")) {
+        loadAdditional(compoundTag, level.registryAccess());
+        guiHandler.readClient(compoundTag);
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putInt("buildProgress", buildProgress);
+        tag.putInt("energy", battery.getEnergyStored());
+        tag.putInt("dockingDirection", dockingDirection.ordinal());
+        tag.putBoolean("horizontalDocking", horizontalDocking);
+        if (areaMin != null && areaMax != null) {
+            tag.putInt("minX", areaMin.getX());
+            tag.putInt("minY", areaMin.getY());
+            tag.putInt("minZ", areaMin.getZ());
+            tag.putInt("maxX", areaMax.getX());
+            tag.putInt("maxY", areaMax.getY());
+            tag.putInt("maxZ", areaMax.getZ());
+        } else {
+            tag.put("noArea", new CompoundTag());
+        }
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        if (tag.contains("noArea")) {
             areaMin = null;
             areaMax = null;
         }
-
-        if (compoundTag.contains("minX") && compoundTag.contains("minY") && compoundTag.contains("minZ"))
-            areaMin = new BlockPos(compoundTag.getInt("minX"), compoundTag.getInt("minY"), compoundTag.getInt("minZ"));
-
-        if (compoundTag.contains("maxX") && compoundTag.contains("maxY") && compoundTag.contains("maxZ"))
-            areaMax = new BlockPos(compoundTag.getInt("maxX"), compoundTag.getInt("maxY"), compoundTag.getInt("maxZ"));
-
-        if (compoundTag.contains("buildProgress"))
-            buildProgress = compoundTag.getInt("buildProgress");
-
-        if (compoundTag.contains("dockingDirection"))
-            dockingDirection = Direction.values()[compoundTag.getInt("dockingDirection")];
-
-        if (compoundTag.contains("horizontalDocking"))
-            horizontalDocking = compoundTag.getBoolean("horizontalDocking");
-
-        guiHandler.readClient(compoundTag);
+        if (tag.contains("minX") && tag.contains("minY") && tag.contains("minZ"))
+            areaMin = new BlockPos(tag.getInt("minX"), tag.getInt("minY"), tag.getInt("minZ"));
+        if (tag.contains("maxX") && tag.contains("maxY") && tag.contains("maxZ"))
+            areaMax = new BlockPos(tag.getInt("maxX"), tag.getInt("maxY"), tag.getInt("maxZ"));
+        if (tag.contains("buildProgress"))
+            buildProgress = tag.getInt("buildProgress");
+        if (tag.contains("energy"))
+            battery.setEnergy(tag.getInt("energy"));
+        if (tag.contains("dockingDirection"))
+            dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
+        if (tag.contains("horizontalDocking"))
+            horizontalDocking = tag.getBoolean("horizontalDocking");
     }
 
     public void tick() {
@@ -633,18 +644,22 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 statusText.setTextAndSync(newStatus);
 
                 buildButton.setIsEnabledAndBroadcastUpdate(false);
+                energyBar.setIsEnabledAndBroadcastUpdate(false);
             }
 
             if (currentRocket == null) {
                 if (areaMin == null || areaMax == null) {
                     if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension)
-                        statusText.setTextAndSync("No launchpad detected");
-                    else
                         statusText.setTextAndSync("Launch zone not detected");
+                    else
+                        statusText.setTextAndSync("No launchpad detected");
 
                     buildButton.setIsEnabledAndBroadcastUpdate(false);
+                    energyBar.setIsEnabledAndBroadcastUpdate(false);
+
                 } else {
                     buildButton.setIsEnabledAndBroadcastUpdate(true);
+                    energyBar.setIsEnabledAndBroadcastUpdate(true);
 
                     statusText.setTextAndSync(
                             "\n\n\nReady to build a rocket!\n\nA Rocket requires\n" +
@@ -655,24 +670,6 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 }
             }
         }
-    }
-
-    @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.putInt("buildProgress", buildProgress);
-        tag.putInt("energy", battery.getEnergyStored());
-        tag.putInt("dockingDirection", dockingDirection.ordinal());
-        tag.putBoolean("horizontalDocking", horizontalDocking);
-    }
-
-    @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        buildProgress = tag.getInt("buildProgress");
-        battery.setEnergy(tag.getInt("energy"));
-        dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
-        horizontalDocking = tag.getBoolean("horizontalDocking");
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -692,8 +689,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         SUCCESS(""),
         NO_GUIDANCE_COMPUTER("NO_GUIDANCE_COMPUTER"),
         TOO_MANY_GUIDANCE_COMPUTERS("TOO_MANY_GUIDANCE_COMPUTERS"),
-        INVALID_LAUNCHPAD("INVALID_LAUNCHPAD")
-        ;
+        INVALID_LAUNCHPAD("INVALID_LAUNCHPAD");
+
         final String info;
         ConstructionResult(String info){
             this.info = info;

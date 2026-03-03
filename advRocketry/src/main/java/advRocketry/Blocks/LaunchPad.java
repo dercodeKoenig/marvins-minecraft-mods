@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -45,16 +46,20 @@ public class LaunchPad extends Block {
     }
 
     @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return updateFromNeighbourShapes(stateDefinition.any(), context.getLevel(), context.getClickedPos());
+    }
+
+    @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        state = level.getBlockState(pos);
-        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
         RocketAssembler.propagateScanRequestToMaster(new HashSet<>(), pos, level);
     }
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
-        RocketAssembler.propagateScanRequestToMaster(new HashSet<>(), pos, level);
+        if(newState.getBlock() != state.getBlock())
+            RocketAssembler.propagateScanRequestToMaster(new HashSet<>(), pos, level);
     }
 
 
