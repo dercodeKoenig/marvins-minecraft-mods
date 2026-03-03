@@ -23,7 +23,7 @@ public class guiModuleTextInput extends GuiModuleBase {
         this.isInt = isInt;
     }
 
-    public void client_onMouseCLick(double x, double y, int button) {
+    public void client_onMouseClick(double x, double y, int button) {
         if (isMouseOver(x, y, onGuiX, onGuiY, w, h)) {
             isSelected = true;
         } else {

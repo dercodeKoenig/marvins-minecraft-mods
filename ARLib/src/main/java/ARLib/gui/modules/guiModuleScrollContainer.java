@@ -80,11 +80,11 @@ public class guiModuleScrollContainer extends GuiModuleBase {
         }
     }
 
-    public void client_onMouseCLick(double x, double y, int button) {
+    public void client_onMouseClick(double x, double y, int button) {
         for (int n = 0; n < modules.size(); n++) {
             if (!(n < modules.size())) break;
             GuiModuleBase i = modules.get(n);
-            i.client_onMouseCLick(x, y, button);
+            i.client_onMouseClick(x, y, button);
         }
     }
 

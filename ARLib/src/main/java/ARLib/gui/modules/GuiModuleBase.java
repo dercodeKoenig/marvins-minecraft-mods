@@ -60,7 +60,11 @@ public class GuiModuleBase {
 
     }
 
-    public void client_onMouseCLick(double x, double y, int button) {
+    public void client_onMouseReleased(double x, double y, int button) {
+
+    }
+
+    public void client_onMouseClick(double x, double y, int button) {
 
     }
 

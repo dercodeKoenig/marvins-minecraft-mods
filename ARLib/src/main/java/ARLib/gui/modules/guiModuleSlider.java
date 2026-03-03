@@ -6,9 +6,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 
 public class guiModuleSlider extends GuiModuleBase {
+    public double value = 0;
     int w;
     int h;
-    public double value = 0;
 
     public guiModuleSlider(int id, IGuiHandler guiHandler, int x, int y, int w, int h) {
         super(id, guiHandler, x, y);
@@ -16,9 +16,11 @@ public class guiModuleSlider extends GuiModuleBase {
         this.h = h;
     }
 
-    public void onValueChanged(double value){
+    public void onValueChanged(double value) {
 
-    };
+    }
+
+    ;
 
     public void setValueAndSync(double value) {
         if (this.value != value) {
@@ -47,15 +49,40 @@ public class guiModuleSlider extends GuiModuleBase {
     }
 
     @Override
+    public void server_readNetworkData(CompoundTag tag) {
+        if (tag.contains(getMyTagKey())) {
+            CompoundTag myTag = tag.getCompound(getMyTagKey());
+            if (myTag.contains("value")) {
+                setValueAndSync(myTag.getDouble("value"));
+            }
+        }
+    }
+
+    @Override
     public void client_onMouseDragged(double mouseX, double mouseY, double dragX, double dragY) {
         if (isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h))
             updateValueFromMouse(mouseX);
     }
 
     @Override
-    public void client_onMouseCLick(double mouseX, double mouseY, int button) {
+    public void client_onMouseClick(double mouseX, double mouseY, int button) {
         if (isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h))
             updateValueFromMouse(mouseX);
+    }
+
+    @Override
+    public void client_onMouseReleased(double x, double y, int btn) {
+        // for api
+        CompoundTag info = new CompoundTag();
+        info.putDouble("onSliderUpdate", id);
+        guiHandler.sendToServer(info);
+
+        // internal update
+        CompoundTag tag = new CompoundTag();
+        info = new CompoundTag();
+        info.putDouble("value", value);
+        tag.put(getMyTagKey(), info);
+        guiHandler.sendToServer(tag);
     }
 
     @Override
@@ -66,7 +93,7 @@ public class guiModuleSlider extends GuiModuleBase {
             float partialTick
     ) {
 
-        if(!isEnabled)
+        if (!isEnabled)
             return;
 
         // Draw the background track

@@ -117,7 +117,7 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
     }
 
     @Override
-    public void client_onMouseCLick(double mx, double my, int button) {
+    public void client_onMouseClick(double mx, double my, int button) {
         if (isEnabled) {
             boolean isShiftDown =
                     InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_LSHIFT) ||

@@ -67,7 +67,7 @@ public class ModularScreen extends Screen {
         for (int i = 0; i < c.getModules().size(); i++) {
             if (!(i < c.getModules().size())) break;
             GuiModuleBase m = c.getModules().get(i);
-            m.client_onMouseCLick(x, y, button);
+            m.client_onMouseClick(x, y, button);
         }
 
         // send to guihandler to drop item when clicked outside of the gui
@@ -89,6 +89,11 @@ public class ModularScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         setDragging(false);
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
+            m.client_onMouseReleased(mouseX, mouseY, button);
+        }
         return true;
     }
 

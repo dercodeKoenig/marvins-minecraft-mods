@@ -129,6 +129,8 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     @Override
     public void onLoad() {
         super.onLoad();
+        if(!level.isClientSide)
+            updateGui();
     }
 
     String getRotText(double value) {
@@ -173,12 +175,17 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         pitchAbsolute.setValueAndSync(0.5);
         distance.setValueAndSync(0.2);
         updateGui();
+        setChanged();
     }
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
         System.out.println(compoundTag);
+        if (compoundTag.contains("onSliderUpdate")) {
+            updateGui();
+            setChanged();
+        }
         if (compoundTag.contains("guiButtonClick")) {
             int btn = compoundTag.getInt("guiButtonClick");
             Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
@@ -223,6 +230,7 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
                         rotationMode = SpaceStationDimensionProperties.RotationMode.absolute;
                 }
                 updateGui();
+                setChanged();
             }
         }
     }

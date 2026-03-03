@@ -28,6 +28,7 @@ public class SpaceStationDimension extends Dimension {
     private Vec3 lazyUp;
     private Vec3 movement = Vec3.ZERO;
     private boolean isInOrbit;
+    private boolean isInSpaceTravel;
 
     public SpaceStationDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
@@ -308,6 +309,7 @@ public class SpaceStationDimension extends Dimension {
 
             if (isCloseEnoughForOrbit) {
                 isInOrbit = true;
+                isInSpaceTravel = false;
 
                 // add parent movement
                 movement = movement.add(parentPlanet.getMovement());
@@ -334,6 +336,7 @@ public class SpaceStationDimension extends Dimension {
 
             if (!isCloseEnoughForOrbit) {
                 isInOrbit = false;
+                isInSpaceTravel = true;
 
                 // space navigation logic to move to target position
                 Vec3 travelTarget = SpaceNavigation.getNextTargetAvoidPlanetCollision(targetPosition, position, dimensionManager, parentPlanet);
@@ -363,16 +366,53 @@ public class SpaceStationDimension extends Dimension {
 
                 double speed = maxSpeed * offTargetMultiplier + e * offNextTargetMultiplier;
 
-                setTargetFront(nextTargetPositionRelative);
+                properties().targetFront = nextTargetPositionRelative.normalize();
 
                 movement = getFront().scale(speed);
             }
         } else {
             // station has no target
             isInOrbit = false;
+            isInSpaceTravel = false;
         }
 
         properties().position = position.add(movement);
+
+
+        // update rotation from selected
+        if (!isInSpaceTravel) {
+            SpaceStationDimensionProperties.RotationMode rotationMode = properties().rotationMode;
+            boolean isRelativeRotation = rotationMode == SpaceStationDimensionProperties.RotationMode.relative;
+            boolean isAbsoluteRotation = rotationMode == SpaceStationDimensionProperties.RotationMode.absolute;
+            if (isRelativeRotation || isAbsoluteRotation) {
+                // base for absolute rotation
+                Vec3 targetFront = new Vec3(0, 0, 1);
+                Vec3 targetUp = new Vec3(0, 1, 0);
+                if (properties().rotationMode == SpaceStationDimensionProperties.RotationMode.relative) {
+                    // calculate new base values
+                    if (parent instanceof PlanetDimension parentPlanet) {
+                        Vec3 parentPosition = parentPlanet.getPosition(0);
+                        Vec3 parentToStation = properties().position.subtract(parentPosition);
+                        targetUp = parentToStation.normalize();
+
+                        Vec3 targetOrbitAxis = properties().orbitAxisTarget;
+                        Vec3 right = targetOrbitAxis.cross(parentToStation.scale(-1)).normalize();
+                        targetFront = right;
+                    }
+                }
+                // apply rotations
+                // front rotates around up
+                targetFront = CelestialUtils.rotate(targetFront, targetUp, properties().yaw * 360 - 180);
+                // up rotates around front
+                targetUp = CelestialUtils.rotate(targetUp, targetFront, properties().roll * 360 - 180);
+                // both rotate around pitch
+                Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
+                targetUp = CelestialUtils.rotate(targetUp, pitchAxis, properties().pitch * 360 - 180);
+                targetFront = CelestialUtils.rotate(targetFront, pitchAxis, properties().pitch * 360 - 180);
+                properties().targetFront = targetFront;
+                properties().targetUp = targetUp;
+            }
+        }
     }
 
     // mostly copied from rocket controller
@@ -407,7 +447,6 @@ public class SpaceStationDimension extends Dimension {
     }
 
     void setTargetFront(Vec3 targetFront) {
-        properties().targetFront = targetFront.normalize();
     }
 
     boolean isCloseEnoughForOrbit(double planetRenderRadiusAU, double distanceAU) {
