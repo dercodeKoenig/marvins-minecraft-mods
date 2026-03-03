@@ -445,6 +445,10 @@ public class SpaceStationDimension extends Dimension {
                         Vec3 targetOrbitAxis = properties().orbitAxisTarget;
                         Vec3 right = targetOrbitAxis.cross(parentToStation.scale(-1)).normalize();
                         targetFront = right;
+
+                        // this will make the planet to the side as normal, making it easier to use yaw for rotation
+                        targetUp = targetFront.cross(targetUp);
+
                     }
                 }
                 // apply rotations
