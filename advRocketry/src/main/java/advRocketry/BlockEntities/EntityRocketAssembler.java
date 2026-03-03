@@ -298,6 +298,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
+    // TODO: lazy scanning please!!! it causes too much lag every time i place a block connected to the assembler
+    //      maybe wait 2 seconds before scan so we only scan when player is done placing blocks?
+    //       or another thread?
     public void scanArea() {
         if (level.isClientSide) return;
         //long t0 = System.currentTimeMillis();
