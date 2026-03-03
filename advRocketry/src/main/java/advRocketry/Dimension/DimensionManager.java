@@ -74,11 +74,17 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         syncDimensionProperties(dimension);
     }
 
-    public void syncDimensionProperties(Dimension dimension) {
-        if(isClientSide) return;
+    public void syncDimensionProperties(Dimension dimension, boolean sameLevelOnly) {
+        if (isClientSide) return;
         for (ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+            if (sameLevelOnly && !p.level().dimension().equals(dimension.getDimensionId()))
+                continue;
             SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, dimension);
         }
+    }
+
+    public void syncDimensionProperties(Dimension dimension) {
+        syncDimensionProperties(dimension, false);
     }
 
 

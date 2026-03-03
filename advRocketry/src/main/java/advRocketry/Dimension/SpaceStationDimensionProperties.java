@@ -29,7 +29,6 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
     // the axis we orbit around
     public Vec3 orbitAxisTarget = new Vec3(0, 1, 0);
 
-    // TODO: move to dimension class, replace with target YRot & XRot to use when not in space travel
     public Vec3 targetFront = new Vec3(0, 0, 1);
     public Vec3 front = new Vec3(0, 0, 1);
     public Vec3 targetUp = new Vec3(0, 1, 0);

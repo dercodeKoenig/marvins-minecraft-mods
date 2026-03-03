@@ -1,6 +1,7 @@
 package advRocketry.Dimension;
 
 import advRocketry.Config;
+import advRocketry.GlobalTime;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.SpaceNavigation;
@@ -284,6 +285,15 @@ public class SpaceStationDimension extends Dimension {
 
     @Override
     public void tick() {
+
+        // server and client can get out of sync because stations can move and are not fixed in orbit like a planet
+        // planets only variably for position is the global time, but here it is more difficult
+        // i will send the properties to the client every few seconds
+        // but only to the players on this dimension
+        if(GlobalTime.getGlobalTime() % 20*10 == 0){
+            dimensionManager.syncDimensionProperties(this, true);
+        }
+
         super.tickStarCache();
 
         tickRotation();
