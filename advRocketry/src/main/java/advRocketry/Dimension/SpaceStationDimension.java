@@ -448,9 +448,9 @@ public class SpaceStationDimension extends Dimension {
                     }
                 }
                 // apply rotations
-                // front rotates around up
-                targetFront = CelestialUtils.rotate(targetFront, targetUp, properties().yaw * 360 - 180);
-                // up rotates around front
+                // target front rotates around current up
+                targetFront = CelestialUtils.rotate(targetFront, getUp(), properties().yaw * 360 - 180);
+                // target up rotates around target front
                 targetUp = CelestialUtils.rotate(targetUp, targetFront, properties().roll * 360 - 180);
                 // both rotate around pitch
                 Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
