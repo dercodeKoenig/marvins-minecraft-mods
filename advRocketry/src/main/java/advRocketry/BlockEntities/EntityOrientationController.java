@@ -72,6 +72,10 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
 
 
         yawRelative = new guiModuleSlider(i++, guiHandler, 40, 39, 110, 10) {
+            public void onValueChangedClient(double value) {
+                yawValueText.text = getRotText(value);
+            }
+
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -79,6 +83,9 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         };
         guiHandler.modules.add(yawRelative);
         rollRelative = new guiModuleSlider(i++, guiHandler, 40, 59, 110, 10) {
+            public void onValueChangedClient(double value) {
+                rollValueText.text = getRotText(value);
+            }
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -86,6 +93,9 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         };
         guiHandler.modules.add(rollRelative);
         pitchRelative = new guiModuleSlider(i++, guiHandler, 40, 79, 110, 10) {
+            public void onValueChangedClient(double value) {
+                pitchValueText.text = getRotText(value);
+            }
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -95,6 +105,9 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
 
 
         yawAbsolute = new guiModuleSlider(i++, guiHandler, 40, 39, 110, 10) {
+            public void onValueChangedClient(double value) {
+                yawValueText.text = getRotText(value);
+            }
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -102,6 +115,9 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         };
         guiHandler.modules.add(yawAbsolute);
         rollAbsolute = new guiModuleSlider(i++, guiHandler, 40, 59, 110, 10) {
+            public void onValueChangedClient(double value) {
+                rollValueText.text = getRotText(value);
+            }
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -109,6 +125,9 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         };
         guiHandler.modules.add(rollAbsolute);
         pitchAbsolute = new guiModuleSlider(i++, guiHandler, 40, 79, 110, 10) {
+            public void onValueChangedClient(double value) {
+                pitchValueText.text = getRotText(value);
+            }
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
