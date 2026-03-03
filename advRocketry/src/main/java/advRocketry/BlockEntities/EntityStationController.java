@@ -181,7 +181,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
-        System.out.println(compoundTag);
         if (compoundTag.contains("onSliderUpdate")) {
             updateGui();
             setChanged();
