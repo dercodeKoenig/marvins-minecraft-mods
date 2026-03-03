@@ -37,7 +37,7 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         guiHandler = new GuiHandlerBlockEntity(this);
         int i = 10;
 
-        guiModuleText title = new guiModuleText(-1, "Station Controller", guiHandler, 5,5,0xff000000,false);
+        guiModuleText title = new guiModuleText(-1, "Station Controller", guiHandler, 5, 5, 0xff000000, false);
         guiHandler.modules.add(title);
 
         guiModuleButton applyButton = new guiModuleButton(0, "apply", guiHandler, 10, 125, 40, 15, BTN_BLACK, BTN_W, BTN_H);
@@ -74,7 +74,7 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
             }
         };
         guiHandler.modules.add(y);
-        z = new guiModuleSlider(92, guiHandler, 60, 85, 70, 10){
+        z = new guiModuleSlider(92, guiHandler, 60, 85, 70, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 fixOrientationAxis(2);
                 setChanged();
@@ -100,7 +100,7 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     @Override
     public void onLoad() {
         super.onLoad();
-        if(!level.isClientSide)
+        if (!level.isClientSide)
             updateGuiDistanceText();
     }
 
@@ -108,9 +108,9 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         distanceValueText.setTextAndSync(Math.round(distance.value * 100) + "%");
     }
 
-    public Vec3 createCorrectAxis(Vec3 axis, int fixed){
-        if(axis.length() < 0.001)
-            return new Vec3(0,1,0);
+    public Vec3 createCorrectAxis(Vec3 axis, int fixed) {
+        if (axis.length() < 0.001)
+            return new Vec3(0, 1, 0);
 
         double x = axis.x;
         double y = axis.y;
@@ -171,7 +171,7 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         return new Vec3(x, y, z);
     }
 
-    public void fixOrientationAxis(int fixed){
+    public void fixOrientationAxis(int fixed) {
         Vec3 correct = createCorrectAxis(new Vec3(x.value * 2 - 1, y.value * 2 - 1, z.value * 2 - 1), fixed);
         x.setValueAndSync((correct.x + 1) / 2);
         y.setValueAndSync((correct.y + 1) / 2);
@@ -204,9 +204,9 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
                 if (btn == 1) {
                     // revert
                     Vec3 orbitAxis = spaceStationDimension.getTargetOrbitAxis();
-                    x.setValueAndSync((orbitAxis.x+1)/2);
-                    y.setValueAndSync((orbitAxis.y+1)/2);
-                    z.setValueAndSync((orbitAxis.z+1)/2);
+                    x.setValueAndSync((orbitAxis.x + 1) / 2);
+                    y.setValueAndSync((orbitAxis.y + 1) / 2);
+                    z.setValueAndSync((orbitAxis.z + 1) / 2);
                     distance.setValueAndSync(spaceStationDimension.getTargetOrbitDistance());
                 }
                 if (btn == 2) {
