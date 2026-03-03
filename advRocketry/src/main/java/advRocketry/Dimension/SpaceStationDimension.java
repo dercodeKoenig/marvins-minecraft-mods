@@ -34,8 +34,7 @@ public class SpaceStationDimension extends Dimension {
     // the server will no longer send updates to the player when not in the level
     // this is there to detect if the last update was a longer time ago and then we instantly
     // fill the interpolation targets
-    long lastPropertiesSyncTime = 0;
-
+    private long lastPropertiesSyncTime = 0;
 
     private Vec3 movement = Vec3.ZERO;
     private boolean isInOrbit;
@@ -172,7 +171,7 @@ public class SpaceStationDimension extends Dimension {
             lazyPosition = properties().position;
             lazyFront = properties().front;
             lazyUp = properties().up;
-            System.out.println("client skip interpolation, likely during level change: "+properties.dimensionId);
+            System.out.println("client skip interpolation, likely during level change: " + properties.dimensionId);
         }
         lastPropertiesSyncTime = GlobalTime.getGlobalTime();
     }
@@ -306,10 +305,10 @@ public class SpaceStationDimension extends Dimension {
         // planets only variably for position is the global time, but here it is more difficult
         // i will send the properties to the client every few seconds
         // but only to the players on this dimension
-        if(GlobalTime.getGlobalTime() % 20*10 == 0){
+        if (GlobalTime.getGlobalTime() % 20 * 10 == 0) {
             dimensionManager.syncDimensionProperties(this, true);
         }
-        if(dimensionManager.isClientSide && !Objects.equals(getDimensionId(), ClientUtils.getPlayerLevel().dimension().location()))
+        if (dimensionManager.isClientSide && !Objects.equals(getDimensionId(), ClientUtils.getPlayerLevel().dimension().location()))
             // skip this code on client when it is not on this dimension for performance reason
             // there is nothing in here that is required while the player is on a different dimension
             // during level load it should request a dimension sync to get the current state
