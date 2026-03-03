@@ -4,10 +4,7 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleSlider;
 import ARLib.gui.modules.guiModuleText;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.SpaceStationDimension;
-import advRocketry.Dimension.SpaceStationDimensionProperties;
+import advRocketry.Dimension.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.ENTITY_ORIENTATION_CONTROLLER;
 
-public class EntityStationController extends BlockEntity implements ARLib.network.INetworkTagReceiver {
+public class EntityOrientationController extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
     GuiHandlerBlockEntity guiHandler;
 
@@ -32,100 +29,90 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     guiModuleSlider yawAbsolute;
     guiModuleSlider rollAbsolute;
     guiModuleSlider pitchAbsolute;
-    guiModuleSlider distance;
 
     guiModuleText yawValueText;
     guiModuleText rollValueText;
     guiModuleText pitchValueText;
-    guiModuleText distanceValueText;
 
 
-    public EntityStationController(BlockPos pos, BlockState blockState) {
+    public EntityOrientationController(BlockPos pos, BlockState blockState) {
         super(ENTITY_ORIENTATION_CONTROLLER.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
         int i = 10;
 
-        guiModuleButton applyButton = new guiModuleButton(0, "apply", guiHandler, 10, 115, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleText title = new guiModuleText(-1, "Orientation Controller", guiHandler, 5,5,0xff000000,false);
+        guiHandler.modules.add(title);
+
+        guiModuleButton applyButton = new guiModuleButton(0, "apply", guiHandler, 10, 100, 40, 15, BTN_BLACK, BTN_W, BTN_H);
         applyButton.color = 0xffaaaaaa;
         guiHandler.modules.add(applyButton);
-        guiModuleButton revertButton = new guiModuleButton(1, "revert", guiHandler, 60, 115, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton revertButton = new guiModuleButton(1, "revert", guiHandler, 60, 100, 40, 15, BTN_BLACK, BTN_W, BTN_H);
         revertButton.color = 0xffaaaaaa;
         guiHandler.modules.add(revertButton);
-        guiModuleButton resetButton = new guiModuleButton(2, "reset", guiHandler, 110, 115, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton resetButton = new guiModuleButton(2, "reset", guiHandler, 110, 100, 40, 15, BTN_BLACK, BTN_W, BTN_H);
         resetButton.color = 0xffaaaaaa;
         guiHandler.modules.add(resetButton);
 
-        directionModeButton = new guiModuleButton(3, "relative", guiHandler, 90, 7, 60, 15, BTN_BLACK, BTN_W, BTN_H);
+        directionModeButton = new guiModuleButton(3, "relative", guiHandler, 90, 17, 60, 15, BTN_BLACK, BTN_W, BTN_H);
         directionModeButton.color = 0xffaaaaaa;
         guiHandler.modules.add(directionModeButton);
-        guiModuleText directionModeText = new guiModuleText(i++, "rotation mode:", guiHandler, 10, 10, 0xff000000, false);
+        guiModuleText directionModeText = new guiModuleText(i++, "rotation mode:", guiHandler, 10, 20, 0xff000000, false);
         guiHandler.modules.add(directionModeText);
 
-        guiHandler.modules.add(new guiModuleText(i++, "yaw", guiHandler, 10, 30, 0xff000000, false));
-        guiHandler.modules.add(new guiModuleText(i++, "roll", guiHandler, 10, 50, 0xff000000, false));
-        guiHandler.modules.add(new guiModuleText(i++, "pitch", guiHandler, 10, 70, 0xff000000, false));
-        guiHandler.modules.add(new guiModuleText(i++, "distance", guiHandler, 10, 90, 0xff000000, false));
+        guiHandler.modules.add(new guiModuleText(i++, "yaw", guiHandler, 10, 40, 0xff000000, false));
+        guiHandler.modules.add(new guiModuleText(i++, "roll", guiHandler, 10, 60, 0xff000000, false));
+        guiHandler.modules.add(new guiModuleText(i++, "pitch", guiHandler, 10, 80, 0xff000000, false));
 
-
-        yawValueText = new guiModuleText(i++, "100°", guiHandler, 140, 30, 0xff000000, false);
+        yawValueText = new guiModuleText(i++, "100°", guiHandler, 140, 40, 0xff000000, false);
         guiHandler.modules.add(yawValueText);
-        rollValueText = new guiModuleText(i++, "-120°", guiHandler, 140, 50, 0xff000000, false);
+        rollValueText = new guiModuleText(i++, "-120°", guiHandler, 140, 60, 0xff000000, false);
         guiHandler.modules.add(rollValueText);
-        pitchValueText = new guiModuleText(i++, "6°", guiHandler, 140, 70, 0xff000000, false);
+        pitchValueText = new guiModuleText(i++, "6°", guiHandler, 140, 80, 0xff000000, false);
         guiHandler.modules.add(pitchValueText);
-        distanceValueText = new guiModuleText(i++, "12345km", guiHandler, 140, 90, 0xff000000, false);
-        guiHandler.modules.add(distanceValueText);
 
 
-        yawRelative = new guiModuleSlider(i++, guiHandler, 60, 30, 70, 10) {
+        yawRelative = new guiModuleSlider(i++, guiHandler, 60, 39, 70, 10) {
             public void onValueChanged(double value) {
-                yawValueText.text = getRotText(value);
+                //yawValueText.text = getRotText(value);
             }
         };
         guiHandler.modules.add(yawRelative);
-        rollRelative = new guiModuleSlider(i++, guiHandler, 60, 50, 70, 10) {
+        rollRelative = new guiModuleSlider(i++, guiHandler, 60, 59, 70, 10) {
             public void onValueChanged(double value) {
-                rollValueText.text = getRotText(value);
+                //rollValueText.text = getRotText(value);
             }
         };
         guiHandler.modules.add(rollRelative);
-        pitchRelative = new guiModuleSlider(i++, guiHandler, 60, 70, 70, 10) {
+        pitchRelative = new guiModuleSlider(i++, guiHandler, 60, 79, 70, 10) {
             public void onValueChanged(double value) {
-                pitchValueText.text = getRotText(value);
+                //pitchValueText.text = getRotText(value);
             }
         };
         guiHandler.modules.add(pitchRelative);
 
 
-        yawAbsolute = new guiModuleSlider(i++, guiHandler, 60, 30, 70, 10) {
+        yawAbsolute = new guiModuleSlider(i++, guiHandler, 60, 39, 70, 10) {
             public void onValueChanged(double value) {
-                yawValueText.text = getRotText(value);
+                //yawValueText.text = getRotText(value);
             }
         };
         guiHandler.modules.add(yawAbsolute);
-        rollAbsolute = new guiModuleSlider(i++, guiHandler, 60, 50, 70, 10) {
+        rollAbsolute = new guiModuleSlider(i++, guiHandler, 60, 59, 70, 10) {
             public void onValueChanged(double value) {
-                rollValueText.text = getRotText(value);
+                //rollValueText.text = getRotText(value);
             }
         };
         guiHandler.modules.add(rollAbsolute);
-        pitchAbsolute = new guiModuleSlider(i++, guiHandler, 60, 70, 70, 10) {
+        pitchAbsolute = new guiModuleSlider(i++, guiHandler, 60, 79, 70, 10) {
             public void onValueChanged(double value) {
-                pitchValueText.text = getRotText(value);
+                //pitchValueText.text = getRotText(value);
             }
         };
         guiHandler.modules.add(pitchAbsolute);
-
-        distance = new guiModuleSlider(i++, guiHandler, 60, 90, 70, 10) {
-            public void onValueChanged(double value) {
-                distanceValueText.setTextAndSync(Math.round(value * 100) + "%");
-            }
-        };
-        guiHandler.modules.add(distance);
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityStationController) t).tick();
+        ((EntityOrientationController) t).tick();
     }
 
     @Override
@@ -163,19 +150,19 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         yawValueText.setIsEnabledAndBroadcastUpdate(isAbsoluteOrRelative);
         rollValueText.setIsEnabledAndBroadcastUpdate(isAbsoluteOrRelative);
         pitchValueText.setIsEnabledAndBroadcastUpdate(isAbsoluteOrRelative);
-
-        distanceValueText.setTextAndSync(Math.round(distance.value * 100) + "%");
     }
 
     public void reset() {
-        rotationMode = SpaceStationDimensionProperties.RotationMode.disabled;
-        yawRelative.setValueAndSync(0.5);
-        rollRelative.setValueAndSync(0.5);
-        pitchRelative.setValueAndSync(0.5);
-        yawAbsolute.setValueAndSync(0.5);
-        rollAbsolute.setValueAndSync(0.5);
-        pitchAbsolute.setValueAndSync(0.5);
-        distance.setValueAndSync(0.2);
+        if(rotationMode == SpaceStationDimensionProperties.RotationMode.absolute){
+            yawAbsolute.setValueAndSync(0.5);
+            rollAbsolute.setValueAndSync(0.5);
+            pitchAbsolute.setValueAndSync(0.5);
+        }
+        if(rotationMode == SpaceStationDimensionProperties.RotationMode.relative) {
+            yawRelative.setValueAndSync(0.5);
+            rollRelative.setValueAndSync(0.5);
+            pitchRelative.setValueAndSync(0.5);
+        }
         updateGui();
         setChanged();
     }
@@ -199,7 +186,7 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
                         spaceStationDimension.setRotationSettings(yawAbsolute.value, rollAbsolute.value, pitchAbsolute.value, rotationMode);
                     if (rotationMode == SpaceStationDimensionProperties.RotationMode.relative)
                         spaceStationDimension.setRotationSettings(yawRelative.value, rollRelative.value, pitchRelative.value, rotationMode);
-                    spaceStationDimension.setTargetOrbitDistance((float) distance.value);
+                    guiHandler.signalCloseGui(serverPlayer);
                 }
                 if (btn == 1) {
                     // revert
@@ -215,7 +202,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
                         rollRelative.setValueAndSync(rotationSettings.y);
                         pitchRelative.setValueAndSync(rotationSettings.z);
                     }
-                    distance.setValueAndSync(spaceStationDimension.getTargetOrbitDistance());
                 }
                 if (btn == 2) {
                     // reset
@@ -245,7 +231,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("directionMode", rotationMode.ordinal());
-        tag.putDouble("distance", distance.value);
         tag.putDouble("yawRelative", yawRelative.value);
         tag.putDouble("rollRelative", rollRelative.value);
         tag.putDouble("pitchRelative", pitchRelative.value);
@@ -258,7 +243,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         rotationMode = SpaceStationDimensionProperties.RotationMode.values()[tag.getInt("directionMode")];
-        distance.value = tag.getDouble("distance");
         yawRelative.value = tag.getDouble("yawRelative");
         rollRelative.value = tag.getDouble("rollRelative");
         pitchRelative.value = tag.getDouble("pitchRelative");
@@ -275,6 +259,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(190, 140, true);
+            guiHandler.openGui(190, 125, true);
     }
 }

@@ -14,7 +14,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -90,8 +89,8 @@ public class Registry {
     public static final Supplier<Block> SPACE_STATION_ASSEMBLER = BLOCKS.register("space_station_assembler", () -> new SpaceStationAssembler());
     public static final Supplier<BlockEntityType<EntitySpaceStationAssembler>> ENTITY_SPACE_STATION_ASSEMBLER = BLOCK_ENTITIES.register("space_station_assembler", () -> BlockEntityType.Builder.of(EntitySpaceStationAssembler::new, SPACE_STATION_ASSEMBLER.get()).build(null));
 
-    public static final Supplier<Block> STATION_CONTROLLER = BLOCKS.register("station_controller", () -> new StationController());
-    public static final Supplier<BlockEntityType<EntityStationController>> ENTITY_STATION_CONTROLLER = BLOCK_ENTITIES.register("station_controller", () -> BlockEntityType.Builder.of(EntityStationController::new, STATION_CONTROLLER.get()).build(null));
+    public static final Supplier<Block> ORIENTATION_CONTROLLER = BLOCKS.register("orientation_controller", () -> new OrientationController());
+    public static final Supplier<BlockEntityType<EntityOrientationController>> ENTITY_ORIENTATION_CONTROLLER = BLOCK_ENTITIES.register("orientation_controller", () -> BlockEntityType.Builder.of(EntityOrientationController::new, ORIENTATION_CONTROLLER.get()).build(null));
 
 
 
@@ -116,7 +115,7 @@ public class Registry {
         registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
         registerBlockItem("oxygen_vent", OXYGEN_VENT);
         registerBlockItem("space_station_assembler", SPACE_STATION_ASSEMBLER);
-        registerBlockItem("station_controller", STATION_CONTROLLER);
+        registerBlockItem("orientation_controller", ORIENTATION_CONTROLLER);
 
         registerBlockItem("moon_turf", MOON_TURF);
         registerBlockItem("moon_turf_dark", MOON_TURF_DARK);

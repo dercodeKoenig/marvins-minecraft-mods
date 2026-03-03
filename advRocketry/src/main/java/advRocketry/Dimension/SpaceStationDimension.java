@@ -144,11 +144,10 @@ public class SpaceStationDimension extends Dimension {
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         // don't ask me why, 180 is just the offset that works
         double angleDeg = properties().frontFacing.toYRot() + 180;
-        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), new Vec3(0, 1, 0), angleDeg);
-        Vec3 upRotatedToFacing = CelestialUtils.rotate(getUp(), new Vec3(0, 1, 0), angleDeg);
+        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), getUp(), angleDeg);
         return new AxisDirections(
                 frontRotatedToFacing,
-                upRotatedToFacing
+                getUp()
         );
     }
 
@@ -233,6 +232,18 @@ public class SpaceStationDimension extends Dimension {
             properties().orbitAxisTarget = normalizedOrbit;
             dimensionManager.syncDimensionProperties(this);
         }
+    }
+
+    void setTargetFront(Vec3 targetFront, boolean sync) {
+        properties().targetFront = targetFront.normalize();
+        if (sync)
+            dimensionManager.syncDimensionProperties(this);
+    }
+
+    void setTargetUp(Vec3 targetUp, boolean sync) {
+        properties().targetUp = targetUp.normalize();
+        if (sync)
+            dimensionManager.syncDimensionProperties(this);
     }
 
     public Vec3 getFront() {
@@ -366,7 +377,7 @@ public class SpaceStationDimension extends Dimension {
 
                 double speed = maxSpeed * offTargetMultiplier + e * offNextTargetMultiplier;
 
-                properties().targetFront = nextTargetPositionRelative.normalize();
+                setTargetFront(nextTargetPositionRelative, false);
 
                 movement = getFront().scale(speed);
             }
@@ -409,8 +420,9 @@ public class SpaceStationDimension extends Dimension {
                 Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
                 targetUp = CelestialUtils.rotate(targetUp, pitchAxis, properties().pitch * 360 - 180);
                 targetFront = CelestialUtils.rotate(targetFront, pitchAxis, properties().pitch * 360 - 180);
-                properties().targetFront = targetFront;
-                properties().targetUp = targetUp;
+                setTargetFront(targetFront, false);
+                setTargetUp(targetUp, false);
+                //System.out.println(properties().targetUp+":"+dimensionManager.isClientSide);
             }
         }
     }
@@ -444,9 +456,6 @@ public class SpaceStationDimension extends Dimension {
         rotationCorrection = properties().up.subtract(lazyUp).scale(lerpFactor);
         Vec3 lazyUpInvalid = lazyUp.add(rotationCorrection);
         lazyUp = lazyFront.cross(lazyUpInvalid.cross(lazyFront)).normalize();
-    }
-
-    void setTargetFront(Vec3 targetFront) {
     }
 
     boolean isCloseEnoughForOrbit(double planetRenderRadiusAU, double distanceAU) {

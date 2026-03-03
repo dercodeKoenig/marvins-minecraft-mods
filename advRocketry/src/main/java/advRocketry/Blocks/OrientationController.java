@@ -16,8 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static advRocketry.Registry.ENTITY_ORIENTATION_CONTROLLER;
 
-public class StationController extends Block implements EntityBlock {
-    public StationController() {
+public class OrientationController extends Block implements EntityBlock {
+    public OrientationController() {
         super(Properties.of());
     }
 
