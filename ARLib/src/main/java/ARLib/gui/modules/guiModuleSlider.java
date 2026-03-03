@@ -65,6 +65,10 @@ public class guiModuleSlider extends GuiModuleBase {
             int mouseY,
             float partialTick
     ) {
+
+        if(!isEnabled)
+            return;
+
         // Draw the background track
         guiGraphics.fill(onGuiX, onGuiY + h / 2 - 2, onGuiX + w, onGuiY + h / 2 + 2, 0xFF555555);
 
