@@ -40,7 +40,7 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         guiHandler = new GuiHandlerBlockEntity(this);
         int i = 10;
 
-        guiModuleText title = new guiModuleText(-1, "Orientation Controller", guiHandler, 5,5,0xff000000,false);
+        guiModuleText title = new guiModuleText(-1, "Orientation Controller", guiHandler, 5, 5, 0xff000000, false);
         guiHandler.modules.add(title);
 
         guiModuleButton applyButton = new guiModuleButton(0, "apply", guiHandler, 10, 100, 40, 15, BTN_BLACK, BTN_W, BTN_H);
@@ -124,7 +124,7 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
     @Override
     public void onLoad() {
         super.onLoad();
-        if(!level.isClientSide)
+        if (!level.isClientSide)
             updateGui();
     }
 
@@ -159,12 +159,12 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
     }
 
     public void reset() {
-        if(rotationMode == SpaceStationDimensionProperties.RotationMode.absolute){
+        if (rotationMode == SpaceStationDimensionProperties.RotationMode.absolute) {
             yawAbsolute.setValueAndSync(0.5);
             rollAbsolute.setValueAndSync(0.5);
             pitchAbsolute.setValueAndSync(0.5);
         }
-        if(rotationMode == SpaceStationDimensionProperties.RotationMode.relative) {
+        if (rotationMode == SpaceStationDimensionProperties.RotationMode.relative) {
             yawRelative.setValueAndSync(0.5);
             rollRelative.setValueAndSync(0.5);
             pitchRelative.setValueAndSync(0.5);
