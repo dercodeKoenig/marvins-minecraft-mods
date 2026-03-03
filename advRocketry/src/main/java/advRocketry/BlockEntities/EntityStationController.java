@@ -30,14 +30,18 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         guiHandler = new GuiHandlerBlockEntity(this);
         int i = 0;
 
-        guiModuleButton applyButton = new guiModuleButton(i++, "apply", guiHandler, 10, 95, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton applyButton = new guiModuleButton(i++, "apply", guiHandler, 10, 115, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        applyButton.color = 0xffaaaaaa;
         guiHandler.modules.add(applyButton);
-        guiModuleButton revertButton = new guiModuleButton(i++, "revert", guiHandler, 60, 95, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton revertButton = new guiModuleButton(i++, "revert", guiHandler, 60, 115, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        revertButton.color = 0xffaaaaaa;
         guiHandler.modules.add(revertButton);
-        guiModuleButton resetButton = new guiModuleButton(i++, "reset", guiHandler, 110, 95, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton resetButton = new guiModuleButton(i++, "reset", guiHandler, 110, 115, 40, 15, BTN_BLACK, BTN_W, BTN_H);
+        resetButton.color = 0xffaaaaaa;
         guiHandler.modules.add(resetButton);
 
         guiModuleButton directionModeButton = new guiModuleButton(i++, "relative", guiHandler, 90, 7, 60, 15, BTN_BLACK, BTN_W, BTN_H);
+        directionModeButton.color = 0xffaaaaaa;
         guiHandler.modules.add(directionModeButton);
         guiModuleText directionModeText = new guiModuleText(i++, "rotation mode:", guiHandler, 10, 10, 0xff000000, false);
         guiHandler.modules.add(directionModeText);
@@ -48,14 +52,29 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         guiHandler.modules.add(rollText);
         guiModuleText pitchText = new guiModuleText(i++, "pitch", guiHandler, 10, 70, 0xff000000, false);
         guiHandler.modules.add(pitchText);
+        guiModuleText distanceText = new guiModuleText(i++, "distance", guiHandler, 10, 90, 0xff000000, false);
+        guiHandler.modules.add(distanceText);
 
 
-        yawRelative = new guiModuleSlider(i++, guiHandler, 40, 30, 50, 10);
+        guiModuleText yawText2 = new guiModuleText(i++, "100°", guiHandler, 140, 30, 0xff000000, false);
+        guiHandler.modules.add(yawText2);
+        guiModuleText rollText2 = new guiModuleText(i++, "-120°", guiHandler, 140, 50, 0xff000000, false);
+        guiHandler.modules.add(rollText2);
+        guiModuleText pitchText2 = new guiModuleText(i++, "6°", guiHandler, 140, 70, 0xff000000, false);
+        guiHandler.modules.add(pitchText2);
+        guiModuleText distanceText2 = new guiModuleText(i++, "12345km", guiHandler, 140, 90, 0xff000000, false);
+        guiHandler.modules.add(distanceText2);
+
+
+        yawRelative = new guiModuleSlider(i++, guiHandler, 60, 30, 70, 10);
         guiHandler.modules.add(yawRelative);
-        rollRelative = new guiModuleSlider(i++, guiHandler, 40, 50, 50, 10);
+        rollRelative = new guiModuleSlider(i++, guiHandler, 60, 50, 70, 10);
         guiHandler.modules.add(rollRelative);
-        pitchRelative = new guiModuleSlider(i++, guiHandler, 40, 70, 50, 10);
+        pitchRelative = new guiModuleSlider(i++, guiHandler, 60, 70, 70, 10);
         guiHandler.modules.add(pitchRelative);
+
+        guiModuleSlider distance = new guiModuleSlider(i++, guiHandler, 60, 90, 70, 10);
+        guiHandler.modules.add(distance);
     }
 
     @Override
@@ -90,6 +109,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(180, 120, true);
+            guiHandler.openGui(190, 140, true);
     }
 }
