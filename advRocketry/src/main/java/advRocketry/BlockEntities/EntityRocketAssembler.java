@@ -309,7 +309,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     //       or another thread?
     public void scanArea() {
         if (level.isClientSide) return;
-        long t0 = System.currentTimeMillis();
+        //long t0 = System.currentTimeMillis();
         Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (myDim instanceof SpaceStationDimension) {
             scanForSpaceDockingArea();
@@ -317,8 +317,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             scanForLaunchPadArea();
         }
         broadcastInformationToPlayers(null);
-        long t1 = System.currentTimeMillis();
-        System.out.println("scan complete in " +(t1-t0) +"ms");
+        //long t1 = System.currentTimeMillis();
+        //System.out.println("scan complete in " +(t1-t0) +"ms");
     }
 
     public ConstructionResult buildRocket(boolean simulate) {
