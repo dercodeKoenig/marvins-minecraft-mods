@@ -590,8 +590,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             // TODO: if this takes too long, maybe do it only once per second ?
             AABB area;
             if (areaMin == null || areaMax == null) {
-                Vec3 landingPos = getLandingPos(null);
-                area = new AABB(landingPos.subtract(1, 1, 1), landingPos.add(1, 1, 1)).inflate((double) Config.INSTANCE.rocket_Assembler_Max_Size / 2 + 1);
+                Direction facingOpposite = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
+                BlockPos start = getBlockPos().relative(facingOpposite);
+                double scale = (double) Config.INSTANCE.rocket_Assembler_Max_Size / 2 + 5;
+                // i will scan a narrow area in front where a rocket could possibly have landed / docked when there was no docking area / launchpad
+                area = new AABB(start).inflate(1).inflate(facingOpposite.getStepX()*scale, 0, facingOpposite.getStepZ()*scale);
             } else {
                 area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
