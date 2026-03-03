@@ -20,7 +20,14 @@ public class StarCache {
         if (dimIterator1 == null || !dimIterator1.hasNext()) {
             // Restart once we've gone through all dimensions
             dimIterator1 = new ArrayList<>(myDimension.dimensionManager.dimensions.values()).iterator();
-            // TODO remove deleted planets
+
+            // in case a dimension was deleted, remove it from cache
+            for (ResourceLocation dimId : significantLightSourcesCache.keySet()){
+                if(!myDimension.dimensionManager.dimensions.containsKey(dimId)){
+                    significantLightSourcesCache.remove(dimId);
+                    break;
+                }
+            }
         }
 
         if (dimIterator1.hasNext()) {
