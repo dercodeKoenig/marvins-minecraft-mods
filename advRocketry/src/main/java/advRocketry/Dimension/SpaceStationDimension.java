@@ -4,6 +4,7 @@ import advRocketry.Config;
 import advRocketry.GlobalTime;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.CelestialUtils;
+import advRocketry.utils.ClientUtils;
 import advRocketry.utils.SpaceNavigation;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
@@ -23,10 +24,19 @@ import static advRocketry.utils.CelestialUtils.getPlanetRenderRadiusAU;
 public class SpaceStationDimension extends Dimension {
 
     private static double lerpFactor = 0.01;
+
     // interpolate toward target for smooth movement / sync
     private Vec3 lazyPosition;
     private Vec3 lazyFront;
     private Vec3 lazyUp;
+
+    // the client will stop ticking the station if not in the level
+    // the server will no longer send updates to the player when not in the level
+    // this is there to detect if the last update was a longer time ago and then we instantly
+    // fill the interpolation targets
+    long lastPropertiesSyncTime = 0;
+
+
     private Vec3 movement = Vec3.ZERO;
     private boolean isInOrbit;
     private boolean isInSpaceTravel;
@@ -154,11 +164,17 @@ public class SpaceStationDimension extends Dimension {
 
     @Override
     public void updateDimensionProperties(DimensionProperties properties) {
-        if (!properties().positionInitialized && ((SpaceStationDimensionProperties) properties).positionInitialized) {
-            // when dimension is initialized, to instant lerp to target
-            lazyPosition = ((SpaceStationDimensionProperties) properties).position;
-        }
         super.updateDimensionProperties(properties);
+        if (lastPropertiesSyncTime + 20 * 60 < GlobalTime.getGlobalTime()) {
+            // last update was never or long time ago
+            // maybe initial station creation or player just joined the level
+            // do instant update on interpolation targets
+            lazyPosition = properties().position;
+            lazyFront = properties().front;
+            lazyUp = properties().up;
+            System.out.println("client skip interpolation, likely during level change: "+properties.dimensionId);
+        }
+        lastPropertiesSyncTime = GlobalTime.getGlobalTime();
     }
 
     public ResourceLocation getParentDimensionId() {
@@ -293,6 +309,11 @@ public class SpaceStationDimension extends Dimension {
         if(GlobalTime.getGlobalTime() % 20*10 == 0){
             dimensionManager.syncDimensionProperties(this, true);
         }
+        if(dimensionManager.isClientSide && !Objects.equals(getDimensionId(), ClientUtils.getPlayerLevel().dimension().location()))
+            // skip this code on client when it is not on this dimension for performance reason
+            // there is nothing in here that is required while the player is on a different dimension
+            // during level load it should request a dimension sync to get the current state
+            return;
 
         super.tickStarCache();
 

@@ -21,6 +21,7 @@ import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.MOON;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -53,9 +54,11 @@ import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 import java.io.File;
@@ -80,6 +83,7 @@ public class Main {
             NeoForge.EVENT_BUS.addListener(this::CalculateDetachedCameraDistance);
         }
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
+        NeoForge.EVENT_BUS.addListener(this::onDimensionChange);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStop);
@@ -135,6 +139,14 @@ public class Main {
                 DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, i);
             }
             DimensionManager.SyncDimensionList.syncDimensionListToPlayer(p);
+        }
+    }
+
+    void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        ResourceLocation to = event.getTo().location();
+        if (event.getEntity() instanceof ServerPlayer player) {
+            Dimension dim = DimensionManager.INSTANCE_SERVER.get(to);
+            DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(player, dim);
         }
     }
 
