@@ -176,7 +176,6 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
         x.setValueAndSync((correct.x + 1) / 2);
         y.setValueAndSync((correct.y + 1) / 2);
         z.setValueAndSync((correct.z + 1) / 2);
-        System.out.println(correct);
     }
 
     public void reset() {
@@ -232,18 +231,18 @@ public class EntityStationController extends BlockEntity implements ARLib.networ
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putDouble("distance", distance.value);
-        tag.putDouble("x", x.value);
-        tag.putDouble("y", y.value);
-        tag.putDouble("z", z.value);
+        tag.putDouble("OrbitX", x.value);
+        tag.putDouble("OrbitY", y.value);
+        tag.putDouble("OrbitZ", z.value);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         distance.value = tag.getDouble("distance");
-        x.value = tag.getDouble("x");
-        y.value = tag.getDouble("y");
-        z.value = tag.getDouble("z");
+        x.value = tag.getDouble("OrbitX");
+        y.value = tag.getDouble("OrbitY");
+        z.value = tag.getDouble("OrbitZ");
     }
 
     public void tick() {
