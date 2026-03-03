@@ -5,7 +5,7 @@ import ARLib.gui.IGuiHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 
-abstract public class guiModuleSlider extends GuiModuleBase {
+public class guiModuleSlider extends GuiModuleBase {
     int w;
     int h;
     double value = 0;
@@ -16,7 +16,9 @@ abstract public class guiModuleSlider extends GuiModuleBase {
         this.h = h;
     }
 
-    protected abstract void onValueChanged(double value);
+    public void onValueChanged(double value){
+
+    };
 
     public void setValueAndSync(double value) {
         if (this.value != value) {
