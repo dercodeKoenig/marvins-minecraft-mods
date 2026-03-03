@@ -37,7 +37,9 @@ public class ItemLinker extends Item {
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         CompoundTag tag = getStacktagOrEmpty(stack);
+        boolean hasSelected = false;
         if(tag.contains("uuid")){
+            hasSelected = true;
             tooltipComponents.add(
                     Component.literal(
                             "Selected Entity: "+tag.getUUID("uuid")
@@ -45,6 +47,7 @@ public class ItemLinker extends Item {
             );
         }
         if(tag.contains("p")){
+            hasSelected = true;
             tooltipComponents.add(
                     Component.literal(
                             "Selected Position: "+NbtUtils.readBlockPos(tag, "p").get()
@@ -52,6 +55,7 @@ public class ItemLinker extends Item {
             );
         }
         if(tag.contains("l")){
+            hasSelected = true;
             String levelString = tag.getString("l");
             Dimension selectedDimension = DimensionManager.INSTANCE_CLIENT.get(ResourceLocation.parse(levelString));
             if(selectedDimension != null) {
@@ -67,6 +71,13 @@ public class ItemLinker extends Item {
                     )
             );
         }
+
+        if(hasSelected)
+            tooltipComponents.add(
+                Component.literal(
+                        "shift click to clear selection"
+                )
+            );
     }
 
     public static void selectBlockPos(ItemStack stack, String levelId, BlockPos pos){

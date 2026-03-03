@@ -63,29 +63,29 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         guiHandler.modules.add(new guiModuleText(i++, "roll", guiHandler, 10, 60, 0xff000000, false));
         guiHandler.modules.add(new guiModuleText(i++, "pitch", guiHandler, 10, 80, 0xff000000, false));
 
-        yawValueText = new guiModuleText(i++, "100°", guiHandler, 140, 40, 0xff000000, false);
+        yawValueText = new guiModuleText(i++, "100°", guiHandler, 160, 40, 0xff000000, false);
         guiHandler.modules.add(yawValueText);
-        rollValueText = new guiModuleText(i++, "-120°", guiHandler, 140, 60, 0xff000000, false);
+        rollValueText = new guiModuleText(i++, "-120°", guiHandler, 160, 60, 0xff000000, false);
         guiHandler.modules.add(rollValueText);
-        pitchValueText = new guiModuleText(i++, "6°", guiHandler, 140, 80, 0xff000000, false);
+        pitchValueText = new guiModuleText(i++, "6°", guiHandler, 160, 80, 0xff000000, false);
         guiHandler.modules.add(pitchValueText);
 
 
-        yawRelative = new guiModuleSlider(i++, guiHandler, 60, 39, 70, 10) {
+        yawRelative = new guiModuleSlider(i++, guiHandler, 40, 39, 110, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
             }
         };
         guiHandler.modules.add(yawRelative);
-        rollRelative = new guiModuleSlider(i++, guiHandler, 60, 59, 70, 10) {
+        rollRelative = new guiModuleSlider(i++, guiHandler, 40, 59, 110, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
             }
         };
         guiHandler.modules.add(rollRelative);
-        pitchRelative = new guiModuleSlider(i++, guiHandler, 60, 79, 70, 10) {
+        pitchRelative = new guiModuleSlider(i++, guiHandler, 40, 79, 110, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -94,21 +94,21 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
         guiHandler.modules.add(pitchRelative);
 
 
-        yawAbsolute = new guiModuleSlider(i++, guiHandler, 60, 39, 70, 10) {
+        yawAbsolute = new guiModuleSlider(i++, guiHandler, 40, 39, 110, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
             }
         };
         guiHandler.modules.add(yawAbsolute);
-        rollAbsolute = new guiModuleSlider(i++, guiHandler, 60, 59, 70, 10) {
+        rollAbsolute = new guiModuleSlider(i++, guiHandler, 40, 59, 110, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
             }
         };
         guiHandler.modules.add(rollAbsolute);
-        pitchAbsolute = new guiModuleSlider(i++, guiHandler, 60, 79, 70, 10) {
+        pitchAbsolute = new guiModuleSlider(i++, guiHandler, 40, 79, 110, 10) {
             public void onValueChangeReceivedOnServer(double value) {
                 updateGui();
                 setChanged();
@@ -261,6 +261,6 @@ public class EntityOrientationController extends BlockEntity implements ARLib.ne
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(190, 125, true);
+            guiHandler.openGui(200, 125, true);
     }
 }

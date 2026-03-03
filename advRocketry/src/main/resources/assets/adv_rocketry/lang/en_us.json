@@ -42,6 +42,9 @@
   "block.adv_rocketry.oxygen_vent": "Oxygen Vent",
   "item.adv_rocketry.oxygen_vent": "Oxygen Vent",
 
+  "block.adv_rocketry.space_station_assembler": "Space Station Assembler",
+  "item.adv_rocketry.space_station_assembler": "Space Station Assembler",
+
   "block.adv_rocketry.station_controller": "Station Controller",
   "item.adv_rocketry.station_controller": "Station Controller",
 
