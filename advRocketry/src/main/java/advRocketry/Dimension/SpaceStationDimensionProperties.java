@@ -46,10 +46,21 @@ public class SpaceStationDimensionProperties extends DimensionProperties {
     // this is the front direction of the station
     public Direction frontFacing = Direction.NORTH;
 
+    // rotation settings
+    public double yaw = 0;
+    public double roll = 0;
+    public double pitch = 0;
+    public RotationMode rotationMode = RotationMode.disabled;
+
     public SpaceStationDimensionProperties() {
         this.type = DimensionType.SPACE_STATION;
     }
 
-    // to calculate global axis direction, rotate the front vector around the  y rotation of the stations facing direction?
+    public enum RotationMode {
+        disabled,
+        relative,
+        absolute
+    }
+
 
 }

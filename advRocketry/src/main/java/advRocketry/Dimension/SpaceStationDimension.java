@@ -157,6 +157,15 @@ public class SpaceStationDimension extends Dimension {
         );
     }
 
+    @Override
+    public void updateDimensionProperties(DimensionProperties properties) {
+        if (!properties().positionInitialized && ((SpaceStationDimensionProperties) properties).positionInitialized) {
+            // when dimension is initialized, to instant lerp to target
+            lazyPosition = ((SpaceStationDimensionProperties) properties).position;
+        }
+        super.updateDimensionProperties(properties);
+    }
+
     public ResourceLocation getParentDimensionId() {
         return properties().parentDimensionId;
     }
@@ -388,14 +397,5 @@ public class SpaceStationDimension extends Dimension {
         Vec3 equator = targetOrbitAxis.cross(targetOrbitAxis.cross(directionToPlanet)).normalize();
         Vec3 targetPosition = planetPosition.add(equator.scale(orbitDistanceTarget));
         return targetPosition;
-    }
-
-    @Override
-    public void updateDimensionProperties(DimensionProperties properties) {
-        if (!properties().positionInitialized && ((SpaceStationDimensionProperties) properties).positionInitialized) {
-            // when dimension is initialized, to instant lerp to target
-            lazyPosition = ((SpaceStationDimensionProperties) properties).position;
-        }
-        super.updateDimensionProperties(properties);
     }
 }

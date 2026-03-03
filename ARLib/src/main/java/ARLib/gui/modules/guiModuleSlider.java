@@ -8,7 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 public class guiModuleSlider extends GuiModuleBase {
     int w;
     int h;
-    double value = 0;
+    public double value = 0;
 
     public guiModuleSlider(int id, IGuiHandler guiHandler, int x, int y, int w, int h) {
         super(id, guiHandler, x, y);
