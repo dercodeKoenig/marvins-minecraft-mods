@@ -205,7 +205,8 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         ItemStack linker = inventory.extractItem(0, 1, false);
 
         // create station
-        SpaceStationDimension spaceStationDimension = createNewSpaceStationDimension("name", stationOwner);
+        // TODO: replace name with a given name from text input
+        SpaceStationDimension spaceStationDimension = createNewSpaceStationDimension("Space Station", stationOwner);
 
         // write to linker
         ItemLinker.selectBlockPos(linker, spaceStationDimension.getDimensionId().toString(), new BlockPos(0, 100, 0));
