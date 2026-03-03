@@ -354,6 +354,8 @@ public class Main {
             e.accept(Registry.ROCKET_ITEM_LOADER.get());
             e.accept(Registry.OXYGEN_VENT.get());
             e.accept(Registry.SPACE_STATION_ASSEMBLER.get());
+            e.accept(Registry.STATION_CONTROLLER.get());
+            e.accept(Registry.ORIENTATION_CONTROLLER.get());
             e.accept(Registry.MOON_TURF.get());
             e.accept(Registry.MOON_TURF_DARK.get());
         }

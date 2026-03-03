@@ -42,6 +42,12 @@
   "block.adv_rocketry.oxygen_vent": "Oxygen Vent",
   "item.adv_rocketry.oxygen_vent": "Oxygen Vent",
 
+  "block.adv_rocketry.station_controller": "Station Controller",
+  "item.adv_rocketry.station_controller": "Station Controller",
+
+  "block.adv_rocketry.orientation_controller": "Orientation Controller",
+  "item.adv_rocketry.orientation_controller": "Orientation Controller",
+
 
   "block.adv_rocketry.moon_turf": "Moon Turf",
   "item.adv_rocketry.moon_turf": "Moon Turf",

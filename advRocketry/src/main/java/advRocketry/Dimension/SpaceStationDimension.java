@@ -8,6 +8,7 @@ import advRocketry.utils.ClientUtils;
 import advRocketry.utils.SpaceNavigation;
 import advRocketry.worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -174,6 +175,11 @@ public class SpaceStationDimension extends Dimension {
             System.out.println("client skip interpolation, likely during level change: " + properties.dimensionId);
         }
         lastPropertiesSyncTime = GlobalTime.getGlobalTime();
+    }
+
+    public void setFrontFacing(Direction facing){
+        properties().frontFacing = facing;
+        dimensionManager.syncDimensionProperties(this);
     }
 
     public ResourceLocation getParentDimensionId() {

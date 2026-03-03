@@ -9,6 +9,7 @@ public class guiModuleSlider extends GuiModuleBase {
     public double value = 0;
     int w;
     int h;
+    boolean isChanged = false;
 
     public guiModuleSlider(int id, IGuiHandler guiHandler, int x, int y, int w, int h) {
         super(id, guiHandler, x, y);
@@ -16,11 +17,13 @@ public class guiModuleSlider extends GuiModuleBase {
         this.h = h;
     }
 
-    public void onValueChanged(double value) {
+    public void onValueChangedClient(double value) {
 
     }
 
-    ;
+    public void onValueChangeReceivedOnServer(double value) {
+
+    }
 
     public void setValueAndSync(double value) {
         if (this.value != value) {
@@ -54,13 +57,16 @@ public class guiModuleSlider extends GuiModuleBase {
             CompoundTag myTag = tag.getCompound(getMyTagKey());
             if (myTag.contains("value")) {
                 setValueAndSync(myTag.getDouble("value"));
+                onValueChangeReceivedOnServer(value);
             }
         }
     }
 
     @Override
     public void client_onMouseDragged(double mouseX, double mouseY, double dragX, double dragY) {
-        if (isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h))
+        if (isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h) || isChanged)
+            // if we are already changing and the user keeps dragging, updat the value to max even if
+            // the mouse it out of bounds
             updateValueFromMouse(mouseX);
     }
 
@@ -72,17 +78,15 @@ public class guiModuleSlider extends GuiModuleBase {
 
     @Override
     public void client_onMouseReleased(double x, double y, int btn) {
-        // for api
-        CompoundTag info = new CompoundTag();
-        info.putDouble("onSliderUpdate", id);
-        guiHandler.sendToServer(info);
-
-        // internal update
-        CompoundTag tag = new CompoundTag();
-        info = new CompoundTag();
-        info.putDouble("value", value);
-        tag.put(getMyTagKey(), info);
-        guiHandler.sendToServer(tag);
+        if (isChanged) {
+            isChanged = false;
+            // internal update
+            CompoundTag tag = new CompoundTag();
+            CompoundTag info = new CompoundTag();
+            info.putDouble("value", value);
+            tag.put(getMyTagKey(), info);
+            guiHandler.sendToServer(tag);
+        }
     }
 
     @Override
@@ -108,6 +112,7 @@ public class guiModuleSlider extends GuiModuleBase {
     private void updateValueFromMouse(double mouseX) {
         this.value = (mouseX - onGuiX) / (double) w;
         this.value = Math.max(0, Math.min(1, this.value)); // Clamp 0-1
-        onValueChanged(this.value);
+        isChanged = true;
+        onValueChangedClient(this.value);
     }
 }

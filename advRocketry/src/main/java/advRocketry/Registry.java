@@ -92,6 +92,9 @@ public class Registry {
     public static final Supplier<Block> ORIENTATION_CONTROLLER = BLOCKS.register("orientation_controller", () -> new OrientationController());
     public static final Supplier<BlockEntityType<EntityOrientationController>> ENTITY_ORIENTATION_CONTROLLER = BLOCK_ENTITIES.register("orientation_controller", () -> BlockEntityType.Builder.of(EntityOrientationController::new, ORIENTATION_CONTROLLER.get()).build(null));
 
+    public static final Supplier<Block> STATION_CONTROLLER = BLOCKS.register("station_controller", () -> new StationController());
+    public static final Supplier<BlockEntityType<EntityStationController>> ENTITY_STATION_CONTROLLER = BLOCK_ENTITIES.register("station_controller", () -> BlockEntityType.Builder.of(EntityStationController::new, STATION_CONTROLLER.get()).build(null));
+
 
 
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
@@ -116,6 +119,7 @@ public class Registry {
         registerBlockItem("oxygen_vent", OXYGEN_VENT);
         registerBlockItem("space_station_assembler", SPACE_STATION_ASSEMBLER);
         registerBlockItem("orientation_controller", ORIENTATION_CONTROLLER);
+        registerBlockItem("station_controller", STATION_CONTROLLER);
 
         registerBlockItem("moon_turf", MOON_TURF);
         registerBlockItem("moon_turf_dark", MOON_TURF_DARK);
