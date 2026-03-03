@@ -134,9 +134,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public Vec3 getLandingPos(@Nullable EntityRocket rocket) {
         Vec3 landPos = Vec3.ZERO;
+        boolean isInSpaceStation = DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension;
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-        if (areaMin == null || areaMax == null) {
+        if (areaMin == null || areaMax == null || isInSpaceStation) {
             // if there is no launchpad area, the rocket should land just behind the assembler
+            // also in space stations we calculate this independent of the launchpad structure to align the rocket at the correct position
             int rocketSize = Config.INSTANCE.rocket_Assembler_Max_Size; // assume max size by default
             if (rocket != null)
                 rocketSize = Math.max(rocket.size.getZ(), rocket.size.getX());
@@ -155,7 +157,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
         // if in space station with horizontal docking, the position has to be adjusted
         // this can only be done if rocket is supplied, the programs should supply the current rocket for calculations
-        if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension) {
+        if (isInSpaceStation) {
             if (horizontalDocking && rocket != null) {
                 // a horizontal rocket rotates around center, so size.Y / 2
                 // so the docking position needs to be lowered by half y size

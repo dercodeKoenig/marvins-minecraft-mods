@@ -30,7 +30,7 @@ public class Config {
     public int observatory_Energy_Per_Tick = 10;
 
 
-    public int rocket_Assembler_Max_Size = 36;
+    public int rocket_Assembler_Max_Size = 20;
     public int rocket_Assembler_Build_Time_Base = 12;
     public int rocket_Assembler_Energy_Per_Tick = 100;
 
