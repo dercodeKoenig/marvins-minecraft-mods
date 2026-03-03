@@ -251,14 +251,38 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public AABB makeBoundingBox(Direction.Axis axis) {
         double w = Math.max(size.getX(), size.getZ());
         double h = size.getY();
+        // i make it -offset on every side to allow for better docking
+        // for example a 1x1 rocket should fit through a 1x1 block hole and in full bb it would need infinite precision
+        double offset = 0.03;
         if (axis == Direction.Axis.X) {
-            return new AABB(position().x - h / 2, position().y - w / 2 + h / 2, position().z - w / 2, position().x + h / 2, position().y + w / 2 + h / 2, position().z + w / 2);
+            return new AABB(
+                    position().x - h / 2,
+                    position().y - w / 2 + h / 2 + offset,
+                    position().z - w / 2 + offset,
+                    position().x + h / 2,
+                    position().y + w / 2 + h / 2 - offset,
+                    position().z + w / 2 - offset
+            );
         }
         if (axis == Direction.Axis.Z) {
-            return new AABB(position().x - w / 2, position().y - w / 2 + h / 2, position().z - h / 2, position().x + w / 2, position().y + w / 2 + h / 2, position().z + h / 2);
+            return new AABB(
+                    position().x - w / 2 + offset,
+                    position().y - w / 2 + h / 2 + offset,
+                    position().z - h / 2,
+                    position().x + w / 2 - offset,
+                    position().y + w / 2 + h / 2 - offset,
+                    position().z + h / 2
+            );
         }
         // normal bb
-        return new AABB(position().x - w / 2, position().y, position().z - w / 2, position().x + w / 2, position().y + h, position().z + w / 2);
+        return new AABB(
+                position().x - w / 2 + offset,
+                position().y,
+                position().z - w / 2 + offset,
+                position().x + w / 2 - offset,
+                position().y + h,
+                position().z + w / 2 - offset
+        );
     }
 
     @Override
