@@ -11,7 +11,7 @@ public class RotationUtils {
         Vec3 desiredFront = rocket.controller.getFront().subtract(rocket.controller.frontRotationRate.scale(1-partialTick)).normalize();
         Vec3 worldUp = new Vec3(0, 1, 0);
 
-// --- Step A: tilt (worldUp -> heading) ---
+        // --- Step A: tilt (worldUp -> heading) ---
         Vec3 axisTilt = worldUp.cross(myHeading);
         double axisLen = axisTilt.length();
         float dot = (float) Math.max(-1.0, Math.min(1.0, worldUp.dot(myHeading)));
@@ -33,29 +33,43 @@ public class RotationUtils {
                     (float) axisTilt.x, (float) axisTilt.y, (float) axisTilt.z, angleTilt);
         }
 
-// --- Step B: roll (align front) ---
+        // --- Step B: roll (align front) ---
         Vector3f modelForward = rocket.initialFront.toVector3f();
         qTilt.transform(modelForward); // rotated forward after tilt
         Vec3 rotatedForward = new Vec3(modelForward.x(), modelForward.y(), modelForward.z()).normalize();
 
-// clamp before acos
-        float cosA = (float) Math.max(-1.0, Math.min(1.0, rotatedForward.dot(desiredFront)));
-        float rollAngle = (float) Math.acos(cosA);
+        float dotA = (float) rotatedForward.dot(desiredFront);
+        float cosA = (float) Math.max(-1.0, Math.min(1.0, dotA));
 
-// avoid cross on nearly identical or opposite vectors
-        Vec3 cross = rotatedForward.cross(desiredFront);
-        double crossLen = cross.length();
-        float sign = (crossLen < 1e-8) ? 1f : Math.signum((float) cross.dot(myHeading));
+        Quaternionf qRoll = new Quaternionf();
 
-        Quaternionf qRoll;
-        if (Math.abs(rollAngle) < 1e-6f) {
-            qRoll = new Quaternionf(); // no roll
-        } else {
-            qRoll = new Quaternionf().fromAxisAngleRad(
-                    (float) myHeading.x, (float) myHeading.y, (float) myHeading.z, rollAngle * sign);
+        if (cosA < -0.9999f) {
+            // --- EXACT 180 FLIP CASE ---
+            // If we are exactly opposite, rotate by PI (180°) around the heading axis.
+            // The sign doesn't matter here because 180 and -180 are the same orientation.
+            qRoll.fromAxisAngleRad(
+                    (float) myHeading.x, (float) myHeading.y, (float) myHeading.z, (float) Math.PI
+            );
+        } else if (cosA < 0.9999f) {
+            // --- STANDARD CASE ---
+            float rollAngle = (float) Math.acos(cosA);
+            Vec3 cross = rotatedForward.cross(desiredFront);
+
+            // We check if the cross product (the rotation direction)
+            // is aligned with or against our "spine" (myHeading)
+            float sign = (float) Math.signum(cross.dot(myHeading));
+
+            // If for some reason the cross product is zero but we aren't 180°, sign is 0.
+            // We default to 1.0 to ensure a rotation happens.
+            if (sign == 0) sign = 1.0f;
+
+            qRoll.fromAxisAngleRad(
+                    (float) myHeading.x, (float) myHeading.y, (float) myHeading.z, rollAngle * sign
+            );
         }
+        // else: cosA > 0.9999, meaning we are already aligned. qRoll stays Identity.
 
-// --- Final quaternion ---
+        // --- Final quaternion ---
         Quaternionf q = new Quaternionf(qRoll).mul(qTilt);
         q.normalize();
         return q;
