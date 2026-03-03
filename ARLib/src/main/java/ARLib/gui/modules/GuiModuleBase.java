@@ -56,6 +56,10 @@ public class GuiModuleBase {
 
     }
 
+    public void client_onMouseDragged(double mouseX,double  mouseY, double dragX,double dragY){
+
+    }
+
     public void client_onMouseCLick(double x, double y, int button) {
 
     }

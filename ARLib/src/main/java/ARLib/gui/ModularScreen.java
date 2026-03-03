@@ -82,10 +82,29 @@ public class ModularScreen extends Screen {
             c.sendToServer(tag);
         }
 
+        setDragging(true);
+
+        return true;
+    }
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        setDragging(false);
         return true;
     }
 
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if(this.isDragging() && button == 0){
+            for (int i = 0; i < c.getModules().size(); i++) {
+                if (!(i < c.getModules().size())) break;
+                GuiModuleBase m = c.getModules().get(i);
+                m.client_onMouseDragged(mouseX, mouseY, dragX, dragY);
+            }
+        }
+        return true;
+    }
 
+    @Override
     public boolean charTyped(char codePoint, int modifiers) {
         for (int i = 0; i < c.getModules().size(); i++) {
             if (!(i < c.getModules().size())) break;
@@ -95,6 +114,7 @@ public class ModularScreen extends Screen {
         return true;
     }
 
+    @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         for (int i = 0; i < c.getModules().size(); i++) {
             if (!(i < c.getModules().size())) break;
