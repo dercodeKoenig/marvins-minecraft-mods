@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import static AgeOfSteam.Static.TPS;
 import static AgeOfSteam.Static.rad_to_degree;
@@ -36,7 +38,7 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
     @Override
     public void render(EntityConveyorBelt tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        if (tile.vertexBuffer.isInvalid()) return;
+
         BlockState state = tile.getBlockState();
         if (!(state.getBlock() instanceof ConveyorBelt)) return;
 
@@ -53,57 +55,25 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
                 y1 = 1;
         }
 
-        if (tile.lastLight != packedLight || tile.lastRenderedBlockState != state) {
-            tile.lastLight = packedLight;
-            tile.lastRenderedBlockState = state;
+        float partialRotation = (float) (rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
+        float rotation = (float) (tile.myMechanicalBlock.currentRotation + partialRotation);
+        float v1 = 1;
+        if (y1 != 0 || y0 != 0)
+            v1 = 1.41f; //diagonal, extended uv
 
-            ByteBufferBuilder byteBuffer = new ByteBufferBuilder(64);
-            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-
-            float v1 = 1;
-            if(y1 != 0 || y0 != 0)
-                v1 = 1.41f; //diagonal, extended uv
-
-            b.addVertex(-0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, v1).setOverlay(0).setLight(packedLight);
-            b.addVertex(0.5f, y0, 0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, v1).setOverlay(0).setLight(packedLight);
-            b.addVertex(0.5f, y1, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 0).setOverlay(0).setLight(packedLight);
-            b.addVertex(-0.5f, y1, -0.5f).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 0).setOverlay(0).setLight(packedLight);
-
-            tile.mesh = b.build();
-            tile.vertexBuffer.bind();
-            tile.vertexBuffer.upload(tile.mesh);
-            byteBuffer.close();
-        }
-
+        float vOffset = rotation / 360f;
 
         stack.translate(0.5f, 2f / 16f, 0.5f);
         if (axis == Direction.Axis.X) {
             stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, -90));
         }
 
-        Matrix4f modelMat = new Matrix4f();
-        modelMat = modelMat.mul(stack.last().pose());
+        VertexConsumer v = bufferSource.getBuffer(RenderType.entitySolid(texture));
 
-        float partialRotation = (float) (rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick);
-        float rotation = (float) (tile.myMechanicalBlock.currentRotation + partialRotation);
-
-        RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
-        LIGHTMAP.setupRenderState();
-        LEQUAL_DEPTH_TEST.setupRenderState();
-        NO_TRANSPARENCY.setupRenderState();
-        RenderSystem.setShaderTexture(0, texture);
-
-        ShaderInstance shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        Uniform UVOffset = shader.getUniform("UVOffset");
-        UVOffset.set(0f, rotation / 360f);
-        shader.apply();
-
-        tile.vertexBuffer.bind();
-        tile.vertexBuffer.draw();
-
-        shader.clear();
-        VertexBuffer.unbind();
+        v.addVertex(stack.last(), new Vector3f(-0.5f, y0, 0.5f)).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, v1 + vOffset).setOverlay(packedOverlay).setLight(packedLight);
+        v.addVertex(stack.last(), new Vector3f(0.5f, y0, 0.5f)).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, v1 + vOffset).setOverlay(packedOverlay).setLight(packedLight);
+        v.addVertex(stack.last(), new Vector3f(0.5f, y1, -0.5f)).setNormal(0, 1, 0).setColor(0xffffffff).setUv(1, 0 + vOffset).setOverlay(packedOverlay).setLight(packedLight);
+        v.addVertex(stack.last(), new Vector3f(-0.5f, y1, -0.5f)).setNormal(0, 1, 0).setColor(0xffffffff).setUv(0, 0 + vOffset).setOverlay(packedOverlay).setLight(packedLight);
 
 
         for (ItemStack itemStack : tile.items_progress.keySet()) {
@@ -117,10 +87,5 @@ public class RenderConveyorBelt implements BlockEntityRenderer<EntityConveyorBel
 
             stack.popPose();
         }
-
-        LIGHTMAP.clearRenderState();
-        LEQUAL_DEPTH_TEST.clearRenderState();
-        NO_TRANSPARENCY.clearRenderState();
-
     }
 }

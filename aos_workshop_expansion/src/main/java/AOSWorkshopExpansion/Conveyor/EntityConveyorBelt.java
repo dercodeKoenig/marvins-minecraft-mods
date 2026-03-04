@@ -99,20 +99,9 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
             }
         }
     };
-    int lastLight;
-    BlockState lastRenderedBlockState;
-    MeshData mesh;
-    VertexBuffer vertexBuffer;
-
 
     public EntityConveyorBelt(BlockPos pos, BlockState blockState) {
         super(ENTITY_CONVEYOR_BELT.get(), pos, blockState);
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                VertexBufferCleaner.register(this, vertexBuffer);
-            });
-        }
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
