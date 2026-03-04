@@ -110,8 +110,6 @@ public class BiomeConfig {
             definition.biome2 = definition.biome1;
         if(definition.river1 == null)
             definition.river1 = definition.biome1;
-        if(definition.river2 == null)
-            definition.river2 = definition.biome1;
         if(definition.peak1 == null)
             definition.peak1 = definition.biome1;
         if(definition.peak2 == null)
@@ -149,20 +147,10 @@ public class BiomeConfig {
         biomes.add(Pair.of(
                 new Climate.ParameterPoint(
                         temp.value, humidity.value, continentalness.value, erosion.value, Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(-VALLEY, 0),
+                        Climate.Parameter.span(-VALLEY, VALLEY),
                         0
                 ),
                 getBiomeHolder(definition.river1))
-        );
-
-
-        biomes.add(Pair.of(
-                new Climate.ParameterPoint(
-                        temp.value, humidity.value, continentalness.value, erosion.value, Climate.Parameter.span(-1, 1),
-                        Climate.Parameter.span(0, VALLEY),
-                        0
-                ),
-                getBiomeHolder(definition.river2))
         );
 
         biomes.add(Pair.of(
@@ -272,7 +260,6 @@ public class BiomeConfig {
         public String biome1;
         public String biome2;
         public String river1;
-        public String river2;
         public String peak1;
         public String peak2;
         public List<Temperature> temperaturesList = new ArrayList<>();

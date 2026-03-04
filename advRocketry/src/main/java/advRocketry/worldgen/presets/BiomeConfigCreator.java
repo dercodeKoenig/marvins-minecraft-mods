@@ -42,7 +42,6 @@ public class BiomeConfigCreator {
                 String river = riversByTemperature[temperature];
                 if (river != null && !river.equals("null")) {
                     definition.river1 = river;
-                    definition.river2 = river;
                 }
 
 
