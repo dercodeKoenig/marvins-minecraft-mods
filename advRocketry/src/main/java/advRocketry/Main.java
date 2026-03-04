@@ -338,22 +338,23 @@ public class Main {
             e.accept(Registry.LAUNCHPAD.get());
             e.accept(Registry.STRUCTURE_TOWER.get());
             e.accept(Registry.ROCKET_ASSEMBLER.get());
+            e.accept(Registry.ROCKET_ITEM_LOADER.get());
             e.accept(Registry.ROCKET_MOTOR.get());
             e.accept(Registry.FUEL_TANK.get());
             e.accept(Registry.GUIDANCE_COMPUTER.get());
             e.accept(Registry.CARGO_HOLD.get());
             e.accept(Registry.SEAT.get());
-            e.accept(Registry.ROCKET_FUEL_BUCKET.get());
             e.accept(Registry.FUELING_STATION.get());
+            e.accept(Registry.ROCKET_FUEL_BUCKET.get());
             e.accept(Registry.ITEM_LINKER.get());
             e.accept(Registry.ITEM_GALAXY_STORAGE_DISK.get());
             e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
             e.accept(Registry.OBSERVATORY.get());
-            e.accept(Registry.ROCKET_ITEM_LOADER.get());
-            e.accept(Registry.OXYGEN_VENT.get());
             e.accept(Registry.SPACE_STATION_ASSEMBLER.get());
             e.accept(Registry.STATION_CONTROLLER.get());
             e.accept(Registry.ORIENTATION_CONTROLLER.get());
+            e.accept(Registry.WARP_CONTROLLER.get());
+            e.accept(Registry.OXYGEN_VENT.get());
             e.accept(Registry.MOON_TURF.get());
             e.accept(Registry.MOON_TURF_DARK.get());
         }

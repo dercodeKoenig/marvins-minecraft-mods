@@ -311,12 +311,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 133, 0xff000000, false)
         );
 
-        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
-            // can not do new SpaceMapScreen() on server!!!!!
-            guiHandler.modules.add(
-                    new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H)
-            );
-        } else {
+        if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
             guiHandler.modules.add(
                     new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
                         public void onButtonClicked() {
@@ -347,10 +342,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                             if (planet == null) return "";
 
                                             if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
-                                                if (!storageDiskSlot1.client_getItemStackToRender().isEmpty()) {
-                                                    return "Analyze";
-                                                }
+                                                // if the planet is not known but still rendered / clicked, assume the storage disk is inserted, no need to check
+                                                return "Analyze";
                                             }
+
                                             if (!planetIdChipSlot.client_getItemStackToRender().isEmpty()) {
                                                 return "burn to chip";
                                             }
@@ -365,9 +360,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                                 return "We require more information about this planet.";
                                             }
 
-                                            return planet.getName() + "\n" +
-                                                    "g:" + planet.getGravitationalMultiplier() + "\n";
-                                            // todo: add more information, temperature, atm density/composition
+                                            return super.getPlanetInfoText(dimensionId);
                                         }
 
                                         public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
@@ -654,18 +647,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         ((EntityObservatory) t).tick();
     }
 
-    public void openGui(ServerPlayer player) {
-        if (level.isClientSide)
-            guiHandler.openGui(176, 200, true);
-        else if (player != null)
-            guiHandler.signalOpenGui(player, 176, 200, true);
-    }
-
-    // helper methods for gui rendering
-    public int clientGetDiscoverStatusFromCurrentStorageItem(ResourceLocation dimensionId) {
-        return ItemGalaxyStorageDisk.getUnlockPoints(storageDiskSlot1.client_getItemStackToRender(), dimensionId.toString());
-    }
-
     public void toggleTask(Task task, ResourceLocation taskTarget) {
         if (this.task.equals(task)) {
             // toggle on / off for these tasks:
@@ -890,6 +871,18 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             openGui((ServerPlayer) player);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    public void openGui(ServerPlayer player) {
+        if (level.isClientSide)
+            guiHandler.openGui(176, 200, true);
+        else if (player != null)
+            guiHandler.signalOpenGui(player, 176, 200, true);
+    }
+
+    // helper methods for gui rendering
+    public int clientGetDiscoverStatusFromCurrentStorageItem(ResourceLocation dimensionId) {
+        return ItemGalaxyStorageDisk.getUnlockPoints(storageDiskSlot1.client_getItemStackToRender(), dimensionId.toString());
     }
 
     public enum Task {

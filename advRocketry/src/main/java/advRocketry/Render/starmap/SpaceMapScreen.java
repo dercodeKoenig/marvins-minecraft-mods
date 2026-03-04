@@ -76,7 +76,11 @@ public class SpaceMapScreen extends Screen {
     }
 
     public String getPlanetInfoText(ResourceLocation dimensionId) {
-        return "This is planet info text...";
+        PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+        if (planet == null) return "";
+        return planet.getName() + "\n" +
+                "g:" + planet.getGravitationalMultiplier() + "\n";
+        // todo: add more information, temperature, atm density/composition
     }
 
     public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
