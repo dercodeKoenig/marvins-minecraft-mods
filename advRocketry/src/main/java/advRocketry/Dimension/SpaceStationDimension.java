@@ -323,12 +323,16 @@ public class SpaceStationDimension extends Dimension {
         super.tickStarCache();
 
         tickRotation();
+        tickPosition();
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactor));
         this.movement = newLazyPosition.subtract(lazyPosition);
         this.lazyPosition = newLazyPosition;
 
+    }
+
+    public void tickPosition(){
         Vec3 position = properties().position;
         Vec3 movement = Vec3.ZERO;
 
@@ -418,51 +422,6 @@ public class SpaceStationDimension extends Dimension {
         }
 
         properties().position = position.add(movement);
-
-
-        // update rotation from selected
-        if (!isInSpaceTravel) {
-            SpaceStationDimensionProperties.RotationMode rotationMode = properties().rotationMode;
-            boolean isRelativeRotation = rotationMode == SpaceStationDimensionProperties.RotationMode.relative;
-            boolean isAbsoluteRotation = rotationMode == SpaceStationDimensionProperties.RotationMode.absolute;
-            if (isRelativeRotation || isAbsoluteRotation) {
-                // base for absolute rotation
-                Vec3 targetFront = new Vec3(0, 0, 1);
-                Vec3 targetUp = new Vec3(0, 1, 0);
-                if (properties().rotationMode == SpaceStationDimensionProperties.RotationMode.relative) {
-                    // calculate new base values
-                    if (parent instanceof PlanetDimension parentPlanet) {
-                        Vec3 parentPosition = parentPlanet.getPosition(0);
-                        Vec3 parentToStation = properties().position.subtract(parentPosition);
-                        targetUp = parentToStation.normalize();
-
-                        Vec3 targetOrbitAxis = properties().orbitAxisTarget;
-                        Vec3 right = targetOrbitAxis.cross(parentToStation.scale(-1)).normalize();
-                        targetFront = right;
-
-                        // this will make the planet to the side as normal, making it easier to use yaw for rotation
-                        targetUp = targetFront.cross(targetUp);
-
-                    } else {
-                        targetFront = null; // no turning because no parent planet
-                    }
-                }
-                if (targetFront != null) {
-                    // apply rotations
-                    // target front rotates around target up
-                    targetFront = CelestialUtils.rotate(targetFront, targetUp, -(properties().yaw * 360 - 180));
-                    // target up rotates around target front
-                    targetUp = CelestialUtils.rotate(targetUp, targetFront, properties().roll * 360 - 180);
-                    // both rotate around pitch
-                    Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
-                    targetUp = CelestialUtils.rotate(targetUp, pitchAxis, properties().pitch * 360 - 180);
-                    targetFront = CelestialUtils.rotate(targetFront, pitchAxis, properties().pitch * 360 - 180);
-                    setTargetFront(targetFront, false);
-                    setTargetUp(targetUp, false);
-                    //System.out.println(properties().targetUp+":"+dimensionManager.isClientSide);
-                }
-            }
-        }
     }
 
     // mostly copied from rocket controller
@@ -494,6 +453,57 @@ public class SpaceStationDimension extends Dimension {
         rotationCorrection = properties().up.subtract(lazyUp).scale(lerpFactor);
         Vec3 lazyUpInvalid = lazyUp.add(rotationCorrection);
         lazyUp = lazyFront.cross(lazyUpInvalid.cross(lazyFront)).normalize();
+
+        // move toward the target rotation given in the settings
+        if (!isInSpaceTravel) {
+            tickRotationFromSettings();
+        }
+    }
+
+    public void tickRotationFromSettings() {
+        // update rotation from selected orientation settings
+
+        SpaceStationDimensionProperties.RotationMode rotationMode = properties().rotationMode;
+        boolean isRelativeRotation = rotationMode == SpaceStationDimensionProperties.RotationMode.relative;
+        boolean isAbsoluteRotation = rotationMode == SpaceStationDimensionProperties.RotationMode.absolute;
+        if (isRelativeRotation || isAbsoluteRotation) {
+            // base for absolute rotation
+            Vec3 targetFront = new Vec3(0, 0, 1);
+            Vec3 targetUp = new Vec3(0, 1, 0);
+            if (properties().rotationMode == SpaceStationDimensionProperties.RotationMode.relative) {
+                // calculate new base values
+                Dimension parent = dimensionManager.get(properties().parentDimensionId);
+                if (parent instanceof PlanetDimension parentPlanet) {
+                    Vec3 parentPosition = parentPlanet.getPosition(0);
+                    Vec3 parentToStation = properties().position.subtract(parentPosition);
+                    targetUp = parentToStation.normalize();
+
+                    Vec3 targetOrbitAxis = properties().orbitAxisTarget;
+                    Vec3 right = targetOrbitAxis.cross(parentToStation.scale(-1)).normalize();
+                    targetFront = right;
+
+                    // this will make the planet to the side as normal, making it easier to use yaw for rotation
+                    targetUp = targetFront.cross(targetUp);
+
+                } else {
+                    targetFront = null; // no turning because no parent planet
+                }
+            }
+            if (targetFront != null) {
+                // apply rotations
+                // target front rotates around target up
+                targetFront = CelestialUtils.rotate(targetFront, targetUp, -(properties().yaw * 360 - 180));
+                // target up rotates around target front
+                targetUp = CelestialUtils.rotate(targetUp, targetFront, properties().roll * 360 - 180);
+                // both rotate around pitch
+                Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
+                targetUp = CelestialUtils.rotate(targetUp, pitchAxis, properties().pitch * 360 - 180);
+                targetFront = CelestialUtils.rotate(targetFront, pitchAxis, properties().pitch * 360 - 180);
+                setTargetFront(targetFront, false);
+                setTargetUp(targetUp, false);
+                //System.out.println(properties().targetUp+":"+dimensionManager.isClientSide);
+            }
+        }
     }
 
     boolean isCloseEnoughForOrbit(double planetRenderRadiusAU, double distanceAU) {

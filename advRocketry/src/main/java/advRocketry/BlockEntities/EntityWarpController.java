@@ -220,17 +220,17 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
 
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
                 currentView.setTargetAndSync(spaceStation.getParentDimensionId());
+
+                String inOrbitString = "Space";
+                if (currentView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId) instanceof Dimension d && spaceStation.isInOrbit())
+                    inOrbitString = d.getName();
+                inOrbitText.setTextAndSync("In Orbit:\n" + inOrbitString);
+
+                String targetString = "Space";
+                if (targetView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId) instanceof Dimension d)
+                    targetString = d.getName();
+                targetText.setTextAndSync("Target:\n" + targetString);
             }
-
-            String inOrbitString = "Space";
-            if (currentView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId) instanceof Dimension d)
-                inOrbitString = d.getName();
-            inOrbitText.setTextAndSync("In Orbit:\n" + inOrbitString);
-
-            String targetString = "Space";
-            if (targetView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId) instanceof Dimension d)
-                targetString = d.getName();
-            targetText.setTextAndSync("Target:\n" + targetString);
         }
     }
 
