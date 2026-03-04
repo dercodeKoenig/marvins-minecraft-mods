@@ -5,7 +5,6 @@ import advRocketry.Main;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
-import dev.galacticraft.dynamicdimensions.api.PlayerRemover;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +20,7 @@ import java.util.*;
 
 public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
-    public static final String saveDir = "dimensionProperties";
+    public static final String SAVE_DIR = "dimensionProperties";
 
     // this one syncs dimension properties and creates the dimension if not exist
     public static final String packetDimensionPropertiesSync = Main.MODID + "_packetDimensionPropertiesSync";
@@ -145,7 +144,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         });
 
         // save dimension properties
-        Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
+        Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
         saveDimensionProperties(saveDir);
 
         // save dimensions
@@ -222,8 +221,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
         dimensions = new HashMap<>(); // clear from old sessions
 
-        Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.saveDir);
-        Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.saveDir);
+        Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
+        Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.SAVE_DIR);
 
         if (Files.exists(worldDir)) {
             System.out.println("[DimensionManager] Loading dimensions from world path...");

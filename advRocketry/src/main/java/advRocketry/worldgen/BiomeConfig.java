@@ -5,13 +5,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.OverworldBiomeBuilder;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,6 +43,7 @@ is it midwarm and humid?
  */
 
 public class BiomeConfig {
+    public static String PRESET_DIRECTORY = "biomePresets";
     public static float VALLEY = 0.05f;
     public static float PEAK_START = 0.56666666f;
     public static float PEAK_END = 0.7666667f;
@@ -68,14 +65,16 @@ public class BiomeConfig {
     }
 
     public static BiomeConfig loadPreset(String presetName) {
-        return BiomeConfig.fromConfig(Path.of(Main.myConfigDir.toString(), "biome_presets", presetName));
+        return BiomeConfig.fromConfig(Path.of(Main.myConfigDir.toString(), PRESET_DIRECTORY, presetName));
     }
 
     public static void makePresetIfNotExist(String presetName, BiomeConfig biomeConfig) {
-        Path presetPath = Path.of(Main.myConfigDir.toString(),  "biome_presets", presetName);
+        Path presetDir = Path.of(Main.myConfigDir.toString(),  PRESET_DIRECTORY);
+        Path presetPath = Path.of(presetDir.toString(), presetName);
         if (Files.exists(presetPath)) return;
         String configStr = new GsonBuilder().setPrettyPrinting().create().toJson(biomeConfig);
         try {
+            Files.createDirectories(presetDir);
             Files.writeString(presetPath, configStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (
                 IOException e) {

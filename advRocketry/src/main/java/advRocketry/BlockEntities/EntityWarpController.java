@@ -86,7 +86,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                          public String getInteractText(ResourceLocation dimensionId) {
                                              PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                              if (planet == null) return "";
-                                             if (!planet.isKnown() || clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) == ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                             if (planet.isKnown() || clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) == ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
                                                  return "select";
                                              }
                                              return "";
