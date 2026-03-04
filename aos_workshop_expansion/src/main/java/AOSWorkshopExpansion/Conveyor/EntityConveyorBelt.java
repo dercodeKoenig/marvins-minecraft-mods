@@ -271,6 +271,9 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
                                     // pop remaining items
                                     popItem(remaining, popTarget);
                                 }
+                            } else{
+                                // no item handler next to it, just pop items
+                                popItem(stack, target);
                             }
 
                             removeItem(id, true);
