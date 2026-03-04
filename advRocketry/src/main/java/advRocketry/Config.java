@@ -8,7 +8,7 @@ public class Config {
     // choose the particle render mode
     // true: render particles delayed with custom renderer, not compatible with iris shaders
     // false: have minecraft builtin particle engine render, use simple dust particles
-    public boolean use_Transparent_Particle_Engine = false;
+    public boolean use_Transparent_Particle_Engine = true;
 
     public double rocket_SpaceTravel_AU_Per_Second = 0.01;
     public double rocket_SpaceTravel_Distance_For_Max_Speed = 0.1;
