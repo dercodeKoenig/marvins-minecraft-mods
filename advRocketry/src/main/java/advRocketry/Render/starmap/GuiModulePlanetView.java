@@ -33,6 +33,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
     public int h;
     public ResourceLocation dimensionId;
     public float zoom = 500;
+    public boolean renderRelativeToPlayer = false;
 
     public GuiModulePlanetView(int id, IGuiHandler guiHandler, int x, int y, int w, int h) {
         super(id, guiHandler, x, y);
@@ -83,12 +84,13 @@ public class GuiModulePlanetView extends GuiModuleBase {
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 
+        guiGraphics.fill(onGuiX, onGuiY, onGuiX+w, onGuiY+h, 0xff000000);
+
         if (dimensionId == null)
             return;
 
         PlanetDimension planet = (PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId);
         if (planet == null) return;
-
 
         Matrix4f projMatrix = new Matrix4f();
         float fov = (float) Math.toRadians(60.0f);
@@ -103,9 +105,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
 
         Vec3 planetPos = planet.getPosition(partialTick);
 
-        boolean renderRelativeToPlayer = false;
-
-        Vector3f eyePos = new Vector3f(1,0,0);
+        Vector3f eyePos = new Vector3f(1,0,0).mul(zoom);
 
         if(renderRelativeToPlayer)
             eyePos = myDim.getPosition(partialTick).subtract(planetPos).normalize().scale(zoom).toVector3f();
@@ -260,9 +260,8 @@ public class GuiModulePlanetView extends GuiModuleBase {
 
         // idk... i thought no depth test should work but i have to clear the screen before
         // enable scissors to not clean the entire gui away
-        guiGraphics.enableScissor(onGuiX, onGuiY, onGuiX + w, onGuiY + w);
+        guiGraphics.enableScissor(onGuiX, onGuiY, onGuiX + w, onGuiY + h);
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
-        guiGraphics.disableScissor();
 
         RenderSystem.setShader(shaderUtils::getBlitAddTonemapShader);
         shader = RenderSystem.getShader();
@@ -273,6 +272,8 @@ public class GuiModulePlanetView extends GuiModuleBase {
         shader.apply();
         SkyRenderer.vertexBufferSquare.draw();
         shader.clear();
+
+        guiGraphics.disableScissor();
 
 
         VertexBuffer.unbind();

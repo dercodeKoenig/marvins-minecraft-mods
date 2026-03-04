@@ -3,7 +3,6 @@ package advRocketry.BlockEntities;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModuleSlider;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Dimension.Dimension;
@@ -26,23 +25,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_STATION_CONTROLLER;
 import static advRocketry.Registry.ENTITY_WARP_CONTROLLER;
 
 public class EntityWarpController extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
-    GuiHandlerBlockEntity guiHandler;
+    public GuiHandlerBlockEntity guiHandler;
     public ItemStackHandler galaxyStorage;
     public guiModuleItemHandlerSlot galaxyStorageGuiSlot;
-    public GuiModulePlanetView planetView;
+    public GuiModulePlanetView targetView;
+    public GuiModulePlanetView currentView;
+    public guiModuleText inOrbitText;
+    public guiModuleText targetText;
 
     public EntityWarpController(BlockPos pos, BlockState blockState) {
         super(ENTITY_WARP_CONTROLLER.get(), pos, blockState);
@@ -128,11 +127,23 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             );
         }
 
-        planetView = new GuiModulePlanetView(22, guiHandler, 10, 30, 120, 120);
-        guiHandler.modules.add(planetView);
+        currentView = new GuiModulePlanetView(22, guiHandler, 10, 30, 100, 100);
+        guiHandler.modules.add(currentView);
+
+        targetView = new GuiModulePlanetView(23, guiHandler, 120, 30, 100, 100);
+        guiHandler.modules.add(targetView);
+
+        inOrbitText = new guiModuleText(32, "In Orbit:", guiHandler, 10,30,0xff000000, false);
+        guiHandler.modules.add(inOrbitText);
+
+        targetText = new guiModuleText(33, "Target:", guiHandler, 60,30,0xff000000, false);
+        guiHandler.modules.add(targetText);
 
         guiModuleButton warpBtn = new guiModuleButton(339, "travel", guiHandler, 10, 155, 100, 15, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(warpBtn);
+
+        guiModuleButton clearBtn = new guiModuleButton(340, "clear", guiHandler, 120, 155, 100, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiHandler.modules.add(clearBtn);
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 1, 0, guiHandler));
     }
@@ -160,7 +171,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiHandler.readServer(compoundTag);
         if (compoundTag.contains("interact")) {
             String dimId = compoundTag.getString("interact");
-            planetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
+            targetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
             setChanged();
         }
         if (compoundTag.contains("guiButtonClick")) {
@@ -169,7 +180,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             if (myDim instanceof SpaceStationDimension spaceStationDimension) {
                 if (btn == 339) {
                     // warp!
-                    spaceStationDimension.setTargetPlanet(planetView.dimensionId);
+                    spaceStationDimension.setTargetPlanet(targetView.dimensionId);
                     guiHandler.signalCloseGui(serverPlayer);
                 }
             }
@@ -184,14 +195,16 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putString("selectedPlanet", planetView.dimensionId.toString());
+        if(targetView.dimensionId != null)
+            tag.putString("targetView", targetView.dimensionId.toString());
         tag.put("galaxyStorage", galaxyStorage.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        planetView.setTargetAndSync(ResourceLocation.tryParse(tag.getString("selectedPlanet")));
+        if(tag.contains("targetView"))
+            targetView.setTargetAndSync(ResourceLocation.tryParse(tag.getString("targetView")));
         galaxyStorage.deserializeNBT(registries, tag.getCompound("galaxyStorage"));
     }
 
@@ -199,20 +212,15 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         if (!level.isClientSide) {
             guiHandler.serverTick();
 
-            if(planetView.dimensionId == null){
-                if(DimensionManager.INSTANCE_CLIENT.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation){
-                    if(spaceStation.getParentDimensionId() != null){
-                        planetView.setTargetAndSync(spaceStation.getParentDimensionId());
-                        setChanged();
-                    }
-                }
+            if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
+                currentView.setTargetAndSync(spaceStation.getParentDimensionId());
             }
         }
     }
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(178, 200, true);
+            guiHandler.openGui(250, 200, true);
     }
 
     // helper methods for gui rendering
