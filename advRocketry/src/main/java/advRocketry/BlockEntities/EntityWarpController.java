@@ -54,75 +54,77 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             }
         };
 
-        galaxyStorageGuiSlot = new guiModuleItemHandlerSlot(0, galaxyStorage,0,0,1,guiHandler,10,40);
+        galaxyStorageGuiSlot = new guiModuleItemHandlerSlot(0, galaxyStorage, 0, 0, 1, guiHandler, 90, 9);
         guiHandler.modules.add(galaxyStorageGuiSlot);
 
-         if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
-             guiHandler.modules.add(
-                     new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
-                         public void onButtonClicked() {
-                             Minecraft.getInstance().setScreen(
-                                     new SpaceMapScreen() {
-                                         @Override
-                                         public void tick() {
-                                             super.tick();
-                                             // make sure the main gui stays in sync
-                                             EntityWarpController.this.guiHandler.onGuiClientTick(ClientUtils.getSinglePlayer());
-                                         }
+        if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
+            guiHandler.modules.add(
+                    new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
+                        public void onButtonClicked() {
+                            Minecraft.getInstance().setScreen(
+                                    new SpaceMapScreen() {
+                                        @Override
+                                        public void tick() {
+                                            super.tick();
+                                            // make sure the main gui stays in sync
+                                            EntityWarpController.this.guiHandler.onGuiClientTick(ClientUtils.getSinglePlayer());
+                                        }
 
-                                         @Override
-                                         public void onClose() {
-                                             super.onClose();
-                                             // open the main gui again
-                                             openGui();
-                                         }
+                                        @Override
+                                        public void onClose() {
+                                            super.onClose();
+                                            // open the main gui again
+                                            openGui();
+                                        }
 
-                                         public void interact(ResourceLocation dimensionId) {
-                                             CompoundTag info = new CompoundTag();
-                                             info.putString("interact", dimensionId.toString());
-                                             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityWarpController.this, info));
-                                         }
+                                        public void interact(ResourceLocation dimensionId) {
+                                            CompoundTag info = new CompoundTag();
+                                            info.putString("interact", dimensionId.toString());
+                                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityWarpController.this, info));
+                                            openGui();
+                                        }
 
-                                         public String getInteractText(ResourceLocation dimensionId) {
-                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
-                                             if (planet == null) return "";
-                                             if (planet.isKnown() || clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) == ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
-                                                 return "select";
-                                             }
-                                             return "";
-                                         }
+                                        public String getInteractText(ResourceLocation dimensionId) {
+                                            PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+                                            if (planet == null) return "";
+                                            if (planet.isKnown() || clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) == ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                                return "select";
+                                            }
+                                            return "";
+                                        }
 
-                                         public String getPlanetInfoText(ResourceLocation dimensionId) {
-                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
-                                             if (planet == null) return "";
+                                        public String getPlanetInfoText(ResourceLocation dimensionId) {
+                                            PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+                                            if (planet == null) return "";
 
-                                             if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
-                                                 return "We require more information about this planet.";
-                                             }
+                                            if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                                return "We require more information about this planet.";
+                                            }
 
-                                             return super.getPlanetInfoText(dimensionId);
-                                         }
+                                            return super.getPlanetInfoText(dimensionId);
+                                        }
 
-                                         public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
-                                             Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
-                                             if (d == null) return false;
+                                        public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
+                                            Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
+                                            if (d == null) return false;
 
-                                             if (((PlanetDimension) (d)).isKnown()) {
-                                                 return true;
-                                             }
+                                            if (((PlanetDimension) (d)).isKnown()) {
+                                                return true;
+                                            }
 
-                                             int discoverStatus = clientGetDiscoverStatusFromCurrentStorageItem(dimensionId);
-                                             if (discoverStatus != -1)
-                                                 return true;
+                                            int discoverStatus = clientGetDiscoverStatusFromCurrentStorageItem(dimensionId);
+                                            if (discoverStatus != -1)
+                                                return true;
 
-                                             return false;
-                                         }
-                                     }
-                             );
-                         }
-                     }
-             );
-         }
+                                            return false;
+                                        }
+                                    }
+                            );
+                        }
+                    }
+            );
+        }
+        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 10000, 1, 0, guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
