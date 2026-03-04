@@ -22,14 +22,16 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL30;
 
+import java.util.Map;
 import java.util.Objects;
 
 import static net.minecraft.client.renderer.RenderStateShard.NO_DEPTH_TEST;
 
 public class GuiModulePlanetView extends GuiModuleBase {
-    int w;
-    int h;
-    ResourceLocation dimensionId;
+    public int w;
+    public int h;
+    public ResourceLocation dimensionId;
+    public float zoom = 1000;
 
     public GuiModulePlanetView(int id, IGuiHandler guiHandler, int x, int y, int w, int h) {
         super(id, guiHandler, x, y);
@@ -43,6 +45,15 @@ public class GuiModulePlanetView extends GuiModuleBase {
             broadcastModuleUpdate();
         }
     }
+
+
+
+    public void client_onMouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        float zoomSpeed = zoom * 0.3f;
+        zoom -= (float) (scrollY * zoomSpeed);
+        zoom = Math.max(1f, Math.min(zoom, 200000f));
+    }
+
 
     public void client_handleDataSyncedToClient(CompoundTag tag) {
         super.client_handleDataSyncedToClient(tag);
@@ -89,12 +100,39 @@ public class GuiModulePlanetView extends GuiModuleBase {
         if(myDim == null)
             return;
 
+        Vec3 planetPos = planet.getPosition(partialTick);
 
-        float radius = 1500f; // Distance from the planet center
-        Vector3f relativePos = myDim.getPosition(partialTick).subtract(planet.getPosition(partialTick)).normalize().scale(radius).toVector3f();
+        boolean renderRelativeToPlayer = false;
+
+        Vector3f eyePos = new Vector3f(1,0,0);
+
+        if(renderRelativeToPlayer)
+            eyePos = myDim.getPosition(partialTick).subtract(planetPos).normalize().scale(zoom).toVector3f();
+        else{
+            Vec3 strongestStarPos = null;
+            double strongestValue = 0;
+            for (ResourceLocation starId : planet.getCurrentMainStars()) {
+                if (DimensionManager.INSTANCE_CLIENT.get(starId) instanceof PlanetDimension star){
+                    Vec3 starPos = star.getPosition(partialTick);
+                    double distanceToStar = starPos.distanceTo(planetPos);
+                    double v = star.getRadiationIntensity() / distanceToStar / distanceToStar;
+                    if(v > strongestValue){
+                        strongestValue = v;
+                        strongestStarPos = starPos;
+                    }
+                }
+            }
+            if (strongestStarPos != null) {
+                Vec3 starToPlanet = planetPos.subtract(strongestStarPos);
+                Vec3 right = starToPlanet.cross(new Vec3(0,1,0));
+                if(right.length() < 0.0001)
+                    right = new Vec3(1,0,0);
+                eyePos = right.normalize().scale(zoom).toVector3f();
+            }
+        }
 
         Matrix4f viewMatrix = new Matrix4f().lookAt(
-                new Vector3f(relativePos.x, relativePos.y, relativePos.z), // Camera Position
+                new Vector3f(eyePos.x, eyePos.y, eyePos.z), // Camera Position
                 new Vector3f(0, 0, 0),             // Look at Center
                 new Vector3f(0, 1, 0)              // "Up" direction
         );

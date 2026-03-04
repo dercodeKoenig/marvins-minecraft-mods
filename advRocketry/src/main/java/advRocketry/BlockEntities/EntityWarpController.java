@@ -168,11 +168,15 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        tag.putString("selectedPlanet", planetView.dimensionId.toString());
+        tag.put("galaxyStorage", galaxyStorage.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        planetView.setTargetAndSync(ResourceLocation.tryParse(tag.getString("selectedPlanet")));
+        galaxyStorage.deserializeNBT(registries, tag.getCompound("galaxyStorage"));
     }
 
     public void tick() {
