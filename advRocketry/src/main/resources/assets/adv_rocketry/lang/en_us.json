@@ -51,6 +51,9 @@
   "block.adv_rocketry.orientation_controller": "Orientation Controller",
   "item.adv_rocketry.orientation_controller": "Orientation Controller",
 
+  "block.adv_rocketry.warp_controller": "Warp Controller",
+  "item.adv_rocketry.warp_controller": "Warp Controller",
+
 
   "block.adv_rocketry.moon_turf": "Moon Turf",
   "item.adv_rocketry.moon_turf": "Moon Turf",

@@ -324,12 +324,6 @@ public class SpaceStationDimension extends Dimension {
 
         tickRotation();
 
-        ///  debug
-        if (!dimensionManager.isClientSide) {
-            //setTargetPlanet(ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus"));
-            setTargetPlanet(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
-        }
-
         Vec3 positionError = properties().position.subtract(lazyPosition);
         Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactor));
         this.movement = newLazyPosition.subtract(lazyPosition);

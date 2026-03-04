@@ -23,6 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -127,16 +128,26 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             );
         }
 
-        planetView = new GuiModulePlanetView(22,guiHandler, 10,30,120,120);
-        planetView.setTargetAndSync(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
+        planetView = new GuiModulePlanetView(22, guiHandler, 10, 30, 120, 120);
         guiHandler.modules.add(planetView);
 
+        guiModuleButton warpBtn = new guiModuleButton(339, "travel", guiHandler, 10, 155, 100, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiHandler.modules.add(warpBtn);
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 1, 0, guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityWarpController) t).tick();
+    }
+
+
+    public void popInventory() {
+        for (int i = 0; i < galaxyStorage.getSlots(); i++) {
+            Block.popResource(level, getBlockPos(), galaxyStorage.getStackInSlot(i));
+            galaxyStorage.setStackInSlot(i, ItemStack.EMPTY);
+        }
+        setChanged();
     }
 
     @Override
@@ -147,15 +158,20 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
-        if(compoundTag.contains("interact")){
-            String dimId =compoundTag.getString("interact");
+        if (compoundTag.contains("interact")) {
+            String dimId = compoundTag.getString("interact");
             planetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
+            setChanged();
         }
         if (compoundTag.contains("guiButtonClick")) {
             int btn = compoundTag.getInt("guiButtonClick");
             Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
             if (myDim instanceof SpaceStationDimension spaceStationDimension) {
-
+                if (btn == 339) {
+                    // warp!
+                    spaceStationDimension.setTargetPlanet(planetView.dimensionId);
+                    guiHandler.signalCloseGui(serverPlayer);
+                }
             }
         }
     }
@@ -182,16 +198,25 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+
+            if(planetView.dimensionId == null){
+                if(DimensionManager.INSTANCE_CLIENT.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation){
+                    if(spaceStation.getParentDimensionId() != null){
+                        planetView.setTargetAndSync(spaceStation.getParentDimensionId());
+                        setChanged();
+                    }
+                }
+            }
         }
     }
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(200, 200, true);
+            guiHandler.openGui(178, 200, true);
     }
 
-        // helper methods for gui rendering
-        public int clientGetDiscoverStatusFromCurrentStorageItem(ResourceLocation dimensionId) {
-            return ItemGalaxyStorageDisk.getUnlockPoints(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
-        }
+    // helper methods for gui rendering
+    public int clientGetDiscoverStatusFromCurrentStorageItem(ResourceLocation dimensionId) {
+        return ItemGalaxyStorageDisk.getUnlockPoints(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+    }
 }
