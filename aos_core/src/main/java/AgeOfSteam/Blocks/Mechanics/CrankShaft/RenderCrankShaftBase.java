@@ -86,7 +86,8 @@ public class RenderCrankShaftBase implements BlockEntityRenderer<EntityCrankShaf
         ShaderInstance shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         Uniform NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat));
+        if(NormalMat != null)
+            NormalMat.set(Static.getNormalMat(modelMat));
         shader.apply();
 
         tile.vertexBuffer.bind();

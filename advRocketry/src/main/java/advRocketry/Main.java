@@ -21,7 +21,6 @@ import advRocketry.worldgen.presets.HOT_DRY;
 import advRocketry.worldgen.presets.MOON;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -54,11 +53,9 @@ import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 import java.io.File;
@@ -305,7 +302,8 @@ public class Main {
     }
 
     void registerParticles(RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(Registry.SOFT_PARTICLE.get(), RocketParticleProvider::new);
+        event.registerSpriteSet(Registry.SOFT_PARTICLE.get(), RocketParticleProvider.SoftParticleProvider::new);
+        event.registerSpriteSet(Registry.DUST_PARTICLE.get(), RocketParticleProvider.DustParticleProvider::new);
     }
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {

@@ -109,7 +109,8 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
         modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1.0f, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul( modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         Uniform NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat2));
+        if(NormalMat != null)
+            NormalMat.set(Static.getNormalMat(modelMat2));
         shader.apply();
 
         tile.vertexBuffer2.bind();
@@ -120,7 +121,8 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
         modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul( modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat2));
+        if(NormalMat != null)
+            NormalMat.set(Static.getNormalMat(modelMat2));
         shader.apply();
 
         tile.vertexBuffer.bind();

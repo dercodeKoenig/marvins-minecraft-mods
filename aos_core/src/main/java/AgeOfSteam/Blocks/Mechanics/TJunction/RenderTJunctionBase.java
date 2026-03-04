@@ -118,7 +118,8 @@ public abstract class RenderTJunctionBase implements BlockEntityRenderer<EntityT
 
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         Uniform NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat2));
+        if(NormalMat != null)
+            NormalMat.set(Static.getNormalMat(modelMat2));
         shader.apply();
 
         tile.vertexBuffer.bind();
@@ -140,7 +141,8 @@ public abstract class RenderTJunctionBase implements BlockEntityRenderer<EntityT
 
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat2));
+        if(NormalMat != null)
+            NormalMat.set(Static.getNormalMat(modelMat2));
         shader.apply();
 
         tile.vertexBuffer2.bind();

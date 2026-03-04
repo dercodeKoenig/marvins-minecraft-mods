@@ -51,7 +51,7 @@ public class RenderFlyWheelBase implements BlockEntityRenderer<EntityFlyWheelBas
             tile.lastLight = packedLight;
 
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
             for (Face i : axle.groupObjects.get("Cube").faces) {
                 i.addFaceForRender(new PoseStack(), b, packedLight, 0, 0xffffffff);
             }
@@ -93,7 +93,8 @@ public class RenderFlyWheelBase implements BlockEntityRenderer<EntityFlyWheelBas
         ShaderInstance shader = RenderSystem.getShader();
         shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul( modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
         Uniform NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat));
+        if(NormalMat != null)
+            NormalMat.set(Static.getNormalMat(modelMat));
         shader.apply();
 
         tile.vertexBuffer.bind();

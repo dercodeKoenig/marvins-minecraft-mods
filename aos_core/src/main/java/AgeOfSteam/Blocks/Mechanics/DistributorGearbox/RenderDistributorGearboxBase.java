@@ -99,7 +99,8 @@ public abstract class RenderDistributorGearboxBase implements BlockEntityRendere
                 modelMat2 = modelMat2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, 14.7f - (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES,new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat2) , RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            NormalMat.set(Static.getNormalMat(modelMat2));
+            if(NormalMat != null)
+                NormalMat.set(Static.getNormalMat(modelMat2));
             shader.apply();
             tile.vertexBuffer.draw();
         }

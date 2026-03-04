@@ -1,12 +1,12 @@
 package advRocketry.Particles;
 
+import advRocketry.Config;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
@@ -35,14 +35,20 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
         yd = dy;
         zd = dz;
 
-        this.setSpriteFromAge(RocketParticleProvider.sprites);
-
-        ResourceLocation key = level.dimension().location();
-        RocketParticleEngine.addParticle(key, this);
-
-        this.setColor(color.x,color.y,color.z);
+        this.setColor(color.x, color.y, color.z);
         this.alphaMultiplier = alphaMultiplier;
         this.size = size;
+
+        if (Config.INSTANCE.use_Transparent_Particle_Engine) {
+            ResourceLocation key = level.dimension().location();
+            this.setSpriteFromAge(RocketParticleProvider.spriteSoft);
+            RocketParticleEngine.addParticle(key, this);
+        } else {
+            this.alpha = 1f; // minecraft will cut low alpha, so the soft particles will not work
+            this.size /= 10; // since particles are now full alpha, make them smaller
+            this.setSpriteFromAge(RocketParticleProvider.spriteDust);
+            Minecraft.getInstance().particleEngine.add(this);
+        }
     }
 
     public boolean isGlowing(){
@@ -51,15 +57,20 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
 
     @Override
     public ParticleRenderType getRenderType() {
-        //return Static.transparentDelayedParticleRenderType;
-        return ParticleRenderType.NO_RENDER;
+        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.alpha = (1.0F - ((float) this.age / (float) this.lifetime)) * alphaMultiplier;
-        //this.size *= 0.999f;
+        if(Config.INSTANCE.use_Transparent_Particle_Engine) {
+            // transparent particles
+            this.alpha = (1.0F - ((float) this.age / (float) this.lifetime)) * alphaMultiplier;
+        }
+        else {
+            // dust particles
+            this.setSpriteFromAge(RocketParticleProvider.spriteDust);
+        }
 
         if (super.onGround) {
             float f = (float) (Math.random() * 0.5F);
@@ -74,20 +85,9 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
         }
     }
 
-    int lastLight = 0;
-    @Override
-    // modified to skip no light errors
-    protected int getLightColor(float partialTick) {
-        BlockPos blockpos = BlockPos.containing(this.x, this.y, this.z);
-        if(this.level.hasChunkAt(blockpos)){
-            lastLight = LevelRenderer.getLightColor(this.level, blockpos);
-        }
-        return lastLight;
-    }
-
     @Override
     public void render(VertexConsumer buffer, Camera renderInfo, float partialTicks) {
-        return;
+        super.render(buffer, renderInfo, partialTicks);
     }
 
     @Override
