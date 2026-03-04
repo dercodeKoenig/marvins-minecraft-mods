@@ -443,20 +443,24 @@ public class SpaceStationDimension extends Dimension {
                         // this will make the planet to the side as normal, making it easier to use yaw for rotation
                         targetUp = targetFront.cross(targetUp);
 
+                    } else {
+                        targetFront = null; // no turning because no parent planet
                     }
                 }
-                // apply rotations
-                // target front rotates around target up
-                targetFront = CelestialUtils.rotate(targetFront, targetUp, -(properties().yaw * 360 - 180));
-                // target up rotates around target front
-                targetUp = CelestialUtils.rotate(targetUp, targetFront, properties().roll * 360 - 180);
-                // both rotate around pitch
-                Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
-                targetUp = CelestialUtils.rotate(targetUp, pitchAxis, properties().pitch * 360 - 180);
-                targetFront = CelestialUtils.rotate(targetFront, pitchAxis, properties().pitch * 360 - 180);
-                setTargetFront(targetFront, false);
-                setTargetUp(targetUp, false);
-                //System.out.println(properties().targetUp+":"+dimensionManager.isClientSide);
+                if (targetFront != null) {
+                    // apply rotations
+                    // target front rotates around target up
+                    targetFront = CelestialUtils.rotate(targetFront, targetUp, -(properties().yaw * 360 - 180));
+                    // target up rotates around target front
+                    targetUp = CelestialUtils.rotate(targetUp, targetFront, properties().roll * 360 - 180);
+                    // both rotate around pitch
+                    Vec3 pitchAxis = targetFront.cross(targetUp).normalize();
+                    targetUp = CelestialUtils.rotate(targetUp, pitchAxis, properties().pitch * 360 - 180);
+                    targetFront = CelestialUtils.rotate(targetFront, pitchAxis, properties().pitch * 360 - 180);
+                    setTargetFront(targetFront, false);
+                    setTargetUp(targetUp, false);
+                    //System.out.println(properties().targetUp+":"+dimensionManager.isClientSide);
+                }
             }
         }
     }

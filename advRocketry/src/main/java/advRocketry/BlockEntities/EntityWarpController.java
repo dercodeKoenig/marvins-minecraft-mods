@@ -127,25 +127,26 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             );
         }
 
-        currentView = new GuiModulePlanetView(22, guiHandler, 10, 30, 100, 100);
-        guiHandler.modules.add(currentView);
-
-        targetView = new GuiModulePlanetView(23, guiHandler, 120, 30, 100, 100);
-        guiHandler.modules.add(targetView);
 
         inOrbitText = new guiModuleText(32, "In Orbit:", guiHandler, 10,30,0xff000000, false);
         guiHandler.modules.add(inOrbitText);
 
-        targetText = new guiModuleText(33, "Target:", guiHandler, 60,30,0xff000000, false);
+        targetText = new guiModuleText(33, "Target:", guiHandler, 130,30,0xff000000, false);
         guiHandler.modules.add(targetText);
 
-        guiModuleButton warpBtn = new guiModuleButton(339, "travel", guiHandler, 10, 155, 100, 15, BTN_BLACK, BTN_W, BTN_H);
+        currentView = new GuiModulePlanetView(22, guiHandler, 10, 50, 110, 110);
+        guiHandler.modules.add(currentView);
+
+        targetView = new GuiModulePlanetView(23, guiHandler, 130, 50, 110, 110);
+        guiHandler.modules.add(targetView);
+
+        guiModuleButton warpBtn = new guiModuleButton(339, "travel", guiHandler, 130, 165, 50, 15, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(warpBtn);
 
-        guiModuleButton clearBtn = new guiModuleButton(340, "clear", guiHandler, 120, 155, 100, 15, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton clearBtn = new guiModuleButton(340, "clear", guiHandler, 190, 165, 50, 15, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(clearBtn);
 
-        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 1, 0, guiHandler));
+        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 195, 10000, 1, 0, guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -184,6 +185,11 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                     guiHandler.signalCloseGui(serverPlayer);
                 }
             }
+            if (btn == 340) {
+                // clear target
+                targetView.setTargetAndSync(null);
+                setChanged();
+            }
         }
     }
 
@@ -215,12 +221,22 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
                 currentView.setTargetAndSync(spaceStation.getParentDimensionId());
             }
+
+            String inOrbitString = "Space";
+            if (currentView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId) instanceof Dimension d)
+                inOrbitString = d.getName();
+            inOrbitText.setTextAndSync("In Orbit:\n" + inOrbitString);
+
+            String targetString = "Space";
+            if (targetView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId) instanceof Dimension d)
+                targetString = d.getName();
+            targetText.setTextAndSync("Target:\n" + targetString);
         }
     }
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(250, 200, true);
+            guiHandler.openGui(250, 220, true);
     }
 
     // helper methods for gui rendering
