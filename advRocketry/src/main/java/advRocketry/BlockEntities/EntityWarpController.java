@@ -242,8 +242,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                     targetString = targetPlanet.getName();
                 targetText.setTextAndSync("Target:\n" + targetString);
 
-                if (spaceStation.isInSpaceTravel()) {
-                    // space travel happens only if targe != null
+                if (targetPlanet != null && spaceStation.isInSpaceTravel() && targetPlanet.getDimensionId().equals(spaceStation.getParentDimensionId())) {
                     String text = "In Space Travel\n";
                     double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
                     distance = (double) Math.round(distance * 100) / 100;
