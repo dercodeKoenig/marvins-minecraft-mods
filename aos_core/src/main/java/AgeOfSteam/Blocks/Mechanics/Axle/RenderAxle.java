@@ -13,6 +13,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -44,23 +45,6 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxleBase> {
 
     @Override
     public void render(EntityAxleBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-
-        if(tile.vertexBuffer == null || tile.vertexBuffer.isInvalid())
-            return;
-
-        if (tile.lastLight != packedLight) {
-            tile.lastLight = packedLight;
-            ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-            BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-            for (Face i : model.groupObjects.get("Cube").faces) {
-                i.addFaceForRender(new PoseStack(), b, packedLight, 0, 0xffffffff);
-            }
-            tile.mesh = b.build();
-            tile.vertexBuffer.bind();
-            tile.vertexBuffer.upload(tile.mesh);
-            byteBuffer.close();
-        }
-
         BlockState axleState = tile.getBlockState();
         if (!(axleState.getBlock() instanceof BlockAxleBase)) return;
 
@@ -69,45 +53,21 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxleBase> {
 
         Direction.Axis facingAxis = axleState.getValue(BlockAxleBase.ROTATION_AXIS);
 
-        Matrix4f modelMat = new Matrix4f();
-        modelMat = modelMat.mul(stack.last().pose());
-
-        modelMat = modelMat.translate(0.5f, 0.5f, 0.5f);
+        stack.translate(0.5f, 0.5f, 0.5f);
 
         if (facingAxis == Direction.Axis.Z) {
             // no rotation
         } else if (facingAxis == Direction.Axis.X) {
-            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
         } else if (facingAxis == Direction.Axis.Y) {
-            modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
         }
+        stack.mulPose(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
 
-        modelMat = modelMat.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
-        //System.out.println(tile.currentRotation);
+        VertexConsumer v = bufferSource.getBuffer(Static.ENTITY_SOLID_TRIANGLES.apply(texture));
 
-
-        RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
-        LIGHTMAP.setupRenderState();
-        LEQUAL_DEPTH_TEST.setupRenderState();
-        NO_TRANSPARENCY.setupRenderState();
-        RenderSystem.setShaderTexture(0, texture);
-
-        ShaderInstance shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        Uniform NormalMat = shader.getUniform("NormalMat");
-        NormalMat.set(Static.getNormalMat(modelMat));
-        shader.apply();
-
-        tile.vertexBuffer.bind();
-        tile.vertexBuffer.draw();
-
-
-        shader.clear();
-        VertexBuffer.unbind();
-
-        LIGHTMAP.clearRenderState();
-        LEQUAL_DEPTH_TEST.clearRenderState();
-        NO_TRANSPARENCY.clearRenderState();
-
+        for (Face i : model.groupObjects.get("Cube").faces) {
+            i.addFaceForRender(stack, v, packedLight, packedOverlay, 0xffffffff);
+        }
     }
 }
