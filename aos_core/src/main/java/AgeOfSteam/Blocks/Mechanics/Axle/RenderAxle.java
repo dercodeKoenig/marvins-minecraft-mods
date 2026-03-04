@@ -45,6 +45,9 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxleBase> {
     @Override
     public void render(EntityAxleBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
+        if(tile.vertexBuffer == null || tile.vertexBuffer.isInvalid())
+            return;
+
         if (tile.lastLight != packedLight) {
             tile.lastLight = packedLight;
             ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
