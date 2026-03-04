@@ -68,12 +68,12 @@ public class BiomeConfig {
     }
 
     public static BiomeConfig loadPreset(String presetName) {
-        return BiomeConfig.fromConfig(Path.of(Main.myConfigDir.toString(), presetName));
+        return BiomeConfig.fromConfig(Path.of(Main.myConfigDir.toString(), "biome_presets", presetName));
     }
 
     public static void makePresetIfNotExist(String presetName, BiomeConfig biomeConfig) {
-        Path presetPath = Path.of(Main.myConfigDir.toString(), presetName);
-        if (Files.exists(presetPath) && false) return; // TODO: enable this again
+        Path presetPath = Path.of(Main.myConfigDir.toString(),  "biome_presets", presetName);
+        if (Files.exists(presetPath)) return;
         String configStr = new GsonBuilder().setPrettyPrinting().create().toJson(biomeConfig);
         try {
             Files.writeString(presetPath, configStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
