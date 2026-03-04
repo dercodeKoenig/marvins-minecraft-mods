@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -39,12 +40,11 @@ public class PistonHead extends Block implements SimpleWaterloggedBlock {
     }
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if (placer instanceof Player player) {
-            state = state.setValue(FACING, player.getNearestViewDirection().getOpposite());
-            state = updateFromNeighbourShapes(state,level,pos);
-            level.setBlock(pos, state, 3);
-        }
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockState state = stateDefinition.any();
+        state.setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        state = updateFromNeighbourShapes(state, context.getLevel(), context.getClickedPos());
+        return state;
     }
 
     @Override

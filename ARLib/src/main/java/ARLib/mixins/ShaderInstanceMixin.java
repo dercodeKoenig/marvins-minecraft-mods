@@ -30,15 +30,13 @@ public abstract class ShaderInstanceMixin {
     @Unique
     @Nullable
     private Uniform NormalMat;
-    private Uniform UVOffset;
 
     // 2. Inject into the constructor to find the uniform ONCE when the shader loads
     @Inject(method = "<init>*", at = @At("RETURN"))
     private void cacheNormalUniform(ResourceProvider provider, ResourceLocation location, VertexFormat format, CallbackInfo ci) {
         this.NormalMat = this.getUniform("NormalMat");
-        this.UVOffset = this.getUniform("UVOffset");
-        if(NormalMat != null || UVOffset != null)
-            System.out.println("Shader Mixin for " + location + " - NormalMat:" + (NormalMat != null) + " - UVOffset:" + (UVOffset != null));
+        if(NormalMat != null)
+            System.out.println("Mixin NormalMat for shader " + location);
     }
 
     // 3. Inject into setDefaultUniforms to use the cached field
@@ -46,9 +44,6 @@ public abstract class ShaderInstanceMixin {
     private void setNormalUniform(VertexFormat.Mode mode, Matrix4f frustumMatrix, Matrix4f projectionMatrix, Window window, CallbackInfo ci) {
         if (this.NormalMat != null) {
             this.NormalMat.set(new Matrix3f());
-        }
-        if (this.UVOffset != null) {
-            this.UVOffset.set(0f,0f);
         }
     }
 }
