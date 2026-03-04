@@ -40,6 +40,11 @@ public class GuiHandlerEntity implements IGuiHandler {
         return modules;
     }
 
+    @Override
+    public Object getScreen(){
+        return screen;
+    }
+
     public void openGui(int w, int h, boolean renderBackground) {
         sendPing();
         // fix for not syncing in creative mode, player should never be null bc this is called on client

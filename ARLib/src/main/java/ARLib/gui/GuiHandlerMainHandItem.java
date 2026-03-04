@@ -35,6 +35,11 @@ public class GuiHandlerMainHandItem implements IGuiHandler {
     }
 
     @Override
+    public Object getScreen(){
+        return screen;
+    }
+
+    @Override
     public void broadcastUpdate(CompoundTag tag) {
         // not used, use client tick and read itemstack nbt
     }

@@ -18,6 +18,8 @@ import java.util.UUID;
 
 public interface IGuiHandler {
 
+    Object getScreen();
+
     List<GuiModuleBase> getModules();
 
     void broadcastUpdate(CompoundTag tag);

@@ -12,6 +12,7 @@ import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Items.ItemGalaxyStorageDisk;
 import advRocketry.Registry;
+import advRocketry.Render.starmap.GuiModulePlanetView;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
@@ -124,7 +125,13 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                     }
             );
         }
-        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 125, 10000, 1, 0, guiHandler));
+
+        GuiModulePlanetView planetView = new GuiModulePlanetView(22,guiHandler, 10,30,100,100);
+        planetView.setTargetAndSync(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
+        guiHandler.modules.add(planetView);
+
+
+        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 1, 0, guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -171,7 +178,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(190, 150, true);
+            guiHandler.openGui(200, 200, true);
     }
 
         // helper methods for gui rendering
