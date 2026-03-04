@@ -51,7 +51,10 @@ public class BlockMillStone extends BlockMultiblockMaster implements EntityBlock
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return stateDefinition.any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED, false)
+                ;
     }
 
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {

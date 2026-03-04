@@ -39,11 +39,11 @@ public class PistonExtension extends Block implements SimpleWaterloggedBlock {
         builder.add(AXIS);
         super.createBlockStateDefinition(builder);
     }
-    
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = stateDefinition.any();
-        state.setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        state = state.setValue(AXIS, context.getNearestLookingDirection().getAxis());
         state = updateFromNeighbourShapes(state, context.getLevel(), context.getClickedPos());
         return state;
     }

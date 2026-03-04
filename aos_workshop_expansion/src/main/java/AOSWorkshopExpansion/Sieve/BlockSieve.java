@@ -78,7 +78,10 @@ public class BlockSieve extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return stateDefinition.any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(HOPPER_UPGRADE, false)
+                ;
     }
 
 

@@ -42,7 +42,7 @@ public class PistonHead extends Block implements SimpleWaterloggedBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = stateDefinition.any();
-        state.setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        state = state.setValue(FACING, context.getNearestLookingDirection().getOpposite());
         state = updateFromNeighbourShapes(state, context.getLevel(), context.getClickedPos());
         return state;
     }

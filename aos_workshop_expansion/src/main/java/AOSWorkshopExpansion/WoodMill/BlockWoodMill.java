@@ -34,21 +34,24 @@ public class BlockWoodMill extends BlockMultiblockMaster implements EntityBlock 
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_WOODMILL.get().create(blockPos,blockState);
+        return ENTITY_WOODMILL.get().create(blockPos, blockState);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return stateDefinition.any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED, false)
+                ;
     }
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockEntity me = level.getBlockEntity(pos);
-        if(me instanceof EntityMultiblockMaster mm){
+        if (me instanceof EntityMultiblockMaster mm) {
             mm.scanStructure();
         }
-            return state;
+        return state;
     }
 
     /* managed by BlockMultiblockMaster
@@ -64,11 +67,12 @@ public class BlockWoodMill extends BlockMultiblockMaster implements EntityBlock 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if(blockEntity instanceof EntityWoodMill s){
+        if (blockEntity instanceof EntityWoodMill s) {
             s.removeCurrentInputStacks();
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }
+
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityWoodMill::tick;
