@@ -287,10 +287,14 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 }
 
                 // make sure the current planet is always unlocked
+                // also make sure it displays known-by-default planets as known, so add them as unlocked planets
                 ItemStack stack = getStackInSlot(slot);
                 if (stack.getItem() instanceof ItemGalaxyStorageDisk && level != null) {
-                    if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
-                        ItemGalaxyStorageDisk.setUnlockPoints(stack, level.dimension().location().toString(), ItemGalaxyStorageDisk.POINTS_UNLOCKED());
+                    for (Dimension dim : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
+                        if (dim instanceof PlanetDimension planetDimension) {
+                            if (dim.getDimensionId().equals(level.dimension().location()) || planetDimension.isKnown())
+                                ItemGalaxyStorageDisk.setUnlockPoints(stack, dim.getDimensionId().toString(), ItemGalaxyStorageDisk.POINTS_UNLOCKED());
+                        }
                     }
                 }
 
