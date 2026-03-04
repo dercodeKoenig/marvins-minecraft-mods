@@ -41,6 +41,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     GuiHandlerBlockEntity guiHandler;
     public ItemStackHandler galaxyStorage;
     public guiModuleItemHandlerSlot galaxyStorageGuiSlot;
+    public GuiModulePlanetView planetView;
 
     public EntityWarpController(BlockPos pos, BlockState blockState) {
         super(ENTITY_WARP_CONTROLLER.get(), pos, blockState);
@@ -126,7 +127,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             );
         }
 
-        GuiModulePlanetView planetView = new GuiModulePlanetView(22,guiHandler, 10,30,100,100);
+        planetView = new GuiModulePlanetView(22,guiHandler, 10,30,120,120);
         planetView.setTargetAndSync(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"));
         guiHandler.modules.add(planetView);
 
@@ -146,6 +147,10 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
+        if(compoundTag.contains("interact")){
+            String dimId =compoundTag.getString("interact");
+            planetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
+        }
         if (compoundTag.contains("guiButtonClick")) {
             int btn = compoundTag.getInt("guiButtonClick");
             Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
