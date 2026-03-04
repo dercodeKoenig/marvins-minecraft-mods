@@ -107,10 +107,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             // close it for this task
             if (task == Task.IDLE) {
                 should_open = false;
-                yawTarget = 0; // TODO: maybe look toward the facing or somewhere else??
+                yawTarget = 0;
                 pitchTarget = 0;
-                yawSpeed = 0.1f;
-                pitchSpeed = 0.1f;
+                yawSpeed = 0.2f;
+                pitchSpeed = 0.2f;
             }
             // open and animate for these tasks
             if (task == Task.ANALYZE_PLANET ||

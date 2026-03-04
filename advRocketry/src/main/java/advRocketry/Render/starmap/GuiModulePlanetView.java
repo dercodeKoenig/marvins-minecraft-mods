@@ -8,6 +8,7 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
+import advRocketry.utils.CelestialUtils;
 import advRocketry.utils.ClientUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -31,7 +32,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
     public int w;
     public int h;
     public ResourceLocation dimensionId;
-    public float zoom = 1000;
+    public float zoom = 500;
 
     public GuiModulePlanetView(int id, IGuiHandler guiHandler, int x, int y, int w, int h) {
         super(id, guiHandler, x, y);
@@ -49,9 +50,9 @@ public class GuiModulePlanetView extends GuiModuleBase {
 
 
     public void client_onMouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        float zoomSpeed = zoom * 0.3f;
+        float zoomSpeed = zoom * 0.1f;
         zoom -= (float) (scrollY * zoomSpeed);
-        zoom = Math.max(1f, Math.min(zoom, 200000f));
+        zoom = Math.max(250f, Math.min(zoom, 3000f));
     }
 
 
@@ -127,6 +128,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
                 Vec3 right = starToPlanet.cross(new Vec3(0,1,0));
                 if(right.length() < 0.0001)
                     right = new Vec3(1,0,0);
+                right = CelestialUtils.rotate(right, starToPlanet, -30);
                 eyePos = right.normalize().scale(zoom).toVector3f();
             }
         }
@@ -168,7 +170,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
         double planetRotationAngle = planet.getRotationAngle(partialTick);
         planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
-        float renderScale = Math.min(w, h) * 2;
+        float renderScale = Math.min(w, h);
         planetMatrix.scale(renderScale);
 
 

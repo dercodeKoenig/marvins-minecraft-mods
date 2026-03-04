@@ -150,7 +150,7 @@ public class SpaceMapScreen extends Screen {
         if (button == 0) {
             // Sensitivity scales with zoom.
             // If you are far away, mouse movement moves the camera more.
-            float sensitivity = zoom / 500f;
+            float sensitivity = zoom / 250f;
 
             // Shift key multiplier for "Fast Pan"
             if (hasShiftDown()) {
