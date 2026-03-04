@@ -64,7 +64,7 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxleBase> {
         }
         stack.mulPose(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
 
-        VertexConsumer v = bufferSource.getBuffer(Static.ENTITY_SOLID_TRIANGLES.apply(texture));
+        VertexConsumer v = bufferSource.getBuffer(RenderType.entitySolid(texture));
 
         for (Face i : model.groupObjects.get("Cube").faces) {
             i.addFaceForRender(stack, v, packedLight, packedOverlay, 0xffffffff);
