@@ -42,6 +42,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     public GuiModulePlanetView currentView;
     public guiModuleText inOrbitText;
     public guiModuleText targetText;
+    public guiModuleText statusText;
 
     public EntityWarpController(BlockPos pos, BlockState blockState) {
         super(ENTITY_WARP_CONTROLLER.get(), pos, blockState);
@@ -146,6 +147,9 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiModuleButton clearBtn = new guiModuleButton(340, "clear", guiHandler, 190, 165, 50, 15, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(clearBtn);
 
+        statusText = new guiModuleText(87,"status", guiHandler, 10, 165, 0xff000000, false);
+        guiHandler.modules.add(statusText);
+
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 195, 10000, 1, 0, guiHandler));
     }
 
@@ -219,17 +223,34 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             guiHandler.serverTick();
 
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
-                currentView.setTargetAndSync(spaceStation.getParentDimensionId());
+                if (spaceStation.isInOrbit()) {
+                    currentView.setTargetAndSync(spaceStation.getParentDimensionId());
+                } else {
+                    currentView.setTargetAndSync(null);
+                }
+
+                Dimension currentOrbitedPlanet = currentView.dimensionId == null ? null : DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId);
+                Dimension targetPlanet = targetView.dimensionId == null ? null : DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId);
 
                 String inOrbitString = "Space";
-                if (currentView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId) instanceof Dimension d && spaceStation.isInOrbit())
-                    inOrbitString = d.getName();
+                if (currentOrbitedPlanet != null && spaceStation.isInOrbit())
+                    inOrbitString = currentOrbitedPlanet.getName();
                 inOrbitText.setTextAndSync("In Orbit:\n" + inOrbitString);
 
                 String targetString = "Space";
-                if (targetView.dimensionId != null && DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId) instanceof Dimension d)
-                    targetString = d.getName();
+                if (targetPlanet != null)
+                    targetString = targetPlanet.getName();
                 targetText.setTextAndSync("Target:\n" + targetString);
+
+                if (spaceStation.isInSpaceTravel()) {
+                    String text = "In Space Travel\n";
+                    double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
+                    distance = (double) Math.round(distance * 100) / 100;
+                    text += "Distance:" + distance + " AU";
+                    statusText.setTextAndSync(text);
+                } else{
+
+                }
             }
         }
     }

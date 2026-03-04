@@ -51,9 +51,11 @@ public class GuiModulePlanetView extends GuiModuleBase {
 
 
     public void client_onMouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        float zoomSpeed = zoom * 0.1f;
-        zoom -= (float) (scrollY * zoomSpeed);
-        zoom = Math.max(250f, Math.min(zoom, 3000f));
+        if(isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
+            float zoomSpeed = zoom * 0.1f;
+            zoom -= (float) (scrollY * zoomSpeed);
+            zoom = Math.max(250f, Math.min(zoom, 3000f));
+        }
     }
 
 

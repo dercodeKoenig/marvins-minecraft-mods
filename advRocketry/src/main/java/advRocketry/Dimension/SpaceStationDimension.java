@@ -190,6 +190,10 @@ public class SpaceStationDimension extends Dimension {
         return isInOrbit;
     }
 
+    public boolean isInSpaceTravel() {
+        return isInSpaceTravel;
+    }
+
     public boolean initialBlocksPlaced() {
         return properties().initialBlocksPlaced;
     }
@@ -332,7 +336,7 @@ public class SpaceStationDimension extends Dimension {
 
     }
 
-    public void tickPosition(){
+    public void tickPosition() {
         Vec3 position = properties().position;
         Vec3 movement = Vec3.ZERO;
 
@@ -422,6 +426,33 @@ public class SpaceStationDimension extends Dimension {
         }
 
         properties().position = position.add(movement);
+
+        // avoid collision with other planets
+        // for performance, i only check against closest planet.
+        // unless the second closes planet has a giant radius it should work well
+        PlanetDimension closestPlanet = null;
+        Vec3 closestPlanetPosition = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (Dimension dim : dimensionManager.dimensions.values()) {
+            if (dim instanceof PlanetDimension planet) {
+                Vec3 planetPosition = planet.getPosition(0);
+                double distance = planetPosition.distanceTo(getPosition(0));
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestPlanet = planet;
+                    closestPlanetPosition = planetPosition;
+                }
+            }
+        }
+        if (closestPlanet != null) {
+            double planetRadius = CelestialUtils.getPlanetRenderRadiusAU(closestPlanet);
+            if (closestDistance < planetRadius * 1.2) {
+                // fix the position, we are to close
+                // scale before normalize or numerical errors will break it!
+                Vec3 planetToStation = getPosition(0).subtract(closestPlanetPosition);
+                properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.2));
+            }
+        }
     }
 
     // mostly copied from rocket controller
