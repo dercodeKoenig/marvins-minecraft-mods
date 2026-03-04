@@ -186,7 +186,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                 if (btn == 339) {
                     // warp!
                     spaceStationDimension.setTargetPlanet(targetView.dimensionId);
-                    guiHandler.signalCloseGui(serverPlayer);
+                    //guiHandler.signalCloseGui(serverPlayer);
                 }
             }
             if (btn == 340) {
