@@ -93,7 +93,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, yaw));
 
         stack.pushPose();
-        stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 0, 1, -pitch));
+        stack.rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, -pitch),0,2.5f,0);
         model.renderPart("Scope", stack, v, light, overlay);
         model.renderPart("Axis", stack, v, light, overlay);
         stack.popPose();
