@@ -101,7 +101,7 @@ public class DefaultGalaxy {
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
         distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
         distantStar.radiationIntensity = 1;
-        distantStar.position = new Vec3(20, 2, 0);
+        distantStar.position = new Vec3(50, 2, 0);
         galaxy.add(distantStar);
 
 
