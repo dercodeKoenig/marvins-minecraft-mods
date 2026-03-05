@@ -86,8 +86,6 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
         float yaw = renderData.yaw - (1 - partialtick) * renderData.yawD;
         float pitch = renderData.pitch - (1 - partialtick) * renderData.pitchD;
-        //yaw = yaw * (float)Math.PI / 180;
-        //pitch = pitch * (float)Math.PI / 180;
 
         // translate & yaw
         stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, yaw));
