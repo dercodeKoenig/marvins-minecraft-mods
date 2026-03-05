@@ -1,5 +1,6 @@
 package advRocketry.BlockEntities;
 
+import ARLib.blockentities.EntityEnergyInputBlock;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import advRocketry.Data.DataStack;
 import net.minecraft.core.BlockPos;
@@ -44,6 +45,19 @@ abstract public class EntityMultiblockMachineMasterWithData extends EntityMultib
             }
         }
         return data;
+    }
+
+    public void consumeData(String type, int toConsume, List<EntityDataStorageBlock> dataTiles) {
+        int consumed = 0;
+        for (EntityDataStorageBlock i : dataTiles) {
+            int remaining = toConsume - consumed;
+            if(remaining == 0)
+                return;
+            DataStack stack = i.dataStorage.extractData(remaining, true);
+            if (stack != null && stack.type.equals(type)) {
+                consumed += i.dataStorage.extractData(remaining, false).amount;
+            }
+        }
     }
 
     public List<EntityDataStorageBlock> getDataTiles() {

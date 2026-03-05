@@ -12,6 +12,7 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Items.ItemGalaxyStorageDisk;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Items.ItemUtils;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.AxisDirections;
@@ -21,6 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -535,11 +537,22 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                         if (hasEnoughEnergy) {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             double p = Math.random();
-                            if (p < Config.INSTANCE.observatory_Find_Planet_P_Per_Tick) {
+                            double pTarget =Config.INSTANCE.observatory_Find_Planet_P_Per_Tick;
+                            if(getData("testData", dataTiles) > 0){
+                                super.consumeData("testData", 1, dataTiles);
+                                pTarget *= 10; // increase probability of finding something at the cost of data
+                            }
+                            if (p < pTarget) {
                                 // discover a new random planet that is not already known
                                 PlanetDimension nextToDiscover = getNextPlanetToDiscover(storageDisk);
                                 if (nextToDiscover != null) {
-                                    ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, nextToDiscover.toString(), 0); // add the planet to the list
+                                    ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, nextToDiscover.getDimensionId().toString(), 0); // add the planet to the list
+                                    // send a message to nearby players
+                                    for(Player player : level.players()){
+                                        if(player.position().distanceTo(getBlockPos().getCenter()) < 32){
+                                            player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new Planet: "+nextToDiscover.getName()));
+                                        }
+                                    }
                                 }
                                 // check if there are still any planets left that can be discovered
                                 if(getNextPlanetToDiscover(storageDisk) != null){
@@ -658,6 +671,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     }
 
     public void toggleTask(Task task, ResourceLocation taskTarget) {
+        customStatusTimeout = 0; // reset when the task was changed
         if (this.task.equals(task)) {
             // toggle on / off for these tasks:
             if (task.equals(Task.SCANNING_FOR_PLANETS) ||
