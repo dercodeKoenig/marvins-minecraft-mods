@@ -71,8 +71,8 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         BlockState state = observatory.getBlockState();
         if (!(state.getBlock() instanceof Observatory)) return;
 
-        if (!state.getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
-            return;
+        //if (!state.getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
+        //    return;
 
         Direction back = state.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 
@@ -84,7 +84,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         // render base block
         model.renderPart("Base", stack, v, light, overlay);
 
-        float yaw = renderData.yaw - (1 - partialtick) * renderData.yawD;
+        float yaw = renderData.yaw - (1 - partialtick) * renderData.yawD - back.toYRot() - 90;
         float pitch = renderData.pitch - (1 - partialtick) * renderData.pitchD;
 
         // translate & yaw
