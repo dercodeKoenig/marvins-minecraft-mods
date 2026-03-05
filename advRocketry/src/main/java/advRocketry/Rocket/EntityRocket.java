@@ -561,6 +561,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     /// the normal launch code
     /// missions (asteroid mining, gas mining, satellite deployment) will need their own launch code
     public boolean launch(ItemStack navigationItem) {
+        if(level().isClientSide) return false;
 
         Level targetLevel = null;
         BlockPos targetPos = null;

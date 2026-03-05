@@ -1,19 +1,36 @@
 {
     "variants": {
-        "facing=east": {
+        "facing=east,active=false": {
             "model": "adv_rocketry:block/launch_station",
             "y": 90
         },
-        "facing=north": {
+        "facing=north,active=false": {
             "model": "adv_rocketry:block/launch_station",
             "y": 0
         },
-        "facing=west": {
+        "facing=west,active=false": {
             "model": "adv_rocketry:block/launch_station",
             "y": 270
         },
-        "facing=south": {
+        "facing=south,active=false": {
             "model": "adv_rocketry:block/launch_station",
+            "y": 180
+        },
+
+        "facing=east,active=true": {
+            "model": "adv_rocketry:block/launch_station_active",
+            "y": 90
+        },
+        "facing=north,active=true": {
+            "model": "adv_rocketry:block/launch_station_active",
+            "y": 0
+        },
+        "facing=west,active=true": {
+            "model": "adv_rocketry:block/launch_station_active",
+            "y": 270
+        },
+        "facing=south,active=true": {
+            "model": "adv_rocketry:block/launch_station_active",
             "y": 180
         }
     }

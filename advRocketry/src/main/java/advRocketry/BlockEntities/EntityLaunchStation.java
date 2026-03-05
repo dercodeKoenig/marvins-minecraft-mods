@@ -77,10 +77,9 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         if (linkedRocket != null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
             linkedRocket.launch(navigationItem);
-
-            level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.ACTIVE, true), 3);
-            activeTimeout = 40;
         }
+        level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.ACTIVE, true), 3);
+        activeTimeout = 40;
     }
 
     @Override
