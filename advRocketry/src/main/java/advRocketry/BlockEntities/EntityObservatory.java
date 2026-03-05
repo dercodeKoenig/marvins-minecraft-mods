@@ -511,7 +511,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     if (!hasEnoughEnergy) {
                         statusText.setTextAndSync("OUT OF ENERGY!");
                     } else {
-                        statusText.setTextAndSync("Status:\n" + task.name());
+                        statusText.setTextAndSync("Status:\n" + task.label);
                     }
                 } else {
                     customStatusTimeout--;
