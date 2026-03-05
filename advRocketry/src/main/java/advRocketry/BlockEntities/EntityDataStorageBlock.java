@@ -1,6 +1,7 @@
 package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleVerticalProgressBar;
@@ -56,10 +57,14 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
                 setChanged();
             }
         };
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(1, itemStackHandler, 0, 0, 1, guiHandler, 30, 10));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(2, itemStackHandler, 1, 0, 1, guiHandler, 30, 45));
 
         simpleDataContainer = new SimpleDataContainer(dataStorage, itemStackHandler);
+        // i could use the simpleDataContainer as itemhandler in gui but i choose to use itemStackHandler
+        // because it allows players to block the lower slot with a fully filled disk so it writes only full disks
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(1, itemStackHandler, 0, 0, 1, guiHandler, 30, 10));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(2, itemStackHandler, 1, 0, 1, guiHandler, 30, 45));
+        ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png");
+        guiHandler.modules.add(new guiModuleImage(guiHandler, 30, 28, 16, 16, arrow, 12, 16));
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 1000, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 2000, 1, 0, guiHandler));
