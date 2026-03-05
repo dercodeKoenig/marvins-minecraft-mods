@@ -54,8 +54,7 @@ public class WarpController extends Block implements EntityBlock {
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if(be instanceof EntityWarpController warpController && !state.getBlock().equals(newState.getBlock())){
+        if(level.getBlockEntity(pos) instanceof EntityWarpController warpController){
             warpController.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

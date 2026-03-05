@@ -38,9 +38,8 @@ public class GuidanceComputer extends Block implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        BlockEntity me= level.getBlockEntity(pos);
-        if(me instanceof EntityGuidanceComputer h){
-            h.popInventory();
+        if(level.getBlockEntity(pos) instanceof EntityGuidanceComputer guidanceComputer){
+            guidanceComputer.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

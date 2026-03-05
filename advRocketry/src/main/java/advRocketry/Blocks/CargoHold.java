@@ -38,9 +38,8 @@ public class CargoHold extends Block implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        BlockEntity me= level.getBlockEntity(pos);
-        if(me instanceof EntityCargoHold h){
-            h.popInventory();
+        if(level.getBlockEntity(pos) instanceof EntityCargoHold cargoHold){
+            cargoHold.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

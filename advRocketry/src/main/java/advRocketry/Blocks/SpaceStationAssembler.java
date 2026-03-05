@@ -49,8 +49,7 @@ public class SpaceStationAssembler extends RocketAssembler implements EntityBloc
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if(be instanceof EntitySpaceStationAssembler spaceStationAssembler){
+        if(level.getBlockEntity(pos) instanceof EntitySpaceStationAssembler spaceStationAssembler){
             spaceStationAssembler.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

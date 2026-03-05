@@ -4,6 +4,8 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import advRocketry.Blocks.LaunchPad;
+import advRocketry.Blocks.LaunchStation;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
 import net.minecraft.core.BlockPos;
@@ -20,6 +22,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.ENTITY_LAUNCH_STATION;
+import static advRocketry.Registry.LAUNCH_STATION;
 
 public class EntityLaunchStation extends EntityRocketInfrastructureBase implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 
@@ -28,6 +31,7 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
     public GuiHandlerBlockEntity guiHandler;
 
     public boolean isRedstonePowered = false;
+    int activeTimeout = 0; // when launch, shortly change the block state to active, change back after a few ticks
 
     public EntityLaunchStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_LAUNCH_STATION.get(), pos, blockState);
@@ -69,10 +73,13 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         ((EntityLaunchStation) t).tick();
     }
 
-    public void launch(){
-        if(linkedRocket != null){
+    public void launch() {
+        if (linkedRocket != null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
             linkedRocket.launch(navigationItem);
+
+            level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.ACTIVE, true), 3);
+            activeTimeout = 40;
         }
     }
 
@@ -118,6 +125,11 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         if (!level.isClientSide) {
             guiHandler.serverTick();
             super.serverTick();
+            if (activeTimeout > 0) {
+                activeTimeout--;
+                if (activeTimeout == 0)
+                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.ACTIVE, false), 3);
+            }
         }
     }
 }

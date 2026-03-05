@@ -15,15 +15,22 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import static advRocketry.Registry.ENTITY_LAUNCH_STATION;
 
 public class LaunchStation extends Block implements EntityBlock {
+
+    public static BooleanProperty ACTIVE = BooleanProperty.create("active");
+
     public LaunchStation() {
         super(Properties.of());
-        registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        registerDefaultState(getStateDefinition().any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+                .setValue(ACTIVE, false)
+        );
     }
 
     @Override
@@ -34,12 +41,16 @@ public class LaunchStation extends Block implements EntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
+        builder.add(ACTIVE);
         super.createBlockStateDefinition(builder);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(ACTIVE, false)
+                ;
     }
 
     @Override
@@ -60,17 +71,15 @@ public class LaunchStation extends Block implements EntityBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
             if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
-                launchStation.guiHandler.openGui(176, 165, true);
+                launchStation.guiHandler.openGui(176, 145, true);
             }
         }
         return InteractionResult.SUCCESS;
     }
 
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide) {
-            if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
-                launchStation.popInventory();
-            }
+        if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation && !launchStation.isValidBlockState(newState)) {
+            launchStation.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

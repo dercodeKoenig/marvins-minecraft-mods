@@ -58,12 +58,9 @@ public class FuelingStation extends Block implements EntityBlock {
     }
 
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide) {
-            if (level.getBlockEntity(pos) instanceof EntityFuelingStation fuelingStation) {
-                fuelingStation.simpleFluidContainer.popItems(level, pos);
-            }
+        if (level.getBlockEntity(pos) instanceof EntityFuelingStation fuelingStation) {
+            fuelingStation.simpleFluidContainer.popItems(level, pos);
         }
-
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 

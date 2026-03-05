@@ -68,12 +68,8 @@ public class RocketItemLoader extends Block implements EntityBlock {
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide) {
-            if (level.getBlockEntity(pos) instanceof EntityRocketItemLoader itemLoader) {
-                if (!newState.getBlock().equals(state.getBlock())) {
-                    itemLoader.popInventory();
-                }
-            }
+        if (level.getBlockEntity(pos) instanceof EntityRocketItemLoader itemLoader && !itemLoader.isValidBlockState(newState)) {
+            itemLoader.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
