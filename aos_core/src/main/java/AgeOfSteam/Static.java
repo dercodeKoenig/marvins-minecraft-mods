@@ -26,25 +26,6 @@ public class Static {
 
     public static int CALC_STRESS_EVERY_X_TICKS = 20*10;
 
-    // copied from ENTITY_SOLID but with triangles mode
-    public static Function<ResourceLocation, RenderType> ENTITY_SOLID_TRIANGLES = Util.memoize((p_286159_) -> {
-        RenderType.CompositeState rendertype$compositestate = RenderType.CompositeState.builder()
-                .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
-                .setTextureState(new RenderStateShard.TextureStateShard(p_286159_, false, false))
-                .setTransparencyState(NO_TRANSPARENCY)
-                .setLightmapState(LIGHTMAP)
-                .setOverlayState(OVERLAY)
-                .createCompositeState(true);
-        return RenderType.create("entity_solid_triangles",
-                DefaultVertexFormat.NEW_ENTITY,
-                VertexFormat.Mode.TRIANGLES,
-                1536,
-                true,
-                false,
-                rendertype$compositestate
-        );
-    });
-
     // the order in that you define it is very important!
     // unlike older versions, the order is not linked to .addvertex(...) but has to be like this
     // I dont know why but this is the only way it works

@@ -31,19 +31,8 @@ public class GroupObject {
     }
 
 
-    public void render(PoseStack stack, MultiBufferSource bufferSource, VertexFormat vertexFormat, RenderType.CompositeState compositeState, int packedLight, int packedOverlay, int color) {
-
-        RenderType r = RenderType.create("renderer_235646whatever",
-                vertexFormat,
-                drawMode,
-                RenderType.SMALL_BUFFER_SIZE,
-                false,
-                true,
-                compositeState
-        );
-
-        VertexConsumer v = bufferSource.getBuffer(r);
-        if (faces.size() > 0) {
+    public void render(PoseStack stack, VertexConsumer v, int packedLight, int packedOverlay, int color) {
+        if (!faces.isEmpty()) {
             for (Face face : faces) {
                 face.addFaceForRender(stack, v, packedLight, packedOverlay, color);
             }

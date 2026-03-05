@@ -135,19 +135,18 @@ public class WavefrontObject {
         }
     }
 
-    public void renderAll(PoseStack stack, MultiBufferSource bufferSource, VertexFormat vertexFormat, RenderType.CompositeState compositeState, int packedLight, int packedOverlay, int color) {
-
+    public void renderAll(PoseStack stack, VertexConsumer v, int packedLight, int packedOverlay, int color) {
         for (GroupObject groupObject : groupObjects.values()) {
-            groupObject.render(stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay, color);
+            groupObject.render(stack, v, packedLight, packedOverlay, color);
         }
     }
 
-
-    public void renderPart(String partName, PoseStack stack, MultiBufferSource bufferSource, VertexFormat vertexFormat, RenderType.CompositeState compositeState, int packedLight, int packedOverlay) {
-        renderPart(partName,stack,bufferSource,vertexFormat,compositeState,packedLight,packedOverlay,0xFFFFFFFF);
+    public void renderPart(String partName, PoseStack stack, VertexConsumer v, int packedLight, int packedOverlay) {
+        renderPart(partName,stack,v,packedLight,packedOverlay,0xFFFFFFFF);
     }
-    public void renderPart(String partName, PoseStack stack, MultiBufferSource bufferSource, VertexFormat vertexFormat, RenderType.CompositeState compositeState, int packedLight, int packedOverlay, int color) {
-                groupObjects.get(partName).render(stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay, color);
+
+    public void renderPart(String partName, PoseStack stack, VertexConsumer v, int packedLight, int packedOverlay, int color) {
+                groupObjects.get(partName).render(stack, v, packedLight, packedOverlay, color);
     }
 
     private Vertex parseVertex(String line, int lineCount) throws ModelFormatException {

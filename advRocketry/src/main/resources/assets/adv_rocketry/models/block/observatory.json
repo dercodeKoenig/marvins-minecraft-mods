@@ -2,7 +2,7 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "top": "arlib:block/machinegeneric",
-    "front": "arlib:block/controlpanel",
+    "front": "adv_rocketry:block/monitor",
     "side": "arlib:block/machinegeneric"
   }
 }

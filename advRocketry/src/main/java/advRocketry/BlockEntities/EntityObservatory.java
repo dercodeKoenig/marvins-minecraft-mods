@@ -57,20 +57,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     // holds methods and variables for rendering
     public static class RenderData {
-        public MeshData meshAxle;
-        public MeshData meshScope;
-        public MeshData meshCasingXPlus;
-        public MeshData meshCasingXMinus;
-        public MeshData meshBase;
-
-        public VertexBuffer axle;
-        public VertexBuffer scope;
-        public VertexBuffer casingXPlus;
-        public VertexBuffer casingXMinus;
-        public VertexBuffer base;
-
-        public int lastLight = -1;
-
         public boolean should_open = false;
         public int openingTicks = 0;
         public int openingTicksMax = 300;
@@ -249,22 +235,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
         super.forwardInteractionToMaster = true;
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                renderData.axle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                renderData.scope = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                renderData.casingXMinus = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                renderData.casingXPlus = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                renderData.base = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-
-                VertexBufferCleaner.register(this, renderData.axle);
-                VertexBufferCleaner.register(this, renderData.scope);
-                VertexBufferCleaner.register(this, renderData.casingXMinus);
-                VertexBufferCleaner.register(this, renderData.casingXPlus);
-                VertexBufferCleaner.register(this, renderData.base);
-            });
-        }
 
         guiHandler = new GuiHandlerBlockEntity(this);
         guiHandler.maxDistance = 16;
@@ -871,6 +841,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
 
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+        System.out.println("use");
         if (!world.isClientSide) {
             openGui((ServerPlayer) player);
         }

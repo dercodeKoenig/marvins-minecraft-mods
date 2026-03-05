@@ -3,6 +3,7 @@ package advRocketry.BlockEntityRenderers;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
+import ARLib.obj.Static;
 import ARLib.obj.WavefrontObject;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.Blocks.Observatory;
@@ -18,6 +19,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -62,74 +64,9 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         return new AABB(blockEntity.getBlockPos()).inflate(5);
     }
 
-    public void updateVertexBuffers(EntityObservatory.RenderData renderData, int light) {
-        ByteBufferBuilder byteBuffer;
-        BufferBuilder b;
-
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("Axis").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        renderData.meshAxle = b.build();
-        renderData.axle.bind();
-        renderData.axle.upload(renderData.meshAxle);
-        byteBuffer.close();
-
-
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("Scope").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        renderData.meshScope = b.build();
-        renderData.scope.bind();
-        renderData.scope.upload(renderData.meshScope);
-        byteBuffer.close();
-
-
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("CasingXPlus").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        renderData.meshCasingXPlus = b.build();
-        renderData.casingXPlus.bind();
-        renderData.casingXPlus.upload(renderData.meshCasingXPlus);
-        byteBuffer.close();
-
-
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("CasingXMinus").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        renderData.meshCasingXMinus = b.build();
-        renderData.casingXMinus.bind();
-        renderData.casingXMinus.upload(renderData.meshCasingXMinus);
-        byteBuffer.close();
-
-
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("Base").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        renderData.meshBase = b.build();
-        renderData.base.bind();
-        renderData.base.upload(renderData.meshBase);
-        byteBuffer.close();
-    }
-
-
     @Override
     public void render(EntityObservatory observatory, float partialtick, PoseStack stack, MultiBufferSource multiBufferSource, int light, int overlay) {
         EntityObservatory.RenderData renderData = observatory.renderData;
-
-        if (renderData.lastLight != light) {
-            renderData.lastLight = light;
-            updateVertexBuffers(renderData, light);
-        }
 
         BlockState state = observatory.getBlockState();
         if (!(state.getBlock() instanceof Observatory)) return;
@@ -139,106 +76,41 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
 
         Direction back = state.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 
-        RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
-        LIGHTMAP.setupRenderState();
-        LEQUAL_DEPTH_TEST.setupRenderState();
-        NO_TRANSPARENCY.setupRenderState();
-        RenderSystem.setShaderTexture(0, tex);
+        RenderType renderType = Static.ENTITY_SOLID_TRIANGLES.apply(tex);
+        VertexConsumer v = multiBufferSource.getBuffer(renderType);
 
-        Matrix4f modelMat = new Matrix4f();
-        modelMat = modelMat.mul(stack.last().pose());
+        stack.translate(back.getStepX() * 2.001 + 0.5f, 0, back.getStepZ() * 2.001 + 0.5f);
 
-        // translate to structure center
-        modelMat.translate(back.getStepX() * 2 + 0.5f, 0, back.getStepZ() * 2 + 0.5f);
+        // render base block
+        model.renderPart("Base", stack, v, light, overlay);
 
-        ShaderInstance shader;
-        Uniform NormalMat;
-        Matrix3f normalMat;
+        float yaw = renderData.yaw - (1 - partialtick) * renderData.yawD;
+        float pitch = renderData.pitch - (1 - partialtick) * renderData.pitchD;
+        //yaw = yaw * (float)Math.PI / 180;
+        //pitch = pitch * (float)Math.PI / 180;
 
-        shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMat), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        NormalMat = shader.getUniform("NormalMat");
-        normalMat = new Matrix3f(modelMat); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
-        shader.apply();
+        // translate & yaw
+        stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 1, 0, yaw));
 
-        renderData.base.bind();
-        renderData.base.draw();
-
-        float yaw = renderData.yaw - (1-partialtick) * renderData.yawD;
-        float pitch = renderData.pitch - (1-partialtick) * renderData.pitchD;
-        yaw = yaw * (float)Math.PI / 180;
-        pitch = pitch * (float)Math.PI / 180;
-
-        Matrix4f modelMatScope = new Matrix4f(modelMat);
-        modelMatScope.translate(0, 2, 0);
-        modelMatScope.rotateY(yaw);       // Spin the axle around Y
-        modelMatScope.rotateZ(-pitch);       // Spin the axle around Y
-
-        shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatScope), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        NormalMat = shader.getUniform("NormalMat");
-        normalMat = new Matrix3f(modelMatScope); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
-        shader.apply();
-
-        renderData.scope.bind();
-        renderData.scope.draw();
-
-        renderData.axle.bind();
-        renderData.axle.draw();
-
+        stack.pushPose();
+        stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 0, 1, -pitch));
+        model.renderPart("Scope", stack, v, light, overlay);
+        model.renderPart("Axis", stack, v, light, overlay);
+        stack.popPose();
 
         float openProgress = (float) renderData.openingTicks / renderData.openingTicksMax;
         if (renderData.should_open) openProgress += partialtick / renderData.openingTicksMax;
         if (!renderData.should_open) openProgress -= partialtick / renderData.openingTicksMax;
         openProgress = Math.clamp(openProgress, 0, 1);
 
+        stack.pushPose();
+        stack.translate(0f, 0, openProgress * 0.9f);
+        model.renderPart("CasingXPlus", stack, v, light, overlay);
+        stack.popPose();
 
-        Matrix4f modelMatCaseXPlus = new Matrix4f(modelMat);
-        modelMatCaseXPlus.rotateY(yaw);
-
-        // open
-        modelMatCaseXPlus.translate(0f, 0, openProgress*0.9f);
-
-        shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXPlus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        NormalMat = shader.getUniform("NormalMat");
-        normalMat = new Matrix3f(modelMatCaseXPlus); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
-        shader.apply();
-
-        renderData.casingXPlus.bind();
-        renderData.casingXPlus.draw();
-
-
-        Matrix4f modelMatCaseXMinus = new Matrix4f(modelMat);
-        modelMatCaseXMinus.rotateY(yaw);
-
-        // open
-        modelMatCaseXMinus.translate(0f, 0, -openProgress*0.9f);
-
-        shader = RenderSystem.getShader();
-        shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, new Matrix4f(RenderSystem.getModelViewMatrix()).mul(modelMatCaseXMinus), RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-        NormalMat = shader.getUniform("NormalMat");
-        normalMat = new Matrix3f(modelMatCaseXMinus); // take upper-left 3x3
-        normalMat.invert().transpose(); // compute normal matrix
-        NormalMat.set(normalMat);
-        shader.apply();
-
-        renderData.casingXMinus.bind();
-        renderData.casingXMinus.draw();
-
-
-        shader.clear();
-        VertexBuffer.unbind();
-
-        LIGHTMAP.clearRenderState();
-        LEQUAL_DEPTH_TEST.clearRenderState();
-        NO_TRANSPARENCY.clearRenderState();
-
+        stack.pushPose();
+        stack.translate(0f, 0, -openProgress * 0.9f);
+        model.renderPart("CasingXMinus", stack, v, light, overlay);
+        stack.popPose();
     }
 }
