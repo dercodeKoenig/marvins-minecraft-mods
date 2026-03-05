@@ -71,8 +71,6 @@ public class SimpleDataContainer implements IItemHandler {
                 ItemStack stackCopy = stack.copyWithCount(1);
                 int insertableData = iItemDataStorage.insertData(stackCopy, availableData, false); // no simulation to write the result item in stackCopy
                 ItemStack notInsertableResultItem = insertItemIgnoreFilter(1, stackCopy, true);
-                if(availableData != null)
-                    System.out.println(availableData.amount+":"+insertableData+":"+notInsertableResultItem);
                 if (insertableData != 0 && notInsertableResultItem.isEmpty()) {
                     // commit the transactions
                     this.dataStorage.extractData(insertableData, false);
