@@ -305,6 +305,7 @@ public class SpaceMapScreen extends Screen {
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
             float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
+            renderScale *=Math.max(1,zoom / 50000); // make larger on high zoom to keep stars visible
             planetMatrix.scale(renderScale);
 
 

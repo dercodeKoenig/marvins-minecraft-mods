@@ -81,10 +81,12 @@ public class SimpleDataContainer implements IItemHandler {
                     stackCopy = stack.copyWithCount(1);
                     int maxFill = this.dataStorage.getRemainingCapacity();
                     availableData = iItemDataStorage.extractData(stackCopy, maxFill, false);
-                    notInsertableResultItem = insertItemIgnoreFilter(1, stackCopy, false);
-                    if (notInsertableResultItem.isEmpty()) {
+                    insertableData = this.dataStorage.insertData(availableData, true);
+                    notInsertableResultItem = insertItemIgnoreFilter(1, stackCopy, true);
+                    if (notInsertableResultItem.isEmpty() && availableData != null && availableData.amount == insertableData && insertableData > 0) {
                         this.dataStorage.insertData(availableData, false);
                         this.extractItem(0, 1, false);
+                        this.insertItemIgnoreFilter(1, stackCopy, false);
                     }
                 }
             }
