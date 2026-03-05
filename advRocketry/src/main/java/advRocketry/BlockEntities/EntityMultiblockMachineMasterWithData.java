@@ -1,15 +1,14 @@
 package advRocketry.BlockEntities;
 
-import ARLib.blockentities.EntityFluidOutputBlock;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
+import advRocketry.Data.DataStack;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.apache.logging.log4j.core.appender.db.jdbc.DataSourceConnectionSource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 abstract public class EntityMultiblockMachineMasterWithData extends EntityMultiblockMachineMaster {
@@ -22,9 +21,40 @@ abstract public class EntityMultiblockMachineMasterWithData extends EntityMultib
 
     @Override
     public void addStructureTiles(BlockEntity tile) {
-        if(tile instanceof EntityDataStorageBlock){
+        if (tile instanceof EntityDataStorageBlock) {
             dataTiles.add(tile.getBlockPos());
         }
         super.addStructureTiles(tile);
+    }
+
+    @Override
+    public void onStructureComplete() {
+        if (!this.level.isClientSide) {
+            this.dataTiles.clear();
+        }
+        super.onStructureComplete();
+    }
+
+    public int getData(String type, List<EntityDataStorageBlock> dataTiles){
+        int data = 0;
+        for(EntityDataStorageBlock i : dataTiles){
+            DataStack stack = i.dataStorage.getDataStack();
+            if(stack != null && stack.type.equals(type)){
+                data+=stack.amount;
+            }
+        }
+        return data;
+    }
+
+    public List<EntityDataStorageBlock> getDataTiles() {
+        List<EntityDataStorageBlock> tiles = new ArrayList();
+        for (BlockPos pos : dataTiles) {
+            if (level.isLoaded(pos)) {
+                if (level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock) {
+                    tiles.add(dataStorageBlock);
+                }
+            }
+        }
+        return tiles;
     }
 }

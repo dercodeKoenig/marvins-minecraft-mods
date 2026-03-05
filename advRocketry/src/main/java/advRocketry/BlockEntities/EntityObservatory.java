@@ -1,12 +1,11 @@
 package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
+import ARLib.blockentities.EntityEnergyInputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.BlockMultiblockMaster;
-import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.VertexBufferCleaner;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
@@ -17,9 +16,6 @@ import advRocketry.Registry;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.ClientUtils;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -53,7 +49,7 @@ import java.util.List;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 
-public class EntityObservatory extends EntityMultiblockMachineMaster {
+public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
     // holds methods and variables for rendering
     public static class RenderData {
@@ -222,12 +218,13 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
     ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot1;
     ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot2;
     ARLib.gui.modules.guiModuleItemHandlerSlot planetIdChipSlot;
-    ARLib.gui.modules.guiModuleText currentTaskText;
     ARLib.gui.modules.guiModuleButton scanPlanetBtn;
     ARLib.gui.modules.guiModuleButton scanAsteroidBtn;
     ARLib.gui.modules.guiModuleButton syncStorageDisksBtn;
     ARLib.gui.modules.guiModuleProgressBarHorizontal6px guiProgressBar;
     ARLib.gui.modules.guiModuleVerticalProgressBar energyBar;
+    ARLib.gui.modules.guiModuleText statusText;
+    int customStatusTimeout = 0;
 
 
 
@@ -358,8 +355,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             );
         }
 
-        currentTaskText = new ARLib.gui.modules.guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
-        guiHandler.modules.add(currentTaskText);
+        statusText = new ARLib.gui.modules.guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
+        guiHandler.modules.add(statusText);
 
         guiProgressBar = new ARLib.gui.modules.guiModuleProgressBarHorizontal6px(200, 0xffffffff, guiHandler, 10, 50);
         guiHandler.modules.add(guiProgressBar);
@@ -395,7 +392,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         };
         guiHandler.modules.add(syncStorageDisksBtn);
 
-        energyBar = new ARLib.gui.modules.guiModuleVerticalProgressBar(300, guiHandler, 155, 10);
+        energyBar = new ARLib.gui.modules.guiModuleVerticalProgressBar(300, guiHandler, 155, 60);
         guiHandler.modules.add(energyBar);
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 0, 1, guiHandler));
@@ -408,7 +405,86 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
             CompoundTag info = new CompoundTag();
             info.put("onLoad", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
+        }else{
+            updateActionButtonStates();
         }
+    }
+
+    public  void setStatusText(String status){
+        customStatusTimeout = 20*60;
+        statusText.setTextAndSync(status);
+    }
+
+    public boolean startAnalyzingRandomPlanet(ItemStack storageDisk){
+        // find a random planet that is discovered but not unlocked
+        List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
+        Collections.shuffle(randomDimIds);
+        for (ResourceLocation dimId : randomDimIds) {
+            Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
+            if (dim instanceof PlanetDimension planetDimension && !planetDimension.isKnown()) {
+                // check if known
+                if (ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, dimId.toString())) {
+                    // check if not unlocked
+                    if(!ItemGalaxyStorageDisk.isDimensionUnlocked(storageDisk,dimId.toString())){
+                        toggleTask(Task.ANALYZE_PLANET, dimId);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public void analyzeRandomPlanetOrTurnOff(ItemStack storageDisk){
+        if (!(storageDisk.getItem() instanceof ItemGalaxyStorageDisk)) {
+            // has no data disk, can not work
+            toggleTask(Task.IDLE, null);
+            setStatusText("no galaxy storage disk found");
+        }
+
+        if (!startAnalyzingRandomPlanet(storageDisk)) {
+            // if nothing there to analyze, go idle
+            toggleTask(Task.IDLE, null);
+            setStatusText("unable to find any new planets");
+        }
+    }
+
+    public PlanetDimension getNextPlanetToDiscover(ItemStack storageDisk){
+        List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
+        Collections.shuffle(randomDimIds);
+        for (ResourceLocation dimId : randomDimIds) {
+            Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
+            // only consider planet dimensions
+            if (dim instanceof PlanetDimension planetDimension) {
+                // only consider planets not known by default
+                if (!planetDimension.isKnown()) {
+                    // only consider planets that are not already known in the supplied storage disk
+                    if (!ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, dimId.toString())) {
+                        // if the dimension has a parent dimension that is unknown, the parent has to be discovered first!
+                        if (planetDimension.getParentDimensionId() != null) {
+                            // has a parent
+                            Dimension parent = DimensionManager.INSTANCE_SERVER.get(planetDimension.getParentDimensionId());
+                            if (parent instanceof PlanetDimension parentPlanet) {
+                                // parent is a planet
+                                if (!parentPlanet.isKnown()) {
+                                    // parent is not known by default
+                                    if (!ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, parent.getDimensionId().toString())) {
+                                        // parent is also not known on disk
+                                        // we can not discover the planet until parent is known
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                        // TODO: artifact check, is artifact required and supplied in input hatch?
+
+                        // discover this planet!
+                        return planetDimension;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public void tick() {
@@ -419,8 +495,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 toggleTask(Task.IDLE, null);
             } else {
 
-                int energy = this.getTotalEnergyStored();
-                int maxEnergy = this.getMaxEnergyStored();
+                List<EntityEnergyInputBlock> energyInputBlocks = getEnergyInputTiles();
+                List<EntityDataStorageBlock> dataTiles = getDataTiles();
+
+                int energy = this.getTotalEnergyStored(energyInputBlocks);
+                int maxEnergy = this.getMaxEnergyStored(energyInputBlocks);
 
                 boolean newHasEnoughEnergy = energy > Config.INSTANCE.observatory_Energy_Per_Tick;
                 if (newHasEnoughEnergy != hasEnoughEnergy) {
@@ -428,10 +507,14 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     sendUpdatePacket(null); // client needs to know about energy to stop the rotate animations
                 }
 
-                if (!hasEnoughEnergy) {
-                    currentTaskText.setTextAndSync("OUT OF ENERGY!");
-                } else {
-                    currentTaskText.setTextAndSync("Task:\n" + task.name());
+                if(customStatusTimeout <= 0) {
+                    if (!hasEnoughEnergy) {
+                        statusText.setTextAndSync("OUT OF ENERGY!");
+                    } else {
+                        statusText.setTextAndSync("Task:\n" + task.name());
+                    }
+                }else{
+                    customStatusTimeout--;
                 }
 
                 energyBar.setProgressAndSync((double) energy / maxEnergy);
@@ -446,48 +529,25 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     if (!(storageDisk.getItem() instanceof ItemGalaxyStorageDisk)) {
                         // has no data disk, can not work
                         toggleTask(Task.IDLE, null);
+                        setStatusText("no galaxy storage disk found");
                     } else {
                         guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
                         if (hasEnoughEnergy) {
-                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick);
-                            taskProgress++;
-                            if (taskProgress > Config.INSTANCE.observatory_Find_Planet_Ticks) {
+                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
+                            double p = Math.random();
+                            if (p < Config.INSTANCE.observatory_Find_Planet_P_Per_Tick) {
                                 // discover a new random planet that is not already known
-                                List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
-                                Collections.shuffle(randomDimIds);
-                                boolean allDiscovered = true;
-                                for (ResourceLocation dimId : randomDimIds) {
-                                    Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
-                                    if (dim instanceof PlanetDimension planetDimension && !planetDimension.isKnown()) {
-                                        if (!ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, dimId.toString())) {
-                                            // if the dimension has a parent dimension that is unknown, the parent has to be discovered first!
-                                            if(planetDimension.getParentDimensionId() != null){
-                                                // has a parent
-                                                Dimension parent = DimensionManager.INSTANCE_SERVER.get(planetDimension.getParentDimensionId());
-                                                if(parent instanceof PlanetDimension parentPlanet){
-                                                    // parent is a planet
-                                                    if(!parentPlanet.isKnown()) {
-                                                        // parent is not known by default
-                                                        if(!ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, parent.getDimensionId().toString())) {
-                                                            // parent is also not known on disk
-                                                            // we can not discover this planet until parent is known
-                                                            continue;
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            // discover this planet!
-                                            ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, dimId.toString(), 0); // add the planet to the list
-                                            taskProgress = 0; // resume working
-                                            allDiscovered = false;
-                                            //System.out.println("observatory discover planet: " + dimId);
-                                            break;
-                                        }
-                                    }
+                                PlanetDimension nextToDiscover = getNextPlanetToDiscover(storageDisk);
+                                if (nextToDiscover != null) {
+                                    ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, nextToDiscover.toString(), 0); // add the planet to the list
                                 }
-                                if (allDiscovered) {
-                                    toggleTask(Task.IDLE, null);
+                                // check if there are still any planets left that can be discovered
+                                if(getNextPlanetToDiscover(storageDisk) != null){
+                                    // just continue the work
+                                }
+                                else {
+                                    // start analyzing random planets if everything is discovered
+                                    analyzeRandomPlanetOrTurnOff(storageDisk);
                                 }
                             }
                             setChanged();
@@ -504,12 +564,11 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         toggleTask(this.lastTask, this.lastTaskTarget);
                     } else {
                         if (hasEnoughEnergy) {
-                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick);
+                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             taskProgress++;
                             guiProgressBar.setProgressAndSync((double) taskProgress / syncStorageDisksTicks);
                             guiProgressBar.setHoverInfoAndSync("sync disks...");
                             if (taskProgress > syncStorageDisksTicks) {
-                                //System.out.println("observatory synced disks!");
 
                                 HashMap<String, Integer> dimensionData = new HashMap<>();
                                 // accumulate all known planets and their unlock points
@@ -543,9 +602,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                     if (!(storageDisk.getItem() instanceof ItemGalaxyStorageDisk)) {
                         // has no data disk, can not work
                         toggleTask(Task.IDLE, null);
+                        setStatusText("no galaxy storage disk found");
                     } else {
                         if (hasEnoughEnergy) {
-                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick);
+                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             taskProgress = ItemGalaxyStorageDisk.getUnlockPoints(storageDisk, taskTarget.toString());
                             guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyStorageDisk.POINTS_UNLOCKED());
                             guiProgressBar.setHoverInfoAndSync("analyzing planet...");
@@ -553,32 +613,10 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                                 ItemGalaxyStorageDisk.setUnlockPoints(storageDisk, taskTarget.toString(), taskProgress + 1);
                             } else {
                                 // fully unlocked!
-                                //System.out.println("observatory unlocked planet: " + taskTarget);
                                 if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
                                     toggleTask(this.lastTask, this.lastTaskTarget);
                                 else {
-                                    // i want it to continue scanning for other discovered planets if possible
-                                    // find a random planet that is discovered but not unlocked
-                                    List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
-                                    Collections.shuffle(randomDimIds);
-                                    boolean shouldGoIdle = true;
-                                    for (ResourceLocation dimId : randomDimIds) {
-                                        Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
-                                        if (dim instanceof PlanetDimension planetDimension && !planetDimension.isKnown()) {
-                                            // check if known
-                                            if (ItemGalaxyStorageDisk.isDimensionKnown(storageDisk, dimId.toString())) {
-                                                // check if not unlocked
-                                                if(!ItemGalaxyStorageDisk.isDimensionUnlocked(storageDisk,dimId.toString())){
-                                                    toggleTask(Task.ANALYZE_PLANET, dimId);
-                                                    shouldGoIdle = false;
-                                                    //System.out.println("observatory picked a new planet to analyze: "+dimId);
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if(shouldGoIdle)
-                                        toggleTask(Task.IDLE, null);
+                                    toggleTask(Task.IDLE, null);
                                 }
                             }
                             setChanged();
@@ -594,15 +632,13 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                         toggleTask(this.lastTask, this.lastTaskTarget);
                     } else {
                         if (hasEnoughEnergy) {
-                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick);
+                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             taskProgress++;
                             guiProgressBar.setHoverInfoAndSync("writing to chip...");
                             guiProgressBar.setProgressAndSync((double) taskProgress / writePlanetToChipTicks);
                             if (taskProgress > writePlanetToChipTicks) {
                                 ItemPlanetIdChip.setSelectedDimension(taskTarget, planetChip);
-                                //System.out.println("observatory write target to chip: " + taskTarget);
-
-                                // resume task
+                                // resume last task
                                 toggleTask(this.lastTask, this.lastTaskTarget);
                             }
                             setChanged();
@@ -636,6 +672,19 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         this.task = task;
         this.taskTarget = taskTarget;
         this.taskProgress = 0;
+
+        if(task == Task.SCANNING_FOR_PLANETS){
+            ItemStack storageDisk = itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
+            if(getNextPlanetToDiscover(storageDisk) == null){
+                // there is nothing to discover!
+                // start analyzing random planets.
+                // after the planet is analyzed it will toggle the last task (scan for planets) and it will check again if anything changed maybe
+                analyzeRandomPlanetOrTurnOff(storageDisk);
+                return;
+                // code above will run toggleTask again
+            }
+        }
+
         setChanged();
         updateActionButtonStates();
         sendUpdatePacket(null);
