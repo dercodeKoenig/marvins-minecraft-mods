@@ -36,7 +36,7 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         super(ENTITY_DATA_STORAGE_BLOCK.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
 
-        dataStorage = new DataStorage(1000) {
+        dataStorage = new DataStorage(4000) {
             @Override
             public void onChange() {
                 setChanged();
