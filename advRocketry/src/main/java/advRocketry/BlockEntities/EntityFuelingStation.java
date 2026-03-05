@@ -34,11 +34,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.ENTITY_FUELING_STATION;
 
-public class EntityFuelingStation extends BlockEntity implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
+public class EntityFuelingStation extends EntityRocketInfrastructureBase implements INetworkTagReceiver {
 
-    public static float maxDistance = 30;
-    public BlockPos linkedAssemblerPos = null;
-    public EntityRocket linkedRocket = null;
     public BlockEntityBattery battery;
     public FluidTank tank;
     public ItemStackHandler inventory;
@@ -80,9 +77,8 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
         };
         guiHandler.modules.add(drainFillToggleButton);
 
-        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100, 0, 1, this.guiHandler));
-        this.guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 75, 200, 0, 1, this.guiHandler));
-
+        guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100, 0, 1, this.guiHandler));
+        guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 75, 200, 0, 1, this.guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -106,8 +102,6 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (linkedAssemblerPos != null)
-            tag.put("linkedAssemblerPos", NbtUtils.writeBlockPos(linkedAssemblerPos));
         tag.putInt("energy", battery.getEnergyStored());
         tag.putBoolean("isDrain", isDrain);
         simpleFluidContainer.saveAdditional(tag, registries);
@@ -116,8 +110,6 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains("linkedAssemblerPos"))
-            linkedAssemblerPos = NbtUtils.readBlockPos(tag, "linkedAssemblerPos").get();
         battery.setEnergy(tag.getInt("energy"));
         isDrain = tag.getBoolean("isDrain");
         simpleFluidContainer.loadAdditional(tag, registries);
@@ -126,16 +118,10 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+            super.serverTick();
+
             simpleFluidContainer.performPossibleFluidTransfer();
 
-            if (linkedAssemblerPos != null) {
-                linkedRocket = null;
-                BlockEntity be = level.getBlockEntity(linkedAssemblerPos);
-                if (be instanceof EntityRocketAssembler assembler) {
-                    linkedRocket = assembler.currentRocket;
-                } else
-                    linkedAssemblerPos = null;
-            }
 
             if (linkedRocket != null) {
                 if (linkedRocket.getCurrentProgram() == null) {
@@ -188,39 +174,6 @@ public class EntityFuelingStation extends BlockEntity implements ItemLinker.link
                 drainFillToggleButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
                 drainFillToggleButton.setTextAndSync("FUEL");
             }
-
-            if (linkedRocket != null) {
-                if (linkedRocket.isRemoved() || linkedRocket.position().distanceTo(getBlockPos().getCenter()) >= maxDistance)
-                    linkedRocket = null;
-            }
         }
-    }
-
-    @Override
-    public boolean link(BlockPos otherpos, Level otherLevel) {
-        if (otherLevel == level) {
-            Block otherBlock = level.getBlockState(otherpos).getBlock();
-            if (otherBlock.equals(Registry.ROCKET_ASSEMBLER.get())) {
-                if (otherpos.getCenter().distanceTo(getBlockPos().getCenter()) < maxDistance) {
-                    linkedAssemblerPos = otherpos;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean link(Entity e) {
-        if (e instanceof EntityRocket rocket) {
-            if (rocket.position().distanceTo(getBlockPos().getCenter()) < maxDistance) {
-                if (rocket.level().equals(level)) {
-                    linkedRocket = rocket;
-                    linkedAssemblerPos = null;
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }
