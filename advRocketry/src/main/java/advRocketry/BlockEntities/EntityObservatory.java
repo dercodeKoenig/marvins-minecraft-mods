@@ -816,7 +816,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
                 ARLibRegistry.BLOCK_STRUCTURE.get(),
                 ARLibRegistry.BLOCK_ITEM_INPUT_BLOCK.get(),
                 ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get(),
-                ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get()
+                ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get(),
+                Registry.DATA_STORAGE_BLOCK.get()
         ));
     }
 
@@ -834,6 +835,8 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
         if (block.equals(ARLibRegistry.BLOCK_ITEM_INPUT_BLOCK.get()))
             return false;
         if (block.equals(ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get()))
+            return false;
+        if (block.equals(Registry.DATA_STORAGE_BLOCK.get()))
             return false;
 
         return true;

@@ -137,8 +137,7 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         }
     }
 
-    public void openGui() {
-        if (level.isClientSide)
-            guiHandler.openGui(176, 168, true);
+    public void openGui(ServerPlayer player) {
+            guiHandler.signalOpenGui(player, 176, 168, true);
     }
 }

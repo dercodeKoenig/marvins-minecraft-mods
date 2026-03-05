@@ -1,7 +1,10 @@
 {
-    "variants": {
-        "": {
-            "model": "adv_rocketry:block/data_storage_block"
-        }
+  "variants": {
+    "state=false": {
+      "model": "adv_rocketry:block/data_storage_block"
+    },
+    "state=true": {
+      "model": "minecraft:block/air"
     }
+  }
 }

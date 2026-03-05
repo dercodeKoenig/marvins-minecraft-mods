@@ -45,8 +45,6 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/observatory.png");
 
-    static VertexFormat POSITION_COLOR_TEXTURE_NORMAL_LIGHT = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("Color", VertexFormatElement.COLOR).add("UV0", VertexFormatElement.UV0).add("UV1", VertexFormatElement.UV1).add("UV2", VertexFormatElement.UV2).add("Normal", VertexFormatElement.NORMAL).build();
-
     static {
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/block/obj/observatory.obj"));
@@ -71,8 +69,8 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         BlockState state = observatory.getBlockState();
         if (!(state.getBlock() instanceof Observatory)) return;
 
-        //if (!state.getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
-        //    return;
+        if (!state.getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
+            return;
 
         Direction back = state.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 

@@ -1,8 +1,10 @@
 package advRocketry.Blocks;
 
+import ARLib.multiblockCore.BlockMultiblockPart;
 import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityDataStorageBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -18,9 +20,10 @@ import javax.annotation.Nullable;
 
 import static advRocketry.Registry.ENTITY_DATA_STORAGE_BLOCK;
 
-public class DataStorageBlock extends Block implements EntityBlock {
+public class DataStorageBlock extends BlockMultiblockPart implements EntityBlock {
     public DataStorageBlock() {
         super(Properties.of());
+        this.isSpecialBlock = true;
     }
 
     @Override
@@ -30,13 +33,15 @@ public class DataStorageBlock extends Block implements EntityBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock)
-            dataStorageBlock.openGui();
-        return InteractionResult.SUCCESS_NO_ITEM_USED;
+        if (super.useWithoutItem(state, level, pos, player, hitResult) == InteractionResult.PASS) {
+            if (level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock && player instanceof ServerPlayer serverPlayer)
+                dataStorageBlock.openGui(serverPlayer);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if(level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock){
             dataStorageBlock.popInventory();
         }
