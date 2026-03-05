@@ -58,7 +58,7 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler));
 
-        guiModuleButton launchButton = new guiModuleButton(11001, "launch", guiHandler, 70, 10, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
+        guiModuleButton launchButton = new guiModuleButton(11001, "launch", guiHandler, 90, 20, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();

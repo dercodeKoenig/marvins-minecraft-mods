@@ -87,7 +87,7 @@ public class LaunchStation extends Block implements EntityBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
             if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
-                launchStation.guiHandler.openGui(176, 145, true);
+                launchStation.guiHandler.openGui(176, 135, true);
             }
         }
         return InteractionResult.SUCCESS;
