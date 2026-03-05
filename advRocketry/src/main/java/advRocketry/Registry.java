@@ -56,9 +56,21 @@ public class Registry {
 
     public static final Supplier<Block> STRUCTURE_TOWER = BLOCKS.register("structure_tower", () -> new StructureTower());
 
+
+
     public static final Supplier<Block> ROCKET_MOTOR = BLOCKS.register("rocket_motor", () -> new RocketMotor());
 
     public static final Supplier<Block> FUEL_TANK = BLOCKS.register("fuel_tank", () -> new FuelTank());
+
+    public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
+    public static final Supplier<BlockEntityType<EntityGuidanceComputer>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
+
+    public static final Supplier<Block> SEAT = BLOCKS.register("seat", () -> new Seat());
+
+    public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());
+    public static final Supplier<BlockEntityType<EntityCargoHold>> ENTITY_CARGO_HOLD = BLOCK_ENTITIES.register("cargo_hold", () -> BlockEntityType.Builder.of(EntityCargoHold::new, CARGO_HOLD.get()).build(null));
+
+
 
     public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
     public static final Supplier<BlockEntityType<EntityRocketAssembler>> ENTITY_ROCKET_ASSEMBLER = BLOCK_ENTITIES.register("rocket_assembler", () -> BlockEntityType.Builder.of(EntityRocketAssembler::new, ROCKET_ASSEMBLER.get()).build(null));
@@ -66,25 +78,21 @@ public class Registry {
     public static final Supplier<Block> FUELING_STATION = BLOCKS.register("fueling_station", () -> new FuelingStation());
     public static final Supplier<BlockEntityType<EntityFuelingStation>> ENTITY_FUELING_STATION = BLOCK_ENTITIES.register("fueling_station", () -> BlockEntityType.Builder.of(EntityFuelingStation::new, FUELING_STATION.get()).build(null));
 
-    public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
-    public static final Supplier<BlockEntityType<EntityGuidanceComputer>> ENTITY_GUIDANCE_COMPUTER = BLOCK_ENTITIES.register("guidance_computer", () -> BlockEntityType.Builder.of(EntityGuidanceComputer::new, GUIDANCE_COMPUTER.get()).build(null));
-
-    public static final Supplier<Block> SEAT = BLOCKS.register("seat", () -> new Seat());
-
-    public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
-    public static final Supplier<BlockEntityType<EntityObservatory>> ENTITY_OBSERVATORY = BLOCK_ENTITIES.register("observatory", () -> BlockEntityType.Builder.of(EntityObservatory::new, OBSERVATORY.get()).build(null));
-
-    public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());
-    public static final Supplier<BlockEntityType<EntityCargoHold>> ENTITY_CARGO_HOLD = BLOCK_ENTITIES.register("cargo_hold", () -> BlockEntityType.Builder.of(EntityCargoHold::new, CARGO_HOLD.get()).build(null));
+    public static final Supplier<Block> LAUNCH_STATION = BLOCKS.register("launch_station", () -> new LaunchStation());
+    public static final Supplier<BlockEntityType<EntityLaunchStation>> ENTITY_LAUNCH_STATION = BLOCK_ENTITIES.register("launch_station", () -> BlockEntityType.Builder.of(EntityLaunchStation::new, LAUNCH_STATION.get()).build(null));
 
     public static final Supplier<Block> ROCKET_ITEM_LOADER = BLOCKS.register("rocket_item_loader", () -> new RocketItemLoader());
     public static final Supplier<BlockEntityType<EntityRocketItemLoader>> ENTITY_ROCKET_ITEM_LOADER = BLOCK_ENTITIES.register("rocket_item_loader", () -> BlockEntityType.Builder.of(EntityRocketItemLoader::new, ROCKET_ITEM_LOADER.get()).build(null));
 
-    public static final Supplier<Block> MOON_TURF = BLOCKS.register("moon_turf", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
-    public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
+
+
+    public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
+    public static final Supplier<BlockEntityType<EntityObservatory>> ENTITY_OBSERVATORY = BLOCK_ENTITIES.register("observatory", () -> BlockEntityType.Builder.of(EntityObservatory::new, OBSERVATORY.get()).build(null));
 
     public static final Supplier<Block> OXYGEN_VENT = BLOCKS.register("oxygen_vent", () -> new OxygenVent());
     public static final Supplier<BlockEntityType<EntityOxygenVent>> ENTITY_OXYGEN_VENT = BLOCK_ENTITIES.register("oxygen_vent", () -> BlockEntityType.Builder.of(EntityOxygenVent::new, OXYGEN_VENT.get()).build(null));
+
+
 
     public static final Supplier<Block> SPACE_STATION_ASSEMBLER = BLOCKS.register("space_station_assembler", () -> new SpaceStationAssembler());
     public static final Supplier<BlockEntityType<EntitySpaceStationAssembler>> ENTITY_SPACE_STATION_ASSEMBLER = BLOCK_ENTITIES.register("space_station_assembler", () -> BlockEntityType.Builder.of(EntitySpaceStationAssembler::new, SPACE_STATION_ASSEMBLER.get()).build(null));
@@ -100,6 +108,11 @@ public class Registry {
 
 
 
+    public static final Supplier<Block> MOON_TURF = BLOCKS.register("moon_turf", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
+    public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
+
+
+
     public static final Supplier<EntityType<EntityRocket>> ENTITY_ROCKET = ENTITIES.register(
             "rocket",
             () -> EntityType.Builder.of(EntityRocket::new, MobCategory.MISC).clientTrackingRange(1000).build(Main.MODID+":rocket")
@@ -111,15 +124,16 @@ public class Registry {
 
     static {
         registerBlockItem("structure_tower", STRUCTURE_TOWER);
-        registerBlockItem("rocket_assembler", ROCKET_ASSEMBLER);
         registerBlockItem("rocket_motor", ROCKET_MOTOR);
         registerBlockItem("fuel_tank", FUEL_TANK);
         registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
-        registerBlockItem("cargo_hold", CARGO_HOLD);
         registerBlockItem("seat", SEAT);
+        registerBlockItem("cargo_hold", CARGO_HOLD);
+        registerBlockItem("rocket_assembler", ROCKET_ASSEMBLER);
         registerBlockItem("fueling_station", FUELING_STATION);
-        registerBlockItem("observatory", OBSERVATORY);
+        registerBlockItem("launch_station", LAUNCH_STATION);
         registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
+        registerBlockItem("observatory", OBSERVATORY);
         registerBlockItem("oxygen_vent", OXYGEN_VENT);
         registerBlockItem("space_station_assembler", SPACE_STATION_ASSEMBLER);
         registerBlockItem("orientation_controller", ORIENTATION_CONTROLLER);

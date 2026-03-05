@@ -317,6 +317,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             scanForLaunchPadArea();
         }
         broadcastInformationToPlayers(null);
+        setChanged();
         //long t1 = System.currentTimeMillis();
         //System.out.println("scan complete in " +(t1-t0) +"ms");
     }

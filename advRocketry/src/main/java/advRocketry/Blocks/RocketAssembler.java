@@ -24,10 +24,6 @@ import java.util.Set;
 
 import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
 
-// Launchpad area can have 2 modes: normal pad and station docking area. it should scan for the alternative pad in space
-// a rocket can be instructed to go to a specific location. if the block at this location is a rocket assembler, it should go to the launchpad / docking area
-// for station, spawn a rocket far away in xz plane. decide to dock from top or bottom and navigate toward the station
-
 public class RocketAssembler extends Block implements EntityBlock {
 
     public RocketAssembler() {
@@ -93,8 +89,7 @@ public class RocketAssembler extends Block implements EntityBlock {
 
     @Override
     protected int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof EntityRocketAssembler rocketAssembler) {
+        if (level.getBlockEntity(pos) instanceof EntityRocketAssembler rocketAssembler) {
             if (rocketAssembler.isRedstoneOutputActive()) {
                 return 15;
             }
@@ -104,9 +99,8 @@ public class RocketAssembler extends Block implements EntityBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        BlockEntity b = level.getBlockEntity(pos);
-        if (b instanceof EntityRocketAssembler h)
-            h.openGui();
+        if (level.getBlockEntity(pos) instanceof EntityRocketAssembler rocketAssembler)
+            rocketAssembler.openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 

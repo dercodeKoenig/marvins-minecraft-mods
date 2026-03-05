@@ -27,6 +27,12 @@
   "block.adv_rocketry.fueling_station": "Fueling Station",
   "item.adv_rocketry.fueling_station": "Fueling Station",
 
+  "block.adv_rocketry.rocket_item_loader": "Rocket Loader",
+  "item.adv_rocketry.rocket_item_loader": "Rocket Loader",
+
+  "block.adv_rocketry.launch_station": "Launch Station",
+  "item.adv_rocketry.launch_station": "Launch Station",
+
   "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
   "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel",
 
@@ -35,9 +41,6 @@
 
   "block.adv_rocketry.observatory": "Observatory",
   "item.adv_rocketry.observatory": "Observatory",
-
-  "block.adv_rocketry.rocket_item_loader": "Rocket Loader",
-  "item.adv_rocketry.rocket_item_loader": "Rocket Loader",
 
   "block.adv_rocketry.oxygen_vent": "Oxygen Vent",
   "item.adv_rocketry.oxygen_vent": "Oxygen Vent",
