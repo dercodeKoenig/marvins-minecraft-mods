@@ -7,6 +7,7 @@ import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleVerticalProgressBar;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
+import advRocketry.Data.DataTypes;
 import advRocketry.Data.SimpleDataContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -81,7 +82,7 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         if(!level.isClientSide)
             updateDataBar();
 
-        DataStack test = new DataStack("testData", (int)(Math.random()*1000));
+        DataStack test = new DataStack(DataTypes.distance, (int)(Math.random()*1000));
         dataStorage.setStackDirect(test);
     }
 

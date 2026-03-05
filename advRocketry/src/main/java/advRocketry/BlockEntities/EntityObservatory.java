@@ -7,6 +7,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Config;
+import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
@@ -48,6 +49,8 @@ import java.util.*;
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 
 public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
+
+    public static String DATA_SCANNING_FOR_PLANETS = DataTypes.distance;
 
     // holds methods and variables for rendering
     public static class RenderData {
@@ -523,6 +526,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 s += ": "+targetPlanet.getName();
                             }
                         }
+                        if(task == Task.SCANNING_FOR_PLANETS && getData(DATA_SCANNING_FOR_PLANETS, dataTiles) == 0){
+                            s += "\n("+DATA_SCANNING_FOR_PLANETS+" data would help)";
+                        }
                         statusText.setTextAndSync(s);
                     }
                 } else {
@@ -548,8 +554,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             double p = Math.random();
                             double pTarget = Config.INSTANCE.observatory_Find_Planet_P_Per_Tick;
-                            if (getData("testData", dataTiles) > 0) {
-                                super.consumeData("testData", 1, dataTiles);
+                            if (getData(DATA_SCANNING_FOR_PLANETS, dataTiles) > 0) {
+                                super.consumeData(DATA_SCANNING_FOR_PLANETS, 1, dataTiles);
                                 pTarget *= 10; // increase probability of finding something at the cost of data
                             }
                             if (p < pTarget) {
