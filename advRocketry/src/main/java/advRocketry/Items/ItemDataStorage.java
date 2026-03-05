@@ -36,8 +36,8 @@ public class ItemDataStorage extends Item implements IItemDataStorage {
         }
     }
 
-    public void setDataStack(ItemStack stack, DataStack dataStack){
-        if(dataStack == null)
+    public void setDataStack(ItemStack stack, DataStack dataStack) {
+        if (dataStack == null)
             ItemUtils.setTag(stack, new CompoundTag());
         else {
             CompoundTag tag = dataStack.saveToNbt();
@@ -46,7 +46,7 @@ public class ItemDataStorage extends Item implements IItemDataStorage {
     }
 
     @Override
-    public DataStack getDataStack(ItemStack stack){
+    public DataStack getDataStack(ItemStack stack) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         return DataStack.createFromNbt(tag);
     }
@@ -55,8 +55,8 @@ public class ItemDataStorage extends Item implements IItemDataStorage {
     public int insertData(ItemStack stack, DataStack dataStack, boolean simulate) {
         DataStorage dataStorage = new DataStorage(maxData);
         dataStorage.setStackDirect(getDataStack(stack));
-        int inserted = dataStorage.insertData(dataStack,simulate);
-        if(!simulate){
+        int inserted = dataStorage.insertData(dataStack, simulate);
+        if (!simulate) {
             setDataStack(stack, dataStorage.getDataStack());
         }
         return inserted;
@@ -68,7 +68,7 @@ public class ItemDataStorage extends Item implements IItemDataStorage {
         DataStorage dataStorage = new DataStorage(maxData);
         dataStorage.setStackDirect(getDataStack(stack));
         DataStack extracted = dataStorage.extractData(amount, simulate);
-        if(!simulate){
+        if (!simulate) {
             setDataStack(stack, dataStorage.getDataStack());
         }
         return extracted;
@@ -77,6 +77,15 @@ public class ItemDataStorage extends Item implements IItemDataStorage {
     @Override
     public int getDataCapacity(ItemStack stack) {
         return maxData;
+    }
+
+    @Override
+    public int getRemainingCapacity(ItemStack stack) {
+        int remaining = maxData;
+        DataStack dataStack = getDataStack(stack);
+        if (dataStack != null)
+            remaining -= dataStack.amount;
+        return remaining;
     }
 
     @Override

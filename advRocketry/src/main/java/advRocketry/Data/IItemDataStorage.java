@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 public interface IItemDataStorage {
     ///  return data amount inserted
-    int insertData(ItemStack stack, DataStack dataStack, boolean simulate);
+    int insertData(ItemStack stack, @Nullable DataStack dataStack, boolean simulate);
 
     /// return extracted DataStack
     @Nullable
@@ -16,6 +16,8 @@ public interface IItemDataStorage {
     DataStack getDataStack(ItemStack stack);
 
     int getDataCapacity(ItemStack stack);
+
+    int getRemainingCapacity(ItemStack stack);
 
     boolean canExtract(ItemStack stack);
 

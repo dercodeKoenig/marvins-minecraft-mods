@@ -42,10 +42,7 @@ public class DataStorage implements IDataStorage {
         if (stack != null && !DataStack.isSameType(stackToInsert, stack))
             return 0;
 
-        int existing = 0;
-        if (stack != null)
-            existing = stack.amount;
-        int toInsert = Math.min(stackToInsert.amount, capacity - existing);
+        int toInsert = Math.min(stackToInsert.amount, getRemainingCapacity());
 
         if (!simulate && toInsert > 0) {
             if (stack == null)
@@ -87,6 +84,14 @@ public class DataStorage implements IDataStorage {
     @Override
     public int getDataCapacity() {
         return capacity;
+    }
+
+    @Override
+    public int getRemainingCapacity() {
+        int remainingCapacity = getDataCapacity();
+        if(stack != null)
+            remainingCapacity -= stack.amount;
+        return remainingCapacity;
     }
 
     @Override

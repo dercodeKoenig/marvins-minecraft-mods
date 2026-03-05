@@ -3,8 +3,8 @@ package advRocketry.Data;
 import javax.annotation.Nullable;
 
 public interface IDataStorage {
-    ///  return data amount inserted
-    int insertData(DataStack dataStack, boolean simulate);
+    ///  return data amount inserted, return 0 if dataStack is null
+    int insertData(@Nullable DataStack dataStack, boolean simulate);
 
     /// return extracted DataStack
     @Nullable
@@ -14,6 +14,8 @@ public interface IDataStorage {
     DataStack getDataStack();
 
     int getDataCapacity();
+
+    int getRemainingCapacity();
 
     boolean canExtract();
 
