@@ -43,10 +43,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 
@@ -121,14 +118,23 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
                 actionTimeout--;
                 if (actionTimeout <= 0 && observatory.hasEnoughEnergy) {
-                    // first choose a movement time
-                    actionTimeout = (int) Math.max(20 * 5, Math.random() * 20 * 30);
-                    yawTarget = (float) (Math.random() * 360);
-                    pitchTarget = (float) (Math.random() * 90);
-                    yawSpeed = Math.abs(getAngleDifference(yawTarget, yaw) / actionTimeout);
-                    pitchSpeed = Math.abs((pitchTarget - pitch) / actionTimeout);
-                    // now add idle time after movement
-                    actionTimeout += (int) Math.max(20 * 5, Math.random() * 20 * 20);
+                    // choose a new action, slow movement or fast movement followed by pause
+                    if(new Random().nextBoolean()){
+                        // move to a new target
+                        yawTarget = (float) (Math.random() * 360);
+                        pitchTarget = (float) (Math.random() * 90);
+                        yawSpeed = 0.2f;
+                        pitchSpeed = 0.2f;
+                        actionTimeout = (int) Math.max(20 * 20, Math.random() * 20 * 30);
+                    }else{
+                        // make a slow move around
+                        yawTarget = (float) (yaw + (Math.random() * 20)) % 360;
+                        pitchTarget = (float) (pitch + (Math.random() * 10));
+                        pitchTarget = Math.clamp(pitchTarget, 0, 90);
+                        yawSpeed = 0.05f;
+                        pitchSpeed = 0.05f;
+                        actionTimeout = (int) Math.max(20 * 20, Math.random() * 20 * 30);
+                    }
                 }
             }
             // --- YAW LOGIC ---
