@@ -3,6 +3,7 @@ package advRocketry.Blocks;
 import advRocketry.BlockEntities.EntityLaunchStation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -15,7 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,13 +24,28 @@ import static advRocketry.Registry.ENTITY_LAUNCH_STATION;
 
 public class LaunchStation extends Block implements EntityBlock {
 
-    public static BooleanProperty ACTIVE = BooleanProperty.create("active");
+    public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
+
+    public enum State implements StringRepresentable {
+        idle("idle"),
+        rocket_landed("rocket_landed"),
+        active("active");
+
+        public final String name;
+        State(String name){
+            this.name = name;
+        }
+        @Override
+        public String getSerializedName() {
+            return name;
+        }
+    }
 
     public LaunchStation() {
         super(Properties.of());
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
-                .setValue(ACTIVE, false)
+                .setValue(STATE, State.idle)
         );
     }
 
@@ -41,7 +57,7 @@ public class LaunchStation extends Block implements EntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
-        builder.add(ACTIVE);
+        builder.add(STATE);
         super.createBlockStateDefinition(builder);
     }
 
@@ -49,7 +65,7 @@ public class LaunchStation extends Block implements EntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
-                .setValue(ACTIVE, false)
+                .setValue(STATE, State.idle)
                 ;
     }
 

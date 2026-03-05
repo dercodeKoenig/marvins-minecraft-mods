@@ -78,7 +78,7 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             ItemStack navigationItem = inventory.getStackInSlot(0);
             linkedRocket.launch(navigationItem);
         }
-        level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.ACTIVE, true), 3);
+        level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
         activeTimeout = 40;
     }
 
@@ -126,8 +126,11 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             super.serverTick();
             if (activeTimeout > 0) {
                 activeTimeout--;
-                if (activeTimeout == 0)
-                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.ACTIVE, false), 3);
+            } else {
+                if (linkedRocket != null && getBlockState().getValue(LaunchStation.STATE) != LaunchStation.State.rocket_landed)
+                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.rocket_landed), 3);
+                if (linkedRocket == null && getBlockState().getValue(LaunchStation.STATE) != LaunchStation.State.idle)
+                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.idle), 3);
             }
         }
     }

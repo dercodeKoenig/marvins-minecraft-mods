@@ -1,36 +1,55 @@
 {
     "variants": {
-        "facing=east,active=false": {
-            "model": "adv_rocketry:block/launch_station",
+        "facing=east,state=idle": {
+            "model": "adv_rocketry:block/monitor",
             "y": 90
         },
-        "facing=north,active=false": {
-            "model": "adv_rocketry:block/launch_station",
+        "facing=north,state=idle": {
+            "model": "adv_rocketry:block/monitor",
             "y": 0
         },
-        "facing=west,active=false": {
-            "model": "adv_rocketry:block/launch_station",
+        "facing=west,state=idle": {
+            "model": "adv_rocketry:block/monitor",
             "y": 270
         },
-        "facing=south,active=false": {
-            "model": "adv_rocketry:block/launch_station",
+        "facing=south,state=idle": {
+            "model": "adv_rocketry:block/monitor",
             "y": 180
         },
 
-        "facing=east,active=true": {
-            "model": "adv_rocketry:block/launch_station_active",
+
+        "facing=east,state=rocket_landed": {
+            "model": "adv_rocketry:block/monitor_rocket_landed",
             "y": 90
         },
-        "facing=north,active=true": {
-            "model": "adv_rocketry:block/launch_station_active",
+        "facing=north,state=rocket_landed": {
+            "model": "adv_rocketry:block/monitor_rocket_landed",
             "y": 0
         },
-        "facing=west,active=true": {
-            "model": "adv_rocketry:block/launch_station_active",
+        "facing=west,state=rocket_landed": {
+            "model": "adv_rocketry:block/monitor_rocket_landed",
             "y": 270
         },
-        "facing=south,active=true": {
-            "model": "adv_rocketry:block/launch_station_active",
+        "facing=south,state=rocket_landed": {
+            "model": "adv_rocketry:block/monitor_rocket_landed",
+            "y": 180
+        },
+
+
+        "facing=east,state=active": {
+            "model": "adv_rocketry:block/monitor_launch_station_active",
+            "y": 90
+        },
+        "facing=north,state=active": {
+            "model": "adv_rocketry:block/monitor_launch_station_active",
+            "y": 0
+        },
+        "facing=west,state=active": {
+            "model": "adv_rocketry:block/monitor_launch_station_active",
+            "y": 270
+        },
+        "facing=south,state=active": {
+            "model": "adv_rocketry:block/monitor_launch_station_active",
             "y": 180
         }
     }
