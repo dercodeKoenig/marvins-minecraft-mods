@@ -511,7 +511,13 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     if (!hasEnoughEnergy) {
                         statusText.setTextAndSync("OUT OF ENERGY!");
                     } else {
-                        statusText.setTextAndSync("Status:\n" + task.label);
+                        String s = "Status:\n" + task.label;
+                        if(taskTarget != null){
+                            if(DimensionManager.INSTANCE_SERVER.get(taskTarget) instanceof PlanetDimension targetPlanet){
+                                s += ": "+targetPlanet.getName();
+                            }
+                        }
+                        statusText.setTextAndSync(s);
                     }
                 } else {
                     customStatusTimeout--;
@@ -625,6 +631,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 // fully unlocked!
                                 if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
                                     toggleTask(this.lastTask, this.lastTaskTarget);
+                                else if(this.lastTask == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED){
+                                    toggleTask(Task.SCANNING_FOR_PLANETS, null);
+                                }
                                 else {
                                     toggleTask(Task.IDLE, null);
                                 }
@@ -933,7 +942,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         SCANNING_FOR_PLANETS("scanning for planets"),
         SCANNING_FOR_ASTEROIDS("scanning for asteroids"),
         ANALYZE_PLANET("analyzing planet"),
-        ANALYZE_PLANETS_AFTER_ALL_DISCOVERED("analyzing remaining planets"), // will activate when scanning for planets when all is discovered
+        ANALYZE_PLANETS_AFTER_ALL_DISCOVERED("analyzing planet"), // will activate when scanning for planets when all is discovered
         WRITE_PLANET_TO_CHIP("writing planet to chip"),
         SYNC_STORAGE_DISKS("syncing storage disks"),;
 
