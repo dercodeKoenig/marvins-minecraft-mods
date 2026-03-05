@@ -234,7 +234,7 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
-        super.forwardInteractionToMaster = true;
+        //super.forwardInteractionToMaster = true;
 
         guiHandler = new GuiHandlerBlockEntity(this);
         guiHandler.maxDistance = 16;
@@ -841,7 +841,6 @@ public class EntityObservatory extends EntityMultiblockMachineMaster {
 
 
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        System.out.println("use");
         if (!world.isClientSide) {
             openGui((ServerPlayer) player);
         }
