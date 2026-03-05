@@ -12,6 +12,7 @@ public class DataStorage implements IDataStorage {
 
     public void setStackDirect(DataStack stack) {
         this.stack = stack;
+        onChange();
     }
 
     public void onChange() {
@@ -66,13 +67,16 @@ public class DataStorage implements IDataStorage {
         int existing = stack.amount;
         int toExtract = Math.min(amount, existing);
 
+        DataStack ret = new DataStack(stack.type, toExtract);
+
         if (!simulate && toExtract > 0) {
             stack.shrink(toExtract);
-            if (stack.amount == 0)
+            if (stack.isEmpty())
                 stack = null;
             onChange();
         }
-        return new DataStack(stack.type, toExtract);
+
+        return ret;
     }
 
     @Override

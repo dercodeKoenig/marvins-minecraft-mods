@@ -2,23 +2,23 @@ package advRocketry.Data;
 
 import net.minecraft.nbt.CompoundTag;
 
+import java.util.Objects;
+
 public class DataStack {
 
-    public DataType type;
+    public String type;
     public int amount;
 
     public DataStack() {
     }
 
-    public DataStack(DataType type, int amount) {
+    public DataStack(String type, int amount) {
         this.type = type;
         this.amount = amount;
     }
 
     public static boolean isSameType(DataStack first, DataStack second) {
-        if(first == null || second == null)
-            return false;
-        return first.type == second.type;
+        return Objects.equals(first.type, second.type);
     }
 
     public static DataStack createFromNbt(CompoundTag tag) {
@@ -26,14 +26,14 @@ public class DataStack {
         if (tag.contains("amount"))
             stack.amount = tag.getInt("amount");
         if (tag.contains("type"))
-            stack.type = DataType.values()[tag.getInt("type")];
+            stack.type = tag.getString("type");
         return stack;
     }
 
     public CompoundTag saveToNbt() {
         CompoundTag tag = new CompoundTag();
         tag.putInt("amount", amount);
-        tag.putInt("type", type.ordinal());
+        tag.putString("type", type);
         return tag;
     }
 
@@ -43,17 +43,15 @@ public class DataStack {
 
     public void shrink(int amount) {
         grow(-amount);
-        if(this.amount < 0)
+        if (this.amount < 0)
             this.amount = 0;
     }
 
-    public DataStack copyWithCount(int amount){
-        return new DataStack(this.type, amount);
+    public boolean isEmpty() {
+        return amount == 0;
     }
 
-    public enum DataType {
-        distance,
-        mass,
-        composition
+    public DataStack copyWithCount(int amount) {
+        return new DataStack(this.type, amount);
     }
 }
