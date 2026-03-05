@@ -351,14 +351,16 @@ public class Main {
             e.accept(Registry.LAUNCH_STATION.get());
             e.accept(Registry.ROCKET_ITEM_LOADER.get());
 
-            e.accept(Registry.ITEM_LINKER.get());
-            e.accept(Registry.ITEM_GALAXY_STORAGE_DISK.get());
-            e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
-
             e.accept(Registry.SPACE_STATION_ASSEMBLER.get());
             e.accept(Registry.STATION_CONTROLLER.get());
             e.accept(Registry.ORIENTATION_CONTROLLER.get());
             e.accept(Registry.WARP_CONTROLLER.get());
+
+            e.accept(Registry.ITEM_LINKER.get());
+            e.accept(Registry.ITEM_GALAXY_STORAGE_DISK.get());
+            e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
+            e.accept(Registry.ITEM_DATA_STORAGE.get());
+            e.accept(Registry.DATA_STORAGE_BLOCK.get());
 
             e.accept(Registry.OBSERVATORY.get());
 

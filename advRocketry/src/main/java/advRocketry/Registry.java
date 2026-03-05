@@ -3,10 +3,7 @@ package advRocketry;
 import advRocketry.BlockEntities.*;
 import advRocketry.Blocks.*;
 import advRocketry.Fluid.RocketFuel;
-import advRocketry.Items.ItemGalaxyStorageDisk;
-import advRocketry.Items.ItemLinker;
-import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Items.ItemSpaceStationContainer;
+import advRocketry.Items.*;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -50,6 +47,7 @@ public class Registry {
     public static final Supplier<Item> ITEM_GALAXY_STORAGE_DISK = ITEMS.register("galaxy_storage_disk", () -> new ItemGalaxyStorageDisk());
     public static final Supplier<Item> ITEM_PLANET_ID_CHIP = ITEMS.register("planet_id_chip", () -> new ItemPlanetIdChip());
     public static final Supplier<Item> ITEM_SPACE_STATION_CONTAINER = ITEMS.register("space_station_container", () -> new ItemSpaceStationContainer());
+    public static final Supplier<Item> ITEM_DATA_STORAGE = ITEMS.register("item_data_storage", () -> new ItemDataStorage());
 
     public static final Supplier<Block> LAUNCHPAD = BLOCKS.register("launchpad", () -> new LaunchPad());
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", LAUNCHPAD);
@@ -92,6 +90,10 @@ public class Registry {
     public static final Supplier<Block> OXYGEN_VENT = BLOCKS.register("oxygen_vent", () -> new OxygenVent());
     public static final Supplier<BlockEntityType<EntityOxygenVent>> ENTITY_OXYGEN_VENT = BLOCK_ENTITIES.register("oxygen_vent", () -> BlockEntityType.Builder.of(EntityOxygenVent::new, OXYGEN_VENT.get()).build(null));
 
+    public static final Supplier<Block> DATA_STORAGE_BLOCK = BLOCKS.register("data_storage_block", () -> new DataStorageBlock());
+    public static final Supplier<BlockEntityType<EntityDataStorageBlock>> ENTITY_DATA_STORAGE_BLOCK = BLOCK_ENTITIES.register("data_storage_block", () -> BlockEntityType.Builder.of(EntityDataStorageBlock::new, DATA_STORAGE_BLOCK.get()).build(null));
+
+
 
 
     public static final Supplier<Block> SPACE_STATION_ASSEMBLER = BLOCKS.register("space_station_assembler", () -> new SpaceStationAssembler());
@@ -129,12 +131,16 @@ public class Registry {
         registerBlockItem("guidance_computer", GUIDANCE_COMPUTER);
         registerBlockItem("seat", SEAT);
         registerBlockItem("cargo_hold", CARGO_HOLD);
+
         registerBlockItem("rocket_assembler", ROCKET_ASSEMBLER);
         registerBlockItem("fueling_station", FUELING_STATION);
         registerBlockItem("launch_station", LAUNCH_STATION);
         registerBlockItem("rocket_item_loader", ROCKET_ITEM_LOADER);
+
         registerBlockItem("observatory", OBSERVATORY);
         registerBlockItem("oxygen_vent", OXYGEN_VENT);
+        registerBlockItem("data_storage_block", DATA_STORAGE_BLOCK);
+
         registerBlockItem("space_station_assembler", SPACE_STATION_ASSEMBLER);
         registerBlockItem("orientation_controller", ORIENTATION_CONTROLLER);
         registerBlockItem("station_controller", STATION_CONTROLLER);

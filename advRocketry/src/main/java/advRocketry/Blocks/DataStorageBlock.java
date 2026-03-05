@@ -1,6 +1,7 @@
 package advRocketry.Blocks;
 
 import advRocketry.BlockEntities.EntityCargoHold;
+import advRocketry.BlockEntities.EntityDataStorageBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -12,33 +13,32 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_CARGO_HOLD;
+import javax.annotation.Nullable;
 
-public class CargoHold extends Block implements EntityBlock {
-    public CargoHold() {
+import static advRocketry.Registry.ENTITY_DATA_STORAGE_BLOCK;
+
+public class DataStorageBlock extends Block implements EntityBlock {
+    public DataStorageBlock() {
         super(Properties.of());
     }
 
-
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_CARGO_HOLD.get().create(blockPos, blockState);
+        return ENTITY_DATA_STORAGE_BLOCK.get().create(blockPos, blockState);
     }
-
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(level.getBlockEntity(pos) instanceof EntityCargoHold cargoHold)
-            cargoHold.openGui();
+        if(level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock)
+            dataStorageBlock.openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if(level.getBlockEntity(pos) instanceof EntityCargoHold cargoHold){
-            cargoHold.popInventory();
+        if(level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock){
+            dataStorageBlock.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
@@ -46,7 +46,6 @@ public class CargoHold extends Block implements EntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityCargoHold::tick;
+        return EntityDataStorageBlock::tick;
     }
-
 }

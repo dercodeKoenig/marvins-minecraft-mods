@@ -2,6 +2,7 @@ package advRocketry.Data;
 
 import net.minecraft.nbt.CompoundTag;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class DataStack {
@@ -21,13 +22,15 @@ public class DataStack {
         return Objects.equals(first.type, second.type);
     }
 
+    @Nullable
     public static DataStack createFromNbt(CompoundTag tag) {
-        DataStack stack = new DataStack();
-        if (tag.contains("amount"))
+        if (tag.contains("amount") && tag.contains("type")) {
+            DataStack stack = new DataStack();
             stack.amount = tag.getInt("amount");
-        if (tag.contains("type"))
             stack.type = tag.getString("type");
-        return stack;
+            return stack;
+        }
+        return null;
     }
 
     public CompoundTag saveToNbt() {
