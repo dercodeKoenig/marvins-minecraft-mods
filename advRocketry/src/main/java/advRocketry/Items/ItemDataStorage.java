@@ -31,7 +31,7 @@ public class ItemDataStorage extends Item implements IItemDataStorage {
                     Component.literal("Data: " + stack1.type)
             );
             tooltipComponents.add(
-                    Component.literal("Amount: " + stack1.amount)
+                    Component.literal("Amount: " + stack1.amount+" / "+maxData)
             );
         }
     }
