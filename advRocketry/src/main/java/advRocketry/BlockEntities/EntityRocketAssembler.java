@@ -539,7 +539,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             areaMax = new BlockPos(tag.getInt("maxX"), tag.getInt("maxY"), tag.getInt("maxZ"));
         if (tag.contains("buildProgress"))
             buildProgress = tag.getInt("buildProgress");
-        if (tag.contains("energy"))
+        if (tag.contains("battery"))
             battery.deserializeNBT(registries,tag.get("battery"));
         if (tag.contains("dockingDirection"))
             dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
