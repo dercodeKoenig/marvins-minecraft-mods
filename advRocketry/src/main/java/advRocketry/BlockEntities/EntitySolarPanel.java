@@ -73,28 +73,35 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
 
     public float getGenerationSpeed() {
 
-        if(!level.canSeeSky(getBlockPos().above()))
+        if (!level.canSeeSky(getBlockPos().above()))
             return 0;
 
         ResourceLocation levelId = level.dimension().location();
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
+        if (dim == null)
+            return 0;
+
         double accumulatedStarlightIntensity = 0;
+        Vec3 up;
         if (dim instanceof PlanetDimension planetDimension) {
-            Vec3 up = planetDimension.getGlobalAxisDirections(0, planetDimension.getLatitudeFromZPosition(getBlockPos().getZ())).up.normalize();
-            Vec3 myPos = planetDimension.getPosition(0);
-            for (ResourceLocation starId : planetDimension.getCurrentMainStars()) {
-                if (DimensionManager.INSTANCE_SERVER.get(starId) instanceof PlanetDimension star) {
-                    Vec3 planetToStar = star.getPosition(0).subtract(myPos);
-                    double distance = planetToStar.length();
-                    double dot = Math.max(0, up.dot(planetToStar.normalize()));
-                    double intensity = star.getRadiationIntensity();
-                    double atmModifier = 1 - (planetDimension.getAtmosphereDensity() / (1 + planetDimension.getAtmosphereDensity()));
-                    double finalIntensity = dot * intensity * atmModifier / (distance * distance);
-                    accumulatedStarlightIntensity += finalIntensity;
-                }
+            up = planetDimension.getGlobalAxisDirections(0, planetDimension.getLatitudeFromZPosition(getBlockPos().getZ())).up.normalize();
+        } else {
+            up = dim.getGlobalAxisDirections(0).up.normalize();
+        }
+
+        Vec3 myPos = dim.getPosition(0);
+        for (ResourceLocation starId : dim.getCurrentMainStars()) {
+            if (DimensionManager.INSTANCE_SERVER.get(starId) instanceof PlanetDimension star) {
+                Vec3 planetToStar = star.getPosition(0).subtract(myPos);
+                double distance = planetToStar.length();
+                double dot = Math.max(0, up.dot(planetToStar.normalize()));
+                double intensity = star.getRadiationIntensity();
+                double atmModifier = 1 - (dim.getAtmosphereDensity() / (1 + dim.getAtmosphereDensity()));
+                double finalIntensity = dot * intensity * atmModifier / (distance * distance);
+                accumulatedStarlightIntensity += finalIntensity;
             }
         }
-        return (float) accumulatedStarlightIntensity;
+        return (float) Math.min(10,accumulatedStarlightIntensity);
     }
 
     public void tick() {
