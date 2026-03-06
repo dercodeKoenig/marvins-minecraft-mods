@@ -94,11 +94,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         energyBar = new guiModuleEnergy(2, battery, guiHandler, 138, 7);
         guiHandler.modules.add(energyBar);
 
-        dockingDirectionButton = new guiModuleButton(30, "direction", guiHandler, 10, 100, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        dockingDirectionButton = new guiModuleButton(30, "direction", guiHandler, 10, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(dockingDirectionButton);
-        horizontalDockingButton = new guiModuleButton(31, "mode", guiHandler, 90, 100, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        horizontalDockingButton = new guiModuleButton(31, "mode", guiHandler, 90, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(horizontalDockingButton);
-        dockingSettingsTitle = new guiModuleText(32, "Docking Settings:", guiHandler, 10, 85, 0x00000000, false);
+        dockingSettingsTitle = new guiModuleText(32, "Docking Settings:", guiHandler, 10, 95, 0x00000000, false);
         guiHandler.modules.add(dockingSettingsTitle);
     }
 
@@ -681,7 +681,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (level.isClientSide) {
             int h = 100;
             if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)
-                h = 130; // the docking mode buttons
+                h = 140; // the docking mode buttons
             guiHandler.openGui(160, h, true);
         }
     }
