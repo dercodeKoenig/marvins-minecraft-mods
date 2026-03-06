@@ -565,6 +565,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         Level targetLevel = null;
         BlockPos targetPos = null;
+        String extraInfo = "";
 
         if (navigationItem.getItem() instanceof ItemLinker linker) {
             // navigate using linker item
@@ -577,9 +578,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
         if (navigationItem.getItem() instanceof ItemPlanetIdChip idChip) {
             ResourceLocation targetLocation = ItemPlanetIdChip.getSelectedDimension(navigationItem);
-            if (targetLocation != null) {
+            if (targetLocation != null && ItemPlanetIdChip.containsMassData(navigationItem)) {
                 targetPos = getOnPos();
                 targetLevel = DimensionUtils.getDimensionLevelServer(targetLocation.toString());
+            }
+            if(!ItemPlanetIdChip.containsMassData(navigationItem)){
+                extraInfo = "missing mass data";
             }
         }
 
@@ -601,11 +605,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     return true;
                 }
             } else {
-                infoText.setTextAndSync("Target invalid");
+                infoText.setTextAndSync("Target invalid\n"+extraInfo);
                 temporaryInfoTimeout = 20 * 15;
             }
         } else {
-            infoText.setTextAndSync("Target invalid");
+            infoText.setTextAndSync("Target invalid\n"+extraInfo);
             temporaryInfoTimeout = 20 * 15;
         }
         return false;

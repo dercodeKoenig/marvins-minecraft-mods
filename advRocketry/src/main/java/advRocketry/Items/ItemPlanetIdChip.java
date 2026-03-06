@@ -16,20 +16,10 @@ public class ItemPlanetIdChip extends Item {
         super(new Properties().stacksTo(1));
     }
 
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        Dimension selected = DimensionManager.INSTANCE_CLIENT.get(getSelectedDimension(stack));
-        if (selected != null) {
-            tooltipComponents.add(
-                    Component.literal(
-                            selected.getName()
-                    )
-            );
-        }
-    }
-
-    public static void setSelectedDimension(ResourceLocation dimensionId, ItemStack stack) {
+    public static void setSelectedDimension(ResourceLocation dimensionId, ItemStack stack, boolean massDataKnown) {
         CompoundTag tag = new CompoundTag();
         tag.putString("dimensionId", dimensionId.toString());
+        tag.putBoolean("massDataKnown", massDataKnown);
         ItemUtils.setTag(stack, tag);
     }
 
@@ -38,5 +28,28 @@ public class ItemPlanetIdChip extends Item {
         if (tag.contains("dimensionId"))
             return ResourceLocation.parse(tag.getString("dimensionId"));
         else return null;
+    }
+
+    public static boolean containsMassData(ItemStack stack) {
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        if (tag.contains("massDataKnown"))
+            return tag.getBoolean("massDataKnown");
+        return false;
+    }
+
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        Dimension selected = DimensionManager.INSTANCE_CLIENT.get(getSelectedDimension(stack));
+        if (selected != null) {
+            tooltipComponents.add(
+                    Component.literal(
+                            selected.getName()
+                    )
+            );
+            tooltipComponents.add(
+                    Component.literal(
+                            "mass data: " + containsMassData(stack)
+                    )
+            );
+        }
     }
 }

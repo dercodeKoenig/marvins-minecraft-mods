@@ -32,8 +32,9 @@ public class Config {
     //      observatory should only work when sky is not blocked
     public double observatory_Find_Planet_P_Per_Tick = (double) 1 / 1000;
     public double observatory_Find_Asteroid_P_Per_Tick = (double) 1 / 1000;
-    public int observatory_Analyze_Planet_Ticks = 20 * 60;
     public int observatory_Energy_Per_Tick = 10;
+
+    public int data_Unlocked_Points = 1000;
 
 
     public int rocket_Assembler_Max_Size = 66;

@@ -9,7 +9,7 @@ import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.SpaceStationDimension;
-import advRocketry.Items.ItemGalaxyStorageDisk;
+import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Registry;
 import advRocketry.Render.starmap.GuiModulePlanetView;
 import advRocketry.Render.starmap.SpaceMapScreen;
@@ -49,7 +49,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiHandler = new GuiHandlerBlockEntity(this);
         galaxyStorage = new ItemStackHandler(1) {
             public boolean isItemValid(int slot, ItemStack stack) {
-                return stack.getItem().equals(Registry.ITEM_GALAXY_STORAGE_DISK.get());
+                return stack.getItem().equals(Registry.ITEM_GALAXY_DATABASE.get());
             }
 
             public void onContentsChanged(int slot) {
@@ -90,7 +90,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                         public String getInteractText(ResourceLocation dimensionId) {
                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                             if (planet == null) return "";
-                                            if (planet.isKnown() || clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) == ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                            if (planet.isKnown() || client_IsDistanceUnlocked(dimensionId)) {
                                                 return "select";
                                             }
                                             return "";
@@ -100,11 +100,11 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                             if (planet == null) return "";
 
-                                            if (!planet.isKnown() && clientGetDiscoverStatusFromCurrentStorageItem(dimensionId) != ItemGalaxyStorageDisk.POINTS_UNLOCKED()) {
+                                            if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
                                                 return "We require more information about this planet.";
                                             }
 
-                                            return super.getPlanetInfoText(dimensionId);
+                                            return super.getPlanetInfoText(dimensionId, client_getPlanetInfo(dimensionId));
                                         }
 
                                         public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
@@ -115,8 +115,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                                 return true;
                                             }
 
-                                            int discoverStatus = clientGetDiscoverStatusFromCurrentStorageItem(dimensionId);
-                                            if (discoverStatus != -1)
+                                            if (client_IsDimensionKnown(dimensionId))
                                                 return true;
 
                                             return false;
@@ -129,10 +128,10 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         }
 
 
-        inOrbitText = new guiModuleText(32, "In Orbit:", guiHandler, 10,30,0xff000000, false);
+        inOrbitText = new guiModuleText(32, "In Orbit:", guiHandler, 10, 30, 0xff000000, false);
         guiHandler.modules.add(inOrbitText);
 
-        targetText = new guiModuleText(33, "Target:", guiHandler, 130,30,0xff000000, false);
+        targetText = new guiModuleText(33, "Target:", guiHandler, 130, 30, 0xff000000, false);
         guiHandler.modules.add(targetText);
 
         currentView = new GuiModulePlanetView(22, guiHandler, 10, 50, 110, 110);
@@ -147,7 +146,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiModuleButton clearBtn = new guiModuleButton(340, "clear", guiHandler, 190, 165, 50, 15, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(clearBtn);
 
-        statusText = new guiModuleText(87,"status", guiHandler, 10, 165, 0xff000000, false);
+        statusText = new guiModuleText(87, "status", guiHandler, 10, 165, 0xff000000, false);
         guiHandler.modules.add(statusText);
 
         guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 195, 10000, 1, 0, guiHandler));
@@ -176,8 +175,14 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiHandler.readServer(compoundTag);
         if (compoundTag.contains("interact")) {
             String dimId = compoundTag.getString("interact");
-            targetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
-            setChanged();
+            // just one additional check to make sure the client did not cheat...
+            Dimension dim = DimensionManager.INSTANCE_SERVER.get(ResourceLocation.parse(dimId));
+            if (dim instanceof PlanetDimension planetDimension) {
+                if (planetDimension.isKnown() || ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorage.getStackInSlot(0), dimId)) {
+                    targetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
+                    setChanged();
+                }
+            }
         }
         if (compoundTag.contains("guiButtonClick")) {
             int btn = compoundTag.getInt("guiButtonClick");
@@ -205,7 +210,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if(targetView.dimensionId != null)
+        if (targetView.dimensionId != null)
             tag.putString("targetView", targetView.dimensionId.toString());
         tag.put("galaxyStorage", galaxyStorage.serializeNBT(registries));
     }
@@ -213,7 +218,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if(tag.contains("targetView"))
+        if (tag.contains("targetView"))
             targetView.setTargetAndSync(ResourceLocation.tryParse(tag.getString("targetView")));
         galaxyStorage.deserializeNBT(registries, tag.getCompound("galaxyStorage"));
     }
@@ -248,7 +253,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                     distance = (double) Math.round(distance * 100) / 100;
                     text += "Distance: " + distance + " AU";
                     statusText.setTextAndSync(text);
-                } else if(targetPlanet != null && targetPlanet != currentOrbitedPlanet){
+                } else if (targetPlanet != null && targetPlanet != currentOrbitedPlanet) {
                     double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
                     distance = (double) Math.round(distance * 100) / 100;
                     String text = "Distance to target:\n" + distance + " AU";
@@ -266,7 +271,15 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     }
 
     // helper methods for gui rendering
-    public int clientGetDiscoverStatusFromCurrentStorageItem(ResourceLocation dimensionId) {
-        return ItemGalaxyStorageDisk.getUnlockPoints(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+    public boolean client_IsDimensionKnown(ResourceLocation dimensionId) {
+        return ItemGalaxyDatabase.isDimensionKnown(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+    }
+
+    public boolean client_IsDistanceUnlocked(ResourceLocation dimensionId) {
+        return ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+    }
+
+    public ItemGalaxyDatabase.PlanetInfo client_getPlanetInfo(ResourceLocation dimensionId) {
+        return ItemGalaxyDatabase.getPlanetInfo(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
     }
 }

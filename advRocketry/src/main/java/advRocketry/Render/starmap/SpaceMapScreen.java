@@ -2,6 +2,7 @@ package advRocketry.Render.starmap;
 
 import advRocketry.Dimension.*;
 import advRocketry.GlobalTime;
+import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.utils.CelestialUtils;
@@ -55,7 +56,7 @@ public class SpaceMapScreen extends Screen {
             } else
                 actionButton.visible = false;
 
-            planetInfoText = getPlanetInfoText(selectedPlanet.getDimensionId());
+            planetInfoText = getPlanetInfoText(selectedPlanet.getDimensionId(), null);
             if(planetInfoText == null)
                 planetInfoText = "";
 
@@ -75,12 +76,22 @@ public class SpaceMapScreen extends Screen {
         return "interact";
     }
 
-    public String getPlanetInfoText(ResourceLocation dimensionId) {
+    public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo planetInfo) {
         PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
         if (planet == null) return "";
-        return planet.getName() + "\n" +
-                "g:" + planet.getGravitationalMultiplier() + "\n";
-        // todo: add more information, temperature, atm density/composition
+        String description = "";
+        int distance = 0;
+        int mass = 0;
+        int composition = 0;
+        if(planetInfo != null){
+            distance = planetInfo.distance;
+            mass = planetInfo.mass;
+            composition = planetInfo.composition;
+        }
+        description += "distance: "+distance+"/"+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+        description += "mass: "+mass+"/"+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+        description += "composition: "+composition+"/"+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+        return  description;
     }
 
     public boolean shouldRenderPlanet(ResourceLocation dimensionId) {

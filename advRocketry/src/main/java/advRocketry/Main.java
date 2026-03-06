@@ -357,7 +357,7 @@ public class Main {
             e.accept(Registry.WARP_CONTROLLER.get());
 
             e.accept(Registry.ITEM_LINKER.get());
-            e.accept(Registry.ITEM_GALAXY_STORAGE_DISK.get());
+            e.accept(Registry.ITEM_GALAXY_DATABASE.get());
             e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
             e.accept(Registry.ITEM_DATA_STORAGE.get());
             e.accept(Registry.DATA_STORAGE_BLOCK.get());
