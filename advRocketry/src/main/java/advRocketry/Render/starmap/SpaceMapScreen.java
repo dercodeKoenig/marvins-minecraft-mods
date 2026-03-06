@@ -35,7 +35,7 @@ public class SpaceMapScreen extends Screen {
 
     private float camX = 0;
     private float camY = 0;
-    private float zoom = 3000f;
+    private float zoom = 1000f;
 
     private float logScale = 0.5f;
     private float scale = 0.3f;
@@ -224,13 +224,8 @@ public class SpaceMapScreen extends Screen {
                 continue;;
 
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
-            Vec3 pos = getPositionScaled(planet, pTicks);
-
-            // MATCH YOUR RENDER TRANSLATION: (pos.x * 2000, pos.y * 2000, pos.z * 2000)
-            Vector3f planetWorldPos = new Vector3f((float) pos.x * 2000, (float) pos.y * 2000, (float) pos.z * 2000);
-
-            float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
-            renderScale *=Math.max(1,zoom / 50000); // make larger on high zoom to keep stars visible
+            Vector3f planetWorldPos = getPlanetTranslation(planet, pTicks);
+            float renderScale = getPlanetRenderScale(planet);
 
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
@@ -252,20 +247,23 @@ public class SpaceMapScreen extends Screen {
         Matrix4f invVP = new Matrix4f(proj).mul(view).invert();
 
         // We shoot from the Near Plane to the Far Plane
-        Vector4f near = new Vector4f(x, y, -1.0f, 1.0f).mul(invVP);
-        Vector4f far = new Vector4f(x, y, 1.0f, 1.0f).mul(invVP);
+        Vector4f near = new Vector4f(x, y, -1.0f, 1.0f);
+        Vector4f far = new Vector4f(x, y, 1.0f, 1.0f);
+
+        invVP.transform(near);
+        invVP.transform(far);
 
         near.div(near.w);
         far.div(far.w);
 
-        Vector3f rayOrigin = new Vector3f(near.x, near.y, near.z);
-        Vector3f rayDir = new Vector3f(far.x - near.x, far.y - near.y, far.z - near.z).normalize();
+        Vector3d rayOrigin = new Vector3d(near.x, near.y, near.z);
+        Vector3d rayDir = new Vector3d(far.x - near.x, far.y - near.y, far.z - near.z).normalize();
 
         // 3. Ray-Sphere Intersection
-        Vector3f oc = new Vector3f(rayOrigin).sub(planetPos);
-        float b = oc.dot(rayDir);
-        float c = oc.dot(oc) - radius * radius;
-        float discriminant = b * b - c;
+        Vector3d oc = new Vector3d(rayOrigin).sub(planetPos);
+        double b = oc.dot(rayDir);
+        double c = oc.dot(oc) - radius * radius;
+        double discriminant = b * b - c;
 
         // If discriminant < 0, the ray missed entirely.
         return (discriminant > 0);
@@ -298,10 +296,11 @@ public class SpaceMapScreen extends Screen {
             if (!shouldRenderPlanet(planet.getDimensionId()))
                 continue;
 
-            Vec3 pos = getPositionScaled(planet, partialTick);
 
             Matrix4f planetMatrix = new Matrix4f();
-            planetMatrix.translate((float) pos.x * 2000, (float) pos.y * 2000, (float) (pos.z * 2000));
+
+            Vector3f pos = getPlanetTranslation(planet, partialTick);
+            planetMatrix.translate(pos.x, pos.y, pos.z);
 
             Vec3 modelUp = new Vec3(0, 1, 0);
             Vec3 targetNorth = planet.getRotationAxis().normalize();
@@ -316,8 +315,7 @@ public class SpaceMapScreen extends Screen {
             double planetRotationAngle = planet.getRotationAngle(partialTick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
-            float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
-            renderScale *=Math.max(1,zoom / 50000); // make larger on high zoom to keep stars visible
+            float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
 
@@ -444,6 +442,16 @@ public class SpaceMapScreen extends Screen {
     // i will use some stuff from the skyrenderer here and also reuse the skybox shaders
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    public Vector3f getPlanetTranslation(PlanetDimension planet, float pTicks){
+        Vec3 pos = getPositionScaled(planet, pTicks);
+        return new Vector3f((float) pos.x * 100, (float) pos.y * 100, (float) pos.z * 100);
+    }
+    public float getPlanetRenderScale(PlanetDimension planet) {
+        float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100)) / 20;
+        renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
+        return renderScale;
     }
 
     //applies a scale to orbit distance for better rendering on map
