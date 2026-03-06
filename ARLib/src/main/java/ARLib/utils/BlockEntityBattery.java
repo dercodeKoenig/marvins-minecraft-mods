@@ -53,10 +53,10 @@ public class BlockEntityBattery extends EnergyStorage {
     }
 
     public boolean canExtract() {
-        return this.maxExtract > 0 && canExtract;
+        return super.canExtract() && canExtract;
     }
 
     public boolean canReceive() {
-        return this.maxReceive > 0 && canReceive;
+        return super.canReceive() && canReceive;
     }
 }

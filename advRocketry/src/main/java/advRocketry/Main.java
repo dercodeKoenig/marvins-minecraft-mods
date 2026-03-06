@@ -245,15 +245,16 @@ public class Main {
     /// mod load events /////////////////////////////////////
 
     void registerCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> (((EntityGuidanceComputer) x).itemStackHandler));
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> x.itemStackHandler);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.tank);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
-        //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.inventory);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
+        //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
+        //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -360,7 +361,10 @@ public class Main {
             e.accept(Registry.ITEM_GALAXY_DATABASE.get());
             e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
             e.accept(Registry.ITEM_DATA_STORAGE.get());
+
             e.accept(Registry.DATA_STORAGE_BLOCK.get());
+
+            e.accept(Registry.SOLAR_PANEL.get());
 
             e.accept(Registry.OBSERVATORY.get());
 

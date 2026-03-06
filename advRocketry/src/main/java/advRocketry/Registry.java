@@ -93,6 +93,9 @@ public class Registry {
     public static final Supplier<Block> DATA_STORAGE_BLOCK = BLOCKS.register("data_storage_block", () -> new DataStorageBlock());
     public static final Supplier<BlockEntityType<EntityDataStorageBlock>> ENTITY_DATA_STORAGE_BLOCK = BLOCK_ENTITIES.register("data_storage_block", () -> BlockEntityType.Builder.of(EntityDataStorageBlock::new, DATA_STORAGE_BLOCK.get()).build(null));
 
+    public static final Supplier<Block> SOLAR_PANEL = BLOCKS.register("solar_panel", () -> new SolarPanel());
+    public static final Supplier<BlockEntityType<EntitySolarPanel>> ENTITY_SOLAR_PANEL = BLOCK_ENTITIES.register("solar_panel", () -> BlockEntityType.Builder.of(EntitySolarPanel::new, SOLAR_PANEL.get()).build(null));
+
 
 
 
@@ -140,6 +143,7 @@ public class Registry {
         registerBlockItem("observatory", OBSERVATORY);
         registerBlockItem("oxygen_vent", OXYGEN_VENT);
         registerBlockItem("data_storage_block", DATA_STORAGE_BLOCK);
+        registerBlockItem("solar_panel", SOLAR_PANEL);
 
         registerBlockItem("space_station_assembler", SPACE_STATION_ASSEMBLER);
         registerBlockItem("orientation_controller", ORIENTATION_CONTROLLER);
