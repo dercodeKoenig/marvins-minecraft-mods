@@ -102,7 +102,7 @@ public class EntityFuelingStation extends EntityRocketInfrastructureBase impleme
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putInt("energy", battery.getEnergyStored());
+        tag.put("battery", battery.serializeNBT(registries));
         tag.putBoolean("isDrain", isDrain);
         simpleFluidContainer.saveAdditional(tag, registries);
     }
@@ -110,7 +110,7 @@ public class EntityFuelingStation extends EntityRocketInfrastructureBase impleme
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        battery.setEnergy(tag.getInt("energy"));
+        battery.deserializeNBT(registries, tag.get("battery"));
         isDrain = tag.getBoolean("isDrain");
         simpleFluidContainer.loadAdditional(tag, registries);
     }

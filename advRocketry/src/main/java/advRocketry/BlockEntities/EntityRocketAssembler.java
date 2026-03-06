@@ -511,7 +511,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("buildProgress", buildProgress);
-        tag.putInt("energy", battery.getEnergyStored());
+        tag.put("battery", battery.serializeNBT(registries));
         tag.putInt("dockingDirection", dockingDirection.ordinal());
         tag.putBoolean("horizontalDocking", horizontalDocking);
         if (areaMin != null && areaMax != null) {
@@ -540,7 +540,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (tag.contains("buildProgress"))
             buildProgress = tag.getInt("buildProgress");
         if (tag.contains("energy"))
-            battery.setEnergy(tag.getInt("energy"));
+            battery.deserializeNBT(registries,tag.get("battery"));
         if (tag.contains("dockingDirection"))
             dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
         if (tag.contains("horizontalDocking"))

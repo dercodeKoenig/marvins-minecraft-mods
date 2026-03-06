@@ -99,14 +99,14 @@ public class EntityRocketItemLoader extends EntityRocketInfrastructureBase imple
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putInt("energy", battery.getEnergyStored());
+        tag.put("battery", battery.serializeNBT(registries));
         tag.put("inventory", inventory.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        battery.setEnergy(tag.getInt("energy"));
+        battery.deserializeNBT(registries, tag.get("battery"));
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 

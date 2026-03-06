@@ -68,7 +68,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        battery.deserializeNBT(registries, tag.getCompound("battery"));
+        battery.deserializeNBT(registries, tag.get("battery"));
     }
 
     public float getGenerationSpeed() {
