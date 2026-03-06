@@ -346,7 +346,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                             return "";
                                         }
 
-                                        public String getPlanetInfoText(ResourceLocation dimensionId) {
+                                        public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo ignored) {
                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                             if (planet == null) return "";
 

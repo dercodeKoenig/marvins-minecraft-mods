@@ -31,7 +31,7 @@ public class SpaceMapScreen extends Screen {
 
     private PlanetDimension selectedPlanet = null;
     private net.minecraft.client.gui.components.Button actionButton;
-    private final int SIDEBAR_WIDTH = 120;
+    private int SIDEBAR_WIDTH = 150;
 
     private float camX = 0;
     private float camY = 0;

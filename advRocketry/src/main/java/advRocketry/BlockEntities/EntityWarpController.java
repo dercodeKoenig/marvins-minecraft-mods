@@ -96,7 +96,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                             return "";
                                         }
 
-                                        public String getPlanetInfoText(ResourceLocation dimensionId) {
+                                        public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo ignored) {
                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                             if (planet == null) return "";
 
