@@ -450,7 +450,9 @@ public class SpaceStationDimension extends Dimension {
                 // fix the position, we are to close
                 // scale before normalize or numerical errors will break it!
                 Vec3 planetToStation = getPosition(0).subtract(closestPlanetPosition);
-                properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.2));
+                if(planetToStation.length() < 0.000001)
+                    planetToStation = new Vec3(Math.random()*2-1,0,Math.random()*2-1);
+                properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.25));
             }
         }
     }
