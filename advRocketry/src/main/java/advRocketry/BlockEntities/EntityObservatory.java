@@ -1005,7 +1005,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         SCANNING_FOR_ASTEROIDS("scanning for asteroids"),
         ANALYZE_PLANET("analyzing planet"),
         ANALYZE_PLANETS_AFTER_ALL_DISCOVERED("analyzing planet"), // will activate when scanning for planets when all is discovered
-        WRITE_PLANET_TO_CHIP("writing planet to chip"),
+        WRITE_PLANET_TO_CHIP("writing to chip"),
         SYNC_STORAGE_DISKS("syncing storage disks"),;
 
         public final String label;

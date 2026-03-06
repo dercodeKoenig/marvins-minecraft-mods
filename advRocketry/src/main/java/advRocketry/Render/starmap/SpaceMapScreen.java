@@ -88,9 +88,9 @@ public class SpaceMapScreen extends Screen {
             mass = planetInfo.mass;
             composition = planetInfo.composition;
         }
-        description += "distance: "+distance+"/"+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
-        description += "mass: "+mass+"/"+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
-        description += "composition: "+composition+"/"+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+        description += "distance:    "+distance+" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+        description += "mass:        "+mass+" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+        description += "composition: "+composition+" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
         return  description;
     }
 
