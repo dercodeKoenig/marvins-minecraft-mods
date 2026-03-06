@@ -115,11 +115,11 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                 int toProduce = (int) partialRf;
                 partialRf -= toProduce;
                 battery.receiveEnergy(toProduce, false);
-                if (!guiHandler.playersTrackingGui.isEmpty()) {
-                    String text = battery.getEnergyStored() + " rf\n\n" +
-                            (float)Math.round(generationSpeed * 1000) / 1000 + " rf / tick";
-                    infoText.setTextAndSync(text);
-                }
+                String text = battery.getEnergyStored() + " rf\n\n" +
+                        (float) Math.round(generationSpeed * 1000) / 1000 + " rf / tick";
+                infoText.setTextAndSync(text);
+            }else{
+                infoText.setTextAndSync(battery.getEnergyStored() + " rf");
             }
 
             // output to other energy handlers
