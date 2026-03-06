@@ -297,7 +297,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 150);
         guiHandler.modules.add(storageDiskSlot2);
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleText(3, "galaxy data storage:", guiHandler, 10, 153, 0xff000000, false)
+                new ARLib.gui.modules.guiModuleText(3, "galaxy database:", guiHandler, 10, 153, 0xff000000, false)
         );
 
         planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 130);
@@ -467,7 +467,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         if (!(storageDisk.getItem() instanceof ItemGalaxyDatabase)) {
             // has no data disk, can not work
             toggleTask(Task.IDLE, null);
-            setStatusText("no galaxy storage disk found");
+            setStatusText("no galaxy database found");
         }
 
         if (!startAnalyzingRandomPlanet(storageDisk)) {
@@ -588,7 +588,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     if (!(storageDisk.getItem() instanceof ItemGalaxyDatabase)) {
                         // has no data disk, can not work
                         toggleTask(Task.IDLE, null);
-                        setStatusText("no galaxy storage disk found");
+                        setStatusText("no galaxy database found");
                     } else {
                         guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
                         if (hasEnoughEnergy) {
@@ -674,7 +674,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     if (!(storageDisk.getItem() instanceof ItemGalaxyDatabase)) {
                         // has no data disk, can not work
                         toggleTask(Task.IDLE, null);
-                        setStatusText("no galaxy storage disk found");
+                        setStatusText("no galaxy database found");
                     } else {
                         if (hasEnoughEnergy && hasEnoughData) {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
