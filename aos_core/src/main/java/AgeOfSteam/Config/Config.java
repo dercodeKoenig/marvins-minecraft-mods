@@ -70,6 +70,8 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
     public double hand_generator_max_force = 50;
     public double hand_generator_max_speed = 10;
 
+    public double motor_rf_multiplier = 5;
+
 
     public void readClient(String data) {
         Config.INSTANCE = new Gson().fromJson(data, Config.class);

@@ -6,12 +6,15 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import ARLib.utils.VertexBufferCleaner;
+import AgeOfSteam.ClientUtils;
+import AgeOfSteam.Config.Config;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Main;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,6 +25,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -52,14 +56,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     public double K = 10*n;
     public double HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS = 100;
     public double AREA_FOR_HEAT_RADIATION = 1;
-    public double WIRE_RESISTANCE_FOR_HEAT_GENERATION = 5*n;
+    public double WIRE_RESISTANCE_FOR_HEAT_GENERATION = 10*n;
 
     double TARGET_HEAT = 300;
     double MAX_HEAT = 500;
     double MAX_RPM = 200/Math.sqrt(n);
 
     public double myInertia = 10*n;
-    int rfPerTick = 500;
+    int rfPerTick = 100;
 
     double maxHeatRad = (Math.pow(MAX_HEAT*0.95, 4) - Math.pow(TARGET_HEAT, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION;
     double maxConstantTorqueAllowedBeforeOverheat = Math.sqrt(maxHeatRad / WIRE_RESISTANCE_FOR_HEAT_GENERATION) * K;
@@ -99,7 +103,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     GuiHandlerBlockEntity guiHandler;
     BlockEntityBattery energyStorage;
 
-    guiModuleEnergy e1;
     guiModuleRotationalProgress rpm;
     guiModuleRotationalProgress torque;
     guiModuleRotationalProgress efficiency;
@@ -112,7 +115,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     guiModuleButton increasePower;
     guiModuleButton decreasePower;
 
-    guiModuleText invertRotationText;
     guiModuleButton invertRotation;
 
     public EntityMotor(BlockPos pos, BlockState blockState) {
@@ -146,11 +148,11 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         currentPowerText = new guiModuleText(6, rfPerTick + " RF/tick", guiHandler, 45, 74, 0xFF000000, false);
         guiHandler.getModules().add(currentPowerText);
 
-        increasePower = new guiModuleButton(7, "+50", guiHandler, 110, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        increasePower = new guiModuleButton(7, "+10", guiHandler, 110, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         increasePower.color = 0xFFFFFFFF;
         guiHandler.getModules().add(increasePower);
 
-        decreasePower = new guiModuleButton(8, "-50", guiHandler, 10, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        decreasePower = new guiModuleButton(8, "-10", guiHandler, 10, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         decreasePower.color = 0xFFFFFFFF;
         guiHandler.getModules().add(decreasePower);
 
@@ -228,18 +230,18 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 int maxConsumedEnergy = Math.min(getEnergyStored(), rfPerTick);
                 double workingForce = Fmax_from_p_and_k(maxConsumedEnergy, K) - K * myMechanicalBlock.internalVelocity * facingMultiplier * directionMultiplier;
                 workingForce = Math.max(0, workingForce);
-                currentForceProduced = workingForce * facingMultiplier * directionMultiplier;
+                currentForceProduced = workingForce * Config.INSTANCE.motor_rf_multiplier * facingMultiplier * directionMultiplier;
                 currentResistance = MOTOR_BASE_FRICTION;
                 energyStorage.setEnergy(getEnergyStored() - maxConsumedEnergy);
 
-                currentHeat += Math.pow(Math.abs(workingForce) / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+                currentHeat += Math.pow(Math.abs(currentForceProduced) / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
 
-                torque = (int) Math.round(Math.abs(workingForce));
-                efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / (rfPerTick+0.01);
+                torque = (int) Math.round(Math.abs(currentForceProduced));
+                efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / ((rfPerTick * Config.INSTANCE.motor_rf_multiplier) + 0.01);
             } else {
                 currentForceProduced = 0;
                 double maxWorkingResistance = Math.abs(-K * myMechanicalBlock.internalVelocity);
-                int energyMaxProduced = (int) (Math.abs(myMechanicalBlock.internalVelocity) * maxWorkingResistance);
+                int energyMaxProduced = (int) (Math.abs(myMechanicalBlock.internalVelocity) * maxWorkingResistance / Config.INSTANCE.motor_rf_multiplier);
                 int freeEnergyCapacity = getMaxEnergyStored() - getEnergyStored();
                 int energyProduced = Math.min(freeEnergyCapacity, energyMaxProduced);
                 energyStorage.setEnergy(getEnergyStored() + energyProduced);
@@ -286,53 +288,52 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
             this.torque.setProgressAndSync(Math.abs(torque) / maxConstantTorqueAllowedBeforeOverheat * 0.61);
 
             this.efficiency.setProgressAndSync(efficiency);
-            this.efficiencyText.setTextAndSync("eff: "+Math.round(efficiency*100)+"%");
+            this.efficiencyText.setTextAndSync("eff: " + Math.round(efficiency * 100) + "%");
 
 
-            int heatlvl = (int) Math.round(heatProgress*10);
-            if(serverLastHeatlvlForVisualEffects != heatlvl){
+            int heatlvl = (int) Math.round(heatProgress * 10);
+            if (serverLastHeatlvlForVisualEffects != heatlvl) {
                 serverLastHeatlvlForVisualEffects = heatlvl;
                 CompoundTag heatlvlupdate = new CompoundTag();
                 heatlvlupdate.putInt("heatLvl", serverLastHeatlvlForVisualEffects);
                 PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, heatlvlupdate));
             }
-            if(heatlvl > 10){
+            if (heatlvl > 10) {
                 level.destroyBlock(getBlockPos(), false);
-                level.explode(null,getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),2,true, Level.ExplosionInteraction.BLOCK);
-                level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(),3);
+                level.explode(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 2, true, Level.ExplosionInteraction.BLOCK);
+                level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(), 3);
             }
-            int rpmlvl = (int)Math.round(rpm/MAX_RPM*10);
-            //  currently does nothing
-            if(serverLastRPMForVisualEffects != rpmlvl){
+            int rpmlvl = (int) Math.round(rpm / MAX_RPM * 10);
+            if (serverLastRPMForVisualEffects != rpmlvl) {
                 serverLastRPMForVisualEffects = rpmlvl;
                 CompoundTag heatlvlupdate = new CompoundTag();
                 heatlvlupdate.putInt("rpmLvl", serverLastRPMForVisualEffects);
                 PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, heatlvlupdate));
             }
-             //*/
-            if(rpmlvl > 10){
+            //*/
+            if (rpmlvl > 10) {
                 level.destroyBlock(getBlockPos(), false);
-                level.explode(null,getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),2,true, Level.ExplosionInteraction.BLOCK);
-                level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(),3);
+                level.explode(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 2, true, Level.ExplosionInteraction.BLOCK);
+                level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(), 3);
             }
         }
 
 
-
-
-        int particleNum = Math.max(clientHeatlvlForVisualEffects -8, 0);
-        for (int i = 0; i < particleNum; i++) {
-            double x = level.random.nextDouble() - 0.5;
-            double y = level.random.nextDouble() - 0.5;
-            double z = level.random.nextDouble() - 0.5;
-            level.addParticle(new DustParticleOptions( new Vector3f(0.2f, 0.2f, 0.2f),1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
-        }
-        if(serverLastRPMForVisualEffects > 5 && level.hasNeighborSignal(getBlockPos())) {
-            if((level.getGameTime() & 5) == 0){
-                double relativeSpeed = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity)) / 6 / MAX_RPM;
-                level.playSound((Entity) null, getBlockPos(),  SOUND_MOTOR.get(),
-                        SoundSource.BLOCKS, 0.5f * (float) (Math.max(0, relativeSpeed - 0.5)), (float)(relativeSpeed-0.5)*4f);  //
+        if (level.isClientSide) {
+            int particleNum = Math.max(clientHeatlvlForVisualEffects - 7, 0);
+            for (int i = 0; i < particleNum; i++) {
+                double x = level.random.nextDouble() - 0.5;
+                double y = level.random.nextDouble() - 0.5;
+                double z = level.random.nextDouble() - 0.5;
+                level.addParticle(new DustParticleOptions(new Vector3f(0.2f, 0.2f, 0.2f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
+            }
+            if (clientRPMForVisualEffects > 5) {
+                if ((level.getGameTime() % 5) == 0) {
+                    double relativeSpeed = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity)) / 6 / MAX_RPM;
+                    level.playSound(ClientUtils.getLocalPlayer(), getBlockPos(), SOUND_MOTOR.get(),
+                            SoundSource.BLOCKS, 1f * (float) (Math.max(0, relativeSpeed - 0.5)), (float) (relativeSpeed - 0.5) * 4f);  //
                 }
+            }
         }
     }
 
@@ -359,10 +360,10 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         if (tag.contains("guiButtonClick")) {
             int id = tag.getInt("guiButtonClick");
             if (id == 7) {
-                rfPerTick += 50;
+                rfPerTick += 10;
             }
             if (id == 8) {
-                rfPerTick -= 50;
+                rfPerTick -= 10;
             }
             rfPerTick = Math.max(0, rfPerTick);
             this.currentPowerText.setTextAndSync(rfPerTick + " RF/tick");
