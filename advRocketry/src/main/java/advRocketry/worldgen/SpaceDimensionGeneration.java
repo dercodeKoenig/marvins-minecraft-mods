@@ -31,7 +31,7 @@ public class SpaceDimensionGeneration {
     public static DimensionType makeDimensionType() {
         return new DimensionType(
                 OptionalLong.of(6000),
-                false,
+                true,
                 false,
                 false,
                 false,
