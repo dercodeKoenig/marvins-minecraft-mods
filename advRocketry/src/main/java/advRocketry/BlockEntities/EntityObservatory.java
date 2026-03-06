@@ -352,12 +352,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                             if (planet == null) return "";
 
                                             if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
-                                                String s = "";
+                                                String s = "We require more information about this planet.";
                                                 ItemGalaxyDatabase.PlanetInfo info = client_getPlanetInfo(dimensionId);
                                                 if(info != null) {
-                                                    s += "distance: " + info.distance +" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+                                                    s += "\ndistance: " + info.distance +" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
                                                 }
-                                                return "We require more information about this planet.";
+                                                return s;
                                             }
 
                                             return super.getPlanetInfoText(dimensionId, client_getPlanetInfo(dimensionId));
@@ -542,7 +542,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 if(task == Task.ANALYZE_PLANET || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED
                 ) {
                     if(data > 0)
-                        newHasEnoughEnergy = true;
+                        newHasEnoughData = true;
                 }
                 else if (task == Task.SCANNING_FOR_ASTEROIDS){
 
