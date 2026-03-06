@@ -230,6 +230,7 @@ public class SpaceMapScreen extends Screen {
             Vector3f planetWorldPos = new Vector3f((float) pos.x * 2000, (float) pos.y * 2000, (float) pos.z * 2000);
 
             float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100));
+            renderScale *=Math.max(1,zoom / 50000); // make larger on high zoom to keep stars visible
 
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
