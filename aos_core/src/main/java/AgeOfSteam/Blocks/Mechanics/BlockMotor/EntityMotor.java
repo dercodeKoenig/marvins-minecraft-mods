@@ -50,7 +50,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     public int lastLight = -1;
 
 
-    double n = 1;
+    double n = 0.5;
 
     public double MOTOR_BASE_FRICTION = 5*Math.sqrt(n);
     public double K = 10*n;
@@ -230,14 +230,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 int maxConsumedEnergy = Math.min(getEnergyStored(), rfPerTick);
                 double workingForce = Fmax_from_p_and_k(maxConsumedEnergy, K) - K * myMechanicalBlock.internalVelocity * facingMultiplier * directionMultiplier;
                 workingForce = Math.max(0, workingForce);
-                currentForceProduced = workingForce * Config.INSTANCE.motor_rf_multiplier * facingMultiplier * directionMultiplier;
+                currentForceProduced = workingForce * facingMultiplier * directionMultiplier * Config.INSTANCE.motor_rf_multiplier;
                 currentResistance = MOTOR_BASE_FRICTION;
                 energyStorage.setEnergy(getEnergyStored() - maxConsumedEnergy);
 
                 currentHeat += Math.pow(Math.abs(currentForceProduced) / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
 
                 torque = (int) Math.round(Math.abs(currentForceProduced));
-                efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / ((rfPerTick * Config.INSTANCE.motor_rf_multiplier) + 0.01);
+                efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / ((maxConsumedEnergy * Config.INSTANCE.motor_rf_multiplier) + 0.01);
             } else {
                 currentForceProduced = 0;
                 double maxWorkingResistance = Math.abs(-K * myMechanicalBlock.internalVelocity);
@@ -316,6 +316,17 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 level.explode(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 2, true, Level.ExplosionInteraction.BLOCK);
                 level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(), 3);
             }
+
+            if(rfPerTick >= 20){
+                decreasePower.setTextAndSync("-10");
+            }else{
+                decreasePower.setTextAndSync("-1");
+            }
+            if(rfPerTick >= 10){
+                increasePower.setTextAndSync("+10");
+            }else{
+                increasePower.setTextAndSync("+1");
+            }
         }
 
 
@@ -360,12 +371,18 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         if (tag.contains("guiButtonClick")) {
             int id = tag.getInt("guiButtonClick");
             if (id == 7) {
-                rfPerTick += 10;
+                if(rfPerTick >= 10)
+                    rfPerTick += 10;
+                else
+                    rfPerTick += 1;
             }
             if (id == 8) {
-                rfPerTick -= 10;
+                if(rfPerTick >= 20)
+                    rfPerTick -= 10;
+                else
+                    rfPerTick -= 1;
             }
-            rfPerTick = Math.max(0, rfPerTick);
+            rfPerTick = Math.max(1, rfPerTick);
             this.currentPowerText.setTextAndSync(rfPerTick + " RF/tick");
 
             if(id == 11){
