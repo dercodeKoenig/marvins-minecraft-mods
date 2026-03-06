@@ -10,6 +10,7 @@ import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -21,6 +22,8 @@ import net.minecraft.world.level.block.RedStoneOreBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import static advRocketry.Registry.ENTITY_CARGO_HOLD;
@@ -36,11 +39,14 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
     public EntitySolarPanel(BlockPos pos, BlockState blockState) {
         super(ENTITY_SOLAR_PANEL.get(), pos, blockState);
         guiHandler = new GuiHandlerBlockEntity(this);
-        battery = new BlockEntityBattery(this,1000);
-        battery.canReceive = false;
-        guiHandler.modules.add(new guiModuleEnergy(0,battery,guiHandler,10,10));
-        infoText = new guiModuleText(1,"",guiHandler, 30,30,0xff000000,false);
+        battery = new BlockEntityBattery(this, 1000);
+        guiHandler.modules.add(new guiModuleEnergy(0, battery, guiHandler, 10, 10));
+        infoText = new guiModuleText(1, "", guiHandler, 30, 30, 0xff000000, false);
         guiHandler.modules.add(infoText);
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntitySolarPanel) t).tick();
     }
 
     @Override
@@ -65,20 +71,24 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
         battery.deserializeNBT(registries, tag.getCompound("battery"));
     }
 
-    public float getGenerationSpeed(){
+    public float getGenerationSpeed() {
+
+        if(!level.canSeeSky(getBlockPos().above()))
+            return 0;
+
         ResourceLocation levelId = level.dimension().location();
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
         double accumulatedStarlightIntensity = 0;
-        if(dim instanceof PlanetDimension planetDimension){
-            Vec3 up = planetDimension.getGlobalAxisDirections(0,planetDimension.getLatitudeFromZPosition(getBlockPos().getZ())).up.normalize();
+        if (dim instanceof PlanetDimension planetDimension) {
+            Vec3 up = planetDimension.getGlobalAxisDirections(0, planetDimension.getLatitudeFromZPosition(getBlockPos().getZ())).up.normalize();
             Vec3 myPos = planetDimension.getPosition(0);
-            for(ResourceLocation starId : planetDimension.getCurrentMainStars()){
-                if(DimensionManager.INSTANCE_SERVER.get(starId) instanceof PlanetDimension star){
+            for (ResourceLocation starId : planetDimension.getCurrentMainStars()) {
+                if (DimensionManager.INSTANCE_SERVER.get(starId) instanceof PlanetDimension star) {
                     Vec3 planetToStar = star.getPosition(0).subtract(myPos);
                     double distance = planetToStar.length();
-                    double dot = Math.max(0,up.dot(planetToStar.normalize()));
+                    double dot = Math.max(0, up.dot(planetToStar.normalize()));
                     double intensity = star.getRadiationIntensity();
-                    double atmModifier = 1 - (planetDimension.getAtmosphereDensity() / (1+planetDimension.getAtmosphereDensity()));
+                    double atmModifier = 1 - (planetDimension.getAtmosphereDensity() / (1 + planetDimension.getAtmosphereDensity()));
                     double finalIntensity = dot * intensity * atmModifier / (distance * distance);
                     accumulatedStarlightIntensity += finalIntensity;
                 }
@@ -90,19 +100,45 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
-            float generationSpeed = getGenerationSpeed();
-            partialRf += generationSpeed;
-            int toProduce = (int) partialRf;
-            partialRf -= toProduce;
-            battery.receiveEnergy(toProduce, false);
-            if(!guiHandler.playersTrackingGui.isEmpty()){
-                infoText.setTextAndSync(Math.round(generationSpeed * 100) / 100 +" rf / tick");
+
+            int remainingCapacity = battery.getMaxEnergyStored() - battery.getEnergyStored();
+            if (remainingCapacity > 0) {
+                float generationSpeed = getGenerationSpeed();
+                partialRf += generationSpeed;
+                int toProduce = (int) partialRf;
+                partialRf -= toProduce;
+                battery.receiveEnergy(toProduce, false);
+                if (!guiHandler.playersTrackingGui.isEmpty()) {
+                    String text = battery.getEnergyStored() + " rf\n\n" +
+                            (float)Math.round(generationSpeed * 1000) / 1000 + " rf / tick";
+                    infoText.setTextAndSync(text);
+                }
+            }
+
+            // output to other energy handlers
+            for (Direction i : Direction.values()) {
+                if (i == Direction.UP)
+                    continue;
+                if(battery.getEnergyStored() == 0)
+                    break;
+
+                IEnergyStorage neighbor = level.getCapability(Capabilities.EnergyStorage.BLOCK, getBlockPos().relative(i), i.getOpposite());
+                if (neighbor instanceof BlockEntityBattery otherBattery && otherBattery.parent instanceof EntitySolarPanel otherPanel) {
+                    int otherPanelEnergy = otherPanel.battery.getEnergyStored();
+                    int myEnergy = battery.getEnergyStored();
+                    int diff = myEnergy - otherPanelEnergy;
+                    if(diff > 5){
+                        // move some into the other panel
+                        int toMove = diff / 2;
+                        int received = neighbor.receiveEnergy(toMove,false);
+                        battery.extractEnergy(received, false);
+                    }
+                } else if (neighbor != null) {
+                    int received = neighbor.receiveEnergy(battery.getEnergyStored(),false);
+                    battery.extractEnergy(received, false);
+                }
             }
         }
-    }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntitySolarPanel) t).tick();
     }
 
     public void openGui() {
