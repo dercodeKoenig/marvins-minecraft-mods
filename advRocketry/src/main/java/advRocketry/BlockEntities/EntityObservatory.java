@@ -50,7 +50,7 @@ import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 
 public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
-    public static String DATA_SCANNING_FOR_PLANETS = DataTypes.distance;
+    public static String REQUIRED_DATA = DataTypes.distance;
 
     // holds methods and variables for rendering
     public static class RenderData {
@@ -224,6 +224,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     public static int syncStorageDisksTicks = 20 * 10;
 
     boolean hasEnoughEnergy = false;
+    boolean hasEnoughData = false; // for analyzing
 
     public GuiHandlerBlockEntity guiHandler;
     ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot1;
@@ -527,16 +528,38 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
                 int energy = this.getTotalEnergyStored(energyInputBlocks);
                 int maxEnergy = this.getMaxEnergyStored(energyInputBlocks);
+                int data = this.getData(REQUIRED_DATA, dataTiles);
 
+                // update energy status
                 boolean newHasEnoughEnergy = energy > Config.INSTANCE.observatory_Energy_Per_Tick;
                 if (newHasEnoughEnergy != hasEnoughEnergy) {
                     hasEnoughEnergy = newHasEnoughEnergy;
                     sendUpdatePacket(null); // client needs to know about energy to stop the rotate animations
                 }
 
+                // update data status
+                boolean newHasEnoughData = false;
+                if(task == Task.ANALYZE_PLANET || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED
+                ) {
+                    if(data > 0)
+                        newHasEnoughEnergy = true;
+                }
+                else if (task == Task.SCANNING_FOR_ASTEROIDS){
+
+                }else{
+                    // no data required
+                    newHasEnoughData = true;
+                }
+                if (newHasEnoughData != hasEnoughData) {
+                    hasEnoughData = newHasEnoughData;
+                    //sendUpdatePacket(null);
+                }
+
                 if (customStatusTimeout <= 0) {
                     if (!hasEnoughEnergy) {
                         statusText.setTextAndSync("OUT OF ENERGY!");
+                    }else if(!hasEnoughData){
+                        statusText.setTextAndSync("OUT OF DISTANCE DATA!");
                     } else {
                         String s = "Status:\n" + task.label;
                         if (taskTarget != null) {
@@ -544,8 +567,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 s += ": " + targetPlanet.getName();
                             }
                         }
-                        if (task == Task.SCANNING_FOR_PLANETS && getData(DATA_SCANNING_FOR_PLANETS, dataTiles) == 0) {
-                            s += "\n(" + DATA_SCANNING_FOR_PLANETS + " data would help)";
+                        if (task == Task.SCANNING_FOR_PLANETS && getData(REQUIRED_DATA, dataTiles) == 0) {
+                            s += "\n(" + REQUIRED_DATA + " data would help)";
                         }
                         statusText.setTextAndSync(s);
                     }
@@ -572,10 +595,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             double p = Math.random();
                             double pTarget = Config.INSTANCE.observatory_Find_Planet_P_Per_Tick;
-                            if (getData(DATA_SCANNING_FOR_PLANETS, dataTiles) > 0) {
-                                super.consumeData(DATA_SCANNING_FOR_PLANETS, 1, dataTiles);
-                                pTarget *= 10; // increase probability of finding something at the cost of data
-                            }
                             if (p < pTarget) {
                                 // discover a new random planet that is not already known
                                 PlanetDimension nextToDiscover = getNextPlanetToDiscover(storageDisk);
@@ -657,8 +676,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                         toggleTask(Task.IDLE, null);
                         setStatusText("no galaxy storage disk found");
                     } else {
-                        if (hasEnoughEnergy) {
+                        if (hasEnoughEnergy && hasEnoughData) {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
+                            consumeData(REQUIRED_DATA,1,dataTiles);
                             ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, taskTarget);
                             if (info == null)
                                 // should not happen, but just to be safe
