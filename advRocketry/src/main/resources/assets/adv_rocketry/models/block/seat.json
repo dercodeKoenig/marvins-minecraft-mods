@@ -5,7 +5,7 @@
     "generic": "arlib:block/machinegeneric",
     "wool": "minecraft:block/light_gray_wool",
     "support": "adv_rocketry:block/small_connector",
-    "panel": "adv_rocketry:block/panel_side",
+    "panel": "adv_rocketry:block/solar_panel_side",
     "particle": "minecraft:block/light_gray_wool"
   },
   "elements": [
