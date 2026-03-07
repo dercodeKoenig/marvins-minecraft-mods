@@ -18,6 +18,10 @@ import java.util.UUID;
 public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
     ResourceLocation targetPlanet;
 
+    public ProgramSatelliteDeployment(){
+
+    }
+
     public ProgramSatelliteDeployment(EntityRocket rocket, ResourceLocation targetPlanet, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
         super(rocket, returnLevel, returnPos, missionId);
         this.targetPlanet = targetPlanet;
