@@ -21,7 +21,7 @@ public class SatelliteDeploymentMission extends RocketMission {
 
     public void completeMission() {
         EntityRocket rocket = super.restoreRocket();
-        
+
         // deploy satellites on complete
         // iterate over all cargo holds and find valid satellite builds
         for (BlockEntity i : rocket.blockEntities.values()){

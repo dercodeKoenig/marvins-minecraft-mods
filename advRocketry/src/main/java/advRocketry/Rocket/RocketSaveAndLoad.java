@@ -79,7 +79,7 @@ public class RocketSaveAndLoad {
             rocket.controller.setRotationRateMultiplier(compoundTag.getDouble("rotationRateMultiplier"),true);
 
         if (compoundTag.contains("currentProgram")) {
-            rocket.setProgramAndSync(RocketProgram.createFromNbt(compoundTag.getCompound("currentProgram")));
+            rocket.setProgramAndSync(ProgramRegistry.createFromNbt(compoundTag.getCompound("currentProgram")));
         }
 
         if (compoundTag.contains("dockingStationPos")) {
@@ -162,7 +162,7 @@ public class RocketSaveAndLoad {
 
         compoundTag.putDouble("rotationRateMultiplier", rocket.controller.getRotationRateMultiplier());
 
-        compoundTag.put("currentProgram", RocketProgram.saveToNbt(rocket.getCurrentProgram()));
+        compoundTag.put("currentProgram", ProgramRegistry.saveToNbt(rocket.getCurrentProgram()));
 
         compoundTag.put("dockingStationPos", Utils.serializeVec3i(rocket.getDockingStationPos()));
 
