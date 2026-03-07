@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
+import org.checkerframework.checker.units.qual.N;
 
 import java.util.UUID;
 
@@ -19,6 +20,10 @@ public class ProgramMissionStartBase implements RocketProgram {
     BlockPos returnPos;
     UUID missionId;
 
+    public ProgramMissionStartBase() {
+        // empty constructor required for save & load
+    }
+
     public ProgramMissionStartBase(EntityRocket rocket, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
         this.returnLevel = returnLevel;
         this.returnPos = returnPos;
@@ -28,7 +33,7 @@ public class ProgramMissionStartBase implements RocketProgram {
 
     public void startMission(EntityRocket rocket) {
         RocketMission mission = new RocketMission();
-        mission.startMission(rocket, GlobalTime.getGlobalTime(), missionId, returnLevel, returnPos);
+        mission.startMission(rocket, GlobalTime.getGlobalTime() + 20 * 10, missionId, returnLevel, returnPos);
     }
 
     @Override
@@ -48,6 +53,7 @@ public class ProgramMissionStartBase implements RocketProgram {
 
     @Override
     public void readFromNbt(CompoundTag nbt) {
+        navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension();
         navigateToSpaceTravelDimension.readFromNbt(nbt);
         returnLevel = ResourceLocation.parse(nbt.getString("returnLevel"));
         returnPos = NbtUtils.readBlockPos(nbt, "returnPos").get();
