@@ -148,7 +148,9 @@ public class Main {
         ResourceLocation to = event.getTo().location();
         if (event.getEntity() instanceof ServerPlayer player) {
             Dimension dim = DimensionManager.INSTANCE_SERVER.get(to);
-            DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(player, dim);
+            if(dim != null) {
+                DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(player, dim);
+            }
         }
     }
 
