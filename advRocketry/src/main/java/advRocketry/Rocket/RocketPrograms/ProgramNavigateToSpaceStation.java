@@ -64,15 +64,14 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
             spawnPos = target.relative(Direction.NORTH, 200);
         }
 
-
-        BlockPos undockingStationPos = rocket.getDockingStationPos();
-        BlockEntity undockingStation = null;
-        if (undockingStationPos != null) {
-            targetLevel.getChunk(undockingStationPos); // should load the chunk
-            undockingStation = rocket.level().getBlockEntity(undockingStationPos);
-        }
-
         if (originDimensionId.equals(targetDimensionId)) {
+            BlockPos undockingStationPos = rocket.getDockingStationPos();
+            BlockEntity undockingStation = null;
+            if (undockingStationPos != null) {
+                targetLevel.getChunk(undockingStationPos); // should load the chunk
+                undockingStation = rocket.level().getBlockEntity(undockingStationPos);
+            }
+
             if (undockingStation instanceof EntityRocketAssembler rocketAssembler) {
                 unDockingProgram = new StationDockingProgram.UnDockingProgram(
                         rocketAssembler.getLandingPos(rocket),
@@ -81,7 +80,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
                 );
             }
         } else {
-            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(undockingStation, rocket);
+            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(rocket);
         }
     }
 

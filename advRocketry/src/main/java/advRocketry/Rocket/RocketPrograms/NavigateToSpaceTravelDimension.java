@@ -23,8 +23,15 @@ public class NavigateToSpaceTravelDimension {
 
     }
 
-    public NavigateToSpaceTravelDimension(@Nullable BlockEntity dockingStation, @Nullable EntityRocket rocket) {
-        if (dockingStation instanceof EntityRocketAssembler rocketAssembler && DimensionManager.INSTANCE_SERVER.get(rocket.level().dimension().location()) instanceof SpaceStationDimension) {
+    public NavigateToSpaceTravelDimension(EntityRocket rocket) {
+        BlockEntity undockingStation = null;
+        BlockPos undockingStationPos = rocket.getDockingStationPos();
+        if (undockingStationPos != null) {
+            rocket.level().getChunk(undockingStationPos);
+            undockingStation = rocket.level().getBlockEntity(undockingStationPos);
+        }
+
+        if (undockingStation instanceof EntityRocketAssembler rocketAssembler && DimensionManager.INSTANCE_SERVER.get(rocket.level().dimension().location()) instanceof SpaceStationDimension) {
             unDockingProgram = new StationDockingProgram.UnDockingProgram(
                     rocketAssembler.getLandingPos(rocket),
                     rocketAssembler.getDockingDirection(),

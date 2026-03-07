@@ -40,11 +40,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
         if (!Objects.equals(originDimensionId, targetDimensionId)) {
             // we need to go to other dimension
-            BlockEntity dockingStation = null;
-            BlockPos dockingStationPos = rocket.getDockingStationPos();
-            if(dockingStationPos != null)
-                dockingStation = rocket.level().getBlockEntity(dockingStationPos);
-            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(dockingStation, rocket);
+            navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(rocket);
         }
     }
 
