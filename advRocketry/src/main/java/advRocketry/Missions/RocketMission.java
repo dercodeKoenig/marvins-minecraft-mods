@@ -25,12 +25,12 @@ public class RocketMission {
     BlockPos returnPos;
 
     public void completeMission() {
-        System.out.println("mission complete: "+missionID);
+        System.out.println("mission complete: " + missionID);
         restoreRocket();
     }
 
     public void startMission(EntityRocket rocket, long completeTime, UUID missionID, ResourceLocation landingLevel, BlockPos landingPos) {
-        if(rocket.level().isClientSide)
+        if (rocket.level().isClientSide)
             return;
         this.returnLevelId = landingLevel;
         this.returnPos = landingPos;
@@ -40,7 +40,7 @@ public class RocketMission {
         rocket.addAdditionalSaveData(rocketTag);
         rocket.discard();
         MissionManager.missions.put(this.missionID, this);
-        System.out.println("started mission "+ missionID);
+        System.out.println("started mission " + missionID);
     }
 
     public EntityRocket restoreRocket() {
@@ -57,7 +57,7 @@ public class RocketMission {
             program.teleportToStation(rocket);
             // set the program
             rocket.setProgramAndSync(program);
-            System.out.println("restore rocket on space station dimension: "+returnLevelId);
+            System.out.println("restore rocket on space station dimension: " + returnLevelId);
         } else {
             // assume planet dimension
             ProgramNavigateToPlanetPosition program = new ProgramNavigateToPlanetPosition(rocket, returnLevelId, returnPos);
@@ -65,7 +65,7 @@ public class RocketMission {
             program.teleportToPlanet(rocket);
             // set program
             rocket.setProgramAndSync(program);
-            System.out.println("restore rocket on planet dimension: "+returnLevelId);
+            System.out.println("restore rocket on planet dimension: " + returnLevelId);
         }
 
         level.addFreshEntity(rocket);
