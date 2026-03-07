@@ -26,6 +26,7 @@ public class Items {
     public static final Supplier<Item> ITEM_SATELLITE = ITEMS.register("satellite", () -> new ItemSatellite());
     public static final Supplier<Item> ITEM_SATELLITE_OPTICAL_TELESCOPE = ITEMS.register("satellite_optical_telescope", () -> new ItemSatelliteOpticalTelescope());
     public static final Supplier<Item> ITEM_SATELLITE_ASSEMBLER = registerBlockItem("satellite_assembler", Blocks.SATELLITE_ASSEMBLER);
+    public static final Supplier<Item> ITEM_SATELLITE_ID_CHIP = ITEMS.register("satellite_id_chip", () -> new ItemSatelliteIdChip());
 
 
     public static final Supplier<Item> ITEM_STRUCTURE_TOWER = registerBlockItem("structure_tower", Blocks.STRUCTURE_TOWER);

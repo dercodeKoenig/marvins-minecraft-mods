@@ -3,9 +3,13 @@
   "item.adv_rocketry.planet_id_chip": "Planet ID Chip",
   "item.adv_rocketry.galaxy_database": "Galaxy Database",
   "item.adv_rocketry.battery": "Battery",
+  "item.adv_rocketry.item_data_storage": "Data Storage",
 
   "item.adv_rocketry.satellite": "Satellite",
   "item.adv_rocketry.satellite_optical_telescope": "Optical Sensor",
+
+  "block.adv_rocketry.data_storage_block": "Data Hatch",
+  "item.adv_rocketry.data_storage_block": "Data Hatch",
 
   "block.adv_rocketry.satellite_assembler": "Satellite Assembler",
   "item.adv_rocketry.satellite_assembler": "Satellite Assembler",

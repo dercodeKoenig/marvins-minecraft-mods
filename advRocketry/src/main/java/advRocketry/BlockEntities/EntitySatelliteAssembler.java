@@ -7,6 +7,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import advRocketry.Items.ItemSatellite;
+import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Satellites.Satellite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -138,7 +139,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
             if(slot == satellite_input_slot)
                 return stack.getItem() instanceof ItemSatellite;
             if(slot == chip_slot_2 || slot == chip_main_slot)
-                return false;
+                return stack.getItem() instanceof ItemSatelliteIdChip;
             return false;
         }
 
