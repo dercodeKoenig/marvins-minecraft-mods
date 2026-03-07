@@ -1,5 +1,6 @@
 package advRocketry.Blocks;
 
+import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.BlockEntities.EntitySatelliteAssembler;
 import net.minecraft.core.BlockPos;
@@ -55,6 +56,14 @@ public class SatelliteAssembler extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof EntitySatelliteAssembler satelliteAssembler)
             satelliteAssembler.openGui();
         return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if(level.getBlockEntity(pos) instanceof EntitySatelliteAssembler satelliteAssembler){
+            satelliteAssembler.popInventory();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -79,9 +80,20 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         satellite = ItemSatellite.createFromItem(inventory.getStackInSlot(satellite_input_slot), level.registryAccess());
     }
 
+    public void popInventory(){
+        if (!level.isClientSide) {
+            for (int i = 0; i < inventory.getSlots(); i++) {
+                Block.popResource(level,getBlockPos(),inventory.getStackInSlot(i));
+                inventory.setStackInSlot(i, ItemStack.EMPTY);
+            }
+            setChanged();
+        }
+    }
+
     @Override
     public void onLoad() {
         super.onLoad();
+        loadSatelliteFromInventory();
     }
 
     @Override
@@ -104,7 +116,6 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
-        loadSatelliteFromInventory();
     }
 
     public void tick() {
