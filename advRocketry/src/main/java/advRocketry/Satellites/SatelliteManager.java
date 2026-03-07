@@ -19,7 +19,7 @@ import java.util.UUID;
 
 // unlike DimensionManager, this should only exist server side
 public class SatelliteManager {
-    public static String saveFile = "satellites.json";
+    public static String saveFile = Main.MODID + "_satellites.json";
     private static boolean requiresCacheUpdate = true;
     private static HashMap<UUID, Satellite> satellites = new HashMap<>();
 

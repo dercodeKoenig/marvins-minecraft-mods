@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class MissionManager {
-    public static String saveFile = "missions.json";
+    public static String saveFile = Main.MODID + "_missions.json";
 
     public static HashMap<UUID, RocketMission> missions = new HashMap<>();
 
