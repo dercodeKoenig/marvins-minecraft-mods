@@ -102,17 +102,17 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         }
     }
 
-    public void performBuild(boolean simulate){
+    public void performBuild(boolean simulate) {
         if (satellite != null && inventory.getStackInSlot(satellite_output_slot).isEmpty()) {
             ItemStack stack = satellite.inventory.getStackInSlot(0);
             if (stack.getItem() instanceof SatellitePrimaryFunction primaryFunction) {
                 Pair<Satellite, Pair<Boolean, String>> res = primaryFunction.build(satellite);
                 boolean success = res.getSecond().getFirst();
                 Satellite resultSatellite = res.getFirst();
-                if(success){
-                    ItemStack satellite = inventory.extractItem(satellite_input_slot,1,false);
-                    ItemSatellite.saveToStack(satellite,resultSatellite,level.registryAccess());
-                    inventory.insertItem(satellite_output_slot,satellite,false);
+                if (success) {
+                    ItemStack satellite = inventory.extractItem(satellite_input_slot, 1, false);
+                    ItemSatellite.saveToStack(satellite, resultSatellite, level.registryAccess());
+                    inventory.insertItem(satellite_output_slot, satellite, false);
                 }
             }
         }
