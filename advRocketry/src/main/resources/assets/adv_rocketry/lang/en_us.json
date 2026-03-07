@@ -3,6 +3,12 @@
   "item.adv_rocketry.planet_id_chip": "Planet ID Chip",
   "item.adv_rocketry.galaxy_database": "Galaxy Database",
 
+  "item.adv_rocketry.satellite": "Satellite",
+  "item.adv_rocketry.satellite_optical_telescope": "Optical Sensor",
+
+  "block.adv_rocketry.satellite_assembler": "Satellite Assembler",
+  "item.adv_rocketry.satellite_assembler": "Satellite Assembler",
+
   "block.adv_rocketry.launchpad": "Launch Pad",
   "item.adv_rocketry.launchpad": "Launch Pad",
 

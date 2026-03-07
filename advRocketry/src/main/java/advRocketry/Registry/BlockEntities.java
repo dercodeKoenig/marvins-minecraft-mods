@@ -28,4 +28,5 @@ public class BlockEntities {
     public static final Supplier<BlockEntityType<EntityStationController>> ENTITY_STATION_CONTROLLER = BLOCK_ENTITIES.register("station_controller", () -> BlockEntityType.Builder.of(EntityStationController::new, Blocks.STATION_CONTROLLER.get()).build(null));
     public static final Supplier<BlockEntityType<EntityWarpController>> ENTITY_WARP_CONTROLLER = BLOCK_ENTITIES.register("warp_controller", () -> BlockEntityType.Builder.of(EntityWarpController::new, Blocks.WARP_CONTROLLER.get()).build(null));
 
+    public static final Supplier<BlockEntityType<EntitySatelliteAssembler>> ENTITY_SATELLITE_ASSEMBLER = BLOCK_ENTITIES.register("satellite_assembler", () -> BlockEntityType.Builder.of(EntitySatelliteAssembler::new, Blocks.SATELLITE_ASSEMBLER.get()).build(null));
 }

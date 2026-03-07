@@ -16,7 +16,7 @@ public class SatelliteRegistry {
 
     static {
         // register known Satellites here
-        //registerSatellite(class, id );
+        registerSatellite(Satellite.class, "SatelliteBaseClass");
     }
 
     static void registerSatellite(Class<? extends Satellite> satelliteClass, String id) {

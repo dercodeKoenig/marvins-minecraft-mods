@@ -1,0 +1,20 @@
+{
+    "variants": {
+        "facing=east": {
+            "model": "adv_rocketry:block/satellite_assembler",
+            "y": 90
+        },
+        "facing=north": {
+            "model": "adv_rocketry:block/satellite_assembler",
+            "y": 0
+        },
+        "facing=west": {
+            "model": "adv_rocketry:block/satellite_assembler",
+            "y": 270
+        },
+        "facing=south": {
+            "model": "adv_rocketry:block/satellite_assembler",
+            "y": 180
+        }
+    }
+}

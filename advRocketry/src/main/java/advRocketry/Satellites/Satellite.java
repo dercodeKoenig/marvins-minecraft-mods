@@ -7,10 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Satellite {
-    ItemStackHandler inventory;
-    ResourceLocation parentDimensionId;
+    public ItemStackHandler inventory;
+    public ResourceLocation parentDimensionId;
+
+    public UUID uuid;
 
     ArrayList<ItemStack> equipment = new ArrayList<>();
     ArrayList<ItemStack> batteries = new ArrayList<>();
@@ -75,13 +78,19 @@ public class Satellite {
     public CompoundTag serialize(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.put("inventory", inventory.serializeNBT(registries));
-        tag.putString("parentDimensionId", parentDimensionId.toString());
+        if(parentDimensionId != null)
+            tag.putString("parentDimensionId", parentDimensionId.toString());
+        if(uuid != null)
+            tag.putUUID("uuid", uuid);
         return tag;
     }
 
     public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
-        parentDimensionId = ResourceLocation.parse(tag.getString("parentDimensionId"));
+        if(tag.contains("parentDimensionId"))
+            parentDimensionId = ResourceLocation.parse(tag.getString("parentDimensionId"));
+        if(tag.contains("uuid"))
+            uuid = tag.getUUID("uuid");
     }
 
     // generated energy from the energy producers and puts it in the batteries if space is available
@@ -89,7 +98,7 @@ public class Satellite {
         double energyProduced = 0;
         // generate energy
         for (ItemStack stack : energyProducers) {
-            energyProduced += ((SatelliteEnergyProducer) stack.getItem()).produceData(this);
+            energyProduced += ((SatelliteEnergyProducer) stack.getItem()).produceEnergy(this);
         }
         // move generated energy into batteries
         for (ItemStack stack : batteries) {

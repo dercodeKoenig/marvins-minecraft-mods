@@ -3,7 +3,7 @@
   "textures": {
     "down": "arlib:block/machinegeneric",
     "up": "arlib:block/machinegeneric",
-    "north": "adv_rocketry:block/rocket_assembler",
+    "north": "adv_rocketry:block/satellite_assembler",
     "south": "arlib:block/machinegeneric",
     "west": "arlib:block/machinegeneric",
     "east": "arlib:block/machinegeneric"

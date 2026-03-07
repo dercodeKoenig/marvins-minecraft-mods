@@ -9,11 +9,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemSatellite extends Item {
-    public ItemSatellite(Properties properties) {
+    public ItemSatellite() {
         super(new Properties().stacksTo(1));
     }
 
-    public static Satellite createFromItemOrCreateNew(ItemStack stack, HolderLookup.Provider registries) {
+    public static Satellite createFromItem(ItemStack stack, HolderLookup.Provider registries) {
+        if(!(stack.getItem() instanceof ItemSatellite))
+            return null;
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         Satellite satellite = SatelliteRegistry.createFromNbt(tag, registries);
         if (satellite == null)

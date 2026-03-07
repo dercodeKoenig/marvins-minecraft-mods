@@ -248,7 +248,7 @@ public class Main {
     /// mod load events /////////////////////////////////////
 
     void registerCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> x.itemStackHandler);
+        //e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> x.itemStackHandler);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ASSEMBLER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FUELING_STATION.get(), (x, y) -> x.tank);
@@ -375,6 +375,10 @@ public class Main {
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
+
+            e.accept(Blocks.SATELLITE_ASSEMBLER.get());
+            e.accept(Items.ITEM_SATELLITE.get());
+            e.accept(Items.ITEM_SATELLITE_OPTICAL_TELESCOPE.get());
         }
     }
 }
