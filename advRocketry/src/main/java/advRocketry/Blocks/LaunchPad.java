@@ -66,9 +66,7 @@ public class LaunchPad extends Block {
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockState otherBlock = level.getBlockState(neighborPos);
-        boolean isConnection = false;
-        if (otherBlock.getBlock() instanceof LaunchPad)
-            isConnection = true;
+        boolean isConnection = otherBlock.getBlock() instanceof LaunchPad;
         if (direction.equals(Direction.EAST))
             state = state.setValue(east, isConnection);
         if (direction.equals(Direction.SOUTH))
