@@ -26,9 +26,9 @@ import org.joml.Vector3f;
 
 public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAssembler> {
 
-    private ResourceLocation grid = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/grid.png");
-    private ResourceLocation girder = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/girder.png");
-    private ResourceLocation round_h = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/round_h.png");
+    private final ResourceLocation grid = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/grid.png");
+    private final ResourceLocation girder = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/girder.png");
+    private final ResourceLocation round_h = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/block/round_h.png");
 
     public RenderRocketAssembler(BlockEntityRendererProvider.Context c) {
         super();
@@ -80,7 +80,7 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
 
 
         float partialTickOffset = entity.clientBuildDiffPerTick*partialTick;
-        float h = (float) (entity.clientBuildProgress+partialTickOffset) / Config.INSTANCE.rocket_Assembler_Build_Time_Base;
+        float h = (entity.clientBuildProgress+partialTickOffset) / Config.INSTANCE.rocket_Assembler_Build_Time_Base;
 
         int scanHeightMax = entity.areaMax.getY()-entity.areaMin.getY()+1;
 
