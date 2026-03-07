@@ -48,9 +48,9 @@ public class HDRTextureTarget extends TextureTarget {
                 GlStateManager._texParameter(3553, 10242, 33071);
                 GlStateManager._texParameter(3553, 10243, 33071);
                 if (!this.isStencilEnabled()) {
-                    GlStateManager._texImage2D(3553, 0, 6402, this.width, this.height, 0, 6402, 5126, (IntBuffer)null);
+                    GlStateManager._texImage2D(3553, 0, 6402, this.width, this.height, 0, 6402, 5126, null);
                 } else {
-                    GlStateManager._texImage2D(3553, 0, 36013, this.width, this.height, 0, 34041, 36269, (IntBuffer)null);
+                    GlStateManager._texImage2D(3553, 0, 36013, this.width, this.height, 0, 34041, 36269, null);
                 }
             }
 
@@ -69,7 +69,7 @@ public class HDRTextureTarget extends TextureTarget {
             GlStateManager._texParameter(3553, 10243, 33071);
 
             // change to GL_RGBA16F and GL11.GL_FLOAT
-            GlStateManager._texImage2D(3553, 0, GL30.GL_RGBA16F, this.width, this.height, 0, 6408, GL11.GL_FLOAT, (IntBuffer)null);
+            GlStateManager._texImage2D(3553, 0, GL30.GL_RGBA16F, this.width, this.height, 0, 6408, GL11.GL_FLOAT, null);
             // change end
 
             GlStateManager._glBindFramebuffer(36160, this.frameBufferId);
@@ -77,7 +77,7 @@ public class HDRTextureTarget extends TextureTarget {
             if (this.useDepth) {
                 if (!this.isStencilEnabled()) {
                     GlStateManager._glFramebufferTexture2D(36160, 36096, 3553, this.depthBufferId, 0);
-                } else if ((Boolean)NeoForgeConfig.CLIENT.useCombinedDepthStencilAttachment.get()) {
+                } else if (NeoForgeConfig.CLIENT.useCombinedDepthStencilAttachment.get()) {
                     GlStateManager._glFramebufferTexture2D(36160, 33306, 3553, this.depthBufferId, 0);
                 } else {
                     GlStateManager._glFramebufferTexture2D(36160, 36096, 3553, this.depthBufferId, 0);
