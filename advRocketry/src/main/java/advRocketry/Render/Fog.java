@@ -22,9 +22,9 @@ public class Fog {
         Dimension myDimension = ClientUtils.getPlayerDimension();
         if (myDimension != null) {
             Vector3f fogColor = myDimension.computeTerrainFogColor((float) event.getPartialTick());
-            event.setRed((float) (fogColor.x));
-            event.setGreen((float) (fogColor.y));
-            event.setBlue((float) (fogColor.z));
+            event.setRed(fogColor.x);
+            event.setGreen(fogColor.y);
+            event.setBlue(fogColor.z);
         }
     }
 }
