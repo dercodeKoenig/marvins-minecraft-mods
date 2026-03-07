@@ -26,14 +26,19 @@ public class SatelliteManager {
 
     private static ArrayList<Satellite> satellitesArray = new ArrayList<>();
 
-    public static void removeSatellite(UUID satelliteId) {
-        satellites.remove(satelliteId);
+    public static Satellite removeSatellite(UUID satelliteId) {
+        Satellite satellite = satellites.remove(satelliteId);
         requiresCacheUpdate = true;
+        return satellite;
+    }
+
+    public static Satellite getSatellite(UUID satelliteId) {
+        return satellites.get(satelliteId);
     }
 
     public static void addTickingSatellite(Satellite satellite, ResourceLocation target) {
-        if (target == null){
-            System.out.println("[SatelliteManager] a satellite had no target specified and will not be added: "+satellite.uuid);
+        if (target == null) {
+            System.out.println("[SatelliteManager] a satellite had no target specified and will not be added: " + satellite.uuid);
             return;
         }
         System.out.println("[SatelliteManager] satellite deployed: " + satellite.getName() + ":" + satellite.uuid + " at " + target);

@@ -1,4 +1,4 @@
-package advRocketry.Rocket.RocketPrograms;
+package advRocketry.Rocket.RocketPrograms.helperPrograms;
 
 import advRocketry.BlockEntities.EntityRocketAssembler;
 import advRocketry.Config;
@@ -11,8 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
-
-import javax.annotation.Nullable;
 
 // just a helper program, is not actually a real full program
 public class NavigateToSpaceTravelDimension {
