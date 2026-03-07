@@ -21,8 +21,7 @@ public class Satellite {
     }
 
     // build the list of equipment and energy storages before starting to tick
-    // SatelliteManager should call this on creation of this satellite, or after it was loaded but before the first tick starts
-    public void cacheInventoryBeforeDeployment(){
+    public void onDeploymentStart(){
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if(stack.getItem() instanceof SatelliteEnergyStorage){

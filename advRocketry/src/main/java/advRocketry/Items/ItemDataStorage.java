@@ -1,11 +1,9 @@
 package advRocketry.Items;
 
-import advRocketry.Config;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
-import advRocketry.Data.IDataStorage;
 import advRocketry.Data.IItemDataStorage;
-import advRocketry.utils.Utils;
+import advRocketry.utils.ItemUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -14,7 +12,6 @@ import net.minecraft.world.item.TooltipFlag;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
 
 public class ItemDataStorage extends Item implements IItemDataStorage {
 
