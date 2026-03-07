@@ -20,7 +20,7 @@ public class SatelliteRegistry {
         registerSatellite(SatelliteOpticalTelescope.class, "SatelliteOpticalTelescope");
     }
 
-    static void registerSatellite(Class<? extends Satellite> satelliteClass, String id) {
+    public static void registerSatellite(Class<? extends Satellite> satelliteClass, String id) {
         Objects.requireNonNull(satelliteClass, "satelliteClass");
         Objects.requireNonNull(id, "id");
         if (satellites.containsKey(id)) {

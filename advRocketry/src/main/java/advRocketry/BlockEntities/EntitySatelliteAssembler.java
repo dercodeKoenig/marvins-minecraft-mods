@@ -125,7 +125,6 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
                 if (!simulate) {
                     ItemStack satellite = inventory.extractItem(satellite_input_slot, 1, false);
                     ItemSatellite.saveToStack(satellite, resultSatellite, level.registryAccess());
-                    System.out.println(resultSatellite.getClass()+":"+resultSatellite.getName());
                     inventory.setStackInSlot(satellite_output_slot, satellite);
                     setChanged();
                 }

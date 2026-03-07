@@ -23,7 +23,7 @@ public interface RocketProgram {
         static final Map<String, Class<? extends RocketProgram>> programs = new HashMap<>();
         static final Map<Class<? extends RocketProgram>, String> programsI = new HashMap<>();
 
-        static void registerProgram(Class<? extends RocketProgram> programClass, String id) {
+        public static void registerProgram(Class<? extends RocketProgram> programClass, String id) {
             Objects.requireNonNull(programClass, "programClass");
             Objects.requireNonNull(id, "id");
             if(programs.containsKey(id)) {
