@@ -34,7 +34,7 @@ public class Satellite {
             }
             @Override
             public int getSlotLimit(int slot) {
-                return 99;
+                return 1;
             }
         };
     }

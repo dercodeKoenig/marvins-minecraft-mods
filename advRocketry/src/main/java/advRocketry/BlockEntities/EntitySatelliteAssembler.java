@@ -49,13 +49,13 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         );
 
         // satellite inventory slots
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 120,10));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 1, 0, 1, guiHandler, 80,30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 2, 0, 1, guiHandler, 100,30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 3, 0, 1, guiHandler, 120,30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 4, 0, 1, guiHandler, 80,50));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 5, 0, 1, guiHandler, 100,50));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 6, 0, 1, guiHandler, 120,50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 150,10));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 1, 0, 1, guiHandler, 110,30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 2, 0, 1, guiHandler, 130,30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 3, 0, 1, guiHandler, 150,30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 4, 0, 1, guiHandler, 110,50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 5, 0, 1, guiHandler, 130,50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 6, 0, 1, guiHandler, 150,50));
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100,1,0,guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 200,1,0,guiHandler));
@@ -117,6 +117,16 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
 
     // the inventory of the rocket assembler, 4 slots (satellite io + 2 chip slots for copy)
     public ItemStackHandler inventory = new ItemStackHandler(4) {
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            if(slot == satellite_input_slot)
+                return stack.getItem() instanceof ItemSatellite;
+            if(slot == chip_slot_2 || slot == chip_main_slot)
+                return false;
+            return false;
+        }
+
         @Override
         public int getSlotLimit(int slot) {
             return 1;
