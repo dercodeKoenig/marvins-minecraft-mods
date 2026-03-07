@@ -9,11 +9,34 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ItemSatelliteIdChip extends Item {
     public ItemSatelliteIdChip() {
         super(new Properties());
+    }
+
+    public static void setTarget(ItemStack stack, UUID target) {
+        CompoundTag tag = new CompoundTag();
+        tag.putUUID("uuid", target);
+        ItemUtils.setTag(stack, tag);
+    }
+
+    public static UUID getTarget(ItemStack stack) {
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        if (tag.contains("uuid"))
+            return tag.getUUID("uuid");
+        return null;
+    }
+
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(
+                Component.literal(
+                        "target: " + getTarget(stack)
+                )
+        );
     }
 }

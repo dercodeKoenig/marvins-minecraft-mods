@@ -7,6 +7,7 @@ import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
+import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemSatellite;
 import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Satellites.Satellite;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import java.util.UUID;
 import java.util.spi.AbstractResourceBundleProvider;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
@@ -107,6 +109,9 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
             return Pair.of(false, "no satellite");
         if (!inventory.getStackInSlot(satellite_output_slot).isEmpty())
             return Pair.of(false, "slot blocked");
+        ItemStack satelliteChip = inventory.getStackInSlot(chip_main_slot);
+        if (!(satelliteChip.getItem() instanceof ItemSatelliteIdChip))
+            return Pair.of(false, "missing id chip");
 
         ItemStack stack = satellite.inventory.getStackInSlot(0);
         if (stack.getItem() instanceof SatellitePrimaryFunction primaryFunction) {
@@ -114,10 +119,14 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
             boolean success = res.getSecond().getFirst();
             Satellite resultSatellite = res.getFirst();
             if (success) {
+                UUID uuid = UUID.randomUUID();
+                resultSatellite.uuid = uuid;
+                ItemSatelliteIdChip.setTarget(satelliteChip, uuid);
                 if (!simulate) {
                     ItemStack satellite = inventory.extractItem(satellite_input_slot, 1, false);
                     ItemSatellite.saveToStack(satellite, resultSatellite, level.registryAccess());
                     inventory.insertItem(satellite_output_slot, satellite, false);
+                    setChanged();
                 }
             }
             return res.getSecond();
