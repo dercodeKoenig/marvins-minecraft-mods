@@ -82,7 +82,6 @@ public class NavigateToSpaceTravelDimension {
                 });
             }
             if (unDockingProgram == null) {
-                // undock from station and move to launchpos.y-50, then thrust away
                 if (!callback.onSpaceReached()) {
                     if (rocket.level() instanceof ServerLevel serverLevel) {
                         teleportToSpaceTravel(rocket, myDim);

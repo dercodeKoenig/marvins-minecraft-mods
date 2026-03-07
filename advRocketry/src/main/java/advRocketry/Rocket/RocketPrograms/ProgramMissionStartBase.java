@@ -57,7 +57,7 @@ public class ProgramMissionStartBase implements RocketProgram {
     @Override
     public void readFromNbt(CompoundTag nbt) {
         navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension();
-        navigateToSpaceTravelDimension.readFromNbt(nbt);
+        navigateToSpaceTravelDimension.readFromNbt(nbt.getCompound("navigateToSpaceTravelDimension"));
         returnLevel = ResourceLocation.parse(nbt.getString("returnLevel"));
         returnPos = NbtUtils.readBlockPos(nbt, "returnPos").get();
         missionId = nbt.getUUID("missionId");

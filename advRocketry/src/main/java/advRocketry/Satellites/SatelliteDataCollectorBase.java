@@ -49,9 +49,13 @@ public abstract class SatelliteDataCollectorBase extends Satellite {
 
     public void tick() {
         super.tick();
-        if (getEnergyStored() > energyPerData() && insertOneDataUnit(dataBaseTypeToGenerate(), true) == 1) {
-            extractEnergy(energyPerData());
-            insertOneDataUnit(DataStack.join(dataBaseTypeToGenerate(), parentDimensionId), false);
+        if (getEnergyStored() > energyPerData()) {
+            // join base type + where it was collected
+            String type = DataStack.join(dataBaseTypeToGenerate(), parentDimensionId);
+            if (insertOneDataUnit(type, true) == 1) {
+                extractEnergy(energyPerData());
+                insertOneDataUnit(type, false);
+            }
         }
     }
 }

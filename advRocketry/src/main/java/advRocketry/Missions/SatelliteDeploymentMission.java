@@ -35,7 +35,7 @@ public class SatelliteDeploymentMission extends RocketMission {
                     if (stack.getItem() instanceof ItemSatellite) {
                         Satellite satellite = ItemSatellite.createFromItem(stack, ServerLifecycleHooks.getCurrentServer().registryAccess());
                         if (satellite != null && satellite.validateBuild().getFirst()) {
-                            SatelliteManager.addTickingSatellite(satellite);
+                            SatelliteManager.addTickingSatellite(satellite, target);
                             cargoHold.itemStackHandler.setStackInSlot(j, ItemStack.EMPTY);
                         }
                     }

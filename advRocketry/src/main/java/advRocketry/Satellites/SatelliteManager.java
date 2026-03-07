@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerLinks;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -30,8 +31,13 @@ public class SatelliteManager {
         requiresCacheUpdate = true;
     }
 
-    public static void addTickingSatellite(Satellite satellite) {
-        System.out.println("[SatelliteManager] satellite deployed: " + satellite.getName() + ":" + satellite.uuid);
+    public static void addTickingSatellite(Satellite satellite, ResourceLocation target) {
+        if (target == null){
+            System.out.println("[SatelliteManager] a satellite had no target specified and will not be added: "+satellite.uuid);
+            return;
+        }
+        System.out.println("[SatelliteManager] satellite deployed: " + satellite.getName() + ":" + satellite.uuid + " at " + target);
+        satellite.onDeploymentStart(target);
         satellites.put(satellite.uuid, satellite);
         requiresCacheUpdate = true;
     }
@@ -58,8 +64,7 @@ public class SatelliteManager {
             for (String key : tag.getAllKeys()) {
                 CompoundTag satelliteTag = tag.getCompound(key);
                 Satellite satellite = SatelliteRegistry.createFromNbt(satelliteTag, ServerLifecycleHooks.getCurrentServer().registryAccess());
-                satellites.put(satellite.uuid, satellite);
-                requiresCacheUpdate = true;
+                addTickingSatellite(satellite, satellite.parentDimensionId);
             }
             System.out.println("[SatelliteManager] loaded " + satellites.size() + " satellites");
         } catch (IOException e) {
@@ -78,7 +83,7 @@ public class SatelliteManager {
         }
         try {
             Files.writeString(Path.of(Main.worldPath.toString(), saveFile), tag.toString());
-            System.out.println("[SatelliteManager] loaded " + satellites.size() + " missions");
+            System.out.println("[SatelliteManager] saved " + satellites.size() + " missions");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
