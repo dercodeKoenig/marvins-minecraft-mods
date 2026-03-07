@@ -52,8 +52,8 @@ public class Satellite {
         }
     }
 
-    public int getEnergyStored() {
-        int total = 0;
+    public double getEnergyStored() {
+        double total = 0;
         for (ItemStack stack : batteries) {
             total += ((SatelliteBattery) stack.getItem()).getEnergyStored(stack);
         }
@@ -61,7 +61,7 @@ public class Satellite {
     }
 
     public void tick() {
-
+        this.generateEnergyAndFillBatteries();
     }
 
     public CompoundTag serialize(HolderLookup.Provider registries) {
@@ -74,5 +74,19 @@ public class Satellite {
     public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
         parentDimensionId = ResourceLocation.parse(tag.getString("parentDimensionId"));
+    }
+
+    // generated energy from the energy producers and puts it in the batteries if space is available
+    private void generateEnergyAndFillBatteries() {
+        double energyProduced = 0;
+        // generate energy
+        for (ItemStack stack : energyProducers) {
+            energyProduced += ((SatelliteEnergyProducer) stack.getItem()).produceData(this);
+        }
+        // move generated energy into batteries
+        for (ItemStack stack : batteries) {
+            double received = ((SatelliteBattery) stack.getItem()).receiveEnergy(stack, energyProduced);
+            energyProduced -= received;
+        }
     }
 }

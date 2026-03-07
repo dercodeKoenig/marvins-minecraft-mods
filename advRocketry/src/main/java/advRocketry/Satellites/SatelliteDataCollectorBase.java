@@ -11,16 +11,14 @@ import javax.annotation.Nullable;
 
 public class SatelliteDataCollectorBase extends Satellite {
 
-    int energyBuffer = 0;
-
     @Nullable
     // extract 1 data unit from the first data storage that contains any data
     public DataStack extractOneDataUnit(boolean simulate) {
-        for(ItemStack stack : this.equipment){
-            if(stack.getItem() instanceof ItemDataStorage itemDataStorage){
-               DataStack extracted = itemDataStorage.extractData(stack,1,simulate);
-               if(extracted != null)
-                   return extracted;
+        for (ItemStack stack : this.equipment) {
+            if (stack.getItem() instanceof ItemDataStorage itemDataStorage) {
+                DataStack extracted = itemDataStorage.extractData(stack, 1, simulate);
+                if (extracted != null)
+                    return extracted;
             }
         }
         return null;
@@ -39,12 +37,10 @@ public class SatelliteDataCollectorBase extends Satellite {
 
     public CompoundTag serialize(HolderLookup.Provider registries) {
         CompoundTag tag = super.serialize(registries);
-        tag.putInt("energyBuffer", energyBuffer);
         return tag;
     }
 
     public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
         super.deserialize(tag, registries);
-        energyBuffer = tag.getInt("energyBuffer");
     }
 }
