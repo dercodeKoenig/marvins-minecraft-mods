@@ -2,6 +2,7 @@
   "item.adv_rocketry.linker": "Linker",
   "item.adv_rocketry.planet_id_chip": "Planet ID Chip",
   "item.adv_rocketry.galaxy_database": "Galaxy Database",
+  "item.adv_rocketry.battery": "Battery",
 
   "item.adv_rocketry.satellite": "Satellite",
   "item.adv_rocketry.satellite_optical_telescope": "Optical Sensor",
@@ -66,9 +67,9 @@
   "block.adv_rocketry.warp_controller": "Warp Controller",
   "item.adv_rocketry.warp_controller": "Warp Controller",
 
-
   "block.adv_rocketry.moon_turf": "Moon Turf",
   "item.adv_rocketry.moon_turf": "Moon Turf",
+
   "block.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
   "item.adv_rocketry.moon_turf_dark": "Dark Moon Turf"
 }

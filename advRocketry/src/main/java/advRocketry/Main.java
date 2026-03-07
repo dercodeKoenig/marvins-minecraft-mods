@@ -360,11 +360,6 @@ public class Main {
             e.accept(Blocks.ORIENTATION_CONTROLLER.get());
             e.accept(Blocks.WARP_CONTROLLER.get());
 
-            e.accept(Items.ITEM_LINKER.get());
-            e.accept(Items.ITEM_GALAXY_DATABASE.get());
-            e.accept(Items.ITEM_PLANET_ID_CHIP.get());
-            e.accept(Items.ITEM_DATA_STORAGE.get());
-
             e.accept(Blocks.DATA_STORAGE_BLOCK.get());
 
             e.accept(Blocks.SOLAR_PANEL.get());
@@ -375,6 +370,12 @@ public class Main {
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
+
+            e.accept(Items.ITEM_LINKER.get());
+            e.accept(Items.ITEM_GALAXY_DATABASE.get());
+            e.accept(Items.ITEM_PLANET_ID_CHIP.get());
+            e.accept(Items.ITEM_DATA_STORAGE.get());
+            e.accept(Items.ITEM_BATTERY.get());
 
             e.accept(Blocks.SATELLITE_ASSEMBLER.get());
             e.accept(Items.ITEM_SATELLITE.get());

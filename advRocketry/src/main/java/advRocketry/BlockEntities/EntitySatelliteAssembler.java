@@ -72,6 +72,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         ItemStack stack = inventory.getStackInSlot(satellite_input_slot);
         ItemSatellite.saveToStack(stack, satellite, level.registryAccess());
         loadSatelliteFromInventory();
+        setChanged();
     }
 
     void loadSatelliteFromInventory() {
@@ -96,11 +97,14 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        tag.put("inventory", inventory.serializeNBT(registries));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+        loadSatelliteFromInventory();
     }
 
     public void tick() {
