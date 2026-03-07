@@ -3,6 +3,7 @@ package advRocketry.Rocket;
 import advRocketry.Rocket.RocketPrograms.ProgramMissionStartBase;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
+import advRocketry.Rocket.RocketPrograms.ProgramSatelliteDeployment;
 import net.minecraft.nbt.CompoundTag;
 
 import java.lang.reflect.InvocationTargetException;
@@ -16,9 +17,10 @@ public class ProgramRegistry {
 
     static {
         // register known programs here
-        registerProgram(ProgramNavigateToPlanetPosition.class, ProgramNavigateToPlanetPosition.id);
-        registerProgram(ProgramNavigateToSpaceStation.class, ProgramNavigateToSpaceStation.id);
+        registerProgram(ProgramNavigateToPlanetPosition.class, "ProgramNavigateToPlanetPosition");
+        registerProgram(ProgramNavigateToSpaceStation.class, "ProgramNavigateToSpaceStation");
         registerProgram(ProgramMissionStartBase.class, "ProgramMissionStartBase");
+        registerProgram(ProgramSatelliteDeployment.class, "ProgramSatelliteDeployment");
     }
 
     public static void registerProgram(Class<? extends RocketProgram> programClass, String id) {

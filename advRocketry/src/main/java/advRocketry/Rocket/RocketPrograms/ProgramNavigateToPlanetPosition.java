@@ -20,7 +20,6 @@ import java.util.Objects;
 
 public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
-    public static String id = "ProgramNavigateToPlanetPosition";
     public static double travelHeight = 200;
     public ResourceLocation targetDimensionId;
     public ResourceLocation originDimensionId;

@@ -31,6 +31,7 @@ public class ProgramMissionStartBase implements RocketProgram {
         this.missionId = missionId;
     }
 
+    ///  overwrite this, called on server side
     public void startMission(EntityRocket rocket) {
         RocketMission mission = new RocketMission();
         mission.startMission(rocket, GlobalTime.getGlobalTime() + 20 * 10, missionId, returnLevel, returnPos);
@@ -41,13 +42,15 @@ public class ProgramMissionStartBase implements RocketProgram {
         if (navigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
             @Override
             public boolean onSpaceReached() {
-                startMission(rocket);
+                if(!rocket.level().isClientSide)
+                    startMission(rocket);
                 return true;
             }
         })) {
             // this should not run
             // it would run if the program starts while the rocket is in space travel where it would not trigger the callback
-            startMission(rocket);
+            if(!rocket.level().isClientSide)
+                startMission(rocket);
         }
     }
 

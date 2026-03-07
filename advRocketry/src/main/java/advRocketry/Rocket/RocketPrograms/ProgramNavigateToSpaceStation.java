@@ -25,8 +25,6 @@ import java.util.Objects;
 
 public class ProgramNavigateToSpaceStation implements RocketProgram {
 
-    public static String id = "ProgramNavigateToSpaceStation";
-
     public ResourceLocation targetDimensionId;
     public ResourceLocation originDimensionId;
     public BlockPos target;

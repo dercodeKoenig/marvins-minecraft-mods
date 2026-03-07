@@ -19,18 +19,22 @@ public class SatelliteDeploymentMission extends RocketMission {
 
     ResourceLocation target;
 
+    public void setTarget(ResourceLocation target) {
+        this.target = target;
+    }
+
     public void completeMission() {
         EntityRocket rocket = super.restoreRocket();
 
         // deploy satellites on complete
         // iterate over all cargo holds and find valid satellite builds
-        for (BlockEntity i : rocket.blockEntities.values()){
-            if(i instanceof EntityCargoHold cargoHold){
+        for (BlockEntity i : rocket.blockEntities.values()) {
+            if (i instanceof EntityCargoHold cargoHold) {
                 for (int j = 0; j < cargoHold.itemStackHandler.getSlots(); j++) {
                     ItemStack stack = cargoHold.itemStackHandler.getStackInSlot(j);
-                    if(stack.getItem() instanceof ItemSatellite){
+                    if (stack.getItem() instanceof ItemSatellite) {
                         Satellite satellite = ItemSatellite.createFromItem(stack, ServerLifecycleHooks.getCurrentServer().registryAccess());
-                        if(satellite != null && satellite.validateBuild().getFirst()){
+                        if (satellite != null && satellite.validateBuild().getFirst()) {
                             SatelliteManager.addTickingSatellite(satellite);
                             cargoHold.itemStackHandler.setStackInSlot(j, ItemStack.EMPTY);
                         }

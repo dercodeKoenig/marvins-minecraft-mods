@@ -1,5 +1,9 @@
 package advRocketry.Rocket.RocketPrograms;
 
+import advRocketry.Config;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.GlobalTime;
 import advRocketry.Missions.RocketMission;
 import advRocketry.Missions.SatelliteDeploymentMission;
@@ -20,8 +24,17 @@ public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
     }
 
     public void startMission(EntityRocket rocket) {
-        RocketMission mission = new SatelliteDeploymentMission();
-        mission.startMission(rocket, GlobalTime.getGlobalTime() + 20 * 10, missionId, returnLevel, returnPos);
+        SatelliteDeploymentMission mission = new SatelliteDeploymentMission();
+        mission.setTarget(targetPlanet);
+        long duration = 20 * 30; // base wait
+        if(DimensionManager.INSTANCE_SERVER.get(targetPlanet) instanceof PlanetDimension planetDimension){
+            if(DimensionManager.INSTANCE_SERVER.get(super.returnLevel) instanceof Dimension origin){
+                double distanceAU = planetDimension.getPosition(0).distanceTo(origin.getPosition(0));
+                double extraSecond = distanceAU * Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
+                duration += (long) (20 * extraSecond * 3); // extra time for moving to long distance planets
+            }
+        }
+        mission.startMission(rocket, GlobalTime.getGlobalTime() + duration, missionId, returnLevel, returnPos);
     }
 
     @Override
