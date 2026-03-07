@@ -1,5 +1,7 @@
 package advRocketry.Rocket.RocketPrograms;
 
+import advRocketry.GlobalTime;
+import advRocketry.Missions.RocketMission;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
 import net.minecraft.core.BlockPos;
@@ -7,22 +9,26 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.UUID;
+
 // these programs are very simple, they just fly to space and start mission!
-public class ProgramMissionStart implements RocketProgram {
+public class ProgramMissionStartBase implements RocketProgram {
 
     NavigateToSpaceTravelDimension navigateToSpaceTravelDimension;
     ResourceLocation returnLevel;
     BlockPos returnPos;
+    UUID missionId;
 
-
-    public ProgramMissionStart(EntityRocket rocket, ResourceLocation returnLevel, BlockPos returnPos) {
+    public ProgramMissionStartBase(EntityRocket rocket, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
         this.returnLevel = returnLevel;
         this.returnPos = returnPos;
         this.navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension(rocket);
+        this.missionId = missionId;
     }
 
-    public void startMission() {
-
+    public void startMission(EntityRocket rocket) {
+        RocketMission mission = new RocketMission();
+        mission.startMission(rocket, GlobalTime.getGlobalTime(), missionId, returnLevel, returnPos);
     }
 
     @Override
@@ -30,11 +36,13 @@ public class ProgramMissionStart implements RocketProgram {
         if (navigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
             @Override
             public boolean onSpaceReached() {
-                startMission();
+                startMission(rocket);
                 return true;
             }
         })) {
-
+            // this should not run
+            // it would run if the program starts while the rocket is in space travel where it would not trigger the callback
+            startMission(rocket);
         }
     }
 
@@ -43,6 +51,7 @@ public class ProgramMissionStart implements RocketProgram {
         navigateToSpaceTravelDimension.readFromNbt(nbt);
         returnLevel = ResourceLocation.parse(nbt.getString("returnLevel"));
         returnPos = NbtUtils.readBlockPos(nbt, "returnPos").get();
+        missionId = nbt.getUUID("missionId");
     }
 
     @Override
@@ -51,6 +60,7 @@ public class ProgramMissionStart implements RocketProgram {
         tag.put("navigateToSpaceTravelDimension", navigateToSpaceTravelDimension.saveToNbt());
         tag.putString("returnLevel", returnLevel.toString());
         tag.put("returnPos", NbtUtils.writeBlockPos(returnPos));
+        tag.putUUID("missionId", missionId);
         return tag;
     }
 }

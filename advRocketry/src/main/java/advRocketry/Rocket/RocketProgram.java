@@ -1,5 +1,6 @@
 package advRocketry.Rocket;
 
+import advRocketry.Rocket.RocketPrograms.ProgramMissionStartBase;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
 import net.minecraft.nbt.CompoundTag;
@@ -37,6 +38,7 @@ public interface RocketProgram {
             // register known programs here
             registerProgram(ProgramNavigateToPlanetPosition.class, ProgramNavigateToPlanetPosition.id);
             registerProgram(ProgramNavigateToSpaceStation.class, ProgramNavigateToSpaceStation.id);
+            registerProgram(ProgramMissionStartBase.class, "ProgramMissionStartBase");
         }
     }
 
