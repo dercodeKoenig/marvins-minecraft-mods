@@ -1,5 +1,6 @@
 package advRocketry.Satellites;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -39,9 +40,12 @@ public class Satellite {
         };
     }
 
+    public Pair<Boolean, String> validateBuild(){
+        return Pair.of(true, "");
+    }
+
     // build the list of equipment and energy storages before starting to tick
-    public void onDeploymentStart(ResourceLocation parentDimensionId) {
-        this.parentDimensionId = parentDimensionId;
+    public void iterateEquipment(){
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (stack.getItem() instanceof SatelliteEnergyProducer) {
@@ -54,6 +58,10 @@ public class Satellite {
                 equipment.add(stack);
             }
         }
+    }
+    public void onDeploymentStart(ResourceLocation parentDimensionId) {
+        this.parentDimensionId = parentDimensionId;
+        iterateEquipment();
     }
 
     /// returns energy extracted, will extract from all batteries until amount is satisfied
@@ -71,6 +79,15 @@ public class Satellite {
         double total = 0;
         for (ItemStack stack : batteries) {
             total += ((SatelliteBattery) stack.getItem()).getEnergyStored(stack);
+        }
+        return total;
+    }
+
+    /// returns total energy capacity
+    public double getEnergyCapacity() {
+        double total = 0;
+        for (ItemStack stack : batteries) {
+            total += ((SatelliteBattery) stack.getItem()).getCapacity(stack);
         }
         return total;
     }

@@ -2,17 +2,26 @@ package advRocketry.Satellites;
 
 import advRocketry.Data.DataStack;
 import advRocketry.Items.ItemDataStorage;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-public class SatelliteDataCollectorBase extends Satellite {
+public abstract class SatelliteDataCollectorBase extends Satellite {
 
-    double energyPerData = 100;
-    String dataTypeToGenerate = "";
+    abstract double energyPerData();
+
+    abstract String dataBaseTypeToGenerate();
+
+    // returns the total data capacity of the satellite
+    public int getDataCapacity() {
+        int total = 0;
+        for (ItemStack stack : this.equipment) {
+            if (stack.getItem() instanceof ItemDataStorage itemDataStorage) {
+                total += itemDataStorage.getDataCapacity(stack);
+            }
+        }
+        return total;
+    }
 
     @Nullable
     // extract 1 data unit from the first data storage that contains any data
@@ -40,9 +49,9 @@ public class SatelliteDataCollectorBase extends Satellite {
 
     public void tick() {
         super.tick();
-        if (getEnergyStored() > energyPerData && insertOneDataUnit(dataTypeToGenerate, true) == 1) {
-            extractEnergy(energyPerData);
-            insertOneDataUnit(dataTypeToGenerate, false);
+        if (getEnergyStored() > energyPerData() && insertOneDataUnit(dataBaseTypeToGenerate(), true) == 1) {
+            extractEnergy(energyPerData());
+            insertOneDataUnit(DataStack.join(dataBaseTypeToGenerate(), parentDimensionId), false);
         }
     }
 }

@@ -1,9 +1,11 @@
 package advRocketry.Items;
 
 import advRocketry.Satellites.Satellite;
+import advRocketry.Satellites.SatelliteOpticalTelescope;
 import advRocketry.Satellites.SatellitePrimaryFunction;
 import advRocketry.Satellites.SatelliteRegistry;
 import advRocketry.utils.ItemUtils;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
@@ -15,7 +17,16 @@ public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrim
     }
 
     @Override
-    public Satellite build(Satellite satellite) {
-        return null;
+    public Pair<Satellite, String> build(Satellite satellite) {
+        if (satellite == null)
+            return null;
+        SatelliteOpticalTelescope telescope = new SatelliteOpticalTelescope();
+        telescope.inventory = satellite.inventory;
+        Pair<Boolean, String> res = telescope.validateBuild();
+        if (!res.getFirst()) {
+            return Pair.of(null, res.getSecond());
+        }
+
+        return Pair.of(satellite, "");
     }
 }

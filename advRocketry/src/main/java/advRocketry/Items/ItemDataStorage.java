@@ -3,6 +3,7 @@ package advRocketry.Items;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
 import advRocketry.Data.IItemDataStorage;
+import advRocketry.Satellites.SatelliteEquipment;
 import advRocketry.utils.ItemUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -13,7 +14,7 @@ import net.minecraft.world.item.TooltipFlag;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ItemDataStorage extends Item implements IItemDataStorage {
+public class ItemDataStorage extends Item implements IItemDataStorage, SatelliteEquipment {
 
     int maxData = 1000;
 
