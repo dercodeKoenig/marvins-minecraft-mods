@@ -15,10 +15,10 @@ import java.util.List;
 public class OxygenSupplier {
 
     private int scannedBlocksCounter = 0;
-    private BlockPos myPos;
-    private Level level;
-    private LinkedList<BlockPos> queue = new LinkedList<>();
-    private HashSet<OxygenSupplier> connectedSuppliers = new HashSet<>();
+    private final BlockPos myPos;
+    private final Level level;
+    private final LinkedList<BlockPos> queue = new LinkedList<>();
+    private final HashSet<OxygenSupplier> connectedSuppliers = new HashSet<>();
     private boolean isValidArea;
     private boolean isComplete;
 
