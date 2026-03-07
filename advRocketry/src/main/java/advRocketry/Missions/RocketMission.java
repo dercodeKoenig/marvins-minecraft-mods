@@ -38,7 +38,7 @@ public class RocketMission {
         this.completeTime = completeTime;
         rocketTag = new CompoundTag();
         rocket.addAdditionalSaveData(rocketTag);
-        rocket.discard(); // TODO: enable after testing
+        rocket.discard();
         MissionManager.missions.put(this.missionID, this);
         System.out.println("started mission "+ missionID);
     }

@@ -32,8 +32,6 @@ public class ProgramMissionStartBase implements RocketProgram {
     }
 
     public void startMission(EntityRocket rocket) {
-        if(rocket.level().isClientSide)
-            return;
         RocketMission mission = new RocketMission();
         mission.startMission(rocket, GlobalTime.getGlobalTime() + 20 * 10, missionId, returnLevel, returnPos);
     }
