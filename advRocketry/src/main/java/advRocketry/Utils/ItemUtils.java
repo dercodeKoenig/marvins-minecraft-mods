@@ -8,7 +8,7 @@ import net.minecraft.world.item.component.CustomData;
 public class ItemUtils {
     public static CompoundTag getStacktagOrEmpty(ItemStack stack) {
         try {
-            return ((CustomData) stack.get(DataComponents.CUSTOM_DATA)).copyTag();
+            return stack.get(DataComponents.CUSTOM_DATA).copyTag();
         } catch (Exception var3) {
             return new CompoundTag();
         }
