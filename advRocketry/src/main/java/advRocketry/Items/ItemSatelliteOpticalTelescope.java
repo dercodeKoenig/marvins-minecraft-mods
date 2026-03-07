@@ -17,7 +17,7 @@ public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrim
     }
 
     @Override
-    public Pair<Satellite, String> build(Satellite satellite) {
+    public Pair<Satellite,  Pair<Boolean, String>> build(Satellite satellite) {
         if (satellite == null)
             return null;
         SatelliteOpticalTelescope telescope = new SatelliteOpticalTelescope();

@@ -10,6 +10,8 @@ import ARLib.network.INetworkTagReceiver;
 import advRocketry.Items.ItemSatellite;
 import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Satellites.Satellite;
+import advRocketry.Satellites.SatellitePrimaryFunction;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -47,29 +49,29 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, satellite_input_slot, 0, 1, guiHandler, 20, 20));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, satellite_output_slot, 0, 1, guiHandler, 70, 20));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_main_slot, 0, 1, guiHandler, 20, 45));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_slot_2, 0, 1, guiHandler, 40, 45));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_slot_2, 0, 1, guiHandler, 70, 45));
         guiHandler.modules.add(
-                new guiModuleImage(guiHandler, 40, 20, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
+                new guiModuleImage(guiHandler, 40, 30, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
         );
 
         // action buttons
-        guiModuleButton buildBtn = new guiModuleButton(1000, "build", guiHandler, 10,80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton buildBtn = new guiModuleButton(1000, "build", guiHandler, 10, 80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(buildBtn);
-        guiModuleButton copyChipBtn = new guiModuleButton(1001, "copy chip", guiHandler, 80,80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton copyChipBtn = new guiModuleButton(1001, "copy chip", guiHandler, 80, 80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(copyChipBtn);
 
         // satellite inventory slots
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 150,10));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 1, 0, 1, guiHandler, 110,30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 2, 0, 1, guiHandler, 130,30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 3, 0, 1, guiHandler, 150,30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 4, 0, 1, guiHandler, 110,50));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 5, 0, 1, guiHandler, 130,50));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 6, 0, 1, guiHandler, 150,50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 150, 10));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 1, 0, 1, guiHandler, 110, 30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 2, 0, 1, guiHandler, 130, 30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 3, 0, 1, guiHandler, 150, 30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 4, 0, 1, guiHandler, 110, 50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 5, 0, 1, guiHandler, 130, 50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 6, 0, 1, guiHandler, 150, 50));
 
         // player inventory
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 170, 100,1,0,guiHandler));
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 110, 200,1,0,guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 170, 100, 1, 0, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 110, 200, 1, 0, guiHandler));
 
     }
 
@@ -78,7 +80,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
     }
 
     void saveSatelliteToInventory() {
-        if(satellite == null)
+        if (satellite == null)
             return;
         ItemStack stack = inventory.getStackInSlot(satellite_input_slot);
         ItemSatellite.saveToStack(stack, satellite, level.registryAccess());
@@ -90,13 +92,29 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         satellite = ItemSatellite.createFromItem(inventory.getStackInSlot(satellite_input_slot), level.registryAccess());
     }
 
-    public void popInventory(){
+    public void popInventory() {
         if (!level.isClientSide) {
             for (int i = 0; i < inventory.getSlots(); i++) {
-                Block.popResource(level,getBlockPos(),inventory.getStackInSlot(i));
+                Block.popResource(level, getBlockPos(), inventory.getStackInSlot(i));
                 inventory.setStackInSlot(i, ItemStack.EMPTY);
             }
             setChanged();
+        }
+    }
+
+    public void performBuild(boolean simulate){
+        if (satellite != null && inventory.getStackInSlot(satellite_output_slot).isEmpty()) {
+            ItemStack stack = satellite.inventory.getStackInSlot(0);
+            if (stack.getItem() instanceof SatellitePrimaryFunction primaryFunction) {
+                Pair<Satellite, Pair<Boolean, String>> res = primaryFunction.build(satellite);
+                boolean success = res.getSecond().getFirst();
+                Satellite resultSatellite = res.getFirst();
+                if(success){
+                    ItemStack satellite = inventory.extractItem(satellite_input_slot,1,false);
+                    ItemSatellite.saveToStack(satellite,resultSatellite,level.registryAccess());
+                    inventory.insertItem(satellite_output_slot,satellite,false);
+                }
+            }
         }
     }
 
@@ -109,6 +127,16 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
+        if (compoundTag.contains("guiButtonClick")) {
+            int btn = compoundTag.getInt("guiButtonClick");
+            if (btn == 1000) {
+                // build
+                performBuild(false);
+            }
+            if (btn == 1001) {
+                // copy chip
+            }
+        }
     }
 
     @Override
@@ -145,9 +173,9 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if(slot == satellite_input_slot)
+            if (slot == satellite_input_slot)
                 return stack.getItem() instanceof ItemSatellite;
-            if(slot == chip_slot_2 || slot == chip_main_slot)
+            if (slot == chip_slot_2 || slot == chip_main_slot)
                 return stack.getItem() instanceof ItemSatelliteIdChip;
             return false;
         }
