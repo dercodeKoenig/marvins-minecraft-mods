@@ -24,9 +24,9 @@ public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrim
         telescope.inventory = satellite.inventory;
         Pair<Boolean, String> res = telescope.validateBuild();
         if (!res.getFirst()) {
-            return Pair.of(null, res.getSecond());
+            return Pair.of(null, res);
         }
 
-        return Pair.of(satellite, "");
+        return Pair.of(satellite, res);
     }
 }
