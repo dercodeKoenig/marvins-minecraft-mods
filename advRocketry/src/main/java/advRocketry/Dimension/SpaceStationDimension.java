@@ -24,7 +24,7 @@ import static advRocketry.Utils.CelestialUtils.getPlanetRenderRadiusAU;
 
 public class SpaceStationDimension extends Dimension {
 
-    private static double lerpFactor = 0.01;
+    private static final double lerpFactor = 0.01;
 
     // interpolate toward target for smooth movement / sync
     private Vec3 lazyPosition;
