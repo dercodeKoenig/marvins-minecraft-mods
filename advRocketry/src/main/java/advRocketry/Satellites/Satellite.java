@@ -30,14 +30,15 @@ public class Satellite {
                 if (slot == 1 || slot == 2 || slot == 3)
                     return stack.getItem() instanceof SatelliteEnergyProducer || stack.getItem() instanceof SatelliteBattery;
                 if (slot == 4 || slot == 5 || slot == 6)
-                    return stack.getItem() instanceof SatelliteEquipment;
+                    return stack.getItem() instanceof SatelliteEquipment || stack.getItem() instanceof SatelliteBattery;
                 return false;
             }
         };
     }
 
     // build the list of equipment and energy storages before starting to tick
-    public void onDeploymentStart() {
+    public void onDeploymentStart(ResourceLocation parentDimensionId) {
+        this.parentDimensionId = parentDimensionId;
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (stack.getItem() instanceof SatelliteEnergyProducer) {
@@ -52,6 +53,17 @@ public class Satellite {
         }
     }
 
+    /// returns energy extracted, will extract from all batteries until amount is satisfied
+    public double extractEnergy(double amount){
+        double extracted = 0;
+        for (ItemStack stack : batteries) {
+            double remaining = amount - extracted;
+            extracted += ((SatelliteBattery) stack.getItem()).extractEnergy(stack, remaining);
+        }
+        return extracted;
+    }
+
+    /// returns energy stored in all batteries combined
     public double getEnergyStored() {
         double total = 0;
         for (ItemStack stack : batteries) {
