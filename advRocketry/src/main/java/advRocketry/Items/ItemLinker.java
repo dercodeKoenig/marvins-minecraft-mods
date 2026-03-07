@@ -126,7 +126,7 @@ public class ItemLinker extends Item {
             return true;
         tag.putUUID("uuid", e.getUUID());
         setTag(stack, tag);
-        p.sendSystemMessage(Component.literal("selected Entity " + e.toString()));
+        p.sendSystemMessage(Component.literal("selected Entity " + e));
         return true;
     }
 
