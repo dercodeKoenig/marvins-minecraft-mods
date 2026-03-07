@@ -15,6 +15,6 @@ public class DimensionProperties {
     public enum DimensionType {
         PLANET,
         SPACE_STATION,
-        DUMMY;
+        DUMMY
     }
 }
