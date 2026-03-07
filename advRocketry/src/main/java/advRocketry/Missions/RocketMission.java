@@ -40,7 +40,7 @@ public class RocketMission {
         rocket.addAdditionalSaveData(rocketTag);
         rocket.discard();
         MissionManager.missions.put(this.missionID, this);
-        System.out.println("started mission " + missionID);
+        System.out.println("started mission " + MissionRegistry.missionsI.get(getClass()) + ":" + missionID);
     }
 
     public EntityRocket restoreRocket() {

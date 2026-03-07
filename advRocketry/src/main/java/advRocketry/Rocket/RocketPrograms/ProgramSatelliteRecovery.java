@@ -8,6 +8,7 @@ import advRocketry.GlobalTime;
 import advRocketry.Missions.SatelliteDeploymentMission;
 import advRocketry.Missions.SatelliteRecoverMission;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.Satellites.Satellite;
 import advRocketry.Satellites.SatelliteManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -31,12 +32,15 @@ public class ProgramSatelliteRecovery extends ProgramMissionStartBase {
         SatelliteRecoverMission mission = new SatelliteRecoverMission();
         mission.setTarget(targetSatellite);
         long duration = 20 * 30; // base wait
-        ResourceLocation satelliteParent = SatelliteManager.getSatellite(targetSatellite).parentDimensionId;
-        if(DimensionManager.INSTANCE_SERVER.get(satelliteParent) instanceof PlanetDimension planetDimension){
-            if(DimensionManager.INSTANCE_SERVER.get(super.returnLevel) instanceof Dimension origin){
-                double distanceAU = planetDimension.getPosition(0).distanceTo(origin.getPosition(0));
-                double extraSecond = distanceAU * Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
-                duration += (long) (20 * extraSecond * 3); // extra time for moving to long distance planets
+        Satellite toReturn = SatelliteManager.getSatellite(targetSatellite);
+        if(toReturn != null) {
+            ResourceLocation satelliteParent = toReturn.parentDimensionId;
+            if (DimensionManager.INSTANCE_SERVER.get(satelliteParent) instanceof PlanetDimension planetDimension) {
+                if (DimensionManager.INSTANCE_SERVER.get(super.returnLevel) instanceof Dimension origin) {
+                    double distanceAU = planetDimension.getPosition(0).distanceTo(origin.getPosition(0));
+                    double extraSecond = distanceAU * Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
+                    duration += (long) (20 * extraSecond * 3); // extra time for moving to long distance planets
+                }
             }
         }
         mission.startMission(rocket, GlobalTime.getGlobalTime() + duration, missionId, returnLevel, returnPos);
@@ -45,13 +49,15 @@ public class ProgramSatelliteRecovery extends ProgramMissionStartBase {
     @Override
     public void readFromNbt(CompoundTag nbt) {
         super.readFromNbt(nbt);
-        targetSatellite = nbt.getUUID("targetSatellite");
+        if(nbt.contains("targetSatellite"))
+            targetSatellite = nbt.getUUID("targetSatellite");
     }
 
     @Override
     public CompoundTag saveToNbt() {
         CompoundTag tag = super.saveToNbt();
-        tag.putUUID("targetSatellite", targetSatellite);
+        if(targetSatellite != null)
+            tag.putUUID("targetSatellite", targetSatellite);
         return tag;
     }
 }
