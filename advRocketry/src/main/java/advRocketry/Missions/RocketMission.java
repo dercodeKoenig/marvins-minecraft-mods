@@ -25,6 +25,7 @@ public class RocketMission {
     BlockPos returnPos;
 
     public void completeMission() {
+        System.out.println("mission complete: "+missionID);
         restoreRocket();
     }
 
@@ -35,8 +36,9 @@ public class RocketMission {
         this.completeTime = completeTime;
         rocketTag = new CompoundTag();
         rocket.addAdditionalSaveData(rocketTag);
-        rocket.discard();
+        rocket.discard(); // TODO: enable after testing
         MissionManager.missions.put(this.missionID, this);
+        System.out.println("started mission "+ missionID);
     }
 
     public EntityRocket restoreRocket() {
@@ -60,6 +62,7 @@ public class RocketMission {
             program.teleportToPlanet(rocket);
             // set program
             rocket.setProgramAndSync(program);
+            System.out.println("restore rocket on planet dimension: "+returnLevelId);
         }
 
         level.addFreshEntity(rocket);

@@ -3,7 +3,6 @@ package advRocketry.Items;
 import ARLib.utils.DimensionUtils;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Utils.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -81,7 +80,7 @@ public class ItemLinker extends Item {
         CompoundTag tag = new CompoundTag();
         tag.put("p", NbtUtils.writeBlockPos(pos));
         tag.putString("l", levelId);
-        ItemUtils.setTag(stack, tag);
+        setTag(stack, tag);
     }
 
     public InteractionResult useOn(UseOnContext context) {
@@ -119,7 +118,7 @@ public class ItemLinker extends Item {
 
     public static boolean useOnEntity(Player p,ItemStack stack, Entity e){
         // select entity
-        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        CompoundTag tag = getStacktagOrEmpty(stack);
         if(!tag.isEmpty())
             return false; // only allow on empty tag to avoid replacing entry by accident
         if(e.level().isClientSide)

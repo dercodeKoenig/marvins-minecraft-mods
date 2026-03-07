@@ -15,7 +15,7 @@ public class MissionRegistry {
 
     static {
         // register known Missions here
-
+        registerMission(RocketMission.class, "MissionBaseClass");
     }
 
     public static void registerMission(Class<? extends RocketMission> clazz, String id) {
