@@ -7,6 +7,7 @@ import ARLib.network.PacketBlockEntity;
 import advRocketry.Blocks.LaunchStation;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Items.ItemSatelliteIdChip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -48,6 +49,8 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
                     return true;
                 if (stack.getItem() instanceof ItemLinker)
                     return true;
+                if(stack.getItem() instanceof ItemSatelliteIdChip)
+                    return true; // TODO: remove after testing
                 return false;
             }
         };

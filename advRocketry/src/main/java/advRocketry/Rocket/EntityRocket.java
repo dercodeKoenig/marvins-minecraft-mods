@@ -16,10 +16,9 @@ import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Registry.GeneralRegistry;
+import advRocketry.Items.ItemSatelliteIdChip;
+import advRocketry.Rocket.RocketPrograms.*;
 import advRocketry.Utils.ItemUtils;
-import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
-import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
 import advRocketry.Utils.Utils;
@@ -449,7 +448,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void setProgramAndSync(RocketProgram program) {
         if (!level().isClientSide) {
             CompoundTag tag = new CompoundTag();
-            tag.put("currentProgram", RocketProgram.saveToNbt(program));
+            tag.put("currentProgram", ProgramRegistry.saveToNbt(program));
             sendToClients(tag);
         }
         currentProgram = program;
@@ -561,7 +560,34 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     /// the normal launch code
     /// missions (asteroid mining, gas mining, satellite deployment) will need their own launch code
     public boolean launch(ItemStack navigationItem) {
-        if(level().isClientSide) return false;
+        if (level().isClientSide) return false;
+
+        if (true) {
+            // TODO: remove this after testing missions
+            BlockPos landPos = dockingStationPos;
+            if (landPos == null)
+                landPos = blockPosition();
+            if(navigationItem.getItem() instanceof ItemSatelliteIdChip){
+                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(
+                        this,
+                        ItemSatelliteIdChip.getTarget(navigationItem),
+                        level().dimension().location(),
+                        landPos,
+                        UUID.randomUUID()
+                );
+                setProgramAndSync(programMissionStartBase);
+            }else {
+                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(
+                        this,
+                        ResourceLocation.parse("minecraft:overworld"),
+                        level().dimension().location(),
+                        landPos,
+                        UUID.randomUUID()
+                );
+                setProgramAndSync(programMissionStartBase);
+            }
+            return true;
+        }
 
         Level targetLevel = null;
         BlockPos targetPos = null;
@@ -582,7 +608,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 targetPos = getOnPos();
                 targetLevel = DimensionUtils.getDimensionLevelServer(targetLocation.toString());
             }
-            if(!ItemPlanetIdChip.containsMassData(navigationItem)){
+            if (!ItemPlanetIdChip.containsMassData(navigationItem)) {
                 extraInfo = "missing mass data";
             }
         }
@@ -605,11 +631,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     return true;
                 }
             } else {
-                infoText.setTextAndSync("Target invalid\n"+extraInfo);
+                infoText.setTextAndSync("Target invalid\n" + extraInfo);
                 temporaryInfoTimeout = 20 * 15;
             }
         } else {
-            infoText.setTextAndSync("Target invalid\n"+extraInfo);
+            infoText.setTextAndSync("Target invalid\n" + extraInfo);
             temporaryInfoTimeout = 20 * 15;
         }
         return false;
@@ -638,7 +664,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         controller.setTargetPosition(null, false); // position is probably invalid because dimension change
 
-        if (level != level() && level instanceof ServerLevel target) {
+        if (level != level() && level instanceof ServerLevel serverLevel) {
 
             // the dimension change is like this:
             // 1: unmount entities, but store where they were seated
@@ -654,7 +680,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             // unmount, teleport and store new uuid
             for (Entity passenger : getPassengers()) {
                 if (passenger != null) {
-                    DimensionTransition transition = new DimensionTransition(target, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+                    DimensionTransition transition = new DimensionTransition(serverLevel, targetPos, new Vec3(0, 0, 0), getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
                     BlockPos seatPos = getPassengersPositions().get(passenger.getUUID());
                     passenger.stopRiding();
                     Entity newEntity = passenger.changeDimension(transition);
@@ -663,12 +689,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
 
             // teleport rocket
-            DimensionTransition transition = new DimensionTransition(target, targetPos, velocity, getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
+            DimensionTransition transition = new DimensionTransition(serverLevel, targetPos, velocity, getYRot(), getXRot(), false, DimensionTransition.DO_NOTHING);
             EntityRocket newRocket = (EntityRocket) changeDimension(transition);
 
             // remount passengers
             for (UUID passengerUUID : newPassengerPositions.keySet()) {
-                Entity e = (target).getEntity(passengerUUID);
+                Entity e = (serverLevel).getEntity(passengerUUID);
                 if (e != null) {
                     e.startRiding(newRocket);
                 }
@@ -678,12 +704,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             newRocket.setPassengersPositions(newPassengerPositions);
 
             // keep the chunk loaded initially
-            ForcedChunkManager.keepChunkForceLoaded(target, newRocket.chunkPosition());
+            ForcedChunkManager.keepChunkForceLoaded(serverLevel, newRocket.chunkPosition());
 
             return newRocket;
         } else {
             setPos(targetPos);
             setDeltaMovement(velocity);
+            ForcedChunkManager.keepChunkForceLoaded(level, chunkPosition());
             return this;
         }
     }
