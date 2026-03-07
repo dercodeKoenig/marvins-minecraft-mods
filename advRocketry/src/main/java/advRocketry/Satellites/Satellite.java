@@ -15,7 +15,6 @@ import static advRocketry.Registry.Items.ITEM_SOLAR_PANEL;
 public class Satellite {
     ItemStackHandler inventory;
     ResourceLocation parentDimensionId;
-    int energyBuffer = 0;
 
     ArrayList<ItemStack> equipment = new ArrayList<>();
     ArrayList<ItemStack> batteries = new ArrayList<>();
@@ -69,13 +68,11 @@ public class Satellite {
         CompoundTag tag = new CompoundTag();
         tag.put("inventory", inventory.serializeNBT(registries));
         tag.putString("parentDimensionId", parentDimensionId.toString());
-        tag.putInt("energyBuffer", energyBuffer);
         return tag;
     }
 
     public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
         parentDimensionId = ResourceLocation.parse(tag.getString("parentDimensionId"));
-        energyBuffer = tag.getInt("energyBuffer");
     }
 }
