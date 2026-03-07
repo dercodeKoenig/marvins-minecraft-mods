@@ -32,6 +32,10 @@ public class Satellite {
                     return stack.getItem() instanceof SatelliteEquipment || stack.getItem() instanceof SatelliteBattery;
                 return false;
             }
+            @Override
+            public int getSlotLimit(int slot) {
+                return 99;
+            }
         };
     }
 

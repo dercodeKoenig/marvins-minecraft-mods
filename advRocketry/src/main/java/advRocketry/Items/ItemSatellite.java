@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ItemSatellite extends Item {
     public ItemSatellite() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(16));
     }
 
     public static Satellite createFromItem(ItemStack stack, HolderLookup.Provider registries) {

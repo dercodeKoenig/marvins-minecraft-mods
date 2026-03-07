@@ -5,6 +5,7 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.network.INetworkTagReceiver;
 import advRocketry.Items.ItemSatellite;
 import advRocketry.Satellites.Satellite;
 import net.minecraft.core.BlockPos;
@@ -19,9 +20,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import java.util.spi.AbstractResourceBundleProvider;
+
 import static advRocketry.Registry.BlockEntities.ENTITY_SATELLITE_ASSEMBLER;
 
-public class EntitySatelliteAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
+public class EntitySatelliteAssembler extends BlockEntity implements INetworkTagReceiver {
 
     public GuiHandlerBlockEntity guiHandler = new GuiHandlerBlockEntity(this);
 
@@ -36,18 +39,26 @@ public class EntitySatelliteAssembler extends BlockEntity implements ARLib.netwo
 
         int id = 0;
 
+        // inventory slots
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, satellite_input_slot, 0, 1, guiHandler, 20, 20));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, satellite_output_slot, 0, 1, guiHandler, 60, 20));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_main_slot, 0, 1, guiHandler, 20, 40));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_slot_2, 0, 1, guiHandler, 40, 40));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, satellite_output_slot, 0, 1, guiHandler, 70, 20));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_main_slot, 0, 1, guiHandler, 20, 45));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_slot_2, 0, 1, guiHandler, 40, 45));
         guiHandler.modules.add(
                 new guiModuleImage(guiHandler, 40, 20, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
         );
 
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 100,10));
+        // satellite inventory slots
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 120,10));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 1, 0, 1, guiHandler, 80,30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 2, 0, 1, guiHandler, 100,30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 3, 0, 1, guiHandler, 120,30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 4, 0, 1, guiHandler, 80,50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 5, 0, 1, guiHandler, 100,50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 6, 0, 1, guiHandler, 120,50));
 
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 140, 100,1,0,guiHandler));
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 80, 200,1,0,guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100,1,0,guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 200,1,0,guiHandler));
 
     }
 
@@ -107,6 +118,11 @@ public class EntitySatelliteAssembler extends BlockEntity implements ARLib.netwo
     // the inventory of the rocket assembler, 4 slots (satellite io + 2 chip slots for copy)
     public ItemStackHandler inventory = new ItemStackHandler(4) {
         @Override
+        public int getSlotLimit(int slot) {
+            return 1;
+        }
+
+        @Override
         public void onContentsChanged(int slot) {
             // move chip from slot 2 to 1
             if (slot == chip_slot_2) {
@@ -121,7 +137,8 @@ public class EntitySatelliteAssembler extends BlockEntity implements ARLib.netwo
         }
     };
 
-    //
+    // a proxy item handler to access the satellite inventory and to detect a change,
+    // so it can re-write the satellite to the itemStack
     public IItemHandler proxyItemHandler = new IItemHandler() {
         @Override
         public int getSlots() {

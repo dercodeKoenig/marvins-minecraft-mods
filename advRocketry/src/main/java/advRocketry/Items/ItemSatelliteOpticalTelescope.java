@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrimaryFunction {
     public ItemSatelliteOpticalTelescope() {
-        super(new Properties().stacksTo(1));
+        super(new Properties());
     }
 
     @Override
