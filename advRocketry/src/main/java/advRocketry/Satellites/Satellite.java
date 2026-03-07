@@ -44,6 +44,10 @@ public class Satellite {
         return Pair.of(true, "");
     }
 
+    public String getName(){
+        return "Satellite";
+    }
+
     // build the list of equipment and energy storages before starting to tick
     public void iterateEquipment(){
         for (int i = 0; i < inventory.getSlots(); i++) {

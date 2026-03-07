@@ -2,10 +2,7 @@ package advRocketry.BlockEntities;
 
 import ARLib.ARLib;
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleButton;
-import ARLib.gui.modules.guiModuleImage;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemSatellite;
@@ -35,12 +32,13 @@ import static advRocketry.Registry.BlockEntities.ENTITY_SATELLITE_ASSEMBLER;
 public class EntitySatelliteAssembler extends BlockEntity implements INetworkTagReceiver {
 
     public GuiHandlerBlockEntity guiHandler = new GuiHandlerBlockEntity(this);
-
+    public guiModuleText statusText;
     public Satellite satellite;
-    int satellite_input_slot = 0;
-    int satellite_output_slot = 1;
-    int chip_main_slot = 2;
-    int chip_slot_2 = 3;
+    public int infoTimeout = 0;
+    public int satellite_input_slot = 0;
+    public int satellite_output_slot = 1;
+    public int chip_main_slot = 2;
+    public int chip_slot_2 = 3;
 
     public EntitySatelliteAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_SATELLITE_ASSEMBLER.get(), pos, blockState);
@@ -61,6 +59,9 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         guiHandler.modules.add(buildBtn);
         guiModuleButton copyChipBtn = new guiModuleButton(1001, "copy chip", guiHandler, 80, 80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(copyChipBtn);
+
+        statusText = new guiModuleText(id++, "", guiHandler, 10, 100, 0xff000000, false);
+        guiHandler.modules.add(statusText);
 
         // satellite inventory slots
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 150, 10));
@@ -147,7 +148,10 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
             int btn = compoundTag.getInt("guiButtonClick");
             if (btn == 1000) {
                 // build
-                performBuild(false);
+               Pair<Boolean, String> res = performBuild(false);
+               if(!res.getFirst()){
+                   statusText.setTextAndSync(res.getSecond());
+               }
             }
             if (btn == 1001) {
                 // copy chip
@@ -175,6 +179,12 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+            if (infoTimeout > 0) {
+                infoTimeout--;
+                if (infoTimeout == 0) {
+                    statusText.setTextAndSync("");
+                }
+            }
         }
     }
 

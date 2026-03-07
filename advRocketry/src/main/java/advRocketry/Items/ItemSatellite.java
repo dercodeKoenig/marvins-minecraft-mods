@@ -5,12 +5,27 @@ import advRocketry.Satellites.SatelliteRegistry;
 import advRocketry.utils.ItemUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+
+import java.util.List;
 
 public class ItemSatellite extends Item {
     public ItemSatellite() {
         super(new Properties().stacksTo(16));
+    }
+
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        Satellite sat = createFromItem(stack, context.registries());
+        if(sat != null) {
+            tooltipComponents.add(
+                    Component.literal(
+                        sat.getName()
+                    )
+            );
+        }
     }
 
     public static Satellite createFromItem(ItemStack stack, HolderLookup.Provider registries) {

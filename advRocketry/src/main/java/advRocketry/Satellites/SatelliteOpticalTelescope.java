@@ -27,6 +27,10 @@ public class SatelliteOpticalTelescope extends SatelliteDataCollectorBase {
         return Pair.of(true, "");
     }
 
+    public String getName(){
+        return "Optical Telescope";
+    }
+
     @Override
     double energyPerData() {
         return 100;
