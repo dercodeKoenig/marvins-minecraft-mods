@@ -51,7 +51,7 @@ public class DataStack {
     }
 
     public boolean isEmpty() {
-        return amount == 0;
+        return amount <= 0;
     }
 
     public DataStack copyWithCount(int amount) {
