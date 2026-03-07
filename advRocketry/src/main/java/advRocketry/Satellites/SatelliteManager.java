@@ -50,6 +50,7 @@ public class SatelliteManager {
     }
 
     public static void onServerStart() {
+        satellites.clear();
         try {
             String save = Files.readString(Path.of(Main.worldPath.toString(), saveFile));
             CompoundTag tag = TagParser.parseTag(save);
@@ -59,6 +60,7 @@ public class SatelliteManager {
                 satellites.put(satellite.uuid, satellite);
                 requiresCacheUpdate = true;
             }
+            System.out.println("[SatelliteManager] loaded " + satellites.size() + " satellites");
         } catch (IOException e) {
             // maybe new world...
             System.out.println("[SatelliteManager] could not load satellite save file");
@@ -75,6 +77,7 @@ public class SatelliteManager {
         }
         try {
             Files.writeString(Path.of(Main.worldPath.toString(), saveFile), tag.toString());
+            System.out.println("[SatelliteManager] loaded " + satellites.size() + " missions");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

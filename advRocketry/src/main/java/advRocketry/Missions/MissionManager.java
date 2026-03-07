@@ -34,6 +34,7 @@ public class MissionManager {
 
 
     public static void onServerStart() {
+        missions.clear();
         try {
             String save = Files.readString(Path.of(Main.worldPath.toString(), saveFile));
             CompoundTag tag = TagParser.parseTag(save);
@@ -42,6 +43,7 @@ public class MissionManager {
                 RocketMission mission = MissionRegistry.createFromNbt(satelliteTag, ServerLifecycleHooks.getCurrentServer().registryAccess());
                 missions.put(mission.missionID, mission);
             }
+            System.out.println("[MissionManager] loaded " + missions.size() + " missions");
         } catch (IOException e) {
             // maybe new world...
             System.out.println("[MissionManager] could not load satellite save file");
@@ -58,6 +60,7 @@ public class MissionManager {
         }
         try {
             Files.writeString(Path.of(Main.worldPath.toString(), saveFile), tag.toString());
+            System.out.println("[MissionManager] saved " + missions.size() + " missions");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
