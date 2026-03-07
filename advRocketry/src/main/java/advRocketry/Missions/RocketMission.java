@@ -30,6 +30,8 @@ public class RocketMission {
     }
 
     public void startMission(EntityRocket rocket, long completeTime, UUID missionID, ResourceLocation landingLevel, BlockPos landingPos) {
+        if(rocket.level().isClientSide)
+            return;
         this.returnLevelId = landingLevel;
         this.returnPos = landingPos;
         this.missionID = missionID;
@@ -55,6 +57,7 @@ public class RocketMission {
             program.teleportToStation(rocket);
             // set the program
             rocket.setProgramAndSync(program);
+            System.out.println("restore rocket on space station dimension: "+returnLevelId);
         } else {
             // assume planet dimension
             ProgramNavigateToPlanetPosition program = new ProgramNavigateToPlanetPosition(rocket, returnLevelId, returnPos);
