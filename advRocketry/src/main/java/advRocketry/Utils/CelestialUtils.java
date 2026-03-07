@@ -32,7 +32,7 @@ public class CelestialUtils {
 
 
     public static double getGravityMultiplier(Object entity){
-        Entity p_entity = (Entity) (Object) entity;
+        Entity p_entity = (Entity) entity;
         ResourceLocation dimensionId = p_entity.level().dimension().location();
         Dimension dimension = DimensionManager.getDimensionManager(p_entity.level().isClientSide).get(dimensionId);
         double massMultiplier = 1.0;
