@@ -27,6 +27,6 @@ public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrim
             return Pair.of(null, res);
         }
 
-        return Pair.of(satellite, res);
+        return Pair.of(telescope, res);
     }
 }

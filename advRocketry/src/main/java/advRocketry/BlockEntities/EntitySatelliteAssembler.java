@@ -55,9 +55,9 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         );
 
         // action buttons
-        guiModuleButton buildBtn = new guiModuleButton(1000, "build", guiHandler, 10, 80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton buildBtn = new guiModuleButton(1000, "build", guiHandler, 10, 75, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(buildBtn);
-        guiModuleButton copyChipBtn = new guiModuleButton(1001, "copy chip", guiHandler, 80, 80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiModuleButton copyChipBtn = new guiModuleButton(1001, "copy chip", guiHandler, 80, 75, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(copyChipBtn);
 
         statusText = new guiModuleText(id++, "", guiHandler, 10, 100, 0xff000000, false);
@@ -125,7 +125,8 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
                 if (!simulate) {
                     ItemStack satellite = inventory.extractItem(satellite_input_slot, 1, false);
                     ItemSatellite.saveToStack(satellite, resultSatellite, level.registryAccess());
-                    inventory.insertItem(satellite_output_slot, satellite, false);
+                    System.out.println(resultSatellite.getClass()+":"+resultSatellite.getName());
+                    inventory.setStackInSlot(satellite_output_slot, satellite);
                     setChanged();
                 }
             }
@@ -151,6 +152,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
                Pair<Boolean, String> res = performBuild(false);
                if(!res.getFirst()){
                    statusText.setTextAndSync(res.getSecond());
+                   infoTimeout = 20 * 10;
                }
             }
             if (btn == 1001) {
