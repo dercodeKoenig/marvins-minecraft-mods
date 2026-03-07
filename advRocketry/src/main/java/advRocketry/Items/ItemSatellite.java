@@ -22,9 +22,16 @@ public class ItemSatellite extends Item {
         if(sat != null) {
             tooltipComponents.add(
                     Component.literal(
-                        sat.getName()
+                            sat.getName()
                     )
             );
+            if(sat.uuid != null) {
+                tooltipComponents.add(
+                        Component.literal(
+                                sat.uuid.toString()
+                        )
+                );
+            }
         }
     }
 

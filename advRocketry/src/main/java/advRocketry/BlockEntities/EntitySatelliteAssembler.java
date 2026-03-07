@@ -7,8 +7,10 @@ import ARLib.network.INetworkTagReceiver;
 import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemSatellite;
 import advRocketry.Items.ItemSatelliteIdChip;
+import advRocketry.Registry.Items;
 import advRocketry.Satellites.Satellite;
 import advRocketry.Satellites.SatellitePrimaryFunction;
+import advRocketry.utils.ItemUtils;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -156,6 +158,12 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
             }
             if (btn == 1001) {
                 // copy chip
+                ItemStack src = inventory.getStackInSlot(chip_main_slot);
+                ItemStack dst = inventory.getStackInSlot(chip_slot_2);
+                if(src.getItem() == Items.ITEM_SATELLITE_ID_CHIP && dst.getItem() == Items.ITEM_SATELLITE_ID_CHIP){
+                    ItemUtils.setTag(dst, ItemUtils.getStacktagOrEmpty(src));
+                    setChanged();
+                }
             }
         }
     }
