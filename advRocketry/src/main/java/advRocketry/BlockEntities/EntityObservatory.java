@@ -540,14 +540,13 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
                 // update data status
                 boolean newHasEnoughData = false;
-                if(task == Task.ANALYZE_PLANET || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED
+                if (task == Task.ANALYZE_PLANET || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED
                 ) {
-                    if(data > 0)
+                    if (data > 0)
                         newHasEnoughData = true;
-                }
-                else if (task == Task.SCANNING_FOR_ASTEROIDS){
+                } else if (task == Task.SCANNING_FOR_ASTEROIDS) {
 
-                }else{
+                } else {
                     // no data required
                     newHasEnoughData = true;
                 }
@@ -559,7 +558,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 if (customStatusTimeout <= 0) {
                     if (!hasEnoughEnergy) {
                         statusText.setTextAndSync("OUT OF ENERGY!");
-                    }else if(!hasEnoughData){
+                    } else if (!hasEnoughData) {
                         statusText.setTextAndSync("OUT OF DISTANCE DATA!");
                     } else {
                         String s = "Status:\n" + task.label;
@@ -679,7 +678,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     } else {
                         if (hasEnoughEnergy && hasEnoughData) {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
-                            extractData(REQUIRED_DATA,1,dataTiles, false);
+                            extractData(REQUIRED_DATA, 1, dataTiles, false);
                             ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, taskTarget);
                             if (info == null)
                                 // should not happen, but just to be safe
