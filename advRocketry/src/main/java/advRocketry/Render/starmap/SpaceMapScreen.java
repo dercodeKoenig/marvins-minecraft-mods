@@ -31,7 +31,7 @@ public class SpaceMapScreen extends Screen {
 
     private PlanetDimension selectedPlanet = null;
     private net.minecraft.client.gui.components.Button actionButton;
-    private int SIDEBAR_WIDTH = 150;
+    private final int SIDEBAR_WIDTH = 150;
 
     private float camX = 0;
     private float camY = 0;
@@ -221,7 +221,7 @@ public class SpaceMapScreen extends Screen {
 
             // dont test for hidden planets
             if(!shouldRenderPlanet(planet.getDimensionId()))
-                continue;;
+                continue;
 
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
             Vector3f planetWorldPos = getPlanetTranslation(planet, pTicks);
