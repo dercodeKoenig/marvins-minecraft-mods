@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_GUIDANCE_COMPUTER;
+import static advRocketry.Registry.BlockEntities.ENTITY_GUIDANCE_COMPUTER;
 
 public class GuidanceComputer extends Block implements EntityBlock {
     public GuidanceComputer() {

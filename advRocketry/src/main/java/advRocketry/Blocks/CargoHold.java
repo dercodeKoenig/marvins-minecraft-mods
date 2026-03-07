@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_CARGO_HOLD;
+import static advRocketry.Registry.BlockEntities.ENTITY_CARGO_HOLD;
 
 public class CargoHold extends Block implements EntityBlock {
     public CargoHold() {

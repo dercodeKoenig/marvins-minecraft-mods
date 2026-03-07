@@ -3,49 +3,30 @@ package advRocketry.BlockEntities;
 import ARLib.ARLib;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
-import ARLib.network.PacketBlockEntity;
-import ARLib.utils.BlockEntityBattery;
-import advRocketry.Blocks.CargoHold;
-import advRocketry.Blocks.GuidanceComputer;
-import advRocketry.Blocks.LaunchPad;
-import advRocketry.Blocks.StructureTower;
 import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemSpaceStationContainer;
 import advRocketry.Main;
-import advRocketry.Registry;
-import advRocketry.Rocket.EntityRocket;
+import advRocketry.Registry.Items;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.BTN_BLACK;
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.BTN_W;
-import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
-import static advRocketry.Registry.ENTITY_SPACE_STATION_ASSEMBLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER;
 
 // i use the rocket assembler as base class because it already has the scanning & render code
 // i just need to make small changes to the gui and tick methods
@@ -214,7 +195,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         // create output items
         inventory.setStackInSlot(1, linker);
 
-        ItemStack container = new ItemStack(Registry.ITEM_SPACE_STATION_CONTAINER.get(), 1);
+        ItemStack container = new ItemStack(Items.ITEM_SPACE_STATION_CONTAINER.get(), 1);
         ItemSpaceStationContainer.writeBlocks(container, blocks);
         inventory.setStackInSlot(2, container);
 

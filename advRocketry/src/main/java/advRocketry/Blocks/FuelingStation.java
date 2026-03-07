@@ -1,10 +1,7 @@
 package advRocketry.Blocks;
 
-import ARLib.blockentities.EntityFluidInputBlock;
-import ARLib.blocks.BlockFluidInputBlock;
 import advRocketry.BlockEntities.EntityFuelingStation;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -17,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_FUELING_STATION;
+import static advRocketry.Registry.BlockEntities.ENTITY_FUELING_STATION;
 
 public class FuelingStation extends Block implements EntityBlock {
     public FuelingStation() {

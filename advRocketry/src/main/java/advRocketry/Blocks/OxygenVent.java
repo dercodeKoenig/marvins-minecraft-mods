@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_OXYGEN_VENT;
+import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 
 public class OxygenVent extends Block implements EntityBlock{
 

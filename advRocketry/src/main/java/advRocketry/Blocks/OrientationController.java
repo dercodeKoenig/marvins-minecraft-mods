@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_ORIENTATION_CONTROLLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_ORIENTATION_CONTROLLER;
 
 public class OrientationController extends Block implements EntityBlock {
     public OrientationController() {

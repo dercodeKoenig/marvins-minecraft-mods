@@ -4,7 +4,6 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import advRocketry.Blocks.LaunchPad;
 import advRocketry.Blocks.LaunchStation;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
@@ -21,8 +20,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_LAUNCH_STATION;
-import static advRocketry.Registry.LAUNCH_STATION;
+import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
 
 public class EntityLaunchStation extends EntityRocketInfrastructureBase implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 

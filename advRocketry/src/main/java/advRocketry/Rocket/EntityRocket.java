@@ -16,8 +16,8 @@ import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Registry.GeneralRegistry;
 import advRocketry.utils.ItemUtils;
-import advRocketry.Registry;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
 import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
 import advRocketry.utils.CelestialUtils;
@@ -126,7 +126,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size, Vec3 front) {
-        EntityRocket rocket = new EntityRocket(Registry.ENTITY_ROCKET.get(), level);
+        EntityRocket rocket = new EntityRocket(GeneralRegistry.ENTITY_ROCKET.get(), level);
         rocket.blockEntities = blockEntities;
         rocket.blocks = blocks;
         rocket.controller.setHeadingAndFrontDirect(new Vec3(0, 1, 0), front);

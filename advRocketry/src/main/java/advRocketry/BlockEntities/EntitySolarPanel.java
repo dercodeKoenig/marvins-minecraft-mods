@@ -2,8 +2,6 @@ package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleEnergy;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.utils.BlockEntityBattery;
 import advRocketry.Dimension.Dimension;
@@ -15,19 +13,14 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RedStoneOreBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.ItemStackHandler;
 
-import static advRocketry.Registry.ENTITY_CARGO_HOLD;
-import static advRocketry.Registry.ENTITY_SOLAR_PANEL;
+import static advRocketry.Registry.BlockEntities.ENTITY_SOLAR_PANEL;
 
 public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 

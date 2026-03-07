@@ -1,6 +1,5 @@
 package advRocketry.BlockEntities;
 
-import ARLib.blockentities.EntityItemInputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleEnergy;
@@ -11,14 +10,11 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import advRocketry.Config;
 import advRocketry.Items.ItemLinker;
-import advRocketry.Registry;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -29,7 +25,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Blocks.RocketItemLoader.IS_DRAIN;
-import static advRocketry.Registry.ENTITY_ROCKET_ITEM_LOADER;
+import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ITEM_LOADER;
 
 public class EntityRocketItemLoader extends EntityRocketInfrastructureBase implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 

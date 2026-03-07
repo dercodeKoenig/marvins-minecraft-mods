@@ -7,7 +7,6 @@ import ARLib.gui.modules.guiModuleText;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.SpaceStationDimension;
-import advRocketry.Dimension.SpaceStationDimensionProperties;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_STATION_CONTROLLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_STATION_CONTROLLER;
 
 public class EntityStationController extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 

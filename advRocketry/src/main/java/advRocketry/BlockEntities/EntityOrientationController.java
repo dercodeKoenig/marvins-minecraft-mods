@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_ORIENTATION_CONTROLLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_ORIENTATION_CONTROLLER;
 
 public class EntityOrientationController extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 

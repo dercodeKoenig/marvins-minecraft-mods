@@ -9,18 +9,12 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import ARLib.utils.SimpleFluidContainer;
 import advRocketry.Config;
-import advRocketry.Items.ItemLinker;
-import advRocketry.Registry;
-import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -32,7 +26,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_FUELING_STATION;
+import static advRocketry.Registry.BlockEntities.ENTITY_FUELING_STATION;
 
 public class EntityFuelingStation extends EntityRocketInfrastructureBase implements INetworkTagReceiver {
 

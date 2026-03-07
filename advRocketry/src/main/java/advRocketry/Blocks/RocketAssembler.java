@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ASSEMBLER;
 
 public class RocketAssembler extends Block implements EntityBlock {
 

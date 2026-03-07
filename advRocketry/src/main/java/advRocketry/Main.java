@@ -1,7 +1,6 @@
 package advRocketry;
 
 import ARLib.network.SimpleNetworkPacket;
-import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
@@ -10,6 +9,10 @@ import advRocketry.Items.ItemLinker;
 import advRocketry.Oxygen.OxygenSystem;
 import advRocketry.Particles.RocketParticleEngine;
 import advRocketry.Particles.RocketParticleProvider;
+import advRocketry.Registry.BlockEntities;
+import advRocketry.Registry.Blocks;
+import advRocketry.Registry.GeneralRegistry;
+import advRocketry.Registry.Items;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
@@ -99,14 +102,14 @@ public class Main {
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::registerTickets);
 
-        Registry.BLOCKS.register(modEventBus);
-        Registry.ITEMS.register(modEventBus);
-        Registry.BLOCK_ENTITIES.register(modEventBus);
-        Registry.CREATIVE_TAB.register(modEventBus);
-        Registry.ENTITIES.register(modEventBus);
-        Registry.PARTICLES.register(modEventBus);
-        Registry.FLUIDS.register(modEventBus);
-        Registry.FLUID_TYPES.register(modEventBus);
+        Blocks.BLOCKS.register(modEventBus);
+        Items.ITEMS.register(modEventBus);
+        BlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        GeneralRegistry.CREATIVE_TAB.register(modEventBus);
+        GeneralRegistry.ENTITIES.register(modEventBus);
+        GeneralRegistry.PARTICLES.register(modEventBus);
+        GeneralRegistry.FLUIDS.register(modEventBus);
+        GeneralRegistry.FLUID_TYPES.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
@@ -245,23 +248,23 @@ public class Main {
     /// mod load events /////////////////////////////////////
 
     void registerCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> x.itemStackHandler);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ASSEMBLER.get(), (x, y) -> x.battery);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x, y) -> x.battery);
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.tank);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.inventory);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> x.itemStackHandler);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ASSEMBLER.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FUELING_STATION.get(), (x, y) -> x.tank);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.inventory);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
         //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
         //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(Registry.ENTITY_ROCKET.get(), RendererRocket::new);
-        event.registerBlockEntityRenderer(Registry.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
-        event.registerBlockEntityRenderer(Registry.ENTITY_SPACE_STATION_ASSEMBLER.get(), RenderRocketAssembler::new);
-        event.registerBlockEntityRenderer(Registry.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
+        event.registerEntityRenderer(GeneralRegistry.ENTITY_ROCKET.get(), RendererRocket::new);
+        event.registerBlockEntityRenderer(BlockEntities.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
+        event.registerBlockEntityRenderer(BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER.get(), RenderRocketAssembler::new);
+        event.registerBlockEntityRenderer(BlockEntities.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
     }
 
     void registerShaders(RegisterShadersEvent event) {
@@ -299,12 +302,12 @@ public class Main {
     }
 
     void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(Registry.STRUCTURE_TOWER.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(Blocks.STRUCTURE_TOWER.get(), RenderType.cutout());
     }
 
     void registerParticles(RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(Registry.SOFT_PARTICLE.get(), RocketParticleProvider.SoftParticleProvider::new);
-        event.registerSpriteSet(Registry.DUST_PARTICLE.get(), RocketParticleProvider.DustParticleProvider::new);
+        event.registerSpriteSet(GeneralRegistry.SOFT_PARTICLE.get(), RocketParticleProvider.SoftParticleProvider::new);
+        event.registerSpriteSet(GeneralRegistry.DUST_PARTICLE.get(), RocketParticleProvider.DustParticleProvider::new);
     }
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {
@@ -322,7 +325,7 @@ public class Main {
                     public ResourceLocation getFlowingTexture() {
                         return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fuel_flow");
                     }
-                }, Registry.ROCKET_FUEL_TYPE.get()
+                }, GeneralRegistry.ROCKET_FUEL_TYPE.get()
         );
     }
 
@@ -335,43 +338,43 @@ public class Main {
     }
 
     void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTab().equals(Registry.CUSTOM_CREATIVE_TAB.get())) {
-            e.accept(Registry.LAUNCHPAD.get());
-            e.accept(Registry.STRUCTURE_TOWER.get());
+        if (e.getTab().equals(GeneralRegistry.CUSTOM_CREATIVE_TAB.get())) {
+            e.accept(Blocks.LAUNCHPAD.get());
+            e.accept(Blocks.STRUCTURE_TOWER.get());
 
 
-            e.accept(Registry.ROCKET_MOTOR.get());
-            e.accept(Registry.FUEL_TANK.get());
-            e.accept(Registry.GUIDANCE_COMPUTER.get());
-            e.accept(Registry.CARGO_HOLD.get());
-            e.accept(Registry.SEAT.get());
+            e.accept(Blocks.ROCKET_MOTOR.get());
+            e.accept(Blocks.FUEL_TANK.get());
+            e.accept(Blocks.GUIDANCE_COMPUTER.get());
+            e.accept(Blocks.CARGO_HOLD.get());
+            e.accept(Blocks.SEAT.get());
 
-            e.accept(Registry.ROCKET_ASSEMBLER.get());
-            e.accept(Registry.FUELING_STATION.get());
-            e.accept(Registry.ROCKET_FUEL_BUCKET.get());
-            e.accept(Registry.LAUNCH_STATION.get());
-            e.accept(Registry.ROCKET_ITEM_LOADER.get());
+            e.accept(Blocks.ROCKET_ASSEMBLER.get());
+            e.accept(Blocks.FUELING_STATION.get());
+            e.accept(Items.ITEM_ROCKET_FUEL_BUCKET.get());
+            e.accept(Blocks.LAUNCH_STATION.get());
+            e.accept(Blocks.ROCKET_ITEM_LOADER.get());
 
-            e.accept(Registry.SPACE_STATION_ASSEMBLER.get());
-            e.accept(Registry.STATION_CONTROLLER.get());
-            e.accept(Registry.ORIENTATION_CONTROLLER.get());
-            e.accept(Registry.WARP_CONTROLLER.get());
+            e.accept(Blocks.SPACE_STATION_ASSEMBLER.get());
+            e.accept(Blocks.STATION_CONTROLLER.get());
+            e.accept(Blocks.ORIENTATION_CONTROLLER.get());
+            e.accept(Blocks.WARP_CONTROLLER.get());
 
-            e.accept(Registry.ITEM_LINKER.get());
-            e.accept(Registry.ITEM_GALAXY_DATABASE.get());
-            e.accept(Registry.ITEM_PLANET_ID_CHIP.get());
-            e.accept(Registry.ITEM_DATA_STORAGE.get());
+            e.accept(Items.ITEM_LINKER.get());
+            e.accept(Items.ITEM_GALAXY_DATABASE.get());
+            e.accept(Items.ITEM_PLANET_ID_CHIP.get());
+            e.accept(Items.ITEM_DATA_STORAGE.get());
 
-            e.accept(Registry.DATA_STORAGE_BLOCK.get());
+            e.accept(Blocks.DATA_STORAGE_BLOCK.get());
 
-            e.accept(Registry.SOLAR_PANEL.get());
+            e.accept(Blocks.SOLAR_PANEL.get());
 
-            e.accept(Registry.OBSERVATORY.get());
+            e.accept(Blocks.OBSERVATORY.get());
 
-            e.accept(Registry.OXYGEN_VENT.get());
+            e.accept(Blocks.OXYGEN_VENT.get());
 
-            e.accept(Registry.MOON_TURF.get());
-            e.accept(Registry.MOON_TURF_DARK.get());
+            e.accept(Blocks.MOON_TURF.get());
+            e.accept(Blocks.MOON_TURF_DARK.get());
         }
     }
 }

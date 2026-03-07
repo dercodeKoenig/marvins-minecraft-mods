@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_SOLAR_PANEL;
+import static advRocketry.Registry.BlockEntities.ENTITY_SOLAR_PANEL;
 
 public class SolarPanel extends Block implements EntityBlock {
     public SolarPanel() {

@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_WARP_CONTROLLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_WARP_CONTROLLER;
 
 public class WarpController extends Block implements EntityBlock {
     public WarpController() {

@@ -1,7 +1,7 @@
 package advRocketry.BlockEntities;
 
 import advRocketry.Items.ItemLinker;
-import advRocketry.Registry;
+import advRocketry.Registry.Blocks;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -57,7 +57,7 @@ public class EntityRocketInfrastructureBase extends BlockEntity implements ItemL
     public boolean link(BlockPos otherpos, Level otherLevel) {
         if (otherLevel == level) {
             Block otherBlock = level.getBlockState(otherpos).getBlock();
-            if (otherBlock.equals(Registry.ROCKET_ASSEMBLER.get())) {
+            if (otherBlock.equals(Blocks.ROCKET_ASSEMBLER.get())) {
                 if (otherpos.getCenter().distanceTo(getBlockPos().getCenter()) < maxDistance) {
                     linkedAssemblerPos = otherpos;
                     return true;

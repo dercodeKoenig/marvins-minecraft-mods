@@ -1,11 +1,5 @@
 package advRocketry.BlockEntities;
 
-import ARLib.blockentities.EntityFluidInputBlock;
-import ARLib.blocks.BlockFluidInputBlock;
-import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.utils.BlockEntityBattery;
 import ARLib.utils.SimpleFluidContainer;
 import advRocketry.Oxygen.OxygenSupplier;
@@ -15,7 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import static advRocketry.Registry.ENTITY_OXYGEN_VENT;
+import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 
 
 public class EntityOxygenVent extends BlockEntity {

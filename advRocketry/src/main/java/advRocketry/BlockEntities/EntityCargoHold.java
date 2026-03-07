@@ -1,7 +1,6 @@
 package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import net.minecraft.core.BlockPos;
@@ -15,7 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
-import static advRocketry.Registry.ENTITY_CARGO_HOLD;
+import static advRocketry.Registry.BlockEntities.ENTITY_CARGO_HOLD;
 
 public class EntityCargoHold extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 

@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_STATION_CONTROLLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_STATION_CONTROLLER;
 
 public class StationController extends Block implements EntityBlock {
     public StationController() {

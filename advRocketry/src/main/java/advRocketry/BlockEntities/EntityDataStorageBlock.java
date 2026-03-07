@@ -21,9 +21,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
-import javax.xml.crypto.Data;
-
-import static advRocketry.Registry.ENTITY_DATA_STORAGE_BLOCK;
+import static advRocketry.Registry.BlockEntities.ENTITY_DATA_STORAGE_BLOCK;
 
 public class EntityDataStorageBlock extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 

@@ -10,7 +10,7 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Items.ItemGalaxyDatabase;
-import advRocketry.Registry;
+import advRocketry.Registry.Items;
 import advRocketry.Render.starmap.GuiModulePlanetView;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.ClientUtils;
@@ -31,7 +31,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_WARP_CONTROLLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_WARP_CONTROLLER;
 
 public class EntityWarpController extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
@@ -49,7 +49,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiHandler = new GuiHandlerBlockEntity(this);
         galaxyStorage = new ItemStackHandler(1) {
             public boolean isItemValid(int slot, ItemStack stack) {
-                return stack.getItem().equals(Registry.ITEM_GALAXY_DATABASE.get());
+                return stack.getItem().equals(Items.ITEM_GALAXY_DATABASE.get());
             }
 
             public void onContentsChanged(int slot) {

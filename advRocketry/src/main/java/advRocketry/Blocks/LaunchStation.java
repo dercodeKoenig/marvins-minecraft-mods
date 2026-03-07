@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_LAUNCH_STATION;
+import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
 
 public class LaunchStation extends Block implements EntityBlock {
 

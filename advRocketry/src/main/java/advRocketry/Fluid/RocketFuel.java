@@ -1,6 +1,7 @@
 package advRocketry.Fluid;
 
-import advRocketry.Registry;
+import advRocketry.Registry.GeneralRegistry;
+import advRocketry.Registry.Items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
@@ -10,7 +11,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -19,12 +19,12 @@ import net.neoforged.neoforge.fluids.FluidType;
 public class RocketFuel extends Fluid {
     @Override
     public Item getBucket() {
-        return Registry.ROCKET_FUEL_BUCKET.get();
+        return Items.ITEM_ROCKET_FUEL_BUCKET.get();
     }
 
     @Override
     public FluidType getFluidType() {
-        return Registry.ROCKET_FUEL_TYPE.get();
+        return GeneralRegistry.ROCKET_FUEL_TYPE.get();
     }
 
     @Override

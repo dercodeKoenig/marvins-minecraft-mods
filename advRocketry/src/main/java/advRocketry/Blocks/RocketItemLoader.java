@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.ENTITY_ROCKET_ITEM_LOADER;
+import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ITEM_LOADER;
 
 public class RocketItemLoader extends Block implements EntityBlock {
 

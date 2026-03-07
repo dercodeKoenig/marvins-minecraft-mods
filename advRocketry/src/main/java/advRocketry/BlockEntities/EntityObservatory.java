@@ -13,7 +13,8 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Registry;
+import advRocketry.Registry.BlockEntities;
+import advRocketry.Registry.Items;
 import advRocketry.Render.starmap.SpaceMapScreen;
 import advRocketry.utils.AxisDirections;
 import advRocketry.utils.ClientUtils;
@@ -240,7 +241,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
 
     public EntityObservatory(BlockPos pos, BlockState state) {
-        super(Registry.ENTITY_OBSERVATORY.get(), pos, state);
+        super(BlockEntities.ENTITY_OBSERVATORY.get(), pos, state);
         //super.forwardInteractionToMaster = true;
 
         guiHandler = new GuiHandlerBlockEntity(this);
@@ -249,9 +250,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         itemStackHandler = new ItemStackHandler(3) {
             public boolean isItemValid(int slot, ItemStack stack) {
                 if (slot == STORAGE_DISK_SLOT_1 || slot == STORAGE_DISK_SLOT_2)
-                    return stack.getItem().equals(Registry.ITEM_GALAXY_DATABASE.get());
+                    return stack.getItem().equals(Items.ITEM_GALAXY_DATABASE.get());
                 if (slot == PLANET_ID_CHIP_SLOT)
-                    return stack.getItem().equals(Registry.ITEM_PLANET_ID_CHIP.get());
+                    return stack.getItem().equals(Items.ITEM_PLANET_ID_CHIP.get());
                 return false;
             }
 
@@ -951,9 +952,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     public static HashMap<Character, List<Block>> charMapping = new HashMap<>();
 
     static {
-        charMapping.put('c', List.of(Registry.OBSERVATORY.get()));
+        charMapping.put('c', List.of(advRocketry.Registry.Blocks.OBSERVATORY.get()));
         charMapping.put('s', List.of(ARLibRegistry.BLOCK_STRUCTURE.get()));
-        charMapping.put('t', List.of(Registry.STRUCTURE_TOWER.get()));
+        charMapping.put('t', List.of(advRocketry.Registry.Blocks.STRUCTURE_TOWER.get()));
         charMapping.put('g', List.of(Blocks.GLASS));
         charMapping.put('a', List.of(Blocks.AIR));
         charMapping.put('m', List.of(ARLibRegistry.BLOCK_MOTOR.get()));
@@ -962,7 +963,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 ARLibRegistry.BLOCK_ITEM_INPUT_BLOCK.get(),
                 ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get(),
                 ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get(),
-                Registry.DATA_STORAGE_BLOCK.get()
+                advRocketry.Registry.Blocks.DATA_STORAGE_BLOCK.get()
         ));
     }
 
@@ -981,7 +982,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
             return false;
         if (block.equals(ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get()))
             return false;
-        if (block.equals(Registry.DATA_STORAGE_BLOCK.get()))
+        if (block.equals(advRocketry.Registry.Blocks.DATA_STORAGE_BLOCK.get()))
             return false;
 
         return true;

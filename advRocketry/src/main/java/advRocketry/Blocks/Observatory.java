@@ -1,20 +1,14 @@
 package advRocketry.Blocks;
 
 import ARLib.multiblockCore.BlockMultiblockMaster;
-import ARLib.multiblockCore.EntityMultiblockMaster;
-import advRocketry.BlockEntities.EntityFuelingStation;
 import advRocketry.BlockEntities.EntityObservatory;
-import advRocketry.Registry;
+import advRocketry.Registry.BlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class Observatory extends BlockMultiblockMaster {
@@ -24,7 +18,7 @@ public class Observatory extends BlockMultiblockMaster {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return Registry.ENTITY_OBSERVATORY.get().create(blockPos, blockState);
+        return BlockEntities.ENTITY_OBSERVATORY.get().create(blockPos, blockState);
     }
 
     @Override

@@ -32,7 +32,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -41,7 +40,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
-import static advRocketry.Registry.ENTITY_ROCKET_ASSEMBLER;
+import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ASSEMBLER;
 
 public class EntityRocketAssembler extends BlockEntity implements ARLib.network.INetworkTagReceiver {
 
