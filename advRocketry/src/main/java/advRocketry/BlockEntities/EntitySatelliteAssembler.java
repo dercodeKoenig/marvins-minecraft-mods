@@ -2,6 +2,7 @@ package advRocketry.BlockEntities;
 
 import ARLib.ARLib;
 import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
@@ -24,6 +25,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.spi.AbstractResourceBundleProvider;
 
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_SATELLITE_ASSEMBLER;
 
 public class EntitySatelliteAssembler extends BlockEntity implements INetworkTagReceiver {
@@ -50,6 +52,12 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
                 new guiModuleImage(guiHandler, 40, 20, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
         );
 
+        // action buttons
+        guiModuleButton buildBtn = new guiModuleButton(1000, "build", guiHandler, 10,80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiHandler.modules.add(buildBtn);
+        guiModuleButton copyChipBtn = new guiModuleButton(1001, "copy chip", guiHandler, 80,80, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        guiHandler.modules.add(copyChipBtn);
+
         // satellite inventory slots
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 0, 0, 1, guiHandler, 150,10));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 1, 0, 1, guiHandler, 110,30));
@@ -59,8 +67,9 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 5, 0, 1, guiHandler, 130,50));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, proxyItemHandler, 6, 0, 1, guiHandler, 150,50));
 
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100,1,0,guiHandler));
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 200,1,0,guiHandler));
+        // player inventory
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 170, 100,1,0,guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 110, 200,1,0,guiHandler));
 
     }
 
@@ -127,7 +136,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
 
     public void openGui() {
         if (level.isClientSide) {
-            guiHandler.openGui(178, 168, true);
+            guiHandler.openGui(178, 198, true);
         }
     }
 
