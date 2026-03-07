@@ -322,11 +322,11 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         if (!level().isClientSide) {
-            if (passengers.keySet().contains(passenger.getUUID())) return;
+            if (passengers.containsKey(passenger.getUUID())) return;
             ArrayList<BlockPos> seats = new ArrayList<>(this.getSeatPositions());
             Collections.shuffle(seats, new Random());
             for (BlockPos seatPos : seats) {
-                if (!passengers.values().contains(seatPos)) {
+                if (!passengers.containsValue(seatPos)) {
                     passengers.put(passenger.getUUID(), seatPos);
                     break;
                 }
@@ -372,7 +372,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 this.lerpDeltaMovementSteps = 20 * 10;
             else
                 // normal lerp on ground
-                this.lerpDeltaMovementSteps = 20 * 1;
+                this.lerpDeltaMovementSteps = 20;
         }
     }
 
@@ -409,8 +409,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Vec3 movement = new Vec3(targetX, targetY, targetZ).subtract(new Vec3(getX(), getY(), getZ())).scale(d0);
         move(MoverType.SELF, movement);
 
-        float f = (float) Mth.rotLerp(d0, (double) this.getYRot(), targetYRot);
-        float f1 = (float) Mth.lerp(d0, (double) this.getXRot(), targetXRot);
+        float f = (float) Mth.rotLerp(d0, this.getYRot(), targetYRot);
+        float f1 = (float) Mth.lerp(d0, this.getXRot(), targetXRot);
         this.setRot(f, f1);
     }
 
