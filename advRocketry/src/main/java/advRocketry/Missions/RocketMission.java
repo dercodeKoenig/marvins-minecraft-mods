@@ -1,9 +1,15 @@
 package advRocketry.Missions;
 
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.Rocket.RocketPrograms.ProgramNavigateToPlanetPosition;
+import advRocketry.Rocket.RocketPrograms.ProgramNavigateToSpaceStation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
@@ -15,16 +21,16 @@ public class RocketMission {
     public long completeTime;
     CompoundTag rocketTag;
     UUID missionID;
-    ResourceLocation homeLevelId;
-    // last launch pos is in rocket save data
+    ResourceLocation returnLevelId;
+    BlockPos returnPos;
 
     public void completeMission() {
-
+        restoreRocket();
     }
 
-    public void startMission(EntityRocket rocket, long completeTime, UUID missionID) {
-        this.homeLevelId = rocket.level().dimension().location();
-        rocket
+    public void startMission(EntityRocket rocket, long completeTime, UUID missionID, ResourceLocation landingLevel, BlockPos landingPos) {
+        this.returnLevelId = landingLevel;
+        this.returnPos = landingPos;
         this.missionID = missionID;
         this.completeTime = completeTime;
         rocketTag = new CompoundTag();
@@ -33,12 +39,31 @@ public class RocketMission {
         MissionManager.missions.put(this.missionID, this);
     }
 
-    public EntityRocket restoreRocket(Level level, BlockPos pos) {
-        EntityRocket rocket = ENTITY_ROCKET.get().create(level);
+    public EntityRocket restoreRocket() {
+        Level level = DimensionManager.getServerLevel(returnLevelId);
+        EntityRocket rocket = ENTITY_ROCKET.get().create(level); // <- level() in rocket should not be null
         rocket.readAdditionalSaveData(rocketTag);
-        rocket.setPos(pos.getCenter());
-        rocket.setDeltaMovement(0,0,0);
+        rocket.setDeltaMovement(0, 0, 0);
+
+        Dimension returnDim = DimensionManager.INSTANCE_SERVER.get(returnLevelId);
+        if (returnDim instanceof SpaceStationDimension spaceStationDimension) {
+            // create the program
+            ProgramNavigateToSpaceStation program = new ProgramNavigateToSpaceStation(rocket, returnLevelId, returnPos);
+            // let the program find the spawn position
+            program.teleportToStation(rocket);
+            // set the program
+            rocket.setProgramAndSync(program);
+        } else {
+            // assume planet dimension
+            ProgramNavigateToPlanetPosition program = new ProgramNavigateToPlanetPosition(rocket, returnLevelId, returnPos);
+            // let the program find the spawn position
+            program.teleportToPlanet(rocket);
+            // set program
+            rocket.setProgramAndSync(program);
+        }
+
         level.addFreshEntity(rocket);
+
         return rocket;
     }
 
@@ -47,6 +72,8 @@ public class RocketMission {
         tag.put("rocket", rocketTag);
         tag.putLong("completeTime", completeTime);
         tag.putUUID("missionID", missionID);
+        tag.putString("returnLevelId", returnLevelId.toString());
+        tag.put("returnPos", NbtUtils.writeBlockPos(returnPos));
         return tag;
     }
 
@@ -54,5 +81,7 @@ public class RocketMission {
         rocketTag = tag.getCompound("rocket");
         completeTime = tag.getLong("completeTime");
         missionID = tag.getUUID("missionID");
+        returnLevelId = ResourceLocation.parse(tag.getString("returnLevelId"));
+        returnPos = NbtUtils.readBlockPos(tag, "returnPos").get();
     }
 }

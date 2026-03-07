@@ -196,7 +196,7 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
         }
     }
 
-    void teleportToStation(EntityRocket rocket) {
+    public void teleportToStation(EntityRocket rocket) {
         if(rocket.level().isClientSide) return;
 
         ServerLevel targetLevel = DimensionManager.getServerLevel(targetDimensionId);

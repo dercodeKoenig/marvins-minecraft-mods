@@ -210,7 +210,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         }
     }
 
-    void teleportToPlanet(EntityRocket rocket) {
+    public void teleportToPlanet(EntityRocket rocket) {
         if(rocket.level().isClientSide)return;
 
         // get the teleportation target
