@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ItemSatellite extends Item {
     public ItemSatellite() {
-        super(new Properties().stacksTo(16));
+        super(new Properties().stacksTo(1));
     }
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {

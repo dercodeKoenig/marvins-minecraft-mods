@@ -41,7 +41,7 @@ public class Satellite {
     }
 
     public Pair<Boolean, String> validateBuild(){
-        return Pair.of(true, "");
+        return Pair.of(false, "base class is no valid satellite");
     }
 
     public String getName(){

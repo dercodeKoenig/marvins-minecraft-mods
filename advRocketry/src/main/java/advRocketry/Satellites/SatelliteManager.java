@@ -31,6 +31,7 @@ public class SatelliteManager {
     }
 
     public static void addTickingSatellite(Satellite satellite) {
+        System.out.println("[SatelliteManager] satellite deployed: " + satellite.getName() + ":" + satellite.uuid);
         satellites.put(satellite.uuid, satellite);
         requiresCacheUpdate = true;
     }
