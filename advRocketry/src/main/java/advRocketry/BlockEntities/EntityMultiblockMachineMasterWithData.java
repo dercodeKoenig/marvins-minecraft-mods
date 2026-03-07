@@ -1,13 +1,11 @@
 package advRocketry.BlockEntities;
 
-import ARLib.blockentities.EntityEnergyInputBlock;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import advRocketry.Data.DataStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.apache.logging.log4j.core.appender.db.jdbc.DataSourceConnectionSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,28 +34,55 @@ abstract public class EntityMultiblockMachineMasterWithData extends EntityMultib
         super.onStructureComplete();
     }
 
-    public int getData(String type, List<EntityDataStorageBlock> dataTiles){
+    /**
+     * @param type       the data type
+     * @param dataTiles  the list of data tiles to consider
+     * @param exactMatch true: type must match exactly, false: only base type must match
+     * @return amount of data of the given type
+     */
+    public int getData(String type, List<EntityDataStorageBlock> dataTiles, boolean exactMatch) {
         int data = 0;
-        for(EntityDataStorageBlock i : dataTiles){
+        for (EntityDataStorageBlock i : dataTiles) {
             DataStack stack = i.dataStorage.getDataStack();
-            if(stack != null && stack.type.equals(type)){
-                data+=stack.amount;
+            if (stack != null) {
+                if (exactMatch && DataStack.isSameType(type, stack.type))
+                    data += stack.amount;
+                if (!exactMatch && DataStack.isSameBaseType(type, stack.type))
+                    data += stack.amount;
             }
         }
         return data;
     }
 
-    public void consumeData(String type, int toConsume, List<EntityDataStorageBlock> dataTiles) {
+
+    /**
+     * extracts data of the given type
+     * @param type       the data type
+     * @param dataTiles  the list of data tiles to consider
+     * @param exactMatch true: type must match exactly, false: only base type must match
+     * @return DataStack extracted
+     */
+    public DataStack extractData(String type, int toConsume, List<EntityDataStorageBlock> dataTiles, boolean exactMatch) {
         int consumed = 0;
         for (EntityDataStorageBlock i : dataTiles) {
             int remaining = toConsume - consumed;
-            if(remaining == 0)
-                return;
+            if (remaining == 0)
+                break;
             DataStack stack = i.dataStorage.extractData(remaining, true);
-            if (stack != null && stack.type.equals(type)) {
-                consumed += i.dataStorage.extractData(remaining, false).amount;
+            if (stack != null) {
+                if (exactMatch && DataStack.isSameType(type, stack.type))
+                    consumed += i.dataStorage.extractData(remaining, false).amount;
+                if (!exactMatch && DataStack.isSameBaseType(type, stack.type))
+                    consumed += i.dataStorage.extractData(remaining, false).amount;
             }
         }
+        if (consumed == 0)
+            return null;
+
+        String targetType = type;
+        if (!exactMatch)
+            targetType = DataStack.split(targetType).getFirst();
+        return new DataStack(targetType, consumed);
     }
 
     public List<EntityDataStorageBlock> getDataTiles() {

@@ -529,7 +529,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
                 int energy = this.getTotalEnergyStored(energyInputBlocks);
                 int maxEnergy = this.getMaxEnergyStored(energyInputBlocks);
-                int data = this.getData(REQUIRED_DATA, dataTiles);
+                int data = this.getData(REQUIRED_DATA, dataTiles, false);
 
                 // update energy status
                 boolean newHasEnoughEnergy = energy > Config.INSTANCE.observatory_Energy_Per_Tick;
@@ -568,7 +568,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 s += ": " + targetPlanet.getName();
                             }
                         }
-                        if (task == Task.SCANNING_FOR_PLANETS && getData(REQUIRED_DATA, dataTiles) == 0) {
+                        if (task == Task.SCANNING_FOR_PLANETS && getData(REQUIRED_DATA, dataTiles, false) == 0) {
                             s += "\n(" + REQUIRED_DATA + " data would help)";
                         }
                         statusText.setTextAndSync(s);
@@ -679,7 +679,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     } else {
                         if (hasEnoughEnergy && hasEnoughData) {
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
-                            consumeData(REQUIRED_DATA,1,dataTiles);
+                            extractData(REQUIRED_DATA,1,dataTiles, false);
                             ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, taskTarget);
                             if (info == null)
                                 // should not happen, but just to be safe

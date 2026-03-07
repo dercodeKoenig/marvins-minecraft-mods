@@ -40,7 +40,19 @@ public class DataStack {
     }
 
     public static boolean isSameType(DataStack first, DataStack second) {
-        return Objects.equals(first.type, second.type);
+        return isSameType(first.type, second.type);
+    }
+
+    public static boolean isSameType(String first, String second) {
+        return Objects.equals(first, second);
+    }
+
+    public static boolean isSameBaseType(DataStack first, DataStack second) {
+        return isSameBaseType(first.type, second.type);
+    }
+
+    public static boolean isSameBaseType(String first, String second) {
+        return Objects.equals(DataStack.split(first).getFirst(), DataStack.split(second).getFirst());
     }
 
     @Nullable
