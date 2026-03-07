@@ -36,7 +36,7 @@ public class DataStack {
         if (dimId == null)
             return baseType;
         else
-            return baseType + ":" + dimId.toString();
+            return baseType + ":" + dimId;
     }
 
     public static boolean isSameType(DataStack first, DataStack second) {
