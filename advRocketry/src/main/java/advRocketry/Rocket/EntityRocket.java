@@ -60,6 +60,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
+import static advRocketry.Registry.GeneralRegistry.ENTITY_ROCKET;
+
 public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     // rocket structure
@@ -126,7 +128,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public static EntityRocket create(Level level, Map<BlockPos, BlockState> blocks, Map<BlockPos, BlockEntity> blockEntities, Vec3i size, Vec3 front) {
-        EntityRocket rocket = new EntityRocket(GeneralRegistry.ENTITY_ROCKET.get(), level);
+        EntityRocket rocket = ENTITY_ROCKET.get().create(level);
         rocket.blockEntities = blockEntities;
         rocket.blocks = blocks;
         rocket.controller.setHeadingAndFrontDirect(new Vec3(0, 1, 0), front);
@@ -700,12 +702,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     /// / save, load and sync ////
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+    public void readAdditionalSaveData(CompoundTag compoundTag) {
         RocketSaveAndLoad.readAdditionalSaveData(this, compoundTag);
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+    public void addAdditionalSaveData(CompoundTag compoundTag) {
         RocketSaveAndLoad.addAdditionalSaveData(this, compoundTag);
     }
 

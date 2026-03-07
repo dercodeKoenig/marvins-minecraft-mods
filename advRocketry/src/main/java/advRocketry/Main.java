@@ -6,6 +6,7 @@ import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
+import advRocketry.Missions.MissionManager;
 import advRocketry.Oxygen.OxygenSystem;
 import advRocketry.Particles.RocketParticleEngine;
 import advRocketry.Particles.RocketParticleProvider;
@@ -16,6 +17,7 @@ import advRocketry.Registry.Items;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
+import advRocketry.Satellites.SatelliteManager;
 import advRocketry.Utils.ClientUtils;
 import advRocketry.Worldgen.BiomeConfig;
 
@@ -155,6 +157,8 @@ public class Main {
         GlobalTime.tickServer();
         ForcedChunkManager.tick();
         OxygenSystem.serverTick();
+        SatelliteManager.serverTick();
+        MissionManager.serverTick();
     }
 
     void onClientTick(ClientTickEvent.Post event) {
@@ -176,14 +180,18 @@ public class Main {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + worldPath);
         GlobalTime.load(); // important to load the time first!
-        DimensionManager.INSTANCE_SERVER.onServerStart();
+        DimensionManager.INSTANCE_SERVER.onServerStart(); // create dimensions next
         ForcedChunkManager.restoreForcedChunks(); // restore forced chunks after dimensions are created
+        MissionManager.onServerStart();
+        SatelliteManager.onServerStart();
     }
 
     void onServerStop(ServerStoppingEvent event) {
-        GlobalTime.save();
+        SatelliteManager.onServerStop();
+        MissionManager.onServerStop();
         ForcedChunkManager.saveForcedChunks();
         DimensionManager.INSTANCE_SERVER.onServerStop();
+        GlobalTime.save();
     }
 
     void onRenderStage(RenderLevelStageEvent event) {
