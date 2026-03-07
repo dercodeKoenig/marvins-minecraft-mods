@@ -40,20 +40,9 @@ public class SatelliteDataCollectorBase extends Satellite {
 
     public void tick() {
         super.tick();
-
         if (getEnergyStored() > energyPerData && insertOneDataUnit(dataTypeToGenerate, true) == 1) {
             extractEnergy(energyPerData);
             insertOneDataUnit(dataTypeToGenerate, false);
         }
-    }
-
-
-    public CompoundTag serialize(HolderLookup.Provider registries) {
-        CompoundTag tag = super.serialize(registries);
-        return tag;
-    }
-
-    public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
-        super.deserialize(tag, registries);
     }
 }

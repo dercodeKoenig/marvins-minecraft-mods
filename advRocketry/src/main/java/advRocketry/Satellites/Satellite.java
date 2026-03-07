@@ -1,16 +1,12 @@
 package advRocketry.Satellites;
 
-import advRocketry.Data.DataStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
-
-import static advRocketry.Registry.Items.ITEM_SOLAR_PANEL;
 
 public class Satellite {
     ItemStackHandler inventory;
