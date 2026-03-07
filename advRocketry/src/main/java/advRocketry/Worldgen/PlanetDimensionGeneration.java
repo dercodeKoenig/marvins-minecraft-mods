@@ -1,4 +1,4 @@
-package advRocketry.worldgen;
+package advRocketry.Worldgen;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;

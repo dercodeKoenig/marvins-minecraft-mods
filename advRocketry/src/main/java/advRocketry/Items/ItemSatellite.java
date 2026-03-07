@@ -2,7 +2,7 @@ package advRocketry.Items;
 
 import advRocketry.Satellites.Satellite;
 import advRocketry.Satellites.SatelliteRegistry;
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;

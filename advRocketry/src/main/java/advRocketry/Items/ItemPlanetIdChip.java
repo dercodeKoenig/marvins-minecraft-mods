@@ -2,7 +2,7 @@ package advRocketry.Items;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

@@ -5,7 +5,7 @@ import advRocketry.GlobalTime;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
-import advRocketry.utils.CelestialUtils;
+import advRocketry.Utils.CelestialUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
@@ -20,8 +20,8 @@ import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
 
-import static advRocketry.utils.CelestialUtils.fromAU;
-import static advRocketry.utils.CelestialUtils.fromEarthMasses;
+import static advRocketry.Utils.CelestialUtils.fromAU;
+import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class SpaceMapScreen extends Screen {

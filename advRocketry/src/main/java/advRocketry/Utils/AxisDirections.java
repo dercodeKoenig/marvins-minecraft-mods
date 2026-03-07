@@ -1,4 +1,4 @@
-package advRocketry.utils;
+package advRocketry.Utils;
 
 import net.minecraft.world.phys.Vec3;
 

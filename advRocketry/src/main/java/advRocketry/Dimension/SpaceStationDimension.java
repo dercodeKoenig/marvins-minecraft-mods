@@ -2,11 +2,11 @@ package advRocketry.Dimension;
 
 import advRocketry.Config;
 import advRocketry.GlobalTime;
-import advRocketry.utils.AxisDirections;
-import advRocketry.utils.CelestialUtils;
-import advRocketry.utils.ClientUtils;
-import advRocketry.utils.SpaceNavigation;
-import advRocketry.worldgen.SpaceDimensionGeneration;
+import advRocketry.Utils.AxisDirections;
+import advRocketry.Utils.CelestialUtils;
+import advRocketry.Utils.ClientUtils;
+import advRocketry.Utils.SpaceNavigation;
+import advRocketry.Worldgen.SpaceDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +20,7 @@ import org.joml.Vector3f;
 
 import java.util.Objects;
 
-import static advRocketry.utils.CelestialUtils.getPlanetRenderRadiusAU;
+import static advRocketry.Utils.CelestialUtils.getPlanetRenderRadiusAU;
 
 public class SpaceStationDimension extends Dimension {
 

@@ -4,7 +4,7 @@ import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
 import advRocketry.Data.IItemDataStorage;
 import advRocketry.Satellites.SatelliteEquipment;
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;

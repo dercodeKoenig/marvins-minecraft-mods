@@ -5,8 +5,7 @@ import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketProgram;
-import advRocketry.utils.Utils;
-import mezz.jei.library.gui.recipes.layout.builder.IngredientAcceptorVoid;
+import advRocketry.Utils.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -16,7 +15,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.Objects;
 

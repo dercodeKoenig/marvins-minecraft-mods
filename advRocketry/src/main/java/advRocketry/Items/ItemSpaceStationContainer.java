@@ -1,6 +1,6 @@
 package advRocketry.Items;
 
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;

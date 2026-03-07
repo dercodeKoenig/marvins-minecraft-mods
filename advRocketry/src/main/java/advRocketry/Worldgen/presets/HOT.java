@@ -1,8 +1,6 @@
-package advRocketry.worldgen.presets;
+package advRocketry.Worldgen.presets;
 
-import advRocketry.worldgen.BiomeConfig;
-
-import java.util.List;
+import advRocketry.Worldgen.BiomeConfig;
 
 public class HOT {
     public static String name = "hot.json";

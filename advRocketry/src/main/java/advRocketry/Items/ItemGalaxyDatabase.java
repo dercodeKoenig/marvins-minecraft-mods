@@ -1,7 +1,7 @@
 package advRocketry.Items;
 
 import advRocketry.Config;
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

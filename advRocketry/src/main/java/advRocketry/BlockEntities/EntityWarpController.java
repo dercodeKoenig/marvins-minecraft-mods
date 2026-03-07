@@ -13,7 +13,7 @@ import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Registry.Items;
 import advRocketry.Render.starmap.GuiModulePlanetView;
 import advRocketry.Render.starmap.SpaceMapScreen;
-import advRocketry.utils.ClientUtils;
+import advRocketry.Utils.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;

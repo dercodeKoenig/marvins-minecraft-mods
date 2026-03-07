@@ -1,4 +1,4 @@
-package advRocketry.worldgen;
+package advRocketry.Worldgen;
 
 import advRocketry.Main;
 import advRocketry.Registry.Blocks;

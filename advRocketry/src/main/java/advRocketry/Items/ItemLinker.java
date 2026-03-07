@@ -3,7 +3,7 @@ package advRocketry.Items;
 import ARLib.utils.DimensionUtils;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -24,8 +24,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.List;
 
-import static advRocketry.utils.ItemUtils.getStacktagOrEmpty;
-import static advRocketry.utils.ItemUtils.setTag;
+import static advRocketry.Utils.ItemUtils.getStacktagOrEmpty;
+import static advRocketry.Utils.ItemUtils.setTag;
 
 public class ItemLinker extends Item {
     public ItemLinker() {

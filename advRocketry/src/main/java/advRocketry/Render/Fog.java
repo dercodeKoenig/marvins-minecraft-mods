@@ -1,11 +1,7 @@
 package advRocketry.Render;
 
 import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.utils.ClientUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
+import advRocketry.Utils.ClientUtils;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 import org.joml.Vector3f;
 

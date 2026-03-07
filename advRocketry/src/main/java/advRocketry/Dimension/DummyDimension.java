@@ -1,8 +1,6 @@
 package advRocketry.Dimension;
 
-import advRocketry.Main;
-import advRocketry.utils.AxisDirections;
-import net.minecraft.resources.ResourceLocation;
+import advRocketry.Utils.AxisDirections;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 

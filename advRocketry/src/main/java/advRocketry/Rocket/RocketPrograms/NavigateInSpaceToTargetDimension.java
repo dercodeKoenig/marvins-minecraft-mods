@@ -6,10 +6,9 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.RocketTravelDimension;
 import advRocketry.Rocket.EntityRocket;
-import advRocketry.utils.CelestialUtils;
-import advRocketry.utils.SpaceNavigation;
+import advRocketry.Utils.CelestialUtils;
+import advRocketry.Utils.SpaceNavigation;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;

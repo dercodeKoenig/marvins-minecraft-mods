@@ -1,4 +1,4 @@
-package advRocketry.worldgen;
+package advRocketry.Worldgen;
 
 import advRocketry.Main;
 import com.google.gson.Gson;
@@ -16,7 +16,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import static advRocketry.utils.Utils.getBiomeHolder;
+import static advRocketry.Utils.Utils.getBiomeHolder;
 
 /*
 maybe select like this:

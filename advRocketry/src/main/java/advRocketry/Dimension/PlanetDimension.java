@@ -1,11 +1,11 @@
 package advRocketry.Dimension;
 
 import advRocketry.GlobalTime;
-import advRocketry.utils.AxisDirections;
-import advRocketry.utils.CelestialUtils;
-import advRocketry.utils.ClientUtils;
-import advRocketry.worldgen.BiomeConfig;
-import advRocketry.worldgen.PlanetDimensionGeneration;
+import advRocketry.Utils.AxisDirections;
+import advRocketry.Utils.CelestialUtils;
+import advRocketry.Utils.ClientUtils;
+import advRocketry.Worldgen.BiomeConfig;
+import advRocketry.Worldgen.PlanetDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -21,8 +21,8 @@ import org.joml.Vector3f;
 import javax.annotation.Nullable;
 import java.util.OptionalLong;
 
-import static advRocketry.utils.CelestialUtils.fromAU;
-import static advRocketry.utils.CelestialUtils.fromEarthMasses;
+import static advRocketry.Utils.CelestialUtils.fromAU;
+import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
 public class PlanetDimension extends Dimension {
 

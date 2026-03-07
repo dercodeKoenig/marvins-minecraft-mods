@@ -1,6 +1,6 @@
-package advRocketry.worldgen.presets;
+package advRocketry.Worldgen.presets;
 
-import advRocketry.worldgen.BiomeConfig;
+import advRocketry.Worldgen.BiomeConfig;
 
 import java.util.List;
 

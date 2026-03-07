@@ -1,26 +1,15 @@
 package advRocketry.BlockEntityRenderers;
 
 import ARLib.multiblockCore.BlockMultiblockMaster;
-import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.Static;
 import ARLib.obj.WavefrontObject;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.Blocks.Observatory;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Main;
-import advRocketry.utils.AxisDirections;
-import com.mojang.blaze3d.shaders.Uniform;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.datafixers.util.Pair;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
@@ -28,16 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
-
-import java.util.Objects;
-
-import static net.minecraft.client.renderer.RenderStateShard.*;
-import static net.minecraft.client.renderer.RenderStateShard.NO_TRANSPARENCY;
 
 public class RenderObservatory implements BlockEntityRenderer<EntityObservatory> {
 

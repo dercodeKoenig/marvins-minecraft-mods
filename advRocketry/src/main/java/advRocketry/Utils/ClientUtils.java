@@ -1,4 +1,4 @@
-package advRocketry.utils;
+package advRocketry.Utils;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;

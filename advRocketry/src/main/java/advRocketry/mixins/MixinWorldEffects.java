@@ -1,11 +1,8 @@
 package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.utils.ClientUtils;
-import net.minecraft.client.Minecraft;
+import advRocketry.Utils.ClientUtils;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
-import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

@@ -16,12 +16,12 @@ import advRocketry.Registry.Items;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
-import advRocketry.utils.ClientUtils;
-import advRocketry.worldgen.BiomeConfig;
+import advRocketry.Utils.ClientUtils;
+import advRocketry.Worldgen.BiomeConfig;
 
-import advRocketry.worldgen.presets.HOT;
-import advRocketry.worldgen.presets.HOT_DRY;
-import advRocketry.worldgen.presets.MOON;
+import advRocketry.Worldgen.presets.HOT;
+import advRocketry.Worldgen.presets.HOT_DRY;
+import advRocketry.Worldgen.presets.MOON;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;

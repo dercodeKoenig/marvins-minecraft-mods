@@ -1,8 +1,7 @@
 package advRocketry.Dimension;
 
-import advRocketry.worldgen.presets.HOT;
-import advRocketry.worldgen.presets.HOT_DRY;
-import advRocketry.worldgen.presets.MOON;
+import advRocketry.Worldgen.presets.HOT;
+import advRocketry.Worldgen.presets.MOON;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;

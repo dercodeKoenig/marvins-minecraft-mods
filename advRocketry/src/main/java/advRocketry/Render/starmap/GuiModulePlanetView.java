@@ -1,15 +1,14 @@
 package advRocketry.Render.starmap;
 
 import ARLib.gui.IGuiHandler;
-import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.GuiModuleBase;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
-import advRocketry.utils.CelestialUtils;
-import advRocketry.utils.ClientUtils;
+import advRocketry.Utils.CelestialUtils;
+import advRocketry.Utils.ClientUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
@@ -23,7 +22,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL30;
 
-import java.util.Map;
 import java.util.Objects;
 
 import static net.minecraft.client.renderer.RenderStateShard.NO_DEPTH_TEST;

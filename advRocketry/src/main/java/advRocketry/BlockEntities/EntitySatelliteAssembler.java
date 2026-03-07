@@ -4,13 +4,12 @@ import ARLib.ARLib;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
-import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemSatellite;
 import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Registry.Items;
 import advRocketry.Satellites.Satellite;
 import advRocketry.Satellites.SatellitePrimaryFunction;
-import advRocketry.utils.ItemUtils;
+import advRocketry.Utils.ItemUtils;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -26,7 +25,6 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.UUID;
-import java.util.spi.AbstractResourceBundleProvider;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_SATELLITE_ASSEMBLER;

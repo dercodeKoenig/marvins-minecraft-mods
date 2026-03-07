@@ -1,4 +1,4 @@
-package advRocketry.utils;
+package advRocketry.Utils;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;

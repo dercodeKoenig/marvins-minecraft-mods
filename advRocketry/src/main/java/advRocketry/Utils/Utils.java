@@ -1,4 +1,4 @@
-package advRocketry.utils;
+package advRocketry.Utils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
