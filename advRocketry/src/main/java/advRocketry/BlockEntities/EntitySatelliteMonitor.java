@@ -10,6 +10,7 @@ import advRocketry.Data.DataStorage;
 import advRocketry.Data.SimpleDataContainer;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemDataStorage;
 import advRocketry.Items.ItemSatellite;
@@ -197,6 +198,8 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
 
             Satellite connectedSatellite = null;
             boolean isInRange = false;
+            Dimension orbitedDim = null;
+
             ItemStack satelliteChip = inventory.getStackInSlot(0);
             if (satelliteChip.getItem() instanceof ItemSatelliteIdChip) {
                 UUID uuid = ItemSatelliteIdChip.getTarget(satelliteChip);
@@ -205,11 +208,15 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                 }
             }
             if (connectedSatellite != null) {
-                Dimension orbitedDim = DimensionManager.INSTANCE_SERVER.get(connectedSatellite.parentDimensionId);
-                Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-                if (myDim != null && orbitedDim != null) {
-                    double distanceAU = myDim.getPosition(0).distanceTo(orbitedDim.getPosition(0));
-                    isInRange = distanceAU < 0.3;
+                orbitedDim = DimensionManager.INSTANCE_SERVER.get(connectedSatellite.parentDimensionId);
+                if(connectedSatellite.hasLoraModule())
+                    isInRange = true;
+                else {
+                    Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
+                    if (myDim != null && orbitedDim != null) {
+                        double distanceAU = myDim.getPosition(0).distanceTo(orbitedDim.getPosition(0));
+                        isInRange = distanceAU < 0.3;
+                    }
                 }
             }
 
@@ -255,6 +262,8 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                     newStatusText += "out of range";
                 } else {
                     newStatusText = connectedSatellite.getName() + "\n";
+                    if(orbitedDim != null)
+                        newStatusText = "orbit: " + orbitedDim.getName() + "\n";
                     newStatusText += "rf: " + connectedSatellite.getEnergyStored() + "\n";
                     if (connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
                         newStatusText += "data: " + dataCollector.getDataStored() + " / " + dataCollector.getDataCapacity();

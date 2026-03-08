@@ -20,11 +20,6 @@ public class Items {
     public static final Supplier<Item> ITEM_GALAXY_DATABASE = ITEMS.register("galaxy_database", () -> new ItemGalaxyDatabase());
     public static final Supplier<Item> ITEM_LINKER = ITEMS.register("linker", () -> new ItemLinker());
     public static final Supplier<Item> ITEM_ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(GeneralRegistry.ROCKET_FUEL.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
-    public static final Supplier<Item> ITEM_BATTERY = ITEMS.register("battery", () -> new ItemBattery());
-
-    public static final Supplier<Item> ITEM_SATELLITE = ITEMS.register("satellite", () -> new ItemSatellite());
-    public static final Supplier<Item> ITEM_SATELLITE_OPTICAL_TELESCOPE = ITEMS.register("satellite_optical_telescope", () -> new ItemSatelliteOpticalTelescope());
-    public static final Supplier<Item> ITEM_SATELLITE_ID_CHIP = ITEMS.register("satellite_id_chip", () -> new ItemSatelliteIdChip());
 
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", Blocks.LAUNCHPAD);
     public static final Supplier<Item> ITEM_STRUCTURE_TOWER = registerBlockItem("structure_tower", Blocks.STRUCTURE_TOWER);
@@ -52,6 +47,13 @@ public class Items {
     public static final Supplier<Item> ITEM_SATELLITE_ASSEMBLER = registerBlockItem("satellite_assembler", Blocks.SATELLITE_ASSEMBLER);
     public static final Supplier<Item> ITEM_LAUNCH_STATION_SATELLITE_MISSIONS = registerBlockItem("launch_station_satellite_missions", Blocks.LAUNCH_STATION_SATELLITE_MISSIONS);
     public static final Supplier<Item> ITEM_SATELLITE_MONITOR = registerBlockItem("satellite_monitor", Blocks.SATELLITE_MONITOR);
+
+    public static final Supplier<Item> ITEM_RADIATION_SHIELD = ITEMS.register("radiation_shield", () -> new ItemRadiationShield());
+    public static final Supplier<Item> ITEM_LORA_MODULE = ITEMS.register("lora_module", () -> new ItemLoraModule());
+    public static final Supplier<Item> ITEM_BATTERY = ITEMS.register("battery", () -> new ItemBattery());
+    public static final Supplier<Item> ITEM_SATELLITE = ITEMS.register("satellite", () -> new ItemSatellite());
+    public static final Supplier<Item> ITEM_SATELLITE_OPTICAL_TELESCOPE = ITEMS.register("satellite_optical_telescope", () -> new ItemSatelliteOpticalTelescope());
+    public static final Supplier<Item> ITEM_SATELLITE_ID_CHIP = ITEMS.register("satellite_id_chip", () -> new ItemSatelliteIdChip());
 
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);

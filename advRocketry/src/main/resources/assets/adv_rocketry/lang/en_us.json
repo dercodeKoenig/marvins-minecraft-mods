@@ -5,6 +5,8 @@
   "item.adv_rocketry.battery": "Battery",
   "item.adv_rocketry.item_data_storage": "Data Storage",
   "item.adv_rocketry.satellite_id_chip": "Satellite Id Chip",
+  "item.adv_rocketry.lora_module": "LoRa module",
+  "item.adv_rocketry.radiation_shield": "Radiation Shield",
 
   "item.adv_rocketry.satellite": "Satellite",
   "item.adv_rocketry.satellite_optical_telescope": "Optical Sensor",

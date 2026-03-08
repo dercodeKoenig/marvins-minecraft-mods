@@ -1,5 +1,6 @@
 package advRocketry.Satellites;
 
+import advRocketry.Registry.Items;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -11,14 +12,17 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class Satellite {
+    // data to save
     public ItemStackHandler inventory;
     public ResourceLocation parentDimensionId;
-
     public UUID uuid;
 
+    // runtime generated, "cache" data
     ArrayList<ItemStack> equipment = new ArrayList<>();
     ArrayList<ItemStack> batteries = new ArrayList<>();
     ArrayList<ItemStack> energyProducers = new ArrayList<>();
+    boolean hasRadiationShield = false;
+    boolean hasLoraModule = false;
 
     // it is required to have a constructor with no args
     public Satellite() {
@@ -33,6 +37,7 @@ public class Satellite {
                     return stack.getItem() instanceof SatelliteEquipment || stack.getItem() instanceof SatelliteBattery;
                 return false;
             }
+
             @Override
             public int getSlotLimit(int slot) {
                 return 1;
@@ -40,16 +45,16 @@ public class Satellite {
         };
     }
 
-    public Pair<Boolean, String> validateBuild(){
+    public Pair<Boolean, String> validateBuild() {
         return Pair.of(false, "base class is no valid satellite");
     }
 
-    public String getName(){
+    public String getName() {
         return "Satellite";
     }
 
     // build the list of equipment and energy storages before starting to tick
-    public void iterateEquipment(){
+    public void iterateEquipment() {
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (stack.getItem() instanceof SatelliteEnergyProducer) {
@@ -61,10 +66,15 @@ public class Satellite {
             if (stack.getItem() instanceof SatelliteEquipment) {
                 equipment.add(stack);
             }
+            if(stack.getItem().equals(Items.ITEM_LORA_MODULE))
+                hasLoraModule = true;
+            if(stack.getItem().equals(Items.ITEM_RADIATION_SHIELD))
+                hasRadiationShield = true;
         }
     }
+
     public void onDeploymentStart(ResourceLocation parentDimensionId) {
-        if(!validateBuild().getFirst()){
+        if (!validateBuild().getFirst()) {
             throw new RuntimeException("a satellite build was invalid");
         }
         this.parentDimensionId = parentDimensionId;
@@ -72,7 +82,7 @@ public class Satellite {
     }
 
     /// returns energy extracted, will extract from all batteries until amount is satisfied
-    public double extractEnergy(double amount){
+    public double extractEnergy(double amount) {
         double extracted = 0;
         for (ItemStack stack : batteries) {
             double remaining = amount - extracted;
@@ -99,6 +109,13 @@ public class Satellite {
         return total;
     }
 
+    public boolean hasLoraModule(){
+        return hasLoraModule;
+    }
+    public boolean hasRadiationShield(){
+        return hasRadiationShield;
+    }
+
     public void tick() {
         this.generateEnergyAndFillBatteries();
     }
@@ -106,18 +123,18 @@ public class Satellite {
     public CompoundTag serialize(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.put("inventory", inventory.serializeNBT(registries));
-        if(parentDimensionId != null)
+        if (parentDimensionId != null)
             tag.putString("parentDimensionId", parentDimensionId.toString());
-        if(uuid != null)
+        if (uuid != null)
             tag.putUUID("uuid", uuid);
         return tag;
     }
 
     public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
-        if(tag.contains("parentDimensionId"))
+        if (tag.contains("parentDimensionId"))
             parentDimensionId = ResourceLocation.parse(tag.getString("parentDimensionId"));
-        if(tag.contains("uuid"))
+        if (tag.contains("uuid"))
             uuid = tag.getUUID("uuid");
     }
 
