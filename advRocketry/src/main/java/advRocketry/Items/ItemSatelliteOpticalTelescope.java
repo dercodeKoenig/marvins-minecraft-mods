@@ -5,6 +5,7 @@ import advRocketry.Satellites.SatelliteOpticalTelescope;
 import advRocketry.Satellites.SatellitePrimaryFunction;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrimaryFunction {
     public ItemSatelliteOpticalTelescope() {
@@ -12,9 +13,11 @@ public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrim
     }
 
     @Override
-    public Pair<Satellite,  Pair<Boolean, String>> build(Satellite satellite) {
+    public Pair<Satellite, Pair<Boolean, String>> build(Satellite satellite, ItemStack satelliteIdChip) {
         if (satellite == null)
             return null;
+        if (!((satelliteIdChip.getItem()) instanceof ItemSatelliteIdChip))
+            return Pair.of(null, Pair.of(false, "wrong satellite id chip"));
         SatelliteOpticalTelescope telescope = new SatelliteOpticalTelescope();
         telescope.inventory = satellite.inventory;
         Pair<Boolean, String> res = telescope.validateBuild();

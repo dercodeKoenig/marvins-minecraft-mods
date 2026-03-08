@@ -115,7 +115,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
 
         ItemStack stack = satellite.inventory.getStackInSlot(0);
         if (stack.getItem() instanceof SatellitePrimaryFunction primaryFunction) {
-            Pair<Satellite, Pair<Boolean, String>> res = primaryFunction.build(satellite);
+            Pair<Satellite, Pair<Boolean, String>> res = primaryFunction.build(satellite, satelliteChip);
             Satellite resultSatellite = res.getFirst();
             if (resultSatellite != null) {
                 UUID uuid = UUID.randomUUID();
