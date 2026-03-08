@@ -142,9 +142,10 @@ public class GuiHandlerEntity implements IGuiHandler {
 
     @Override
     public void serverTick() {
-        IGuiHandler.super.serverTick();
-
         if (!playersTrackingGui.isEmpty()) {
+            // only tick modules if players tracking the gui
+            IGuiHandler.super.serverTick();
+
             // if a player has not sent a gui ping for 10 seconds, he no longer has the gui open
             // this should usually not happen because the client will unregister itself on gui close but just to be safe....
             for (UUID uid : playersTrackingGui.keySet()) {
