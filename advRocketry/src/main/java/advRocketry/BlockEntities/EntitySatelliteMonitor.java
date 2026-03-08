@@ -123,15 +123,18 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
         statusText = new guiModuleText(id++, "", guiHandler, 90, 20, 0xff000000, false);
         guiHandler.modules.add(statusText);
 
-        collectDataBtn = new guiModuleButton(btn_collect_data, "download data", guiHandler, 90, 70, 90, 20, BTN_RED, BTN_W, BTN_H);
+        collectDataBtn = new guiModuleButton(btn_collect_data, "download data", guiHandler, 90, 55, 90, 20, BTN_RED, BTN_W, BTN_H);
         guiHandler.modules.add(collectDataBtn);
 
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(17, 160, 1000, 1, 0, guiHandler));
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(17, 100, 2000, 1, 0, guiHandler));
+        guiModuleEnergy energyBar = new guiModuleEnergy(id++, battery, guiHandler, 190, 20);
+        guiHandler.modules.add(energyBar);
+
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(27, 150, 1000, 1, 0, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(27, 90, 2000, 1, 0, guiHandler));
     }
 
     public void openGui() {
-        guiHandler.openGui(216, 185, true);
+        guiHandler.openGui(216, 178, true);
     }
 
     @Override
@@ -210,12 +213,13 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                 }
             }
 
-            if (shouldCollectData && connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
+            if (shouldCollectData && connectedSatellite instanceof SatelliteDataCollectorBase dataCollector && battery.getEnergyStored() >= 10) {
                 DataStack canExtract = dataCollector.extractOneDataUnit(true);
                 int canInsert = dataStorage.insertData(canExtract, true);
                 if (canInsert > 0) {
                     dataStorage.insertData(dataCollector.extractOneDataUnit(false), false);
                     lastTimeDataReceived = GlobalTime.getGlobalTime();
+                    battery.extractEnergy(10, false);
                 }
             }
 
