@@ -1,6 +1,7 @@
 package advRocketry.Satellites;
 
 import advRocketry.Data.DataStack;
+import advRocketry.GlobalTime;
 import advRocketry.Items.ItemDataStorage;
 import net.minecraft.world.item.ItemStack;
 
@@ -11,6 +12,10 @@ public abstract class SatelliteDataCollectorBase extends Satellite {
     abstract double energyPerData();
 
     abstract String dataBaseTypeToGenerate();
+
+    abstract int getMinDataGenTicks();
+
+    long lastTimeDataCollected = 0;
 
     // returns the total data capacity of the satellite
     public int getDataCapacity() {
@@ -61,12 +66,13 @@ public abstract class SatelliteDataCollectorBase extends Satellite {
 
     public void tick() {
         super.tick();
-        if (getEnergyStored() > energyPerData()) {
+        if (getEnergyStored() > energyPerData() && lastTimeDataCollected + getMinDataGenTicks() < GlobalTime.getGlobalTime()) {
             // join base type + where it was collected
             String type = DataStack.join(dataBaseTypeToGenerate(), parentDimensionId);
             if (insertOneDataUnit(type, true) == 1) {
                 extractEnergy(energyPerData());
                 insertOneDataUnit(type, false);
+                lastTimeDataCollected = GlobalTime.getGlobalTime();
             }
         }
     }

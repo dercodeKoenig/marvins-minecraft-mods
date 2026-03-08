@@ -40,4 +40,9 @@ public class SatelliteOpticalTelescope extends SatelliteDataCollectorBase {
     String dataBaseTypeToGenerate() {
         return DataTypes.distance;
     }
+
+    @Override
+    int getMinDataGenTicks() {
+        return 20;
+    }
 }
