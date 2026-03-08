@@ -12,6 +12,9 @@
   "block.adv_rocketry.data_storage_block": "Data Hatch",
   "item.adv_rocketry.data_storage_block": "Data Hatch",
 
+  "block.adv_rocketry.satellite_monitor": "Satellite Monitor",
+  "item.adv_rocketry.satellite_monitor": "Satellite Monitor",
+
   "block.adv_rocketry.satellite_assembler": "Satellite Assembler",
   "item.adv_rocketry.satellite_assembler": "Satellite Assembler",
 

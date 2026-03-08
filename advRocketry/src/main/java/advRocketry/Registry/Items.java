@@ -51,6 +51,7 @@ public class Items {
 
     public static final Supplier<Item> ITEM_SATELLITE_ASSEMBLER = registerBlockItem("satellite_assembler", Blocks.SATELLITE_ASSEMBLER);
     public static final Supplier<Item> ITEM_LAUNCH_STATION_SATELLITE_MISSIONS = registerBlockItem("launch_station_satellite_missions", Blocks.LAUNCH_STATION_SATELLITE_MISSIONS);
+    public static final Supplier<Item> ITEM_SATELLITE_MONITOR = registerBlockItem("satellite_monitor", Blocks.SATELLITE_MONITOR);
 
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);

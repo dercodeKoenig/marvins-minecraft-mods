@@ -66,10 +66,8 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
     }
 
     public boolean isItemValid(int slot, ItemStack stack) {
-        if (stack.getItem() instanceof ItemPlanetIdChip)
-            return true;
-        if (stack.getItem() instanceof ItemSatelliteIdChip)
-            return true;
+        if (stack.getItem() instanceof ItemPlanetIdChip) return true;
+        if (stack.getItem() instanceof ItemSatelliteIdChip) return true;
         return false;
     }
 
@@ -86,32 +84,19 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
             ItemStack navigationItem = inventory.getStackInSlot(0);
 
             BlockPos landPos = linkedRocket.getDockingStationPos();
-            if (landPos == null)
-                landPos = linkedRocket.blockPosition();
+            if (landPos == null) landPos = linkedRocket.blockPosition();
 
             lastLaunchedMissionUUID = UUID.randomUUID();
 
             if (navigationItem.getItem() instanceof ItemSatelliteIdChip) {
-                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(
-                        linkedRocket,
-                        ItemSatelliteIdChip.getTarget(navigationItem),
-                        level.dimension().location(),
-                        landPos,
-                        lastLaunchedMissionUUID
-                );
+                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, ItemSatelliteIdChip.getTarget(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
 
             } else if (navigationItem.getItem() instanceof ItemPlanetIdChip) {
                 ResourceLocation targetPlanet = ItemPlanetIdChip.getSelectedDimension(navigationItem);
                 if (targetPlanet != null) {
-                    ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(
-                            linkedRocket,
-                            targetPlanet,
-                            level.dimension().location(),
-                            landPos,
-                            lastLaunchedMissionUUID
-                    );
+                    ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(linkedRocket, targetPlanet, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                     linkedRocket.setProgramAndSync(programMissionStartBase);
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
                 }
@@ -122,7 +107,7 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
     @Override
     public void tick() {
         super.tick();
-        if (level instanceof ServerLevel serverLevel) {
+        if (level instanceof ServerLevel serverLevel && !guiHandler.playersTrackingGui.isEmpty()) {
             if (lastLaunchedRocketUUID != null && serverLevel.getEntity(lastLaunchedRocketUUID) instanceof EntityRocket rocket) {
                 if (rocket.currentProgram instanceof ProgramSatelliteDeployment) {
                     statusText.setTextAndSync("starting satellite deployment");
@@ -130,35 +115,28 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                 if (rocket.currentProgram instanceof ProgramSatelliteRecovery) {
                     statusText.setTextAndSync("starting satellite recovery");
                 }
-            }
-            else if (lastLaunchedMissionUUID != null && MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission){
-                int eta = (int)(runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
-                statusText.setTextAndSync("Mission in progress, eta: "+ eta+"s");
-            }
-            else{
+            } else if (lastLaunchedMissionUUID != null && MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission) {
+                int eta = (int) (runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
+                statusText.setTextAndSync("Mission in progress, eta: " + eta + "s");
+            } else {
                 statusText.setTextAndSync("");
                 lastLaunchedMissionUUID = null;
                 lastLaunchedRocketUUID = null;
             }
-
         }
     }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (lastLaunchedMissionUUID != null)
-            tag.putUUID("lastLaunchedMissionUUID", lastLaunchedMissionUUID);
-        if (lastLaunchedRocketUUID != null)
-            tag.putUUID("lastLaunchedRocketUUID", lastLaunchedRocketUUID);
+        if (lastLaunchedMissionUUID != null) tag.putUUID("lastLaunchedMissionUUID", lastLaunchedMissionUUID);
+        if (lastLaunchedRocketUUID != null) tag.putUUID("lastLaunchedRocketUUID", lastLaunchedRocketUUID);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains("lastLaunchedMissionUUID"))
-            lastLaunchedMissionUUID = tag.getUUID("lastLaunchedMissionUUID");
-        if (tag.contains("lastLaunchedRocketUUID"))
-            lastLaunchedRocketUUID = tag.getUUID("lastLaunchedRocketUUID");
+        if (tag.contains("lastLaunchedMissionUUID")) lastLaunchedMissionUUID = tag.getUUID("lastLaunchedMissionUUID");
+        if (tag.contains("lastLaunchedRocketUUID")) lastLaunchedRocketUUID = tag.getUUID("lastLaunchedRocketUUID");
     }
 }

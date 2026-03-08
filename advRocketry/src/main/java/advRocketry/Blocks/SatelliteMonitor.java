@@ -1,6 +1,6 @@
 package advRocketry.Blocks;
 
-import advRocketry.BlockEntities.EntityLaunchStation;
+import advRocketry.BlockEntities.EntitySatelliteMonitor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
@@ -20,59 +20,42 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
+import static advRocketry.Registry.BlockEntities.ENTITY_SATELLITE_MONITOR;
 
-public class LaunchStation extends Block implements EntityBlock {
+public class SatelliteMonitor extends Block implements EntityBlock {
 
     public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
 
-    public LaunchStation() {
+    public SatelliteMonitor() {
         super(Properties.of());
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
-                .setValue(LaunchStation.STATE, LaunchStation.State.idle)
+                .setValue(SatelliteMonitor.STATE, SatelliteMonitor.State.idle)
         );
     }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_LAUNCH_STATION.get().create(blockPos, blockState);
+        return ENTITY_SATELLITE_MONITOR.get().create(blockPos, blockState);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
-        builder.add(LaunchStation.STATE);
+        builder.add(SatelliteMonitor.STATE);
         super.createBlockStateDefinition(builder);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite()).setValue(LaunchStation.STATE, LaunchStation.State.idle);
-    }
-
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        if (level.isClientSide) return;
-        if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
-            if (level.hasNeighborSignal(pos)) {
-                if (!launchStation.isRedstonePowered) {
-                    launchStation.launch();
-                    level.setBlock(pos, state.setValue(STATE, State.active), 3);
-                    launchStation.activeTimeout = 40;
-                }
-                launchStation.isRedstonePowered = true;
-            } else {
-                launchStation.isRedstonePowered = false;
-            }
-        }
+        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite()).setValue(SatelliteMonitor.STATE, SatelliteMonitor.State.idle);
     }
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
-            if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
-                launchStation.openGui();
+            if (level.getBlockEntity(pos) instanceof EntitySatelliteMonitor satelliteMonitor) {
+                satelliteMonitor.openGui();
             }
         }
         return InteractionResult.SUCCESS;
@@ -80,19 +63,21 @@ public class LaunchStation extends Block implements EntityBlock {
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation && !launchStation.isValidBlockState(newState)) {
-            launchStation.popInventory();
+        if (level.getBlockEntity(pos) instanceof EntitySatelliteMonitor satelliteMonitor && !satelliteMonitor.isValidBlockState(newState)) {
+            satelliteMonitor.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityLaunchStation::tick;
+        return EntitySatelliteMonitor::tick;
     }
 
     public enum State implements StringRepresentable {
-        idle("idle"), rocket_landed("rocket_landed"), active("active");
+        idle("idle"),
+        satellite_connected("satellite_connected"),
+        active("active");
 
         public final String name;
 

@@ -46,6 +46,7 @@ public class Blocks {
     // satellite / missions
     public static final Supplier<Block> SATELLITE_ASSEMBLER = BLOCKS.register("satellite_assembler", () -> new SatelliteAssembler());
     public static final Supplier<Block> LAUNCH_STATION_SATELLITE_MISSIONS = BLOCKS.register("launch_station_satellite_missions", () -> new LaunchStationSatelliteMissions());
+    public static final Supplier<Block> SATELLITE_MONITOR = BLOCKS.register("satellite_monitor", () -> new SatelliteMonitor());
 
 
 }

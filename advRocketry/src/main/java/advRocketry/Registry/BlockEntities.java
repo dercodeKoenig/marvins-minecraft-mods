@@ -30,4 +30,5 @@ public class BlockEntities {
 
     public static final Supplier<BlockEntityType<EntitySatelliteAssembler>> ENTITY_SATELLITE_ASSEMBLER = BLOCK_ENTITIES.register("satellite_assembler", () -> BlockEntityType.Builder.of(EntitySatelliteAssembler::new, Blocks.SATELLITE_ASSEMBLER.get()).build(null));
     public static final Supplier<BlockEntityType<EntityLaunchStationSatelliteMissions>> ENTITY_LAUNCH_STATION_SATELLITE_MISSIONS = BLOCK_ENTITIES.register("launch_station_satellite_missions", () -> BlockEntityType.Builder.of(EntityLaunchStationSatelliteMissions::new, Blocks.LAUNCH_STATION_SATELLITE_MISSIONS.get()).build(null));
+    public static final Supplier<BlockEntityType<EntitySatelliteMonitor>> ENTITY_SATELLITE_MONITOR = BLOCK_ENTITIES.register("satellite_monitor", () -> BlockEntityType.Builder.of(EntitySatelliteMonitor::new, Blocks.SATELLITE_MONITOR.get()).build(null));
 }

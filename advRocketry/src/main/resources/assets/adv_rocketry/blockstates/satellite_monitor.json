@@ -1,0 +1,56 @@
+{
+    "variants": {
+        "facing=east,state=idle": {
+            "model": "adv_rocketry:block/monitor",
+            "y": 90
+        },
+        "facing=north,state=idle": {
+            "model": "adv_rocketry:block/monitor",
+            "y": 0
+        },
+        "facing=west,state=idle": {
+            "model": "adv_rocketry:block/monitor",
+            "y": 270
+        },
+        "facing=south,state=idle": {
+            "model": "adv_rocketry:block/monitor",
+            "y": 180
+        },
+
+
+        "facing=east,state=satellite_connected": {
+            "model": "adv_rocketry:block/monitor_satellite",
+            "y": 90
+        },
+        "facing=north,state=satellite_connected": {
+            "model": "adv_rocketry:block/monitor_satellite",
+            "y": 0
+        },
+        "facing=west,state=satellite_connected": {
+            "model": "adv_rocketry:block/monitor_satellite",
+            "y": 270
+        },
+        "facing=south,state=satellite_connected": {
+            "model": "adv_rocketry:block/monitor_satellite",
+            "y": 180
+        },
+
+
+        "facing=east,state=active": {
+            "model": "adv_rocketry:block/monitor_satellite_active",
+            "y": 90
+        },
+        "facing=north,state=active": {
+            "model": "adv_rocketry:block/monitor_satellite_active",
+            "y": 0
+        },
+        "facing=west,state=active": {
+            "model": "adv_rocketry:block/monitor_satellite_active",
+            "y": 270
+        },
+        "facing=south,state=active": {
+            "model": "adv_rocketry:block/monitor_satellite_active",
+            "y": 180
+        }
+    }
+}
