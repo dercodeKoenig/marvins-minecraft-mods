@@ -46,7 +46,7 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
 
         progressBar = new guiModuleVerticalProgressBar(0, guiHandler, 10, 10);
         progressBar.progress = 0;
-        progressBar.bar = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_vertical_progress_bar_green.png");
+        progressBar.bar = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/gui_vertical_progress_bar_green.png");
         guiHandler.modules.add(progressBar);
 
 
@@ -62,7 +62,7 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         // because it allows players to block the lower slot with a fully filled disk so it writes only full disks
         guiHandler.modules.add(new guiModuleItemHandlerSlot(1, itemStackHandler, 0, 0, 1, guiHandler, 30, 10));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(2, itemStackHandler, 1, 0, 1, guiHandler, 30, 45));
-        ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png");
+        ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/arrow_down.png");
         guiHandler.modules.add(new guiModuleImage(guiHandler, 30, 28, 16, 16, arrow, 12, 16));
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 1000, 1, 0, guiHandler));

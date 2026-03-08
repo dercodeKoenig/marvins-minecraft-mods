@@ -1,6 +1,5 @@
 package advRocketry.BlockEntities;
 
-import ARLib.ARLib;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
@@ -51,7 +50,7 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_main_slot, 0, 1, guiHandler, 20, 45));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, chip_slot_2, 0, 1, guiHandler, 70, 45));
         guiHandler.modules.add(
-                new guiModuleImage(guiHandler, 40, 30, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
+                new guiModuleImage(guiHandler, 40, 30, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
         );
 
         // action buttons

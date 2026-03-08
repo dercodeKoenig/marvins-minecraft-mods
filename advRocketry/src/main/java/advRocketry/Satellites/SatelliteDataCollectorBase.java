@@ -22,6 +22,18 @@ public abstract class SatelliteDataCollectorBase extends Satellite {
         }
         return total;
     }
+    // returns the total data stored in the satellite
+    public int getDataStored() {
+        int total = 0;
+        for (ItemStack stack : this.equipment) {
+            if (stack.getItem() instanceof ItemDataStorage itemDataStorage) {
+                DataStack dataStack = itemDataStorage.getDataStack(stack);
+                if(dataStack != null)
+                    total += dataStack.amount;
+            }
+        }
+        return total;
+    }
 
     @Nullable
     // extract 1 data unit from the first data storage that contains any data

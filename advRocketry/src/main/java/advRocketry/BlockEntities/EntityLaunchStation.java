@@ -49,6 +49,11 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             public boolean isItemValid(int slot, ItemStack stack) {
                 return EntityLaunchStation.this.isItemValid(slot, stack);
             }
+
+            @Override
+            public int getSlotLimit(int slot){
+                return 1;
+            }
         };
 
         makeGui();

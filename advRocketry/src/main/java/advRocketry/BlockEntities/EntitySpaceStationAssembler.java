@@ -1,6 +1,5 @@
 package advRocketry.BlockEntities;
 
-import ARLib.ARLib;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import advRocketry.Config;
@@ -82,7 +81,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
                 new guiModuleItemHandlerSlot(id++, inventory, 2, 1, 0, guiHandler, 120, 43)
         );
         guiHandler.modules.add(
-                new guiModuleImage(guiHandler, 90, 33, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
+                new guiModuleImage(guiHandler, 90, 33, 25, 20, ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/arrow_right.png"), 16, 12)
         );
         guiHandler.modules.add(
                 new guiModuleImage(guiHandler, 73, 43, 12, 12, ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/item/linker.png"), 16, 16)
