@@ -3,7 +3,7 @@ package advRocketry.BlockEntities;
 import ARLib.ARLibRegistry;
 import ARLib.blockentities.EntityEnergyInputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
+import ARLib.gui.modules.*;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Config;
@@ -51,194 +51,84 @@ import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 
 public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
-    public static String REQUIRED_DATA = DataTypes.distance;
+    public static final String REQUIRED_DATA = DataTypes.distance;
+    public static final int writePlanetToChipTicks = 20 * 5;
+    public static final int syncStorageDisksTicks = 20 * 10;
+    public static final int STORAGE_DISK_SLOT_1 = 0;
+    public static final int STORAGE_DISK_SLOT_2 = 1;
+    public static final int PLANET_ID_CHIP_SLOT = 2;
 
-    // holds methods and variables for rendering
-    public static class RenderData {
-        public boolean should_open = false;
-        public int openingTicks = 0;
-        public int openingTicksMax = 300;
+    public static Object[][][] structure =
+            new Object[][][]{
+                    {{null, null, null, null, null},
+                            {null, 's', 'g', 's', null},
+                            {null, 's', 's', 's', null},
+                            {null, 's', 's', 's', null},
+                            {null, null, null, null, null}},
 
-        public float yaw;
-        public float yawD;
-        public float yawSpeed;
-        public float yawTarget;
+                    {{null, null, null, null, null},
+                            {null, 's', 's', 's', null},
+                            {null, 's', 'g', 's', null},
+                            {null, 's', 's', 's', null},
+                            {null, null, null, null, null}},
 
-        public float pitch;
-        public float pitchD;
-        public float pitchSpeed;
-        public float pitchTarget;
+                    {{null, 's', 's', 's', null},
+                            {'s', 'a', 'a', 'a', 's'},
+                            {'s', 'a', 'a', 'a', 's'},
+                            {'s', 'a', 'g', 'a', 's'},
+                            {null, 's', 's', 's', null}},
 
-        int actionTimeout; // for random movement, when 0 -> select a new target & speed and reset actionTimeout or wait a bit
+                    {{null, 's', 'c', 's', null},
+                            {'s', 's', 's', 's', 's'},
+                            {'s', 's', 's', 's', 's'},
+                            {'s', 's', 's', 's', 's'},
+                            {null, 's', 's', 's', null}},
 
-        // Calculates the shortest difference between two angles (-180 to 180)
-        private float getAngleDifference(float target, float current) {
-            float diff = target - current;
-            // Normalize to -180 to +180
-            return (diff + 540) % 360 - 180;
-        }
+                    {{null, '*', '*', '*', null},
+                            {'*', 't', 't', 't', '*'},
+                            {'*', 't', 'm', 't', '*'},
+                            {'*', 't', 't', 't', '*'},
+                            {null, '*', '*', '*', null}}};
+    public static HashMap<Character, List<Block>> charMapping = new HashMap<>();
 
-        void tick(EntityObservatory observatory) {
-            Task task = observatory.task;
-
-            if (should_open && openingTicks < openingTicksMax)
-                openingTicks++;
-            if (!should_open && openingTicks > 0)
-                openingTicks--;
-
-            // for planet write and disk sync i do not change open/close and rotation states
-
-            // close it for this task
-            if (task == Task.IDLE) {
-                should_open = false;
-                yawTarget = 0;
-                pitchTarget = 0;
-                yawSpeed = 0.2f;
-                pitchSpeed = 0.2f;
-            }
-            // open and animate for these tasks
-            if (task == Task.ANALYZE_PLANET ||
-                    task == Task.SCANNING_FOR_PLANETS ||
-                    task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED ||
-                    task == Task.SCANNING_FOR_ASTEROIDS) {
-
-                should_open = true;
-
-                if (observatory.taskTarget != null && observatory.hasEnoughEnergy) {
-                    Dimension targetDim = DimensionManager.INSTANCE_CLIENT.get(observatory.taskTarget);
-                    Dimension myDim = DimensionManager.INSTANCE_CLIENT.get(observatory.getLevel().dimension().location());
-
-                    if (targetDim != null && myDim != null && myDim != targetDim) {
-                        Pair<Float, Float> yaw_pitch = getYawAndPitch(targetDim, myDim, 0);
-                        if (yaw_pitch.getSecond() > 0) {
-                            yawTarget = yaw_pitch.getFirst() * 180 / (float) Math.PI;
-                            pitchTarget = yaw_pitch.getSecond() * 180 / (float) Math.PI;
-                            actionTimeout = 200; // reset so it doesnt do other things
-                            pitchSpeed = 0.2f;
-                            yawSpeed = 0.2f;
-                        }
-                    }
-                }
-
-                actionTimeout--;
-                if (actionTimeout <= 0 && observatory.hasEnoughEnergy) {
-                    // choose a new action, slow movement or fast movement followed by pause
-                    if(new Random().nextBoolean()){
-                        // move to a new target
-                        yawTarget = (float) (Math.random() * 360);
-                        pitchTarget = (float) (Math.random() * 90);
-                        yawSpeed = 0.2f;
-                        pitchSpeed = 0.2f;
-                        actionTimeout = (int) Math.max(20 * 20, Math.random() * 20 * 30);
-                    }else{
-                        // make a slow move around
-                        yawTarget = (float) (yaw + (Math.random() * 20)) % 360;
-                        pitchTarget = (float) (pitch + (Math.random() * 10));
-                        pitchTarget = Math.clamp(pitchTarget, 0, 90);
-                        yawSpeed = 0.05f;
-                        pitchSpeed = 0.05f;
-                        actionTimeout = (int) Math.max(20 * 20, Math.random() * 20 * 30);
-                    }
-                }
-            }
-            // --- YAW LOGIC ---
-            // 1. Calculate the shortest distance to the target (handles wrapping)
-            float yawDiff = getAngleDifference(yawTarget, yaw);
-
-            // 2. Check if we are close enough to reach the target this tick
-            if (Math.abs(yawDiff) <= yawSpeed) {
-                // We can reach the target exactly
-                yawD = yawDiff;
-                yaw = yawTarget;
-            } else {
-                // We need to move towards the target at max speed
-                // Math.signum returns 1.0 for positive, -1.0 for negative
-                yawD = Math.signum(yawDiff) * yawSpeed;
-                yaw += yawD;
-            }
-
-            // Normalize yaw to keep it within 0-360 range
-            if (yaw > 0) yaw -= 360;
-            if (yaw < 0) yaw += 360;
-
-
-            // --- PITCH LOGIC ---
-            // 1. Calculate difference, use normal diff because pitch can not wrap around
-            float pitchDiff = pitchTarget - pitch;
-
-            // 2. Check for overshoot
-            if (Math.abs(pitchDiff) <= pitchSpeed) {
-                pitchD = pitchDiff;
-                pitch = pitchTarget;
-            } else {
-                pitchD = Math.signum(pitchDiff) * pitchSpeed;
-                pitch += pitchD;
-            }
-        }
-
-        public static Pair<Float, Float> getYawAndPitch(Dimension targetDim, Dimension myDim, float partialTick) {
-            float yaw = 0f;
-            float pitch = 0f;
-
-            // try to look to target space object
-            Vec3 targetPos = targetDim.getPosition(partialTick);
-            Vec3 myPos = myDim.getPosition(partialTick);
-
-            Vector3f relative = targetPos.subtract(myPos).toVector3f();
-
-            AxisDirections myGlobalAxis = myDim.getGlobalAxisDirections(partialTick);
-
-            Matrix4f worldMatrix = new Matrix4f().lookAt(
-                    new Vector3f(0, 0, 0),
-                    myGlobalAxis.front.toVector3f(),
-                    myGlobalAxis.up.toVector3f()
-            );
-            Vector3f relativeWorldSpace = worldMatrix.transformDirection(relative);
-            relativeWorldSpace = relativeWorldSpace.normalize();
-
-            // Since the model faces West (-X) by default:
-            // We use Z for the first parameter (the "y" in standard atan2)
-            // We use -X for the second parameter (the "x" in standard atan2)
-            yaw = (float) Math.atan2(relativeWorldSpace.z, -relativeWorldSpace.x);
-
-            // Math.asin(y) gives the elevation angle above the XZ plane
-            pitch = (float) Math.asin(relativeWorldSpace.y);
-
-            return Pair.of(yaw, pitch);
-        }
+    static {
+        charMapping.put('c', List.of(advRocketry.Registry.Blocks.OBSERVATORY.get()));
+        charMapping.put('s', List.of(ARLibRegistry.BLOCK_STRUCTURE.get()));
+        charMapping.put('t', List.of(advRocketry.Registry.Blocks.STRUCTURE_TOWER.get()));
+        charMapping.put('g', List.of(Blocks.GLASS));
+        charMapping.put('a', List.of(Blocks.AIR));
+        charMapping.put('m', List.of(ARLibRegistry.BLOCK_MOTOR.get()));
+        charMapping.put('*', List.of(
+                ARLibRegistry.BLOCK_STRUCTURE.get(),
+                ARLibRegistry.BLOCK_ITEM_INPUT_BLOCK.get(),
+                ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get(),
+                ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get(),
+                advRocketry.Registry.Blocks.DATA_STORAGE_BLOCK.get()
+        ));
     }
 
     public RenderData renderData = new RenderData();
 
     public ItemStackHandler itemStackHandler;
-    int STORAGE_DISK_SLOT_1 = 0;
-    int STORAGE_DISK_SLOT_2 = 1;
-    int PLANET_ID_CHIP_SLOT = 2;
-
-
     public Task task = Task.IDLE;
     public ResourceLocation taskTarget = null;
     public Task lastTask = Task.IDLE;
     public ResourceLocation lastTaskTarget = null;
     public int taskProgress;
-    public static int writePlanetToChipTicks = 20 * 5;
-    public static int syncStorageDisksTicks = 20 * 10;
-
-    boolean hasEnoughEnergy = false;
-    boolean hasEnoughData = false; // for analyzing
+    public boolean hasEnoughEnergy = false;
+    public boolean hasEnoughData = false; // for analyzing
 
     public GuiHandlerBlockEntity guiHandler;
-    ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot1;
-    ARLib.gui.modules.guiModuleItemHandlerSlot storageDiskSlot2;
-    ARLib.gui.modules.guiModuleItemHandlerSlot planetIdChipSlot;
-    ARLib.gui.modules.guiModuleButton scanPlanetBtn;
-    ARLib.gui.modules.guiModuleButton scanAsteroidBtn;
-    ARLib.gui.modules.guiModuleButton syncStorageDisksBtn;
-    ARLib.gui.modules.guiModuleProgressBarHorizontal6px guiProgressBar;
-    ARLib.gui.modules.guiModuleVerticalProgressBar energyBar;
-    ARLib.gui.modules.guiModuleText statusText;
+    guiModuleItemHandlerSlot storageDiskSlot1;
+    guiModuleItemHandlerSlot storageDiskSlot2;
+    guiModuleItemHandlerSlot planetIdChipSlot;
+    guiModuleButton scanPlanetBtn;
+    guiModuleButton scanAsteroidBtn;
+    guiModuleButton syncStorageDisksBtn;
+    guiModuleProgressBarHorizontal6px guiProgressBar;
+    guiModuleVerticalProgressBar energyBar;
+    guiModuleText statusText;
     int customStatusTimeout = 0;
-
 
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(BlockEntities.ENTITY_OBSERVATORY.get(), pos, state);
@@ -273,12 +163,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             if (dim.getDimensionId().equals(level.dimension().location())) {
                                 // current dimension, distance is 100% unlocked
                                 ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(stack, dim.getDimensionId());
-                                if(info == null)
+                                if (info == null)
                                     info = new ItemGalaxyDatabase.PlanetInfo();
                                 info.distance = ItemGalaxyDatabase.POINTS_UNLOCKED();
                                 ItemGalaxyDatabase.setPlanetInfo(stack, dim.getDimensionId(), info);
                             }
-                            if(planetDimension.isKnown()){
+                            if (planetDimension.isKnown()) {
                                 // known by default, unlock all data
                                 ItemGalaxyDatabase.PlanetInfo info = new ItemGalaxyDatabase.PlanetInfo();
                                 info.distance = ItemGalaxyDatabase.POINTS_UNLOCKED();
@@ -298,18 +188,18 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 150);
         guiHandler.modules.add(storageDiskSlot2);
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleText(3, "galaxy database:", guiHandler, 10, 153, 0xff000000, false)
+                new guiModuleText(3, "galaxy database:", guiHandler, 10, 153, 0xff000000, false)
         );
 
         planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 130);
         guiHandler.modules.add(planetIdChipSlot);
         guiHandler.modules.add(
-                new ARLib.gui.modules.guiModuleText(5, "planet id chip:", guiHandler, 10, 133, 0xff000000, false)
+                new guiModuleText(5, "planet id chip:", guiHandler, 10, 133, 0xff000000, false)
         );
 
         if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
             guiHandler.modules.add(
-                    new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
+                    new guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
                         public void onButtonClicked() {
                             Minecraft.getInstance().setScreen(
                                     new SpaceMapScreen() {
@@ -355,8 +245,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                             if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
                                                 String s = "We require more information about this planet.";
                                                 ItemGalaxyDatabase.PlanetInfo info = client_getPlanetInfo(dimensionId);
-                                                if(info != null) {
-                                                    s += "\ndistance: " + info.distance +" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
+                                                if (info != null) {
+                                                    s += "\ndistance: " + info.distance + " / " + ItemGalaxyDatabase.POINTS_UNLOCKED() + "\n";
                                                 }
                                                 return s;
                                             }
@@ -384,13 +274,13 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
             );
         }
 
-        statusText = new ARLib.gui.modules.guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
+        statusText = new guiModuleText(199, "current task:", guiHandler, 10, 30, 0xff000000, false);
         guiHandler.modules.add(statusText);
 
-        guiProgressBar = new ARLib.gui.modules.guiModuleProgressBarHorizontal6px(200, 0xffffffff, guiHandler, 10, 50);
+        guiProgressBar = new guiModuleProgressBarHorizontal6px(200, 0xffffffff, guiHandler, 10, 50);
         guiHandler.modules.add(guiProgressBar);
 
-        scanPlanetBtn = new ARLib.gui.modules.guiModuleButton(201, "Scan for Planets", guiHandler, 10, 60, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        scanPlanetBtn = new guiModuleButton(201, "Scan for Planets", guiHandler, 10, 60, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -401,7 +291,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         guiHandler.modules.add(scanPlanetBtn);
 
 
-        scanAsteroidBtn = new ARLib.gui.modules.guiModuleButton(202, "Scan for Asteroids", guiHandler, 10, 80, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        scanAsteroidBtn = new guiModuleButton(202, "Scan for Asteroids", guiHandler, 10, 80, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -411,7 +301,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         };
         guiHandler.modules.add(scanAsteroidBtn);
 
-        syncStorageDisksBtn = new ARLib.gui.modules.guiModuleButton(203, "Sync Storage Disks", guiHandler, 10, 100, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        syncStorageDisksBtn = new guiModuleButton(203, "Sync Storage Disks", guiHandler, 10, 100, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -421,10 +311,14 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         };
         guiHandler.modules.add(syncStorageDisksBtn);
 
-        energyBar = new ARLib.gui.modules.guiModuleVerticalProgressBar(300, guiHandler, 155, 60);
+        energyBar = new guiModuleVerticalProgressBar(300, guiHandler, 155, 60);
         guiHandler.modules.add(energyBar);
 
-        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 0, 1, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 0, 1, guiHandler));
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityObservatory) t).tick();
     }
 
     @Override
@@ -434,8 +328,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
             CompoundTag info = new CompoundTag();
             info.put("onLoad", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
-        } else {
-            updateActionButtonStates();
         }
     }
 
@@ -520,7 +412,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         if (!level.isClientSide) {
             guiHandler.serverTick();
 
-            if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
+            if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED) && task != Task.IDLE) {
                 toggleTask(Task.IDLE, null);
             } else {
 
@@ -552,32 +444,53 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 }
                 if (newHasEnoughData != hasEnoughData) {
                     hasEnoughData = newHasEnoughData;
-                    //sendUpdatePacket(null);
                 }
 
-                if (customStatusTimeout <= 0) {
-                    if (!hasEnoughEnergy) {
-                        statusText.setTextAndSync("OUT OF ENERGY!");
-                    } else if (!hasEnoughData) {
-                        statusText.setTextAndSync("OUT OF DISTANCE DATA!");
+                // update gui
+                if (!guiHandler.playersTrackingGui.isEmpty()) {
+
+                    if (task == Task.SCANNING_FOR_PLANETS || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
+                        scanPlanetBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
                     } else {
-                        String s = "Status:\n" + task.label;
-                        if (taskTarget != null) {
-                            if (DimensionManager.INSTANCE_SERVER.get(taskTarget) instanceof PlanetDimension targetPlanet) {
-                                s += ": " + targetPlanet.getName();
-                            }
-                        }
-                        if (task == Task.SCANNING_FOR_PLANETS && getData(REQUIRED_DATA, dataTiles, false) == 0) {
-                            s += "\n(" + REQUIRED_DATA + " data would help)";
-                        }
-                        statusText.setTextAndSync(s);
+                        scanPlanetBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
                     }
-                } else {
-                    customStatusTimeout--;
-                }
 
-                energyBar.setProgressAndSync((double) energy / maxEnergy);
-                energyBar.setHoverInfoAndSync(energy + " / " + maxEnergy + " RF");
+                    if (task == Task.SCANNING_FOR_ASTEROIDS) {
+                        scanAsteroidBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+                    } else {
+                        scanAsteroidBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
+                    }
+
+                    if (task == Task.SYNC_STORAGE_DISKS) {
+                        syncStorageDisksBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+                    } else {
+                        syncStorageDisksBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
+                    }
+
+                    if (customStatusTimeout <= 0) {
+                        if (!hasEnoughEnergy) {
+                            statusText.setTextAndSync("OUT OF ENERGY!");
+                        } else if (!hasEnoughData) {
+                            statusText.setTextAndSync("OUT OF DISTANCE DATA!");
+                        } else {
+                            String s = "Status:\n" + task.label;
+                            if (taskTarget != null) {
+                                if (DimensionManager.INSTANCE_SERVER.get(taskTarget) instanceof PlanetDimension targetPlanet) {
+                                    s += ": " + targetPlanet.getName();
+                                }
+                            }
+                            if (task == Task.SCANNING_FOR_PLANETS && getData(REQUIRED_DATA, dataTiles, false) == 0) {
+                                s += "\n(" + REQUIRED_DATA + " data would help)";
+                            }
+                            statusText.setTextAndSync(s);
+                        }
+                    } else {
+                        customStatusTimeout--;
+                    }
+
+                    energyBar.setProgressAndSync((double) energy / maxEnergy);
+                    energyBar.setHoverInfoAndSync(energy + " / " + maxEnergy + " RF");
+                }
 
                 if (task == Task.IDLE) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
@@ -614,6 +527,42 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 } else {
                                     // start analyzing random planets if everything is discovered
                                     analyzeRandomPlanetOrTurnOff(storageDisk);
+                                }
+                            }
+                            setChanged();
+                        }
+                    }
+                }
+
+                if (task == Task.ANALYZE_PLANET || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
+                    ItemStack storageDisk = getMainStorageDatabase();
+                    if (!(storageDisk.getItem() instanceof ItemGalaxyDatabase)) {
+                        // has no data disk, can not work
+                        toggleTask(Task.IDLE, null);
+                        setStatusText("no galaxy database found");
+                    } else {
+                        if (hasEnoughEnergy && hasEnoughData) {
+                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
+                            extractData(REQUIRED_DATA, 1, dataTiles, false);
+                            ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, taskTarget);
+                            if (info == null)
+                                // should not happen, but just to be safe
+                                info = new ItemGalaxyDatabase.PlanetInfo();
+                            taskProgress = info.distance;
+                            guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyDatabase.POINTS_UNLOCKED());
+                            guiProgressBar.setHoverInfoAndSync("analyzing planet...");
+                            if (taskProgress < ItemGalaxyDatabase.POINTS_UNLOCKED()) {
+                                info.distance++;
+                                ItemGalaxyDatabase.setPlanetInfo(storageDisk, taskTarget, info);
+                            } else {
+                                // fully unlocked!
+                                if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
+                                    toggleTask(this.lastTask, this.lastTaskTarget);
+                                else if (this.lastTask == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
+                                    toggleTask(Task.SCANNING_FOR_PLANETS, null);
+                                } else {
+                                    toggleTask(Task.IDLE, null);
                                 }
                             }
                             setChanged();
@@ -668,42 +617,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     }
                 }
 
-                if (task == Task.ANALYZE_PLANET || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
-                    guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
-                    ItemStack storageDisk = getMainStorageDatabase();
-                    if (!(storageDisk.getItem() instanceof ItemGalaxyDatabase)) {
-                        // has no data disk, can not work
-                        toggleTask(Task.IDLE, null);
-                        setStatusText("no galaxy database found");
-                    } else {
-                        if (hasEnoughEnergy && hasEnoughData) {
-                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
-                            extractData(REQUIRED_DATA, 1, dataTiles, false);
-                            ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, taskTarget);
-                            if (info == null)
-                                // should not happen, but just to be safe
-                                info = new ItemGalaxyDatabase.PlanetInfo();
-                            taskProgress = info.distance;
-                            guiProgressBar.setProgressAndSync((double) taskProgress / ItemGalaxyDatabase.POINTS_UNLOCKED());
-                            guiProgressBar.setHoverInfoAndSync("analyzing planet...");
-                            if (taskProgress < ItemGalaxyDatabase.POINTS_UNLOCKED()) {
-                                info.distance++;
-                                ItemGalaxyDatabase.setPlanetInfo(storageDisk, taskTarget, info);
-                            } else {
-                                // fully unlocked!
-                                if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
-                                    toggleTask(this.lastTask, this.lastTaskTarget);
-                                else if (this.lastTask == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
-                                    toggleTask(Task.SCANNING_FOR_PLANETS, null);
-                                } else {
-                                    toggleTask(Task.IDLE, null);
-                                }
-                            }
-                            setChanged();
-                        }
-                    }
-                }
-
                 if (task == Task.WRITE_PLANET_TO_CHIP) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(true);
                     ItemStack planetChip = itemStackHandler.getStackInSlot(PLANET_ID_CHIP_SLOT);
@@ -742,10 +655,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         }
     }
 
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityObservatory) t).tick();
-    }
-
     public void toggleTask(Task task, ResourceLocation taskTarget) {
         customStatusTimeout = 0; // reset when the task was changed
         if (this.task.equals(task)) {
@@ -777,29 +686,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         }
 
         setChanged();
-        updateActionButtonStates();
         sendUpdatePacket(null);
-    }
-
-    public void updateActionButtonStates() {
-
-        if (task == Task.SCANNING_FOR_PLANETS || task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
-            scanPlanetBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
-        } else {
-            scanPlanetBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
-        }
-
-        if (task == Task.SCANNING_FOR_ASTEROIDS) {
-            scanAsteroidBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
-        } else {
-            scanAsteroidBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
-        }
-
-        if (task == Task.SYNC_STORAGE_DISKS) {
-            syncStorageDisksBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
-        } else {
-            syncStorageDisksBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
-        }
     }
 
     public CompoundTag getUpdateTag() {
@@ -899,7 +786,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         if (tag.contains("taskTarget")) {
             taskTarget = ResourceLocation.parse(tag.getString("taskTarget"));
         }
-        updateActionButtonStates();
     }
 
     public void popInventory() {
@@ -910,67 +796,15 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         setChanged();
     }
 
-
-    public static Object[][][] structure =
-            new Object[][][]{
-                    {{null, null, null, null, null},
-                            {null, 's', 'g', 's', null},
-                            {null, 's', 's', 's', null},
-                            {null, 's', 's', 's', null},
-                            {null, null, null, null, null}},
-
-                    {{null, null, null, null, null},
-                            {null, 's', 's', 's', null},
-                            {null, 's', 'g', 's', null},
-                            {null, 's', 's', 's', null},
-                            {null, null, null, null, null}},
-
-                    {{null, 's', 's', 's', null},
-                            {'s', 'a', 'a', 'a', 's'},
-                            {'s', 'a', 'a', 'a', 's'},
-                            {'s', 'a', 'g', 'a', 's'},
-                            {null, 's', 's', 's', null}},
-
-                    {{null, 's', 'c', 's', null},
-                            {'s', 's', 's', 's', 's'},
-                            {'s', 's', 's', 's', 's'},
-                            {'s', 's', 's', 's', 's'},
-                            {null, 's', 's', 's', null}},
-
-                    {{null, '*', '*', '*', null},
-                            {'*', 't', 't', 't', '*'},
-                            {'*', 't', 'm', 't', '*'},
-                            {'*', 't', 't', 't', '*'},
-                            {null, '*', '*', '*', null}}};
-
     @Override
     public Object[][][] getStructure() {
         return structure;
-    }
-
-    public static HashMap<Character, List<Block>> charMapping = new HashMap<>();
-
-    static {
-        charMapping.put('c', List.of(advRocketry.Registry.Blocks.OBSERVATORY.get()));
-        charMapping.put('s', List.of(ARLibRegistry.BLOCK_STRUCTURE.get()));
-        charMapping.put('t', List.of(advRocketry.Registry.Blocks.STRUCTURE_TOWER.get()));
-        charMapping.put('g', List.of(Blocks.GLASS));
-        charMapping.put('a', List.of(Blocks.AIR));
-        charMapping.put('m', List.of(ARLibRegistry.BLOCK_MOTOR.get()));
-        charMapping.put('*', List.of(
-                ARLibRegistry.BLOCK_STRUCTURE.get(),
-                ARLibRegistry.BLOCK_ITEM_INPUT_BLOCK.get(),
-                ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get(),
-                ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get(),
-                advRocketry.Registry.Blocks.DATA_STORAGE_BLOCK.get()
-        ));
     }
 
     @Override
     public HashMap<Character, List<Block>> getCharMapping() {
         return charMapping;
     }
-
 
     @Override
     public boolean shouldHideBlock(int y, int z, int x, BlockState stateInWorld) {
@@ -986,7 +820,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
         return true;
     }
-
 
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!world.isClientSide) {
@@ -1015,8 +848,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         return ItemGalaxyDatabase.getPlanetInfo(storageDiskSlot1.client_getItemStackToRender(), dimensionId.toString());
     }
 
-    public ItemStack getMainStorageDatabase(){
-        return  itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
+    public ItemStack getMainStorageDatabase() {
+        return itemStackHandler.getStackInSlot(STORAGE_DISK_SLOT_1);
     }
 
     public enum Task {
@@ -1026,12 +859,168 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         ANALYZE_PLANET("analyzing planet"),
         ANALYZE_PLANETS_AFTER_ALL_DISCOVERED("analyzing planet"), // will activate when scanning for planets when all is discovered
         WRITE_PLANET_TO_CHIP("writing to chip"),
-        SYNC_STORAGE_DISKS("syncing storage disks"),;
+        SYNC_STORAGE_DISKS("syncing storage disks"),
+        ;
 
         public final String label;
 
         Task(String label) {
             this.label = label;
+        }
+    }
+
+    // holds methods and variables for rendering
+    public static class RenderData {
+        public boolean should_open = false;
+        public int openingTicks = 0;
+        public int openingTicksMax = 300;
+
+        public float yaw;
+        public float yawD;
+        public float yawSpeed;
+        public float yawTarget;
+
+        public float pitch;
+        public float pitchD;
+        public float pitchSpeed;
+        public float pitchTarget;
+
+        int actionTimeout; // for random movement, when 0 -> select a new target & speed and reset actionTimeout or wait a bit
+
+        public static Pair<Float, Float> getYawAndPitch(Dimension targetDim, Dimension myDim, float partialTick) {
+            float yaw = 0f;
+            float pitch = 0f;
+
+            // try to look to target space object
+            Vec3 targetPos = targetDim.getPosition(partialTick);
+            Vec3 myPos = myDim.getPosition(partialTick);
+
+            Vector3f relative = targetPos.subtract(myPos).toVector3f();
+
+            AxisDirections myGlobalAxis = myDim.getGlobalAxisDirections(partialTick);
+
+            Matrix4f worldMatrix = new Matrix4f().lookAt(
+                    new Vector3f(0, 0, 0),
+                    myGlobalAxis.front.toVector3f(),
+                    myGlobalAxis.up.toVector3f()
+            );
+            Vector3f relativeWorldSpace = worldMatrix.transformDirection(relative);
+            relativeWorldSpace = relativeWorldSpace.normalize();
+
+            // Since the model faces West (-X) by default:
+            // We use Z for the first parameter (the "y" in standard atan2)
+            // We use -X for the second parameter (the "x" in standard atan2)
+            yaw = (float) Math.atan2(relativeWorldSpace.z, -relativeWorldSpace.x);
+
+            // Math.asin(y) gives the elevation angle above the XZ plane
+            pitch = (float) Math.asin(relativeWorldSpace.y);
+
+            return Pair.of(yaw, pitch);
+        }
+
+        // Calculates the shortest difference between two angles (-180 to 180)
+        private float getAngleDifference(float target, float current) {
+            float diff = target - current;
+            // Normalize to -180 to +180
+            return (diff + 540) % 360 - 180;
+        }
+
+        void tick(EntityObservatory observatory) {
+            Task task = observatory.task;
+
+            if (should_open && openingTicks < openingTicksMax)
+                openingTicks++;
+            if (!should_open && openingTicks > 0)
+                openingTicks--;
+
+            // for planet write and disk sync i do not change open/close and rotation states
+
+            // close it for this task
+            if (task == Task.IDLE) {
+                should_open = false;
+                yawTarget = 0;
+                pitchTarget = 0;
+                yawSpeed = 0.2f;
+                pitchSpeed = 0.2f;
+            }
+            // open and animate for these tasks
+            if (task == Task.ANALYZE_PLANET ||
+                    task == Task.SCANNING_FOR_PLANETS ||
+                    task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED ||
+                    task == Task.SCANNING_FOR_ASTEROIDS) {
+
+                should_open = true;
+
+                if (observatory.taskTarget != null && observatory.hasEnoughEnergy) {
+                    Dimension targetDim = DimensionManager.INSTANCE_CLIENT.get(observatory.taskTarget);
+                    Dimension myDim = DimensionManager.INSTANCE_CLIENT.get(observatory.getLevel().dimension().location());
+
+                    if (targetDim != null && myDim != null && myDim != targetDim) {
+                        Pair<Float, Float> yaw_pitch = getYawAndPitch(targetDim, myDim, 0);
+                        if (yaw_pitch.getSecond() > 0) {
+                            yawTarget = yaw_pitch.getFirst() * 180 / (float) Math.PI;
+                            pitchTarget = yaw_pitch.getSecond() * 180 / (float) Math.PI;
+                            actionTimeout = 200; // reset so it doesnt do other things
+                            pitchSpeed = 0.2f;
+                            yawSpeed = 0.2f;
+                        }
+                    }
+                }
+
+                actionTimeout--;
+                if (actionTimeout <= 0 && observatory.hasEnoughEnergy) {
+                    // choose a new action, slow movement or fast movement followed by pause
+                    if (new Random().nextBoolean()) {
+                        // move to a new target
+                        yawTarget = (float) (Math.random() * 360);
+                        pitchTarget = (float) (Math.random() * 90);
+                        yawSpeed = 0.2f;
+                        pitchSpeed = 0.2f;
+                        actionTimeout = (int) Math.max(20 * 20, Math.random() * 20 * 30);
+                    } else {
+                        // make a slow move around
+                        yawTarget = (float) (yaw + (Math.random() * 20)) % 360;
+                        pitchTarget = (float) (pitch + (Math.random() * 10));
+                        pitchTarget = Math.clamp(pitchTarget, 0, 90);
+                        yawSpeed = 0.05f;
+                        pitchSpeed = 0.05f;
+                        actionTimeout = (int) Math.max(20 * 20, Math.random() * 20 * 30);
+                    }
+                }
+            }
+            // --- YAW LOGIC ---
+            // 1. Calculate the shortest distance to the target (handles wrapping)
+            float yawDiff = getAngleDifference(yawTarget, yaw);
+
+            // 2. Check if we are close enough to reach the target this tick
+            if (Math.abs(yawDiff) <= yawSpeed) {
+                // We can reach the target exactly
+                yawD = yawDiff;
+                yaw = yawTarget;
+            } else {
+                // We need to move towards the target at max speed
+                // Math.signum returns 1.0 for positive, -1.0 for negative
+                yawD = Math.signum(yawDiff) * yawSpeed;
+                yaw += yawD;
+            }
+
+            // Normalize yaw to keep it within 0-360 range
+            if (yaw > 0) yaw -= 360;
+            if (yaw < 0) yaw += 360;
+
+
+            // --- PITCH LOGIC ---
+            // 1. Calculate difference, use normal diff because pitch can not wrap around
+            float pitchDiff = pitchTarget - pitch;
+
+            // 2. Check for overshoot
+            if (Math.abs(pitchDiff) <= pitchSpeed) {
+                pitchD = pitchDiff;
+                pitch = pitchTarget;
+            } else {
+                pitchD = Math.signum(pitchDiff) * pitchSpeed;
+                pitch += pitchD;
+            }
         }
     }
 }
