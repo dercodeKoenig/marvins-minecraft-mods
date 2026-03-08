@@ -79,9 +79,6 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         super.onLoad();
         if(!level.isClientSide)
             updateDataBar();
-
-        DataStack test = new DataStack(DataTypes.distance, (int)(Math.random()*1000));
-        dataStorage.setStackDirect(test);
     }
 
     public void updateDataBar() {
