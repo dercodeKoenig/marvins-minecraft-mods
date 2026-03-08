@@ -1,6 +1,7 @@
 package advRocketry;
 
 import ARLib.network.SimpleNetworkPacket;
+import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
@@ -346,6 +347,7 @@ public class Main {
 
     void loadComplete(FMLLoadCompleteEvent e) {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
+        ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
     }
 
     void addCreative(BuildCreativeModeTabContentsEvent e) {
@@ -376,6 +378,8 @@ public class Main {
             e.accept(Blocks.SOLAR_PANEL.get());
 
             e.accept(Blocks.OBSERVATORY.get());
+
+            e.accept(Blocks.ASTROBODY_DATA_PROCESSOR.get());
 
             e.accept(Blocks.OXYGEN_VENT.get());
 

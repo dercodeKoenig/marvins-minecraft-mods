@@ -18,6 +18,7 @@ public class BlockEntities {
     public static final Supplier<BlockEntityType<EntityLaunchStation>> ENTITY_LAUNCH_STATION = BLOCK_ENTITIES.register("launch_station", () -> BlockEntityType.Builder.of(EntityLaunchStation::new, Blocks.LAUNCH_STATION.get()).build(null));
     public static final Supplier<BlockEntityType<EntityRocketItemLoader>> ENTITY_ROCKET_ITEM_LOADER = BLOCK_ENTITIES.register("rocket_item_loader", () -> BlockEntityType.Builder.of(EntityRocketItemLoader::new, Blocks.ROCKET_ITEM_LOADER.get()).build(null));
 
+    public static final Supplier<BlockEntityType<EntityAstrobodyDataProcessor>> ENTITY_ASTROBODY_DATA_PROCESSOR = BLOCK_ENTITIES.register("astrobody_data_processor", () -> BlockEntityType.Builder.of(EntityAstrobodyDataProcessor::new, Blocks.ASTROBODY_DATA_PROCESSOR.get()).build(null));
     public static final Supplier<BlockEntityType<EntityObservatory>> ENTITY_OBSERVATORY = BLOCK_ENTITIES.register("observatory", () -> BlockEntityType.Builder.of(EntityObservatory::new, Blocks.OBSERVATORY.get()).build(null));
     public static final Supplier<BlockEntityType<EntityOxygenVent>> ENTITY_OXYGEN_VENT = BLOCK_ENTITIES.register("oxygen_vent", () -> BlockEntityType.Builder.of(EntityOxygenVent::new, Blocks.OXYGEN_VENT.get()).build(null));
     public static final Supplier<BlockEntityType<EntityDataStorageBlock>> ENTITY_DATA_STORAGE_BLOCK = BLOCK_ENTITIES.register("data_storage_block", () -> BlockEntityType.Builder.of(EntityDataStorageBlock::new, Blocks.DATA_STORAGE_BLOCK.get()).build(null));

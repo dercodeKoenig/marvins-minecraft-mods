@@ -34,6 +34,7 @@ public class Items {
     public static final Supplier<Item> ITEM_LAUNCH_STATION = registerBlockItem("launch_station", Blocks.LAUNCH_STATION);
     public static final Supplier<Item> ITEM_ROCKET_ITEM_LOADER = registerBlockItem("rocket_item_loader", Blocks.ROCKET_ITEM_LOADER);
 
+    public static final Supplier<Item> ITEM_ASTROBODY_DATA_PROCESSOR = registerBlockItem("astrobody_data_processor", Blocks.ASTROBODY_DATA_PROCESSOR);
     public static final Supplier<Item> ITEM_OBSERVATORY = registerBlockItem("observatory", Blocks.OBSERVATORY);
     public static final Supplier<Item> ITEM_OXYGEN_VENT = registerBlockItem("oxygen_vent", Blocks.OXYGEN_VENT);
     public static final Supplier<Item> ITEM_DATA_STORAGE_BLOCK = registerBlockItem("data_storage_block", Blocks.DATA_STORAGE_BLOCK);

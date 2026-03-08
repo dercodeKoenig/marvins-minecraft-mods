@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "adv_rocketry:models/block/obj/astrobody_data_processor.obj",
+  "mtl_override": "adv_rocketry:models/block/obj/astrobody_data_processor.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "adv_rocketry:block/astrobodydataprocessor"
+  }
+}

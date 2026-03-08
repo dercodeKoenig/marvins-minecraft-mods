@@ -1,0 +1,11 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "arlib:block/machinegeneric",
+    "up": "arlib:block/machinegeneric",
+    "north": "arlib:block/controlpanel",
+    "south": "arlib:block/machinegeneric",
+    "west": "arlib:block/machinegeneric",
+    "east": "arlib:block/machinegeneric"
+  }
+}
