@@ -1,7 +1,6 @@
 package advRocketry.Satellites;
 
 import advRocketry.Config;
-import advRocketry.Dimension.DimensionManager;
 import advRocketry.GlobalTime;
 import advRocketry.Registry.Items;
 import com.mojang.datafixers.util.Pair;
@@ -14,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.text.CompactNumberFormat;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -133,7 +131,7 @@ public class Satellite {
         this.generateEnergyAndFillBatteries();
         if (!hasRadiationShield() && GlobalTime.getGlobalTime() % 20 == 0) {
             double p = Math.random();
-            if (p < Config.INSTANCE.satellite_damage_prob_per_second) {
+            if (p < Config.INSTANCE.satellite_Radiation_Damage_Prob_Per_Second) {
                 // satellite takes radiation damage and dies
                 SatelliteManager.removeSatellite(uuid);
                 for (Player player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {

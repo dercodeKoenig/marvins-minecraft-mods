@@ -3,6 +3,7 @@ package advRocketry.Items;
 import ARLib.utils.DimensionUtils;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -39,7 +40,7 @@ public class ItemLinker extends Item {
             tooltipComponents.add(
                     Component.literal(
                             "Selected Entity: "+tag.getUUID("uuid")
-                    )
+                    ).withStyle(ChatFormatting.GRAY)
             );
         }
         if(tag.contains("p")){
@@ -47,7 +48,7 @@ public class ItemLinker extends Item {
             tooltipComponents.add(
                     Component.literal(
                             "Selected Position: "+NbtUtils.readBlockPos(tag, "p").get()
-                    )
+                    ).withStyle(ChatFormatting.GRAY)
             );
         }
         if(tag.contains("l")){
@@ -58,13 +59,13 @@ public class ItemLinker extends Item {
                 tooltipComponents.add(
                         Component.literal(
                                 "selected level: " + selectedDimension.getName()
-                        )
+                        ).withStyle(ChatFormatting.GRAY)
                 );
             }
             tooltipComponents.add(
                     Component.literal(
                             "level id: " +levelString
-                    )
+                    ).withStyle(ChatFormatting.GRAY)
             );
         }
 
@@ -72,7 +73,7 @@ public class ItemLinker extends Item {
             tooltipComponents.add(
                 Component.literal(
                         "shift click to clear selection"
-                )
+                ).withStyle(ChatFormatting.GRAY)
             );
     }
 

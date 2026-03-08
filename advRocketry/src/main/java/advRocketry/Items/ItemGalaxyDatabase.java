@@ -2,6 +2,7 @@ package advRocketry.Items;
 
 import advRocketry.Config;
 import advRocketry.Utils.ItemUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +26,9 @@ public class ItemGalaxyDatabase extends Item {
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         tooltipComponents.add(
-                Component.literal("known planets: " + getKnownDimensions(stack).size())
+                Component.literal(
+                        "known planets: " + getKnownDimensions(stack).size()
+                ).withStyle(ChatFormatting.GRAY)
         );
     }
 

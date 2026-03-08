@@ -3,6 +3,7 @@ package advRocketry.Items;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Utils.ItemUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -44,12 +45,12 @@ public class ItemPlanetIdChip extends Item {
             tooltipComponents.add(
                     Component.literal(
                             selected.getName()
-                    )
+                    ).withStyle(ChatFormatting.GRAY)
             );
             tooltipComponents.add(
                     Component.literal(
                             "mass data: " + containsMassData(stack)
-                    )
+                    ).withStyle(ChatFormatting.GRAY)
             );
         }
     }

@@ -40,7 +40,7 @@ public class Config {
 
     public int data_Unlocked_Points = 1000;
 
-    public double satellite_damage_prob_per_second = (double) 1 / 100;
+    public double satellite_Radiation_Damage_Prob_Per_Second = (double) 1 / 1000;
 
     public int rocket_Assembler_Max_Size = 66;
     public int rocket_Assembler_Build_Time_Base = 12;

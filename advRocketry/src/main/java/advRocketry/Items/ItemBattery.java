@@ -2,6 +2,7 @@ package advRocketry.Items;
 
 import advRocketry.Satellites.SatelliteBattery;
 import advRocketry.Utils.ItemUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -24,7 +25,7 @@ public class ItemBattery extends Item implements SatelliteBattery {
         tooltipComponents.add(
                 Component.literal(
                         "energy: " + getEnergyStored(stack) + " / " + capacity
-                )
+                ).withStyle(ChatFormatting.GRAY)
         );
     }
 

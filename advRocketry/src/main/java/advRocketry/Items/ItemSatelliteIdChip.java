@@ -1,6 +1,7 @@
 package advRocketry.Items;
 
 import advRocketry.Utils.ItemUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -32,7 +33,7 @@ public class ItemSatelliteIdChip extends Item {
         tooltipComponents.add(
                 Component.literal(
                         "target: " + getTarget(stack)
-                )
+                ).withStyle(ChatFormatting.GRAY)
         );
     }
 }

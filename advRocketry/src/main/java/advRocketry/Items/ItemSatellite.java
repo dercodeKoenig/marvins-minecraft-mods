@@ -3,6 +3,7 @@ package advRocketry.Items;
 import advRocketry.Satellites.Satellite;
 import advRocketry.Satellites.SatelliteRegistry;
 import advRocketry.Utils.ItemUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -23,13 +24,13 @@ public class ItemSatellite extends Item {
             tooltipComponents.add(
                     Component.literal(
                             sat.getName()
-                    )
+                    ).withStyle(ChatFormatting.GRAY)
             );
             if(sat.uuid != null) {
                 tooltipComponents.add(
                         Component.literal(
                                 sat.uuid.toString()
-                        )
+                        ).withStyle(ChatFormatting.GRAY)
                 );
             }
         }

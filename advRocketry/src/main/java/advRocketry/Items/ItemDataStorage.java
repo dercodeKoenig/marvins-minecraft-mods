@@ -3,10 +3,14 @@ package advRocketry.Items;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
 import advRocketry.Data.IItemDataStorage;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
 import advRocketry.Satellites.SatelliteEquipment;
 import advRocketry.Utils.ItemUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -25,11 +29,19 @@ public class ItemDataStorage extends Item implements IItemDataStorage, Satellite
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         DataStack stack1 = getDataStack(stack);
         if (stack1 != null) {
+            String dtype = DataStack.split(stack1.type).getFirst();
+            ResourceLocation origin = DataStack.split(stack1.type).getSecond();
+            Dimension originDim = DimensionManager.getDimensionManager(context.level().isClientSide).get(origin);
             tooltipComponents.add(
-                    Component.literal("Data: " + stack1.type)
+                    Component.literal("Data: " +  dtype).withStyle(ChatFormatting.GRAY)
             );
+            if(originDim != null) {
+                tooltipComponents.add(
+                        Component.literal("Origin: " + originDim.getName()).withStyle(ChatFormatting.GRAY)
+                );
+            }
             tooltipComponents.add(
-                    Component.literal("Amount: " + stack1.amount+" / "+maxData)
+                    Component.literal("Amount: " + stack1.amount+" / "+maxData).withStyle(ChatFormatting.GRAY)
             );
         }
     }
