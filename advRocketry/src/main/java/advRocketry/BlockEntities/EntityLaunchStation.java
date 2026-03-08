@@ -31,6 +31,7 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
 
     public boolean isRedstonePowered = false;
     public int activeTimeout = 0; // when launch, shortly change the block state to active, change back after a few ticks
+    protected int launch_btn_id = 10001;
 
     public EntityLaunchStation(BlockPos pos, BlockState blockState) {
         this(ENTITY_LAUNCH_STATION.get(), pos, blockState);
@@ -38,8 +39,6 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
 
     public EntityLaunchStation(BlockEntityType type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
-
-        guiHandler = new GuiHandlerBlockEntity(this);
 
         inventory = new ItemStackHandler(1) {
             @Override
@@ -53,37 +52,45 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
                 return EntityLaunchStation.this.isItemValid(slot, stack);
             }
         };
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(0, inventory, 0, 0, 1, guiHandler, 50, 20));
 
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler));
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler));
-
-        guiModuleButton launchButton = new guiModuleButton(11001, "launch", guiHandler, 90, 20, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
-            @Override
-            public void onButtonClicked() {
-                CompoundTag info = new CompoundTag();
-                info.put("launch", new CompoundTag());
-                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityLaunchStation.this, info));
-            }
-        };
-        guiHandler.modules.add(launchButton);
+        makeGui();
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityLaunchStation) t).tick();
     }
 
+    // maybe overwrite this
+    public void makeGui() {
+        guiHandler = new GuiHandlerBlockEntity(this);
+
+        guiHandler.modules.add(new guiModuleText(0, "Launch Station", guiHandler, 5, 5, 0xff000000, false));
+
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(1, inventory, 0, 0, 1, guiHandler, 50, 20));
+
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 110, 1000, 1, 0, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 50, 2000, 1, 0, guiHandler));
+
+        guiModuleButton launchButton = new guiModuleButton(launch_btn_id, "launch", guiHandler, 90, 20, 40, 15, BTN_GREEN, BTN_W, BTN_H);
+        guiHandler.modules.add(launchButton);
+    }
+
     // overwrite in subclasses
-    public boolean isItemValid(int slot, ItemStack stack){
+    public boolean isItemValid(int slot, ItemStack stack) {
         if (stack.getItem() instanceof ItemPlanetIdChip)
             return true;
         if (stack.getItem() instanceof ItemLinker)
             return true;
         return false;
     }
-    // overwrite in subclasses
-    public void onInventoryChanged(){
 
+    // overwrite in subclasses
+    public void onInventoryChanged() {
+
+    }
+
+    public void openGui(){
+        guiHandler.openGui(176, 135, true);
     }
 
     public void launch() {
@@ -98,9 +105,12 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
-        if (compoundTag.contains("launch")) {
-            launch();
-            guiHandler.signalCloseGui(serverPlayer);
+        if (compoundTag.contains("guiButtonClick")) {
+            int btn = compoundTag.getInt("guiButtonClick");
+            if (btn == launch_btn_id) {
+                launch();
+                guiHandler.signalCloseGui(serverPlayer);
+            }
         }
     }
 

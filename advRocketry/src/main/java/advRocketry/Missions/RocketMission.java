@@ -18,7 +18,7 @@ import java.util.UUID;
 import static advRocketry.Registry.GeneralRegistry.ENTITY_ROCKET;
 
 public class RocketMission {
-    long completeTime;
+    public long completeTime;
     CompoundTag rocketTag;
     UUID missionID;
     ResourceLocation returnLevelId;
