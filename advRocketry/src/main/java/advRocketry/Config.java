@@ -1,7 +1,7 @@
 package advRocketry;
 
 public class Config {
-    public static Config INSTANCE= new Config();
+    public static Config INSTANCE = new Config();
 
     public double planet_Sky_Height = 5000;
 
@@ -16,6 +16,10 @@ public class Config {
     public double rocket_SpaceTravel_Rotation_Rate = 0.02;
     public double rocket_Planet_Entry_Speed_Y = -5;
     public int rocket_Engine_Boot_Ticks = 100;
+
+    public float rocket_Block_Weight = 3;
+    public float rocket_ItemStack_Weight = 3;
+    public float rocket_Fuel_Weight_Per_MB = 0.0005f;
 
     public double station_SpaceTravel_AU_Per_Second = 0.01;
     public double station_SpaceTravel_Distance_For_Max_Speed = 0.1;
@@ -36,20 +40,16 @@ public class Config {
 
     public int data_Unlocked_Points = 1000;
 
+    public double satellite_damage_prob_per_second = (double) 1 / 100;
 
     public int rocket_Assembler_Max_Size = 66;
     public int rocket_Assembler_Build_Time_Base = 12;
     public int rocket_Assembler_Energy_Per_Tick = 100;
 
-
     public int fueling_Station_Energy_Per_Tick = 200;
     public int fueling_Station_Fuel_Per_Tick = 50;
 
     public int item_Loader_Energy_Per_Tick = 100;
-
-    public float rocket_Block_Weight = 3;
-    public float rocket_ItemStack_Weight = 3;
-    public float rocket_Fuel_Weight_Per_MB = 0.0005f;
 
 
 }

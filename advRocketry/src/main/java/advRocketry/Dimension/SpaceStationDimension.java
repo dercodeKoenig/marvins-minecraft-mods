@@ -261,13 +261,13 @@ public class SpaceStationDimension extends Dimension {
     }
 
     void setTargetFront(Vec3 targetFront, boolean sync) {
-        properties().targetFront = targetFront.normalize();
+        properties().targetFront = targetFront.scale(10000).normalize();
         if (sync)
             dimensionManager.syncDimensionProperties(this);
     }
 
     void setTargetUp(Vec3 targetUp, boolean sync) {
-        properties().targetUp = targetUp.normalize();
+        properties().targetUp = targetUp.scale(10000).normalize();
         if (sync)
             dimensionManager.syncDimensionProperties(this);
     }
@@ -358,8 +358,10 @@ public class SpaceStationDimension extends Dimension {
 
             // when too far away from target, leave orbit ang go in space travel
             // ( for example when orbiting a large star where changing orbit distance would take forever )
-            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 30)
+            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 200){
                 isCloseEnoughForOrbit = false;
+                System.out.println(getPosition(0).distanceTo(targetPosition) + ":" + Config.INSTANCE.station_SpaceTravel_Min_Speed * 30);
+            }
 
             if (isCloseEnoughForOrbit) {
                 isInOrbit = true;

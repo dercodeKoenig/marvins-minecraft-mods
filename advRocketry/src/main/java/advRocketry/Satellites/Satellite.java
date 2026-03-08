@@ -1,13 +1,20 @@
 package advRocketry.Satellites;
 
+import advRocketry.Config;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.GlobalTime;
 import advRocketry.Registry.Items;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import java.text.CompactNumberFormat;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -66,9 +73,9 @@ public class Satellite {
             if (stack.getItem() instanceof SatelliteEquipment) {
                 equipment.add(stack);
             }
-            if(stack.getItem().equals(Items.ITEM_LORA_MODULE))
+            if (stack.getItem().equals(Items.ITEM_LORA_MODULE.get()))
                 hasLoraModule = true;
-            if(stack.getItem().equals(Items.ITEM_RADIATION_SHIELD))
+            if (stack.getItem().equals(Items.ITEM_RADIATION_SHIELD.get()))
                 hasRadiationShield = true;
         }
     }
@@ -109,15 +116,27 @@ public class Satellite {
         return total;
     }
 
-    public boolean hasLoraModule(){
+    public boolean hasLoraModule() {
         return hasLoraModule;
     }
-    public boolean hasRadiationShield(){
+
+    public boolean hasRadiationShield() {
         return hasRadiationShield;
     }
 
     public void tick() {
         this.generateEnergyAndFillBatteries();
+        if (!hasRadiationShield() && GlobalTime.getGlobalTime() % 20 == 0) {
+            double p = Math.random();
+            if (p < Config.INSTANCE.satellite_damage_prob_per_second) {
+                // satellite takes radiation damage and dies
+                SatelliteManager.removeSatellite(uuid);
+                for (Player player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+                    player.sendSystemMessage(Component.literal("A satellite (" + getName() + ") was lost to radiation damage in orbit around " + parentDimensionId + "."));
+                    player.sendSystemMessage(Component.literal("A radiation shield would have helped"));
+                }
+            }
+        }
     }
 
     public CompoundTag serialize(HolderLookup.Provider registries) {

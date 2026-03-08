@@ -112,8 +112,12 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                 if (rocket.currentProgram instanceof ProgramSatelliteDeployment) {
                     statusText.setTextAndSync("starting satellite deployment");
                 }
-                if (rocket.currentProgram instanceof ProgramSatelliteRecovery) {
+                else if (rocket.currentProgram instanceof ProgramSatelliteRecovery) {
                     statusText.setTextAndSync("starting satellite recovery");
+                }
+                else{
+                    // no longer valid program
+                    lastLaunchedRocketUUID = null;
                 }
             } else if (lastLaunchedMissionUUID != null && MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission) {
                 int eta = (int) (runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
