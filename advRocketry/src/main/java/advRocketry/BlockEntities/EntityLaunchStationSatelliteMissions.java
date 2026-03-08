@@ -12,10 +12,7 @@ import advRocketry.GlobalTime;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Items.ItemSatelliteIdChip;
-import advRocketry.Missions.MissionManager;
-import advRocketry.Missions.RocketMission;
-import advRocketry.Missions.SatelliteDeploymentMission;
-import advRocketry.Missions.SatelliteRecoverMission;
+import advRocketry.Missions.*;
 import advRocketry.Registry.BlockEntities;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketPrograms.ProgramMissionStartBase;
@@ -127,16 +124,16 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
         super.tick();
         if (level instanceof ServerLevel serverLevel) {
             if (lastLaunchedRocketUUID != null && serverLevel.getEntity(lastLaunchedRocketUUID) instanceof EntityRocket rocket) {
-                if (rocket.currentProgram instanceof SatelliteDeploymentMission) {
-                    statusText.setTextAndSync("rocket launched for satellite deployment");
+                if (rocket.currentProgram instanceof ProgramSatelliteDeployment) {
+                    statusText.setTextAndSync("starting satellite deployment");
                 }
-                if (rocket.currentProgram instanceof SatelliteRecoverMission) {
-                    statusText.setTextAndSync("rocket launched for satellite recovery");
+                if (rocket.currentProgram instanceof ProgramSatelliteRecovery) {
+                    statusText.setTextAndSync("starting satellite recovery");
                 }
             }
             else if (lastLaunchedMissionUUID != null && MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission){
                 int eta = (int)(runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
-                statusText.setTextAndSync("Mission in progress, eta: "+ eta);
+                statusText.setTextAndSync("Mission in progress, eta: "+ eta+"s");
             }
             else{
                 statusText.setTextAndSync("");
