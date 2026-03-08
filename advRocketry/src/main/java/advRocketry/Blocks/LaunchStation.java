@@ -26,21 +26,6 @@ public class LaunchStation extends Block implements EntityBlock {
 
     public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
 
-    public enum State implements StringRepresentable {
-        idle("idle"),
-        rocket_landed("rocket_landed"),
-        active("active");
-
-        public final String name;
-        State(String name){
-            this.name = name;
-        }
-        @Override
-        public String getSerializedName() {
-            return name;
-        }
-    }
-
     public LaunchStation() {
         super(Properties.of());
         registerDefaultState(getStateDefinition().any()
@@ -65,17 +50,19 @@ public class LaunchStation extends Block implements EntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
-                .setValue(STATE, State.idle)
-                ;
+                .setValue(STATE, State.idle);
     }
 
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        if(level.isClientSide) return;
+        if (level.isClientSide) return;
         if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
             if (level.hasNeighborSignal(pos)) {
-                if(!launchStation.isRedstonePowered)
+                if (!launchStation.isRedstonePowered) {
                     launchStation.launch();
+                    level.setBlock(pos, state.setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+                    launchStation.activeTimeout = 40;
+                }
                 launchStation.isRedstonePowered = true;
             } else {
                 launchStation.isRedstonePowered = false;
@@ -103,5 +90,22 @@ public class LaunchStation extends Block implements EntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityLaunchStation::tick;
+    }
+
+    public enum State implements StringRepresentable {
+        idle("idle"),
+        rocket_landed("rocket_landed"),
+        active("active");
+
+        public final String name;
+
+        State(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name;
+        }
     }
 }

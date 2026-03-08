@@ -562,33 +562,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public boolean launch(ItemStack navigationItem) {
         if (level().isClientSide) return false;
 
-        if (true) {
-            // TODO: remove this after testing missions
-            BlockPos landPos = dockingStationPos;
-            if (landPos == null)
-                landPos = blockPosition();
-            if(navigationItem.getItem() instanceof ItemSatelliteIdChip){
-                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(
-                        this,
-                        ItemSatelliteIdChip.getTarget(navigationItem),
-                        level().dimension().location(),
-                        landPos,
-                        UUID.randomUUID()
-                );
-                setProgramAndSync(programMissionStartBase);
-            }else {
-                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(
-                        this,
-                        ResourceLocation.parse("minecraft:overworld"),
-                        level().dimension().location(),
-                        landPos,
-                        UUID.randomUUID()
-                );
-                setProgramAndSync(programMissionStartBase);
-            }
-            return true;
-        }
-
         Level targetLevel = null;
         BlockPos targetPos = null;
         String extraInfo = "";

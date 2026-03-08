@@ -12,10 +12,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -30,28 +32,27 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
     public GuiHandlerBlockEntity guiHandler;
 
     public boolean isRedstonePowered = false;
-    int activeTimeout = 0; // when launch, shortly change the block state to active, change back after a few ticks
+    public int activeTimeout = 0; // when launch, shortly change the block state to active, change back after a few ticks
 
     public EntityLaunchStation(BlockPos pos, BlockState blockState) {
-        super(ENTITY_LAUNCH_STATION.get(), pos, blockState);
+        this(ENTITY_LAUNCH_STATION.get(), pos, blockState);
+    }
+
+    public EntityLaunchStation(BlockEntityType type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
 
         guiHandler = new GuiHandlerBlockEntity(this);
 
         inventory = new ItemStackHandler(1) {
             @Override
             protected void onContentsChanged(int slot) {
+                onInventoryChanged();
                 setChanged();
             }
 
             @Override
             public boolean isItemValid(int slot, ItemStack stack) {
-                if (stack.getItem() instanceof ItemPlanetIdChip)
-                    return true;
-                if (stack.getItem() instanceof ItemLinker)
-                    return true;
-                if(stack.getItem() instanceof ItemSatelliteIdChip)
-                    return true; // TODO: remove after testing
-                return false;
+                return EntityLaunchStation.this.isItemValid(slot, stack);
             }
         };
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0, inventory, 0, 0, 1, guiHandler, 50, 20));
@@ -72,6 +73,19 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityLaunchStation) t).tick();
+    }
+
+    // overwrite in subclasses
+    public boolean isItemValid(int slot, ItemStack stack){
+        if (stack.getItem() instanceof ItemPlanetIdChip)
+            return true;
+        if (stack.getItem() instanceof ItemLinker)
+            return true;
+        return false;
+    }
+    // overwrite in subclasses
+    public void onInventoryChanged(){
+
     }
 
     public void launch() {

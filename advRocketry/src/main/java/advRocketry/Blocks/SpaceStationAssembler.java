@@ -30,11 +30,6 @@ public class SpaceStationAssembler extends RocketAssembler implements EntityBloc
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntitySpaceStationAssembler::tick;
-    }
-
-    @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if(level.getBlockEntity(pos) instanceof EntitySpaceStationAssembler spaceStationAssembler){
             spaceStationAssembler.popInventory();

@@ -391,6 +391,7 @@ public class Main {
             e.accept(Items.ITEM_SATELLITE.get());
             e.accept(Items.ITEM_SATELLITE_OPTICAL_TELESCOPE.get());
             e.accept(Items.ITEM_SATELLITE_ID_CHIP.get());
+            e.accept(Blocks.LAUNCH_STATION_SATELLITE_MISSIONS.get());
         }
     }
 }
