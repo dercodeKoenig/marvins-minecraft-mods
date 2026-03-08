@@ -62,7 +62,7 @@ public class RenderObservatory implements BlockEntityRenderer<EntityObservatory>
         // render base block
         model.renderPart("Base", stack, v, light, overlay);
 
-        float yaw = renderData.yaw - (1 - partialtick) * renderData.yawD - back.toYRot() - 90;
+        float yaw = renderData.yaw - (1 - partialtick) * renderData.yawD;
         float pitch = renderData.pitch - (1 - partialtick) * renderData.pitchD;
 
         // translate & yaw

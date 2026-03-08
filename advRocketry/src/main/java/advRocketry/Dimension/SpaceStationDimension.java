@@ -358,7 +358,7 @@ public class SpaceStationDimension extends Dimension {
 
             // when too far away from target, leave orbit and go in space travel
             // ( for example when orbiting a large star where changing orbit distance would take forever )
-            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 300){
+            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 60 * 20){
                 isCloseEnoughForOrbit = false;
             }
 

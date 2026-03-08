@@ -209,7 +209,7 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
             }
             if (connectedSatellite != null) {
                 orbitedDim = DimensionManager.INSTANCE_SERVER.get(connectedSatellite.parentDimensionId);
-                if(connectedSatellite.hasLoraModule())
+                if (connectedSatellite.hasLoraModule())
                     isInRange = true;
                 else {
                     Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
@@ -220,7 +220,10 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                 }
             }
 
-            if (shouldCollectData && connectedSatellite instanceof SatelliteDataCollectorBase dataCollector && battery.getEnergyStored() >= 10) {
+            if (shouldCollectData &&
+                    connectedSatellite instanceof SatelliteDataCollectorBase dataCollector &&
+                    battery.getEnergyStored() >= 10 &&
+                    isInRange) {
                 DataStack canExtract = dataCollector.extractOneDataUnit(true);
                 int canInsert = dataStorage.insertData(canExtract, true);
                 if (canInsert > 0) {
@@ -262,7 +265,7 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                     newStatusText += "out of range";
                 } else {
                     newStatusText = connectedSatellite.getName() + "\n";
-                    if(orbitedDim != null)
+                    if (orbitedDim != null)
                         newStatusText += "orbit: " + orbitedDim.getName() + "\n";
                     newStatusText += "rf: " + connectedSatellite.getEnergyStored() + "\n";
                     if (connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
