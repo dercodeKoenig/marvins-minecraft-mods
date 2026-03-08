@@ -62,6 +62,11 @@ public class Satellite {
 
     // build the list of equipment and energy storages before starting to tick
     public void iterateEquipment() {
+        energyProducers.clear();
+        batteries.clear();
+        equipment.clear();
+        hasRadiationShield = false;
+        hasLoraModule = false;
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (stack.getItem() instanceof SatelliteEnergyProducer) {

@@ -356,11 +356,10 @@ public class SpaceStationDimension extends Dimension {
 
             boolean isCloseEnoughForOrbit = isCloseEnoughForOrbit(planetRenderRadiusAU, distanceToParent);
 
-            // when too far away from target, leave orbit ang go in space travel
+            // when too far away from target, leave orbit and go in space travel
             // ( for example when orbiting a large star where changing orbit distance would take forever )
-            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 200){
+            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 300){
                 isCloseEnoughForOrbit = false;
-                System.out.println(getPosition(0).distanceTo(targetPosition) + ":" + Config.INSTANCE.station_SpaceTravel_Min_Speed * 30);
             }
 
             if (isCloseEnoughForOrbit) {
