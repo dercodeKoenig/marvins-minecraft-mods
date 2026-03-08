@@ -18,6 +18,8 @@ public class SatelliteRegistry {
         // register known Satellites here
         registerSatellite(Satellite.class, "SatelliteBaseClass");
         registerSatellite(SatelliteOpticalTelescope.class, "SatelliteOpticalTelescope");
+        registerSatellite(SatelliteCompositionScanner.class, "SatelliteCompositionScanner");
+        registerSatellite(SatelliteMassScanner.class, "SatelliteMassScanner");
     }
 
     public static void registerSatellite(Class<? extends Satellite> satelliteClass, String id) {

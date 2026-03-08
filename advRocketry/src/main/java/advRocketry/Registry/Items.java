@@ -53,6 +53,8 @@ public class Items {
     public static final Supplier<Item> ITEM_BATTERY = ITEMS.register("battery", () -> new ItemBattery());
     public static final Supplier<Item> ITEM_SATELLITE = ITEMS.register("satellite", () -> new ItemSatellite());
     public static final Supplier<Item> ITEM_SATELLITE_OPTICAL_TELESCOPE = ITEMS.register("satellite_optical_telescope", () -> new ItemSatelliteOpticalTelescope());
+    public static final Supplier<Item> ITEM_SATELLITE_COMPOSITION_SCANNER = ITEMS.register("satellite_composition_scanner", () -> new ItemSatelliteCompositionScanner());
+    public static final Supplier<Item> ITEM_SATELLITE_MASS_SCANNER = ITEMS.register("satellite_mass_scanner", () -> new ItemSatelliteMassScanner());
     public static final Supplier<Item> ITEM_SATELLITE_ID_CHIP = ITEMS.register("satellite_id_chip", () -> new ItemSatelliteIdChip());
 
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);

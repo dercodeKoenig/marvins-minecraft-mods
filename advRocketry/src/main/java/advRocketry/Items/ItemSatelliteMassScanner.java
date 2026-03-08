@@ -1,14 +1,15 @@
 package advRocketry.Items;
 
 import advRocketry.Satellites.Satellite;
+import advRocketry.Satellites.SatelliteMassScanner;
 import advRocketry.Satellites.SatelliteOpticalTelescope;
 import advRocketry.Satellites.SatellitePrimaryFunction;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrimaryFunction {
-    public ItemSatelliteOpticalTelescope() {
+public class ItemSatelliteMassScanner extends Item implements SatellitePrimaryFunction {
+    public ItemSatelliteMassScanner() {
         super(new Properties());
     }
 
@@ -19,13 +20,13 @@ public class ItemSatelliteOpticalTelescope extends Item implements SatellitePrim
         if (!((satelliteIdChip.getItem()) instanceof ItemSatelliteIdChip))
             return Pair.of(null, Pair.of(false, "wrong satellite id chip"));
 
-        SatelliteOpticalTelescope telescope = new SatelliteOpticalTelescope();
-        telescope.inventory = satellite.inventory;
-        Pair<Boolean, String> res = telescope.validateBuild();
+        SatelliteMassScanner massScanner = new SatelliteMassScanner();
+        massScanner.inventory = satellite.inventory;
+        Pair<Boolean, String> res = massScanner.validateBuild();
         if (!res.getFirst()) {
             return Pair.of(null, res);
         }
 
-        return Pair.of(telescope, res);
+        return Pair.of(massScanner, res);
     }
 }

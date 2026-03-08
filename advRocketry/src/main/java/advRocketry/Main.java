@@ -394,6 +394,8 @@ public class Main {
 
             e.accept(Items.ITEM_SATELLITE.get());
             e.accept(Items.ITEM_SATELLITE_OPTICAL_TELESCOPE.get());
+            e.accept(Items.ITEM_SATELLITE_MASS_SCANNER.get());
+            e.accept(Items.ITEM_SATELLITE_COMPOSITION_SCANNER.get());
             e.accept(Items.ITEM_SATELLITE_ID_CHIP.get());
             e.accept(Items.ITEM_LORA_MODULE.get());
             e.accept(Items.ITEM_RADIATION_SHIELD.get());
