@@ -121,10 +121,10 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
         ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/arrow_down.png");
         guiHandler.modules.add(new guiModuleImage(guiHandler, 30, 38, 16, 16, arrow, 12, 16));
 
-        statusText = new guiModuleText(id++, "", guiHandler, 90, 20, 0xff000000, false);
+        statusText = new guiModuleText(id++, "", guiHandler, 85, 20, 0xff000000, false);
         guiHandler.modules.add(statusText);
 
-        collectDataBtn = new guiModuleButton(btn_collect_data, "download data", guiHandler, 90, 60, 90, 15, BTN_RED, BTN_W, BTN_H);
+        collectDataBtn = new guiModuleButton(btn_collect_data, "download data", guiHandler, 85, 60, 90, 15, BTN_RED, BTN_W, BTN_H);
         guiHandler.modules.add(collectDataBtn);
 
         guiModuleEnergy energyBar = new guiModuleEnergy(id++, battery, guiHandler, 190, 20);

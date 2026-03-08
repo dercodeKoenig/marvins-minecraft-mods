@@ -157,7 +157,10 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
                 // copy chip
                 ItemStack src = inventory.getStackInSlot(chip_main_slot);
                 ItemStack dst = inventory.getStackInSlot(chip_slot_2);
-                if(src.getItem() == Items.ITEM_SATELLITE_ID_CHIP && dst.getItem() == Items.ITEM_SATELLITE_ID_CHIP){
+                if(src.getItem() instanceof ItemSatelliteIdChip &&
+                        dst.getItem() instanceof ItemSatelliteIdChip &&
+                        ItemStack.isSameItem(src, dst)
+                ){
                     ItemUtils.setTag(dst, ItemUtils.getStacktagOrEmpty(src));
                     setChanged();
                 }

@@ -36,7 +36,7 @@ public class SatelliteCompositionScanner extends SatelliteDataCollectorBase {
 
     @Override
     String dataBaseTypeToGenerate() {
-        return DataTypes.distance;
+        return DataTypes.composition;
     }
 
     @Override
