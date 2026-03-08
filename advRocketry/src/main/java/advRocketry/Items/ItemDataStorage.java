@@ -36,7 +36,7 @@ public class ItemDataStorage extends Item implements IItemDataStorage, Satellite
 
     public void setDataStack(ItemStack stack, DataStack dataStack) {
         if (dataStack == null)
-            ItemUtils.setTag(stack, new CompoundTag());
+            ItemUtils.setTag(stack, null);
         else {
             CompoundTag tag = dataStack.saveToNbt();
             ItemUtils.setTag(stack, tag);

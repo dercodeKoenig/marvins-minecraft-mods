@@ -124,7 +124,7 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
         statusText = new guiModuleText(id++, "", guiHandler, 90, 20, 0xff000000, false);
         guiHandler.modules.add(statusText);
 
-        collectDataBtn = new guiModuleButton(btn_collect_data, "download data", guiHandler, 90, 55, 90, 20, BTN_RED, BTN_W, BTN_H);
+        collectDataBtn = new guiModuleButton(btn_collect_data, "download data", guiHandler, 90, 60, 90, 15, BTN_RED, BTN_W, BTN_H);
         guiHandler.modules.add(collectDataBtn);
 
         guiModuleEnergy energyBar = new guiModuleEnergy(id++, battery, guiHandler, 190, 20);
@@ -263,7 +263,7 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                 } else {
                     newStatusText = connectedSatellite.getName() + "\n";
                     if(orbitedDim != null)
-                        newStatusText = "orbit: " + orbitedDim.getName() + "\n";
+                        newStatusText += "orbit: " + orbitedDim.getName() + "\n";
                     newStatusText += "rf: " + connectedSatellite.getEnergyStored() + "\n";
                     if (connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
                         newStatusText += "data: " + dataCollector.getDataStored() + " / " + dataCollector.getDataCapacity();

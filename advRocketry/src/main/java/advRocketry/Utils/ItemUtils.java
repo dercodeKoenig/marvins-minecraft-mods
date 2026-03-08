@@ -15,6 +15,9 @@ public class ItemUtils {
     }
 
     public static void setTag(ItemStack stack, CompoundTag tag) {
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        if(tag == null)
+            stack.set(DataComponents.CUSTOM_DATA, null);
+        else
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 }
