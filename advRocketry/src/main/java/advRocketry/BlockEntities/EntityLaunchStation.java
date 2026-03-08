@@ -4,15 +4,13 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import advRocketry.Blocks.LaunchStation;
+import advRocketry.Blocks.MonitorBaseBlock;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Items.ItemSatelliteIdChip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -93,7 +91,7 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             ItemStack navigationItem = inventory.getStackInSlot(0);
             linkedRocket.launch(navigationItem);
         }
-        level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+        level.setBlock(getBlockPos(), getBlockState().setValue(MonitorBaseBlock.STATE, MonitorBaseBlock.State.active), 3);
         activeTimeout = 40;
     }
 
@@ -142,10 +140,10 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             if (activeTimeout > 0) {
                 activeTimeout--;
             } else {
-                if (linkedRocket != null && getBlockState().getValue(LaunchStation.STATE) != LaunchStation.State.rocket_landed)
-                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.rocket_landed), 3);
-                if (linkedRocket == null && getBlockState().getValue(LaunchStation.STATE) != LaunchStation.State.idle)
-                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.idle), 3);
+                if (linkedRocket != null && getBlockState().getValue(MonitorBaseBlock.STATE) != MonitorBaseBlock.State.rocket_landed)
+                    level.setBlock(getBlockPos(), getBlockState().setValue(MonitorBaseBlock.STATE, MonitorBaseBlock.State.rocket_landed), 3);
+                if (linkedRocket == null && getBlockState().getValue(MonitorBaseBlock.STATE) != MonitorBaseBlock.State.idle)
+                    level.setBlock(getBlockPos(), getBlockState().setValue(MonitorBaseBlock.STATE, MonitorBaseBlock.State.idle), 3);
             }
         }
     }

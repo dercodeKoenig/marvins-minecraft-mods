@@ -93,12 +93,14 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putUUID("lastLaunchedUUID", lastLaunchedUUID);
+        if (lastLaunchedUUID != null)
+            tag.putUUID("lastLaunchedUUID", lastLaunchedUUID);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        lastLaunchedUUID = tag.getUUID("lastLaunchedUUID");
+        if (tag.contains("lastLaunchedUUID"))
+            lastLaunchedUUID = tag.getUUID("lastLaunchedUUID");
     }
 }
