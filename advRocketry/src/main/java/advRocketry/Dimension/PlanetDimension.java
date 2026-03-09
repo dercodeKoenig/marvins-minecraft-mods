@@ -114,7 +114,6 @@ public class PlanetDimension extends Dimension {
         return properties().atmosphereDensity > 0.5f; // TODO: improve this
     }
 
-
     public boolean canRain() {
         return getAtmosphereDensity() > 0.5f;
     }
@@ -182,6 +181,8 @@ public class PlanetDimension extends Dimension {
     public float getorbitalBaseOffsetDegrees() {
         return properties().orbitalBaseOffsetDegrees;
     }
+
+    public int getDataRequiredForUnlock(){ return properties().dataRequiredForUnlock;}
 
     public Vec3 getOrbitAxis() {
         return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);

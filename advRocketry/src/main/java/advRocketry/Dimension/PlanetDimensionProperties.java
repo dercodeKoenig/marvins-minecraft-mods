@@ -3,7 +3,6 @@ package advRocketry.Dimension;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 
 public class PlanetDimensionProperties extends DimensionProperties{
@@ -23,7 +22,7 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public Vec3 rotationAxis = new Vec3(0.2, 1, 0);
 
-    public int seaLevel = 63; // to calculate wet level for terraforming use current sea level - original sea level
+    public int seaLevel = 63; // to calculate wet level for terraforming use current sea level - original sea level (maybe) ?
 
     public int originalSeaLevel = 63;
 
@@ -73,4 +72,5 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
     public String biomePreset = null;
 
+    public int dataRequiredForUnlock = 2000; // how much data of any type is required to unlock it on the planet
 }

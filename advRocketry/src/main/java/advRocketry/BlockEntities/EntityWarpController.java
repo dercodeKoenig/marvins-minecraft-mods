@@ -178,7 +178,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             // just one additional check to make sure the client did not cheat...
             Dimension dim = DimensionManager.INSTANCE_SERVER.get(ResourceLocation.parse(dimId));
             if (dim instanceof PlanetDimension planetDimension) {
-                if (planetDimension.isKnown() || ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorage.getStackInSlot(0), dimId)) {
+                if (planetDimension.isKnown() || ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorage.getStackInSlot(0), planetDimension)) {
                     targetView.setTargetAndSync(ResourceLocation.tryParse(dimId));
                     setChanged();
                 }
@@ -272,14 +272,16 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
 
     // helper methods for gui rendering
     public boolean client_IsDimensionKnown(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.isDimensionKnown(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+        return ItemGalaxyDatabase.isDimensionKnown(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId);
     }
 
     public boolean client_IsDistanceUnlocked(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+        if (DimensionManager.INSTANCE_CLIENT.get(dimensionId) instanceof PlanetDimension planetDimension)
+            return ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorageGuiSlot.client_getItemStackToRender(), planetDimension);
+        else return false;
     }
 
     public ItemGalaxyDatabase.PlanetInfo client_getPlanetInfo(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.getPlanetInfo(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId.toString());
+        return ItemGalaxyDatabase.getPlanetInfo(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId);
     }
 }

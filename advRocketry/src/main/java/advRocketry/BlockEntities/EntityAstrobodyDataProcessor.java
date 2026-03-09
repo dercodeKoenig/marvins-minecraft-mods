@@ -9,6 +9,9 @@ import ARLib.utils.BlockEntityBattery;
 import advRocketry.Config;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataTypes;
+import advRocketry.Dimension.Dimension;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Registry.BlockEntities;
 import net.minecraft.core.BlockPos;
@@ -90,6 +93,8 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
         energyBar = new guiModuleVerticalProgressBar(8897964, guiHandler, 155,20);
         guiHandler.modules.add(energyBar);
 
+        // todo: button void leftover data
+
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 160, 100, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 100, 200, 1, 0, guiHandler));
     }
@@ -131,42 +136,30 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
             ItemStack database = inventory.getStackInSlot(0);
 
             if (database.getItem() instanceof ItemGalaxyDatabase && data.lastType != null) {
-                ResourceLocation target = DataStack.split(data.lastType).getSecond();
+                ResourceLocation targetId = DataStack.split(data.lastType).getSecond();
+                PlanetDimension targetPlanet = (PlanetDimension) DimensionManager.INSTANCE_SERVER.get(targetId);
                 String baseType = DataStack.split(data.lastType).getFirst();
-                ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(database, target);
+                int requiredData = ItemGalaxyDatabase.POINTS_UNLOCKED(targetPlanet);
+                ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(database, targetPlanet);
                 int dataOnDisk = 0;
                 if (info != null) {
-                    if (baseType.equals(DataTypes.mass)) {
-                        dataOnDisk = info.mass;
-                    }
-                    if (baseType.equals(DataTypes.distance)) {
-                        dataOnDisk = info.distance;
-                    }
-                    if (baseType.equals(DataTypes.composition)) {
-                        dataOnDisk = info.composition;
-                    }
+                    dataOnDisk = info.get(baseType);
                 } else {
                     info = new ItemGalaxyDatabase.PlanetInfo();
                 }
 
                 if(!guiHandler.playersTrackingGui.isEmpty()) {
-                    data.dataBarDatabase.setProgressAndSync((double) dataOnDisk / ItemGalaxyDatabase.POINTS_UNLOCKED());
-                    data.dataBarDatabase.setHoverInfoAndSync(data.lastType + ": " + dataOnDisk + " / " + ItemGalaxyDatabase.POINTS_UNLOCKED());
+                    data.dataBarDatabase.setProgressAndSync((double) dataOnDisk / requiredData);
+                    data.dataBarDatabase.setHoverInfoAndSync(data.lastType + ": " + dataOnDisk + " / " + requiredData);
                 }
 
-                if (dataOnDisk < ItemGalaxyDatabase.POINTS_UNLOCKED() && dataStack != null && dataStack.amount > 0 && super.getTotalEnergyStored(energyInputBlocks) >= Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick) {
+                if (dataOnDisk < requiredData && dataStack != null && dataStack.amount > 0 && super.getTotalEnergyStored(energyInputBlocks) >= Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick) {
                     super.consumeEnergy(Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick, energyInputBlocks);
-                    dataStorageBlock.dataStorage.extractData(1, false);
-                    if (baseType.equals(DataTypes.mass)) {
-                        info.mass += 1;
+                    if(Math.random() < 0.1) {
+                        dataStorageBlock.dataStorage.extractData(1, false);
+                        info.put(baseType, dataOnDisk+1);
+                        ItemGalaxyDatabase.setPlanetInfo(database, targetPlanet, info);
                     }
-                    if (baseType.equals(DataTypes.distance)) {
-                        info.distance += 1;
-                    }
-                    if (baseType.equals(DataTypes.composition)) {
-                        info.composition += 1;
-                    }
-                    ItemGalaxyDatabase.setPlanetInfo(database, target, info);
                     setChanged();
                 }
             } else {

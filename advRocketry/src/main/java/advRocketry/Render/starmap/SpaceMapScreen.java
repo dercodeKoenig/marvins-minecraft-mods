@@ -1,5 +1,6 @@
 package advRocketry.Render.starmap;
 
+import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.*;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemGalaxyDatabase;
@@ -83,15 +84,16 @@ public class SpaceMapScreen extends Screen {
         int distance = 0;
         int mass = 0;
         int composition = 0;
-        if(planetInfo != null){
-            distance = planetInfo.distance;
-            mass = planetInfo.mass;
-            composition = planetInfo.composition;
+        if (planetInfo != null) {
+            distance = planetInfo.get(DataTypes.distance);
+            mass = planetInfo.get(DataTypes.mass);
+            composition = planetInfo.get(DataTypes.composition);
         }
-        description += "distance:    "+distance+" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
-        description += "mass:        "+mass+" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
-        description += "composition: "+composition+" / "+ItemGalaxyDatabase.POINTS_UNLOCKED()+"\n";
-        return  description;
+        int dataMax = ItemGalaxyDatabase.POINTS_UNLOCKED(planet);
+        description += "distance:    " + distance + " / " + dataMax + "\n";
+        description += "mass:        " + mass + " / " + dataMax + "\n";
+        description += "composition: " + composition + " / " + dataMax + "\n";
+        return description;
     }
 
     public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
