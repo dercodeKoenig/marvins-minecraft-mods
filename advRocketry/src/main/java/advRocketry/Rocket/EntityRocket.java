@@ -645,6 +645,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public void deconstruct() {
+        this.discard();
         Vec3 minPos = position().subtract(new Vec3((double) size.getX() / 2, 0, (double) size.getZ() / 2));
         for (BlockPos pos : blocks.keySet()) {
             BlockState state = blocks.get(pos);
@@ -660,7 +661,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 level().getBlockEntity(target).loadCustomOnly(tag, level().registryAccess());
             }
         }
-        kill();
     }
 
     public void popInventory(ItemStackHandler inventory){
