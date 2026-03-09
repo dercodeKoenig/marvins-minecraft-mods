@@ -994,7 +994,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             double accelerationModifier = 1 + (targetSpeedPerTick - currentSpeed) / overspeedAllowance;
             accelerationModifier = Math.clamp(accelerationModifier, 0, 1);
 
-            System.out.println(level().isClientSide+":"+ currentMaxA+":"+accelerationModifier);
             return (float) (currentMaxA * accelerationModifier);
         }
         return 1;
