@@ -386,6 +386,7 @@ public class SkyRenderer {
         newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
         // render star background first
+        // no depth write required
         GlStateManager._depthMask(false);
         RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
         ShaderInstance shader = RenderSystem.getShader();
@@ -399,6 +400,8 @@ public class SkyRenderer {
         shader.clear();
         GlStateManager._depthMask(true);
 
+        // enable depth test for planet rendering so the rings render correctly only in front of the planet
+        LEQUAL_DEPTH_TEST.setupRenderState();
 
         // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
         // we will scale translation and scale factor by this multiplier
@@ -509,6 +512,8 @@ public class SkyRenderer {
             // we do manual depth sorting, always render on top
             RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
         }
+
+        LEQUAL_DEPTH_TEST.clearRenderState();
 
         VertexBuffer.unbind();
     }
