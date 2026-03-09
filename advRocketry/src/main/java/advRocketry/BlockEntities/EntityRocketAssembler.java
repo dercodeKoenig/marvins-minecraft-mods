@@ -13,6 +13,7 @@ import advRocketry.Blocks.StructureTower;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.BlockPos;
@@ -567,11 +568,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             // build progress logic server
             if (buildProgress > -1) {
                 if (areaMin != null && areaMax != null) {
-                    boolean shouldConsumeEnergy = buildProgress <= Config.INSTANCE.rocket_Assembler_Build_Time_Base * (areaMax.getY() - areaMin.getY()+2);
-                    if(battery.getEnergyStored() >= Config.INSTANCE.rocket_Assembler_Energy_Per_Tick || !shouldConsumeEnergy) {
+                    boolean shouldConsumeEnergy = buildProgress <= Config.INSTANCE.rocket_Assembler_Build_Time_Base * (areaMax.getY() - areaMin.getY() + 2);
+                    if (battery.getEnergyStored() >= Config.INSTANCE.rocket_Assembler_Energy_Per_Tick || !shouldConsumeEnergy) {
                         buildProgress--;
-                        if(shouldConsumeEnergy)
-                            battery.extractEnergy(Config.INSTANCE.rocket_Assembler_Energy_Per_Tick,false);
+                        if (shouldConsumeEnergy)
+                            battery.extractEnergy(Config.INSTANCE.rocket_Assembler_Energy_Per_Tick, false);
                         if (buildProgress == -1) {
                             buildRocket(false);
                         }
@@ -585,7 +586,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
             // recalculate redstone output and notify level of change
             boolean shouldOutputRedstone = currentRocket != null && currentRocket.getCurrentProgram() == null;
-            if(shouldOutputRedstone != isRedstoneOutputActive){
+            if (shouldOutputRedstone != isRedstoneOutputActive) {
                 isRedstoneOutputActive = shouldOutputRedstone;
                 setChanged(); // <- updates neighbors for redstone signal
             }
@@ -597,7 +598,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
             // remove reference when the rocket program is null,
             // the following scan will reset it if it is still on launchpad area
-            if (currentRocket != null && currentRocket.getCurrentProgram() == null)
+            if (currentRocket != null && currentRocket.getCurrentProgram() == null && currentRocket.onGround())
                 currentRocket = null;
 
             // scan if there is a new rocket in the landing area to be the new rocket reference
@@ -608,7 +609,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 BlockPos start = getBlockPos().relative(facingOpposite);
                 double scale = (double) Config.INSTANCE.rocket_Assembler_Max_Size / 2 + 5;
                 // i will scan a narrow area in front where a rocket could possibly have landed / docked when there was no docking area / launchpad
-                area = new AABB(start).inflate(1).inflate(facingOpposite.getStepX()*scale, 0, facingOpposite.getStepZ()*scale);
+                area = new AABB(start).inflate(1).inflate(facingOpposite.getStepX() * scale, 0, facingOpposite.getStepZ() * scale);
             } else {
                 area = new AABB(new Vec3(areaMin.getX(), areaMin.getY(), areaMin.getZ()), new Vec3(areaMax.getX() + 1, areaMax.getY(), areaMax.getZ() + 1)).inflate(1, 2, 1);
             }
@@ -622,51 +623,57 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 currentRocket = rockets.getFirst();
             }
 
-            if(currentRocket != null) {
-                if(currentRocket.getCurrentProgram() == null) {
+            if (currentRocket != null) {
+                if (currentRocket.getCurrentProgram() == null) {
                     // when the rocket is landed, set its docking station position to this
                     currentRocket.setDockingStationPos(getBlockPos(), true);
                 }
             }
 
             // update gui
-            if (currentRocket != null) {
-                String newStatus = new String();
-                if (currentRocket.getCurrentProgram() == null)
-                    newStatus += "rocket landed\n";
-                else
-                    newStatus += "rocket in flight\n";
-                newStatus += "\nThrust max: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
-                newStatus += "Mass: " + ((float) Math.round(currentRocket.getMass() * 100) / 100) + "\n";
-                newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
-                newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
-                newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
-                statusText.setTextAndSync(newStatus);
-
-                buildButton.setIsEnabledAndBroadcastUpdate(false);
-                energyBar.setIsEnabledAndBroadcastUpdate(false);
-            }
-
-            if (currentRocket == null) {
-                if (areaMin == null || areaMax == null) {
-                    if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension)
-                        statusText.setTextAndSync("Launch zone not detected");
+            if (!guiHandler.playersTrackingGui.isEmpty()) {
+                if (currentRocket != null) {
+                    String newStatus = new String();
+                    if (currentRocket.getCurrentProgram() == null)
+                        newStatus += "rocket landed\n";
                     else
-                        statusText.setTextAndSync("No launchpad detected");
+                        newStatus += "rocket in flight\n";
+                    newStatus += "\nThrust max: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
+                    newStatus += "Mass: " + ((float) Math.round(currentRocket.getMass() * 100) / 100) + "\n";
+                    newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
+                    newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
+                    newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
+                    if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
+                        newStatus += "Y: " + currentRocket.blockPosition().getY() + "\n";
+                        newStatus += "V: " + (double) (Math.round(currentRocket.getDeltaMovement().y / 20 * 100)) / 100 + "m/s\n";
+                    }
+                    statusText.setTextAndSync(newStatus);
 
                     buildButton.setIsEnabledAndBroadcastUpdate(false);
                     energyBar.setIsEnabledAndBroadcastUpdate(false);
+                }
 
-                } else {
-                    buildButton.setIsEnabledAndBroadcastUpdate(true);
-                    energyBar.setIsEnabledAndBroadcastUpdate(true);
+                if (currentRocket == null) {
+                    if (areaMin == null || areaMax == null) {
+                        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension)
+                            statusText.setTextAndSync("Launch zone not detected");
+                        else
+                            statusText.setTextAndSync("No launchpad detected");
 
-                    statusText.setTextAndSync(
-                            "\n\n\nReady to build a rocket!\n\nA Rocket requires\n" +
-                                    "- 1 Guidance Computer\n" +
-                                    "- Thrusters\n" +
-                                    "- FuelTanks\n"
-                    );
+                        buildButton.setIsEnabledAndBroadcastUpdate(false);
+                        energyBar.setIsEnabledAndBroadcastUpdate(false);
+
+                    } else {
+                        buildButton.setIsEnabledAndBroadcastUpdate(true);
+                        energyBar.setIsEnabledAndBroadcastUpdate(true);
+
+                        statusText.setTextAndSync(
+                                "\n\n\nReady to build a rocket!\n\nA Rocket requires\n" +
+                                        "- 1 Guidance Computer\n" +
+                                        "- Thrusters\n" +
+                                        "- FuelTanks\n"
+                        );
+                    }
                 }
             }
         }
