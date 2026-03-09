@@ -1,9 +1,12 @@
 package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
+import ARLib.blockentities.EntityEnergyInputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.multiblockCore.BlockMultiblockMaster;
+import ARLib.utils.BlockEntityBattery;
+import advRocketry.Config;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataTypes;
 import advRocketry.Items.ItemGalaxyDatabase;
@@ -48,9 +51,10 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
         charMapping.put('s', List.of(Blocks.STONE_SLAB));
     }
 
+    public ItemStackHandler inventory;
     public GuiHandlerBlockEntity guiHandler;
     public guiModuleItemHandlerSlot storageDiskSlot;
-    public ItemStackHandler inventory;
+    public guiModuleVerticalProgressBar energyBar;
 
     List<WorkingData> workingData = new ArrayList<>();
 
@@ -64,15 +68,8 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                 setChanged();
             }
         };
-    }
 
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityAstrobodyDataProcessor) t).tick();
-    }
 
-    @Override
-    public void onLoad() {
-        super.onLoad();
 
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
 
@@ -90,12 +87,23 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
         workingData.add(new WorkingData(1, guiHandler, dataHatchPos2));
         workingData.add(new WorkingData(2, guiHandler, dataHatchPos3));
 
+        energyBar = new guiModuleVerticalProgressBar(8897964, guiHandler, 155,20);
+        guiHandler.modules.add(energyBar);
+
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 160, 100, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 100, 200, 1, 0, guiHandler));
-
     }
 
-    void processData(WorkingData data) {
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityAstrobodyDataProcessor) t).tick();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+    }
+
+    void processData(WorkingData data, List<EntityEnergyInputBlock> energyInputBlocks) {
         if (level.getBlockEntity(data.dataHatchPos) instanceof EntityDataStorageBlock dataStorageBlock) {
             DataStack dataStack = dataStorageBlock.dataStorage.getDataStack();
             int amount = 0;
@@ -146,7 +154,8 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                     data.dataBarDatabase.setHoverInfoAndSync(data.lastType + ": " + dataOnDisk + " / " + ItemGalaxyDatabase.POINTS_UNLOCKED());
                 }
 
-                if (dataOnDisk < ItemGalaxyDatabase.POINTS_UNLOCKED() && dataStack != null && dataStack.amount > 0) {
+                if (dataOnDisk < ItemGalaxyDatabase.POINTS_UNLOCKED() && dataStack != null && dataStack.amount > 0 && super.getTotalEnergyStored(energyInputBlocks) >= Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick) {
+                    super.consumeEnergy(Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick, energyInputBlocks);
                     dataStorageBlock.dataStorage.extractData(1, false);
                     if (baseType.equals(DataTypes.mass)) {
                         info.mass += 1;
@@ -172,11 +181,17 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
-
+            List<EntityEnergyInputBlock> energyInputBlocks = super.getEnergyInputTiles();
             if (getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 for (WorkingData workingDatum : workingData) {
-                    processData(workingDatum);
+                    processData(workingDatum, energyInputBlocks);
                 }
+            }
+            if(!guiHandler.playersTrackingGui.isEmpty()){
+                int energy = super.getTotalEnergyStored(energyInputBlocks);
+                int maxEnergy = super.getMaxEnergyStored(energyInputBlocks);
+                energyBar.setProgressAndSync((double) energy / maxEnergy);
+                energyBar.setHoverInfoAndSync("rf: "+energy+" / "+maxEnergy);
             }
         }
     }

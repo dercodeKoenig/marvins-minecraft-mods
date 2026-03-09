@@ -28,8 +28,6 @@ public class EntityEnergyInputBlock extends BlockEntity implements INetworkTagRe
     public EntityEnergyInputBlock(BlockEntityType type, BlockPos p_155229_, BlockState p_155230_) {
         super(type, p_155229_, p_155230_);
         energyStorage = new BlockEntityBattery(this, 10000);
-        energyStorage.canReceive = true;
-        energyStorage.canExtract = false;
         this.guiHandler = new GuiHandlerBlockEntity(this);
         this.guiHandler.getModules().add(new guiModuleEnergy(0, energyStorage, this.guiHandler, 10, 10));
     }

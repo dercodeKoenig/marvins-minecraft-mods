@@ -1,10 +1,7 @@
 package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleImage;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.gui.modules.guiModuleVerticalProgressBar;
+import ARLib.gui.modules.*;
 import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
 import advRocketry.Data.DataTypes;
@@ -21,6 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_DATA_STORAGE_BLOCK;
 
 public class EntityDataStorageBlock extends BlockEntity implements ARLib.network.INetworkTagReceiver {
@@ -65,6 +63,9 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/arrow_down.png");
         guiHandler.modules.add(new guiModuleImage(guiHandler, 30, 28, 16, 16, arrow, 12, 16));
 
+        guiModuleButton clearButton = new guiModuleButton(3, "clear data", guiHandler, 50, 20, 60, 15, BTN_RED, BTN_W, BTN_H);
+        guiHandler.modules.add(clearButton);
+
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 1000, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 2000, 1, 0, guiHandler));
 
@@ -105,6 +106,14 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         guiHandler.readServer(compoundTag);
+        if(compoundTag.contains("guiButtonClick")){
+            int id = compoundTag.getInt("guiButtonClick");
+            if(id == 3){
+                // clear data
+                dataStorage.setStackDirect(null);
+                setChanged();
+            }
+        }
     }
 
     @Override
