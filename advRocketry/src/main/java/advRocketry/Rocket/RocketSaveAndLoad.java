@@ -48,6 +48,8 @@ public class RocketSaveAndLoad {
         boolean needsUpdateGuiModules = false; // when BlockEntities change or are initially loaded
         boolean needsUpdateStructure = false; // when Blocks change or are initially loaded
 
+        boolean isInitialLoad = compoundTag.contains("initialLoad");
+
         // it does not correctly sync movement / position after dimension change, so i do it myself
         if(compoundTag.contains("deltaMovement")) {
             rocket.setDeltaMovement(Utils.deSerializeVec3(compoundTag.getCompound("deltaMovement")));
@@ -98,10 +100,14 @@ public class RocketSaveAndLoad {
 
         if (compoundTag.contains("heading"))
             rocket.controller.heading = Utils.deSerializeVec3(compoundTag.getCompound("heading"));
+        if (compoundTag.contains("heading") && isInitialLoad)
+            rocket.controller.lazyHeading = rocket.controller.heading;
         if (compoundTag.contains("defaultTargetHeading"))
             rocket.controller.setDefaultTargetHeading(Utils.deSerializeVec3(compoundTag.getCompound("defaultTargetHeading")), true);
         if (compoundTag.contains("front"))
             rocket.controller.front = Utils.deSerializeVec3(compoundTag.getCompound("front"));
+        if (compoundTag.contains("front") && isInitialLoad)
+            rocket.controller.lazyFront = rocket.controller.front;
         if (compoundTag.contains("targetFront"))
             rocket.controller.setTargetFront(Utils.deSerializeVec3(compoundTag.getCompound("targetFront")), true);
         if (compoundTag.contains("initialFront"))

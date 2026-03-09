@@ -9,11 +9,11 @@ public class RocketMotor extends Block implements ICustomWeightBlock {
     }
 
     public float getThrust() {
-        return 3f;
+        return 5f;
     }
 
     public float getFuelRateMax() {
-        return 30f;
+        return 50f;
     }
 
     @Override

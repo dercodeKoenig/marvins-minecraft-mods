@@ -735,6 +735,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (compoundTag.contains("ping")) {
             CompoundTag additionalSaveData = new CompoundTag();
             addAdditionalSaveData(additionalSaveData);
+            // client can handle special logic on initial load like instant rotation without lerp
+            additionalSaveData.put("initialLoad", new CompoundTag());
             sendToClients(additionalSaveData);
         }
 
@@ -961,7 +963,41 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     }
 
     public float getMaxAcceleration() {
-        return 3f / 20;
+        // this method usually runs when:
+        // the controller ticks and a target position is given
+        // when the rocket lands to calculate its target velocity
+        // when there is no program running, this method should never run and the ground check should not be a concern
+        Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
+        if (myDim instanceof SpaceStationDimension) {
+            // on space station, lower acceleration for more fine controll
+            // usually it should never demand this much but anyway....
+            return 0.01f;
+        }
+        if (myDim instanceof PlanetDimension planet) {
+            // lower acc near ground where there is probably more atmosphere and whatever it looks better
+            int y = Utils.findGroundY(level(), blockPosition());
+            double MAX_STRUCTURAL_ACC = 0.08 * 3;
+            double h = position().y - y;
+            double minH = 100;
+            double minA = Math.min(MAX_STRUCTURAL_ACC, getGravity() * 1.05);
+            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.min(1, h / minH);
+
+            // next: limit by velocity, too fast = too much stress by atmosphere
+            // if we go faster than target velocity, reduce acceleration
+            double atmMultiplier = 1 - (planet.getAtmosphereDensity() / (1 + planet.getAtmosphereDensity()));
+            double targetSpeedPerTick = 10 * atmMultiplier;
+            double overspeedAllowance = 5;
+            double currentSpeed = getDeltaMovement().y;
+            // current ~ target -> 1
+            // current >> target -> -inf (too fast, slow down)
+            // current << target -> +inf (too slow or falling, no limit on acc)
+            double accelerationModifier = 1 + (targetSpeedPerTick - currentSpeed) / overspeedAllowance;
+            accelerationModifier = Math.clamp(accelerationModifier, 0, 1);
+
+            System.out.println(level().isClientSide+":"+ currentMaxA+":"+accelerationModifier);
+            return (float) (currentMaxA * accelerationModifier);
+        }
+        return 1;
     }
 
     public ArrayList<BlockPos> getEnginePositions() {
