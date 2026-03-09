@@ -21,7 +21,7 @@ public class FuelTank extends Block {
     }
 
     public int getFuelCapacity(){
-        return 10000;
+        return 8000;
     }
 
     @Override
