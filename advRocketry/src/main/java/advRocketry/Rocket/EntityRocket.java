@@ -58,6 +58,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
@@ -567,8 +568,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
         // detect possible crash landing
         if(!level().isClientSide){
-            if(onGround() && lastDeltaMovement.y < -0.5){
-                System.out.println("rocket hit ground too hard: "+lastDeltaMovement.y);
+            double safeVelocity = -0.5;
+            if(onGround() && lastDeltaMovement.y < safeVelocity) {
+                for (Player p : level().players()) {
+                    if (p.position().distanceTo(position()) < 64) {
+                        p.sendSystemMessage(
+                                Component.literal("rocket hit ground too hard: " + lastDeltaMovement.y)
+                        );
+                        p.sendSystemMessage(
+                                Component.literal("safe velocity would be: " + safeVelocity)
+                        );
+                    }
+                }
+                breakAndPopRocket();
             }
             lastDeltaMovement = getDeltaMovement();
         }
@@ -649,6 +661,28 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         kill();
+    }
+
+    public void popInventory(ItemStackHandler inventory){
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            Block.popResource(level(),blockPosition().above(),inventory.getStackInSlot(i));
+        }
+    }
+    public void breakAndPopRocket() {
+        this.discard();
+        // all blocks will pop into the world,
+        // also pop inventory for guidance computer and cargo hold
+        for (BlockEntity e : blockEntities.values()) {
+            if (e instanceof EntityGuidanceComputer c)
+                popInventory(c.itemStackHandler);
+            if (e instanceof EntityCargoHold c)
+                popInventory(c.itemStackHandler);
+        }
+
+        for (BlockPos p : blocks.keySet()) {
+            BlockState state = blocks.get(p);
+            Block.popResource(level(), blockPosition().above(), new ItemStack(state.getBlock(), 1));
+        }
     }
 
     public EntityRocket teleportTo(Level level, Vec3 targetPos, Vec3 velocity) {
