@@ -650,7 +650,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
                     if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
                         newStatus += "Y: " + currentRocket.blockPosition().getY() + "\n";
-                        newStatus += "V: " + (double) (Math.round(currentRocket.getDeltaMovement().y / 20 * 100)) / 100 + "m/s\n";
+                        newStatus += "V: " + (double) (Math.round(currentRocket.getDeltaMovement().y * 20 * 100)) / 100 + "m/s\n";
                     }
                     statusText.setTextAndSync(newStatus);
 
