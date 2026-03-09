@@ -567,9 +567,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
 
         // detect possible crash landing
-        if(!level().isClientSide){
+        if (!level().isClientSide) {
             double safeVelocity = -0.5;
-            if(onGround() && lastDeltaMovement.y < safeVelocity) {
+            if (onGround() && lastDeltaMovement.y < safeVelocity) {
                 for (Player p : level().players()) {
                     if (p.position().distanceTo(position()) < 64) {
                         p.sendSystemMessage(
@@ -663,11 +663,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
     }
 
-    public void popInventory(ItemStackHandler inventory){
+    public void popInventory(ItemStackHandler inventory) {
         for (int i = 0; i < inventory.getSlots(); i++) {
-            Block.popResource(level(),blockPosition().above(),inventory.getStackInSlot(i));
+            Block.popResource(level(), blockPosition().above(), inventory.getStackInSlot(i));
         }
     }
+
     public void breakAndPopRocket() {
         this.discard();
         // all blocks will pop into the world,
@@ -918,7 +919,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / other rocket methods ////
 
-    public void setStructureChanged(){
+    public void setStructureChanged() {
         cachedThrust = -1;
         cachedFuelRate = -1;
         cachedBlockMass = -1;
@@ -961,7 +962,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             for (BlockPos p : blocks.keySet()) {
                 Block block = blocks.get(p).getBlock();
                 float weightModulator = 1;
-                if(block instanceof ICustomWeightBlock customWeightBlock)
+                if (block instanceof ICustomWeightBlock customWeightBlock)
                     weightModulator = customWeightBlock.getWeightMultiplier();
                 cachedBlockMass += Config.INSTANCE.rocket_Block_Weight * weightModulator;
             }
