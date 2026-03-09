@@ -83,7 +83,7 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
 
         guiModuleText title = new guiModuleText(-1, "Astrobody Data Processor", guiHandler, 5, 5, 0xff000000, false);
         guiHandler.modules.add(title);
-        storageDiskSlot = new guiModuleItemHandlerSlot(0, inventory, 0, 0, 1, guiHandler, 75, 80);
+        storageDiskSlot = new guiModuleItemHandlerSlot(0, inventory, 0, 0, 1, guiHandler, 150, 78);
         guiHandler.modules.add(storageDiskSlot);
 
         BlockPos dataHatchPos1 = getBlockPos().below().relative(facing.getOpposite()).relative(facing.getClockWise());
@@ -96,7 +96,7 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
         energyBar = new guiModuleVerticalProgressBar(8897964, guiHandler, 155, 20);
         guiHandler.modules.add(energyBar);
 
-        deleteLeftoverDataBtn = new guiModuleButton(deleteLeftoverDataBtnId, "clear leftover data", guiHandler, 10, 80, 80, 15, BTN_RED, BTN_W, BTN_H);
+        deleteLeftoverDataBtn = new guiModuleButton(deleteLeftoverDataBtnId, "clear leftover data", guiHandler, 10, 80, 110, 15, BTN_RED, BTN_W, BTN_H);
         guiHandler.modules.add(deleteLeftoverDataBtn);
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 160, 100, 1, 0, guiHandler));
@@ -165,6 +165,9 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                         ItemGalaxyDatabase.setPlanetInfo(database, targetPlanet, info);
                     }
                     setChanged();
+                } else if (dataOnDisk >= requiredData && deleteLeftoverData) {
+                    // clear leftover data
+                    dataStorageBlock.dataStorage.extractData(1, false);
                 }
             } else {
                 if (!guiHandler.playersTrackingGui.isEmpty()) {
