@@ -36,7 +36,6 @@ public class RocketController {
 
     // modifier on how fast the rocket can change heading
     double rotationRateMultiplier = 1;
-    // TODO: lazy heading / front for more smooth transition
     // the heading that the controller calculates for correct thrust or set to default heading
     Vec3 targetHeading = new Vec3(0, 1, 0);
     // the current heading, should only be accessed in tickRotation and during save & load
