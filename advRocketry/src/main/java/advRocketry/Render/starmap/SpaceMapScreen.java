@@ -1,5 +1,6 @@
 package advRocketry.Render.starmap;
 
+import ARLib.utils.VertexBufferCleaner;
 import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.*;
 import advRocketry.GlobalTime;
@@ -8,10 +9,11 @@ import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Utils.CelestialUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -42,6 +44,8 @@ public class SpaceMapScreen extends Screen {
     private float scale = 0.3f;
 
     private String planetInfoText = "";
+
+    private VertexBuffer vertexBufferOrbitCircle = null;
 
 
     @Override
@@ -294,10 +298,15 @@ public class SpaceMapScreen extends Screen {
         SkyRenderer.PlanetsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
+        // for the orbit lines
+        if (vertexBufferOrbitCircle == null) {
+            vertexBufferOrbitCircle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            VertexBufferCleaner.register(this, vertexBufferOrbitCircle);
+        }
+
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
             if (!shouldRenderPlanet(planet.getDimensionId()))
                 continue;
-
 
             Matrix4f planetMatrix = new Matrix4f();
 
@@ -320,6 +329,44 @@ public class SpaceMapScreen extends Screen {
             float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
+            // render the orbit lines
+            if(planet.getParentDimensionId() != null) {
+                Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()),partialTick);
+                Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
+
+                ByteBufferBuilder byteBufferBuilder = new ByteBufferBuilder(1024);
+                BufferBuilder builder = new BufferBuilder(byteBufferBuilder, VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+                int segments = 100;
+                for (int i = 0; i <= segments; i++) {
+                    double angleDegrees = (i * 360.0) / segments;
+                    Vec3 rotatedOffset = CelestialUtils.rotate(new Vec3(parentToPlanet), planet.getOrbitAxis().normalize(), angleDegrees);
+
+                    float x = (float) rotatedOffset.x;
+                    float y = (float) rotatedOffset.y;
+                    float z = (float) rotatedOffset.z;
+
+                    float colorModulator = 0.1f;
+                    builder.addVertex(x, y, z).setColor(1.0f * colorModulator, 1.0f * colorModulator , 1.0f * colorModulator, 1f);
+                }
+                MeshData mesh = builder.build();
+                vertexBufferOrbitCircle.bind();
+                vertexBufferOrbitCircle.upload(mesh);
+                byteBufferBuilder.close();
+
+                Matrix4f parentMatrix = new Matrix4f();
+                parentMatrix.translate(parentPosition);
+                RenderSystem.setShader(GameRenderer::getPositionColorShader);
+                ShaderInstance shader = RenderSystem.getShader();
+                shader.setDefaultUniforms(
+                        VertexFormat.Mode.DEBUG_LINE_STRIP,
+                        new Matrix4f(viewMatrix).mul(parentMatrix),
+                        projMatrix,
+                        Minecraft.getInstance().getWindow()
+                );
+                shader.apply();
+                vertexBufferOrbitCircle.draw();
+                shader.clear();
+            }
 
             // render the planet as if we observe it from space (0 atm density, no sky color...)
             SkyRenderer.renderPlanet(
@@ -446,7 +493,7 @@ public class SpaceMapScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
-    public Vector3f getPlanetTranslation(PlanetDimension planet, float pTicks){
+    public Vector3f getPlanetTranslation(Dimension planet, float pTicks){
         Vec3 pos = getPositionScaled(planet, pTicks);
         return new Vector3f((float) pos.x * 100, (float) pos.y * 100, (float) pos.z * 100);
     }
