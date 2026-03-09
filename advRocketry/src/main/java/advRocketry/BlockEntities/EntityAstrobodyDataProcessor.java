@@ -165,8 +165,9 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                         ItemGalaxyDatabase.setPlanetInfo(database, targetPlanet, info);
                     }
                     setChanged();
-                } else if (dataOnDisk >= requiredData && deleteLeftoverData) {
+                } else if (database.getItem() instanceof ItemGalaxyDatabase && dataOnDisk >= requiredData && deleteLeftoverData) {
                     // clear leftover data
+                    // database has to be inserted to check if dataOnDisk >= requiredData
                     dataStorageBlock.dataStorage.extractData(1, false);
                 }
             } else {
