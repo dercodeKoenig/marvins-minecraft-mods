@@ -533,6 +533,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             for(Entity e : getPassengers()){
                 e.resetFallDistance();
             }
+            resetFallDistance();
         } else {
             controller.setTargetPosition(null, false);
             controller.enableSecondaryEngines(false, false);
