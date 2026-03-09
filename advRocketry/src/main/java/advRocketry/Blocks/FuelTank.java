@@ -1,5 +1,6 @@
 package advRocketry.Blocks;
 
+import advRocketry.Rocket.ICustomWeightBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,7 +15,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import javax.annotation.Nullable;
 
-public class FuelTank extends Block {
+public class FuelTank extends Block implements ICustomWeightBlock {
     public FuelTank() {
         super(Properties.of().noOcclusion());
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.DOWN, false).setValue(BlockStateProperties.UP, false));
@@ -22,6 +23,10 @@ public class FuelTank extends Block {
 
     public int getFuelCapacity(){
         return 8000;
+    }
+
+    public float getWeightMultiplier() {
+        return 0.5f;
     }
 
     @Override

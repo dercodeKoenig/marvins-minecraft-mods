@@ -46,6 +46,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -108,6 +109,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     // cached values
     private float cachedThrust = -1;
     private int cachedFuelRate = -1;
+    private float cachedBlockMass = -1;
     private ArrayList<BlockPos> cachedEnginePositions = null;
     private ArrayList<BlockPos> cachedSeatPositions = null;
 
@@ -868,6 +870,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     /// / other rocket methods ////
 
+    public void setStructureChanged(){
+        cachedThrust = -1;
+        cachedFuelRate = -1;
+        cachedBlockMass = -1;
+        cachedEnginePositions = null;
+        cachedSeatPositions = null;
+        requiresMeshUpdate = true;
+    }
+
     public float getThrustMax() {
         if (cachedThrust < 0) {
             cachedThrust = 0;
@@ -896,9 +907,23 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return cachedFuelRate;
     }
 
+    public float getBlockMass() {
+        if (cachedBlockMass < 0) {
+            cachedBlockMass = 0;
+            for (BlockPos p : blocks.keySet()) {
+                Block block = blocks.get(p).getBlock();
+                float weightModulator = 1;
+                if(block instanceof ICustomWeightBlock customWeightBlock)
+                    weightModulator = customWeightBlock.getWeightMultiplier();
+                cachedBlockMass += Config.INSTANCE.rocket_Block_Weight * weightModulator;
+            }
+        }
+        return cachedBlockMass;
+    }
+
     public void recalculateMass() {
         float mass = 0;
-        mass += blocks.size() * Config.INSTANCE.rocket_Block_Weight; // block weight
+        mass += getBlockMass();
         mass += getFuel() * Config.INSTANCE.rocket_Fuel_Weight_Per_MB; // fuel weight
         for (BlockEntity e : blockEntities.values()) {
             if (e instanceof EntityCargoHold entityCargoHold) {

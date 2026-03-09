@@ -45,7 +45,8 @@ public class RocketSaveAndLoad {
 
     public static void readAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
 
-        boolean needsUpdateGuiModules = false;
+        boolean needsUpdateGuiModules = false; // when BlockEntities change or are initially loaded
+        boolean needsUpdateStructure = false; // when Blocks change or are initially loaded
 
         // it does not correctly sync movement / position after dimension change, so i do it myself
         if(compoundTag.contains("deltaMovement")) {
@@ -122,7 +123,7 @@ public class RocketSaveAndLoad {
                 BlockState state = NbtUtils.readBlockState(rocket.level().registryAccess().lookupOrThrow(Registries.BLOCK), blockTag.getCompound("block"));
                 rocket.blocks.put(p, state);
             }
-            rocket.requiresMeshUpdate = true;
+            needsUpdateStructure = true;
         }
 
         if (compoundTag.contains("blockEntities")) {
@@ -137,11 +138,14 @@ public class RocketSaveAndLoad {
                 rocket.blockEntities.put(p, be);
             }
             needsUpdateGuiModules = true; // gui depends on block entities
-            rocket.requiresMeshUpdate = true;
+            needsUpdateStructure = true;
         }
 
         if(needsUpdateGuiModules)
             rocket.makeGui();
+        if(needsUpdateStructure){
+            rocket.setStructureChanged();
+        }
     }
 
     public static void addAdditionalSaveData(EntityRocket rocket, CompoundTag compoundTag) {
