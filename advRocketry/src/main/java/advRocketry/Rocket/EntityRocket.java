@@ -572,7 +572,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
             lastDeltaMovement = getDeltaMovement();
         }
-        
+
     }
 
     /// the normal launch code
