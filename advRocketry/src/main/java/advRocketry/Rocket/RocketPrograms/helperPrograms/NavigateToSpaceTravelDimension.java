@@ -93,7 +93,7 @@ public class NavigateToSpaceTravelDimension {
             rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
             rocket.controller.setRotationRateMultiplier(1, false);
 
-            rocket.controller.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 5000, rocket.position().z), false);
+            rocket.controller.setTargetPosition(new Vec3(rocket.position().x, Config.INSTANCE.planet_Sky_Height + 500, rocket.position().z), false);
 
             if (rocket.position().y > Config.INSTANCE.planet_Sky_Height) {
                 if (!callback.onSpaceReached()) {
@@ -101,7 +101,7 @@ public class NavigateToSpaceTravelDimension {
                         teleportToSpaceTravel(rocket, myDim);
                     } else {
                         // client side, while waiting on dimension transition do not stop and rotate the rocket midflight, just keep going and wait for teleport to kick in
-                        rocket.controller.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 5000, rocket.position().z), false);
+                        rocket.controller.setTargetPosition(new Vec3(rocket.position().x, rocket.position().y + 500, rocket.position().z), false);
                     }
                 }
             }

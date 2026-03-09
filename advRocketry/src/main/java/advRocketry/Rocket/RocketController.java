@@ -290,12 +290,6 @@ public class RocketController {
         final double K_P = 0.001;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
         double K_D = Math.sqrt(K_P) * 2 * 2;
-        /*
-        if (rocketDim instanceof SpaceStationDimension) {
-            // more breaking for more stable flight
-            K_D *= 2;
-        }
-         */
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
         // secondary thruster force

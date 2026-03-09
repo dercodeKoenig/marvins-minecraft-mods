@@ -12,6 +12,6 @@ public class RocketMotor extends Block {
     }
 
     public float getFuelRateMax(){
-        return 5f;
+        return 30f;
     }
 }
