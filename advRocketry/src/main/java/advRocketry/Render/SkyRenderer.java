@@ -556,7 +556,7 @@ public class SkyRenderer {
 
         // post processing
 
-        NO_DEPTH_TEST.setupRenderState();
+        GlStateManager._depthMask(false);
 
         vertexBufferSquare.bind();
 
@@ -611,9 +611,9 @@ public class SkyRenderer {
         vertexBufferSquare.draw();
         shader.clear();
 
-
         VertexBuffer.unbind();
-        NO_DEPTH_TEST.clearRenderState();
+
+        GlStateManager._depthMask(true);
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);

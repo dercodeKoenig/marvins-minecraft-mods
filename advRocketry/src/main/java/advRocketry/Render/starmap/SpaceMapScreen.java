@@ -8,6 +8,7 @@ import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Utils.CelestialUtils;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -23,6 +24,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
 
+import static advRocketry.Render.SkyRenderer.vertexBufferStarBackground;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -298,11 +300,28 @@ public class SpaceMapScreen extends Screen {
         SkyRenderer.PlanetsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
+        ShaderInstance shader;
+
+        // render star background first
+        RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
+        shader = RenderSystem.getShader();
+        shader.getUniform("ViewMat").set(new Matrix4f());
+        shader.getUniform("WorldMat").set(new Matrix4f());
+        shader.getUniform("ModelMat").set(new Matrix4f());
+        shader.getUniform("ProjMat").set(new Matrix4f().setPerspective(60F, (float) (windowWidth / windowHeight), 10F,1000000F));
+        shader.apply();
+        SkyRenderer.vertexBufferStarBackground.bind();
+        SkyRenderer.vertexBufferStarBackground.draw();
+        shader.clear();
+
         // for the orbit lines
         if (vertexBufferOrbitCircle == null) {
             vertexBufferOrbitCircle = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             VertexBufferCleaner.register(this, vertexBufferOrbitCircle);
         }
+
+        // we render back to front, but ring systems should be correctly hidden behind planet spheres
+        LEQUAL_DEPTH_TEST.setupRenderState();
 
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
             if (!shouldRenderPlanet(planet.getDimensionId()))
@@ -356,7 +375,7 @@ public class SpaceMapScreen extends Screen {
                 Matrix4f parentMatrix = new Matrix4f();
                 parentMatrix.translate(parentPosition);
                 RenderSystem.setShader(GameRenderer::getPositionColorShader);
-                ShaderInstance shader = RenderSystem.getShader();
+                shader = RenderSystem.getShader();
                 shader.setDefaultUniforms(
                         VertexFormat.Mode.DEBUG_LINE_STRIP,
                         new Matrix4f(viewMatrix).mul(parentMatrix),
@@ -395,20 +414,20 @@ public class SpaceMapScreen extends Screen {
                 );
             }
 
-            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); // we do manual depth sorting to avoid geometry mix
+            // we do manual depth sorting to avoid geometry mix
+            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         }
+
+        LEQUAL_DEPTH_TEST.clearRenderState();
 
         // this one is only required for the blit shader later bc i dont want to write another shader
         SkyRenderer.AtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
-
-        ShaderInstance shader;
-
         // post processing
 
-        NO_DEPTH_TEST.setupRenderState();
+        GlStateManager._depthMask(false);
 
         SkyRenderer.vertexBufferSquare.bind();
 
@@ -463,9 +482,9 @@ public class SpaceMapScreen extends Screen {
         SkyRenderer.vertexBufferSquare.draw();
         shader.clear();
 
+        GlStateManager._depthMask(true);
 
         VertexBuffer.unbind();
-        NO_DEPTH_TEST.clearRenderState();
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
