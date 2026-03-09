@@ -22,7 +22,7 @@ public class FuelTank extends Block implements ICustomWeightBlock {
     }
 
     public int getFuelCapacity(){
-        return 6000;
+        return 8000;
     }
 
     public float getWeightMultiplier() {
