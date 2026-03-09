@@ -375,6 +375,7 @@ public class SkyRenderer {
     }
 
     private void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
+
         Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
 
         // for star background
@@ -385,8 +386,6 @@ public class SkyRenderer {
         newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
         // render star background first
-        NO_DEPTH_TEST.setupRenderState(); // i do manual depth sort for planets for precision errors reason
-        NO_TRANSPARENCY.setupRenderState();
         GlStateManager._depthMask(false);
         RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
         ShaderInstance shader = RenderSystem.getShader();
@@ -398,8 +397,6 @@ public class SkyRenderer {
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();
         shader.clear();
-        NO_DEPTH_TEST.clearRenderState();
-        NO_TRANSPARENCY.clearRenderState();
         GlStateManager._depthMask(true);
 
 
@@ -410,9 +407,6 @@ public class SkyRenderer {
         float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
 
         Vec3 myDimensionPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
-
-        LEQUAL_DEPTH_TEST.setupRenderState();
-        NO_TRANSPARENCY.setupRenderState();
 
         // Render planets / stars
         for (PlanetDimension otherDimension : PlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
@@ -512,12 +506,9 @@ public class SkyRenderer {
                 );
             }
 
-            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); // remember, we do manual depth sorting
+            // we do manual depth sorting, always render on top
+            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
         }
-
-
-        LEQUAL_DEPTH_TEST.clearRenderState();
-        NO_TRANSPARENCY.clearRenderState();
 
         VertexBuffer.unbind();
     }

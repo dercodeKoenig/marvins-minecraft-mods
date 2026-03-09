@@ -28,18 +28,15 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class SpaceMapScreen extends Screen {
-    public SpaceMapScreen() {
-        super(Component.literal("space map"));
-    }
+    private final int SIDEBAR_WIDTH = 150;
 
     private PlanetDimension selectedPlanet = null;
+
     private net.minecraft.client.gui.components.Button actionButton;
-    private final int SIDEBAR_WIDTH = 150;
 
     private float camX = 0;
     private float camY = 0;
     private float zoom = 1000f;
-
     private float logScale = 0.5f;
     private float scale = 0.3f;
 
@@ -47,6 +44,9 @@ public class SpaceMapScreen extends Screen {
 
     private VertexBuffer vertexBufferOrbitCircle = null;
 
+    public SpaceMapScreen() {
+        super(Component.literal("space map"));
+    }
 
     @Override
     public void tick() {
@@ -62,10 +62,10 @@ public class SpaceMapScreen extends Screen {
                 actionButton.visible = false;
 
             planetInfoText = getPlanetInfoText(selectedPlanet.getDimensionId(), null);
-            if(planetInfoText == null)
+            if (planetInfoText == null)
                 planetInfoText = "";
 
-        }else {
+        } else {
             actionButton.visible = false;
         }
 
@@ -196,7 +196,7 @@ public class SpaceMapScreen extends Screen {
         float fov = (float) Math.toRadians(60.0f); // 60 is usually better for maps than 90
         float aspect = (float) windowWidth / windowHeight;
         float near = 0.1f;
-        float far = zoom*2;
+        float far = zoom * 2;
         projMatrix.setPerspective(fov, aspect, near, far);
         return projMatrix;
     }
@@ -226,7 +226,7 @@ public class SpaceMapScreen extends Screen {
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky().reversed()) {
 
             // dont test for hidden planets
-            if(!shouldRenderPlanet(planet.getDimensionId()))
+            if (!shouldRenderPlanet(planet.getDimensionId()))
                 continue;
 
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
@@ -330,8 +330,8 @@ public class SpaceMapScreen extends Screen {
             planetMatrix.scale(renderScale);
 
             // render the orbit lines
-            if(planet.getParentDimensionId() != null) {
-                Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()),partialTick);
+            if (planet.getParentDimensionId() != null) {
+                Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()), partialTick);
                 Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
 
                 ByteBufferBuilder byteBufferBuilder = new ByteBufferBuilder(1024);
@@ -346,7 +346,7 @@ public class SpaceMapScreen extends Screen {
                     float z = (float) rotatedOffset.z;
 
                     float colorModulator = 0.1f;
-                    builder.addVertex(x, y, z).setColor(1.0f * colorModulator, 1.0f * colorModulator , 1.0f * colorModulator, 1f);
+                    builder.addVertex(x, y, z).setColor(1.0f * colorModulator, 1.0f * colorModulator, 1.0f * colorModulator, 1f);
                 }
                 MeshData mesh = builder.build();
                 vertexBufferOrbitCircle.bind();
@@ -493,10 +493,11 @@ public class SpaceMapScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
-    public Vector3f getPlanetTranslation(Dimension planet, float pTicks){
+    public Vector3f getPlanetTranslation(Dimension planet, float pTicks) {
         Vec3 pos = getPositionScaled(planet, pTicks);
         return new Vector3f((float) pos.x * 100, (float) pos.y * 100, (float) pos.z * 100);
     }
+
     public float getPlanetRenderScale(PlanetDimension planet) {
         float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100)) / 20;
         renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
