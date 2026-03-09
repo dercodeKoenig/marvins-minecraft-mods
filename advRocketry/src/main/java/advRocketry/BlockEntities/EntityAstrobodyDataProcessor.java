@@ -34,14 +34,16 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.*;
 
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
+
 public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterWithData {
 
     public static Object[][][] structure =
             new Object[][][]{
-                    {{'s', 'c', 's'},
+                            {{'s', 'c', 's'},
                             {'s', 's', 's'}},
 
-                    {{'e', 'S', 'e'},
+                            {{'e', 'S', 'e'},
                             {'d', 'd', 'd'}}
             };
     public static HashMap<Character, List<Block>> charMapping = new HashMap<>();
@@ -58,8 +60,10 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
     public GuiHandlerBlockEntity guiHandler;
     public guiModuleItemHandlerSlot storageDiskSlot;
     public guiModuleVerticalProgressBar energyBar;
-
-    List<WorkingData> workingData = new ArrayList<>();
+    public guiModuleButton deleteLeftoverDataBtn;
+    public List<WorkingData> workingData = new ArrayList<>();
+    int deleteLeftoverDataBtnId = 1123452374;
+    boolean deleteLeftoverData = false;
 
     public EntityAstrobodyDataProcessor(BlockPos pos, BlockState state) {
         super(BlockEntities.ENTITY_ASTROBODY_DATA_PROCESSOR.get(), pos, state);
@@ -71,7 +75,6 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                 setChanged();
             }
         };
-
 
 
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -90,10 +93,11 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
         workingData.add(new WorkingData(1, guiHandler, dataHatchPos2));
         workingData.add(new WorkingData(2, guiHandler, dataHatchPos3));
 
-        energyBar = new guiModuleVerticalProgressBar(8897964, guiHandler, 155,20);
+        energyBar = new guiModuleVerticalProgressBar(8897964, guiHandler, 155, 20);
         guiHandler.modules.add(energyBar);
 
-        // todo: button void leftover data
+        deleteLeftoverDataBtn = new guiModuleButton(deleteLeftoverDataBtnId, "clear leftover data", guiHandler, 10, 80, 80, 15, BTN_RED, BTN_W, BTN_H);
+        guiHandler.modules.add(deleteLeftoverDataBtn);
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 160, 100, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 100, 200, 1, 0, guiHandler));
@@ -126,7 +130,7 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
 
             if (!guiHandler.playersTrackingGui.isEmpty()) {
                 data.dataBar.setProgressAndSync((double) amount / dataStorageBlock.dataStorage.getDataCapacity());
-                if(data.lastType != null)
+                if (data.lastType != null)
                     data.dataBar.setHoverInfoAndSync(data.lastType + ": " + amount + " / " + dataStorageBlock.dataStorage.getDataCapacity());
                 else
                     data.dataBar.setHoverInfoAndSync("");
@@ -148,22 +152,22 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                     info = new ItemGalaxyDatabase.PlanetInfo();
                 }
 
-                if(!guiHandler.playersTrackingGui.isEmpty()) {
+                if (!guiHandler.playersTrackingGui.isEmpty()) {
                     data.dataBarDatabase.setProgressAndSync((double) dataOnDisk / requiredData);
                     data.dataBarDatabase.setHoverInfoAndSync(data.lastType + ": " + dataOnDisk + " / " + requiredData);
                 }
 
                 if (dataOnDisk < requiredData && dataStack != null && dataStack.amount > 0 && super.getTotalEnergyStored(energyInputBlocks) >= Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick) {
                     super.consumeEnergy(Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick, energyInputBlocks);
-                    if(Math.random() < 0.1) {
+                    if (Math.random() < 0.1) {
                         dataStorageBlock.dataStorage.extractData(1, false);
-                        info.put(baseType, dataOnDisk+1);
+                        info.put(baseType, dataOnDisk + 1);
                         ItemGalaxyDatabase.setPlanetInfo(database, targetPlanet, info);
                     }
                     setChanged();
                 }
             } else {
-                if(!guiHandler.playersTrackingGui.isEmpty()) {
+                if (!guiHandler.playersTrackingGui.isEmpty()) {
                     data.dataBarDatabase.setProgressAndSync(0);
                     data.dataBarDatabase.setHoverInfoAndSync("");
                 }
@@ -180,11 +184,15 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                     processData(workingDatum, energyInputBlocks);
                 }
             }
-            if(!guiHandler.playersTrackingGui.isEmpty()){
+            if (!guiHandler.playersTrackingGui.isEmpty()) {
                 int energy = super.getTotalEnergyStored(energyInputBlocks);
                 int maxEnergy = super.getMaxEnergyStored(energyInputBlocks);
                 energyBar.setProgressAndSync((double) energy / maxEnergy);
-                energyBar.setHoverInfoAndSync("rf: "+energy+" / "+maxEnergy);
+                energyBar.setHoverInfoAndSync("rf: " + energy + " / " + maxEnergy);
+                if(deleteLeftoverData)
+                    deleteLeftoverDataBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+                else
+                    deleteLeftoverDataBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
             }
         }
     }
@@ -192,6 +200,13 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
     @Override
     public void readServer(CompoundTag tag, ServerPlayer player) {
         guiHandler.readServer(tag);
+        if(tag.contains("guiButtonClick")){
+            int btn = tag.getInt("guiButtonClick");
+            if(btn == deleteLeftoverDataBtnId){
+                deleteLeftoverData = !deleteLeftoverData;
+                setChanged();
+            }
+        }
     }
 
     @Override
@@ -202,11 +217,13 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("inventory", inventory.serializeNBT(registries));
+        tag.putBoolean("deleteLeftoverData", deleteLeftoverData);
     }
 
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+        deleteLeftoverData = tag.getBoolean("deleteLeftoverData");
     }
 
     public void popInventory() {
@@ -241,7 +258,7 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
         guiHandler.signalOpenGui(player, 176, 188, true);
     }
 
-    static class WorkingData {
+    public static class WorkingData {
         public guiModuleVerticalProgressBar dataBar;
         public guiModuleVerticalProgressBar dataBarDatabase;
         String lastType = null;
