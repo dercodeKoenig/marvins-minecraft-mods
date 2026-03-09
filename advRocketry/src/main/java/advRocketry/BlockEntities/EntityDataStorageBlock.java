@@ -63,7 +63,7 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
         ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath(ARLib.ARLib.MODID, "textures/gui/arrow_down.png");
         guiHandler.modules.add(new guiModuleImage(guiHandler, 30, 28, 16, 16, arrow, 12, 16));
 
-        guiModuleButton clearButton = new guiModuleButton(3, "clear data", guiHandler, 50, 20, 60, 15, BTN_RED, BTN_W, BTN_H);
+        guiModuleButton clearButton = new guiModuleButton(3, "clear data", guiHandler, 70, 10, 60, 15, BTN_RED, BTN_W, BTN_H);
         guiHandler.modules.add(clearButton);
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 1000, 1, 0, guiHandler));
