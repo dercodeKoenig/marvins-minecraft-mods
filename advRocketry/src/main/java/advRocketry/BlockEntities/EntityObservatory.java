@@ -479,9 +479,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                     s += ": " + targetPlanet.getName();
                                 }
                             }
-                            if (task == Task.SCANNING_FOR_PLANETS && getData(REQUIRED_DATA, dataTiles, false) == 0) {
-                                s += "\n(" + REQUIRED_DATA + " data would help)";
-                            }
                             statusText.setTextAndSync(s);
                         }
                     } else {
