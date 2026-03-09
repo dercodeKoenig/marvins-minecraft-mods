@@ -80,9 +80,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public EntityRocketAssembler(BlockEntityType type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
 
-        battery = new BlockEntityBattery(this, 10000,1000);
+        battery = new BlockEntityBattery(this, 10000, 1000);
 
         makeGui();
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityRocketAssembler) t).tick();
     }
 
     public void makeGui() {
@@ -114,15 +118,16 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
-    public Direction getDockingDirection(){
-        if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof  SpaceStationDimension){
+    public Direction getDockingDirection() {
+        if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension) {
             return dockingDirection;
         }
         return Direction.UP; // this should not even be required anywhere but just for having it correct
     }
-    public Vec3 getMoveAwayDirection(){
+
+    public Vec3 getMoveAwayDirection() {
         Direction moveAwayDirection = Direction.UP;
-        if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof  SpaceStationDimension){
+        if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension) {
             moveAwayDirection = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
         }
         Vec3 moveAway = new Vec3(moveAwayDirection.getStepX(), moveAwayDirection.getStepY(), moveAwayDirection.getStepZ());
@@ -165,7 +170,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 landPos = new Vec3(landPos.x, landPos.y - halfY + halfSizeHorizontal, landPos.z);
 
                 // the rocket will also need to move more away
-                landPos = landPos.relative(facing.getOpposite(),halfY - halfSizeHorizontal);
+                landPos = landPos.relative(facing.getOpposite(), halfY - halfSizeHorizontal);
             }
         }
 
@@ -177,7 +182,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         return currentRocket;
     }
 
-    public boolean isRedstoneOutputActive(){
+    public boolean isRedstoneOutputActive() {
         return this.isRedstoneOutputActive;
     }
 
@@ -202,9 +207,9 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             BlockPos side2Next = new BlockPos(startingPos).offset(side2Direction.getStepX() * i, side2Direction.getStepY() * i, side2Direction.getStepZ() * i);
             // early check if there is a launchpad because if not, the entire row can be ignored
             // this makes significant speedup
-            if(level.getBlockState(side1Next).getBlock() instanceof LaunchPad)
+            if (level.getBlockState(side1Next).getBlock() instanceof LaunchPad)
                 side1.add(side1Next);
-            if(level.getBlockState(side2Next).getBlock() instanceof LaunchPad)
+            if (level.getBlockState(side2Next).getBlock() instanceof LaunchPad)
                 side2.add(side2Next);
         }
 
@@ -247,7 +252,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                                 break;
                             }
                         }
-                        if(!isAllValid)
+                        if (!isAllValid)
                             break;
                     }
                     if (isAllValid) {
@@ -365,7 +370,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     BlockState state = level.getBlockState(pos);
-                    if(state.isAir())
+                    if (state.isAir())
                         continue;
 
                     BlockPos inRocketPos = pos.subtract(new BlockPos(minX, minY, minZ));
@@ -540,7 +545,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         if (tag.contains("buildProgress"))
             buildProgress = tag.getInt("buildProgress");
         if (tag.contains("battery"))
-            battery.deserializeNBT(registries,tag.get("battery"));
+            battery.deserializeNBT(registries, tag.get("battery"));
         if (tag.contains("dockingDirection"))
             dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
         if (tag.contains("horizontalDocking"))
@@ -643,7 +648,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
                     newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
                     newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
-                    if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
+                    if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
                         newStatus += "Y: " + currentRocket.blockPosition().getY() + "\n";
                         newStatus += "V: " + (double) (Math.round(currentRocket.getDeltaMovement().y / 20 * 100)) / 100 + "m/s\n";
                     }
@@ -679,27 +684,24 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityRocketAssembler) t).tick();
-    }
-
     public void openGui() {
         if (level.isClientSide) {
             int h = 100;
-            if(DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)
+            if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)
                 h = 140; // the docking mode buttons
             guiHandler.openGui(160, h, true);
         }
     }
 
-    public enum ConstructionResult{
+    public enum ConstructionResult {
         SUCCESS(""),
         NO_GUIDANCE_COMPUTER("NO_GUIDANCE_COMPUTER"),
         TOO_MANY_GUIDANCE_COMPUTERS("TOO_MANY_GUIDANCE_COMPUTERS"),
         INVALID_LAUNCHPAD("INVALID_LAUNCHPAD");
 
         final String info;
-        ConstructionResult(String info){
+
+        ConstructionResult(String info) {
             this.info = info;
         }
     }
