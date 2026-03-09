@@ -464,7 +464,7 @@ public class RocketController {
 
                 double tooManyEnginesMultiplier = 1.0 / particleSpawnProb;
 
-                double thrustMultiplier = (currentThrust * 0.7 + 0.3);
+                double thrustMultiplier = Math.pow(currentThrust * 0.8 + 0.2, 0.5);
 
                 for (BlockPos i : rocket.getEnginePositions()) {
                     Vec3 worldPos = RotationUtils.localToWorld(rocket, new Vec3(i.getX() + 0.5, i.getY() + 0.02, i.getZ() + 0.5));

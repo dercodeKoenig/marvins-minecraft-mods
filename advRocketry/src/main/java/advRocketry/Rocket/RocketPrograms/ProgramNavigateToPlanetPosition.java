@@ -119,7 +119,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 rocket.controller.enableSecondaryEngines(true, false); // help or it swings around too much
 
 
-                double xzDistanceHeightMultiplier = 2; // target height increases as we move more away from the target position in xz direction
+                double xzDistanceHeightMultiplier = 5; // target height increases as we move more away from the target position in xz direction
                 double speedHeightMultiplier = 20; // if we move fast, target is higher. we will only land if the movement in xz is close to 0
                 double yOffset = 3; // the offset to the target. using 0 would make target = ground level, but it would approach it very slow, so add extra offset
                 double speedxz = new Vec3(rocket.getDeltaMovement().x, 0, rocket.getDeltaMovement().z).length();
@@ -129,18 +129,19 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // we can know the target speed to be able to stop at ground by
                 // v = sqrt( 2 * a * d )
                 // if we are too fast, it should not be too bad because a will increase as we burn fuel so it can slightly stabilize again
-                double d = Math.max(0.1, rocket.position().y - targetY); // make it have a base speed for lower
+                // also note the rocket will reduce its max acc near ground so i keep a base distance to keep it moving
+                double d = Math.max(2, rocket.position().y - targetY); // make it have a base speed for lower, especially since the rocket will reduce its allowed acc near ground
                 double a = rocket.getThrustMax() / rocket.getMass();
                 double g = rocket.getGravity();
                 double aEff = Math.max(0,Math.min(a, rocket.getMaxAcceleration()) - g); // never have it go negative
                 double vTarget = -Math.sqrt(2 * d * aEff) * 0.8; // scaling a bit down just for safety
-                double vCurrent = -rocket.getDeltaMovement().length(); // including all movement, not only on y axis
+                double vCurrent = rocket.getDeltaMovement().y; // consider the y movement
                 double error = vTarget - vCurrent;
 
                 // now we have a velocity error, but the pd controller still expects a position
                 // i will move the target toward the rocket when we are too fast so it will slow down
                 // i will move the target lower if we are too slow and have room to speed up
-                targetY = targetY + error * 2000 - yOffset;
+                targetY = targetY + error * 1000 - yOffset;
 
                 // extra safety, it is unstable without
                 // the logic above would work if the rocket would face up
@@ -149,11 +150,12 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double maxD = 1000;
                 if (rocket.position().y - targetY > maxD)
                     targetY = rocket.position().y - maxD;
-                targetY = Math.max(targetY, yCurrentBelow - 15); // some y offset or it would approach infinite slow
+                targetY = Math.max(targetY, yCurrentBelow - 13); // some y offset or it would approach infinite slow
 
                 // in the end it is not a true suicide burn,
                 // but it should make heavy rockets with low acceleration thrust early and no smash into ground
 
+                //System.out.println(targetY+":"+vTarget+":"+vCurrent+":"+error);
                 targetVec3 = new Vec3(targetVec3.x, targetY, targetVec3.z);
             }
 
