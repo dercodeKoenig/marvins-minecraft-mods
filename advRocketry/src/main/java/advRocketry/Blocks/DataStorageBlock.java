@@ -40,7 +40,7 @@ public class DataStorageBlock extends BlockMultiblockPart implements EntityBlock
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if(level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock){
+        if(level.getBlockEntity(pos) instanceof EntityDataStorageBlock dataStorageBlock && !dataStorageBlock.isValidBlockState(newState)){
             dataStorageBlock.popInventory();
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
