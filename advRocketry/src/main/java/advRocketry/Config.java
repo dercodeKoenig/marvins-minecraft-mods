@@ -19,7 +19,7 @@ public class Config {
 
     public float rocket_Block_Weight = 3;
     public float rocket_ItemStack_Weight = 3;
-    public float rocket_Fuel_Weight_Per_MB = 0.0005f;
+    public float rocket_Fuel_Weight_Per_MB = 0.0002f;
 
     public double station_SpaceTravel_AU_Per_Second = 0.01;
     public double station_SpaceTravel_Distance_For_Max_Speed = 0.1;

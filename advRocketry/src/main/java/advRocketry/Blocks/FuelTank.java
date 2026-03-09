@@ -26,7 +26,7 @@ public class FuelTank extends Block implements ICustomWeightBlock {
     }
 
     public float getWeightMultiplier() {
-        return 0.5f;
+        return 0.1f;
     }
 
     @Override

@@ -33,6 +33,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -50,6 +51,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -88,6 +90,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public RocketController controller;
     BlockPos dockingStationPos = null;
     Vec3 initialFront = new Vec3(0, 0, 1); // the initial front vector when the rocket is created that was used to calculate all the block positions in the rocket
+    Vec3 lastDeltaMovement = Vec3.ZERO; // detect crash when onground and last delta movement is high
 
     // passenger
     Map<UUID, BlockPos> passengers = new HashMap<>();
@@ -532,7 +535,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (currentProgram != null) {
             setDockingStationPos(null, false); // reset it by default BEFORE the program runs so the program can pre-set the next docking station
             currentProgram.run(this);
-            for(Entity e : getPassengers()){
+            for (Entity e : getPassengers()) {
                 e.resetFallDistance();
             }
             resetFallDistance();
@@ -561,6 +564,15 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
 
+
+        // detect possible crash landing
+        if(!level().isClientSide){
+            if(onGround() && lastDeltaMovement.y < -0.5){
+                System.out.println("rocket hit ground too hard: "+lastDeltaMovement.y);
+            }
+            lastDeltaMovement = getDeltaMovement();
+        }
+        
     }
 
     /// the normal launch code
