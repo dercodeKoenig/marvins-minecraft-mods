@@ -73,10 +73,6 @@ public class BlockMotor extends Block implements EntityBlock {
         return EntityMotor::tick;
     }
 
-    VoxelShape notFullBlock = Shapes.create(0.01,0.01,0.01,0.99,0.99,0.99);
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return notFullBlock;
-    }
     protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }
