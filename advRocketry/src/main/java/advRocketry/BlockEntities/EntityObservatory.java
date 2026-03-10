@@ -467,6 +467,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 }
                 if (newHasEnoughData != hasEnoughData) {
                     hasEnoughData = newHasEnoughData;
+                    sendUpdatePacket(null);
                 }
                 if (!hasEnoughData)
                     noDataTickCounter++;
@@ -797,6 +798,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         tag.putBoolean("hasAsteroidChips", hasAsteroidChips);
         tag.putBoolean("hasFreeOutputSlots", hasFreeOutputSlots);
         tag.putBoolean("hasEnoughEnergy", hasEnoughEnergy);
+        tag.putBoolean("hasEnoughData", hasEnoughData);
         return tag;
     }
 
@@ -870,6 +872,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         }
         if (tag.contains("hasAsteroidChips")) {
             hasAsteroidChips = tag.getBoolean("hasAsteroidChips");
+        }
+        if (tag.contains("hasEnoughData")) {
+            hasEnoughData = tag.getBoolean("hasEnoughData");
         }
     }
 
@@ -1042,7 +1047,16 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
             if (!should_open && openingTicks > 0)
                 openingTicks--;
 
-            // for planet write and disk sync i do not change open/close and rotation states
+
+            if (!observatory.hasEnoughEnergy)
+                observatory.noEnergyTickCounter++;
+            else
+                observatory.noEnergyTickCounter = 0;
+
+            if (!observatory.hasEnoughData)
+                observatory.noDataTickCounter++;
+            else
+                observatory.noDataTickCounter = 0;
 
             if (task == Task.IDLE)
                 should_open = false;
@@ -1056,6 +1070,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED
             )
                 should_open = true;
+
+            // overwrite opening status if we are out of energy / data for some time
+            if(observatory.noDataTickCounter > 100)
+                should_open = false;
+            if(observatory.noEnergyTickCounter > 100)
+                should_open = false;
 
             if (!should_open) {
                 yawTarget = 0;
