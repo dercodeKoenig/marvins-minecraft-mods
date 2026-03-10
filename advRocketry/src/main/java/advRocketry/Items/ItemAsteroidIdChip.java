@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class ItemAsteroidIdChip extends Item {
 
@@ -55,9 +56,7 @@ public class ItemAsteroidIdChip extends Item {
             if(asteroids.containsKey(selected)) {
                 for (String i : asteroids.get(selected).description.split("\n")) {
                     tooltipComponents.add(
-                            Component.literal(
-                                i
-                            ).withStyle(ChatFormatting.GRAY)
+                            Component.literal(i).withStyle(ChatFormatting.GRAY)
                     );
                 }
             }
@@ -66,14 +65,20 @@ public class ItemAsteroidIdChip extends Item {
 
     public static ArrayList<Asteroid> makeDefaultDefinition() {
         ArrayList<Asteroid> list = new ArrayList<>();
-        Asteroid a;
-        a = new Asteroid();
+        Asteroid a = new Asteroid();
         a.id = "iron_asteroid";
         a.description = "iron enriched asteroid\norigin: somewhere far away";
-        a.loot.add(
-                new RecipePartWithProbability("minecraft:iron_ore", 100, 0.5f)
-        );
+        a.spawnProbability = 50.0; // Higher weight = more common
+        a.loot.add(new RecipePartWithProbability("minecraft:iron_ore", 100, 0.5f));
         list.add(a);
+
+        Asteroid b = new Asteroid();
+        b.id = "diamond_asteroid";
+        b.description = "rare diamond asteroid";
+        b.spawnProbability = 5.0; // Lower weight = rarer
+        b.loot.add(new RecipePartWithProbability("minecraft:diamond_ore", 100, 0.1f));
+        list.add(b);
+
         return list;
     }
 
@@ -90,8 +95,7 @@ public class ItemAsteroidIdChip extends Item {
                 System.out.println("[AsteroidSystem] created default asteroid definition");
             }
             String definition = Files.readString(savePath);
-            Type type = new TypeToken<ArrayList<Asteroid>>() {
-            }.getType();
+            Type type = new TypeToken<ArrayList<Asteroid>>() {}.getType();
             ArrayList<Asteroid> asteroidsList = new Gson().fromJson(definition, type);
             for (Asteroid i : asteroidsList) {
                 asteroids.put(i.id, i);
@@ -102,10 +106,41 @@ public class ItemAsteroidIdChip extends Item {
         }
     }
 
+    /**
+     * Gets a random asteroid based on weighted spawn probabilities.
+     * @param random A random instance (can be java.util.Random or net.minecraft.util.RandomSource)
+     * @return A randomly selected Asteroid, or null if none are loaded.
+     */
+    public static Asteroid getRandomAsteroid(Random random) {
+        if (asteroids == null || asteroids.isEmpty()) {
+            return null;
+        }
+
+        double totalSpawnWeight = 0.0;
+        for (Asteroid i : asteroids.values()) {
+            totalSpawnWeight += i.spawnProbability; // Tally up the total weight
+        }
+
+        // Generate a random number between 0.0 and totalSpawnWeight
+        double randomValue = random.nextDouble() * totalSpawnWeight;
+
+        // Iterate through all asteroids, subtracting their probability from the random value.
+        // Once the value drops below 0, we've found our weighted pick.
+        for (Asteroid asteroid : asteroids.values()) {
+            randomValue -= asteroid.spawnProbability;
+            if (randomValue <= 0.0) {
+                return asteroid;
+            }
+        }
+
+        // Fallback (this should rarely be hit unless there are floating-point precision issues)
+        return asteroids.values().iterator().next();
+    }
 
     public static class Asteroid {
         public String id = "";
         public String description = "";
+        public double spawnProbability = 1.0; // The relative weight for spawning
         public List<RecipePartWithProbability> loot = new ArrayList<>();
     }
 }

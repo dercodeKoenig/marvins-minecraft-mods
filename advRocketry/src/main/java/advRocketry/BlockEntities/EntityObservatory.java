@@ -564,22 +564,15 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             extractData(REQUIRED_DATA, 1, dataTiles, false);
                             if (p < pTarget) {
                                 // find a new asteroid
-                                ArrayList<String> idList = new ArrayList<>(ItemAsteroidIdChip.asteroids.keySet());
-                                if (idList.isEmpty()) {
+                                ItemAsteroidIdChip.Asteroid asteroid = ItemAsteroidIdChip.getRandomAsteroid(new Random());
+                                if (asteroid == null) {
                                     // this should not happen if asteroids are configured
                                     setStatusText("NO ASTEROIDS OUT THERE");
                                     toggleTask(Task.IDLE, null);
-                                }
-                                Collections.shuffle(idList);
-                                String id = idList.getFirst();
-                                ItemStack asteroidChip = inputBlocks.get(inputBlockIndex).inventory.extractItem(inputSlotIndex, 1, false);
-                                ItemAsteroidIdChip.setSelectedType(id, asteroidChip);
-                                outputBlocks.get(outputBlockIndex).inventory.insertItem(outputSlotIndex, asteroidChip, false);
-                                // send a message to nearby players
-                                for (Player player : level.players()) {
-                                    if (player.position().distanceTo(getBlockPos().getCenter()) < 32) {
-                                        player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new Asteroid: " + id));
-                                    }
+                                } else {
+                                    ItemStack asteroidChip = inputBlocks.get(inputBlockIndex).inventory.extractItem(inputSlotIndex, 1, false);
+                                    ItemAsteroidIdChip.setSelectedType(asteroid.id, asteroidChip);
+                                    outputBlocks.get(outputBlockIndex).inventory.insertItem(outputSlotIndex, asteroidChip, false);
                                 }
                             }
                         }
