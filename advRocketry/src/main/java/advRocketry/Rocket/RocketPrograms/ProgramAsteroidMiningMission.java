@@ -37,15 +37,15 @@ public class ProgramAsteroidMiningMission extends ProgramMissionStartBase {
     @Override
     public void readFromNbt(CompoundTag nbt) {
         super.readFromNbt(nbt);
-        if(nbt.contains("targetPlanet"))
-            targetAsteroidId = nbt.getString("targetPlanet");
+        if(nbt.contains("targetAsteroidId"))
+            targetAsteroidId = nbt.getString("targetAsteroidId");
     }
 
     @Override
     public CompoundTag saveToNbt() {
         CompoundTag tag = super.saveToNbt();
         if(targetAsteroidId != null)
-            tag.putString("targetPlanet", targetAsteroidId);
+            tag.putString("targetAsteroidId", targetAsteroidId);
         return tag;
     }
 }
