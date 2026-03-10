@@ -80,7 +80,7 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
     }
 
     public void launch() {
-        if (linkedRocket != null) {
+        if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
 
             BlockPos landPos = linkedRocket.getDockingStationPos();

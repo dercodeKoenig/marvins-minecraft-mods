@@ -32,7 +32,7 @@ public class ItemAsteroidIdChip extends Item {
     public static HashMap<String, Asteroid> asteroids;
 
     public ItemAsteroidIdChip() {
-        super(new Properties().stacksTo(1));
+        super(new Properties());
     }
 
     public static void setSelectedType(String id, ItemStack stack) {
