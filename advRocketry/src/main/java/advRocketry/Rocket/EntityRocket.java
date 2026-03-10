@@ -831,6 +831,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     public void makeGui() {
         guiHandler.modules.clear();
+        guiHandler.maxDistance = size.getY() + 5;
 
         // add guidance computer slot
         for (BlockEntity i : blockEntities.values()) {
