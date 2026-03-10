@@ -34,7 +34,7 @@ public class DefaultGalaxy {
         overworld.parentDimensionId = sun.dimensionId;
         overworld.dayTimeReference = sun.dimensionId;
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
-        overworld.hasRingSystem = true;
+        overworld.hasRingSystem = false;
         overworld.isKnown = true;
         overworld.canVisit = true;
         galaxy.add(overworld);

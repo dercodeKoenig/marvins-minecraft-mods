@@ -150,7 +150,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double maxD = 1000;
                 if (rocket.position().y - targetY > maxD)
                     targetY = rocket.position().y - maxD;
-                targetY = Math.max(targetY, yCurrentBelow - 13); // some y offset or it would approach infinite slow
+                targetY = Math.max(targetY, yCurrentBelow - 12); // some y offset or it would approach infinite slow
 
                 // in the end it is not a true suicide burn,
                 // but it should make heavy rockets with low acceleration thrust early and no smash into ground
