@@ -204,19 +204,17 @@ public class RocketController {
 
 
         // simulate air friction
-        if( DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location()) instanceof PlanetDimension planet){
+        if (DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location()) instanceof PlanetDimension planet) {
             Vec3 movement = rocket.getDeltaMovement();
             double speed = movement.length();
             if (speed > 0.01) {
-                // k is chosen so that a 2x4x2 rocket on normal gravity and atm
-                // should reach final speed of 7-8 blocks / tick when every block has weight of 1
-                double k = 0.0001;
-                double atmDensity = planet.getAtmosphereDensity();
+                double k = 0.001;
+                double atmDensity = rocket.getAtmDensityAtCurrentHeight();
                 double airBreakForce = rocket.size.getX() * rocket.size.getZ() * atmDensity * speed * speed * k;
                 double airAcceleration = airBreakForce / rocket.getMass();
                 Vec3 breakMovement = movement.normalize().scale(-1 * airAcceleration);
-                if(breakMovement.length() >= speed)
-                    rocket.setDeltaMovement(0,0,0);
+                if (breakMovement.length() >= speed)
+                    rocket.setDeltaMovement(0, 0, 0);
                 else
                     rocket.setDeltaMovement(movement.add(breakMovement));
             }
@@ -231,9 +229,9 @@ public class RocketController {
         Vec3 rotationCorrection;
         if (targetHeading.dot(heading) > -0.99) {
             rotationCorrection = targetHeading.subtract(heading);
-            if(rotationCorrection.length() > rotationRateHeading)
+            if (rotationCorrection.length() > rotationRateHeading)
                 rotationCorrection = rotationCorrection.normalize().scale(rotationRateHeading);
-        }else
+        } else
             rotationCorrection = front.subtract(heading).normalize().scale(rotationRateHeading);
 
         heading = heading.add(rotationCorrection).normalize();
@@ -266,7 +264,7 @@ public class RocketController {
 
         // update bounding box after rotation
         Direction.Axis newHeadingAxis = rocket.findClosestAxis(getHeading());
-        if(newHeadingAxis != lastBBAxis){
+        if (newHeadingAxis != lastBBAxis) {
             rocket.setBoundingBox(rocket.makeBoundingBox(newHeadingAxis));
             lastBBAxis = newHeadingAxis;
         }

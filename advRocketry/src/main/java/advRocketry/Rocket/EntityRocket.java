@@ -998,6 +998,14 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         return Math.max(0.00001f, currentMass);
     }
 
+    public double getAtmDensityAtCurrentHeight() {
+        Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
+        if (myDim instanceof PlanetDimension planet) {
+            return planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height;
+        }
+        return 0;
+    }
+
     public float getMaxAcceleration() {
         // this method usually runs when:
         // the controller ticks and a target position is given
@@ -1012,7 +1020,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (myDim instanceof PlanetDimension planet) {
             // lower acc near ground where there is probably more atmosphere and whatever it looks better
             int y = Utils.findGroundY(level(), blockPosition());
-            double MAX_STRUCTURAL_ACC = 0.08 * 3;
+            double MAX_STRUCTURAL_ACC = 0.08 * 2; // 2g
             double h = position().y - y;
             double minH = 100;
             double minA = Math.min(MAX_STRUCTURAL_ACC, getGravity() * 1.03);
@@ -1020,7 +1028,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
             // next: limit by velocity, too fast = too much stress by atmosphere
             // if we go faster than target velocity, reduce acceleration
-            double currentAtm = planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height;
+            double currentAtm = getAtmDensityAtCurrentHeight();
             double atmMultiplier = 1 - (currentAtm / (1 + currentAtm));
             double targetSpeedPerTick = 10 * atmMultiplier;
             double overspeedAllowance = 5;

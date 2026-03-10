@@ -69,7 +69,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
                 targetVec3 = assembler.getLandingPos(rocket);
                 // already assign the rocket to the assembler during landing if there is no other rocket
-                if(assembler.currentRocket == null)
+                if (assembler.currentRocket == null)
                     assembler.currentRocket = rocket;
             }
 
@@ -136,7 +136,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double d = Math.max(2, rocket.position().y - targetY); // make it have a base speed for lower, especially since the rocket will reduce its allowed acc near ground
                 double a = rocket.getThrustMax() / rocket.getMass();
                 double g = rocket.getGravity();
-                double aEff = Math.max(0,Math.min(a, rocket.getMaxAcceleration()) - g); // never have it go negative
+                double aEff = Math.max(0, Math.min(a, rocket.getMaxAcceleration()) - g); // never have it go negative
                 double vTarget = -Math.sqrt(2 * d * aEff) * 0.9; // scaling a bit down just for safety
                 double vCurrent = rocket.getDeltaMovement().y; // consider the y movement
                 double error = vTarget - vCurrent;
@@ -153,7 +153,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double maxD = 2000;
                 if (rocket.position().y - targetY > maxD)
                     targetY = rocket.position().y - maxD;
-                targetY = Math.max(targetY, yCurrentBelow - 5); // some y offset or it would approach infinite slow
+                targetY = Math.max(targetY, yCurrentBelow - 7); // some y offset or it would approach infinite slow
 
                 // in the end it is not a true suicide burn,
                 // but it should make heavy rockets with low acceleration thrust early and not smash into ground
@@ -193,7 +193,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // we are not at target dim, move to space!
                 navigateToSpaceTravelDimension.run(rocket, new NavigateToSpaceTravelDimension.SpaceReachedCallback() {
                     public boolean onSpaceReached() {
-                        if(rocket.level().isClientSide) return false;
+                        if (rocket.level().isClientSide) return false;
 
                         // if we come from a pace station that orbits the planet,
                         // skip space travel and go to target instantly
@@ -212,7 +212,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
     }
 
     public void teleportToPlanet(EntityRocket rocket) {
-        if(rocket.level().isClientSide)return;
+        if (rocket.level().isClientSide) return;
 
         // get the teleportation target
         ServerLevel targetLevel = DimensionManager.getServerLevel(targetDimensionId);
@@ -232,7 +232,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         isStarted = nbt.getBoolean("isStarted");
         targetDimensionId = ResourceLocation.parse(nbt.getString("targetDimensionId"));
         originDimensionId = ResourceLocation.parse(nbt.getString("originDimensionId"));
-        if(nbt.contains("navigateToSpaceTravelDimension")) {
+        if (nbt.contains("navigateToSpaceTravelDimension")) {
             navigateToSpaceTravelDimension = new NavigateToSpaceTravelDimension();
             navigateToSpaceTravelDimension.readFromNbt(nbt.getCompound("navigateToSpaceTravelDimension"));
         }
@@ -245,7 +245,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
         tag.putBoolean("isStarted", isStarted);
         tag.putString("targetDimensionId", targetDimensionId.toString());
         tag.putString("originDimensionId", originDimensionId.toString());
-        if(navigateToSpaceTravelDimension != null)
+        if (navigateToSpaceTravelDimension != null)
             tag.put("navigateToSpaceTravelDimension", navigateToSpaceTravelDimension.saveToNbt());
         return tag;
     }
