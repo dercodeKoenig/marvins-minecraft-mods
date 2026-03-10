@@ -92,6 +92,8 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                 ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, ItemSatelliteIdChip.getTarget(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
+                level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+                activeTimeout = 40;
 
             } else if (navigationItem.getItem() instanceof ItemPlanetIdChip) {
                 ResourceLocation targetPlanet = ItemPlanetIdChip.getSelectedDimension(navigationItem);
@@ -99,6 +101,8 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                     ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(linkedRocket, targetPlanet, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                     linkedRocket.setProgramAndSync(programMissionStartBase);
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
+                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+                    activeTimeout = 40;
                 }
             }
         }

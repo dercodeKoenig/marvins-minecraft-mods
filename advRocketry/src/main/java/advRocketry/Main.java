@@ -272,6 +272,9 @@ public class Main {
         //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SATELLITE_MONITOR.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION.get(), (x, y) -> x.inventory);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_SATELLITE_MISSIONS.get(), (x, y) -> x.inventory);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_ASTEROID_MISSIONS.get(), (x, y) -> x.inventory);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

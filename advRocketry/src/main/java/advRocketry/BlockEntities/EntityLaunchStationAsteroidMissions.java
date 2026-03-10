@@ -5,6 +5,7 @@ import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
+import advRocketry.Blocks.LaunchStation;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemPlanetIdChip;
@@ -23,7 +24,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.UUID;
 
@@ -72,18 +75,19 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
     public void launch() {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
-
-            BlockPos landPos = linkedRocket.getDockingStationPos();
-            if (landPos == null) landPos = linkedRocket.blockPosition();
-
-            lastLaunchedMissionUUID = UUID.randomUUID();
-
-            if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
-                ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, ItemAsteroidIdChip.getSelectedType(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
+            if (navigationItem.getItem() instanceof ItemAsteroidIdChip && ItemAsteroidIdChip.getSelectedType(navigationItem) instanceof String target) {
+                lastLaunchedMissionUUID = UUID.randomUUID();
+                BlockPos landPos = linkedRocket.getDockingStationPos();
+                if (landPos == null) landPos = linkedRocket.blockPosition();
+                ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
-                // invalidate chip
+                level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+                activeTimeout = 40;
+                // invalidate && pop chip
                 ItemAsteroidIdChip.setSelectedType(null, navigationItem);
+                inventory.setStackInSlot(0, ItemStack.EMPTY);
+                Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
             }
         }
     }
@@ -95,8 +99,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
             if (lastLaunchedRocketUUID != null && serverLevel.getEntity(lastLaunchedRocketUUID) instanceof EntityRocket rocket) {
                 if (rocket.currentProgram instanceof ProgramAsteroidMiningMission) {
                     statusText.setTextAndSync("starting asteroid mining");
-                }
-                else{
+                } else {
                     // no longer valid program
                     lastLaunchedRocketUUID = null;
                 }

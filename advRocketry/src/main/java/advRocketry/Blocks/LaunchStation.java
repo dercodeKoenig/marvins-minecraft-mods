@@ -58,8 +58,6 @@ public class LaunchStation extends Block implements EntityBlock {
             if (level.hasNeighborSignal(pos)) {
                 if (!launchStation.isRedstonePowered) {
                     launchStation.launch();
-                    level.setBlock(pos, state.setValue(STATE, State.active), 3);
-                    launchStation.activeTimeout = 40;
                 }
                 launchStation.isRedstonePowered = true;
             } else {
