@@ -40,6 +40,7 @@ public class Config {
 
     public int astrobody_Data_Processor_Energy_Per_Tick = 100;
 
+    // TODO: reduce chance after testing
     public double satellite_Radiation_Damage_Prob_Per_Second = (double) 1 / 1000;
 
     public int rocket_Assembler_Max_Size = 66;
