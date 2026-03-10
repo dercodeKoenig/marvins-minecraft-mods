@@ -1072,9 +1072,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 should_open = true;
 
             // overwrite opening status if we are out of energy / data for some time
-            if(observatory.noDataTickCounter > 100)
+            if(observatory.noDataTickCounter > 200)
                 should_open = false;
-            if(observatory.noEnergyTickCounter > 100)
+            if(observatory.noEnergyTickCounter > 200)
                 should_open = false;
 
             if (!should_open) {
