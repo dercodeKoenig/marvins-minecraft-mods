@@ -82,6 +82,8 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
                 ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, ItemAsteroidIdChip.getSelectedType(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
+                // invalidate chip
+                ItemAsteroidIdChip.setSelectedType(null, navigationItem);
             }
         }
     }

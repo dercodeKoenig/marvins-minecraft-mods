@@ -37,7 +37,8 @@ public class ItemAsteroidIdChip extends Item {
 
     public static void setSelectedType(String id, ItemStack stack) {
         CompoundTag tag = new CompoundTag();
-        tag.putString("id", id);
+        if(id != null)
+            tag.putString("id", id);
         ItemUtils.setTag(stack, tag);
     }
 
