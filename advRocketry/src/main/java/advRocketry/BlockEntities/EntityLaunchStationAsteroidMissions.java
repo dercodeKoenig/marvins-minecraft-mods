@@ -91,11 +91,8 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
         super.tick();
         if (level instanceof ServerLevel serverLevel && !guiHandler.playersTrackingGui.isEmpty()) {
             if (lastLaunchedRocketUUID != null && serverLevel.getEntity(lastLaunchedRocketUUID) instanceof EntityRocket rocket) {
-                if (rocket.currentProgram instanceof ProgramSatelliteDeployment) {
-                    statusText.setTextAndSync("starting satellite deployment");
-                }
-                else if (rocket.currentProgram instanceof ProgramSatelliteRecovery) {
-                    statusText.setTextAndSync("starting satellite recovery");
+                if (rocket.currentProgram instanceof ProgramAsteroidMiningMission) {
+                    statusText.setTextAndSync("starting asteroid mining");
                 }
                 else{
                     // no longer valid program
