@@ -6,6 +6,7 @@ import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
+import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Missions.MissionManager;
 import advRocketry.Oxygen.OxygenSystem;
@@ -187,6 +188,7 @@ public class Main {
         ForcedChunkManager.restoreForcedChunks(); // restore forced chunks after dimensions are created
         MissionManager.onServerStart();
         SatelliteManager.onServerStart();
+        ItemAsteroidIdChip.onServerStart();
     }
 
     void onServerStop(ServerStoppingEvent event) {
@@ -355,7 +357,6 @@ public class Main {
             e.accept(Blocks.LAUNCHPAD.get());
             e.accept(Blocks.STRUCTURE_TOWER.get());
 
-
             e.accept(Blocks.ROCKET_MOTOR.get());
             e.accept(Blocks.FUEL_TANK.get());
             e.accept(Blocks.GUIDANCE_COMPUTER.get());
@@ -374,13 +375,9 @@ public class Main {
             e.accept(Blocks.WARP_CONTROLLER.get());
 
             e.accept(Blocks.DATA_STORAGE_BLOCK.get());
-
             e.accept(Blocks.SOLAR_PANEL.get());
-
             e.accept(Blocks.OBSERVATORY.get());
-
             e.accept(Blocks.ASTROBODY_DATA_PROCESSOR.get());
-
             e.accept(Blocks.OXYGEN_VENT.get());
 
             e.accept(Blocks.MOON_TURF.get());
@@ -389,8 +386,8 @@ public class Main {
             e.accept(Items.ITEM_LINKER.get());
             e.accept(Items.ITEM_GALAXY_DATABASE.get());
             e.accept(Items.ITEM_PLANET_ID_CHIP.get());
+            e.accept(Items.ITEM_ASTEROID_ID_CHIP.get());
             e.accept(Items.ITEM_DATA_STORAGE.get());
-            e.accept(Items.ITEM_BATTERY.get());
 
             e.accept(Blocks.SATELLITE_ASSEMBLER.get());
             e.accept(Blocks.SATELLITE_MONITOR.get());
@@ -403,6 +400,7 @@ public class Main {
             e.accept(Items.ITEM_SATELLITE_ID_CHIP.get());
             e.accept(Items.ITEM_LORA_MODULE.get());
             e.accept(Items.ITEM_RADIATION_SHIELD.get());
+            e.accept(Items.ITEM_BATTERY.get());
         }
     }
 }

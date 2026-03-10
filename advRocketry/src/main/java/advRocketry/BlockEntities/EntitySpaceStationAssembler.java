@@ -47,6 +47,11 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
             public boolean isItemValid(int slot, ItemStack stack) {
                 return slot == 0 && stack.getItem() instanceof ItemLinker;
             }
+
+            @Override
+            public int getSlotLimit(int slot){
+                return 1;
+            }
         };
         // remake the gui after inventory is created!
         makeGui();

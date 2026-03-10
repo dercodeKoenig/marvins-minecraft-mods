@@ -74,6 +74,10 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
             public void onContentsChanged(int slot) {
                 setChanged();
             }
+            @Override
+            public int getSlotLimit(int slot){
+                return 1;
+            }
         };
 
 

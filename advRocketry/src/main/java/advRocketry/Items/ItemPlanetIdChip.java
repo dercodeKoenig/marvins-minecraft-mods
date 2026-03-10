@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ItemPlanetIdChip extends Item {
     public ItemPlanetIdChip() {
-        super(new Properties().stacksTo(1));
+        super(new Properties());
     }
 
     public static void setSelectedDimension(ResourceLocation dimensionId, ItemStack stack, boolean massDataKnown) {

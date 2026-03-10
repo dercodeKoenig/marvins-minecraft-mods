@@ -39,6 +39,10 @@ public class EntityGuidanceComputer extends BlockEntity implements ARLib.network
                     return  true;
                 return  false;
             }
+            @Override
+            public int getSlotLimit(int slot){
+                return 1;
+            }
         };
         guiHandler.modules.add(new guiModuleItemHandlerSlot(0, itemStackHandler, 0, 0, 1, guiHandler, 50, 20));
 

@@ -23,7 +23,7 @@ import java.util.Set;
 public class ItemGalaxyDatabase extends Item {
 
     public ItemGalaxyDatabase() {
-        super(new Properties().stacksTo(1));
+        super(new Properties());
     }
 
     public static int POINTS_UNLOCKED(PlanetDimension planet) {

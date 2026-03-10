@@ -2,15 +2,19 @@ package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
 import ARLib.blockentities.EntityEnergyInputBlock;
+import ARLib.blockentities.EntityItemInputBlock;
+import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.InventoryUtils;
 import advRocketry.Config;
 import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Items.ItemPlanetIdChip;
 import advRocketry.Registry.BlockEntities;
@@ -129,6 +133,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     guiModuleVerticalProgressBar energyBar;
     guiModuleText statusText;
     int customStatusTimeout = 0;
+    // to not have the status text go on/off every tick when data or energy is going in slow
+    int noEnergyTickCounter = 0;
+    int noDataTickCounter = 0;
 
     public EntityObservatory(BlockPos pos, BlockState state) {
         super(BlockEntities.ENTITY_OBSERVATORY.get(), pos, state);
@@ -138,6 +145,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         guiHandler.maxDistance = 16;
 
         itemStackHandler = new ItemStackHandler(3) {
+            @Override
             public boolean isItemValid(int slot, ItemStack stack) {
                 if (slot == STORAGE_DISK_SLOT_1 || slot == STORAGE_DISK_SLOT_2)
                     return stack.getItem().equals(Items.ITEM_GALAXY_DATABASE.get());
@@ -145,7 +153,11 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     return stack.getItem().equals(Items.ITEM_PLANET_ID_CHIP.get());
                 return false;
             }
-
+            @Override
+            public int getSlotLimit(int slot){
+                return 1;
+            }
+            @Override
             public void onContentsChanged(int slot) {
                 // move from storage slot 2 to slot 1 if slot 1 is empty
                 if (slot == STORAGE_DISK_SLOT_2 || slot == STORAGE_DISK_SLOT_1) {
@@ -431,6 +443,10 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     hasEnoughEnergy = newHasEnoughEnergy;
                     sendUpdatePacket(null); // client needs to know about energy to stop the rotate animations
                 }
+                if (!hasEnoughEnergy)
+                    noEnergyTickCounter++;
+                else
+                    noEnergyTickCounter = 0;
 
                 // update data status
                 boolean newHasEnoughData = false;
@@ -439,7 +455,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     if (data > 0)
                         newHasEnoughData = true;
                 } else if (task == Task.SCANNING_FOR_ASTEROIDS) {
-
+                    if (data > 0)
+                        newHasEnoughData = true;
                 } else {
                     // no data required
                     newHasEnoughData = true;
@@ -447,6 +464,10 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 if (newHasEnoughData != hasEnoughData) {
                     hasEnoughData = newHasEnoughData;
                 }
+                if (!hasEnoughData)
+                    noDataTickCounter++;
+                else
+                    noDataTickCounter = 0;
 
                 // update gui
                 if (!guiHandler.playersTrackingGui.isEmpty()) {
@@ -470,9 +491,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     }
 
                     if (customStatusTimeout <= 0) {
-                        if (!hasEnoughEnergy) {
+                        if (noEnergyTickCounter > 40) {
                             statusText.setTextAndSync("OUT OF ENERGY!");
-                        } else if (!hasEnoughData) {
+                        } else if (noDataTickCounter > 40) {
                             statusText.setTextAndSync("OUT OF DISTANCE DATA!");
                         } else {
                             String s = "Status:\n" + task.label;
@@ -493,6 +514,76 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
                 if (task == Task.IDLE) {
                     guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
+                }
+
+                if (task == Task.SCANNING_FOR_ASTEROIDS) {
+                    guiProgressBar.setIsEnabledAndBroadcastUpdate(false);
+                    if (hasEnoughData && hasEnoughEnergy) {
+                        List<EntityItemInputBlock> inputBlocks = super.getItemInTiles();
+                        List<EntityItemOutputBlock> outputBlocks = super.getItemOutTiles();
+                        boolean hasAsteroidChip = false;
+                        int inputBlockIndex = 0;
+                        int inputSlotIndex = 0;
+                        boolean hasFreeOutputSlot = false;
+                        int outputBlockIndex = 0;
+                        int outputSlotIndex = 0;
+                        for (int i = 0; i < inputBlocks.size(); i++) {
+                            for (int j = 0; j < inputBlocks.get(i).inventory.getSlots(); j++) {
+                                if (inputBlocks.get(i).inventory.getStackInSlot(j).getItem() instanceof ItemAsteroidIdChip) {
+                                    hasAsteroidChip = true;
+                                    inputBlockIndex = i;
+                                    inputSlotIndex = j;
+                                    break;
+                                }
+                            }
+                            if (hasAsteroidChip)
+                                break;
+                        }
+                        for (int i = 0; i < outputBlocks.size(); i++) {
+                            for (int j = 0; j < outputBlocks.get(i).inventory.getSlots(); j++) {
+                                if (outputBlocks.get(i).inventory.getStackInSlot(j).isEmpty()) {
+                                    hasFreeOutputSlot = true;
+                                    outputBlockIndex = i;
+                                    outputSlotIndex = j;
+                                    break;
+                                }
+                            }
+                            if (hasFreeOutputSlot)
+                                break;
+                        }
+                        if (!hasAsteroidChip)
+                            setStatusText("MISSING ASTEROID CHIP");
+                        else if (!hasFreeOutputSlot)
+                            setStatusText("NO SPACE IN INVENTORY");
+                        else
+                            customStatusTimeout = 0;
+                        if (hasAsteroidChip && hasFreeOutputSlot) {
+                            double p = Math.random();
+                            double pTarget = Config.INSTANCE.observatory_Find_Planet_P_Per_Tick;
+                            consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
+                            extractData(REQUIRED_DATA, 1, dataTiles, false);
+                            if (p < pTarget) {
+                                // find a new asteroid
+                                ArrayList<String> idList = new ArrayList<>(ItemAsteroidIdChip.asteroids.keySet());
+                                if (idList.isEmpty()) {
+                                    // this should not happen if asteroids are configured
+                                    setStatusText("NO ASTEROIDS OUT THERE");
+                                    toggleTask(Task.IDLE, null);
+                                }
+                                Collections.shuffle(idList);
+                                String id = idList.getFirst();
+                                ItemStack asteroidChip = inputBlocks.get(inputBlockIndex).inventory.extractItem(inputSlotIndex, 1, false);
+                                ItemAsteroidIdChip.setSelectedType(id, asteroidChip);
+                                outputBlocks.get(outputBlockIndex).inventory.insertItem(outputSlotIndex, asteroidChip, false);
+                                // send a message to nearby players
+                                for (Player player : level.players()) {
+                                    if (player.position().distanceTo(getBlockPos().getCenter()) < 32) {
+                                        player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new Asteroid: " + id));
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 if (task == Task.SCANNING_FOR_PLANETS) {
@@ -556,7 +647,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 guiProgressBar.setProgressAndSync((double) taskProgress / maxData);
                                 guiProgressBar.setHoverInfoAndSync("analyzing planet...");
                                 if (taskProgress < maxData) {
-                                    info.put(DataTypes.distance, taskProgress++);
+                                    info.put(DataTypes.distance, taskProgress+1);
                                     ItemGalaxyDatabase.setPlanetInfo(storageDisk, planet, info);
                                 } else {
                                     // fully unlocked!
@@ -599,7 +690,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                         }
                                         ItemGalaxyDatabase.PlanetInfo newInfo = ItemGalaxyDatabase.getPlanetInfo(stack, s);
                                         if (newInfo != null) { // should usually not be null because s is in known dimensions
-                                            for (String key : info.data.keySet()){
+                                            for (String key : info.data.keySet()) {
                                                 info.put(key, Math.max(info.get(key), newInfo.get(key)));
                                             }
                                         }
@@ -636,9 +727,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             if (taskProgress > writePlanetToChipTicks) {
                                 boolean massKnown = false;
                                 if (DimensionManager.INSTANCE_SERVER.get(taskTarget) instanceof PlanetDimension planet) {
-                                    if(planet.isKnown())
+                                    if (planet.isKnown())
                                         massKnown = true;
-                                    else{
+                                    else {
                                         ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(getMainDatabase(), taskTarget);
                                         if (info != null && info.get(DataTypes.mass) >= ItemGalaxyDatabase.POINTS_UNLOCKED(planet)) {
                                             massKnown = true;

@@ -51,7 +51,9 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             public boolean isItemValid(int slot, ItemStack stack) {
                 return stack.getItem().equals(Items.ITEM_GALAXY_DATABASE.get());
             }
-
+            public int getSlotLimit(int slot){
+                return 1;
+            }
             public void onContentsChanged(int slot) {
                 EntityWarpController.this.setChanged();
             }
