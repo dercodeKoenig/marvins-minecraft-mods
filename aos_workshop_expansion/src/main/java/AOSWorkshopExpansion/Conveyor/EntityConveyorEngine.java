@@ -12,6 +12,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.HashSet;
+
 import static AOSWorkshopExpansion.Registry.ENTITY_CONVEYOR_ENGINE;
 
 public class EntityConveyorEngine extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
@@ -95,7 +97,7 @@ public class EntityConveyorEngine extends BlockEntity implements IMechanicalBloc
             }
 
             if(direction == Direction.UP){
-                // above check for engine block
+                // above check for conveyor block
                 BlockState above = level.getBlockState(getBlockPos().above());
                 if (above.getBlock() instanceof ConveyorBelt) {
                     return myMechanicalBlock;

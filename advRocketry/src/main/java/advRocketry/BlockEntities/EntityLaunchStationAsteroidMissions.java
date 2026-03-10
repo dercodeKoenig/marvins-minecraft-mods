@@ -84,11 +84,11 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
                 level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
                 activeTimeout = 40;
-                // invalidate && pop chip
-                ItemAsteroidIdChip.setSelectedType(null, navigationItem);
-                inventory.setStackInSlot(0, ItemStack.EMPTY);
-                Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
             }
+            // invalidate && pop chip
+            ItemAsteroidIdChip.setSelectedType(null, navigationItem);
+            inventory.setStackInSlot(0, ItemStack.EMPTY);
+            Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
         }
     }
 

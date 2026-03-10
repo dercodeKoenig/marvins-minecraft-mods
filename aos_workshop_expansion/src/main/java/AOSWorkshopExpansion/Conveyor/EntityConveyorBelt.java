@@ -487,11 +487,11 @@ public class EntityConveyorBelt extends BlockEntity implements IMechanicalBlockP
     public Map<Direction, AbstractMechanicalBlock> getConnectedParts(IMechanicalBlockProvider mechanicalBlockProvider, @Nullable AbstractMechanicalBlock MechanicalBlock) {
         Map<Direction, AbstractMechanicalBlock> connectedBlocks = new HashMap();
 
-        // check for engine below
-        AbstractMechanicalBlock mechanicalBlock = mechanicalBlockProvider.getMechanicalBlock(Direction.DOWN);
-        if (mechanicalBlock != null) {
-            // getMechanicalBlock already checks for direction below if there is a engine in correct rotation
-            connectedBlocks.put(Direction.DOWN, mechanicalBlock);
+        // below check for engine block
+        BlockEntity below = level.getBlockEntity(getBlockPos().below());
+        if (below instanceof EntityConveyorEngine conveyorEngine) {
+            if (below.getBlockState().getValue(ConveyorEngine.AXIS) != getBlockState().getValue(ConveyorBelt.FACING).getAxis())
+                connectedBlocks.put(Direction.DOWN, ((EntityConveyorEngine) below).myMechanicalBlock);
         }
 
         // check for conveyor
