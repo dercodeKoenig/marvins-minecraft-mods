@@ -51,11 +51,15 @@ public class ItemAsteroidIdChip extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         String selected = getSelectedType(stack);
         if (selected != null) {
-            tooltipComponents.add(
-                    Component.literal(
-                            selected
-                    ).withStyle(ChatFormatting.GRAY)
-            );
+            if(asteroids.containsKey(selected)) {
+                for (String i : asteroids.get(selected).description.split("\n")) {
+                    tooltipComponents.add(
+                            Component.literal(
+                                i
+                            ).withStyle(ChatFormatting.GRAY)
+                    );
+                }
+            }
         }
     }
 

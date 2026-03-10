@@ -392,6 +392,7 @@ public class Main {
             e.accept(Blocks.SATELLITE_ASSEMBLER.get());
             e.accept(Blocks.SATELLITE_MONITOR.get());
             e.accept(Blocks.LAUNCH_STATION_SATELLITE_MISSIONS.get());
+            e.accept(Blocks.LAUNCH_STATION_ASTEROID_MISSIONS.get());
 
             e.accept(Items.ITEM_SATELLITE.get());
             e.accept(Items.ITEM_SATELLITE_OPTICAL_TELESCOPE.get());

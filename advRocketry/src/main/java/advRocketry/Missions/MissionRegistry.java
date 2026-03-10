@@ -18,6 +18,7 @@ public class MissionRegistry {
         registerMission(RocketMission.class, "MissionBaseClass");
         registerMission(SatelliteDeploymentMission.class, "SatelliteDeploymentMission");
         registerMission(SatelliteRecoverMission.class, "SatelliteRecoverMission");
+        registerMission(AsteroidMiningMission.class, "AsteroidMiningMission");
     }
 
     public static void registerMission(Class<? extends RocketMission> clazz, String id) {

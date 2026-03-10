@@ -26,6 +26,9 @@
   "block.adv_rocketry.launch_station_satellite_missions": "Satellite Launch Station",
   "item.adv_rocketry.launch_station_satellite_missions": "Satellite Launch Station",
 
+  "block.adv_rocketry.launch_station_asteroid_missions": "Asteroid Mission Launch Station",
+  "item.adv_rocketry.launch_station_asteroid_missions": "Asteroid Mission Launch Station",
+
   "block.adv_rocketry.launchpad": "Launch Pad",
   "item.adv_rocketry.launchpad": "Launch Pad",
 

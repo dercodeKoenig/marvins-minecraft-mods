@@ -1,6 +1,5 @@
 package advRocketry.Rocket;
 
-import advRocketry.Missions.SatelliteRecoverMission;
 import advRocketry.Rocket.RocketPrograms.*;
 import net.minecraft.nbt.CompoundTag;
 
@@ -21,6 +20,7 @@ public class ProgramRegistry {
         registerProgram(ProgramSatelliteDeployment.class, "ProgramSatelliteDeployment");
         registerProgram(ProgramSatelliteRecovery.class, "ProgramSatelliteRecovery");
         registerProgram(ProgramTestFlight.class, "ProgramTestFlight");
+        registerProgram(ProgramAsteroidMiningMission.class, "ProgramAsteroidMiningMission");
     }
 
     public static void registerProgram(Class<? extends RocketProgram> programClass, String id) {
