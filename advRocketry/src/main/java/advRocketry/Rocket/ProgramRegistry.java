@@ -20,6 +20,7 @@ public class ProgramRegistry {
         registerProgram(ProgramMissionStartBase.class, "ProgramMissionStartBase");
         registerProgram(ProgramSatelliteDeployment.class, "ProgramSatelliteDeployment");
         registerProgram(ProgramSatelliteRecovery.class, "ProgramSatelliteRecovery");
+        registerProgram(ProgramTestFlight.class, "ProgramTestFlight");
     }
 
     public static void registerProgram(Class<? extends RocketProgram> programClass, String id) {

@@ -1016,11 +1016,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             double h = position().y - y;
             double minH = 100;
             double minA = Math.min(MAX_STRUCTURAL_ACC, getGravity() * 1.03);
-            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.clamp((h-10) / minH, 0, 1);
+            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.clamp((h - 10) / minH, 0, 1);
 
             // next: limit by velocity, too fast = too much stress by atmosphere
             // if we go faster than target velocity, reduce acceleration
-            double atmMultiplier = 1 - (planet.getAtmosphereDensity() / (1 + planet.getAtmosphereDensity()));
+            double currentAtm = planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height;
+            double atmMultiplier = 1 - (currentAtm / (1 + currentAtm));
             double targetSpeedPerTick = 10 * atmMultiplier;
             double overspeedAllowance = 5;
             double currentSpeed = getDeltaMovement().y;

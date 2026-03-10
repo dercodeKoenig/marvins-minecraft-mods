@@ -289,7 +289,7 @@ public class RocketController {
         // Proportional Gain: How aggressively the rocket tries to close the distance.
         final double K_P = 0.001;
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
-        double K_D = Math.sqrt(K_P) * 2 * 2;
+        double K_D = Math.sqrt(K_P) * 2 * 1.2;
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
         final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
         // secondary thruster force
@@ -344,7 +344,7 @@ public class RocketController {
         if (isPlanet) {
             // never thrust down
             // always keep some anti-gravity thrust, this should prevent it from too much tilt
-            desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(antiGravityAcceleration.y * 0.1, desiredAcceleration.y), desiredAcceleration.z);
+            desiredAcceleration = new Vec3(desiredAcceleration.x, Math.max(antiGravityAcceleration.y * 0.05, desiredAcceleration.y), desiredAcceleration.z);
         }
 
         if (desiredAcceleration.length() > 0.0001 && canUseMainEngines()) {

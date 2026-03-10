@@ -68,6 +68,9 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
 
             if (rocket.level().getBlockEntity(target) instanceof EntityRocketAssembler assembler) {
                 targetVec3 = assembler.getLandingPos(rocket);
+                // already assign the rocket to the assembler during landing if there is no other rocket
+                if(assembler.currentRocket == null)
+                    assembler.currentRocket = rocket;
             }
 
             double dx = targetVec3.x - rocket.position().x;
@@ -134,7 +137,7 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 double a = rocket.getThrustMax() / rocket.getMass();
                 double g = rocket.getGravity();
                 double aEff = Math.max(0,Math.min(a, rocket.getMaxAcceleration()) - g); // never have it go negative
-                double vTarget = -Math.sqrt(2 * d * aEff) * 0.8; // scaling a bit down just for safety
+                double vTarget = -Math.sqrt(2 * d * aEff) * 0.9; // scaling a bit down just for safety
                 double vCurrent = rocket.getDeltaMovement().y; // consider the y movement
                 double error = vTarget - vCurrent;
 
@@ -147,13 +150,13 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
                 // the logic above would work if the rocket would face up
                 // but in reality it does not face up
                 // so here, i limit max speed and max downside
-                double maxD = 1000;
+                double maxD = 2000;
                 if (rocket.position().y - targetY > maxD)
                     targetY = rocket.position().y - maxD;
-                targetY = Math.max(targetY, yCurrentBelow - 12); // some y offset or it would approach infinite slow
+                targetY = Math.max(targetY, yCurrentBelow - 5); // some y offset or it would approach infinite slow
 
                 // in the end it is not a true suicide burn,
-                // but it should make heavy rockets with low acceleration thrust early and no smash into ground
+                // but it should make heavy rockets with low acceleration thrust early and not smash into ground
 
                 //System.out.println(targetY+":"+vTarget+":"+vCurrent+":"+error);
                 targetVec3 = new Vec3(targetVec3.x, targetY, targetVec3.z);

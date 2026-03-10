@@ -16,6 +16,7 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.Rocket.RocketPrograms.ProgramTestFlight;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -56,8 +57,13 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public GuiHandlerBlockEntity guiHandler;
     public guiModuleButton buildButton;
+    public int buildButtonId = 578565454;
+    public guiModuleButton testFlightButton;
+    public int testFlightButtonId = 424456372;
     public guiModuleButton dockingDirectionButton;
     public guiModuleButton horizontalDockingButton;
+    public int horizontalDockingButtonId= 5555643;
+    public int dockingDirectionButtonId= 5555643;
     public guiModuleText dockingSettingsTitle;
     public guiModuleText statusText;
     public guiModuleEnergy energyBar;
@@ -91,16 +97,20 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void makeGui() {
         guiHandler = new GuiHandlerBlockEntity(this);
-        buildButton = new guiModuleButton(0, "build", guiHandler, 10, 10, 40, 20, BTN_BLACK, BTN_W, BTN_W);
-        statusText = new guiModuleText(1, "status:", guiHandler, 10, 10, 0x00000000, false);
+        buildButton = new guiModuleButton(buildButtonId, "build", guiHandler, 10, 10, 40, 20, BTN_BLACK, BTN_W, BTN_W);
+        buildButton.color = 0xffffffff;
         guiHandler.modules.add(buildButton);
+        testFlightButton = new guiModuleButton(testFlightButtonId, "test flight", guiHandler, 90, 7, 60, 15, BTN_BLACK, BTN_W, BTN_W);
+        testFlightButton.color = 0xffffffff;
+        guiHandler.modules.add(testFlightButton);
+        statusText = new guiModuleText(1, "status:", guiHandler, 10, 10, 0x00000000, false);
         guiHandler.modules.add(statusText);
         energyBar = new guiModuleEnergy(2, battery, guiHandler, 138, 7);
         guiHandler.modules.add(energyBar);
 
-        dockingDirectionButton = new guiModuleButton(30, "direction", guiHandler, 10, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        dockingDirectionButton = new guiModuleButton(dockingDirectionButtonId, "direction", guiHandler, 10, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(dockingDirectionButton);
-        horizontalDockingButton = new guiModuleButton(31, "mode", guiHandler, 90, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        horizontalDockingButton = new guiModuleButton(horizontalDockingButtonId, "mode", guiHandler, 90, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
         guiHandler.modules.add(horizontalDockingButton);
         dockingSettingsTitle = new guiModuleText(32, "Docking Settings:", guiHandler, 10, 95, 0x00000000, false);
         guiHandler.modules.add(dockingSettingsTitle);
@@ -476,7 +486,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
         if (compoundTag.contains("guiButtonClick")) {
             int id = compoundTag.getInt("guiButtonClick");
-            if (id == 0) {
+            if (id == buildButtonId) {
                 ConstructionResult ret = buildRocket(true);
                 if (ret == ConstructionResult.SUCCESS) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
@@ -486,8 +496,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     guiHandler.signalCloseGui(serverPlayer);
                 }
             }
-
-            if (id == 30) {
+            if (id == dockingDirectionButtonId) {
                 if (dockingDirection == Direction.UP)
                     dockingDirection = Direction.DOWN;
                 else if (dockingDirection == Direction.DOWN)
@@ -496,9 +505,19 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     dockingDirection = Direction.UP;
                 onDockingSettingsChanged();
             }
-            if (id == 31) {
+            if (id == horizontalDockingButtonId) {
                 horizontalDocking = !horizontalDocking;
                 onDockingSettingsChanged();
+            }
+            if(id == testFlightButtonId){
+                // perform a test flight to sky height and return
+                if(currentRocket != null) {
+                    BlockPos returnPos = currentRocket.blockPosition();
+                    if(currentRocket.getDockingStationPos() != null)
+                        returnPos = currentRocket.getDockingStationPos();
+                    ProgramTestFlight program = new ProgramTestFlight(currentRocket,level.dimension().location(), returnPos, UUID.randomUUID());
+                    currentRocket.setProgramAndSync(program);
+                }
             }
             setChanged();
         }
@@ -654,6 +673,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                     }
                     statusText.setTextAndSync(newStatus);
 
+                    testFlightButton.setIsEnabledAndBroadcastUpdate(true);
                     buildButton.setIsEnabledAndBroadcastUpdate(false);
                     energyBar.setIsEnabledAndBroadcastUpdate(false);
                 }
@@ -666,9 +686,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                             statusText.setTextAndSync("No launchpad detected");
 
                         buildButton.setIsEnabledAndBroadcastUpdate(false);
+                        testFlightButton.setIsEnabledAndBroadcastUpdate(false);
                         energyBar.setIsEnabledAndBroadcastUpdate(false);
 
                     } else {
+                        testFlightButton.setIsEnabledAndBroadcastUpdate(false);
                         buildButton.setIsEnabledAndBroadcastUpdate(true);
                         energyBar.setIsEnabledAndBroadcastUpdate(true);
 

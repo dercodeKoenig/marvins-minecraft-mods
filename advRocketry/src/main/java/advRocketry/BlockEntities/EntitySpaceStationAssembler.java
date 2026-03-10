@@ -33,6 +33,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
 
     ItemStackHandler inventory;
     UUID stationOwner;
+    int buildBtnId = 237562785;
 
     public EntitySpaceStationAssembler(BlockPos pos, BlockState blockState) {
         super(ENTITY_SPACE_STATION_ASSEMBLER.get(), pos, blockState);
@@ -66,9 +67,8 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
     public void makeGui() {
         guiHandler = new GuiHandlerBlockEntity(this);
 
-        // use 1 as id, 0 would trigger rocket build
-        int id = 1;
-        buildButton = new guiModuleButton(id++, "build", guiHandler, 10, 30, 40, 20, BTN_BLACK, BTN_W, BTN_W);
+        int id = 0;
+        buildButton = new guiModuleButton(buildBtnId, "build", guiHandler, 10, 30, 40, 20, BTN_BLACK, BTN_W, BTN_W);
         guiHandler.modules.add(buildButton);
 
         guiHandler.modules.add(
@@ -207,7 +207,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
         super.readServer(compoundTag, serverPlayer);
         if (compoundTag.contains("guiButtonClick")) {
             int id = compoundTag.getInt("guiButtonClick");
-            if (id == 1) {
+            if (id == buildBtnId) {
                 boolean ret = buildStation(true);
                 if (ret) {
                     // add more time for the client structure tower to go up and stay and wait, this is why multiplier and offset
