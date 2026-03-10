@@ -44,13 +44,15 @@ public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
     @Override
     public void readFromNbt(CompoundTag nbt) {
         super.readFromNbt(nbt);
-        targetPlanet = ResourceLocation.parse(nbt.getString("targetPlanet"));
+        if(nbt.contains("targetPlanet"))
+            targetPlanet = ResourceLocation.parse(nbt.getString("targetPlanet"));
     }
 
     @Override
     public CompoundTag saveToNbt() {
         CompoundTag tag = super.saveToNbt();
-        tag.putString("targetPlanet", targetPlanet.toString());
+        if(targetPlanet != null)
+            tag.putString("targetPlanet", targetPlanet.toString());
         return tag;
     }
 }
