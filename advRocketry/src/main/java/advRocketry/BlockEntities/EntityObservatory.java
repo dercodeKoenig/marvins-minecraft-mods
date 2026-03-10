@@ -121,6 +121,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     public int taskProgress;
     public boolean hasEnoughEnergy = false;
     public boolean hasEnoughData = false; // for analyzing
+    public boolean hasAsteroidChips = false; // for asteroid mining task render logic
+    public boolean hasFreeOutputSlots = false; // for asteroid mining task render logic
 
     public GuiHandlerBlockEntity guiHandler;
     guiModuleItemHandlerSlot storageDiskSlot1;
@@ -153,10 +155,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     return stack.getItem().equals(Items.ITEM_PLANET_ID_CHIP.get());
                 return false;
             }
+
             @Override
-            public int getSlotLimit(int slot){
+            public int getSlotLimit(int slot) {
                 return 1;
             }
+
             @Override
             public void onContentsChanged(int slot) {
                 // move from storage slot 2 to slot 1 if slot 1 is empty
@@ -557,6 +561,11 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             setStatusText("NO SPACE IN INVENTORY");
                         else
                             customStatusTimeout = 0;
+                        if (hasAsteroidChip != this.hasAsteroidChips || hasFreeOutputSlot != this.hasFreeOutputSlots) {
+                            this.hasAsteroidChips = hasAsteroidChip;
+                            this.hasFreeOutputSlots = hasFreeOutputSlot;
+                            sendUpdatePacket(null);
+                        }
                         if (hasAsteroidChip && hasFreeOutputSlot) {
                             double p = Math.random();
                             double pTarget = Config.INSTANCE.observatory_Find_Planet_P_Per_Tick;
@@ -640,7 +649,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 guiProgressBar.setProgressAndSync((double) taskProgress / maxData);
                                 guiProgressBar.setHoverInfoAndSync("analyzing planet...");
                                 if (taskProgress < maxData) {
-                                    info.put(DataTypes.distance, taskProgress+1);
+                                    info.put(DataTypes.distance, taskProgress + 1);
                                     ItemGalaxyDatabase.setPlanetInfo(storageDisk, planet, info);
                                 } else {
                                     // fully unlocked!
@@ -785,6 +794,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         if (taskTarget != null) {
             tag.putString("taskTarget", taskTarget.toString());
         }
+        tag.putBoolean("hasAsteroidChips", hasAsteroidChips);
+        tag.putBoolean("hasFreeOutputSlots", hasFreeOutputSlots);
         tag.putBoolean("hasEnoughEnergy", hasEnoughEnergy);
         return tag;
     }
@@ -853,6 +864,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         }
         if (tag.contains("hasEnoughEnergy")) {
             hasEnoughEnergy = tag.getBoolean("hasEnoughEnergy");
+        }
+        if (tag.contains("hasFreeOutputSlots")) {
+            hasFreeOutputSlots = tag.getBoolean("hasFreeOutputSlots");
+        }
+        if (tag.contains("hasAsteroidChips")) {
+            hasAsteroidChips = tag.getBoolean("hasAsteroidChips");
         }
     }
 
@@ -1027,21 +1044,25 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
             // for planet write and disk sync i do not change open/close and rotation states
 
-            // close it for this task
-            if (task == Task.IDLE) {
+            if (task == Task.IDLE)
                 should_open = false;
+            else if (task == Task.SCANNING_FOR_ASTEROIDS) {
+                if (observatory.hasFreeOutputSlots && observatory.hasAsteroidChips)
+                    should_open = true;
+                else
+                    should_open = false;
+            } else if (task == Task.ANALYZE_PLANET ||
+                    task == Task.SCANNING_FOR_PLANETS ||
+                    task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED
+            )
+                should_open = true;
+
+            if (!should_open) {
                 yawTarget = 0;
                 pitchTarget = 0;
                 yawSpeed = 0.2f;
                 pitchSpeed = 0.2f;
-            }
-            // open and animate for these tasks
-            if (task == Task.ANALYZE_PLANET ||
-                    task == Task.SCANNING_FOR_PLANETS ||
-                    task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED ||
-                    task == Task.SCANNING_FOR_ASTEROIDS) {
-
-                should_open = true;
+            } else {
 
                 if (observatory.taskTarget != null && observatory.hasEnoughEnergy) {
                     Dimension targetDim = DimensionManager.INSTANCE_CLIENT.get(observatory.taskTarget);
