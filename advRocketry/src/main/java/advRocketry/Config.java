@@ -18,8 +18,8 @@ public class Config {
     public int rocket_Engine_Boot_Ticks = 100;
 
     public float rocket_Block_Weight = 3;
-    public float rocket_ItemStack_Weight = 3;
-    public float rocket_Fuel_Weight_Per_MB = 0.0002f;
+    public float rocket_ItemStack_Weight = 10;
+    public float rocket_Fuel_Weight_Per_MB = 0.0005f;
 
     public double station_SpaceTravel_AU_Per_Second = 0.01;
     public double station_SpaceTravel_Distance_For_Max_Speed = 0.1;
@@ -40,8 +40,7 @@ public class Config {
 
     public int astrobody_Data_Processor_Energy_Per_Tick = 100;
 
-    // TODO: reduce chance after testing
-    public double satellite_Radiation_Damage_Prob_Per_Second = (double) 1 / 1000;
+    public double satellite_Radiation_Damage_Prob_Per_Second = (double) 1 / 10000;
 
     public int rocket_Assembler_Max_Size = 66;
     public int rocket_Assembler_Build_Time_Base = 12;

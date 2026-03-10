@@ -67,12 +67,15 @@ import static advRocketry.Registry.GeneralRegistry.ENTITY_ROCKET;
 
 public class EntityRocket extends Entity implements INetworkTagReceiver {
 
+    public static double G = 0.08;
+
     // rocket structure
     public Map<BlockPos, BlockState> blocks;
     public Map<BlockPos, BlockEntity> blockEntities;
     public Vec3i size;
     public FluidTank fuelTank;
     public float currentMass;
+    public double maxG = 2;
 
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
@@ -224,7 +227,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
         if (myDim instanceof RocketTravelDimension || myDim instanceof SpaceStationDimension)
             return 0;
-        return 0.08 * CelestialUtils.getGravityMultiplier(this);
+        return G * CelestialUtils.getGravityMultiplier(this);
     }
 
     @Override
@@ -1001,47 +1004,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public double getAtmDensityAtCurrentHeight() {
         Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
         if (myDim instanceof PlanetDimension planet) {
-            return planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height;
+            return Math.max(0,planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height);
         }
         return 0;
-    }
-
-    public float getMaxAcceleration() {
-        // this method usually runs when:
-        // the controller ticks and a target position is given
-        // when the rocket lands to calculate its target velocity
-        // when there is no program running, this method should never run and the ground check should not be a concern
-        Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
-        if (myDim instanceof SpaceStationDimension) {
-            // on space station, lower acceleration for more fine controll
-            // usually it should never demand this much but anyway....
-            return 0.01f;
-        }
-        if (myDim instanceof PlanetDimension planet) {
-            // lower acc near ground where there is probably more atmosphere and whatever it looks better
-            int y = Utils.findGroundY(level(), blockPosition());
-            double MAX_STRUCTURAL_ACC = 0.08 * 2; // 2g
-            double h = position().y - y;
-            double minH = 100;
-            double minA = Math.min(MAX_STRUCTURAL_ACC, getGravity() * 1.03);
-            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.clamp((h - 10) / minH, 0, 1);
-
-            // next: limit by velocity, too fast = too much stress by atmosphere
-            // if we go faster than target velocity, reduce acceleration
-            double currentAtm = getAtmDensityAtCurrentHeight();
-            double atmMultiplier = 1 - (currentAtm / (1 + currentAtm));
-            double targetSpeedPerTick = 10 * atmMultiplier;
-            double overspeedAllowance = 5;
-            double currentSpeed = getDeltaMovement().y;
-            // current ~ target -> 1
-            // current >> target -> -inf (too fast, slow down)
-            // current << target -> +inf (too slow or falling, no limit on acc)
-            double accelerationModifier = 1 + (targetSpeedPerTick - currentSpeed) / overspeedAllowance;
-            accelerationModifier = Math.clamp(accelerationModifier, 0, 1);
-
-            return (float) (currentMaxA * accelerationModifier);
-        }
-        return 1;
     }
 
     public ArrayList<BlockPos> getEnginePositions() {

@@ -22,7 +22,9 @@ public class RocketController {
 
     // the parent rocket
     EntityRocket rocket;
-    double currentThrust;
+    double currentThrust = 0;
+    double currentAcceleration = 0;
+    double currentAirDrag = 0;
     boolean isReverseThrust = false; // on space station to allow for breaking
     Vec3 currentSecondaryThrustForce;
 
@@ -73,6 +75,12 @@ public class RocketController {
 
     public double getCurrentThrust() {
         return currentThrust;
+    }
+    public double getCurrentGForce() {
+        return currentAcceleration / EntityRocket.G;
+    }
+    public double getCurrentAirDrag() {
+        return currentAirDrag;
     }
 
     public void setHeadingAndFrontDirect(Vec3 heading, Vec3 front) {
@@ -208,10 +216,11 @@ public class RocketController {
             Vec3 movement = rocket.getDeltaMovement();
             double speed = movement.length();
             if (speed > 0.01) {
-                double k = 0.001;
+                double k = 0.01;
                 double atmDensity = rocket.getAtmDensityAtCurrentHeight();
                 double airBreakForce = rocket.size.getX() * rocket.size.getZ() * atmDensity * speed * speed * k;
                 double airAcceleration = airBreakForce / rocket.getMass();
+                currentAirDrag = airBreakForce;
                 Vec3 breakMovement = movement.normalize().scale(-1 * airAcceleration);
                 if (breakMovement.length() >= speed)
                     rocket.setDeltaMovement(0, 0, 0);
@@ -289,7 +298,7 @@ public class RocketController {
         // Damping Gain (Derivative-like): How aggressively the rocket slows down to prevent overshoot.
         double K_D = Math.sqrt(K_P) * 2 * 1.2;
         // Structural/Breakage Limit: This is the maximum acceleration the vehicle can withstand.
-        final double MAX_STRUCTURAL_ACCEL = rocket.getMaxAcceleration();
+        final double MAX_STRUCTURAL_ACCEL = getMaxAcceleration();
         // secondary thruster force
         final double SECONDARY_THRUSTERS_FORCE = rocket.getThrustMax() / 1000;
 
@@ -411,6 +420,7 @@ public class RocketController {
 
             // Cap the needed acceleration by the final allowed limit.
             accelerationMagnitude = Math.min(accelerationMagnitude, MAX_ALLOWED_ACCEL);
+            currentAcceleration = accelerationMagnitude;
 
             // Thrust is applied along the current 'heading' direction.
             // We use the 'actualThrustAccel' determined by the PD control and the rotation limit.
@@ -438,6 +448,47 @@ public class RocketController {
             isReverseThrust = false;
         }
     }
+
+
+
+    public float getMaxAcceleration() {
+        // this method usually runs when:
+        // the controller ticks and a target position is given
+        // when the rocket lands to calculate its target velocity
+        // when there is no program running, this method should never run and the ground check should not be a concern
+        Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
+        if (myDim instanceof SpaceStationDimension) {
+            // on space station, lower acceleration for more fine controll
+            // usually it should never demand this much but anyway....
+            return 0.01f;
+        }
+        if (myDim instanceof PlanetDimension planet) {
+            // lower acc near ground where there is probably more atmosphere and whatever it looks better
+            int y = Utils.findGroundY(level(), rocket.blockPosition());
+            double MAX_STRUCTURAL_ACC = EntityRocket.G * rocket.maxG;
+            double h = rocket.position().y - y;
+            double minH = 100;
+            double minA = Math.min(MAX_STRUCTURAL_ACC, rocket.getGravity() * 1.03);
+            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.clamp((h - 10) / minH, 0, 1);
+
+            // next: limit by velocity, too fast = too much stress by atmosphere
+            // if we go faster than target velocity, reduce acceleration
+            double currentAtm = rocket.getAtmDensityAtCurrentHeight();
+            double atmMultiplier = 1 - (currentAtm / (1 + currentAtm));
+            double targetSpeedPerTick = 10 * atmMultiplier;
+            double overspeedAllowance = 5;
+            double currentSpeed = rocket.getDeltaMovement().y;
+            // current ~ target -> 1
+            // current >> target -> -inf (too fast, slow down)
+            // current << target -> +inf (too slow or falling, no limit on acc)
+            double accelerationModifier = 1 + (targetSpeedPerTick - currentSpeed) / overspeedAllowance;
+            accelerationModifier = Math.clamp(accelerationModifier, 0, 1);
+
+            return (float) (currentMaxA * accelerationModifier);
+        }
+        return 1;
+    }
+
 
 
     public float getBootTimeThrustMultiplier(EntityRocket rocket) {

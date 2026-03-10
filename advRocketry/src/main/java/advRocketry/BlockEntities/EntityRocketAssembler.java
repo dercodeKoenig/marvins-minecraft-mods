@@ -659,17 +659,20 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 if (currentRocket != null) {
                     String newStatus = new String();
                     if (currentRocket.getCurrentProgram() == null)
-                        newStatus += "rocket landed\n";
+                        newStatus += "rocket landed\n\n";
                     else
-                        newStatus += "rocket in flight\n";
-                    newStatus += "\nThrust max: " + ((float) Math.round(currentRocket.getThrustMax() * 100) / 100) + "\n";
-                    newStatus += "Mass: " + ((float) Math.round(currentRocket.getMass() * 100) / 100) + "\n";
-                    newStatus += "Weight: " + ((float) Math.round(currentRocket.getMass() * currentRocket.getGravity() * 100) / 100) + "\n";
-                    newStatus += "Thrust: " + Math.round(currentRocket.controller.getCurrentThrust() * 100) + "%\n";
+                        newStatus += "rocket in flight\n\n";
+                    newStatus += "Mass: " + String.format("%.2f", currentRocket.getMass()) + "\n";
+                    newStatus += "Thrust max: " + String.format("%.2f", currentRocket.getThrustMax()) + "\n";
+                    newStatus += "Thrust: " + String.format("%.2f", currentRocket.controller.getCurrentThrust() * currentRocket.getThrustMax()) + " ( " + String.format("%.0f", currentRocket.controller.getCurrentThrust() * 100) + "% )\n";
+                    newStatus += "Weight:  " + String.format("%.2f", currentRocket.getMass() * currentRocket.getGravity()) + "\n";
                     newStatus += "Fuel: " + String.format("%.2f", ((float) currentRocket.getFuel() / 1000)) + " / " + ((float) currentRocket.fuelTank.getCapacity() / 1000) + "\n";
                     if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
-                        newStatus += "Y: " + currentRocket.blockPosition().getY() + "\n";
-                        newStatus += "V: " + (double) (Math.round(currentRocket.getDeltaMovement().y * 20 * 100)) / 100 + "m/s\n";
+                        newStatus += "\n";
+                        newStatus += "v: " + String.format("%.2f", currentRocket.getDeltaMovement().y * 20) + "m/s\n";
+                        newStatus += "g: " + String.format("%.2f", currentRocket.controller.getCurrentGForce()) + " ( " + String.format("%.0f", currentRocket.controller.getCurrentGForce() / currentRocket.maxG * 100) + "% )\n";
+                        newStatus += "air drag: " + String.format("%.2f", currentRocket.controller.getCurrentAirDrag()) + "\n";
+                        newStatus += "y: " + currentRocket.blockPosition().getY() + "\n";
                     }
                     statusText.setTextAndSync(newStatus);
 
@@ -708,10 +711,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     public void openGui() {
         if (level.isClientSide) {
-            int h = 100;
-            if (DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location()) instanceof SpaceStationDimension)
-                h = 140; // the docking mode buttons
-            guiHandler.openGui(160, h, true);
+            guiHandler.openGui(160, 140, true);
         }
     }
 
