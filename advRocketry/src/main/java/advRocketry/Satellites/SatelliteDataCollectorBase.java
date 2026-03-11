@@ -3,6 +3,7 @@ package advRocketry.Satellites;
 import advRocketry.Data.DataStack;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemDataStorage;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -16,6 +17,25 @@ public abstract class SatelliteDataCollectorBase extends Satellite {
     abstract int getMinDataGenTicks();
 
     long lastTimeDataCollected = 0;
+
+    @Override
+    public Pair<Boolean, String> validateBuild() {
+        iterateEquipment();
+
+        if (getEnergyCapacity() < energyPerData())
+            return Pair.of(false, "need more batteries");
+
+        if (getEnergyStored() < 20000 && energyProducers.isEmpty()) {
+            return Pair.of(false, "not enough energy");
+        }
+
+        if (getDataCapacity() < 100) {
+            return Pair.of(false, "not enough data storage");
+        }
+
+        return Pair.of(true, "");
+    }
+
 
     // returns the total data capacity of the satellite
     public int getDataCapacity() {

@@ -9,20 +9,7 @@ public class SatelliteCompositionScanner extends SatelliteDataCollectorBase {
     public Pair<Boolean, String> validateBuild() {
         if (inventory.getStackInSlot(0).getItem() != Items.ITEM_SATELLITE_COMPOSITION_SCANNER.get())
             return Pair.of(false, "missing composition sensor");
-
-        iterateEquipment();
-        if (getEnergyCapacity() < energyPerData())
-            return Pair.of(false, "need more batteries");
-
-        if (getEnergyStored() < 20000 && energyProducers.isEmpty()) {
-            return Pair.of(false, "not enough energy");
-        }
-
-        if (getDataCapacity() < 100) {
-            return Pair.of(false, "not enough data storage");
-        }
-
-        return Pair.of(true, "");
+        return super.validateBuild();
     }
 
     public String getName(){
@@ -30,9 +17,7 @@ public class SatelliteCompositionScanner extends SatelliteDataCollectorBase {
     }
 
     @Override
-    double energyPerData() {
-        return 100;
-    }
+    double energyPerData() {return 100;}
 
     @Override
     String dataBaseTypeToGenerate() {
