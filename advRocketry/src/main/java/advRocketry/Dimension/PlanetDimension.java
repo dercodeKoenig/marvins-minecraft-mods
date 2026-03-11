@@ -55,7 +55,7 @@ public class PlanetDimension extends Dimension {
         System.out.println("creating dimension for " + getDimensionId());
 
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
-                Blocks.STONE.defaultBlockState(),
+                Blocks.STONE.defaultBlockState(), // TODO: make this a property
                 Blocks.WATER.defaultBlockState(),
                 getSeaLevel(),
                 BiomeConfig.loadPreset(properties().biomePreset),
