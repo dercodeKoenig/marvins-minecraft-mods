@@ -57,10 +57,10 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
             Vec3 dockingPosition = rocketAssembler.getLandingPos(rocket);
             Direction dockingStationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
             Direction dockingDirection = rocketAssembler.getDockingDirection();
-            spawnPos = target.relative(dockingStationFacing.getOpposite(), 200);
+            spawnPos = target.relative(dockingStationFacing.getOpposite(), 300);
             dockingProgram = new StationDockingProgram.DockingProgram(target, dockingPosition, dockingDirection);
         } else {
-            spawnPos = target.relative(Direction.NORTH, 200);
+            spawnPos = target.relative(Direction.NORTH, 300);
         }
 
         if (originDimensionId.equals(targetDimensionId)) {

@@ -622,8 +622,14 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
             // remove reference when the rocket program is null,
             // the following scan will reset it if it is still on launchpad area
-            if (currentRocket != null && currentRocket.getCurrentProgram() == null && currentRocket.onGround())
-                currentRocket = null;
+            if (currentRocket != null && currentRocket.getCurrentProgram() == null)
+                if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension) {
+                    // on planets, only reset when rocket is on ground
+                    if (currentRocket.onGround())
+                        currentRocket = null;
+                } else
+                    currentRocket = null;
+
 
             // scan if there is a new rocket in the landing area to be the new rocket reference
             // TODO: if this takes too long, maybe do it only once per second ?

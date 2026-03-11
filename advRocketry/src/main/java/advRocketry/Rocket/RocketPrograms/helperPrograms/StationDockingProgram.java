@@ -86,7 +86,7 @@ public class StationDockingProgram {
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
 
-            Vec3 scaledToTarget = new Vec3(toTarget.x * 0.5, toTarget.y * 0.5, toTarget.z * 0.5);
+            Vec3 scaledToTarget = new Vec3(toTarget.x * 0.3, toTarget.y * 0.3, toTarget.z * 0.3);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);
 
             rocket.controller.setTargetPosition(targetVec3, false);
@@ -149,9 +149,9 @@ public class StationDockingProgram {
                 // undocking up / down - move to the target and stop
                 checkpointPos = this.dockingPosition.add(
                         new Vec3(
-                                undockingDirection.getStepX(),
+                                0,
                                 undockingDirection.getStepY(),
-                                undockingDirection.getStepZ()
+                                0
                         ).scale(10 + rocket.size.getY() * 1.2)
                 );
             } else {
