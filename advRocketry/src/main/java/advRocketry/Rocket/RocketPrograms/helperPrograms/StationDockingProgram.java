@@ -31,7 +31,7 @@ public class StationDockingProgram {
                             dockingDirection.getStepX(),
                             dockingDirection.getStepY(),
                             dockingDirection.getStepZ()
-                    ).scale(10+rocket.size.getY())
+                    ).scale(10+rocket.size.getY()*1.2)
             );
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
             if (rocket.getDeltaMovement().length() < 0.03 && toTarget.length() < 5)
@@ -68,7 +68,7 @@ public class StationDockingProgram {
             if(rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
                 Direction stationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
                 if (rocketAssembler.horizontalDocking) {
-                    rocket.controller.setRotationRateMultiplier(0.3, false);
+                    rocket.controller.setRotationRateMultiplier(0.2, false);
                     rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
                     rocket.controller.setDefaultTargetHeading(new Vec3(stationFacing.getOpposite().getStepX(), stationFacing.getOpposite().getStepY(), stationFacing.getOpposite().getStepZ()), false);
                 } else {
@@ -142,7 +142,7 @@ public class StationDockingProgram {
                             undockingDirection.getStepX(),
                             undockingDirection.getStepY(),
                             undockingDirection.getStepZ()
-                    ).scale(10+rocket.size.getY())
+                    ).scale(10+rocket.size.getY()*1.2)
             );
 
             rocket.controller.enableMainEngines(false, false);
@@ -167,7 +167,7 @@ public class StationDockingProgram {
         }
 
         void moveAway(EntityRocket rocket, Runnable onStationLeft){
-            if(rocket.position().distanceTo(dockingPosition) > 200){
+            if(rocket.position().distanceTo(dockingPosition) > 300){
                 // program success
                 rocket.controller.setTargetPosition(null, false);
                 onStationLeft.run();
@@ -179,7 +179,7 @@ public class StationDockingProgram {
                 rocket.controller.setTargetFront(new Vec3(0,1,0), false);
                 rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
 
-                rocket.controller.setTargetPosition(rocket.position().add(moveAwayDirection.scale(100)), false);
+                rocket.controller.setTargetPosition(rocket.position().add(moveAwayDirection.scale(50)), false);
             }
 
         }

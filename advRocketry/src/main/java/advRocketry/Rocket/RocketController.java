@@ -236,8 +236,17 @@ public class RocketController {
         double maxRotationRate = 0.05f;
         double rotationRateHeading = maxRotationRate * getRotationRateMultiplier();
         Vec3 rotationCorrection;
-        if (targetHeading.dot(heading) > -0.99) {
-            rotationCorrection = targetHeading.subtract(heading);
+        double dot = targetHeading.dot(heading);
+        if (dot > -0.95) {
+            if (dot < 0) {
+                // TARGET IS BEHIND/SIDE: Use orthogonal vector
+                // This prevents the "slow-down" seen when the target is almost 180 degrees away
+                rotationCorrection = heading.cross(targetHeading).cross(heading).normalize();
+            } else {
+                // TARGET IS IN FRONT: Use simple subtraction
+                // As targetHeading.subtract(heading) gets smaller, the rotation naturally slows
+                rotationCorrection = targetHeading.subtract(heading);
+            }
             if (rotationCorrection.length() > rotationRateHeading)
                 rotationCorrection = rotationCorrection.normalize().scale(rotationRateHeading);
         } else
@@ -250,7 +259,7 @@ public class RocketController {
         // 2: interpolate front towards valid target front
         // 3: make sure new front is orthogonal and normalized
         Vec3 targetFrontValid = heading.cross(getTargetFront().cross(heading)).normalize();
-        if (targetFrontValid.dot(front) < -0.99) // get some movement if it is directly on the other side
+        if (targetFrontValid.dot(front) < -0.95) // get some movement if it is directly on the other side
             targetFrontValid = heading.cross(front);
         rotationCorrection = targetFrontValid.subtract(front).scale(maxRotationRate * 0.5f);
         Vec3 newFront = front.add(rotationCorrection).normalize();
