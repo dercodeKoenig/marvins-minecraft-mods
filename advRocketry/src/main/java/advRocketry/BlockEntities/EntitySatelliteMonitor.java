@@ -266,7 +266,7 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                     newStatusText = connectedSatellite.getName() + "\n";
                     if (orbitedDim != null)
                         newStatusText += "orbit: " + orbitedDim.getName() + "\n";
-                    newStatusText += "rf: " + connectedSatellite.getEnergyStored() + "\n";
+                    newStatusText += "rf: " + String.format("%.2f", connectedSatellite.getEnergyStored())  + "\n";
                     if (connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
                         newStatusText += "data: " + dataCollector.getDataStored() + " / " + dataCollector.getDataCapacity();
                     }
