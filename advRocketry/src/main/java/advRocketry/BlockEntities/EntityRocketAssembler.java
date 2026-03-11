@@ -63,7 +63,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
     public guiModuleButton dockingDirectionButton;
     public guiModuleButton horizontalDockingButton;
     public int horizontalDockingButtonId= 5555643;
-    public int dockingDirectionButtonId= 5555643;
+    public int dockingDirectionButtonId= 55432343;
     public guiModuleText dockingSettingsTitle;
     public guiModuleText statusText;
     public guiModuleEnergy energyBar;
