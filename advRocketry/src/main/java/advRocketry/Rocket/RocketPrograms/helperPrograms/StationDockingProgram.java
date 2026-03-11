@@ -73,13 +73,16 @@ public class StationDockingProgram {
 
             if (rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
                 Direction stationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                if (rocketAssembler.horizontalDocking) {
+                if (rocketAssembler.dockingOrientation.isHorizontal()) {
                     rocket.controller.setRotationRateMultiplier(0.2, false);
                     rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
-                    rocket.controller.setDefaultTargetHeading(new Vec3(stationFacing.getOpposite().getStepX(), stationFacing.getOpposite().getStepY(), stationFacing.getOpposite().getStepZ()), false);
+                    Vec3 targetHeading = new Vec3(stationFacing.getStepX(), 0, stationFacing.getStepZ());
+                    if (rocketAssembler.dockingOrientation == EntityRocketAssembler.DockingOrientation.horizontal_B)
+                        targetHeading = targetHeading.scale(-1);
+                    rocket.controller.setDefaultTargetHeading(targetHeading, false);
                 } else {
                     rocket.controller.setRotationRateMultiplier(0.2, false);
-                    rocket.controller.setTargetFront(new Vec3(stationFacing.getStepX(), stationFacing.getStepY(), stationFacing.getStepZ()), false);
+                    rocket.controller.setTargetFront(new Vec3(stationFacing.getStepX(), 0, stationFacing.getStepZ()), false);
                     rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
                 }
             }
@@ -207,7 +210,7 @@ public class StationDockingProgram {
             } else {
                 rocket.controller.enableMainEngines(true, false);
                 rocket.controller.enableSecondaryEngines(false, false);
-                rocket.controller.setRotationRateMultiplier(1, false);
+                rocket.controller.setRotationRateMultiplier(0.2, false);
                 rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
                 rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
 

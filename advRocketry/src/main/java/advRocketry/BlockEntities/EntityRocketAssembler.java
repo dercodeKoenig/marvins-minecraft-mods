@@ -73,7 +73,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
     // for space stations: docking mode settings
     public Direction dockingDirection = Direction.DOWN;
-    public boolean horizontalDocking = false;
+    public DockingOrientation dockingOrientation = DockingOrientation.vertical;
 
     public int buildProgress = -1;
     public int clientBuildProgress = -1; // used for smooth rendering of the build structure tower animation
@@ -108,9 +108,11 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         energyBar = new guiModuleEnergy(2, battery, guiHandler, 138, 7);
         guiHandler.modules.add(energyBar);
 
-        dockingDirectionButton = new guiModuleButton(dockingDirectionButtonId, "direction", guiHandler, 10, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        dockingDirectionButton = new guiModuleButton(dockingDirectionButtonId, "direction", guiHandler, 5, 110, 70, 18, BTN_BLACK, BTN_W, BTN_H);
+        dockingDirectionButton.color = 0xffffffff;
         guiHandler.modules.add(dockingDirectionButton);
-        horizontalDockingButton = new guiModuleButton(horizontalDockingButtonId, "mode", guiHandler, 90, 110, 60, 20, BTN_BLACK, BTN_W, BTN_H);
+        horizontalDockingButton = new guiModuleButton(horizontalDockingButtonId, "mode", guiHandler, 85, 110, 70, 18, BTN_BLACK, BTN_W, BTN_H);
+        horizontalDockingButton.color = 0xffffffff;
         guiHandler.modules.add(horizontalDockingButton);
         dockingSettingsTitle = new guiModuleText(32, "Docking Settings:", guiHandler, 10, 95, 0x00000000, false);
         guiHandler.modules.add(dockingSettingsTitle);
@@ -170,7 +172,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         // if in space station with horizontal docking, the position has to be adjusted
         // this can only be done if rocket is supplied, the programs should supply the current rocket for calculations
         if (isInSpaceStation) {
-            if (horizontalDocking && rocket != null) {
+            if (dockingOrientation.isHorizontal() && rocket != null) {
                 // a horizontal rocket rotates around center, so size.Y / 2
                 // so the docking position needs to be lowered by half y size
                 int sizeY = rocket.size.getY();
@@ -319,9 +321,6 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         }
     }
 
-    // TODO: lazy scanning please!!! it causes too much lag every time i place a block connected to the assembler
-    //      maybe wait 2 seconds before scan so we only scan when player is done placing blocks?
-    //       or another thread?
     public void scanArea() {
         if (level.isClientSide) return;
         //long t0 = System.currentTimeMillis();
@@ -462,7 +461,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             dockingSettingsTitle.setIsEnabledAndBroadcastUpdate(true);
         }
         dockingDirectionButton.setTextAndSync(dockingDirection.getName());
-        horizontalDockingButton.setTextAndSync(horizontalDocking ? "horizontal" : "vertical");
+        horizontalDockingButton.setTextAndSync(dockingOrientation.name);
         broadcastInformationToPlayers(null);
         setChanged();
     }
@@ -506,7 +505,12 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                 onDockingSettingsChanged();
             }
             if (id == horizontalDockingButtonId) {
-                horizontalDocking = !horizontalDocking;
+                if(dockingOrientation == DockingOrientation.vertical)
+                    dockingOrientation = DockingOrientation.horizontal_B;
+                else if(dockingOrientation == DockingOrientation.horizontal_B)
+                    dockingOrientation = DockingOrientation.horizontal_F;
+                else
+                    dockingOrientation = DockingOrientation.vertical;
                 onDockingSettingsChanged();
             }
             if(id == testFlightButtonId){
@@ -537,7 +541,7 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         tag.putInt("buildProgress", buildProgress);
         tag.put("battery", battery.serializeNBT(registries));
         tag.putInt("dockingDirection", dockingDirection.ordinal());
-        tag.putBoolean("horizontalDocking", horizontalDocking);
+        tag.putInt("dockingOrientation", dockingOrientation.ordinal());
         if (areaMin != null && areaMax != null) {
             tag.putInt("minX", areaMin.getX());
             tag.putInt("minY", areaMin.getY());
@@ -567,8 +571,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             battery.deserializeNBT(registries, tag.get("battery"));
         if (tag.contains("dockingDirection"))
             dockingDirection = Direction.values()[tag.getInt("dockingDirection")];
-        if (tag.contains("horizontalDocking"))
-            horizontalDocking = tag.getBoolean("horizontalDocking");
+        if (tag.contains("dockingOrientation"))
+            dockingOrientation = DockingOrientation.values()[tag.getInt("dockingOrientation")];
     }
 
     public void tick() {
@@ -731,6 +735,19 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
 
         ConstructionResult(String info) {
             this.info = info;
+        }
+    }
+
+    public enum DockingOrientation{
+        vertical("vertical"),
+        horizontal_F("horizontal F"),
+        horizontal_B("horizontal B");
+        public final String name;
+        DockingOrientation(String name){
+            this.name = name;
+        }
+        public boolean isHorizontal(){
+            return this != vertical;
         }
     }
 }
