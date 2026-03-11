@@ -27,36 +27,27 @@ public class StationDockingProgram {
         }
 
         void moveToCheckpoint(EntityRocket rocket) {
+            double checkpointDistanceMultiplier = dockingDirection.getAxis() == Direction.Axis.Y ? 1.2 : 1.6;
             Vec3 checkpointPos = this.dockingPosition.add(
                     new Vec3(
                             dockingDirection.getStepX(),
                             dockingDirection.getStepY(),
                             dockingDirection.getStepZ()
-                    ).scale(10 + rocket.size.getY() * 1.2)
+                    ).scale(10 + rocket.size.getY() * checkpointDistanceMultiplier)
             );
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
             if (rocket.getDeltaMovement().length() < 0.03 && toTarget.length() < 5) {
                 rocket.controller.enableMainEngines(false, false);
-                if (rocket.getDeltaMovement().length() < 0.025) {
-                    if (rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
-                        Direction stationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                        if (rocketAssembler.horizontalDocking) {
-                            rocket.controller.setRotationRateMultiplier(0.2, false);
-                            rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
-                            rocket.controller.setDefaultTargetHeading(new Vec3(stationFacing.getOpposite().getStepX(), stationFacing.getOpposite().getStepY(), stationFacing.getOpposite().getStepZ()), false);
-                        } else {
-                            rocket.controller.setRotationRateMultiplier(0.2, false);
-                            rocket.controller.setTargetFront(new Vec3(stationFacing.getStepX(), stationFacing.getStepY(), stationFacing.getStepZ()), false);
-                            rocket.controller.setDefaultTargetHeading(new Vec3(0, 1, 0), false);
-                        }
+                    if(dockingDirection.getAxis() != Direction.Axis.Y){
+                        // for docking from side we don't need to slow down too much
+                        checkpointReached = true;
                     }
-                }
             } else {
                 rocket.controller.enableMainEngines(true, false);
-                rocket.controller.setRotationRateMultiplier(1, false);
-                rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
-                rocket.controller.setDefaultTargetHeading(rocket.controller.getHeading(), false);
             }
+            rocket.controller.setRotationRateMultiplier(1, false);
+            rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+            rocket.controller.setDefaultTargetHeading(rocket.controller.getHeading(), false);
             rocket.controller.enableSecondaryEngines(true, false);
 
 
@@ -153,32 +144,58 @@ public class StationDockingProgram {
         }
 
         public void moveToCheckpoint(EntityRocket rocket, Runnable onCheckpointReached) {
-            Vec3 checkpointPos = this.dockingPosition.add(
-                    new Vec3(
-                            undockingDirection.getStepX(),
-                            undockingDirection.getStepY(),
-                            undockingDirection.getStepZ()
-                    ).scale(10 + rocket.size.getY() * 1.2)
-            );
+            Vec3 checkpointPos;
+            if (undockingDirection.getAxis() == Direction.Axis.Y) {
+                // undocking up / down - move to the target and stop
+                checkpointPos = this.dockingPosition.add(
+                        new Vec3(
+                                undockingDirection.getStepX(),
+                                undockingDirection.getStepY(),
+                                undockingDirection.getStepZ()
+                        ).scale(10 + rocket.size.getY() * 1.2)
+                );
+            } else {
+                // undocking to side - just move out at constant speed
+                checkpointPos = rocket.position().add(
+                        new Vec3(
+                                undockingDirection.getStepX(),
+                                0,
+                                undockingDirection.getStepZ()
+                        ).normalize().scale(10)
+                );
+            }
 
             rocket.controller.enableMainEngines(false, false);
             rocket.controller.enableSecondaryEngines(true, false);
-
             rocket.controller.setTargetPosition(checkpointPos, false);
 
-            // check if stopped (at target or collision maybe)
-            if (rocket.getDeltaMovement().length() < 0.05 && rocket.position().distanceTo(checkpointPos) < 5) {
-                rocket.controller.setRotationRateMultiplier(0.2, false);
-                rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
-                rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
-            }
+            if (undockingDirection.getAxis() == Direction.Axis.Y) {
+                // check if stopped (at target or collision maybe)
+                if (rocket.getDeltaMovement().length() < 0.05 && rocket.position().distanceTo(checkpointPos) < 5) {
+                    rocket.controller.setRotationRateMultiplier(0.2, false);
+                    rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
+                    rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+                }
 
-            // if we are far enough away and we came to a stop and we align with the target heading, move on to next stage
-            if (rocket.getDeltaMovement().length() < 0.01 && // no more movement
-                    rocket.position().distanceTo(dockingPosition) > checkpointPos.distanceTo(dockingPosition) - 3 && // moved away enough
-                    rocket.controller.getHeading().dot(rocket.controller.getDefaultTargetHeading()) > 0.8) { // heading aligns with target vector
-                checkpointReached = true;
-                onCheckpointReached.run();
+                // if we are far enough away and we came to a stop and we align with the target heading, move on to next stage
+                if (rocket.getDeltaMovement().length() < 0.01 && // no more movement
+                        rocket.position().distanceTo(dockingPosition) > checkpointPos.distanceTo(dockingPosition) - 3 && // moved away enough
+                        rocket.controller.getHeading().dot(rocket.controller.getDefaultTargetHeading()) > 0.8) { // heading aligns with target vector
+                    checkpointReached = true;
+                    onCheckpointReached.run();
+                }
+            } else {
+                // undocking to side, no need to slow down, just check distance
+                if (rocket.position().distanceTo(dockingPosition) > 10 + rocket.size.getY() * 1.2) {
+                    // far away
+                    rocket.controller.setRotationRateMultiplier(0.2, false);
+                    rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
+                    rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+                    if (rocket.controller.getHeading().dot(rocket.controller.getDefaultTargetHeading()) > 0.8) {
+                        checkpointReached = true;
+                        onCheckpointReached.run();
+                    }
+                }
             }
         }
 

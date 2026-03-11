@@ -29,7 +29,7 @@ public class ProgramAsteroidMiningMission extends ProgramMissionStartBase {
     public void startMission(EntityRocket rocket) {
         AsteroidMiningMission mission = new AsteroidMiningMission();
         mission.setTarget(targetAsteroidId);
-        long duration = 20 * 30; // base wait
+        long duration = 5; // base wait
         // TODO: increase wait based on asteroid size / drills on rocket
         mission.startMission(rocket, GlobalTime.getGlobalTime() + duration, missionId, returnLevel, returnPos);
     }
