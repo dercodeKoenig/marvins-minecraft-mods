@@ -250,7 +250,7 @@ public class RocketController {
             if (rotationCorrection.length() > rotationRateHeading)
                 rotationCorrection = rotationCorrection.normalize().scale(rotationRateHeading);
         } else
-            rotationCorrection = front.subtract(heading).normalize().scale(rotationRateHeading);
+            rotationCorrection = front.cross(heading).normalize().scale(rotationRateHeading);
 
         heading = heading.add(rotationCorrection).normalize();
 
