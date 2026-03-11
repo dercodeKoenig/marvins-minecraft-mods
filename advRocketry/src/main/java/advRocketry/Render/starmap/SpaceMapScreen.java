@@ -282,6 +282,9 @@ public class SpaceMapScreen extends Screen {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
+        if(windowHeight * windowHeight < 1000)
+            return;
+
         guiGraphics.fill(0, 0, width, height, 0xff000000);
 
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
@@ -364,7 +367,7 @@ public class SpaceMapScreen extends Screen {
                     float y = (float) rotatedOffset.y;
                     float z = (float) rotatedOffset.z;
 
-                    float colorModulator = 0.1f;
+                    float colorModulator = 0.01f;
                     builder.addVertex(x, y, z).setColor(1.0f * colorModulator, 1.0f * colorModulator, 1.0f * colorModulator, 1f);
                 }
                 MeshData mesh = builder.build();
@@ -519,12 +522,14 @@ public class SpaceMapScreen extends Screen {
 
     public float getPlanetRenderScale(PlanetDimension planet) {
         float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100)) / 20;
-        renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
+        if(planet.getRadiationIntensity() > 0)
+            renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
         return renderScale;
     }
 
     //applies a scale to orbit distance for better rendering on map
     public Vec3 getPositionScaled(Dimension dimension, float partialTick) {
+        /*
         if (dimension instanceof PlanetDimension planet) {
             if (planet.getParentDimensionId() != null) {
                 Dimension parent = DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId());
@@ -562,6 +567,7 @@ public class SpaceMapScreen extends Screen {
                 }
             }
         }
+         */
         return dimension.getPosition(partialTick);
     }
 }
