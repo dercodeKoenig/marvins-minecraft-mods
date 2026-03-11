@@ -238,8 +238,17 @@ public class RocketController {
         Vec3 rotationCorrection;
         double dot = targetHeading.dot(heading);
         if (dot > -0.95) {
-            // This prevents the "slow-down" seen when the target is almost 180 degrees away
-            rotationCorrection = heading.cross(targetHeading).cross(heading).normalize().scale(rotationRateHeading);
+            if (dot < 0.4) {
+                // TARGET IS BEHIND/SIDE: Use orthogonal vector
+                // This prevents the "slow-down" seen when the target is almost 180 degrees away
+                rotationCorrection = heading.cross(targetHeading).cross(heading).normalize();
+            } else {
+                // TARGET IS IN FRONT: Use simple subtraction
+                // As targetHeading.subtract(heading) gets smaller, the rotation naturally slows
+                rotationCorrection = targetHeading.subtract(heading);
+            }
+            if (rotationCorrection.length() > rotationRateHeading)
+                rotationCorrection = rotationCorrection.normalize().scale(rotationRateHeading);
         } else
             rotationCorrection = front.cross(heading).normalize().scale(rotationRateHeading);
 
