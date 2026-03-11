@@ -91,6 +91,31 @@ public class DefaultGalaxy {
         galaxy.add(venus);
 
 
+        PlanetDimensionProperties jupyter = new PlanetDimensionProperties();
+        jupyter.name = "Jupyter";
+        jupyter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupyter");
+        jupyter.parentDimensionId = sun.dimensionId;
+        jupyter.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/jupyter_ico_1k.png");
+        jupyter.orbitalDistanceToParent = 2f;
+        jupyter.earthRadiusMultiplier = 10f;
+        jupyter.gravitationalMultiplier = 30f;
+        jupyter.atmosphereDensity = 10;
+        galaxy.add(jupyter);
+
+
+        PlanetDimensionProperties saturn = new PlanetDimensionProperties();
+        saturn.name = "Saturn";
+        saturn.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "saturn");
+        saturn.parentDimensionId = sun.dimensionId;
+        saturn.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/saturn_ico_1k.png");
+        saturn.orbitalDistanceToParent = 3f;
+        saturn.earthRadiusMultiplier = 3f;
+        saturn.gravitationalMultiplier = 10f;
+        saturn.atmosphereDensity = 10;
+        saturn.hasRingSystem = true;
+        galaxy.add(saturn);
+
+
         PlanetDimensionProperties distantStar = new PlanetDimensionProperties();
         distantStar.name = "Blue Star";
         distantStar.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "blue_star");
