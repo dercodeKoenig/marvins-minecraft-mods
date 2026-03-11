@@ -529,7 +529,7 @@ public class SpaceMapScreen extends Screen {
 
     //applies a scale to orbit distance for better rendering on map
     public Vec3 getPositionScaled(Dimension dimension, float partialTick) {
-        /*
+        /// we !need! this or small orbits like moon are way too small
         if (dimension instanceof PlanetDimension planet) {
             if (planet.getParentDimensionId() != null) {
                 Dimension parent = DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId());
@@ -567,7 +567,6 @@ public class SpaceMapScreen extends Screen {
                 }
             }
         }
-         */
         return dimension.getPosition(partialTick);
     }
 }
