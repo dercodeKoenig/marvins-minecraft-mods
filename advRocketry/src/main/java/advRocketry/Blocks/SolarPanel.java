@@ -36,6 +36,14 @@ public class SolarPanel extends Block implements EntityBlock {
     }
 
     @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if(level.getBlockEntity(pos) instanceof EntitySolarPanel solarPanel){
+            solarPanel.popInventory();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntitySolarPanel::tick;
     }
