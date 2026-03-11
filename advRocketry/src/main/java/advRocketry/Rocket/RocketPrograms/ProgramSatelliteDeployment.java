@@ -34,7 +34,7 @@ public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
         if(DimensionManager.INSTANCE_SERVER.get(targetPlanet) instanceof PlanetDimension planetDimension){
             if(DimensionManager.INSTANCE_SERVER.get(super.returnLevel) instanceof Dimension origin){
                 double distanceAU = planetDimension.getPosition(0).distanceTo(origin.getPosition(0));
-                double extraSecond = distanceAU * Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
+                double extraSecond = distanceAU / Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
                 duration += (long) (20 * extraSecond * 3); // extra time for moving to long distance planets
             }
         }
