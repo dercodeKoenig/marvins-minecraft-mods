@@ -9,6 +9,7 @@ import ARLib.gui.modules.*;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
+import advRocketry.Blocks.Observatory;
 import advRocketry.Config;
 import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.Dimension;
@@ -52,6 +53,7 @@ import org.joml.Vector3f;
 import java.util.*;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
+import static advRocketry.Blocks.Observatory.TASK_STATE;
 
 public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
@@ -432,7 +434,26 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
             if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED) && task != Task.IDLE) {
                 toggleTask(Task.IDLE, null);
+                if (getBlockState().getValue(TASK_STATE) != Observatory.TaskState.idle)
+                    level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.idle), 3);
             } else {
+
+                // set blockstate based on task
+                Observatory.TaskState myState = getBlockState().getValue(TASK_STATE);
+                if (task == Task.SCANNING_FOR_ASTEROIDS) {
+                    if (myState != Observatory.TaskState.scanning_asteroid)
+                        level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.scanning_asteroid), 3);
+                } else if (task == Task.SCANNING_FOR_PLANETS ||
+                        task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED ||
+                        task == Task.ANALYZE_PLANET
+                ) {
+                    if (myState != Observatory.TaskState.scanning_planet)
+                        level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.scanning_planet), 3);
+                } else {
+                    if (myState != Observatory.TaskState.idle)
+                        level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.idle), 3);
+                }
+
 
                 List<EntityEnergyInputBlock> energyInputBlocks = getEnergyInputTiles();
                 List<EntityDataStorageBlock> dataTiles = getDataTiles();
@@ -1076,9 +1097,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 should_open = true;
 
             // overwrite opening status if we are out of energy / data for some time
-            if(observatory.noDataTickCounter > 200)
+            if (observatory.noDataTickCounter > 200)
                 should_open = false;
-            if(observatory.noEnergyTickCounter > 200)
+            if (observatory.noEnergyTickCounter > 200)
                 should_open = false;
 
             if (!should_open) {

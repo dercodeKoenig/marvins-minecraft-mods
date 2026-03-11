@@ -1,13 +1,97 @@
 {
-    "variants": {
-        "facing=north,state=false": { "model": "adv_rocketry:block/observatory" },
-        "facing=east,state=false":  { "model": "adv_rocketry:block/observatory", "y": 90 },
-        "facing=south,state=false": { "model": "adv_rocketry:block/observatory", "y": 180 },
-        "facing=west,state=false":  { "model": "adv_rocketry:block/observatory", "y": 270 },
-
-        "facing=north,state=true":  { "model": "adv_rocketry:block/observatory", "y": 0 },
-        "facing=east,state=true":   { "model": "adv_rocketry:block/observatory", "y": 90 },
-        "facing=south,state=true":  { "model": "adv_rocketry:block/observatory", "y": 180 },
-        "facing=west,state=true":   { "model": "adv_rocketry:block/observatory", "y": 270 }
+  "variants": {
+    "facing=north,state=false,task_state=idle": {
+      "model": "adv_rocketry:block/observatory"
+    },
+    "facing=east,state=false,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 90
+    },
+    "facing=south,state=false,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 180
+    },
+    "facing=west,state=false,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 270
+    },
+    "facing=north,state=true,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 0
+    },
+    "facing=east,state=true,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 90
+    },
+    "facing=south,state=true,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 180
+    },
+    "facing=west,state=true,task_state=idle": {
+      "model": "adv_rocketry:block/observatory",
+      "y": 270
+    },
+    "facing=north,state=false,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet"
+    },
+    "facing=east,state=false,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 90
+    },
+    "facing=south,state=false,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 180
+    },
+    "facing=west,state=false,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 270
+    },
+    "facing=north,state=true,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 0
+    },
+    "facing=east,state=true,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 90
+    },
+    "facing=south,state=true,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 180
+    },
+    "facing=west,state=true,task_state=scanning_planet": {
+      "model": "adv_rocketry:block/observatory_scanning_planet",
+      "y": 270
+    },
+    "facing=north,state=false,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid"
+    },
+    "facing=east,state=false,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 90
+    },
+    "facing=south,state=false,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 180
+    },
+    "facing=west,state=false,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 270
+    },
+    "facing=north,state=true,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 0
+    },
+    "facing=east,state=true,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 90
+    },
+    "facing=south,state=true,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 180
+    },
+    "facing=west,state=true,task_state=scanning_asteroid": {
+      "model": "adv_rocketry:block/observatory_scanning_asteroid",
+      "y": 270
     }
+  }
 }
