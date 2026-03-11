@@ -87,6 +87,8 @@ public class Satellite {
         if (!validateBuild().getFirst()) {
             System.out.println("a satellite build was invalid: "+validateBuild().getSecond());
             System.out.println(this.getName()+":"+parentDimensionId+":"+this.uuid);
+            // this can happen for example when a satellite was launched with batteries and has no more power
+            // it could also happen when something went wrong, but so far it only happened when out of battery and no generator
         }
         this.parentDimensionId = parentDimensionId;
         iterateEquipment();
