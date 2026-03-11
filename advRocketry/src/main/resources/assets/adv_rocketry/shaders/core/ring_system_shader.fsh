@@ -85,9 +85,9 @@ float getSoftShadowFactorApprox(
 
 void main() {
 
-    float specularPower = 10;
+    float specularPower = 5;
 
-    float alphaMultiplier = 0.5;
+    float alphaMultiplier = 1;
     // TODO: tint color?, specular color?
 
     vec4 baseColor = texture(Sampler0, texcoord);
@@ -144,7 +144,7 @@ void main() {
 
         // transmission
         float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 4);
-        totalColor+= transmission * C1 * baseColorLinRGB * (1-alpha);
+        totalColor+= transmission * C1 * baseColorLinRGB;
     }
 
     vec4 normalColor = vec4(totalColor, alpha);
