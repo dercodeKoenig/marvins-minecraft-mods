@@ -100,6 +100,7 @@ public class DefaultGalaxy {
         jupyter.earthRadiusMultiplier = 10f;
         jupyter.gravitationalMultiplier = 30f;
         jupyter.atmosphereDensity = 10;
+        jupyter.skyColor = new Vector3f(1,1,1);
         galaxy.add(jupyter);
 
 
@@ -113,6 +114,7 @@ public class DefaultGalaxy {
         saturn.gravitationalMultiplier = 10f;
         saturn.atmosphereDensity = 10;
         saturn.hasRingSystem = true;
+        saturn.skyColor = new Vector3f(1,1,1);
         galaxy.add(saturn);
 
 
