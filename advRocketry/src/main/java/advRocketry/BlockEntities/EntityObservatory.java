@@ -640,26 +640,30 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             if (planet == null) {
                                 toggleTask(Task.IDLE, null); // should not happen
                             } else {
-                                int maxData = planet.getDataRequiredForUnlock();
                                 consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
-                                extractData(REQUIRED_DATA, 1, dataTiles, false);
-                                ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, planet);
-                                if (info == null)
-                                    info = new ItemGalaxyDatabase.PlanetInfo(); // should not happen, but just to be safe
-                                taskProgress = info.get(DataTypes.distance);
-                                guiProgressBar.setProgressAndSync((double) taskProgress / maxData);
-                                guiProgressBar.setHoverInfoAndSync("analyzing planet...");
-                                if (taskProgress < maxData) {
-                                    info.put(DataTypes.distance, taskProgress + 1);
-                                    ItemGalaxyDatabase.setPlanetInfo(storageDisk, planet, info);
-                                } else {
-                                    // fully unlocked!
-                                    if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
-                                        toggleTask(this.lastTask, this.lastTaskTarget);
-                                    else if (this.lastTask == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
-                                        toggleTask(Task.SCANNING_FOR_PLANETS, null);
+                                double p = Math.random();
+                                double pTarget = (double) 3 / 20;
+                                if (p < pTarget) {
+                                    int maxData = planet.getDataRequiredForUnlock();
+                                    extractData(REQUIRED_DATA, 1, dataTiles, false);
+                                    ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDisk, planet);
+                                    if (info == null)
+                                        info = new ItemGalaxyDatabase.PlanetInfo(); // should not happen, but just to be safe
+                                    taskProgress = info.get(DataTypes.distance);
+                                    guiProgressBar.setProgressAndSync((double) taskProgress / maxData);
+                                    guiProgressBar.setHoverInfoAndSync("analyzing planet...");
+                                    if (taskProgress < maxData) {
+                                        info.put(DataTypes.distance, taskProgress + 1);
+                                        ItemGalaxyDatabase.setPlanetInfo(storageDisk, planet, info);
                                     } else {
-                                        toggleTask(Task.IDLE, null);
+                                        // fully unlocked!
+                                        if (this.lastTask == Task.SCANNING_FOR_ASTEROIDS || this.lastTask == Task.SCANNING_FOR_PLANETS)
+                                            toggleTask(this.lastTask, this.lastTaskTarget);
+                                        else if (this.lastTask == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) {
+                                            toggleTask(Task.SCANNING_FOR_PLANETS, null);
+                                        } else {
+                                            toggleTask(Task.IDLE, null);
+                                        }
                                     }
                                 }
                                 setChanged();
