@@ -569,7 +569,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                         }
                         if (hasAsteroidChip && hasFreeOutputSlot) {
                             double p = Math.random();
-                            double pTarget = Config.INSTANCE.observatory_Find_Planet_P_Per_Tick;
+                            double pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Tick;
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
                             extractData(REQUIRED_DATA, 1, dataTiles, false);
                             if (p < pTarget) {
