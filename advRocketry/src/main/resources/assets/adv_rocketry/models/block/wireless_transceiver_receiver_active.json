@@ -1,0 +1,7 @@
+{
+  "parent": "adv_rocketry:block/wireless_transceiver_base",
+  "textures": {
+    "particle": "adv_rocketry:block/wireless_transceiver_receiver_active",
+    "texture": "adv_rocketry:block/wireless_transceiver_receiver_active"
+  }
+}

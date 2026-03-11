@@ -2,11 +2,9 @@ package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
-import advRocketry.Data.DataStack;
-import advRocketry.Data.DataStorage;
-import advRocketry.Data.DataTypes;
-import advRocketry.Data.SimpleDataContainer;
+import advRocketry.Data.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +19,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_DATA_STORAGE_BLOCK;
 
-public class EntityDataStorageBlock extends BlockEntity implements ARLib.network.INetworkTagReceiver {
+public class EntityDataStorageBlock extends BlockEntity implements ARLib.network.INetworkTagReceiver, IDataStorageProvider {
 
     public DataStorage dataStorage;
 
@@ -144,5 +142,10 @@ public class EntityDataStorageBlock extends BlockEntity implements ARLib.network
 
     public void openGui(ServerPlayer player) {
             guiHandler.signalOpenGui(player, 176, 168, true);
+    }
+
+    @Override
+    public IDataStorage getDataStorage(Direction face) {
+        return dataStorage;
     }
 }

@@ -40,6 +40,7 @@ public class Items {
     public static final Supplier<Item> ITEM_OXYGEN_VENT = registerBlockItem("oxygen_vent", Blocks.OXYGEN_VENT);
     public static final Supplier<Item> ITEM_DATA_STORAGE_BLOCK = registerBlockItem("data_storage_block", Blocks.DATA_STORAGE_BLOCK);
     public static final Supplier<Item> ITEM_SOLAR_PANEL = ITEMS.register("solar_panel", () -> new ItemSolarPanel());
+    public static final Supplier<Item> ITEM_WIRELESS_TRANSCEIVER = registerBlockItem("wireless_transceiver", Blocks.WIRELESS_TRANSCEIVER);
 
     public static final Supplier<Item> ITEM_SPACE_STATION_ASSEMBLER = registerBlockItem("space_station_assembler", Blocks.SPACE_STATION_ASSEMBLER);
     public static final Supplier<Item> ITEM_ORIENTATION_CONTROLLER = registerBlockItem("orientation_controller", Blocks.ORIENTATION_CONTROLLER);

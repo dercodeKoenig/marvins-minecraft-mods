@@ -39,6 +39,7 @@ public class Blocks {
     public static final Supplier<Block> OXYGEN_VENT = BLOCKS.register("oxygen_vent", () -> new OxygenVent());
     public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
     public static final Supplier<Block> ASTROBODY_DATA_PROCESSOR = BLOCKS.register("astrobody_data_processor", () -> new AstrobodyDataProcessor());
+    public static final Supplier<Block> WIRELESS_TRANSCEIVER = BLOCKS.register("wireless_transceiver", () -> new WirelessTransceiver());
 
     // basic blocks
     public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));

@@ -1,0 +1,39 @@
+{
+    "variants": {
+        "facing=north,state=not_connected":   { "model": "adv_rocketry:block/wireless_transceiver_not_connected" },
+        "facing=north,state=sender":          { "model": "adv_rocketry:block/wireless_transceiver_sender" },
+        "facing=north,state=receiver":        { "model": "adv_rocketry:block/wireless_transceiver_receiver" },
+        "facing=north,state=sender_active":   { "model": "adv_rocketry:block/wireless_transceiver_sender_active" },
+        "facing=north,state=receiver_active": { "model": "adv_rocketry:block/wireless_transceiver_receiver_active" },
+
+        "facing=east,state=not_connected":   { "model": "adv_rocketry:block/wireless_transceiver_not_connected", "y": 90 },
+        "facing=east,state=sender":          { "model": "adv_rocketry:block/wireless_transceiver_sender", "y": 90 },
+        "facing=east,state=receiver":        { "model": "adv_rocketry:block/wireless_transceiver_receiver", "y": 90 },
+        "facing=east,state=sender_active":   { "model": "adv_rocketry:block/wireless_transceiver_sender_active", "y": 90 },
+        "facing=east,state=receiver_active": { "model": "adv_rocketry:block/wireless_transceiver_receiver_active", "y": 90 },
+
+        "facing=south,state=not_connected":   { "model": "adv_rocketry:block/wireless_transceiver_not_connected", "y": 180 },
+        "facing=south,state=sender":          { "model": "adv_rocketry:block/wireless_transceiver_sender", "y": 180 },
+        "facing=south,state=receiver":        { "model": "adv_rocketry:block/wireless_transceiver_receiver", "y": 180 },
+        "facing=south,state=sender_active":   { "model": "adv_rocketry:block/wireless_transceiver_sender_active", "y": 180 },
+        "facing=south,state=receiver_active": { "model": "adv_rocketry:block/wireless_transceiver_receiver_active", "y": 180 },
+
+        "facing=west,state=not_connected":   { "model": "adv_rocketry:block/wireless_transceiver_not_connected", "y": 270 },
+        "facing=west,state=sender":          { "model": "adv_rocketry:block/wireless_transceiver_sender", "y": 270 },
+        "facing=west,state=receiver":        { "model": "adv_rocketry:block/wireless_transceiver_receiver", "y": 270 },
+        "facing=west,state=sender_active":   { "model": "adv_rocketry:block/wireless_transceiver_sender_active", "y": 270 },
+        "facing=west,state=receiver_active": { "model": "adv_rocketry:block/wireless_transceiver_receiver_active", "y": 270 },
+
+        "facing=up,state=not_connected":   { "model": "adv_rocketry:block/wireless_transceiver_not_connected", "x": 270 },
+        "facing=up,state=sender":          { "model": "adv_rocketry:block/wireless_transceiver_sender", "x": 270 },
+        "facing=up,state=receiver":        { "model": "adv_rocketry:block/wireless_transceiver_receiver", "x": 270 },
+        "facing=up,state=sender_active":   { "model": "adv_rocketry:block/wireless_transceiver_sender_active", "x": 270 },
+        "facing=up,state=receiver_active": { "model": "adv_rocketry:block/wireless_transceiver_receiver_active", "x": 270 },
+
+        "facing=down,state=not_connected":   { "model": "adv_rocketry:block/wireless_transceiver_not_connected", "x": 90 },
+        "facing=down,state=sender":          { "model": "adv_rocketry:block/wireless_transceiver_sender", "x": 90 },
+        "facing=down,state=receiver":        { "model": "adv_rocketry:block/wireless_transceiver_receiver", "x": 90 },
+        "facing=down,state=sender_active":   { "model": "adv_rocketry:block/wireless_transceiver_sender_active", "x": 90 },
+        "facing=down,state=receiver_active": { "model": "adv_rocketry:block/wireless_transceiver_receiver_active", "x": 90 }
+    }
+}

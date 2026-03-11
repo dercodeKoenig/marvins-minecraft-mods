@@ -382,6 +382,7 @@ public class Main {
             e.accept(Blocks.OBSERVATORY.get());
             e.accept(Blocks.ASTROBODY_DATA_PROCESSOR.get());
             e.accept(Blocks.OXYGEN_VENT.get());
+            e.accept(Blocks.WIRELESS_TRANSCEIVER.get());
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
