@@ -27,13 +27,13 @@ public class StationDockingProgram {
         }
 
         void moveToCheckpoint(EntityRocket rocket) {
-            double checkpointDistanceMultiplier = dockingDirection.getAxis() == Direction.Axis.Y ? 1.2 : 1.6;
+            double baseDistance = dockingDirection.getAxis() == Direction.Axis.Y ? 10 : 30;
             Vec3 checkpointPos = this.dockingPosition.add(
                     new Vec3(
                             dockingDirection.getStepX(),
                             dockingDirection.getStepY(),
                             dockingDirection.getStepZ()
-                    ).scale(10 + rocket.size.getY() * checkpointDistanceMultiplier)
+                    ).scale(baseDistance + rocket.size.getY() * 1.2)
             );
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
             if (rocket.getDeltaMovement().length() < 0.03 && toTarget.length() < 5) {
@@ -177,7 +177,7 @@ public class StationDockingProgram {
                 if (rocket.getDeltaMovement().length() < 0.05 && rocket.position().distanceTo(checkpointPos) < 5) {
                     rocket.controller.setRotationRateMultiplier(0.2, false);
                     rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
-                    rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+                    rocket.controller.setTargetFront(rocket.controller.getFront(), false);
                 }
 
                 // if we are far enough away and we came to a stop and we align with the target heading, move on to next stage
@@ -193,7 +193,7 @@ public class StationDockingProgram {
                     // far away
                     rocket.controller.setRotationRateMultiplier(0.2, false);
                     rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
-                    rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+                    rocket.controller.setTargetFront(rocket.controller.getFront(), false);
                     if (rocket.controller.getHeading().dot(rocket.controller.getDefaultTargetHeading()) > 0.8) {
                         checkpointReached = true;
                         onCheckpointReached.run();
@@ -211,7 +211,7 @@ public class StationDockingProgram {
                 rocket.controller.enableMainEngines(true, false);
                 rocket.controller.enableSecondaryEngines(false, false);
                 rocket.controller.setRotationRateMultiplier(0.2, false);
-                rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
+                rocket.controller.setTargetFront(rocket.controller.getFront(), false);
                 rocket.controller.setDefaultTargetHeading(moveAwayDirection, false);
 
                 rocket.controller.setTargetPosition(rocket.position().add(moveAwayDirection.scale(50)), false);
