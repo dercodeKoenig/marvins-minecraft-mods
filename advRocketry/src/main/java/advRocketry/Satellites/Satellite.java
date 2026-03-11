@@ -85,7 +85,8 @@ public class Satellite {
 
     public void onDeploymentStart(ResourceLocation parentDimensionId) {
         if (!validateBuild().getFirst()) {
-            throw new RuntimeException("a satellite build was invalid");
+            System.out.println("a satellite build was invalid: "+validateBuild().getSecond());
+            System.out.println(this.getName()+":"+parentDimensionId+":"+this.uuid);
         }
         this.parentDimensionId = parentDimensionId;
         iterateEquipment();
