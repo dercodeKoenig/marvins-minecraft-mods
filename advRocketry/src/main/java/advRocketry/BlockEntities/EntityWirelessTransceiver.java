@@ -6,7 +6,6 @@ import advRocketry.Data.DataStack;
 import advRocketry.Data.DataStorage;
 import advRocketry.Data.IDataStorage;
 import advRocketry.Data.IDataStorageProvider;
-import advRocketry.GlobalTime;
 import advRocketry.Items.ItemLinker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,6 +30,8 @@ public class EntityWirelessTransceiver extends BlockEntity implements ItemLinker
     public BlockPos linkedPos;
     public boolean isSender = false;
     public DataStorage dataStorage;
+    int noWorkCounter = 0; // to change blockstate
+    int changeBlockStateTarget = 10; // after so many ticks without work, change to inactive state
 
     public EntityWirelessTransceiver(BlockPos pos, BlockState blockState) {
         super(ENTITY_WIRELESS_TRANSCEIVER.get(), pos, blockState);
@@ -112,7 +113,8 @@ public class EntityWirelessTransceiver extends BlockEntity implements ItemLinker
 
                 if (isSender) {
 
-                    boolean didWork = false;
+                    if (noWorkCounter < changeBlockStateTarget)
+                        noWorkCounter++;
 
                     // extract from neighbor
                     if (level.getBlockEntity(neighborPos) instanceof IDataStorageProvider dataStorageProvider) {
@@ -122,7 +124,7 @@ public class EntityWirelessTransceiver extends BlockEntity implements ItemLinker
                         if (canInsert > 0) {
                             DataStack extracted = neighborStorage.extractData(canInsert, false);
                             dataStorage.insertData(extracted, false);
-                            didWork = true;
+                            noWorkCounter = 0;
                         }
                     }
 
@@ -132,18 +134,18 @@ public class EntityWirelessTransceiver extends BlockEntity implements ItemLinker
                     if (canReceive > 0) {
                         DataStack extracted = dataStorage.extractData(canReceive, false);
                         partner.dataStorage.insertData(extracted, false);
-                        didWork = true;
+                        noWorkCounter = 0;
                     }
 
-                    if (didWork && getBlockState().getValue(STATE) != WirelessTransceiver.State.sender_active)
+                    if (noWorkCounter < changeBlockStateTarget && getBlockState().getValue(STATE) != WirelessTransceiver.State.sender_active)
                         level.setBlock(getBlockPos(), getBlockState().setValue(STATE, WirelessTransceiver.State.sender_active), 3);
-                    else if (!didWork && getBlockState().getValue(STATE) != WirelessTransceiver.State.sender)
+                    else if (noWorkCounter >= changeBlockStateTarget && getBlockState().getValue(STATE) != WirelessTransceiver.State.sender)
                         level.setBlock(getBlockPos(), getBlockState().setValue(STATE, WirelessTransceiver.State.sender), 3);
 
                 } else {
 
-                    boolean didWork = false;
-
+                    if (noWorkCounter < changeBlockStateTarget)
+                        noWorkCounter++;
 
                     // insert into neighbor
                     if (level.getBlockEntity(neighborPos) instanceof IDataStorageProvider dataStorageProvider) {
@@ -153,13 +155,13 @@ public class EntityWirelessTransceiver extends BlockEntity implements ItemLinker
                         if (canInsert > 0) {
                             DataStack extracted = dataStorage.extractData(canInsert, false);
                             neighborStorage.insertData(extracted, false);
-                            didWork = true;
+                            noWorkCounter = 0;
                         }
                     }
 
-                    if (didWork && getBlockState().getValue(STATE) != WirelessTransceiver.State.receiver_active)
+                    if (noWorkCounter < changeBlockStateTarget && getBlockState().getValue(STATE) != WirelessTransceiver.State.receiver_active)
                         level.setBlock(getBlockPos(), getBlockState().setValue(STATE, WirelessTransceiver.State.receiver_active), 3);
-                    else if (!didWork && getBlockState().getValue(STATE) != WirelessTransceiver.State.receiver)
+                    else if (noWorkCounter >= changeBlockStateTarget && getBlockState().getValue(STATE) != WirelessTransceiver.State.receiver)
                         level.setBlock(getBlockPos(), getBlockState().setValue(STATE, WirelessTransceiver.State.receiver), 3);
                 }
             }

@@ -5,9 +5,7 @@ import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.BlockEntityBattery;
 import advRocketry.Blocks.SatelliteMonitor;
-import advRocketry.Data.DataStack;
-import advRocketry.Data.DataStorage;
-import advRocketry.Data.SimpleDataContainer;
+import advRocketry.Data.*;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
@@ -21,6 +19,7 @@ import advRocketry.Satellites.SatelliteDataCollectorBase;
 import advRocketry.Satellites.SatelliteManager;
 import advRocketry.Satellites.SatelliteRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -37,7 +36,7 @@ import java.util.UUID;
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_SATELLITE_MONITOR;
 
-public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagReceiver {
+public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagReceiver, IDataStorageProvider {
 
     public ItemStackHandler inventory;
     public ItemStackHandler dataChipInventory;
@@ -280,5 +279,10 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                     collectDataBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
             }
         }
+    }
+
+    @Override
+    public IDataStorage getDataStorage(Direction face) {
+        return dataStorage;
     }
 }
