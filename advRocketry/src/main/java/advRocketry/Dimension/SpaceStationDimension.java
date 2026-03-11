@@ -514,7 +514,7 @@ public class SpaceStationDimension extends Dimension {
                 Dimension parent = dimensionManager.get(properties().parentDimensionId);
                 if (parent instanceof PlanetDimension parentPlanet) {
                     Vec3 parentPosition = parentPlanet.getPosition(0);
-                    Vec3 parentToStation = getPosition(0).subtract(parentPosition);
+                    Vec3 parentToStation = properties().position.subtract(parentPosition);
                     targetUp = parentToStation.normalize();
 
                     Vec3 targetOrbitAxis = properties().orbitAxisTarget;
