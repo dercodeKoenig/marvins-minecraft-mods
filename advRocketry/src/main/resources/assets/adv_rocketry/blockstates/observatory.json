@@ -92,6 +92,37 @@
     "facing=west,state=true,task_state=scanning_asteroid": {
       "model": "adv_rocketry:block/observatory_scanning_asteroid",
       "y": 270
+    },
+    "facing=north,state=false,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet"
+    },
+    "facing=east,state=false,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 90
+    },
+    "facing=south,state=false,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 180
+    },
+    "facing=west,state=false,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 270
+    },
+    "facing=north,state=true,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 0
+    },
+    "facing=east,state=true,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 90
+    },
+    "facing=south,state=true,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 180
+    },
+    "facing=west,state=true,task_state=searching_planet": {
+      "model": "adv_rocketry:block/observatory_searching_planet",
+      "y": 270
     }
   }
 }

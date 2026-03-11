@@ -443,12 +443,14 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 if (task == Task.SCANNING_FOR_ASTEROIDS) {
                     if (myState != Observatory.TaskState.scanning_asteroid)
                         level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.scanning_asteroid), 3);
-                } else if (task == Task.SCANNING_FOR_PLANETS ||
-                        task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED ||
+                } else if (task == Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED ||
                         task == Task.ANALYZE_PLANET
                 ) {
                     if (myState != Observatory.TaskState.scanning_planet)
                         level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.scanning_planet), 3);
+                } else if (task == Task.SCANNING_FOR_PLANETS) {
+                    if (myState != Observatory.TaskState.searching_planet)
+                        level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.searching_planet), 3);
                 } else {
                     if (myState != Observatory.TaskState.idle)
                         level.setBlock(getBlockPos(), getBlockState().setValue(TASK_STATE, Observatory.TaskState.idle), 3);

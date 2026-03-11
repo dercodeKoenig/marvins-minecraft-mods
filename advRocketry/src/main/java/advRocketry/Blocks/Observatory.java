@@ -60,7 +60,10 @@ public class Observatory extends BlockMultiblockMaster {
     }
 
     public enum TaskState implements StringRepresentable {
-        idle("idle"), scanning_planet("scanning_planet"), scanning_asteroid("scanning_asteroid");
+        idle("idle"),
+        scanning_planet("scanning_planet"),
+        scanning_asteroid("scanning_asteroid"),
+        searching_planet("searching_planet");
 
         public final String name;
 
