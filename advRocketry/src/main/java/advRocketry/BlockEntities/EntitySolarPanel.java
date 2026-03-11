@@ -94,7 +94,11 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                 accumulatedStarlightIntensity += finalIntensity;
             }
         }
-        return (float) Math.min(10,accumulatedStarlightIntensity);
+
+        // with normal atmosphere density (1) and sun intensity (2) and normal distance (1AU)
+        // this should make it produce around 2.5rf/tick during noon
+        double multiplier = 2.5;
+        return (float) Math.min(10,accumulatedStarlightIntensity * multiplier);
     }
 
     public void tick() {

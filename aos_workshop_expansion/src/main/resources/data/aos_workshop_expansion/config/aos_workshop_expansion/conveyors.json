@@ -1,5 +1,5 @@
 {
-  "conveyorResistance": 1,
+  "conveyorResistance": 0.3,
   "conveyorInertia": 1,
   "conveyorMaxStress": 600,
 
