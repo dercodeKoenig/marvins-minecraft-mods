@@ -68,7 +68,7 @@ public class StationDockingProgram {
             if(rocket.level().getBlockEntity(dockingStationPos) instanceof EntityRocketAssembler rocketAssembler) {
                 Direction stationFacing = rocketAssembler.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
                 if (rocketAssembler.horizontalDocking) {
-                    rocket.controller.setRotationRateMultiplier(0.5, false);
+                    rocket.controller.setRotationRateMultiplier(0.3, false);
                     rocket.controller.setTargetFront(new Vec3(0, 1, 0), false);
                     rocket.controller.setDefaultTargetHeading(new Vec3(stationFacing.getOpposite().getStepX(), stationFacing.getOpposite().getStepY(), stationFacing.getOpposite().getStepZ()), false);
                 } else {
@@ -80,7 +80,7 @@ public class StationDockingProgram {
 
             Vec3 toTarget = dockingPosition.subtract(rocket.position());
 
-            Vec3 scaledToTarget = new Vec3(toTarget.x*1, toTarget.y*1, toTarget.z*1);
+            Vec3 scaledToTarget = new Vec3(toTarget.x*0.5, toTarget.y*0.5, toTarget.z*0.5);
             Vec3 targetVec3 = rocket.position().add(scaledToTarget);
 
             rocket.controller.setTargetPosition(targetVec3, false);
