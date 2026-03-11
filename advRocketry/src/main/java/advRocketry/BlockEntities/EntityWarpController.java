@@ -63,70 +63,70 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         guiHandler.modules.add(galaxyStorageGuiSlot);
 
         if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
-            guiHandler.modules.add(
-                    new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
-                        public void onButtonClicked() {
-                            Minecraft.getInstance().setScreen(
-                                    new SpaceMapScreen() {
-                                        @Override
-                                        public void tick() {
-                                            super.tick();
-                                            // make sure the main gui stays in sync
-                                            EntityWarpController.this.guiHandler.onGuiClientTick(ClientUtils.getSinglePlayer());
-                                        }
+            guiModuleButton openGalaxyButton = new ARLib.gui.modules.guiModuleButton(100, "open galaxy", guiHandler, 10, 10, 70, 15, BTN_BLACK, BTN_W, BTN_H) {
+                public void onButtonClicked() {
+                    Minecraft.getInstance().setScreen(
+                            new SpaceMapScreen() {
+                                @Override
+                                public void tick() {
+                                    super.tick();
+                                    // make sure the main gui stays in sync
+                                    EntityWarpController.this.guiHandler.onGuiClientTick(ClientUtils.getSinglePlayer());
+                                }
 
-                                        @Override
-                                        public void onClose() {
-                                            super.onClose();
-                                            // open the main gui again
-                                            openGui();
-                                        }
+                                @Override
+                                public void onClose() {
+                                    super.onClose();
+                                    // open the main gui again
+                                    openGui();
+                                }
 
-                                        public void interact(ResourceLocation dimensionId) {
-                                            CompoundTag info = new CompoundTag();
-                                            info.putString("interact", dimensionId.toString());
-                                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityWarpController.this, info));
-                                            openGui();
-                                        }
+                                public void interact(ResourceLocation dimensionId) {
+                                    CompoundTag info = new CompoundTag();
+                                    info.putString("interact", dimensionId.toString());
+                                    PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityWarpController.this, info));
+                                    openGui();
+                                }
 
-                                        public String getInteractText(ResourceLocation dimensionId) {
-                                            PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
-                                            if (planet == null) return "";
-                                            if (planet.isKnown() || client_IsDistanceUnlocked(dimensionId)) {
-                                                return "select";
-                                            }
-                                            return "";
-                                        }
-
-                                        public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo ignored) {
-                                            PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
-                                            if (planet == null) return "";
-
-                                            if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
-                                                return "We require more information about this planet.";
-                                            }
-
-                                            return super.getPlanetInfoText(dimensionId, client_getPlanetInfo(dimensionId));
-                                        }
-
-                                        public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
-                                            Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
-                                            if (d == null) return false;
-
-                                            if (((PlanetDimension) (d)).isKnown()) {
-                                                return true;
-                                            }
-
-                                            if (client_IsDimensionKnown(dimensionId))
-                                                return true;
-
-                                            return false;
-                                        }
+                                public String getInteractText(ResourceLocation dimensionId) {
+                                    PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+                                    if (planet == null) return "";
+                                    if (planet.isKnown() || client_IsDistanceUnlocked(dimensionId)) {
+                                        return "select";
                                     }
-                            );
-                        }
-                    }
-            );
+                                    return "";
+                                }
+
+                                public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo ignored) {
+                                    PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
+                                    if (planet == null) return "";
+
+                                    if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
+                                        return "We require more information about this planet.";
+                                    }
+
+                                    return super.getPlanetInfoText(dimensionId, client_getPlanetInfo(dimensionId));
+                                }
+
+                                public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
+                                    Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
+                                    if (d == null) return false;
+
+                                    if (((PlanetDimension) (d)).isKnown()) {
+                                        return true;
+                                    }
+
+                                    if (client_IsDimensionKnown(dimensionId))
+                                        return true;
+
+                                    return false;
+                                }
+                            }
+                    );
+                }
+            };
+            openGalaxyButton.color = 0xffffffff;
+            guiHandler.modules.add(openGalaxyButton);
         }
 
 
