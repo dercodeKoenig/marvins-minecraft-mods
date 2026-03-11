@@ -171,7 +171,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
             if(battery.getEnergyStored() > _75P + 5){
                 // when mostly full, load batteries
                 int batteryMaxChargePerTick = 1;
-                int toTransfer = (battery.getEnergyStored() - _75P) / 2;
+                int toTransfer = (battery.getEnergyStored() - _75P);
                 int remainingToTransfer = toTransfer;
                 for (int i = 0; i < inventory.getSlots(); i++) {
                     ItemStack stack = inventory.getStackInSlot(i);
@@ -188,7 +188,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
             }else if(battery.getEnergyStored() < _25P - 5) {
                 // when mostly empty, drain from batteries into internal storage
                 int batteryMaxDrainPerTick = 2;
-                int toTransfer = (_25P - battery.getEnergyStored()) / 2;
+                int toTransfer = (_25P - battery.getEnergyStored());
                 int remainingToTransfer = toTransfer;
                 for (int i = 0; i < inventory.getSlots(); i++) {
                     ItemStack stack = inventory.getStackInSlot(i);
