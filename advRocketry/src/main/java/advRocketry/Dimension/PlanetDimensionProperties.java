@@ -7,6 +7,10 @@ import org.joml.Vector3f;
 
 public class PlanetDimensionProperties extends DimensionProperties{
     // TODO: add always rain / always thunder values or custom rain times
+    // gas mining should mine relative to the planet mass
+    // when decreasing or increasing pressure, calculate the new gas value as +- 1 / planet mass
+    // so moon would require less gas to reach a value of 1 while jupyter provides lots of gas to mine
+    // gas can be mined if config flag enables it until the relative value of a gas drops < 1
 
     public PlanetDimensionProperties(){
         this.type = DimensionType.PLANET;
