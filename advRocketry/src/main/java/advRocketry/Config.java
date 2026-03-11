@@ -22,7 +22,7 @@ public class Config {
     public float rocket_Fuel_Weight_Per_MB = 0.0005f;
 
     public double station_SpaceTravel_AU_Per_Second = 1;
-    public double station_SpaceTravel_Distance_For_Max_Speed = 1;
+    public double station_SpaceTravel_Distance_For_Max_Speed = 10;
     public double station_SpaceTravel_Min_Speed = 0.000002;
     public double station_SpaceTravel_Rotation_Rate = 0.005;
     public double station_Max_Orbit_R_Factor = 10;
