@@ -68,6 +68,9 @@
   "block.adv_rocketry.observatory": "Observatory",
   "item.adv_rocketry.observatory": "Observatory",
 
+  "block.adv_rocketry.astrobody_data_processor": "Astrobody Data Processor",
+  "item.adv_rocketry.astrobody_data_processor": "Astrobody Data Processor",
+
   "block.adv_rocketry.solar_panel": "Solar Panel",
   "item.adv_rocketry.solar_panel": "Solar Panel",
 
