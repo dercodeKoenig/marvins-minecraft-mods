@@ -519,9 +519,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                     }
 
                     if (customStatusTimeout <= 0) {
-                        if (noEnergyTickCounter > 40) {
+                        if (noEnergyTickCounter > 20 * 5) {
                             statusText.setTextAndSync("OUT OF ENERGY!");
-                        } else if (noDataTickCounter > 40) {
+                        } else if (noDataTickCounter > 20 * 5) {
                             statusText.setTextAndSync("OUT OF DISTANCE DATA!");
                         } else {
                             String s = "Status:\n" + task.label;
@@ -1099,9 +1099,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 should_open = true;
 
             // overwrite opening status if we are out of energy / data for some time
-            if (observatory.noDataTickCounter > 200)
+            if (observatory.noDataTickCounter > 20 * 20)
                 should_open = false;
-            if (observatory.noEnergyTickCounter > 200)
+            if (observatory.noEnergyTickCounter > 20 * 20)
                 should_open = false;
 
             if (!should_open) {
