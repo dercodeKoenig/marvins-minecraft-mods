@@ -1,5 +1,8 @@
 package advRocketry.Dimension;
 
+import advRocketry.Registry.Fluids;
+import net.neoforged.neoforge.fluids.FluidStack;
+
 import java.util.HashMap;
 
 public class GasRegistry {
@@ -19,6 +22,15 @@ public class GasRegistry {
         gases.put(co2, new Gas(co2, 190, 195, 1));
     }
 
+    public static double calculateGreenhouseBoost(HashMap<String, Double> atmosphericComposition) {
+        double totalBoost = 0;
+        for (String id : atmosphericComposition.keySet()) {
+            Gas gas = gases.get(id);
+            double concentration = atmosphericComposition.get(id);
+            totalBoost += concentration * gas.greenhouseFactor;
+        }
+        return totalBoost;
+    }
 
     public static class Gas {
         String id;

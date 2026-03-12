@@ -1,6 +1,7 @@
 package advRocketry;
 
 import ARLib.network.SimpleNetworkPacket;
+import AWGenerators.Registry;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
@@ -12,10 +13,7 @@ import advRocketry.Missions.MissionManager;
 import advRocketry.Oxygen.OxygenSystem;
 import advRocketry.Particles.RocketParticleEngine;
 import advRocketry.Particles.RocketParticleProvider;
-import advRocketry.Registry.BlockEntities;
-import advRocketry.Registry.Blocks;
-import advRocketry.Registry.GeneralRegistry;
-import advRocketry.Registry.Items;
+import advRocketry.Registry.*;
 import advRocketry.Render.*;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RendererRocket;
@@ -112,8 +110,8 @@ public class Main {
         GeneralRegistry.CREATIVE_TAB.register(modEventBus);
         GeneralRegistry.ENTITIES.register(modEventBus);
         GeneralRegistry.PARTICLES.register(modEventBus);
-        GeneralRegistry.FLUIDS.register(modEventBus);
-        GeneralRegistry.FLUID_TYPES.register(modEventBus);
+        Fluids.FLUIDS.register(modEventBus);
+        Fluids.FLUID_TYPES.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
@@ -328,22 +326,7 @@ public class Main {
     }
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {
-        event.registerFluidType(
-                new IClientFluidTypeExtensions() {
-                    @Override
-                    public int getTintColor() {
-                        return 0xffffffff;
-                    }
-
-                    public ResourceLocation getStillTexture() {
-                        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fuel_still");
-                    }
-
-                    public ResourceLocation getFlowingTexture() {
-                        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fuel_flow");
-                    }
-                }, GeneralRegistry.ROCKET_FUEL_TYPE.get()
-        );
+        Fluids.registerFluidTypes(event);
     }
 
     void registerTickets(RegisterTicketControllersEvent event) {
@@ -407,6 +390,8 @@ public class Main {
             e.accept(Items.ITEM_LORA_MODULE.get());
             e.accept(Items.ITEM_RADIATION_SHIELD.get());
             e.accept(Items.ITEM_BATTERY.get());
+
+            e.accept(Items.ITEM_OXYGEN_BUCKET.get());
         }
     }
 }

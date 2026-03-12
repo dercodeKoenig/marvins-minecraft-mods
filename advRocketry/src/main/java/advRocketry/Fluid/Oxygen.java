@@ -16,15 +16,15 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.fluids.FluidType;
 
-public class RocketFuel extends Fluid {
+public class Oxygen extends Fluid {
     @Override
     public Item getBucket() {
-        return Items.ITEM_ROCKET_FUEL_BUCKET.get();
+        return Items.ITEM_OXYGEN_BUCKET.get();
     }
 
     @Override
     public FluidType getFluidType() {
-        return Fluids.ROCKET_FUEL_TYPE.get();
+        return Fluids.OXYGEN_TYPE.get();
     }
 
     @Override

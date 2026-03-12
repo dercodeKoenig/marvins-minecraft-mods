@@ -1,7 +1,6 @@
 package advRocketry.Registry;
 
 import advRocketry.CustomCreativeTab;
-import advRocketry.Fluid.RocketFuel;
 import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.particles.ParticleType;
@@ -10,11 +9,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.level.material.Fluid;
-import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
@@ -32,9 +28,4 @@ public class GeneralRegistry {
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> DUST_PARTICLE = PARTICLES.register("dust_particle", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SOFT_PARTICLE = PARTICLES.register("soft_particle", () -> new SimpleParticleType(false));
 
-    public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(BuiltInRegistries.FLUID, Main.MODID);
-    public static final Supplier<Fluid> ROCKET_FUEL = FLUIDS.register("rocket_fuel", () -> new RocketFuel());
-
-    public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.FLUID_TYPES, Main.MODID);
-    public static final Supplier<FluidType> ROCKET_FUEL_TYPE = FLUID_TYPES.register("rocket_fuel_type", () -> new FluidType(FluidType.Properties.create()));
 }

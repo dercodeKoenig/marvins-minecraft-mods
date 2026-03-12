@@ -19,8 +19,10 @@ public class Items {
     public static final Supplier<Item> ITEM_PLANET_ID_CHIP = ITEMS.register("planet_id_chip", () -> new ItemPlanetIdChip());
     public static final Supplier<Item> ITEM_GALAXY_DATABASE = ITEMS.register("galaxy_database", () -> new ItemGalaxyDatabase());
     public static final Supplier<Item> ITEM_LINKER = ITEMS.register("linker", () -> new ItemLinker());
-    public static final Supplier<Item> ITEM_ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(GeneralRegistry.ROCKET_FUEL.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
+    public static final Supplier<Item> ITEM_ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(Fluids.ROCKET_FUEL.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
     public static final Supplier<Item> ITEM_ASTEROID_ID_CHIP = ITEMS.register("asteroid_id_chip", () -> new ItemAsteroidIdChip());
+
+    public static final Supplier<Item> ITEM_OXYGEN_BUCKET = ITEMS.register("oxygen_bucket", () -> new BucketItem(Fluids.OXYGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
 
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", Blocks.LAUNCHPAD);
     public static final Supplier<Item> ITEM_STRUCTURE_TOWER = registerBlockItem("structure_tower", Blocks.STRUCTURE_TOWER);
