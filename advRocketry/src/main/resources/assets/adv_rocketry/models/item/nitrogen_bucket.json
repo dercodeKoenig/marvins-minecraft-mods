@@ -1,0 +1,5 @@
+{
+  "parent": "neoforge:item/bucket",
+  "fluid": "adv_rocketry:nitrogen",
+  "loader": "neoforge:fluid_container"
+}

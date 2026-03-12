@@ -17,6 +17,18 @@
   "item.adv_rocketry.oxygen_bucket": "Oxygen",
   "fluid_type.adv_rocketry.oxygen_type": "Oxygen",
 
+  "item.adv_rocketry.nitrogen_bucket": "Nitrogen",
+  "fluid_type.adv_rocketry.nitrogen_type": "Nitrogen",
+
+  "item.adv_rocketry.hydrogen_bucket": "Hydrogen",
+  "fluid_type.adv_rocketry.hydrogen_type": "Hydrogen",
+
+  "item.adv_rocketry.methane_bucket": "Methane",
+  "fluid_type.adv_rocketry.methane_type": "Methane",
+
+  "item.adv_rocketry.co2_bucket": "CO2",
+  "fluid_type.adv_rocketry.co2_type": "CO2",
+
   "block.adv_rocketry.data_storage_block": "Data Hatch",
   "item.adv_rocketry.data_storage_block": "Data Hatch",
 

@@ -392,6 +392,10 @@ public class Main {
             e.accept(Items.ITEM_BATTERY.get());
 
             e.accept(Items.ITEM_OXYGEN_BUCKET.get());
+            e.accept(Items.ITEM_HYDROGEN_BUCKET.get());
+            e.accept(Items.ITEM_NITROGEN_BUCKET.get());
+            e.accept(Items.ITEM_CO2_BUCKET.get());
+            e.accept(Items.ITEM_METHANE_BUCKET.get());
         }
     }
 }

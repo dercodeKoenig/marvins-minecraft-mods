@@ -23,6 +23,10 @@ public class Items {
     public static final Supplier<Item> ITEM_ASTEROID_ID_CHIP = ITEMS.register("asteroid_id_chip", () -> new ItemAsteroidIdChip());
 
     public static final Supplier<Item> ITEM_OXYGEN_BUCKET = ITEMS.register("oxygen_bucket", () -> new BucketItem(Fluids.OXYGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
+    public static final Supplier<Item> ITEM_HYDROGEN_BUCKET = ITEMS.register("hydrogen_bucket", () -> new BucketItem(Fluids.HYDROGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
+    public static final Supplier<Item> ITEM_NITROGEN_BUCKET = ITEMS.register("nitrogen_bucket", () -> new BucketItem(Fluids.NITROGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
+    public static final Supplier<Item> ITEM_METHANE_BUCKET = ITEMS.register("methane_bucket", () -> new BucketItem(Fluids.METHANE.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
+    public static final Supplier<Item> ITEM_CO2_BUCKET = ITEMS.register("co2_bucket", () -> new BucketItem(Fluids.CO2.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
 
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", Blocks.LAUNCHPAD);
     public static final Supplier<Item> ITEM_STRUCTURE_TOWER = registerBlockItem("structure_tower", Blocks.STRUCTURE_TOWER);
