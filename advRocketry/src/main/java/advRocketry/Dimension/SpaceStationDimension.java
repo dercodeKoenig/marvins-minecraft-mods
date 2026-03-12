@@ -80,6 +80,9 @@ public class SpaceStationDimension extends Dimension {
     public boolean canBreathe() {
         return false;
     }
+    
+    @Override
+    public boolean hasEnoughOxygenToBurn(){return false;}
 
     @Override
     public boolean canRain() {

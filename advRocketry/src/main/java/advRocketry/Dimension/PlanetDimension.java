@@ -110,9 +110,12 @@ public class PlanetDimension extends Dimension {
         return true;
     }
 
-    @Override
     public boolean canBreathe() {
         return true; // TODO: improve this
+    }
+
+    public boolean hasEnoughOxygenToBurn(){
+        return getGasProperty(GasRegistry.oxygen).in_atm > 0.1;
     }
 
     public boolean canRain() {

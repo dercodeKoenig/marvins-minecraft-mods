@@ -24,6 +24,9 @@ public class DummyDimension extends Dimension {
     public boolean canBreathe() {return false;}
 
     @Override
+    public boolean hasEnoughOxygenToBurn(){return false;}
+
+    @Override
     public boolean canRain() {
         return false;
     }
