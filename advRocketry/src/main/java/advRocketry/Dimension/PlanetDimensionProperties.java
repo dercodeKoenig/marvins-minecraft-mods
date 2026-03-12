@@ -4,7 +4,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 
 public class PlanetDimensionProperties extends DimensionProperties{
@@ -60,8 +62,14 @@ public class PlanetDimensionProperties extends DimensionProperties{
 
 
     public float atmosphereDensity = 1; // TODO: calculate based on components, co2, o2, and other gases
-    public HashMap<String, Double> atmosphereComposition = new HashMap<>(); // fluid id, relative value, sum of 1 -> atm density = 1
+    public HashSet<GasProperty> atmosphereComposition = new HashSet<>();
 
 
     public float dayTime; // do not set yourself
+
+    public static class GasProperty{
+        String id = null;
+        double in_atm = 1;
+        double frozen_surface = 0;
+    }
 }
