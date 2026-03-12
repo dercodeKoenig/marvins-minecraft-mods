@@ -210,7 +210,7 @@ public class PlanetDimension extends Dimension {
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
             sum += gas.frozen_surface;
         }
-        if(getCurrentTemp() < 273){
+        if (getCurrentTemp() < 273) {
             // water is frozen and contributes
             sum += (float) Math.min(getSeaLevel() / 120.0, 0.8);
         }
@@ -242,6 +242,20 @@ public class PlanetDimension extends Dimension {
 
     public int getSeaLevel() {
         return properties().seaLevel;
+    }
+
+    public double getOceanFraction() {
+        double oceanFraction = Math.min(getSeaLevel() / 100.0, 1);
+        return oceanFraction;
+    }
+
+    public double getHumidity() {
+        if (getCurrentTemp() > 273.15) {
+            double humidity = Math.pow(1.02, (getCurrentTemp() - 273.15)) * getOceanFraction() * 0.25;
+            return humidity;
+        } else {
+            return 0;
+        }
     }
 
     public double getRotationAngle(float partialTick) {
@@ -434,17 +448,14 @@ public class PlanetDimension extends Dimension {
 
             if (level != null) {
 
-                if (getDimensionId().equals(ResourceLocation.parse("minecraft:overworld")) || getDimensionId().equals(ResourceLocation.parse("adv_rocketry:venus")))
+                if (getDimensionId().equals(ResourceLocation.parse("minecraft:overworld")) ||
+                        getDimensionId().equals(ResourceLocation.parse("adv_rocketry:venus"))
+                )
                     // only tick temperature for planets we actually visit. for stars the logic does not work anyway
-                    tickTemperature();
+                    if (GlobalTime.getGlobalTime() % 1 == 0)
+                        tickTemperature();
 
-                // slowly reduced target sea level while too hot
-                // water will simply be voided, it is way too complicated to handle it in atm
-                // because it would heavily interfere with player placed water and would not allow a sea level changing satellite
-                if (getCurrentTemp() > 375) {
-                    if (Math.random() < 0.01 && properties().seaLevel > 0)
-                        properties().seaLevel--;
-                }
+                tickTemperatureEvents();
             }
         }
 
@@ -463,6 +474,8 @@ public class PlanetDimension extends Dimension {
 
 
     public void tickTemperature() {
+        if (GlobalTime.getGlobalTime() % 100 == 0)
+            System.out.println("\ntick " + getName() + ": " + getCurrentTemp());
         // Current state
         double currentTemp = getCurrentTemp();
 
@@ -483,15 +496,16 @@ public class PlanetDimension extends Dimension {
         }
 
         // Albedo (Reflectivity)
-        double oceanFraction = Math.min(getSeaLevel() / 100.0, 1);
+        double oceanFraction = getOceanFraction();
         double albedo = 0.3;
         albedo += (getFrozenGasCoverage() * 0.6);
         albedo += -(oceanFraction * 0.2);
         albedo = Math.max(0.05, Math.min(albedo, 0.9));
+        //System.out.println(albedo);
 
         // The actual energy absorbed by the planet
         double energyIn = solarFlux * (1.0 - albedo);
-        System.out.println("energyIn:" + energyIn);
+        //System.out.println("energyIn:" + energyIn);
 
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
@@ -499,21 +513,20 @@ public class PlanetDimension extends Dimension {
         insulation += getGasProperty(GasRegistry.co2).in_atm * 5;
         insulation += getGasProperty(GasRegistry.methane).in_atm * 50;
 
-        System.out.println("insulation:" + insulation);
+        //System.out.println("insulation:" + insulation);
 
         // Water Vapor Feedback
         if (currentTemp > 273.15) {
-            double humidityMultiplier = Math.pow(1.02, (currentTemp - 273.15));
-            insulation += Math.min(humidityMultiplier * oceanFraction * 0.25, 50);
+            insulation += Math.min(getHumidity(), 50);
         }
 
-        System.out.println("insulation after water:" + insulation);
+        //System.out.println("insulation after water:" + insulation);
 
         // 3. CALCULATE OUTGOING ENERGY (Eout)
         // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.
         // The insulation divides the outgoing energy, trapping it.
         double energyOut = (EMISSION_CONSTANT * Math.pow(currentTemp, 4)) / insulation;
-        System.out.println("energyOut:" + energyOut);
+        //System.out.println("energyOut:" + energyOut);
 
         // 4. CALCULATE THERMAL MASS (Inertia)
         // Water and thick atmospheres resist temperature changes.
@@ -527,5 +540,15 @@ public class PlanetDimension extends Dimension {
 
         // Apply the change to the planet
         properties().currentTemp += deltaTemp;
+    }
+
+    public void tickTemperatureEvents() {
+        // slowly reduced target sea level while too hot
+        // water will simply be voided, it is way too complicated to handle it in atm
+        // because it would heavily interfere with player placed water and would not allow a sea level changing satellite
+        if (getCurrentTemp() > 375) {
+            if (Math.random() < 0.1 && properties().seaLevel > 0)
+                properties().seaLevel--;
+        }
     }
 }
