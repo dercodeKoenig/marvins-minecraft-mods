@@ -35,7 +35,7 @@ public class EntityWirelessTransceiver extends BlockEntity implements ItemLinker
     // after so many ticks without work, change to inactive state
     // i think we should not make it too fast or it causes chunk mesh rebuilding
     // even slow updates signals something is active or inactive, so good enough
-    int changeBlockStateTarget = 20 * 3;
+    int changeBlockStateTarget = 20 * 10;
 
     public EntityWirelessTransceiver(BlockPos pos, BlockState blockState) {
         super(ENTITY_WIRELESS_TRANSCEIVER.get(), pos, blockState);
