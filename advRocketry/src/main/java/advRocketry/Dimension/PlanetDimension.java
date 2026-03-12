@@ -245,14 +245,12 @@ public class PlanetDimension extends Dimension {
     }
 
     public double getOceanFraction() {
-        double oceanFraction = Math.min(getSeaLevel() / 100.0, 1);
-        return oceanFraction;
+        return Math.min(getSeaLevel() / 100.0, 1);
     }
 
     public double getHumidity() {
         if (getCurrentTemp() > 273.15) {
-            double humidity = Math.pow(1.02, (getCurrentTemp() - 273.15)) * getOceanFraction() * 0.25;
-            return humidity;
+            return Math.pow(1.02, (getCurrentTemp() - 273.15)) * getOceanFraction() * 0.25;
         } else {
             return 0;
         }
