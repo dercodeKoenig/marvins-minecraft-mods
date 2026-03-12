@@ -3,6 +3,7 @@ package advRocketry.Missions;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePartWithProbability;
 import advRocketry.BlockEntities.EntityCargoHold;
+import advRocketry.Blocks.Drill;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemSatellite;
 import advRocketry.Rocket.EntityRocket;
@@ -13,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
@@ -29,6 +31,15 @@ public class AsteroidMiningMission extends RocketMission {
 
     public void completeMission() {
         EntityRocket rocket = super.restoreRocket();
+
+        int drillBlocks = 0;
+        for(BlockState state : rocket.blocks.values()){
+            if(state.getBlock() instanceof Drill){
+                drillBlocks++;
+            }
+        }
+        if(drillBlocks == 0)
+            return; // no loot for you!
 
         ItemAsteroidIdChip.Asteroid asteroid = ItemAsteroidIdChip.asteroids.get(target);
         if (asteroid != null) {
