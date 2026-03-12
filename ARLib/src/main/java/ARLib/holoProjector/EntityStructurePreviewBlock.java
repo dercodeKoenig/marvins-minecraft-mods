@@ -10,6 +10,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -26,21 +27,27 @@ import static ARLib.ARLibRegistry.ENTITY_STRUCTURE_PREVIEW;
 
 
 public class EntityStructurePreviewBlock extends BlockEntity implements INetworkTagReceiver {
+    int maxLifeTime = 20 * 60 * 20;
+    long last_sec = 0;
+    int i = 0;
+    int ticksExisted = 0;
+    private List<Block> validBlocks = new ArrayList<>();
     public EntityStructurePreviewBlock(BlockPos pos, BlockState blockState) {
         super(ENTITY_STRUCTURE_PREVIEW.get(), pos, blockState);
     }
 
-    private List<Block> validBlocks = new ArrayList<>();
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityStructurePreviewBlock) t).tick();
+    }
 
     public void setValidBlocks(List<Block> validBlocks) {
         this.validBlocks.addAll(validBlocks);
+        if (!level.isClientSide) {
+            CompoundTag info = new CompoundTag();
+            saveAdditional(info, level.registryAccess());
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
+        }
     }
-
-    int maxLifeTime = 20 * 60 * 20;
-
-    long last_sec = 0;
-    int i = 0;
-    int ticksExisted = 0;
 
     public Block getBlockToRender() {
         long sec = System.currentTimeMillis() / 1000;
@@ -61,9 +68,6 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
 
     @Override
     public void onLoad() {
-        if (!level.isClientSide) {
-            ((ServerLevel) level).scheduleTick(getBlockPos(), getBlockState().getBlock(), 24000);
-        }
         if (level.isClientSide) {
             CompoundTag info = new CompoundTag();
             info.put("ping", new CompoundTag());
@@ -100,52 +104,31 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
                 validBlocks.add(b);
             }
         }
-
-        ticksExisted = tag.getInt("ticks");
+        if (tag.contains("ticks"))
+            ticksExisted = tag.getInt("ticks");
     }
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         if (compoundTag.contains("ping")) {
             CompoundTag response = new CompoundTag();
-            ListTag blockListTag = new ListTag();
-            for (Block block : validBlocks) {
-                DataResult<CompoundTag> encodedBlockState = BlockState.CODEC.encodeStart(NbtOps.INSTANCE, block.defaultBlockState()).map((nbtTag) -> (CompoundTag) nbtTag);
-                CompoundTag bt = new CompoundTag();
-                bt.put("block", encodedBlockState.getOrThrow());
-                blockListTag.add(bt);
-            }
-            response.put("ValidBlocks", blockListTag);
-
+            saveAdditional(response, level.registryAccess());
             PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, response));
         }
     }
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        validBlocks.clear();
-        if (compoundTag.contains("ValidBlocks")) {
-            ListTag blockListTag = compoundTag.getList("ValidBlocks",Tag.TAG_COMPOUND);
-            for (int i = 0; i < blockListTag.size(); i++) {
-                CompoundTag blockStateNBT = blockListTag.getCompound(i).getCompound("block");
-                DataResult<BlockState> decodedBlockState = BlockState.CODEC.parse(NbtOps.INSTANCE, blockStateNBT);
-                Block b = decodedBlockState.getOrThrow().getBlock();
-                validBlocks.add(b);
-            }
-        }
+        loadAdditional(compoundTag, level.registryAccess());
     }
 
-    public void tick(){
-        if(!level.isClientSide) {
+    public void tick() {
+        if (!level.isClientSide) {
             ticksExisted++;
             if (ticksExisted > maxLifeTime) {
                 level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
             }
         }
-    }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityStructurePreviewBlock) t).tick();
     }
 
 }

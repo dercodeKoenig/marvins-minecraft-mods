@@ -158,6 +158,9 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
                             world.setBlock(globalPos, BLOCK_STRUCTURE_PREVIEW.get().defaultBlockState(), 3);
                             EntityStructurePreviewBlock structureEntity = (EntityStructurePreviewBlock) (world.getBlockEntity(globalPos));
                             structureEntity.setValidBlocks(i.allowedBlocks);
+                            // when we delete a preview block and place a new preview block with a different state,
+                            // it will not send the change to client because the block effectively did not change from the perspective of minecraft
+                            // when the valid blocks are changed, it has to sync to client because client will not call onload since the block was never removed on client
                         }
                     }
                 }
