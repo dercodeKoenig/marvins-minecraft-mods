@@ -41,8 +41,7 @@ public class PlanetDimensionProperties extends DimensionProperties{
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
 
     // world gen related configs
-    public int seaLevel = 63; // to calculate wet level for terraforming use current sea level - original sea level (maybe) ?
-    public int targetSeaLevel = 63; // maybe save in chunk data when a chunk has fully adjusted sea level, use chunk load event to replace sea level instantly for new chunks?
+    public int seaLevel = 63;
     public boolean generateStructures = false;
     public String biomePreset = null;
     public boolean generateVolcanos = false;
@@ -60,16 +59,17 @@ public class PlanetDimensionProperties extends DimensionProperties{
     public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
     public boolean hasRingSystem = false;
 
-
-    public float atmosphereDensity = 1; // TODO: calculate based on components, co2, o2, and other gases
-    public HashSet<GasProperty> atmosphereComposition = new HashSet<>();
-
+    public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
 
     public float dayTime; // do not set yourself
+    public double currentTemp = 200;
 
     public static class GasProperty{
-        String id = null;
-        double in_atm = 1;
-        double frozen_surface = 0;
+        public float in_atm;
+        public float frozen_surface;
+        public GasProperty(float in_atm, float frozen_surface){
+            this.in_atm = in_atm;
+            this.frozen_surface = frozen_surface;
+        }
     }
 }

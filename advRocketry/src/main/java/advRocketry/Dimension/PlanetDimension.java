@@ -19,7 +19,9 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.OptionalLong;
+import java.util.Set;
 
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
@@ -29,18 +31,17 @@ public class PlanetDimension extends Dimension {
     public Vec3 currentSpeed = new Vec3(0, 0, 0);
     public Vec3 lastPosition = new Vec3(0, 0, 0);
 
-    float targetsealevel; // for ticking, rise or lower sea level
-    float temperature; // should be autocalculated, will for example freeze water when cold or evaporate when too hot or superheated
-    // all the gases need to be added too, gascomposition
-    // maybe gases underground trapped / frozen that can be freed
-
     public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
         lastPosition = properties().position;
         currentSpeed = Vec3.ZERO;
     }
 
-    private PlanetDimensionProperties properties() {
+    public void updateDimensionProperties(DimensionProperties properties) {
+        super.updateDimensionProperties(properties);
+    }
+
+    PlanetDimensionProperties properties() {
         return (PlanetDimensionProperties) properties;
     }
 
@@ -111,11 +112,11 @@ public class PlanetDimension extends Dimension {
 
     @Override
     public boolean hasEnoughOxygen() {
-        return properties().atmosphereDensity > 0.5f; // TODO: improve this
+        return true; // TODO: improve this
     }
 
     public boolean canRain() {
-        return getAtmosphereDensity() > 0.5f;
+        return getAtmosphereDensity() > 0.5f && getCurrentTemp() < 373 && getCurrentTemp() > 273;
     }
 
     public Vector3f getEmissiveColor() {
@@ -158,10 +159,6 @@ public class PlanetDimension extends Dimension {
         return properties().hasRingSystem;
     }
 
-    public float getAtmosphereDensity() {
-        return properties().atmosphereDensity;
-    }
-
     public float getRadiationIntensity() {
         return properties().radiationIntensity;
     }
@@ -182,10 +179,42 @@ public class PlanetDimension extends Dimension {
         return properties().orbitalBaseOffsetDegrees;
     }
 
-    public int getDataRequiredForUnlock(){ return properties().dataRequiredForUnlock;}
+    public int getDataRequiredForUnlock() {
+        return properties().dataRequiredForUnlock;
+    }
 
     public Vec3 getOrbitAxis() {
         return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);
+    }
+
+    public double getCurrentTemp() {
+        return properties().currentTemp;
+    }
+
+    public PlanetDimensionProperties.GasProperty getGasProperty(String id) {
+        if (!properties().atmosphereComposition.containsKey(id))
+            properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0));
+        return properties().atmosphereComposition.get(id);
+    }
+
+    public float getAtmosphereDensity() {
+        float sum = 0;
+        for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
+            sum += gas.in_atm;
+        }
+        return sum;
+    }
+
+    public float getFrozenGasCoverage() {
+        float sum = 0;
+        for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
+            sum += gas.frozen_surface;
+        }
+        if(getCurrentTemp() < 273){
+            // water is frozen and contributes
+            sum += (float) Math.min(getSeaLevel() / 120.0, 0.8);
+        }
+        return Math.min(1, sum);
     }
 
     @Override
@@ -228,7 +257,7 @@ public class PlanetDimension extends Dimension {
     public Vec3 getPosition(float partialTick) {
         if (properties().parentDimensionId != null) {
             Dimension parent = dimensionManager.get(properties().parentDimensionId);
-            if(parent == null) return properties().position;
+            if (parent == null) return properties().position;
 
             double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
             double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
@@ -335,7 +364,7 @@ public class PlanetDimension extends Dimension {
         double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
             Dimension target = dimensionManager.get(targetId);
-            if(target == null) continue;
+            if (target == null) continue;
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
             double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
@@ -402,6 +431,21 @@ public class PlanetDimension extends Dimension {
                     // TODO: custom weather logic
                 }
             }
+
+            if (level != null) {
+
+                if (getDimensionId().equals(ResourceLocation.parse("minecraft:overworld")) || getDimensionId().equals(ResourceLocation.parse("adv_rocketry:venus")))
+                    // only tick temperature for planets we actually visit. for stars the logic does not work anyway
+                    tickTemperature();
+
+                // slowly reduced target sea level while too hot
+                // water will simply be voided, it is way too complicated to handle it in atm
+                // because it would heavily interfere with player placed water and would not allow a sea level changing satellite
+                if (getCurrentTemp() > 375) {
+                    if (Math.random() < 0.01 && properties().seaLevel > 0)
+                        properties().seaLevel--;
+                }
+            }
         }
 
         if (isClientSide) {
@@ -415,5 +459,73 @@ public class PlanetDimension extends Dimension {
                 trackDayTimeNormal();
             }
         }
+    }
+
+
+    public void tickTemperature() {
+        // Current state
+        double currentTemp = getCurrentTemp();
+
+        // --- UNIVERSAL GAME CONSTANTS ---
+        // This is the Stefan-Boltzmann constant scaled for the game's energy units.
+        // It determines how aggressively planets try to radiate heat away.
+        final double EMISSION_CONSTANT = 0.0000000003;
+
+        // 1. CALCULATE INCOMING ENERGY (Ein)
+        double solarFlux = 0.0;
+        Vec3 planetPos = getPosition(0);
+        for (ResourceLocation starId : getCurrentMainStars()) {
+            if (dimensionManager.get(starId) instanceof PlanetDimension star) {
+                Vec3 starPos = star.getPosition(0);
+                double distanceAU = starPos.distanceTo(planetPos);
+                solarFlux += star.getRadiationIntensity() / (distanceAU * distanceAU);
+            }
+        }
+
+        // Albedo (Reflectivity)
+        double oceanFraction = Math.min(getSeaLevel() / 100.0, 1);
+        double albedo = 0.3;
+        albedo += (getFrozenGasCoverage() * 0.6);
+        albedo += -(oceanFraction * 0.2);
+        albedo = Math.max(0.05, Math.min(albedo, 0.9));
+
+        // The actual energy absorbed by the planet
+        double energyIn = solarFlux * (1.0 - albedo);
+        System.out.println("energyIn:" + energyIn);
+
+        // 2. CALCULATE INSULATION (Greenhouse Blanket)
+        // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
+        double insulation = 1.0;
+        insulation += getGasProperty(GasRegistry.co2).in_atm * 5;
+        insulation += getGasProperty(GasRegistry.methane).in_atm * 50;
+
+        System.out.println("insulation:" + insulation);
+
+        // Water Vapor Feedback
+        if (currentTemp > 273.15) {
+            double humidityMultiplier = Math.pow(1.02, (currentTemp - 273.15));
+            insulation += Math.min(humidityMultiplier * oceanFraction * 0.25, 50);
+        }
+
+        System.out.println("insulation after water:" + insulation);
+
+        // 3. CALCULATE OUTGOING ENERGY (Eout)
+        // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.
+        // The insulation divides the outgoing energy, trapping it.
+        double energyOut = (EMISSION_CONSTANT * Math.pow(currentTemp, 4)) / insulation;
+        System.out.println("energyOut:" + energyOut);
+
+        // 4. CALCULATE THERMAL MASS (Inertia)
+        // Water and thick atmospheres resist temperature changes.
+        // This stops the temperature from dropping instantly if a player drains an ocean.
+        double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 10);
+        thermalMass = 1; // TODO: remove after testing
+
+        // 5. APPLY DELTA (The simulation step)
+        // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
+        double deltaTemp = (energyIn - energyOut) / thermalMass;
+
+        // Apply the change to the planet
+        properties().currentTemp += deltaTemp;
     }
 }

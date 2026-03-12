@@ -37,6 +37,10 @@ public class DefaultGalaxy {
         overworld.hasRingSystem = false;
         overworld.isKnown = true;
         overworld.canVisit = true;
+        overworld.currentTemp = 300;
+        overworld.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3f, 0));
+        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0));
+        overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.05f, 0));
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
@@ -49,7 +53,6 @@ public class DefaultGalaxy {
         moon.earthRadiusMultiplier = 0.272f;
         moon.gravitationalMultiplier = 0.3f;
         moon.targetDayLength = 12000;
-        moon.atmosphereDensity = 0;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         moon.hasRingSystem = true;
         moon.canVisit = true;
@@ -67,7 +70,6 @@ public class DefaultGalaxy {
         moon2.earthRadiusMultiplier = 0.1f;
         moon2.gravitationalMultiplier = 0.1f;
         moon2.targetDayLength = -1000;
-        moon2.atmosphereDensity = 0;
         moon2.seaLevel = 50;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         moon2.canVisit = true;
@@ -82,12 +84,13 @@ public class DefaultGalaxy {
         venus.dayTimeReference = sun.dimensionId;
         venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/venus_atm_ico_1k.png");
         venus.orbitalDistanceToParent = 0.5f;
-        venus.atmosphereDensity = 2;
         venus.cloudColor = new Vector3f(194, 155, 64).mul(1f / 255);
         venus.canVisit = true;
         venus.biomePreset = HOT.name;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
+        venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(1, 0));
+        venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0));
         galaxy.add(venus);
 
 
@@ -99,8 +102,7 @@ public class DefaultGalaxy {
         jupyter.orbitalDistanceToParent = 2f;
         jupyter.earthRadiusMultiplier = 10f;
         jupyter.gravitationalMultiplier = 30f;
-        jupyter.atmosphereDensity = 10;
-        jupyter.skyColor = new Vector3f(1,1,1);
+        jupyter.skyColor = new Vector3f(1, 1, 1);
         galaxy.add(jupyter);
 
 
@@ -112,9 +114,8 @@ public class DefaultGalaxy {
         saturn.orbitalDistanceToParent = 3f;
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 10f;
-        saturn.atmosphereDensity = 10;
         saturn.hasRingSystem = true;
-        saturn.skyColor = new Vector3f(1,1,1);
+        saturn.skyColor = new Vector3f(1, 1, 1);
         galaxy.add(saturn);
 
 

@@ -224,10 +224,12 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
         Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.SAVE_DIR);
 
-        if (Files.exists(worldDir)) {
+        boolean debug_forceDefaultGalaxy = true;
+
+        if (Files.exists(worldDir) && !debug_forceDefaultGalaxy) {
             System.out.println("[DimensionManager] Loading dimensions from world path...");
             loadDimensionsFromDirectory(worldDir);
-        } else if (Files.exists(defaultDir)) {
+        } else if (Files.exists(defaultDir) && !debug_forceDefaultGalaxy) {
             System.out.println("[DimensionManager] Loading dimensions from default config...");
             loadDimensionsFromDirectory(defaultDir);
         } else {
