@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "arlib:block/fluidinput"
+    "all": "arlib:block/fluidinput2"
   }
 }
