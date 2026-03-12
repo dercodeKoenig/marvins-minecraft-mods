@@ -68,7 +68,7 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public boolean hasEnoughOxygen() {
+    public boolean canBreathe() {
         return false;
     }
 

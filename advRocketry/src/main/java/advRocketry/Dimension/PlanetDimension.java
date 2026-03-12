@@ -111,7 +111,7 @@ public class PlanetDimension extends Dimension {
     }
 
     @Override
-    public boolean hasEnoughOxygen() {
+    public boolean canBreathe() {
         return true; // TODO: improve this
     }
 

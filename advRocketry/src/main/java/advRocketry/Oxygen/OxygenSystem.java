@@ -71,7 +71,7 @@ public class OxygenSystem {
 
     public static boolean hasOxygenAt(Level level, BlockPos pos) {
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-        if (dim == null || dim.hasEnoughOxygen())
+        if (dim == null || dim.canBreathe())
             return true;
 
         OxygenSystem instance = oxygenSystems.get(level.dimension().location());
@@ -114,7 +114,7 @@ public class OxygenSystem {
                 Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
                 if (dim == null)
                     continue;
-                if (dim.hasEnoughOxygen())
+                if (dim.canBreathe())
                     continue;
                 ServerLevel level = DimensionManager.getServerLevel(levelId);
                 if (level == null)
@@ -132,7 +132,7 @@ public class OxygenSystem {
         for (ResourceLocation levelId : oxygenSystems.keySet()) {
             // skip the scanning if there is oxygen anyway
             Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
-            if (dim == null || dim.hasEnoughOxygen())
+            if (dim == null || dim.canBreathe())
                 continue;
             oxygenSystems.get(levelId).tick();
         }

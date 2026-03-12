@@ -45,7 +45,9 @@ public abstract class Dimension {
 
     abstract public boolean canVisit();
 
-    abstract public boolean hasEnoughOxygen();
+    abstract public boolean canBreathe();
+
+    abstract public boolean hasEnoughOxygenToBurn();
 
     abstract public boolean canRain();
 
