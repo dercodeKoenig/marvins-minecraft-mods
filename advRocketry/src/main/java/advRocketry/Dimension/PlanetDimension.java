@@ -106,6 +106,8 @@ public class PlanetDimension extends Dimension {
         if (!properties().canVisit) {
             return false;
         }
+        if (isStar())
+            return false;
 
         return true;
     }
@@ -114,7 +116,7 @@ public class PlanetDimension extends Dimension {
         return true; // TODO: improve this
     }
 
-    public boolean hasEnoughOxygenToBurn(){
+    public boolean hasEnoughOxygenToBurn() {
         return getGasProperty(GasRegistry.oxygen).in_atm > 0.1;
     }
 
@@ -160,6 +162,10 @@ public class PlanetDimension extends Dimension {
 
     public boolean hasRings() {
         return properties().hasRingSystem;
+    }
+
+    public boolean isStar(){
+        return getRadiationIntensity() > 0;
     }
 
     public float getRadiationIntensity() {
@@ -446,16 +452,9 @@ public class PlanetDimension extends Dimension {
                     // TODO: custom weather logic
                 }
             }
-
+            if (!isStar())
+                tickTemperature();
             if (level != null) {
-
-                if (getDimensionId().equals(ResourceLocation.parse("minecraft:overworld")) ||
-                        getDimensionId().equals(ResourceLocation.parse("adv_rocketry:venus"))
-                )
-                    // only tick temperature for planets we actually visit. for stars the logic does not work anyway
-                    if (GlobalTime.getGlobalTime() % 1 == 0)
-                        tickTemperature();
-
                 tickTemperatureEvents();
             }
         }

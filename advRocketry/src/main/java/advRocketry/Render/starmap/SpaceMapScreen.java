@@ -522,7 +522,7 @@ public class SpaceMapScreen extends Screen {
 
     public float getPlanetRenderScale(PlanetDimension planet) {
         float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100)) / 20;
-        if(planet.getRadiationIntensity() > 0)
+        if(planet.isStar())
             renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
         return renderScale;
     }
