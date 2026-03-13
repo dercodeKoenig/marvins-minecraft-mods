@@ -244,15 +244,15 @@ public class Main {
                     for (int z = 0; z < 16; z++) {
                         int xB = event.getChunk().getPos().getBlockX(x);
                         int zB = event.getChunk().getPos().getBlockZ(z);
-                        // 2  -> sync to player
-                        // 16 -> no neighbor update (if i read it correctly)
+
                         for (int i = 0; i < 10; i++) {
-                            // the ice could be multiple blocks so i run it multiple times
+                            // the ice could be multiple blocks so i run it multiple times (it is still fast enough)
+                            // 2  -> sync to player
+                            // 16 -> no neighbor update (if i read it correctly)
                             DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16);
                         }
                     }
                 }
-                System.out.println("dry ice check on new chunk:" + event.getChunk().getPos() + ":" + (double) (System.nanoTime() - t0) / 1000 / 1000);
             }
         }
     }
