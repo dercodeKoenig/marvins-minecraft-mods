@@ -98,7 +98,7 @@ public class DefaultGalaxy {
         venus.canVisit = true;
         venus.biomePreset = HOT.name;
         venus.seaLevel = 10;
-        venus.currentTemp = 500;
+        venus.currentTemp = 200;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
         venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 1, 0));
