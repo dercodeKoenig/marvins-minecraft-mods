@@ -9,7 +9,8 @@ import java.util.HashMap;
 public class GasRegistry {
 
     // when a block is removed or added to the planet, the composition value should change by this much
-    public static final float singleBlockWeight = 0.001f;
+    // i suggest: to change a value by 0.01 you have to mine 1000 blocks
+    public static final float singleBlockWeight = 0.01f  / 1000f;
 
     public static final String oxygen = "oxygen";
     public static final String hydrogen = "hydrogen";

@@ -29,7 +29,7 @@ public class DryIceBlock extends Block {
     public static BooleanProperty PREVENT_COMPOSITION_CHANGE_ON_BREAK = BooleanProperty.create("ignore_composition_change_on_break");
 
     public static String dryIceDataTag = "dryIceDataTag";
-    public static float epsilon = 0.0001f;
+    public static float epsilon = 0.001f; // the magnitude of change required to place more dry ice
 
     public DryIceBlock(Properties properties) {
         super(properties.randomTicks());
@@ -50,9 +50,6 @@ public class DryIceBlock extends Block {
 
         // we only place dry ice if the frozen value increased since last placement
         // this avoids re-placing blocks that the player mined away
-
-        // but it should place blocks again if the frozen co2 level increased since last placement
-        // this would mean it has snowed new dry ice so a mined position can be covered up again
 
         // we do not place a new dry ice block if there is already one at surface to avoid stacking
         // them up to infinity every time the value increases a bit
@@ -80,9 +77,10 @@ public class DryIceBlock extends Block {
                     level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), 3);
                 }
             }
-
+        }
+        if(Math.abs(frozen_co2_level - frozen_co2_level_at_last_placement) > epsilon){
             // increase the level in the tag data so we do not process this position again if the block was broken
-            // the dry ice block is responsible to decrease this value for its position on evaporation
+            // or, if the level changed to the downside, also save this so later when the gas value rises again we can place new dry ice blocks here
             chunkEntry.putFloat(positionKey, frozen_co2_level);
             ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
         }
@@ -101,15 +99,9 @@ public class DryIceBlock extends Block {
         // we remove dry ice if the planet has not enough ice on surface to meet the threshold
 
         BlockPos pos0 = new BlockPos(pos.getX(), 0, pos.getZ());
-        ChunkAccess chunk = level.getChunk(pos0);
-        CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, dryIceDataTag);
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (dim instanceof PlanetDimension planet) {
             float frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
-
-            String positionKey = String.valueOf(pos0.asLong());
-
-
             float noiseTemperature = ChunkUtils.getNoiseTemperatureAt(planet, pos0); // -1 to 1
             float noiseThreshold = getNoiseThreshold(frozen_co2_level);
             if (noiseTemperature - epsilon > noiseThreshold) {
@@ -118,10 +110,6 @@ public class DryIceBlock extends Block {
                 // then perform the break
                 level.setBlock(pos, state.setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), 0);
                 level.destroyBlock(pos, false);
-
-                // update the last processed co2 level so that should planet freeze again, new dry ice can be placed
-                chunkEntry.putFloat(positionKey, frozen_co2_level);
-                ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
             }
         } else {
             level.setBlock(pos, state.setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), 0);

@@ -6,6 +6,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.Random;
 
@@ -29,10 +30,11 @@ public class PlanetEvents {
                 if (gas.freezingTemp > temp) {
                     // snow down some gas to surface
                     // slower when larger planet, faster when more gas in atmosphere
-                    float toSnow = (float) (0.00001 / (1 + planet.getGravitationalMultiplier()) * (1 + property.in_atm));
+                    float toSnow = (float) (0.0000001 / (1 + planet.getGravitationalMultiplier()) * (1 + property.in_atm));
                     toSnow = Math.min(property.in_atm, toSnow);
                     property.in_atm -= toSnow;
                     property.frozen_surface += toSnow;
+                    System.out.println(property.frozen_surface);
                 }
             }
         }
@@ -40,12 +42,16 @@ public class PlanetEvents {
 
     // called from server level mixin
     public static void performRandomTickEvents(PlanetDimension planet, ServerLevel level, LevelChunk chunk){
-        // pick a random xz position
+        // pick a random position to work
         ChunkPos chunkPos = chunk.getPos();
         int blockX = chunkPos.getBlockX(level.random.nextInt() % 16);
         int blockZ = chunkPos.getBlockZ(level.random.nextInt() % 16);
+        int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
 
+        // places dry ice if there is lots of frozen co2 on surface
         DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
+
+
 
     }
 
