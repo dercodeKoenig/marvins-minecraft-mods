@@ -5,6 +5,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class GasRegistry {
 
@@ -18,7 +19,7 @@ public class GasRegistry {
     public static final String methane = "methane";
     public static final String co2 = "co2";
 
-    public static HashMap<String, Gas> gases = new HashMap<>();
+    public static HashMap<String, Gas> gases = new LinkedHashMap<>();
 
     static {
         gases.put(oxygen, new Gas(oxygen, 50, 55, Fluids.OXYGEN.get()));
