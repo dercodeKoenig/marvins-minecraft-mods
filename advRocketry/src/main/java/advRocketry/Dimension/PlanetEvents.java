@@ -30,7 +30,7 @@ public class PlanetEvents {
                 if (gas.freezingTemp > temp) {
                     // snow down some gas to surface
                     // slower when larger planet, faster when more gas in atmosphere
-                    float toSnow = (float) (0.0000001 / (1 + planet.getGravitationalMultiplier()) * (1 + property.in_atm));
+                    float toSnow = (float) (0.000005 / (1 + planet.getGravitationalMultiplier()) * (1 + property.in_atm));
                     toSnow = Math.min(property.in_atm, toSnow);
                     property.in_atm -= toSnow;
                     property.frozen_surface += toSnow;
