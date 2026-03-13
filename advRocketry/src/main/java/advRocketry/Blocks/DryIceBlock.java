@@ -131,6 +131,7 @@ public class DryIceBlock extends Block {
 
 
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        if(level.isClientSide)return;
         // increase surface value for the planet
         // mostly for testing, this usually should not happen too often...
         // reduce surface value for the gas
