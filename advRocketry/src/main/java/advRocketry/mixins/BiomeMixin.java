@@ -1,0 +1,55 @@
+package advRocketry.mixins;
+
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Dimension.PlanetEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(Biome.class)
+public abstract class BiomeMixin {
+    @Inject(method = "shouldFreeze(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Z)Z",
+            at = @At("HEAD"),
+            cancellable = true)
+    public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
+        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
+            if (planet.getCurrentTemp() < 270) {
+                // cold enough to force freeze
+                // default code of Biome class follows:
+                if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight() && level.getBrightness(LightLayer.BLOCK, water) < 10) {
+                    BlockState blockstate = level.getBlockState(water);
+                    FluidState fluidstate = level.getFluidState(water);
+                    if (fluidstate.getType() == Fluids.WATER && blockstate.getBlock() instanceof LiquidBlock) {
+                        if (!mustBeAtEdge) {
+                            ci.setReturnValue(true);
+                            ci.cancel();
+                        }
+
+                        boolean flag = level.isWaterAt(water.west()) && level.isWaterAt(water.east()) && level.isWaterAt(water.north()) && level.isWaterAt(water.south());
+                        if (!flag) {
+                            ci.setReturnValue(true);
+                            ci.cancel();
+                        }
+                    }
+                }
+            } else if (planet.getCurrentTemp() > 350) {
+                // too hot for any ice, even in frozen biomes
+                ci.setReturnValue(false);
+                ci.cancel();
+            }
+        }
+    }
+}

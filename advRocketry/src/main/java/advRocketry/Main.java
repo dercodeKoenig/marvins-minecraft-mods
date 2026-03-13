@@ -165,12 +165,14 @@ public class Main {
     }
 
     void onServerTick(ServerTickEvent.Post event) {
+        long t0 = System.nanoTime();
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
         ForcedChunkManager.tick();
         OxygenSystem.serverTick();
         SatelliteManager.serverTick();
         MissionManager.serverTick();
+        //System.out.println((double)(System.nanoTime() - t0) / 1000 / 1000);
     }
 
     void onClientTick(ClientTickEvent.Post event) {

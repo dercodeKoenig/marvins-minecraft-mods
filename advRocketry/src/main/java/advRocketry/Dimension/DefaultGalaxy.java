@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import advRocketry.Main;
 import advRocketry.Worldgen.presets.HOT;
 import advRocketry.Worldgen.presets.MOON;
 import com.google.gson.GsonBuilder;
@@ -117,6 +118,22 @@ public class DefaultGalaxy {
         jupyter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0));
         jupyter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0));
         galaxy.add(jupyter);
+
+        PlanetDimensionProperties europa = new PlanetDimensionProperties();
+        europa.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "europa");
+        europa.name = "Europa";
+        europa.parentDimensionId = jupyter.dimensionId;
+        europa.dayTimeReference = sun.dimensionId;
+        europa.currentTemp = 100;
+        europa.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");;
+        europa.orbitalDistanceToParent = 0.01f;
+        europa.earthRadiusMultiplier = 0.5f;
+        europa.gravitationalMultiplier = 0.3f;
+        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.1f,0.3f,0));
+        europa.canVisit = true;
+        europa.biomePreset = MOON.name;
+        europa.isKnown = true;
+        galaxy.add(europa);
 
 
         PlanetDimensionProperties saturn = new PlanetDimensionProperties();

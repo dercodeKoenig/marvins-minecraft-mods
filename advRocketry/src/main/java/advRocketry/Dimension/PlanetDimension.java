@@ -509,7 +509,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
         if (!isClientSide) {
 
-            if(GlobalTime.getGlobalTime() % 100 == 0) {
+            if (GlobalTime.getGlobalTime() % 100 == 0) {
                 for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
                     PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket(getNetworkPacketId(), getUpdateTag().toString()));
                 }
@@ -539,7 +539,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
             tickTemperature();
 
             if (level != null) {
-                tickTemperatureEvents();
+                PlanetEvents.tick(this, properties(), level);
             }
         }
 
@@ -629,15 +629,5 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
         // Apply the change to the planet
         properties().currentTemp += deltaTemp;
-    }
-
-    public void tickTemperatureEvents() {
-        // slowly reduced target sea level while too hot
-        // water will simply be voided, it is way too complicated to handle it in atm
-        // because it would heavily interfere with player placed water and would not allow a sea level changing satellite
-        if (getCurrentTemp() > 375) {
-            if (Math.random() < 0.1 && properties().seaLevel > 0)
-                properties().seaLevel--;
-        }
     }
 }
