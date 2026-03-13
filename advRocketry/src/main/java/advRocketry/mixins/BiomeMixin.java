@@ -26,8 +26,12 @@ public abstract class BiomeMixin {
             cancellable = true)
     public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
         if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
-            if (planet.getCurrentTemp() < 270) {
-                // cold enough to force freeze
+            if (planet.getCurrentTemp() > 350) {
+                // too hot for any ice, even in frozen biomes
+                ci.setReturnValue(false);
+                ci.cancel();
+            } else if (!planet.canHaveLiquidWater()) {
+                // cold enough or too low atm to force freeze
                 // default code of Biome class follows:
                 if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight() && level.getBrightness(LightLayer.BLOCK, water) < 10) {
                     BlockState blockstate = level.getBlockState(water);
@@ -45,10 +49,6 @@ public abstract class BiomeMixin {
                         }
                     }
                 }
-            } else if (planet.getCurrentTemp() > 350) {
-                // too hot for any ice, even in frozen biomes
-                ci.setReturnValue(false);
-                ci.cancel();
             }
         }
     }

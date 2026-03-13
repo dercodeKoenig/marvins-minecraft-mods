@@ -132,9 +132,11 @@ public class SpaceMapScreen extends Screen {
 
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
 
-            if (planet.canVisit())
-                description += "Sea level: " + planet.getSeaLevel() + "\n\n";
-
+            if (planet.canVisit()) {
+                description += "Sea level: " + planet.getSeaLevel() + "\n";
+                description += "Humidity: " + String.format("%.2f", planet.getHumidity()) + "\n";
+                description += "Liquid water possible: " + planet.canHaveLiquidWater() + "\n\n";
+            }
 
 
             // composition analysis
@@ -588,7 +590,6 @@ public class SpaceMapScreen extends Screen {
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
 
-
         if (selectedPlanet != null) {
             int xStart = this.width - SIDEBAR_WIDTH;
             int xText = xStart + 10;
@@ -626,9 +627,9 @@ public class SpaceMapScreen extends Screen {
             if (lastMaxScroll > 0) {
                 int sbWidth = 2;
                 int sbX = this.width - 4;
-                float scrollPercentage = sidebarScrollAmount / (float)lastMaxScroll;
-                int barHeight = (int)((viewHeight / (float)textHeight) * viewHeight);
-                int barPos = (int)(yTop + (scrollPercentage * (viewHeight - barHeight)));
+                float scrollPercentage = sidebarScrollAmount / (float) lastMaxScroll;
+                int barHeight = (int) ((viewHeight / (float) textHeight) * viewHeight);
+                int barPos = (int) (yTop + (scrollPercentage * (viewHeight - barHeight)));
                 guiGraphics.fill(sbX, barPos, sbX + sbWidth, barPos + barHeight, 0xAAFFFFFF);
             }
 
