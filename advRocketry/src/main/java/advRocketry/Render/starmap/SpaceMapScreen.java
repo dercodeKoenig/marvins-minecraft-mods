@@ -116,9 +116,13 @@ public class SpaceMapScreen extends Screen {
             }
             description += "\n";
         }
+        if (mass >= dataMax){
+            description += "Can visit: " + planet.canVisit() + "\n\n";
+        }
         if (mass >= dataMax && composition >= dataMax) {
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
-            description += "Can breath: " + planet.canBreathe() + "\n\n";
+            if(planet.canVisit())
+                description += "Can breath: " + planet.canBreathe() + "\n\n";
         }
 
 

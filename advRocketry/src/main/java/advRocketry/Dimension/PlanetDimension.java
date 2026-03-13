@@ -56,6 +56,8 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return Main.MODID + "_PlanetDimension_" + getDimensionId().toString();
     }
 
+    // TODO: better register when something changed and send a full update packet.
+    // changes should not happen too frequently anyway
     public CompoundTag getUpdateTag(){
         // everything that can change and should be synced to player
         // but not the entire property file
