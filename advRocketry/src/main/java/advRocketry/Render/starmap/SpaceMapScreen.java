@@ -140,16 +140,22 @@ public class SpaceMapScreen extends Screen {
 
 
             // composition analysis
+
             if (planet.getFrozenGasCoverage() > 0.3 && planet.getFrozenGasCoverage() < 0.6) {
                 description += "Surface partially covered in ice, reducing energy gain.\n\n";
             }
             if (planet.getFrozenGasCoverage() >= 0.6) {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
-            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.3) {
+
+            if(planet.getHumidity() > 0.5){
+                description += "Humidity contributes to greenhouse effect.\n\n";
+            }
+
+            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1) {
                 description += "Lots of CO2 in atmosphere increases greenhouse effect.\n\n";
             }
-            if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.05) {
+            if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.01) {
                 description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";
             }
 

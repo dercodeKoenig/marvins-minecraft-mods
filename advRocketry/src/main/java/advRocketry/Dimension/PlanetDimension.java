@@ -334,7 +334,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
         // with little to no atmosphere it should not be liquid
         // this should make a nice curve that quickly increases required temperature when atmosphere pressure is low
-        double requiredTempForLiquid = 273 + Math.max(0, (1 - Math.sqrt(getAtmosphereDensity())) * 20);
+        double requiredTempForLiquid = 273 + Math.max(0, (1 - Math.sqrt(getAtmosphereDensity())) * 50);
 
         return getCurrentTemp() > requiredTempForLiquid;
     }
@@ -346,7 +346,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     public double getHumidity() {
         if (canHaveLiquidWater()) {
             double dt = Math.min(getCurrentTemp() - 273.15, 100);
-            return Math.pow(1.02, dt) * getOceanFraction() * 0.1;
+            return Math.pow(1.02, dt) * getOceanFraction() * 1;
         } else {
             return 0;
         }
@@ -583,7 +583,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         // --- UNIVERSAL GAME CONSTANTS ---
         // This is the Stefan-Boltzmann constant scaled for the game's energy units.
         // It determines how aggressively planets try to radiate heat away.
-        final double EMISSION_CONSTANT = 0.0000000003;
+        final double EMISSION_CONSTANT = 0.0000000005;
 
         // 1. CALCULATE INCOMING ENERGY (Ein)
         double solarFlux = 0.0;
@@ -611,8 +611,8 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double insulation = 1.0;
-        insulation += getGasProperty(GasRegistry.co2).in_atm * 5;
-        insulation += getGasProperty(GasRegistry.methane).in_atm * 50;
+        insulation += getGasProperty(GasRegistry.co2).in_atm * 10;
+        insulation += getGasProperty(GasRegistry.methane).in_atm * 200;
 
         //System.out.println("insulation:" + insulation);
 
