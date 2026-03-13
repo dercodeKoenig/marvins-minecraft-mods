@@ -201,7 +201,7 @@ public class SpaceMapScreen extends Screen {
         if (button == 0) {
             // Sensitivity scales with zoom.
             // If you are far away, mouse movement moves the camera more.
-            float sensitivity = zoom / 250f;
+            float sensitivity = zoom / 310f;
 
             // Shift key multiplier for "Fast Pan"
             if (hasShiftDown()) {
@@ -244,7 +244,7 @@ public class SpaceMapScreen extends Screen {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
         Matrix4f projMatrix = new Matrix4f();
-        float fov = (float) Math.toRadians(60.0f); // 60 is usually better for maps than 90
+        float fov = (float) Math.toRadians(45.0f); // less stretching
         float aspect = (float) windowWidth / windowHeight;
         float near = 0.1f;
         float far = zoom * 2;
