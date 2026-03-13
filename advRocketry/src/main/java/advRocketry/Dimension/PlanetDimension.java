@@ -346,7 +346,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     public double getHumidity() {
         if (canHaveLiquidWater()) {
             double dt = Math.min(getCurrentTemp() - 273.15, 100);
-            return Math.pow(1.02, dt) * getOceanFraction() * 1;
+            return Math.pow(1.02, dt) * Math.pow(getOceanFraction(), 1.3) * 1;
         } else {
             return 0;
         }
