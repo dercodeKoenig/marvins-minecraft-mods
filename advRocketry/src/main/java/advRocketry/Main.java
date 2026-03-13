@@ -159,7 +159,7 @@ public class Main {
         ResourceLocation to = event.getTo().location();
         if (event.getEntity() instanceof ServerPlayer player) {
             Dimension dim = DimensionManager.INSTANCE_SERVER.get(to);
-            if(dim != null) {
+            if (dim != null) {
                 DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(player, dim);
             }
         }
@@ -236,7 +236,25 @@ public class Main {
     }
 
     void onChunkLoad(ChunkEvent.Load event) {
-        // instant terraforming or similar causes freezes forever
+        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
+            // perform some terraforming checks and replacement rules on new chunks
+            if (event.isNewChunk()) {
+                long t0 = System.nanoTime();
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        int xB = event.getChunk().getPos().getBlockX(x);
+                        int zB = event.getChunk().getPos().getBlockZ(z);
+                        // 2  -> sync to player
+                        // 16 -> no neighbor update (if i read it correctly)
+                        for (int i = 0; i < 10; i++) {
+                            // the ice could be multiple blocks so i run it multiple times
+                            DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16);
+                        }
+                    }
+                }
+                System.out.println("dry ice check on new chunk:" + event.getChunk().getPos() + ":" + (double) (System.nanoTime() - t0) / 1000 / 1000);
+            }
+        }
     }
 
     void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
@@ -260,7 +278,7 @@ public class Main {
         Player p = event.getEntity();
         Entity target = event.getTarget();
         if (stack.getItem() instanceof ItemLinker) {
-            if(ItemLinker.useOnEntity(p, stack, target)) {
+            if (ItemLinker.useOnEntity(p, stack, target)) {
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
             }

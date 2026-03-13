@@ -50,6 +50,11 @@ public class DryIceBlock extends Block {
     }
 
     public static void placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ) {
+        // normal flags
+        placeDryIceIfPossible(planet, blockX, blockZ, 3);
+    }
+
+    public static void placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
         ServerLevel level = DimensionManager.getServerLevel(planet.getDimensionId());
         ChunkAccess chunk = level.getChunk(pos0);
@@ -101,11 +106,15 @@ public class DryIceBlock extends Block {
                 }
 
                 if (existingDryIceCount < targetThickness) {
-                    if(level.getBlockState(topBlock).isFaceSturdy(level, topBlock, Direction.UP)) {
+                    BlockState topBlockState = level.getBlockState(topBlock);
+                    if (topBlockState.isFaceSturdy(level, topBlock, Direction.UP)) {
                         // Not enough blocks: place exactly ONE more block on top of the surface.
                         // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
-                        level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), 3);
-                    }else{
+                        level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                    } else if (topBlockState.canBeReplaced()) {
+                        // directly replace the top block like grass
+                        level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                    } else {
                         // do not place ice blocks on things like flowers or water.
                         // mark the corrent co2 level as completed
                         chunkEntry.putFloat(positionKey, frozen_co2_level);
@@ -138,7 +147,7 @@ public class DryIceBlock extends Block {
 
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.isClientSide) return;
-        if(level.random.nextInt(20) != 0) return;
+        if (level.random.nextInt(20) != 0) return;
         // we remove dry ice if the planet has not enough ice on surface to meet the threshold
 
         if (level.getBlockState(pos.above()).getBlock() instanceof DryIceBlock)
@@ -178,7 +187,7 @@ public class DryIceBlock extends Block {
 
 
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if(level.isClientSide)return;
+        if (level.isClientSide) return;
         // increase surface value for the planet
         // mostly for testing, this usually should not happen too often...
         // reduce surface value for the gas
