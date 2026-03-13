@@ -8,6 +8,7 @@ import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Utils.CelestialUtils;
+import advRocketry.Utils.ClientUtils;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -99,6 +100,29 @@ public class SpaceMapScreen extends Screen {
         description += "distance:    " + distance + " / " + dataMax + "\n";
         description += "mass:        " + mass + " / " + dataMax + "\n";
         description += "composition: " + composition + " / " + dataMax + "\n";
+        description += "\n";
+
+        if(ClientUtils.getPlayerDimension() != null && distance >= dataMax){
+            double distanceAu =  ClientUtils.getPlayerDimension().getPosition(0).distanceTo(planet.getPosition(0));
+            description += "Distance: " + String.format("%.2f", distanceAu) + " AU\n\n";
+        }
+        if(mass >= dataMax){
+            description += "Mass: " + String.format("%.2f", planet.getGravitationalMultiplier()) + "g\n\n";
+        }
+        if(composition >= dataMax) {
+            description += "Composition:\n";
+            for (String gas : GasRegistry.gases.keySet()) {
+                description += gas + ": " + planet.getGasProperty(gas).in_atm + ", " + planet.getGasProperty(gas).frozen_surface + "\n";
+            }
+            description += "\n";
+        }
+        if(mass >= dataMax && composition >= dataMax){
+            description += "Temperature: "+String.format("%.2f", planet.getCurrentTemp()) +"\n\n";
+            description += "Can breath: "+planet.canBreathe()+"\n\n";
+        }
+
+
+
         return description;
     }
 

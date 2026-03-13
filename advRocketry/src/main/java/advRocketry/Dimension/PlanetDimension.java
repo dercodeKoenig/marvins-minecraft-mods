@@ -474,8 +474,8 @@ public class PlanetDimension extends Dimension {
 
 
     public void tickTemperature() {
-        if (GlobalTime.getGlobalTime() % 100 == 0)
-            System.out.println("\ntick " + getName() + ": " + getCurrentTemp());
+        //if (GlobalTime.getGlobalTime() % 100 == 0)
+        //    System.out.println("\ntick " + getName() + ": " + getCurrentTemp());
         // Current state
         double currentTemp = getCurrentTemp();
 
@@ -531,8 +531,8 @@ public class PlanetDimension extends Dimension {
         // 4. CALCULATE THERMAL MASS (Inertia)
         // Water and thick atmospheres resist temperature changes.
         // This stops the temperature from dropping instantly if a player drains an ocean.
-        double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 10);
-        thermalMass = 1; // TODO: remove after testing
+        double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
+        //thermalMass = 1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
