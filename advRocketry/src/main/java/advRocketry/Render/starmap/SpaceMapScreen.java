@@ -127,9 +127,14 @@ public class SpaceMapScreen extends Screen {
             description += "Can visit: " + planet.canVisit() + "\n\n";
         }
         if (mass >= dataMax && composition >= dataMax) {
-            description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
             if (planet.canVisit())
                 description += "Can breath: " + planet.canBreathe() + "\n\n";
+
+            description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
+
+            if (planet.canVisit())
+                description += "Sea level: " + planet.getSeaLevel() + "\n\n";
+
 
 
             // composition analysis
