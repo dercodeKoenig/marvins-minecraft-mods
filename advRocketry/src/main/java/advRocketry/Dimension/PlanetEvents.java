@@ -23,6 +23,7 @@ public class PlanetEvents {
 
         // evaporate / snow down gases
         double temp = properties.currentTemp;
+        double gasTransitionSpeed = 0.000005;
         for (String id : GasRegistry.gases.keySet()) {
             GasRegistry.Gas gas = GasRegistry.gases.get(id);
             PlanetDimensionProperties.GasProperty property = planet.getGasProperty(id);
@@ -30,11 +31,25 @@ public class PlanetEvents {
                 if (gas.freezingTemp > temp) {
                     // snow down some gas to surface
                     // slower when larger planet, faster when more gas in atmosphere
-                    float toSnow = (float) (0.000005 / (1 + planet.getGravitationalMultiplier()) * (1 + property.in_atm));
+                    float toSnow = (float) (gasTransitionSpeed / (1 + planet.getGravitationalMultiplier()) * (1 + property.in_atm));
                     toSnow = Math.min(property.in_atm, toSnow);
                     property.in_atm -= toSnow;
                     property.frozen_surface += toSnow;
-                    System.out.println(property.frozen_surface);
+                }
+            }
+            if (gas.sublimationTemp < temp) {
+                // gas goes up into the air
+                if (property.frozen_surface > 0) {
+                    float toTransfer = (float) (gasTransitionSpeed / (1 + planet.getGravitationalMultiplier()));
+                    toTransfer = Math.min(property.frozen_surface, toTransfer);
+                    property.in_atm += toTransfer;
+                    property.frozen_surface -= toTransfer;
+                }
+                if (property.frozen_deep_below_surface > 0) {
+                    float toTransfer = (float) (gasTransitionSpeed / (1 + planet.getGravitationalMultiplier()));
+                    toTransfer = Math.min(property.frozen_deep_below_surface, toTransfer);
+                    property.in_atm += toTransfer;
+                    property.frozen_deep_below_surface -= toTransfer;
                 }
             }
         }
