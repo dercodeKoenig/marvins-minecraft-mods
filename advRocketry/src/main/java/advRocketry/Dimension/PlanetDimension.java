@@ -30,6 +30,7 @@ import org.joml.Vector3f;
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.OptionalLong;
 import java.util.Set;
 
@@ -274,6 +275,19 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         }
         return sum;
     }
+
+    public Set<String> getGasMiningOptions() {
+        HashSet<String> set = new HashSet<>();
+        if (!properties().canGasMine)
+            return set;
+
+        for (String gas : GasRegistry.gases.keySet()) {
+            if (getGasProperty(gas).in_atm > 1)
+                set.add(gas);
+        }
+        return set;
+    }
+
 
     public float getFrozenGasCoverage() {
         float sum = 0;

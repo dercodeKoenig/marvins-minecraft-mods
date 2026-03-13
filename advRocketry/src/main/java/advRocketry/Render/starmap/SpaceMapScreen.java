@@ -116,6 +116,10 @@ public class SpaceMapScreen extends Screen {
             }
             description += "\n";
         }
+        if(composition >= dataMax && mass >= dataMax){
+            if(!planet.getGasMiningOptions().isEmpty())
+                description += "Gas mining possible!\n\n";
+        }
         if (mass >= dataMax){
             description += "Can visit: " + planet.canVisit() + "\n\n";
         }
