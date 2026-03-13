@@ -469,7 +469,7 @@ public class SpaceMapScreen extends Screen {
             // The planets render depth sorted
             // but it looks strange when you rotate it
             // i choose to clear only when we view top down because this is how it is depth sorted
-            //if(rotY > -0.1)
+            if(rotY > -0.1)
                 RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         }
