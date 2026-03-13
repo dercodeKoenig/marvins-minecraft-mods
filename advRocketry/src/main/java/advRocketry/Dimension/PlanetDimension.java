@@ -45,12 +45,15 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         super(properties, dimensionManager);
         lastPosition = properties().position;
         currentSpeed = Vec3.ZERO;
-        // this runs on client and server so is should be perfectly possible to register here
-        SimpleNetworkPacket.registerReceiver(getNetworkPacketId(), this);
+
+        if(dimensionManager.isClientSide)
+            // do NOT register on server or whatever is created last will be registered and receives the packet
+            // only the client instance should receive the packet
+            SimpleNetworkPacket.registerReceiver(getNetworkPacketId(), this);
     }
 
     public String getNetworkPacketId(){
-        return Main.MODID + "_" + getDimensionId().toString();
+        return Main.MODID + "_PlanetDimension_" + getDimensionId().toString();
     }
 
     public CompoundTag getUpdateTag(){
@@ -66,8 +69,9 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     public void readClient(String data) {
         try {
             CompoundTag tag = TagParser.parseTag(data);
-            if (tag.contains("currentTemp"))
+            if (tag.contains("currentTemp")) {
                 properties().currentTemp = tag.getDouble("currentTemp");
+            }
             if (tag.contains("atmComposition")) {
                 String atmComposition = tag.getString("atmComposition");
                 Type type = new TypeToken<HashMap<String, PlanetDimensionProperties.GasProperty>>() {
@@ -156,6 +160,10 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
     public boolean canBreathe() {
         double pressure = getAtmosphereDensity();
+        if(pressure < 0.7 || pressure > 2)
+            // wrong pressure
+            return false;
+
         double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
         if (oxygen < 0.2 * pressure || oxygen > 0.5 * pressure)
             // too much or too little oxygen
@@ -510,8 +518,10 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
                     // TODO: custom weather logic
                 }
             }
-            if (!isStar())
-                tickTemperature();
+
+
+            tickTemperature();
+
             if (level != null) {
                 tickTemperatureEvents();
             }
@@ -532,6 +542,11 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
 
     public void tickTemperature() {
+        if(isStar()) {
+            properties().currentTemp = getRadiationIntensity() * 3000;
+            return;
+        }
+
         //if (GlobalTime.getGlobalTime() % 100 == 0)
         //    System.out.println("\ntick " + getName() + ": " + getCurrentTemp());
         // Current state
