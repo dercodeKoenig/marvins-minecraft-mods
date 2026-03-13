@@ -57,6 +57,7 @@ public class PlanetEvents {
 
     // called from server level mixin
     public static void performRandomTickEvents(PlanetDimension planet, ServerLevel level, LevelChunk chunk){
+
         // pick a random position to work
         ChunkPos chunkPos = chunk.getPos();
         int blockX = chunkPos.getBlockX(level.random.nextInt() % 16);
@@ -64,7 +65,11 @@ public class PlanetEvents {
         int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
 
         // places dry ice if there is lots of frozen co2 on surface
-        DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
+        if(level.random.nextInt() % 100 == 0) {
+            long t0 = System.nanoTime();
+            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
+            System.out.println((double)(System.nanoTime()-t0) / 1000/ 1000);
+        }
 
 
 

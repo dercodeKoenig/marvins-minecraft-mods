@@ -6,6 +6,7 @@ import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
+import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemLinker;
@@ -235,12 +236,7 @@ public class Main {
     }
 
     void onChunkLoad(ChunkEvent.Load event) {
-        //if(event.isNewChunk())
-        //System.out.println("new chunk: "+event.getChunk().getPos());
-        // TODO: trigger ore replacement
-        if (event.getLevel() instanceof ServerLevel serverLevel) {
-
-        }
+        // instant terraforming or similar causes freezes forever
     }
 
     void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
