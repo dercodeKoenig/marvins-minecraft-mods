@@ -213,7 +213,7 @@ public class SpaceMapScreen extends Screen {
         }
         if(button == 1){
             rotY += (float) dragY / 100;
-            rotY = Math.clamp(rotY, -2, -0.01f);
+            rotY = Math.clamp(rotY, -2.1f, -0.01f);
         }
         return true;
     }
@@ -401,7 +401,7 @@ public class SpaceMapScreen extends Screen {
             planetMatrix.scale(renderScale);
 
             // render the orbit lines
-            float colorModulator = 0.01f ;//* Math.clamp(1.2f + rotY, 0, 1);
+            float colorModulator = 0.01f * Math.clamp(1.3f + rotY, 0, 1);
             if (planet.getParentDimensionId() != null && colorModulator > 0) {
                 Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()), partialTick);
                 Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
