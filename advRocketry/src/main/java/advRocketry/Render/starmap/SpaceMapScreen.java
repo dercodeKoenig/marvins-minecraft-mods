@@ -149,6 +149,9 @@ public class SpaceMapScreen extends Screen {
             }
 
             if(planet.getHumidity() > 0.5){
+                if(planet.getSeaLevel() < 45)
+                    description += "Extreme heat has forced most water into the atmosphere.\n\n";
+
                 description += "Humidity contributes to greenhouse effect.\n\n";
             }
 
