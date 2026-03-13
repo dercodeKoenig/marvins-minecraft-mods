@@ -111,8 +111,9 @@ public class DryIceBlock extends Block {
                         // Not enough blocks: place exactly ONE more block on top of the surface.
                         // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
                         level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
-                    } else if (topBlockState.canBeReplaced()) {
+                    } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
                         // directly replace the top block like grass
+                        // but still requires solid block below
                         level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
                     } else {
                         // do not place ice blocks on things like flowers or water.
