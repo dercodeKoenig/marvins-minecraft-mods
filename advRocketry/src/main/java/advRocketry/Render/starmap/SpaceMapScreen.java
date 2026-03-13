@@ -43,6 +43,8 @@ public class SpaceMapScreen extends Screen {
     private float rotY = 0;
     private float logScale = 0.5f;
     private float scale = 0.3f;
+    private float sidebarScrollAmount = 0;
+    private int lastMaxScroll = 0; // To clamp scrolling
 
     private String planetInfoText = "";
 
@@ -132,25 +134,25 @@ public class SpaceMapScreen extends Screen {
 
             // composition analysis
             if (planet.getFrozenGasCoverage() > 0.3 && planet.getFrozenGasCoverage() < 0.6) {
-                description += "! surface partially covered in ice, reducing energy gain.\n";
+                description += "surface partially covered in ice, reducing energy gain.\n\n";
             }
             if (planet.getFrozenGasCoverage() >= 0.6) {
-                description += "! surface mostly covered in ice, significantly reducing energy gain.\n";
+                description += "surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.3) {
-                description += "! Lots of CO2 in atmosphere increases greenhouse effect.\n";
+                description += "Lots of CO2 in atmosphere increases greenhouse effect.\n\n";
             }
             if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.05) {
-                description += "! Lots of Methane in atmosphere increases greenhouse effect.\n";
+                description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";
             }
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0 &&
                     planet.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.co2).freezingTemp) {
-                description += "! CO2 is freezing and snowing to the surface, significantly reducing future temperature.\n";
+                description += "CO2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
             }
             if ((planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 || planet.getGasProperty(GasRegistry.co2).frozen_deep_below_surface > 0) &&
                     planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.co2).sublimationTemp) {
-                description += "! Frozen CO2 is quickly evaporating, significantly increasing future temperature.\n";
+                description += "Frozen CO2 is quickly evaporating, significantly increasing future temperature.\n\n";
             }
 
         }
@@ -203,6 +205,16 @@ public class SpaceMapScreen extends Screen {
     // This method is inherited from GuiEventListener
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+
+        // Check if mouse is over the sidebar
+        if (selectedPlanet != null && mouseX > this.width - SIDEBAR_WIDTH) {
+            // scrollY is positive for scrolling up, negative for down
+            // We subtract it because we want the text to move UP when we scroll DOWN
+            sidebarScrollAmount -= (float) (scrollY * 20);
+            sidebarScrollAmount = Math.max(0, Math.min(sidebarScrollAmount, lastMaxScroll));
+            return true;
+        }
+
         // scrollY is the vertical scroll amount.
         // We use an exponential zoom so it feels smooth at all distances.
         float zoomSpeed = zoom * 0.3f;
@@ -312,6 +324,7 @@ public class SpaceMapScreen extends Screen {
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
                 selectedPlanet = planet;
+                sidebarScrollAmount = 0;
                 return true;
             }
         }
@@ -569,21 +582,54 @@ public class SpaceMapScreen extends Screen {
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
+
+
         if (selectedPlanet != null) {
             int xStart = this.width - SIDEBAR_WIDTH;
+            int xText = xStart + 10;
+            int yTop = 30; // Start below the title
+            int yBottom = this.height - 40; // End above the action button
+            int viewHeight = yBottom - yTop;
 
-            // 1. Draw Background
-            guiGraphics.fill(xStart, 0, this.width, this.height, 0xAA000000); // Semi-transparent black
-            guiGraphics.vLine(xStart, 0, this.height, 0xFFFFFFFF); // White border line
+            // 1. Draw Sidebar Background & Border
+            guiGraphics.fill(xStart, 0, this.width, this.height, 0xAA000000);
+            guiGraphics.vLine(xStart, 0, this.height, 0xFFFFFFFF);
 
-            // 2. Draw Title
-            guiGraphics.drawString(this.font, selectedPlanet.getDimensionId().getPath().toUpperCase(), xStart + 10, 10, 0xFFFFFF);
+            // 2. Draw Title (Fixed at top)
+            guiGraphics.drawString(this.font, selectedPlanet.getDimensionId().getPath().toUpperCase(), xText, 10, 0xFFFFFF);
 
-            // 3. Draw Description with Newlines/Wrapping
-            String description = planetInfoText;
+            // 3. Prepare Scissoring for Scrollable Text
+            // enableScissor(x1, y1, x2, y2)
+            guiGraphics.enableScissor(xStart, yTop, this.width, yBottom);
 
-            // drawWordWrap handles the "\n" and automatically wraps text based on width
-            guiGraphics.drawWordWrap(this.font, Component.literal(description), xStart + 10, 30, SIDEBAR_WIDTH - 20, 0xCCCCCC);
+            guiGraphics.pose().pushPose();
+            // Move the text up based on scroll amount
+            guiGraphics.pose().translate(0, -sidebarScrollAmount, 0);
+
+            // Draw the text
+            // We need to calculate how tall this text is to clamp the scroll
+            int textHeight = this.font.wordWrapHeight(planetInfoText, SIDEBAR_WIDTH - 20);
+            guiGraphics.drawWordWrap(this.font, Component.literal(planetInfoText), xText, yTop, SIDEBAR_WIDTH - 20, 0xCCCCCC);
+
+            // Update max scroll: total height minus what's visible
+            this.lastMaxScroll = Math.max(0, textHeight - viewHeight);
+
+            guiGraphics.pose().popPose();
+            guiGraphics.disableScissor();
+
+            // 4. Draw Scrollbar Track (Optional but helpful for UX)
+            if (lastMaxScroll > 0) {
+                int sbWidth = 2;
+                int sbX = this.width - 4;
+                float scrollPercentage = sidebarScrollAmount / (float)lastMaxScroll;
+                int barHeight = (int)((viewHeight / (float)textHeight) * viewHeight);
+                int barPos = (int)(yTop + (scrollPercentage * (viewHeight - barHeight)));
+                guiGraphics.fill(sbX, barPos, sbX + sbWidth, barPos + barHeight, 0xAAFFFFFF);
+            }
+
+            // 5. Ensure Action Button is positioned correctly
+            // The button is added via init(), so we just make sure its position is fixed
+            this.actionButton.setY(this.height - 30);
         }
     }
 
