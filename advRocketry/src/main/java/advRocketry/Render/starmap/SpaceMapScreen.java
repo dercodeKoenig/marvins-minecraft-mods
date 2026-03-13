@@ -128,6 +128,31 @@ public class SpaceMapScreen extends Screen {
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
             if (planet.canVisit())
                 description += "Can breath: " + planet.canBreathe() + "\n\n";
+
+
+            // composition analysis
+            if (planet.getFrozenGasCoverage() > 0.3 && planet.getFrozenGasCoverage() < 0.6) {
+                description += "! surface partially covered in ice, reducing energy gain.\n";
+            }
+            if (planet.getFrozenGasCoverage() >= 0.6) {
+                description += "! surface mostly covered in ice, significantly reducing energy gain.\n";
+            }
+            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.3) {
+                description += "! Lots of CO2 in atmosphere increases greenhouse effect.\n";
+            }
+            if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.05) {
+                description += "! Lots of Methane in atmosphere increases greenhouse effect.\n";
+            }
+
+            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0 &&
+                    planet.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.co2).freezingTemp) {
+                description += "! CO2 is freezing and snowing to the surface, significantly reducing future temperature.\n";
+            }
+            if ((planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 || planet.getGasProperty(GasRegistry.co2).frozen_deep_below_surface > 0) &&
+                    planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.co2).sublimationTemp) {
+                description += "! Frozen CO2 is quickly evaporating, significantly increasing future temperature.\n";
+            }
+
         }
 
 
