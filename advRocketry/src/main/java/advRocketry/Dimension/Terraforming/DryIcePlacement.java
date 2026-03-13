@@ -13,6 +13,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 public class DryIcePlacement {
 
+    // TODO: mixin to IceBlock.melt & Biome.shouldFreeze for water ice logic
+    //      force always freeze if temp < 0, allow default on temp 0 < 50, never allow freeze at temp > 50
+
     public static String dryIceDataTag = "dryIceDataTag";
     public static float epsilon = 0.0001f;
 
