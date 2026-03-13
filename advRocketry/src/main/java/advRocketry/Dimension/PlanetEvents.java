@@ -61,13 +61,13 @@ public class PlanetEvents {
 
         // pick a random position to work
         ChunkPos chunkPos = chunk.getPos();
-        int blockX = chunkPos.getBlockX(level.random.nextInt() % 16);
-        int blockZ = chunkPos.getBlockZ(level.random.nextInt() % 16);
+        int blockX = chunkPos.getBlockX(level.random.nextInt(16));
+        int blockZ = chunkPos.getBlockZ(level.random.nextInt(16));
         int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
 
         // places dry ice if there is lots of frozen co2 on surface
         // should take way below < 1ms to check with 4 checks a tick on average, probably even lower when nothing to do
-        if(level.random.nextInt() % 100 == 0) {
+        if(level.random.nextInt(100) == 0) {
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
         }
 

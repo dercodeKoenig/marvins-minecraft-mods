@@ -138,7 +138,7 @@ public class DryIceBlock extends Block {
 
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.isClientSide) return;
-        if(level.random.nextInt() % 100 > 0) return;
+        if(level.random.nextInt(20) != 0) return;
         // we remove dry ice if the planet has not enough ice on surface to meet the threshold
 
         if (level.getBlockState(pos.above()).getBlock() instanceof DryIceBlock)
@@ -167,12 +167,12 @@ public class DryIceBlock extends Block {
                 // set the block to not modify composition on break
                 // then perform the break
                 level.setBlock(pos, state.setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), 0);
-                level.destroyBlock(pos, false);
+                level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
             }
         } else {
             // not a planet, can not exist here
             level.setBlock(pos, state.setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), 0);
-            level.destroyBlock(pos, false);
+            level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
         }
     }
 
