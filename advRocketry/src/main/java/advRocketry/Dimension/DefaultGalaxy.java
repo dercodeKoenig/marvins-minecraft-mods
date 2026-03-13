@@ -112,6 +112,7 @@ public class DefaultGalaxy {
         jupyter.orbitalDistanceToParent = 2f;
         jupyter.earthRadiusMultiplier = 10f;
         jupyter.gravitationalMultiplier = 30f;
+        jupyter.canGasMine = true;
         jupyter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0));
         jupyter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0));
         galaxy.add(jupyter);
