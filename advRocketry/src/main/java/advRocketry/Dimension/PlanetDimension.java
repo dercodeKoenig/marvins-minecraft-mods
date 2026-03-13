@@ -1,24 +1,34 @@
 package advRocketry.Dimension;
 
+import ARLib.network.SimpleNetworkPacket;
 import advRocketry.GlobalTime;
+import advRocketry.Main;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
 import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -26,7 +36,7 @@ import java.util.Set;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
-public class PlanetDimension extends Dimension {
+public class PlanetDimension extends Dimension implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     public Vec3 currentSpeed = new Vec3(0, 0, 0);
     public Vec3 lastPosition = new Vec3(0, 0, 0);
@@ -35,6 +45,38 @@ public class PlanetDimension extends Dimension {
         super(properties, dimensionManager);
         lastPosition = properties().position;
         currentSpeed = Vec3.ZERO;
+        // this runs on client and server so is should be perfectly possible to register here
+        SimpleNetworkPacket.registerReceiver(getNetworkPacketId(), this);
+    }
+
+    public String getNetworkPacketId(){
+        return Main.MODID + "_" + getDimensionId().toString();
+    }
+
+    public CompoundTag getUpdateTag(){
+        // everything that can change and should be synced to player
+        // but not the entire property file
+        // most important, temp (calculated on server) and gas composition
+        CompoundTag tag = new CompoundTag();
+        tag.putDouble("currentTemp", properties().currentTemp);
+        tag.putString("atmComposition", new Gson().toJson(properties().atmosphereComposition));
+        return tag;
+    }
+
+    public void readClient(String data) {
+        try {
+            CompoundTag tag = TagParser.parseTag(data);
+            if (tag.contains("currentTemp"))
+                properties().currentTemp = tag.getDouble("currentTemp");
+            if (tag.contains("atmComposition")) {
+                String atmComposition = tag.getString("atmComposition");
+                Type type = new TypeToken<HashMap<String, PlanetDimensionProperties.GasProperty>>() {
+                }.getType();
+                properties().atmosphereComposition = new Gson().fromJson(atmComposition, type);
+            }
+        } catch (CommandSyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateDimensionProperties(DimensionProperties properties) {
@@ -113,7 +155,16 @@ public class PlanetDimension extends Dimension {
     }
 
     public boolean canBreathe() {
-        return true; // TODO: improve this
+        double pressure = getAtmosphereDensity();
+        double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
+        if (oxygen < 0.2 * pressure || oxygen > 0.5 * pressure)
+            // too much or too little oxygen
+            return false;
+        double co2 = getGasProperty(GasRegistry.co2).in_atm;
+        if (co2 > 0.05 * pressure)
+            // too much co2
+            return false;
+        return true;
     }
 
     public boolean hasEnoughOxygenToBurn() {
@@ -433,6 +484,13 @@ public class PlanetDimension extends Dimension {
         lastPosition = position;
 
         if (!isClientSide) {
+
+            if(GlobalTime.getGlobalTime() % 100 == 0) {
+                for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+                    PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket(getNetworkPacketId(), getUpdateTag().toString()));
+                }
+            }
+
             ServerLevel level = DimensionManager.getServerLevel(getDimensionId());
             if (level != null) {
                 if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time

@@ -102,25 +102,24 @@ public class SpaceMapScreen extends Screen {
         description += "composition: " + composition + " / " + dataMax + "\n";
         description += "\n";
 
-        if(ClientUtils.getPlayerDimension() != null && distance >= dataMax){
-            double distanceAu =  ClientUtils.getPlayerDimension().getPosition(0).distanceTo(planet.getPosition(0));
+        if (ClientUtils.getPlayerDimension() != null && distance >= dataMax) {
+            double distanceAu = ClientUtils.getPlayerDimension().getPosition(0).distanceTo(planet.getPosition(0));
             description += "Distance: " + String.format("%.2f", distanceAu) + " AU\n\n";
         }
-        if(mass >= dataMax){
+        if (mass >= dataMax) {
             description += "Mass: " + String.format("%.2f", planet.getGravitationalMultiplier()) + "g\n\n";
         }
-        if(composition >= dataMax) {
+        if (composition >= dataMax) {
             description += "Composition:\n";
             for (String gas : GasRegistry.gases.keySet()) {
-                description += gas + ": " + planet.getGasProperty(gas).in_atm + ", " + planet.getGasProperty(gas).frozen_surface + "\n";
+                description += gas + ": " + String.format("%.2f", planet.getGasProperty(gas).in_atm) + ", " + planet.getGasProperty(gas).frozen_surface + "\n";
             }
             description += "\n";
         }
-        if(mass >= dataMax && composition >= dataMax){
-            description += "Temperature: "+String.format("%.2f", planet.getCurrentTemp()) +"\n\n";
-            description += "Can breath: "+planet.canBreathe()+"\n\n";
+        if (mass >= dataMax && composition >= dataMax) {
+            description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
+            description += "Can breath: " + planet.canBreathe() + "\n\n";
         }
-
 
 
         return description;
@@ -306,7 +305,7 @@ public class SpaceMapScreen extends Screen {
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        if(windowHeight * windowHeight < 1000)
+        if (windowHeight * windowHeight < 1000)
             return;
 
         guiGraphics.fill(0, 0, width, height, 0xff000000);
@@ -335,7 +334,7 @@ public class SpaceMapScreen extends Screen {
         shader.getUniform("ViewMat").set(new Matrix4f());
         shader.getUniform("WorldMat").set(new Matrix4f());
         shader.getUniform("ModelMat").set(new Matrix4f());
-        shader.getUniform("ProjMat").set(new Matrix4f().setPerspective(90F, (float) (windowWidth / windowHeight), 10F,1000000F));
+        shader.getUniform("ProjMat").set(new Matrix4f().setPerspective(90F, (float) (windowWidth / windowHeight), 10F, 1000000F));
         shader.apply();
         SkyRenderer.vertexBufferStarBackground.bind();
         SkyRenderer.vertexBufferStarBackground.draw();
@@ -546,7 +545,7 @@ public class SpaceMapScreen extends Screen {
 
     public float getPlanetRenderScale(PlanetDimension planet) {
         float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100)) / 20;
-        if(planet.isStar())
+        if (planet.isStar())
             renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
         return renderScale;
     }
