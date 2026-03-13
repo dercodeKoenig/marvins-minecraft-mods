@@ -237,26 +237,7 @@ public class Main {
         //System.out.println("new chunk: "+event.getChunk().getPos());
         // TODO: trigger ore replacement
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            RandomState randomState = serverLevel.getChunkSource().randomState();
 
-            // The sampler evaluates the density functions for the given coordinates
-            Climate.Sampler sampler = randomState.sampler();
-
-            // Sample the climate target point
-            BlockPos pos = event.getChunk().getPos().getMiddleBlockPosition(100);
-            Climate.TargetPoint targetPoint = sampler.sample(
-                    QuartPos.fromBlock(pos.getX()),
-                    QuartPos.fromBlock(pos.getY()),
-                    QuartPos.fromBlock(pos.getZ())
-            );
-
-            // The raw target point values are quantized longs.
-            // We unquantize them to get the readable float value (typically ranging from -1.0 to 1.0)
-            float temperature = Climate.unquantizeCoord(targetPoint.temperature());
-            if(event.getChunk().getData(CUSTOM_CHUNK_DATA).contains("testvalue"))
-                System.out.println("test value:"+event.getChunk().getData(CUSTOM_CHUNK_DATA).getString("testvalue"));
-            event.getChunk().getData(CUSTOM_CHUNK_DATA).putString("testvalue", "this is a test "+String.valueOf(temperature));
-            event.getChunk().setUnsaved(true);
         }
     }
 
