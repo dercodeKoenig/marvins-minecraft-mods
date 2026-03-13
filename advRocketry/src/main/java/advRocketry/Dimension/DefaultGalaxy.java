@@ -44,7 +44,7 @@ public class DefaultGalaxy {
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         overworld.skyColor = SKY_COLOR_OVERWORLD();
         overworld.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3f, 0, 0));
-        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5f, 0.2f, 0));
+        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0, 0));
         overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.05f, 0, 0));
         galaxy.add(overworld);
 
@@ -93,12 +93,12 @@ public class DefaultGalaxy {
         venus.parentDimensionId = sun.dimensionId;
         venus.dayTimeReference = sun.dimensionId;
         venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/venus_atm_ico_1k.png");
-        venus.orbitalDistanceToParent = 0.5f;
+        venus.orbitalDistanceToParent = 0.7f;
         venus.cloudColor = new Vector3f(194, 155, 64).mul(1f / 255);
         venus.canVisit = true;
         venus.biomePreset = HOT.name;
-        venus.seaLevel = 10;
-        venus.currentTemp = 200;
+        venus.seaLevel = 40;
+        venus.currentTemp = 500;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
         venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 1, 0));

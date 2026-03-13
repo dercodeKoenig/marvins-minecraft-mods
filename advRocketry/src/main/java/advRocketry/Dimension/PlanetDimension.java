@@ -334,7 +334,8 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
     public double getHumidity() {
         if (getCurrentTemp() > 273.15) {
-            return Math.pow(1.02, (getCurrentTemp() - 273.15)) * getOceanFraction() * 0.25;
+            double dt = Math.min(getCurrentTemp() - 273.15, 100);
+            return Math.pow(1.02, dt) * getOceanFraction() * 0.1;
         } else {
             return 0;
         }
@@ -588,7 +589,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         double oceanFraction = getOceanFraction();
         double albedo = 0.3;
         albedo += (getFrozenGasCoverage() * 0.6);
-        albedo += -(oceanFraction * 0.2);
+        albedo += -(oceanFraction * 0.1);
         albedo = Math.max(0.05, Math.min(albedo, 0.9));
         //System.out.println(albedo);
 
@@ -621,7 +622,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         // Water and thick atmospheres resist temperature changes.
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
-        //thermalMass = 1; // TODO: remove after testing
+        thermalMass = 1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.

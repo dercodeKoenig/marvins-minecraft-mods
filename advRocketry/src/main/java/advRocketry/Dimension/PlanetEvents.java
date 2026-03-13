@@ -17,7 +17,7 @@ public class PlanetEvents {
         // water will simply be voided, it is way too complicated to handle it in atm
         // because it would heavily interfere with player placed water and would not allow a sea level changing satellite
         if (properties.currentTemp > 375) {
-            if (Math.random() < 0.1 && properties.seaLevel > 0)
+            if (Math.random() < 0.001 && properties.seaLevel > 0)
                 properties.seaLevel--;
         }
 
