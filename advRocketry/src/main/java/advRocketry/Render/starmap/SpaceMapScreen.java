@@ -31,7 +31,7 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class SpaceMapScreen extends Screen {
-    private final int SIDEBAR_WIDTH = 150;
+    private final int SIDEBAR_WIDTH = 180;
 
     private PlanetDimension selectedPlanet = null;
 
@@ -111,22 +111,22 @@ public class SpaceMapScreen extends Screen {
             description += "Mass: " + String.format("%.2f", planet.getGravitationalMultiplier()) + "g\n\n";
         }
         if (composition >= dataMax) {
-            description += "Composition:\n";
+            description += "Composition:\n(atm, surface, underground)\n";
             for (String gas : GasRegistry.gases.keySet()) {
-                description += gas + ": " + String.format("%.2f", planet.getGasProperty(gas).in_atm) + ", " + planet.getGasProperty(gas).frozen_surface + "\n";
+                description += gas + ": " + String.format("%.2f", planet.getGasProperty(gas).in_atm) + ", " + String.format("%.2f", planet.getGasProperty(gas).frozen_surface) + ", " + String.format("%.2f", planet.getGasProperty(gas).frozen_deep_below_surface) + "\n";
             }
             description += "\n";
         }
-        if(composition >= dataMax && mass >= dataMax){
-            if(!planet.getGasMiningOptions().isEmpty())
+        if (composition >= dataMax && mass >= dataMax) {
+            if (!planet.getGasMiningOptions().isEmpty())
                 description += "Gas mining possible!\n\n";
         }
-        if (mass >= dataMax){
+        if (mass >= dataMax) {
             description += "Can visit: " + planet.canVisit() + "\n\n";
         }
         if (mass >= dataMax && composition >= dataMax) {
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
-            if(planet.canVisit())
+            if (planet.canVisit())
                 description += "Can breath: " + planet.canBreathe() + "\n\n";
         }
 
@@ -211,7 +211,7 @@ public class SpaceMapScreen extends Screen {
             camX += (float) (dragX * sensitivity);
             camY += (float) (dragY * sensitivity); // dragY is positive downward
         }
-        if(button == 1){
+        if (button == 1) {
             rotY += (float) dragY / 100;
             rotY = Math.clamp(rotY, -2.1f, 0f);
         }
@@ -401,7 +401,7 @@ public class SpaceMapScreen extends Screen {
             planetMatrix.scale(renderScale);
 
             // render the orbit lines
-            float colorModulator = 0.01f * Math.clamp(1.3f + rotY, 0, 1);
+            float colorModulator = 0.03f * Math.clamp(1.3f + rotY, 0, 1);
             if (planet.getParentDimensionId() != null && colorModulator > 0) {
                 Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()), partialTick);
                 Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
@@ -469,7 +469,7 @@ public class SpaceMapScreen extends Screen {
             // The planets render depth sorted
             // but it looks strange when you rotate it
             // i choose to clear only when we view top down because this is how it is depth sorted
-            if(rotY > -0.2)
+            if (rotY > -0.2)
                 RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         }

@@ -7,6 +7,10 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import java.util.HashMap;
 
 public class GasRegistry {
+
+    // when a block is removed or added to the planet, the composition value should change by this much
+    public static final float singleBlockWeight = 0.001f;
+
     public static final String oxygen = "oxygen";
     public static final String hydrogen = "hydrogen";
     public static final String nitrogen = "nitrogen";

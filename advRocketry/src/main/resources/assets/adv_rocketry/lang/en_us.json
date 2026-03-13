@@ -114,5 +114,8 @@
   "item.adv_rocketry.moon_turf": "Moon Turf",
 
   "block.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
-  "item.adv_rocketry.moon_turf_dark": "Dark Moon Turf"
+  "item.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
+
+  "block.adv_rocketry.dry_ice": "Dry Ice",
+  "item.adv_rocketry.dry_ice": "Dry Ice"
 }

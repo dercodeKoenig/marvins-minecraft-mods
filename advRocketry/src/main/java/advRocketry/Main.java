@@ -383,6 +383,7 @@ public class Main {
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
+            e.accept(Blocks.DRY_ICE.get());
 
             e.accept(Items.ITEM_LINKER.get());
             e.accept(Items.ITEM_GALAXY_DATABASE.get());
