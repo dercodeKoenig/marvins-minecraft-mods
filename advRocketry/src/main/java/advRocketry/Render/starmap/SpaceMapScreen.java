@@ -213,7 +213,7 @@ public class SpaceMapScreen extends Screen {
         }
         if(button == 1){
             rotY += (float) dragY / 100;
-            rotY = Math.clamp(rotY, -2.1f, -0.01f);
+            rotY = Math.clamp(rotY, -2.1f, 0f);
         }
         return true;
     }
@@ -466,11 +466,11 @@ public class SpaceMapScreen extends Screen {
                 );
             }
 
-            // while the planets are actually depth sorted,
-            // i choose to not clear depth buffer at cost of geometry mixing
-            // simply because it looks strange when i rotate the map and i want to be able to rotate.
-            // the player has the scale sliders if geometry mixes to adjust the size
-            //RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
+            // The planets render depth sorted
+            // but it looks strange when you rotate it
+            // i choose to clear only when we view top down because this is how it is depth sorted
+            //if(rotY > -0.1)
+                RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         }
 
