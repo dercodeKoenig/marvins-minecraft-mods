@@ -40,6 +40,7 @@ public class SpaceMapScreen extends Screen {
     private float camX = 0;
     private float camY = 0;
     private float zoom = 1000f;
+    private float rotY = 0;
     private float logScale = 0.5f;
     private float scale = 0.3f;
 
@@ -210,16 +211,33 @@ public class SpaceMapScreen extends Screen {
             camX += (float) (dragX * sensitivity);
             camY += (float) (dragY * sensitivity); // dragY is positive downward
         }
+        if(button == 1){
+            rotY += (float) dragY / 100;
+            rotY = Math.clamp(rotY, -2, -0.01f);
+        }
         return true;
     }
 
     private Matrix4f viewMat() {
-        Matrix4f viewMatrix = new Matrix4f().lookAt(
-                new Vector3f(camX, zoom, camY),
-                new Vector3f(camX, 0, camY),
-                new Vector3f(0, 0, 1)
-        );
-        return viewMatrix;
+        // 1. Target is fixed to the map center
+        Vector3f target = new Vector3f(camX, 0, camY);
+
+        // 2. Camera position (Eye)
+        // We keep X/Z at the target, only Y changes based on pitch
+        // 'zoom' acts as the radius of our arc
+        float eyeY = (float) (zoom * Math.cos(rotY));
+        float offset = (float) (zoom * Math.sin(rotY));
+
+        // We offset the eye on the Y-axis to create the tilt
+        Vector3f eye = new Vector3f(camX, eyeY, camY + offset);
+
+        // 3. Up vector
+        // Since we are only tilting, we keep the Up vector consistent.
+        // If you are looking down, Up is Z. If you are horizontal, Up is Y.
+        // A safe middle ground for a top-down-to-side view is:
+        Vector3f up = new Vector3f(0, 1, 1);
+
+        return new Matrix4f().lookAt(eye, target, up);
     }
 
     private Matrix4f projMat() {
@@ -347,6 +365,7 @@ public class SpaceMapScreen extends Screen {
         SkyRenderer.vertexBufferStarBackground.bind();
         SkyRenderer.vertexBufferStarBackground.draw();
         shader.clear();
+        RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         // for the orbit lines
         if (vertexBufferOrbitCircle == null) {
@@ -354,7 +373,6 @@ public class SpaceMapScreen extends Screen {
             VertexBufferCleaner.register(this, vertexBufferOrbitCircle);
         }
 
-        // we render back to front, but ring systems should be correctly hidden behind planet spheres
         LEQUAL_DEPTH_TEST.setupRenderState();
 
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
@@ -383,7 +401,8 @@ public class SpaceMapScreen extends Screen {
             planetMatrix.scale(renderScale);
 
             // render the orbit lines
-            if (planet.getParentDimensionId() != null) {
+            float colorModulator = 0.01f ;//* Math.clamp(1.2f + rotY, 0, 1);
+            if (planet.getParentDimensionId() != null && colorModulator > 0) {
                 Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()), partialTick);
                 Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
 
@@ -398,7 +417,6 @@ public class SpaceMapScreen extends Screen {
                     float y = (float) rotatedOffset.y;
                     float z = (float) rotatedOffset.z;
 
-                    float colorModulator = 0.01f;
                     builder.addVertex(x, y, z).setColor(1.0f * colorModulator, 1.0f * colorModulator, 1.0f * colorModulator, 1f);
                 }
                 MeshData mesh = builder.build();
@@ -448,8 +466,11 @@ public class SpaceMapScreen extends Screen {
                 );
             }
 
-            // we do manual depth sorting to avoid geometry mix
-            RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
+            // while the planets are actually depth sorted,
+            // i choose to not clear depth buffer at cost of geometry mixing
+            // simply because it looks strange when i rotate the map and i want to be able to rotate.
+            // the player has the scale sliders if geometry mixes to adjust the size
+            //RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         }
 
