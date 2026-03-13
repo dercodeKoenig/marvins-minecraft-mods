@@ -162,7 +162,6 @@ public class DryIceBlock extends Block {
             }
 
             if (totalBlocks > targetThickness) {
-                System.out.println(totalBlocks+":"+targetThickness+":"+pos+":"+frozen_co2_level);
                 // no longer valid, planet has too little frozen co2 to contain a dry ice block in this poaition
 
                 // set the block to not modify composition on break

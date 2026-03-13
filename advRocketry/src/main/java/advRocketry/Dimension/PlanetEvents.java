@@ -1,6 +1,7 @@
 package advRocketry.Dimension;
 
 import advRocketry.Blocks.DryIceBlock;
+import advRocketry.GlobalTime;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -65,10 +66,9 @@ public class PlanetEvents {
         int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
 
         // places dry ice if there is lots of frozen co2 on surface
+        // should take way below < 1ms to check with 4 checks a tick on average, probably even lower when nothing to do
         if(level.random.nextInt() % 100 == 0) {
-            long t0 = System.nanoTime();
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
-            System.out.println((double)(System.nanoTime()-t0) / 1000/ 1000);
         }
 
 
