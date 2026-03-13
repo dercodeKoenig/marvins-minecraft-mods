@@ -24,19 +24,26 @@ import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.presets.HOT;
 import advRocketry.Worldgen.presets.HOT_DRY;
 import advRocketry.Worldgen.presets.MOON;
+import com.mojang.realmsclient.dto.ServerActivityList;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.QuartPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Climate;
+import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -66,6 +73,8 @@ import org.joml.Matrix4f;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+
+import static advRocketry.Registry.GeneralRegistry.CUSTOM_CHUNK_DATA;
 
 @Mod(Main.MODID)
 public class Main {
@@ -112,6 +121,7 @@ public class Main {
         GeneralRegistry.PARTICLES.register(modEventBus);
         Fluids.FLUIDS.register(modEventBus);
         Fluids.FLUID_TYPES.register(modEventBus);
+        GeneralRegistry.ATTACHMENT_TYPES.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
@@ -226,6 +236,28 @@ public class Main {
         //if(event.isNewChunk())
         //System.out.println("new chunk: "+event.getChunk().getPos());
         // TODO: trigger ore replacement
+        if (event.getLevel() instanceof ServerLevel serverLevel) {
+            RandomState randomState = serverLevel.getChunkSource().randomState();
+
+            // The sampler evaluates the density functions for the given coordinates
+            Climate.Sampler sampler = randomState.sampler();
+
+            // Sample the climate target point
+            BlockPos pos = event.getChunk().getPos().getMiddleBlockPosition(100);
+            Climate.TargetPoint targetPoint = sampler.sample(
+                    QuartPos.fromBlock(pos.getX()),
+                    QuartPos.fromBlock(pos.getY()),
+                    QuartPos.fromBlock(pos.getZ())
+            );
+
+            // The raw target point values are quantized longs.
+            // We unquantize them to get the readable float value (typically ranging from -1.0 to 1.0)
+            float temperature = Climate.unquantizeCoord(targetPoint.temperature());
+            if(event.getChunk().getData(CUSTOM_CHUNK_DATA).contains("testvalue"))
+                System.out.println("test value:"+event.getChunk().getData(CUSTOM_CHUNK_DATA).getString("testvalue"));
+            event.getChunk().getData(CUSTOM_CHUNK_DATA).putString("testvalue", "this is a test "+String.valueOf(temperature));
+            event.getChunk().setUnsaved(true);
+        }
     }
 
     void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {

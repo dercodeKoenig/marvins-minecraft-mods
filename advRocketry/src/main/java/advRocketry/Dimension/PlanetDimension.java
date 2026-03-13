@@ -264,7 +264,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
     public PlanetDimensionProperties.GasProperty getGasProperty(String id) {
         if (!properties().atmosphereComposition.containsKey(id))
-            properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0));
+            properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0, 0));
         return properties().atmosphereComposition.get(id);
     }
 
