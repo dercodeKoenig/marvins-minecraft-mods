@@ -295,13 +295,16 @@ public class PlanetDimension extends Dimension {
     }
 
     public double getOceanFraction() {
-        return Math.min(getSeaLevel() / 100.0, 1);
+        int offset = 40;
+        int adjustedSeaLevel = (getSeaLevel() - offset); // the world does not really have ocean any lower
+        int maxSeaLevel = 100 - offset;
+        return Math.clamp((double) adjustedSeaLevel / maxSeaLevel, 0, 1);
     }
 
     public double getHumidity() {
         if (warmEnoughForWater()) {
             double dt = Math.min(getCurrentTemp() - 273.15, 100);
-            return Math.pow(1.02, dt) * Math.pow(getOceanFraction(), 1.3) * 1;
+            return Math.pow(1.02, dt) * getOceanFraction() * 1;
         } else {
             return 0;
         }
@@ -473,6 +476,16 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         properties().isKnown = true;
+        if(getName().equals("Venus")) {
+            getGasProperty("co2").in_atm = 0;
+            getGasProperty("nitrogen").in_atm = 1;
+            properties().seaLevel = 45;
+        }
+        if(getName().equals("Earth")) {
+            //getGasProperty("co2").in_atm = 0;
+            //getGasProperty("nitrogen").in_atm = 1;
+            properties().seaLevel = 45;
+        }
     }
 
 
@@ -536,7 +549,7 @@ public class PlanetDimension extends Dimension {
         // --- UNIVERSAL GAME CONSTANTS ---
         // This is the Stefan-Boltzmann constant scaled for the game's energy units.
         // It determines how aggressively planets try to radiate heat away.
-        final double EMISSION_CONSTANT = 0.00000000045;
+        final double EMISSION_CONSTANT = 0.0000000004;
 
         // 1. CALCULATE INCOMING ENERGY (Ein)
         double solarFlux = 0.0;

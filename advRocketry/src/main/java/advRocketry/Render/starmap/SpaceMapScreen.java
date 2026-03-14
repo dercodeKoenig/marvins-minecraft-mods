@@ -157,6 +157,10 @@ public class SpaceMapScreen extends Screen {
             if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater())
                 description += "A healthy sea level keeps co2 levels low.\n\n";
 
+            if(planet.getSeaLevel() > 0 && planet.getCurrentTemp() > 375){
+                description += "The planet is too hot! Water slowly boils away.\n\n";
+            }
+
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1) {
                 description += "Lots of CO2 in atmosphere increases greenhouse effect.\n\n";
             }
@@ -612,7 +616,7 @@ public class SpaceMapScreen extends Screen {
             guiGraphics.vLine(xStart, 0, this.height, 0xFFFFFFFF);
 
             // 2. Draw Title (Fixed at top)
-            guiGraphics.drawString(this.font, selectedPlanet.getDimensionId().getPath().toUpperCase(), xText, 10, 0xFFFFFF);
+            guiGraphics.drawString(this.font, selectedPlanet.getName(), xText, 10, 0xFFFFFF);
 
             // 3. Prepare Scissoring for Scrollable Text
             // enableScissor(x1, y1, x2, y2)
