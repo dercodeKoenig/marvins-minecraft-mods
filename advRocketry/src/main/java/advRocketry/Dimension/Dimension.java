@@ -6,6 +6,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public abstract class Dimension {
     protected DimensionProperties properties;
 
@@ -45,7 +49,7 @@ public abstract class Dimension {
 
     abstract public boolean canVisit();
 
-    abstract public SurvivalInfo canSurvive();
+    abstract public Set<SurvivalProblem> getSurvivalProblems();
 
     abstract public boolean hasEnoughOxygenToBurn();
 
@@ -106,8 +110,7 @@ public abstract class Dimension {
         return getCurrentTemp() > requiredTempForLiquid;
     }
 
-    public enum SurvivalInfo{
-        OK(""),
+    public enum SurvivalProblem {
         TOO_HOT("too hot"),
         TOO_COLD("too cold"),
         TOO_LITTLE_O2("need more oxygen"),
@@ -116,9 +119,11 @@ public abstract class Dimension {
         TOO_LOW_PRESSURE("pressure too low"),
         TOO_MUCH_CO2("too much co2");
 
+        public static final Set<SurvivalProblem> spaceProblems = new HashSet<>(List.of(TOO_LOW_PRESSURE, TOO_LITTLE_O2, TOO_COLD));
+
         public final String reason;
 
-        SurvivalInfo(String reason){
+        SurvivalProblem(String reason){
             this.reason = reason;
         }
     }

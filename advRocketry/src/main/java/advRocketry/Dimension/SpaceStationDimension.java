@@ -18,7 +18,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static advRocketry.Utils.CelestialUtils.getPlanetRenderRadiusAU;
 
@@ -77,8 +79,8 @@ public class SpaceStationDimension extends Dimension {
     }
 
     @Override
-    public SurvivalInfo canSurvive() {
-        return SurvivalInfo.TOO_LOW_PRESSURE;
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        return SurvivalProblem.spaceProblems;
     }
     
     @Override

@@ -4,6 +4,9 @@ import advRocketry.Utils.AxisDirections;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.List;
+import java.util.Set;
+
 public class DummyDimension extends Dimension {
 
     public DummyDimension(DummyDimensionProperties properties, DimensionManager dimensionManager) {
@@ -21,8 +24,8 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
-    public SurvivalInfo canSurvive() {
-        return SurvivalInfo.TOO_LOW_PRESSURE;
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        return SurvivalProblem.spaceProblems;
     }
 
     @Override

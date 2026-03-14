@@ -20,6 +20,8 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class RocketTravelDimension extends Dimension {
 
@@ -68,8 +70,8 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public SurvivalInfo canSurvive() {
-        return SurvivalInfo.TOO_LOW_PRESSURE;
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        return SurvivalProblem.spaceProblems;
     }
 
     @Override

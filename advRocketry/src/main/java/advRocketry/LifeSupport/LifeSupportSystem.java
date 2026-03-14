@@ -4,6 +4,7 @@ import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.GlobalTime;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -11,11 +12,13 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 ///  note:  this system was initially designed to work for oxygen only,
 ///         so you will find comments / variable names that might be confusing
@@ -40,28 +43,28 @@ public class LifeSupportSystem {
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (dim == null)
             return true;
-        Dimension.SurvivalInfo info = dim.canSurvive();
-        if (info == Dimension.SurvivalInfo.OK)
+        Set<Dimension.SurvivalProblem> info = dim.getSurvivalProblems();
+        if (info.isEmpty())
             return true;
 
         LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
         if (instance != null) {
 
-            if (info == Dimension.SurvivalInfo.TOO_LITTLE_O2 ||
-                    info == Dimension.SurvivalInfo.TOO_MUCH_O2 ||
-                    info == Dimension.SurvivalInfo.TOO_MUCH_CO2) {
+            if (info.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2) ||
+                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_O2) ||
+                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2)) {
                 if (instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos)) {
                     return true;
                 }
             }
 
-            if (info == Dimension.SurvivalInfo.TOO_COLD) {
+            if (info.contains(Dimension.SurvivalProblem.TOO_COLD)) {
                 if (instance.lifeSupportData.get(LifeSupportType.HEAT_SUPPLIER).suppliedBlocks.contains(pos)) {
                     return true;
                 }
             }
 
-            if (info == Dimension.SurvivalInfo.TOO_HOT) {
+            if (info.contains(Dimension.SurvivalProblem.TOO_HOT)) {
                 if (instance.lifeSupportData.get(LifeSupportType.HEAT_SUPPLIER).suppliedBlocks.contains(pos)) {
                     return true;
                 }
@@ -106,7 +109,8 @@ public class LifeSupportSystem {
                 Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
                 if (dim == null)
                     continue;
-                if (dim.canSurvive() == Dimension.SurvivalInfo.OK)
+                Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
+                if (problems.isEmpty())
                     continue;
                 ServerLevel level = DimensionManager.getServerLevel(levelId);
                 if (level == null)
@@ -115,6 +119,15 @@ public class LifeSupportSystem {
                     if (e instanceof LivingEntity livingEntity) {
                         if (!canSurviveAt(level, livingEntity.blockPosition())) {
                             livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
+                            if(livingEntity instanceof Player player){
+                                String msg = "Life Support Warning: \n";
+                                for (Dimension.SurvivalProblem p  : problems) {
+                                    msg += p.reason+"\n";
+                                }
+                                player.sendSystemMessage(Component.literal(
+                                        msg
+                                ));
+                            }
                         }
                     }
                 }
@@ -124,7 +137,7 @@ public class LifeSupportSystem {
         for (ResourceLocation levelId : LifeSupportSystems.keySet()) {
             // skip the scanning if there is life possible anyway
             Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
-            if (dim == null || dim.canSurvive() == Dimension.SurvivalInfo.OK)
+            if (dim == null || dim.getSurvivalProblems().isEmpty())
                 continue;
             LifeSupportSystems.get(levelId).tick();
         }

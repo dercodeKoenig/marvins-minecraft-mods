@@ -20,10 +20,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.OptionalLong;
-import java.util.Set;
+import java.util.*;
 
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
@@ -120,25 +117,26 @@ public class PlanetDimension extends Dimension {
         return true;
     }
 
-    public SurvivalInfo canSurvive() {
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        Set<SurvivalProblem> problems = new HashSet<>();
         double pressure = getAtmosphereDensity();
         if (pressure < 0.7)
-            return SurvivalInfo.TOO_LOW_PRESSURE;
+            problems.add(SurvivalProblem.TOO_LOW_PRESSURE);
 
         if (pressure > 1.6)
-            return SurvivalInfo.TOO_MUCH_PRESSURE;
+            problems.add(SurvivalProblem.TOO_MUCH_PRESSURE);
 
         double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
-        if(oxygen < 0.2 * pressure)
-            return SurvivalInfo.TOO_LITTLE_O2;
-        if(oxygen > 0.5 * pressure)
-            return SurvivalInfo.TOO_MUCH_O2;
+        if (oxygen < 0.2 * pressure)
+            problems.add(SurvivalProblem.TOO_LITTLE_O2);
+        if (oxygen > 0.5 * pressure)
+            problems.add(SurvivalProblem.TOO_MUCH_O2);
 
         double co2 = getGasProperty(GasRegistry.co2).in_atm;
         if (co2 > 0.05 * pressure)
-            return SurvivalInfo.TOO_MUCH_CO2;
+            problems.add(SurvivalProblem.TOO_MUCH_CO2);
 
-        return SurvivalInfo.OK;
+        return problems;
     }
 
     public boolean hasEnoughOxygenToBurn() {

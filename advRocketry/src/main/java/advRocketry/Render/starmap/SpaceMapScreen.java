@@ -24,6 +24,7 @@ import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
+import java.util.Set;
 
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
@@ -127,10 +128,15 @@ public class SpaceMapScreen extends Screen {
         }
         if (mass >= dataMax && composition >= dataMax) {
             if (planet.canVisit()) {
-                Dimension.SurvivalInfo canSurvive = planet.canSurvive();
-                description += "Can Survive: " + (canSurvive == Dimension.SurvivalInfo.OK) + "\n";
-                if (canSurvive != Dimension.SurvivalInfo.OK)
-                    description += "Reason: " + canSurvive.reason + "\n";
+                Set<Dimension.SurvivalProblem> problems = planet.getSurvivalProblems();
+                if (problems.isEmpty()) {
+                    description += "Survival Possible\n";
+                } else {
+                    description += "Survival problems: \n";
+                    for (Dimension.SurvivalProblem p : problems) {
+                        description += p.reason + "\n";
+                    }
+                }
                 description += "\n";
             }
 
