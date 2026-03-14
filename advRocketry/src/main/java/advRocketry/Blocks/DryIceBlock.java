@@ -37,15 +37,14 @@ public class DryIceBlock extends Block {
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false));
     }
 
-    public static float getNoiseThreshold(float frozen_co2_level) {
-        return (frozen_co2_level * 2 - 1); // -1 to +1 (or higher)
-    }
-
-    public static int getTargetThickness(float noiseThreshold, float noiseTemperature) {
+    public static int getTargetThickness(float frozen_co2_level, float noiseTemperature) {
+        if(frozen_co2_level == 0)
+            return 0;
+        float noiseThreshold = frozen_co2_level - 0.2f;
         float difference = noiseThreshold - noiseTemperature;
         if (difference < 0)
             return 0;
-        int targetThickness = 1 + (int) (difference / 1f);
+        int targetThickness = 1 + (int) (difference / 0.3f);
         return targetThickness;
     }
 
@@ -80,55 +79,45 @@ public class DryIceBlock extends Block {
         // Check if the CO2 level increased significantly
         if (frozen_co2_level > frozen_co2_level_at_last_placement + epsilon) {
             float noiseTemperature = ChunkUtils.getNoiseTemperatureAt(planet, pos0); // -1 to 1
-            float noiseThreshold = getNoiseThreshold(frozen_co2_level);
 
-            // Check if it's cold enough (temperature is below the threshold)
-            if (noiseTemperature < noiseThreshold) {
+            // Calculate the target thickness
+            // 1 block base + 1 block for every x units the threshold is above the temperature
+            int targetThickness = getTargetThickness(frozen_co2_level, noiseTemperature);
 
-                // Calculate the target thickness
-                // 1 block base + 1 block for every x units the threshold is above the temperature
-                int targetThickness = getTargetThickness(noiseThreshold, noiseTemperature);
+            int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
+            BlockPos topBlock = new BlockPos(blockX, y - 1, blockZ);
 
-                int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-                BlockPos topBlock = new BlockPos(blockX, y - 1, blockZ);
+            // Scan downwards to count existing dry ice blocks within the upper (targetThickness + 10) blocks
+            int existingDryIceCount = 0;
+            int scanDepth = targetThickness + 10;
 
-                // Scan downwards to count existing dry ice blocks within the upper (targetThickness + 10) blocks
-                int existingDryIceCount = 0;
-                int scanDepth = targetThickness + 10;
+            for (int i = 0; i < scanDepth; i++) {
+                BlockPos scanPos = topBlock.below(i);
+                BlockState state = level.getBlockState(scanPos);
 
-                for (int i = 0; i < scanDepth; i++) {
-                    BlockPos scanPos = topBlock.below(i);
-                    BlockState state = level.getBlockState(scanPos);
-
-                    if (state.getBlock() instanceof DryIceBlock) {
-                        existingDryIceCount++;
-                    }
+                if (state.getBlock() instanceof DryIceBlock) {
+                    existingDryIceCount++;
                 }
+            }
 
-                if (existingDryIceCount < targetThickness) {
-                    BlockState topBlockState = level.getBlockState(topBlock);
-                    if (topBlockState.isFaceSturdy(level, topBlock, Direction.UP)) {
-                        // Not enough blocks: place exactly ONE more block on top of the surface.
-                        // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
-                        level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
-                    } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
-                        // directly replace the top block like grass
-                        // but still requires solid block below
-                        level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
-                    } else {
-                        // do not place ice blocks on things like flowers or water.
-                        // mark the corrent co2 level as completed
-                        chunkEntry.putFloat(positionKey, frozen_co2_level);
-                        ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
-                    }
+            if (existingDryIceCount < targetThickness) {
+                BlockState topBlockState = level.getBlockState(topBlock);
+                if (topBlockState.isFaceSturdy(level, topBlock, Direction.UP)) {
+                    // Not enough blocks: place exactly ONE more block on top of the surface.
+                    // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
+                    level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
+                    // directly replace the top block like grass
+                    // but still requires solid block below
+                    level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
                 } else {
-                    // We have enough blocks: mark the position as completed by updating the tag
+                    // do not place ice blocks on things like flowers or water.
+                    // mark the corrent co2 level as completed
                     chunkEntry.putFloat(positionKey, frozen_co2_level);
                     ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
                 }
             } else {
-                // The CO2 increased, but it's not cold enough in noise temperature to place dry ice.
-                // Update the tag immediately to prevent endless unneeded checks.
+                // We have enough blocks: mark the position as completed by updating the tag
                 chunkEntry.putFloat(positionKey, frozen_co2_level);
                 ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
             }
@@ -159,9 +148,8 @@ public class DryIceBlock extends Block {
         if (dim instanceof PlanetDimension planet) {
             float frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
             float noiseTemperature = ChunkUtils.getNoiseTemperatureAt(planet, pos0); // -1 to 1
-            float noiseThreshold = getNoiseThreshold(frozen_co2_level);
 
-            int targetThickness = getTargetThickness(noiseThreshold, noiseTemperature);
+            int targetThickness = getTargetThickness(frozen_co2_level, noiseTemperature);
 
             // count how many blocks are below this block to see if it can evaporate
             // if there are less than targetThickness, do not evaporate

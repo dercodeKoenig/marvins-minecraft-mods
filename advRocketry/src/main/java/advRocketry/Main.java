@@ -44,6 +44,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
@@ -245,7 +247,19 @@ public class Main {
                         int xB = event.getChunk().getPos().getBlockX(x);
                         int zB = event.getChunk().getPos().getBlockZ(z);
 
-                        for (int i = 0; i < 10; i++) {
+                        boolean shouldFreezeWater = !planet.canHaveLiquidWater() && planet.getCurrentTemp() < 370;
+
+                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
+                            BlockPos pos = new BlockPos(xB, y, zB);
+                            BlockState state = serverLevel.getBlockState(pos);
+
+                            // freeze water if possible
+                            if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
+                                serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
+                            }
+                        }
+
+                        for (int i = 0; i < 20; i++) {
                             // the ice could be multiple blocks so i run it multiple times (it is still fast enough)
                             // 2  -> sync to player
                             // 16 -> no neighbor update (if i read it correctly)
@@ -253,6 +267,7 @@ public class Main {
                         }
                     }
                 }
+                //System.out.println("block replacement on chunk load: " + (double) (System.nanoTime() - t0) / 1000 / 1000);
             }
         }
     }
