@@ -86,8 +86,9 @@ public class PlanetEvents {
             // water will reduce co2 up to a target based on sea level
             // high temperature will make it hold less co2, but then we would have high humidity with plants
             // and plants would again absorb more co2, so i say temperature cancels out and use sea level only
-            // this should result in about 0.3% target at 63 sea level
-            double targetCO2 = (double) 0.1 / (planet.getSeaLevel() - 30);
+            // this should result in about 2.7% target at 63 sea level
+            // is not the thing that makes a planet habitable, but at least it reduces co2
+            double targetCO2 = (double) 0.5 / (planet.getSeaLevel() - 45);
             PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
             double diff = co2.in_atm - targetCO2;
             if (diff > 0.0001) {

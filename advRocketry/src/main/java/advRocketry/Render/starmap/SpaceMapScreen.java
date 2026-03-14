@@ -193,14 +193,14 @@ public class SpaceMapScreen extends Screen {
                 description += "The planet is too hot! Water slowly boils away.\n\n";
             }
 
-            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.002) {
+            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.01) {
                 if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
                     description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
                 else
                     description += "Co2 in atmosphere increases greenhouse effect.\n\n";
             }
             if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.001) {
-                description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";
+                description += "Methane in atmosphere significantly increases greenhouse effect.\n\n";
             }
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0 &&
