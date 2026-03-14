@@ -45,7 +45,7 @@ public abstract class Dimension {
 
     abstract public boolean canVisit();
 
-    abstract public boolean canBreathe();
+    abstract public SurvivalInfo canSurvive();
 
     abstract public boolean hasEnoughOxygenToBurn();
 
@@ -104,5 +104,22 @@ public abstract class Dimension {
         double requiredTempForLiquid = 273 + Math.max(0, (1 - Math.sqrt(getAtmosphereDensity())) * 50);
 
         return getCurrentTemp() > requiredTempForLiquid;
+    }
+
+    public enum SurvivalInfo{
+        OK(""),
+        TOO_HOT("too hot"),
+        TOO_COLD("too cold"),
+        TOO_LITTLE_O2("need more oxygen"),
+        TOO_MUCH_O2("too much oxygen"),
+        TOO_MUCH_PRESSURE("pressure too high"),
+        TOO_LOW_PRESSURE("pressure too low"),
+        TOO_MUCH_CO2("too much co2");
+
+        public final String reason;
+
+        SurvivalInfo(String reason){
+            this.reason = reason;
+        }
     }
 }

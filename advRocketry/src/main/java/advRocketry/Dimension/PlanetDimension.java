@@ -120,21 +120,25 @@ public class PlanetDimension extends Dimension {
         return true;
     }
 
-    public boolean canBreathe() {
+    public SurvivalInfo canSurvive() {
         double pressure = getAtmosphereDensity();
-        if (pressure < 0.7 || pressure > 2)
-            // wrong pressure
-            return false;
+        if (pressure < 0.7)
+            return SurvivalInfo.TOO_LOW_PRESSURE;
+
+        if (pressure > 1.6)
+            return SurvivalInfo.TOO_MUCH_PRESSURE;
 
         double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
-        if (oxygen < 0.2 * pressure || oxygen > 0.5 * pressure)
-            // too much or too little oxygen
-            return false;
+        if(oxygen < 0.2 * pressure)
+            return SurvivalInfo.TOO_LITTLE_O2;
+        if(oxygen > 0.5 * pressure)
+            return SurvivalInfo.TOO_MUCH_O2;
+
         double co2 = getGasProperty(GasRegistry.co2).in_atm;
         if (co2 > 0.05 * pressure)
-            // too much co2
-            return false;
-        return true;
+            return SurvivalInfo.TOO_MUCH_CO2;
+
+        return SurvivalInfo.OK;
     }
 
     public boolean hasEnoughOxygenToBurn() {

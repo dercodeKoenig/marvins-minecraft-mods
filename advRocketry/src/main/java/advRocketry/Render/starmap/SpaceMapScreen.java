@@ -126,8 +126,13 @@ public class SpaceMapScreen extends Screen {
             description += "Can visit: " + planet.canVisit() + "\n\n";
         }
         if (mass >= dataMax && composition >= dataMax) {
-            if (planet.canVisit())
-                description += "Can breath: " + planet.canBreathe() + "\n\n";
+            if (planet.canVisit()) {
+                Dimension.SurvivalInfo canSurvive = planet.canSurvive();
+                description += "Can Survive: " + (canSurvive == Dimension.SurvivalInfo.OK) + "\n";
+                if (canSurvive != Dimension.SurvivalInfo.OK)
+                    description += "Reason: " + canSurvive.reason + "\n";
+                description += "\n";
+            }
 
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
 
@@ -151,7 +156,7 @@ public class SpaceMapScreen extends Screen {
                 if (planet.getSeaLevel() < 45)
                     description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
-                if(planet.getHumidity() < 1.5)
+                if (planet.getHumidity() < 1.5)
                     description += "Humidity contributes to greenhouse effect.\n\n";
                 else
                     description += "Extreme humidity significantly increases greenhouse effect.\n\n";
@@ -160,17 +165,17 @@ public class SpaceMapScreen extends Screen {
             if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater()) {
                 description += "A healthy sea level keeps co2 levels low.\n\n";
 
-                if(PlanetEvents.getPhotosynthesisValue(planet) > 0){
+                if (PlanetEvents.getPhotosynthesisValue(planet) > 0) {
                     description += "Algae thrive under ideal temperatures, converting co2 into Oxygen.\n\n";
                 }
             }
 
-            if(planet.getSeaLevel() > 0 && planet.getCurrentTemp() > 375){
+            if (planet.getSeaLevel() > 0 && planet.getCurrentTemp() > 375) {
                 description += "The planet is too hot! Water slowly boils away.\n\n";
             }
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.02) {
-                if(planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
+                if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
                     description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
                 else
                     description += "Co2 in atmosphere increases greenhouse effect.\n\n";

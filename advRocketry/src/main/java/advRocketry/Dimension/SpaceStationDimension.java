@@ -77,8 +77,8 @@ public class SpaceStationDimension extends Dimension {
     }
 
     @Override
-    public boolean canBreathe() {
-        return false;
+    public SurvivalInfo canSurvive() {
+        return SurvivalInfo.TOO_LOW_PRESSURE;
     }
     
     @Override
