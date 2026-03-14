@@ -152,7 +152,6 @@ public class OxygenSupplier {
     }
 
     // get my current remaining scan limit
-    // TODO: this algorithm should support individual max scan size, so allow each block to have its own block scan limit
     private int getRemainingScanLimit() {
         return getBlockLimit() - scannedBlocksCounter;
     }
