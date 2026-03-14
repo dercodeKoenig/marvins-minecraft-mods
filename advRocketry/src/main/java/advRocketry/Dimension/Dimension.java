@@ -98,10 +98,7 @@ public abstract class Dimension {
         this.properties = properties;
     }
 
-    public boolean canHaveLiquidWater() {
-        if (getCurrentTemp() > 373.15)
-            return false; // simple, it is too hot. i make no atm consideration
-
+    public boolean warmEnoughForWater() {
         // with little to no atmosphere it should not be liquid
         // this should make a nice curve that quickly increases required temperature when atmosphere pressure is low
         double requiredTempForLiquid = 273 + Math.max(0, (1 - Math.sqrt(getAtmosphereDensity())) * 50);

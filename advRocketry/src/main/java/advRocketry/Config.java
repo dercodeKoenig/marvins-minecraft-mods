@@ -66,4 +66,8 @@ public class Config {
     // how fast a planet can change its temperature
     public double planet_Heat_Capacity_Multiplier = 1;
 
+    // co2 is removed from atmosphere as diff * planet_Sea_Lvl_Co2_Reduction_Factor
+    // every tick, a fraction of 1 / 100k to the target is closed
+    public double planet_Sea_Lvl_Co2_Reduction_Factor = (double) 1 / 100000;
+
 }

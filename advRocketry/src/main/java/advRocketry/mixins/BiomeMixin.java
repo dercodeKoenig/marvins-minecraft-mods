@@ -2,22 +2,17 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.PlanetDimension;
-import advRocketry.Dimension.PlanetEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Biome.class)
@@ -31,7 +26,7 @@ public abstract class BiomeMixin {
                 // too hot for any ice, even in frozen biomes
                 ci.setReturnValue(false);
                 ci.cancel();
-            } else if (!dimension.canHaveLiquidWater()) {
+            } else if (!dimension.warmEnoughForWater()) {
                 // cold enough or too low atm to force freeze
                 // default code of Biome class follows:
                 if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight()) {

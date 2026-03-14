@@ -1,7 +1,6 @@
 package advRocketry;
 
 import ARLib.network.SimpleNetworkPacket;
-import AWGenerators.Registry;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
@@ -25,7 +24,6 @@ import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.presets.HOT;
 import advRocketry.Worldgen.presets.HOT_DRY;
 import advRocketry.Worldgen.presets.MOON;
-import com.mojang.realmsclient.dto.ServerActivityList;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -33,7 +31,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.QuartPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,11 +39,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Climate;
-import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -59,7 +53,6 @@ import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
@@ -76,8 +69,6 @@ import org.joml.Matrix4f;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-
-import static advRocketry.Registry.GeneralRegistry.CUSTOM_CHUNK_DATA;
 
 @Mod(Main.MODID)
 public class Main {
@@ -247,7 +238,7 @@ public class Main {
                         int xB = event.getChunk().getPos().getBlockX(x);
                         int zB = event.getChunk().getPos().getBlockZ(z);
 
-                        boolean shouldFreezeWater = !planet.canHaveLiquidWater() && planet.getCurrentTemp() < 370;
+                        boolean shouldFreezeWater = !planet.warmEnoughForWater();
 
                         for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
                             BlockPos pos = new BlockPos(xB, y, zB);

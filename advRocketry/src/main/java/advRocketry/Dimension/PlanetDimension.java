@@ -39,7 +39,7 @@ public class PlanetDimension extends Dimension {
         currentSpeed = Vec3.ZERO;
     }
 
-    public void setRequiresSync(){
+    public void setRequiresSync() {
         requiresSync = true;
     }
 
@@ -283,9 +283,9 @@ public class PlanetDimension extends Dimension {
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
             sum += (float) gas.frozen_surface;
         }
-        if (!canHaveLiquidWater()&& getCurrentTemp() < 370) {
+        if (!warmEnoughForWater()) {
             // water is frozen and contributes
-            sum += (float) Math.min(getSeaLevel() / 120.0, 0.8);
+            sum += (float) Math.min(getOceanFraction(), 0.8);
         }
         return Math.min(1, sum);
     }
@@ -299,7 +299,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public double getHumidity() {
-        if (canHaveLiquidWater()) {
+        if (warmEnoughForWater()) {
             double dt = Math.min(getCurrentTemp() - 273.15, 100);
             return Math.pow(1.02, dt) * Math.pow(getOceanFraction(), 1.3) * 1;
         } else {
@@ -428,7 +428,7 @@ public class PlanetDimension extends Dimension {
 
             if (GlobalTime.getGlobalTime() % 20 == 0 && requiresSync) {
                 requiresSync = false;
-                lastSyncedTemperature100 = (int)(properties().currentTemp * 100);
+                lastSyncedTemperature100 = (int) (properties().currentTemp * 100);
                 dimensionManager.syncDimensionProperties(this);
             }
 
@@ -471,8 +471,12 @@ public class PlanetDimension extends Dimension {
                 trackDayTimeNormal();
             }
         }
-    }
+        // TODO: remove after testing
+        properties().isKnown = true;
+        if(getName().equals("Venus"))
+properties().seaLevel = 63;
 
+    }
 
 
     // by ticking the position once and interpolating between last and current position it will
@@ -525,7 +529,7 @@ public class PlanetDimension extends Dimension {
             return;
         }
 
-        if(lastSyncedTemperature100 != (int)(properties().currentTemp * 100)) {
+        if (lastSyncedTemperature100 != (int) (properties().currentTemp * 100)) {
             setRequiresSync();
         }
 
@@ -535,7 +539,7 @@ public class PlanetDimension extends Dimension {
         // --- UNIVERSAL GAME CONSTANTS ---
         // This is the Stefan-Boltzmann constant scaled for the game's energy units.
         // It determines how aggressively planets try to radiate heat away.
-        final double EMISSION_CONSTANT = 0.0000000005;
+        final double EMISSION_CONSTANT = 0.00000000045;
 
         // 1. CALCULATE INCOMING ENERGY (Ein)
         double solarFlux = 0.0;
@@ -569,7 +573,7 @@ public class PlanetDimension extends Dimension {
         //System.out.println("insulation:" + insulation);
 
         // Water Vapor Feedback
-        if (canHaveLiquidWater() && currentTemp < 400) {
+        if (warmEnoughForWater()) {
             insulation += Math.min(getHumidity(), 50);
         }
 
@@ -586,7 +590,7 @@ public class PlanetDimension extends Dimension {
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
         thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
-        //thermalMass = 1; // TODO: remove after testing
+        thermalMass = 1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.

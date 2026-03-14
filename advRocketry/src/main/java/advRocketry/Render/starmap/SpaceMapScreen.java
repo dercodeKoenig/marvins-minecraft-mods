@@ -134,7 +134,7 @@ public class SpaceMapScreen extends Screen {
             if (planet.canVisit()) {
                 description += "Sea level: " + planet.getSeaLevel() + "\n";
                 description += "Humidity: " + String.format("%.2f", planet.getHumidity()) + "\n";
-                description += "Liquid water possible: " + planet.canHaveLiquidWater() + "\n\n";
+                description += "Liquid water possible: " + (planet.warmEnoughForWater() && planet.getCurrentTemp() < 373) + "\n\n";
             }
 
 
@@ -147,12 +147,15 @@ public class SpaceMapScreen extends Screen {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if(planet.getHumidity() > 0.5){
-                if(planet.getSeaLevel() < 45)
+            if (planet.getHumidity() > 0.5) {
+                if (planet.getSeaLevel() < 45)
                     description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
                 description += "Humidity contributes to greenhouse effect.\n\n";
             }
+
+            if (planet.getSeaLevel() > 35 && planet.warmEnoughForWater())
+                description += "A healthy sea level keeps co2 levels low.\n\n";
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1) {
                 description += "Lots of CO2 in atmosphere increases greenhouse effect.\n\n";
@@ -171,7 +174,6 @@ public class SpaceMapScreen extends Screen {
             }
 
         }
-
 
         return description;
     }
