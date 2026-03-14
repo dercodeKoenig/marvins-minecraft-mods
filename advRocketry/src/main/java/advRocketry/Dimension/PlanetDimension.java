@@ -136,6 +136,11 @@ public class PlanetDimension extends Dimension {
         if (co2 > 0.05 * pressure)
             problems.add(SurvivalProblem.TOO_MUCH_CO2);
 
+        if(getCurrentTemp() < 273 - 30)
+            problems.add(SurvivalProblem.TOO_COLD);
+        if(getCurrentTemp() < 273 + 40)
+            problems.add(SurvivalProblem.TOO_HOT);
+
         return problems;
     }
 
