@@ -34,7 +34,7 @@ public abstract class BiomeMixin {
             } else if (!dimension.canHaveLiquidWater()) {
                 // cold enough or too low atm to force freeze
                 // default code of Biome class follows:
-                if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight() && level.getBrightness(LightLayer.BLOCK, water) < 10) {
+                if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight()) {
                     BlockState blockstate = level.getBlockState(water);
                     FluidState fluidstate = level.getFluidState(water);
                     if (fluidstate.getType() == Fluids.WATER && blockstate.getBlock() instanceof LiquidBlock) {
