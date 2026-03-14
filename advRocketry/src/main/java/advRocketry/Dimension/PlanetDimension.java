@@ -40,26 +40,24 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 public class PlanetDimension extends Dimension implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     public Vec3 currentSpeed = new Vec3(0, 0, 0);
-    public Vec3 lastPosition = new Vec3(0, 0, 0);
 
     public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
-        lastPosition = properties().position;
         currentSpeed = Vec3.ZERO;
 
-        if(dimensionManager.isClientSide)
+        if (dimensionManager.isClientSide)
             // do NOT register on server or whatever is created last will be registered and receives the packet
             // only the client instance should receive the packet
             SimpleNetworkPacket.registerReceiver(getNetworkPacketId(), this);
     }
 
-    public String getNetworkPacketId(){
+    public String getNetworkPacketId() {
         return Main.MODID + "_PlanetDimension_" + getDimensionId().toString();
     }
 
     // TODO: better register when something changed and send a full update packet.
     // changes should not happen too frequently anyway
-    public CompoundTag getUpdateTag(){
+    public CompoundTag getUpdateTag() {
         // everything that can change and should be synced to player
         // but not the entire property file
         // most important, temp (calculated on server) and gas composition
@@ -144,10 +142,6 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     //  on random tick, choose new target sky and fog colors and slowly interpolate between them to make diverse sky effects
     //  maybe adjust colors +-up to 10% of the original color channel value?
 
-    public boolean isKnown() {
-        return properties().isKnown;
-    }
-
     public boolean canVisit() {
         if (properties().dayTimeReference == null) {
             return false;
@@ -163,7 +157,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
     public boolean canBreathe() {
         double pressure = getAtmosphereDensity();
-        if(pressure < 0.7 || pressure > 2)
+        if (pressure < 0.7 || pressure > 2)
             // wrong pressure
             return false;
 
@@ -190,20 +184,8 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return properties().emissiveColor;
     }
 
-    public Vec3 getRotationAxis() {
-        return properties().rotationAxis;
-    }
-
-    public float getEarthRadiusMultiplier() {
-        return properties().earthRadiusMultiplier;
-    }
-
     public float getGravitationalMultiplier() {
         return properties().gravitationalMultiplier;
-    }
-
-    public ResourceLocation getTexture() {
-        return properties().texture;
     }
 
     public Vector3f getSkyColor() {
@@ -218,18 +200,6 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return new Vector3f(properties().fogColor);
     }
 
-    public Vector3f getReflectiveTextureTintColor() {
-        return new Vector3f(properties().reflectiveTextureTintColor);
-    }
-
-    public boolean hasRings() {
-        return properties().hasRingSystem;
-    }
-
-    public boolean isStar(){
-        return getRadiationIntensity() > 0;
-    }
-
     public float getRadiationIntensity() {
         return properties().radiationIntensity;
     }
@@ -238,15 +208,88 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return properties().hasCustomSky;
     }
 
+    public double getCurrentTemp() {
+        return properties().currentTemp;
+    }
+
+    public double getTerrainBrightness(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        return brightness;
+    }
+
+    public Vector3f getCloudColor(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
+        return new Vector3f(properties().cloudColor).mul((float) brightness);
+    }
+
+    public Vector3f computeTerrainFogColor(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
+        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        return new Vector3f(properties().fogColor)
+                .mul((float) brightness)
+                .mul(getAtmosphereDensity() / (1 + getAtmosphereDensity()));
+    }
+
+    public float getAtmosphereDensity() {
+        float sum = 0;
+        for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
+            sum += gas.in_atm;
+        }
+        return sum;
+    }
+
+    public Vec3 getMovement() {
+        return currentSpeed;
+    }
+
+    public Vec3 getPosition(float partialTick) {
+        return properties().position.subtract(getMovement().scale(1 - partialTick));
+    }
+
+    public AxisDirections getGlobalAxisDirections(float partialTick) {
+        // this should never be called on server !!!
+        return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
+    }
+
+    public Vector3f getReflectiveTextureTintColor() {
+        return new Vector3f(properties().reflectiveTextureTintColor);
+    }
+
+    public boolean hasRings() {
+        return properties().hasRingSystem;
+    }
+
+    public boolean isStar() {
+        return getRadiationIntensity() > 0;
+    }
+
+    public ResourceLocation getTexture() {
+        return properties().texture;
+    }
+
+    public Vec3 getRotationAxis() {
+        return properties().rotationAxis;
+    }
+
+    public float getEarthRadiusMultiplier() {
+        return properties().earthRadiusMultiplier;
+    }
+
+    public boolean isKnown() {
+        return properties().isKnown;
+    }
+
     public ResourceLocation getParentDimensionId() {
         return properties().parentDimensionId;
     }
 
-    public float getorbitalDistanceToParent() {
+    public float getOrbitalDistanceToParent() {
         return properties().orbitalDistanceToParent;
     }
 
-    public float getorbitalBaseOffsetDegrees() {
+    public float getOrbitalBaseOffsetDegrees() {
         return properties().orbitalBaseOffsetDegrees;
     }
 
@@ -258,22 +301,10 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);
     }
 
-    public double getCurrentTemp() {
-        return properties().currentTemp;
-    }
-
     public PlanetDimensionProperties.GasProperty getGasProperty(String id) {
         if (!properties().atmosphereComposition.containsKey(id))
             properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0, 0));
         return properties().atmosphereComposition.get(id);
-    }
-
-    public float getAtmosphereDensity() {
-        float sum = 0;
-        for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
-            sum += gas.in_atm;
-        }
-        return sum;
     }
 
     public Set<String> getGasMiningOptions() {
@@ -288,7 +319,6 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return set;
     }
 
-
     public float getFrozenGasCoverage() {
         float sum = 0;
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
@@ -301,42 +331,8 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return Math.min(1, sum);
     }
 
-    @Override
-    public double getTerrainBrightness(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
-        return brightness;
-    }
-
-    @Override
-    public Vector3f getCloudColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
-        return new Vector3f(properties().cloudColor).mul((float) brightness);
-    }
-
-    @Override
-    public Vector3f computeTerrainFogColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
-        return new Vector3f(properties().fogColor)
-                .mul((float) brightness)
-                .mul(getAtmosphereDensity() / (1 + getAtmosphereDensity()));
-    }
-
     public int getSeaLevel() {
         return properties().seaLevel;
-    }
-
-    public boolean canHaveLiquidWater() {
-        if (getCurrentTemp() > 373.15)
-            return false; // simple, it is too hot. i make no atm consideration
-
-        // with little to no atmosphere it should not be liquid
-        // this should make a nice curve that quickly increases required temperature when atmosphere pressure is low
-        double requiredTempForLiquid = 273 + Math.max(0, (1 - Math.sqrt(getAtmosphereDensity())) * 50);
-
-        return getCurrentTemp() > requiredTempForLiquid;
     }
 
     public double getOceanFraction() {
@@ -356,48 +352,6 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         double actualDayTime = properties().dayTime + getDayTimePerTick() * partialTick;
         double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
         return rotation;
-    }
-
-    public Vec3 getMovement() {
-        return currentSpeed;
-    }
-
-    public Vec3 getPosition(float partialTick) {
-        if (properties().parentDimensionId != null) {
-            Dimension parent = dimensionManager.get(properties().parentDimensionId);
-            if (parent == null) return properties().position;
-
-            double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
-            double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
-            double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
-
-            // 1. Define a simple, non-zero vector to use for the cross-product
-            // This is an arbitrary direction, often chosen to align with a major axis.
-            Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
-
-            // 2. Find a starting vector orthogonal to the orbitAxis
-            Vec3 startDirection = properties().orbitAxis.cross(arbitraryVector);
-
-            // 3. Handle the edge case where orbitAxis is parallel to arbitraryVector (e.g., orbitAxis is <0,0,1>)
-            // If the cross-product is zero length, orbitAxis and arbitraryVector are parallel.
-            if (startDirection.length() < 0.0001d) {
-                // Fallback: cross with a different axis (e.g., the X-axis)
-                arbitraryVector = new Vec3(1, 0, 0);
-                startDirection = properties().orbitAxis.cross(arbitraryVector);
-            }
-
-            // 4. Normalize the orthogonal vector and scale it to the orbital distance
-            // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
-            Vec3 baseOffset = startDirection.normalize().scale(properties().orbitalDistanceToParent);
-
-            // 5. Rotate the baseOffset around the orbitAxis by the current angle
-            // baseOffset is now the vector V_start, and orbitAxis is the vector A.
-            Vec3 rotatedOffset = CelestialUtils.rotate(baseOffset, properties().orbitAxis, orbitAngleDegrees);
-
-            // 6. Add parent's position to get global position
-            properties().position = parent.getPosition(partialTick).add(rotatedOffset);
-        }
-        return properties().position;
     }
 
     public float getLatitudeFromZPosition(double z) {
@@ -421,11 +375,6 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         }
 
         return latitude;
-    }
-
-    public AxisDirections getGlobalAxisDirections(float partialTick) {
-        // this should never be called on server !!!
-        return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
     }
 
     public AxisDirections getGlobalAxisDirections(float partialTick, double latitude) {
@@ -497,7 +446,6 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         return dot;
     }
 
-
     public float getDayTimePerTick() {
         if (properties().targetDayLength <= 0) return 0;
         return (float) Level.TICKS_PER_DAY / properties().targetDayLength;
@@ -515,9 +463,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     public void tick() {
         super.tickStarCache();
 
-        Vec3 position = getPosition(0);
-        currentSpeed = position.subtract(lastPosition);
-        lastPosition = position;
+        tickPosition();
 
         if (!isClientSide) {
 
@@ -569,14 +515,57 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     }
 
 
+
+    // by ticking the position once and interpolating between last and current position it will
+    // reduce computation all the time we require the dimension. the movement will still be smooth, just not a perfect circle
+    public void tickPosition() {
+        Vec3 lastPosition = properties().position;
+
+        if (properties().parentDimensionId != null) {
+            Dimension parent = dimensionManager.get(properties().parentDimensionId);
+            if (parent != null) {
+                double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
+                double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
+                double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
+
+                // 1. Define a simple, non-zero vector to use for the cross-product
+                // This is an arbitrary direction, often chosen to align with a major axis.
+                Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
+
+                // 2. Find a starting vector orthogonal to the orbitAxis
+                Vec3 startDirection = properties().orbitAxis.cross(arbitraryVector);
+
+                // 3. Handle the edge case where orbitAxis is parallel to arbitraryVector (e.g., orbitAxis is <0,0,1>)
+                // If the cross-product is zero length, orbitAxis and arbitraryVector are parallel.
+                if (startDirection.length() < 0.0001d) {
+                    // Fallback: cross with a different axis (e.g., the X-axis)
+                    arbitraryVector = new Vec3(1, 0, 0);
+                    startDirection = properties().orbitAxis.cross(arbitraryVector);
+                }
+
+                // 4. Normalize the orthogonal vector and scale it to the orbital distance
+                // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
+                Vec3 baseOffset = startDirection.normalize().scale(properties().orbitalDistanceToParent);
+
+                // 5. Rotate the baseOffset around the orbitAxis by the current angle
+                // baseOffset is now the vector V_start, and orbitAxis is the vector A.
+                Vec3 rotatedOffset = CelestialUtils.rotate(baseOffset, properties().orbitAxis, orbitAngleDegrees);
+
+                // 6. Add parent's position to get global position
+                properties().position = parent.getPosition(0).add(rotatedOffset);
+            }
+        }
+
+        currentSpeed = properties().position.subtract(lastPosition);
+    }
+
+
     public void tickTemperature() {
-        if(isStar()) {
+        if (isStar()) {
             properties().currentTemp = getRadiationIntensity() * 3000;
             return;
         }
 
-        //if (GlobalTime.getGlobalTime() % 100 == 0)
-        //    System.out.println("\ntick " + getName() + ": " + getCurrentTemp());
         // Current state
         double currentTemp = getCurrentTemp();
 

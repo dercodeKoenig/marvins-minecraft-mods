@@ -155,6 +155,11 @@ public class SpaceStationDimension extends Dimension {
     }
 
     @Override
+    public double getCurrentTemp() {
+        return 200;
+    }
+
+    @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         // don't ask me why, 180 is just the offset that works
         double angleDeg = properties().frontFacing.toYRot() + 180;

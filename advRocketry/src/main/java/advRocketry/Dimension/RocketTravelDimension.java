@@ -181,4 +181,9 @@ public class RocketTravelDimension extends Dimension {
     public void tick() {
 
     }
+
+    @Override
+    public double getCurrentTemp() {
+        return 200;
+    }
 }

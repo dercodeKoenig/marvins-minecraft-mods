@@ -25,7 +25,6 @@ import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
 
-import static advRocketry.Render.SkyRenderer.vertexBufferStarBackground;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -672,9 +671,9 @@ public class SpaceMapScreen extends Screen {
             if (planet.getParentDimensionId() != null) {
                 Dimension parent = DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId());
                 if (parent != null) {
-                    double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(planet.getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(planet.getorbitalDistanceToParent()));
+                    double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(planet.getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(planet.getOrbitalDistanceToParent()));
                     double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
-                    double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + planet.getorbitalBaseOffsetDegrees();
+                    double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + planet.getOrbitalBaseOffsetDegrees();
 
                     // 1. Define a simple, non-zero vector to use for the cross-product
                     // This is an arbitrary direction, often chosen to align with a major axis.
@@ -693,7 +692,7 @@ public class SpaceMapScreen extends Screen {
 
                     // 4. Normalize the orthogonal vector and scale it to the orbital distance
                     // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
-                    float orbitDistance = planet.getorbitalDistanceToParent();
+                    float orbitDistance = planet.getOrbitalDistanceToParent();
                     Vec3 baseOffset = startDirection.normalize().scale(Math.pow(orbitDistance, 0.5));
 
                     // 5. Rotate the baseOffset around the orbitAxis by the current angle

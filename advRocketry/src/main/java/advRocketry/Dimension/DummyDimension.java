@@ -106,4 +106,9 @@ public class DummyDimension extends Dimension {
     public void tick() {
 
     }
+
+    @Override
+    public double getCurrentTemp() {
+        return 0;
+    }
 }
