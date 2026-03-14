@@ -2,12 +2,44 @@ package advRocketry.Dimension;
 
 import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
+import advRocketry.Items.ItemSatellite;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 public class PlanetEvents {
+
+    public static void handleDimensionTransfer(){
+        // should be called by rocket on teleport / railgun when it carries items during teleport
+        // scan all items / fluids and add / remove atm composition on entry / exit
+        // for itemstacks, check if the itemstack is a fluidhandler containing fluid or maybe an itemhandler and scan recursive
+        //new ItemStack().getCapability(Capabilities.ItemHandler.ITEM)
+
+    }
+
+    // called from server level mixin
+    public static void performRandomTickEvents(PlanetDimension planet, ServerLevel level, LevelChunk chunk) {
+
+        // pick a random position to work
+        ChunkPos chunkPos = chunk.getPos();
+        int blockX = chunkPos.getBlockX(level.random.nextInt(16));
+        int blockZ = chunkPos.getBlockZ(level.random.nextInt(16));
+
+        int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
+        int blockY = level.random.nextIntBetweenInclusive(worldSurface - 10, worldSurface);
+
+        // places dry ice if there is lots of frozen co2 on surface
+        // should take way below < 1ms to check with 4 checks a tick on average, probably even lower when nothing to do
+        if (level.random.nextInt(100) == 0) {
+            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
+        }
+
+
+    }
+
     public static void tickTemperatureEvents(PlanetDimension planet, PlanetDimensionProperties properties) {
         // slowly reduced target sea level while too hot
         // water will simply be voided, it is way too complicated to handle it in atm
@@ -55,26 +87,6 @@ public class PlanetEvents {
                 }
             }
         }
-    }
-
-    // called from server level mixin
-    public static void performRandomTickEvents(PlanetDimension planet, ServerLevel level, LevelChunk chunk) {
-
-        // pick a random position to work
-        ChunkPos chunkPos = chunk.getPos();
-        int blockX = chunkPos.getBlockX(level.random.nextInt(16));
-        int blockZ = chunkPos.getBlockZ(level.random.nextInt(16));
-
-        int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-        int blockY = level.random.nextIntBetweenInclusive(worldSurface - 10, worldSurface);
-
-        // places dry ice if there is lots of frozen co2 on surface
-        // should take way below < 1ms to check with 4 checks a tick on average, probably even lower when nothing to do
-        if (level.random.nextInt(100) == 0) {
-            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
-        }
-
-
     }
 
     public static void tick(PlanetDimension planet, PlanetDimensionProperties properties, ServerLevel level) {
