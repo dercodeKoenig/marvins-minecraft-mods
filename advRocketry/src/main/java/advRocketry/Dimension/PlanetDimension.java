@@ -141,7 +141,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public boolean canRain() {
-        return getAtmosphereDensity() > 0.5f && getCurrentTemp() < 373 && getCurrentTemp() > 273;
+        return getHumidity() > 0.1;
     }
 
     public Vector3f getEmissiveColor() {

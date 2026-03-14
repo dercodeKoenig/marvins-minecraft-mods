@@ -5,7 +5,9 @@ import advRocketry.Dimension.DimensionManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -17,6 +19,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Biome.class)
 public abstract class BiomeMixin {
+
+    @Inject(method="shouldSnow",
+            at = @At("HEAD"),
+        cancellable = true)
+    public void shouldSnow(LevelReader level, BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
+        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
+            if(!dimension.canRain()) {
+                // if it can not rain, it can not snow!
+                ci.setReturnValue(false);
+                ci.cancel();
+            }
+        }
+    }
+
     @Inject(method = "shouldFreeze(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Z)Z",
             at = @At("HEAD"),
             cancellable = true)
