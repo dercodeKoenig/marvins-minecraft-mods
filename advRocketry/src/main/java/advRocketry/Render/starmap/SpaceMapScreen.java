@@ -147,7 +147,7 @@ public class SpaceMapScreen extends Screen {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if (planet.getHumidity() > 0.5) {
+            if (planet.getHumidity() > 0.3) {
                 if (planet.getSeaLevel() < 45)
                     description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
