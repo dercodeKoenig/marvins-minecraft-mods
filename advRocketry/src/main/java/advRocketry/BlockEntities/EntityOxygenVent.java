@@ -2,8 +2,8 @@ package advRocketry.BlockEntities;
 
 import ARLib.utils.BlockEntityBattery;
 import ARLib.utils.SimpleFluidContainer;
-import advRocketry.Oxygen.OxygenSupplier;
-import advRocketry.Oxygen.OxygenSystem;
+import advRocketry.LifeSupport.LifeSupportSupplier;
+import advRocketry.LifeSupport.LifeSupportSystem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -14,7 +14,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 
 public class EntityOxygenVent extends BlockEntity {
 
-    OxygenSupplier oxygenSupplier;
+    LifeSupportSupplier oxygenSupplier;
     public BlockEntityBattery battery;
 
     SimpleFluidContainer fluidContainer;
@@ -32,15 +32,15 @@ public class EntityOxygenVent extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        oxygenSupplier = new OxygenSupplier(level, getBlockPos());
-        OxygenSystem.registerOxygenSupplier(level, oxygenSupplier);
+        oxygenSupplier = new LifeSupportSupplier(level, getBlockPos());
+        LifeSupportSystem.registerLifeSupportSupplier(level, oxygenSupplier, LifeSupportSystem.LifeSupportType.OXYGEN_SUPPLIER);
 
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        OxygenSystem.removeOxygenSupplier(level, oxygenSupplier);
+        LifeSupportSystem.removeLifeSupportSupplier(level, oxygenSupplier, LifeSupportSystem.LifeSupportType.OXYGEN_SUPPLIER);
     }
 
     public void tick() {

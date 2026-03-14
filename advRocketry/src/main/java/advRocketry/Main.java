@@ -10,7 +10,7 @@ import advRocketry.Dimension.*;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Missions.MissionManager;
-import advRocketry.Oxygen.OxygenSystem;
+import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Particles.RocketParticleEngine;
 import advRocketry.Particles.RocketParticleProvider;
 import advRocketry.Registry.*;
@@ -163,7 +163,7 @@ public class Main {
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
         ForcedChunkManager.tick();
-        OxygenSystem.serverTick();
+        LifeSupportSystem.serverTick();
         SatelliteManager.serverTick();
         MissionManager.serverTick();
         //System.out.println((double)(System.nanoTime() - t0) / 1000 / 1000);

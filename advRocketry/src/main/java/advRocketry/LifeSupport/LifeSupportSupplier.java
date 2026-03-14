@@ -1,4 +1,4 @@
-package advRocketry.Oxygen;
+package advRocketry.LifeSupport;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -12,17 +12,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 // a block like oxygen vent is an oxygen supplier or creates an instance of it and registers it to the exygen system
-public class OxygenSupplier {
+public class LifeSupportSupplier {
 
     private int scannedBlocksCounter = 0;
     private final BlockPos myPos;
     private final Level level;
     private final LinkedList<BlockPos> queue = new LinkedList<>();
-    private final HashSet<OxygenSupplier> connectedSuppliers = new HashSet<>();
+    private final HashSet<LifeSupportSupplier> connectedSuppliers = new HashSet<>();
     private boolean isValidArea;
     private boolean isComplete;
 
-    public OxygenSupplier(Level level, BlockPos myPos) {
+    public LifeSupportSupplier(Level level, BlockPos myPos) {
         this.myPos = myPos;
         this.level = level;
         reset();
@@ -47,7 +47,7 @@ public class OxygenSupplier {
     }
 
     // scan all blocks that are connected until the entire area is scanned or we run out of scan limit
-    public void tickFloodScan(HashMap<BlockPos, OxygenSupplier> scannedBlocks) {
+    public void tickFloodScan(HashMap<BlockPos, LifeSupportSupplier> scannedBlocks) {
 
         BlockPos current = queue.poll();
         if (current == null) {
@@ -57,9 +57,9 @@ public class OxygenSupplier {
             return;
         }
         if (scannedBlocks.containsKey(current)) {
-            // this block is already processed by another OxygenSupplier or by this one, skip!
-            OxygenSupplier otherSupplier = scannedBlocks.get(current);
-            // if this block was scanned by another OxygenSupplier, the other one is connected to this one
+            // this block is already processed by another LifeSupportSupplier or by this one, skip!
+            LifeSupportSupplier otherSupplier = scannedBlocks.get(current);
+            // if this block was scanned by another LifeSupportSupplier, the other one is connected to this one
             connectedSuppliers.add(otherSupplier);
             return;
         }
@@ -127,7 +127,7 @@ public class OxygenSupplier {
         // for every connected supplier i will add to my list all the other suppliers connections
         // over multiple ticks this should accumulate all connections
         // warning, this is slow! so don't call it too often!
-        for (OxygenSupplier i : new HashSet<>(connectedSuppliers)){
+        for (LifeSupportSupplier i : new HashSet<>(connectedSuppliers)){
            connectedSuppliers.addAll(i.connectedSuppliers);
         }
     }
@@ -135,17 +135,17 @@ public class OxygenSupplier {
     // if any connected block has an invalid area,
     // this blocks area is also invalid because it is connected to the invalid area
     public void syncAreaState() {
-        for (OxygenSupplier i : connectedSuppliers) {
+        for (LifeSupportSupplier i : connectedSuppliers) {
             if (!i.hasValidArea()) {
                 isValidArea = false;
             }
         }
     }
 
-    // find the combined remaining scan limit for the oxygen suppliers
+    // find the combined remaining scan limit for the LifeSupport suppliers
     private int getCombinedRemainingScanLimit() {
         int myScanLimit = 0;
-        for (OxygenSupplier i : connectedSuppliers) {
+        for (LifeSupportSupplier i : connectedSuppliers) {
             myScanLimit += i.getRemainingScanLimit();
         }
         return myScanLimit;
