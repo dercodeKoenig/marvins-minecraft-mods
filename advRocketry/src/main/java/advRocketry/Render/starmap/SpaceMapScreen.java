@@ -140,18 +140,21 @@ public class SpaceMapScreen extends Screen {
 
             // composition analysis
 
-            if (planet.getFrozenGasCoverage() > 0.3 && planet.getFrozenGasCoverage() < 0.6) {
+            if (planet.getFrozenGasCoverage() > 0.1 && planet.getFrozenGasCoverage() < 0.6) {
                 description += "Surface partially covered in ice, reducing energy gain.\n\n";
             }
             if (planet.getFrozenGasCoverage() >= 0.6) {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if (planet.getHumidity() > 0.3) {
+            if (planet.getHumidity() > 0.2) {
                 if (planet.getSeaLevel() < 45)
                     description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
-                description += "Humidity contributes to greenhouse effect.\n\n";
+                if(planet.getHumidity() < 1.5)
+                    description += "Humidity contributes to greenhouse effect.\n\n";
+                else
+                    description += "Extreme humidity significantly increases greenhouse effect.\n\n";
             }
 
             if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater())
@@ -161,8 +164,11 @@ public class SpaceMapScreen extends Screen {
                 description += "The planet is too hot! Water slowly boils away.\n\n";
             }
 
-            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1) {
-                description += "Lots of CO2 in atmosphere increases greenhouse effect.\n\n";
+            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.02) {
+                if(planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
+                    description += "Lots of CO2 in atmosphere significantly increases greenhouse effect.\n\n";
+                else
+                    description += "CO2 in atmosphere increases greenhouse effect.\n\n";
             }
             if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.01) {
                 description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";

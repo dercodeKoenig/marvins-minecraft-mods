@@ -484,12 +484,17 @@ public class PlanetDimension extends Dimension {
         if(getName().equals("Venus")) {
             getGasProperty("co2").in_atm = 0;
             getGasProperty("nitrogen").in_atm = 1;
-            properties().seaLevel = 50;
+            properties().seaLevel = 55;
         }
         if(getName().equals("Earth")) {
             //getGasProperty("co2").in_atm = 0.03;
             //getGasProperty("nitrogen").in_atm = 1;
             //properties().seaLevel = 45;
+        }
+        if(getName().equals("moon")) {
+            getGasProperty("co2").in_atm = 0.05;
+            getGasProperty("nitrogen").in_atm = 1;
+            properties().seaLevel = 55;
         }
     }
 
