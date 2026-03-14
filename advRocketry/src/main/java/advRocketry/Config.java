@@ -34,8 +34,8 @@ public class Config {
 
     // TODO: rework with tick probability, higher probability if in space staion and if has data
     //      observatory should only work when sky is not blocked
-    public double observatory_Find_Planet_P_Per_Tick = (double) 1 / 1000;
-    public double observatory_Find_Asteroid_P_Per_Tick = (double) 1 / 100;
+    public double observatory_Find_Planet_P_Per_Tick = (double) 1 / 20 / 120; // 120s average
+    public double observatory_Find_Asteroid_P_Per_Tick = (double) 1 / 100;  // after 100 data average
     public int observatory_Energy_Per_Tick = 10;
 
     public int astrobody_Data_Processor_Energy_Per_Tick = 100;
