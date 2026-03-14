@@ -34,6 +34,9 @@ public class PlanetDimension extends Dimension {
     public int lastSyncedTemperature100 = 0;
     boolean requiresSync = true;
 
+    // store the sea level used for chunk generation so we know when we have to adjust sea level for a chunk
+    int generatedSeaLevel = 0;
+
     public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
         currentSpeed = Vec3.ZERO;
@@ -59,12 +62,14 @@ public class PlanetDimension extends Dimension {
         if (!dynamicDimensionRegistry.canCreateDimension(getDimensionId()))
             return;
 
+        generatedSeaLevel = getSeaLevel();
+
         System.out.println("creating dimension for " + getDimensionId());
 
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
                 Blocks.WATER.defaultBlockState(),
-                getSeaLevel(),
+                generatedSeaLevel,
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
@@ -479,12 +484,12 @@ public class PlanetDimension extends Dimension {
         if(getName().equals("Venus")) {
             getGasProperty("co2").in_atm = 0;
             getGasProperty("nitrogen").in_atm = 1;
-            properties().seaLevel = 45;
+            properties().seaLevel = 50;
         }
         if(getName().equals("Earth")) {
-            //getGasProperty("co2").in_atm = 0;
+            //getGasProperty("co2").in_atm = 0.03;
             //getGasProperty("nitrogen").in_atm = 1;
-            properties().seaLevel = 45;
+            //properties().seaLevel = 45;
         }
     }
 
