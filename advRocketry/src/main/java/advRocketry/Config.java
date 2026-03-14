@@ -64,10 +64,15 @@ public class Config {
     public double gas_Atm_Ground_Transition_Speed = 0.01 / 20 / 100;
 
     // how fast a planet can change its temperature
+    //  thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100) * planet_Heat_Capacity_Multiplier;
     public double planet_Heat_Capacity_Multiplier = 1;
 
     // co2 is removed from atmosphere as diff * planet_Sea_Lvl_Co2_Reduction_Factor
     // every tick, a fraction of 1 / 50k to the target is closed
     public double planet_Sea_Lvl_Co2_Reduction_Factor = (double) 1 / 50000;
+
+    // how fast co2 is consumed and turned into o2 during photosynthesis
+    // in ideal conditions, it will transfer a total of 1 * planet_Photosynthesis_Factor every tick
+    public double planet_Photosynthesis_Factor = (double) 1 / 500000;
 
 }

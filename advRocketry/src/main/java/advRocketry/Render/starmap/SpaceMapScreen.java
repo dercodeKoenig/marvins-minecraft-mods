@@ -157,8 +157,13 @@ public class SpaceMapScreen extends Screen {
                     description += "Extreme humidity significantly increases greenhouse effect.\n\n";
             }
 
-            if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater())
+            if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater()) {
                 description += "A healthy sea level keeps co2 levels low.\n\n";
+
+                if(PlanetEvents.getPhotosynthesisValue(planet) > 0){
+                    description += "Algae thrive under ideal temperatures, converting co2 into Oxygen.\n\n";
+                }
+            }
 
             if(planet.getSeaLevel() > 0 && planet.getCurrentTemp() > 375){
                 description += "The planet is too hot! Water slowly boils away.\n\n";
@@ -166,9 +171,9 @@ public class SpaceMapScreen extends Screen {
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.02) {
                 if(planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
-                    description += "Lots of CO2 in atmosphere significantly increases greenhouse effect.\n\n";
+                    description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
                 else
-                    description += "CO2 in atmosphere increases greenhouse effect.\n\n";
+                    description += "co2 in atmosphere increases greenhouse effect.\n\n";
             }
             if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.01) {
                 description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";
@@ -176,11 +181,11 @@ public class SpaceMapScreen extends Screen {
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0 &&
                     planet.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.co2).freezingTemp) {
-                description += "CO2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
+                description += "co2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
             }
             if ((planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 || planet.getGasProperty(GasRegistry.co2).frozen_deep_below_surface > 0) &&
                     planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.co2).sublimationTemp) {
-                description += "Frozen CO2 is quickly evaporating, significantly increasing future temperature.\n\n";
+                description += "Frozen co2 is quickly evaporating, significantly increasing future temperature.\n\n";
             }
 
         }

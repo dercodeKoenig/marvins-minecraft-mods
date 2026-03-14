@@ -21,6 +21,7 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.OptionalLong;
 import java.util.Set;
 
@@ -482,9 +483,9 @@ public class PlanetDimension extends Dimension {
         // TODO: remove after testing
         properties().isKnown = true;
         if(getName().equals("Venus")) {
-            getGasProperty("co2").in_atm = 0;
-            getGasProperty("nitrogen").in_atm = 1;
-            properties().seaLevel = 55;
+            //getGasProperty("co2").in_atm = 0;
+            //getGasProperty("nitrogen").in_atm = 1;
+            //properties().seaLevel = 55;
         }
         if(getName().equals("Earth")) {
             //getGasProperty("co2").in_atm = 0.03;
@@ -492,9 +493,9 @@ public class PlanetDimension extends Dimension {
             //properties().seaLevel = 45;
         }
         if(getName().equals("moon")) {
-            getGasProperty("co2").in_atm = 0.1;
-            getGasProperty("nitrogen").in_atm = 1;
-            properties().seaLevel = 50;
+            //getGasProperty("co2").in_atm = 0.1;
+            //getGasProperty("nitrogen").in_atm = 1;
+            //properties().seaLevel = 50;
         }
     }
 
@@ -587,8 +588,9 @@ public class PlanetDimension extends Dimension {
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double insulation = 1.0;
-        insulation += getGasProperty(GasRegistry.co2).in_atm * 10;
-        insulation += getGasProperty(GasRegistry.methane).in_atm * 200;
+        for(String id : List.of(GasRegistry.co2, GasRegistry.methane)) {
+            insulation += getGasProperty(id).in_atm * GasRegistry.gases.get(id).greenhouseFactor;
+        }
 
         //System.out.println("insulation:" + insulation);
 

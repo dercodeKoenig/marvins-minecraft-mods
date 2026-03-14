@@ -79,10 +79,11 @@ public class PlanetEvents {
         tickTemperatureEvents(planet, properties);
 
 
-        // water will reduce co2 up to a target based on sea level
-        // high temperature will make it hold less co2, but then we would have high humidity with plants
-        // and plants would again absorb more co2, so i say temperature cancels out and use sea level only
         if (planet.warmEnoughForWater() && planet.getSeaLevel() > 45) {
+
+            // water will reduce co2 up to a target based on sea level
+            // high temperature will make it hold less co2, but then we would have high humidity with plants
+            // and plants would again absorb more co2, so i say temperature cancels out and use sea level only
             double targetCO2 = (double) 1 / (planet.getSeaLevel() - 30);
             PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
             double diff = co2.in_atm - targetCO2;
@@ -90,10 +91,36 @@ public class PlanetEvents {
                 // absorb some co2. higher diff = higher rate
                 // co2 will simply be "voided" since gas property can either be frozen or in atmosphere,
                 // but not bound in rocks or ocean
-                double toReduce = diff * Config.INSTANCE. planet_Sea_Lvl_Co2_Reduction_Factor;
+                double toReduce = diff * Config.INSTANCE.planet_Sea_Lvl_Co2_Reduction_Factor;
                 co2.in_atm -= toReduce;
                 planet.setRequiresSync();
             }
+
+            PlanetDimensionProperties.GasProperty o2 = planet.getGasProperty(GasRegistry.oxygen);
+            double photosynthesisValue = getPhotosynthesisValue(planet);
+            if (photosynthesisValue > 0) {
+                double toReduce = photosynthesisValue * Config.INSTANCE.planet_Photosynthesis_Factor;
+                toReduce = Math.min(toReduce, co2.in_atm);
+                co2.in_atm -= toReduce;
+                o2.in_atm += toReduce;
+                planet.setRequiresSync();
+            }
         }
+    }
+
+    public static double getPhotosynthesisValue(PlanetDimension planet){
+        PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
+        // if it is very warm, algae will consume co2 and produce oxygen.
+        // this process should significantly slow down as it gets cold and cut off long before freezing point
+        // to prevent taking all co2 from the atmosphere and causing a freeze
+        if (co2.in_atm > 0) {
+            double sweetSpotForAlgae = 273.15 + 30;
+            double maxTemperatureDeviationForAlgae = 15;
+            double photosynthesisValue = 1 - Math.abs(sweetSpotForAlgae - planet.getCurrentTemp()) / maxTemperatureDeviationForAlgae;
+            if (photosynthesisValue > 0) {
+                return photosynthesisValue;
+            }
+        }
+        return 0;
     }
 }
