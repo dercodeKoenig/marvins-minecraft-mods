@@ -259,7 +259,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
 
         public void readClient(String props) {
-            //System.out.println(props);
+            System.out.println(props);
             INSTANCE_CLIENT.loadDimensionFromString(props);
         }
     }

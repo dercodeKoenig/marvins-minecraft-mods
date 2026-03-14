@@ -90,8 +90,7 @@ public class PlanetEvents {
                 // absorb some co2. higher diff = higher rate
                 // co2 will simply be "voided" since gas property can either be frozen or in atmosphere,
                 // but not bound in rocks or ocean
-                double toReduce = diff / Config.INSTANCE. planet_Sea_Lvl_Co2_Reduction_Factor;
-                System.out.println(planet.getDimensionId()+":"+toReduce+":"+co2.in_atm+":"+targetCO2);
+                double toReduce = diff * Config.INSTANCE. planet_Sea_Lvl_Co2_Reduction_Factor;
                 co2.in_atm -= toReduce;
                 planet.setRequiresSync();
             }
