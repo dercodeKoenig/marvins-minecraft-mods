@@ -12,11 +12,11 @@ public class GasRegistry {
     // i suggest: to change a value by 0.01 you have to mine 1000 blocks
     public static final float singleBlockWeight = 0.01f / 1000f;
 
-    public static final String oxygen = "oxygen";
-    public static final String hydrogen = "hydrogen";
-    public static final String nitrogen = "nitrogen";
-    public static final String methane = "methane";
-    public static final String co2 = "co2";
+    public static final String oxygen =     "oxygen";
+    public static final String hydrogen =   "hydrogen";
+    public static final String nitrogen =   "nitrogen";
+    public static final String methane =    "methane";
+    public static final String co2 =        "co2";
 
     public static HashMap<String, Gas> gases = new LinkedHashMap<>();
 
@@ -24,8 +24,8 @@ public class GasRegistry {
         gases.put(oxygen, new Gas(oxygen, 50, 55, Fluids.OXYGEN.get()));
         gases.put(hydrogen, new Gas(hydrogen, 14, 19, Fluids.HYDROGEN.get()));
         gases.put(nitrogen, new Gas(nitrogen, 60, 65, Fluids.NITROGEN.get()));
-        gases.put(methane, new Gas(methane, 85, 90, Fluids.METHANE.get(), 200));
-        gases.put(co2, new Gas(co2, 190, 195, Fluids.CO2.get(), 10));
+        gases.put(methane, new Gas(methane, 85, 90, Fluids.METHANE.get(), 2000));
+        gases.put(co2, new Gas(co2, 190, 195, Fluids.CO2.get(), 100));
     }
 
     public static class Gas {

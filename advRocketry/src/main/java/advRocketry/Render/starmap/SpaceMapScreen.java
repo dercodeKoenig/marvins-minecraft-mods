@@ -31,7 +31,7 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class SpaceMapScreen extends Screen {
-    private final int SIDEBAR_WIDTH = 180;
+    private final int SIDEBAR_WIDTH = 200;
 
     private PlanetDimension selectedPlanet = null;
 
@@ -113,9 +113,22 @@ public class SpaceMapScreen extends Screen {
             description += "Mass: " + String.format("%.2f", planet.getGravitationalMultiplier()) + "g\n\n";
         }
         if (composition >= dataMax) {
-            description += "Composition:\n(atm, surface, underground)\n";
+            // Header with specific spacing
+            description += String.format("%-10s %5s %5s %5s\n", "Gas", "Atm", "Surf", "Deep");
+            description += "---------------\n";
+
             for (String gas : GasRegistry.gases.keySet()) {
-                description += gas + ": " + String.format("%.2f", planet.getGasProperty(gas).in_atm) + ", " + String.format("%.2f", planet.getGasProperty(gas).frozen_surface) + ", " + String.format("%.2f", planet.getGasProperty(gas).frozen_deep_below_surface) + "\n";
+                PlanetDimensionProperties.GasProperty prop = planet.getGasProperty(gas);
+
+                // %-10s  -> Gas name, left-aligned, 10 chars wide
+                // %8.4f  -> Float, 8 chars wide, 4 decimal places
+                // %8.2f  -> Float, 8 chars wide, 2 decimal places
+                description += String.format("%-10s %5.4f %5.4f %5.4f\n",
+                        gas,
+                        prop.in_atm,
+                        prop.frozen_surface,
+                        prop.frozen_deep_below_surface
+                );
             }
             description += "\n";
         }
@@ -180,13 +193,13 @@ public class SpaceMapScreen extends Screen {
                 description += "The planet is too hot! Water slowly boils away.\n\n";
             }
 
-            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.02) {
+            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.002) {
                 if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
                     description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
                 else
                     description += "Co2 in atmosphere increases greenhouse effect.\n\n";
             }
-            if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.01) {
+            if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.001) {
                 description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";
             }
 
@@ -634,7 +647,7 @@ public class SpaceMapScreen extends Screen {
             int viewHeight = yBottom - yTop;
 
             // 1. Draw Sidebar Background & Border
-            guiGraphics.fill(xStart, 0, this.width, this.height, 0xAA000000);
+            guiGraphics.fill(xStart, 0, this.width, this.height, 0xDA000000);
             guiGraphics.vLine(xStart, 0, this.height, 0xFFFFFFFF);
 
             // 2. Draw Title (Fixed at top)

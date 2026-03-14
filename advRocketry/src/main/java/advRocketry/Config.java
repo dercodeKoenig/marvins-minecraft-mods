@@ -73,6 +73,6 @@ public class Config {
 
     // how fast co2 is consumed and turned into o2 during photosynthesis
     // in ideal conditions, it will transfer a total of 1 * planet_Photosynthesis_Factor every tick
-    public double planet_Photosynthesis_Factor = (double) 1 / 500000;
+    public double planet_Photosynthesis_Factor = (double) 1 / 2000000;
 
 }
