@@ -15,6 +15,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 public class EntityOxygenVent extends BlockEntity {
 
     LifeSupportSupplier oxygenSupplier;
+    LifeSupportSupplier heatSupplier;
     public BlockEntityBattery battery;
 
     SimpleFluidContainer fluidContainer;
@@ -32,15 +33,28 @@ public class EntityOxygenVent extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        oxygenSupplier = new LifeSupportSupplier(level, getBlockPos());
-        LifeSupportSystem.registerLifeSupportSupplier(level, oxygenSupplier, LifeSupportSystem.LifeSupportType.OXYGEN_SUPPLIER);
+        oxygenSupplier = new LifeSupportSupplier(level, getBlockPos()){
+            @Override
+            public LifeSupportSystem.LifeSupportType getType() {
+                return LifeSupportSystem.LifeSupportType.OXYGEN_SUPPLIER;
+            }
+        };
+        heatSupplier = new LifeSupportSupplier(level, getBlockPos()){
+            @Override
+            public LifeSupportSystem.LifeSupportType getType() {
+                return LifeSupportSystem.LifeSupportType.HEAT_SUPPLIER;
+            }
+        };
+        LifeSupportSystem.registerLifeSupportSupplier(level, oxygenSupplier);
+        LifeSupportSystem.registerLifeSupportSupplier(level, heatSupplier);
 
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        LifeSupportSystem.removeLifeSupportSupplier(level, oxygenSupplier, LifeSupportSystem.LifeSupportType.OXYGEN_SUPPLIER);
+        LifeSupportSystem.removeLifeSupportSupplier(level, oxygenSupplier);
+        LifeSupportSystem.removeLifeSupportSupplier(level, heatSupplier);
     }
 
     public void tick() {

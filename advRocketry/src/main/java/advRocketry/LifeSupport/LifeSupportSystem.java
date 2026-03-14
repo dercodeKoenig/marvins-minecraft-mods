@@ -80,20 +80,20 @@ public class LifeSupportSystem {
     }
 
     // onload the blockentity should register itself here
-    public static void registerLifeSupportSupplier(Level level, LifeSupportSupplier supplier, LifeSupportType type) {
+    public static void registerLifeSupportSupplier(Level level, LifeSupportSupplier supplier) {
         if (level.isClientSide) return;
         LifeSupportSystems.putIfAbsent(level.dimension().location(), new LifeSupportSystem());
         LifeSupportSystems.get(level.dimension().location())
-                .lifeSupportData.get(type)
+                .lifeSupportData.get(supplier.getType())
                 .allRegisteredSuppliers.add(supplier);
     }
 
     // on setremoved the blockentity should unregister itself
-    public static void removeLifeSupportSupplier(Level level, LifeSupportSupplier supplier, LifeSupportType type) {
+    public static void removeLifeSupportSupplier(Level level, LifeSupportSupplier supplier) {
         if (level.isClientSide) return;
         LifeSupportSystems.putIfAbsent(level.dimension().location(), new LifeSupportSystem());
         LifeSupportSystems.get(level.dimension().location())
-                .lifeSupportData.get(type)
+                .lifeSupportData.get(supplier.getType())
                 .allRegisteredSuppliers.remove(supplier);
     }
 

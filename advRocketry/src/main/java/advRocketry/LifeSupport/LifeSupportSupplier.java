@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 // a block like oxygen vent is an oxygen supplier or creates an instance of it and registers it to the exygen system
-public class LifeSupportSupplier {
+public abstract class LifeSupportSupplier {
 
     private int scannedBlocksCounter = 0;
     private final BlockPos myPos;
@@ -35,6 +35,9 @@ public class LifeSupportSupplier {
     public int getBlockLimit(){
         return 1000;
     }
+
+    // we can not use the same system for different times, would mess up instance variables
+    public abstract LifeSupportSystem.LifeSupportType getType();
 
     public void reset() {
         scannedBlocksCounter = 0;
