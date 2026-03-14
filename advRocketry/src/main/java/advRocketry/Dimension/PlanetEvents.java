@@ -82,7 +82,7 @@ public class PlanetEvents {
         // water will reduce co2 up to a target based on sea level
         // high temperature will make it hold less co2, but then we would have high humidity with plants
         // and plants would again absorb more co2, so i say temperature cancels out and use sea level only
-        if (planet.warmEnoughForWater() && planet.getSeaLevel() > 30) {
+        if (planet.warmEnoughForWater() && planet.getSeaLevel() > 45) {
             double targetCO2 = (double) 1 / (planet.getSeaLevel() - 30);
             PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
             double diff = co2.in_atm - targetCO2;

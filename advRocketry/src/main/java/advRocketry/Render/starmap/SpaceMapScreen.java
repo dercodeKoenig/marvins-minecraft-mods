@@ -154,7 +154,7 @@ public class SpaceMapScreen extends Screen {
                 description += "Humidity contributes to greenhouse effect.\n\n";
             }
 
-            if (planet.getSeaLevel() > 35 && planet.warmEnoughForWater())
+            if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater())
                 description += "A healthy sea level keeps co2 levels low.\n\n";
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1) {
