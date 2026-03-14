@@ -73,11 +73,11 @@ public class PlanetDimensionProperties extends DimensionProperties {
     }
 
     public static class GasProperty {
-        public float in_atm;
-        public float frozen_surface;
-        public float frozen_deep_below_surface;
+        public double in_atm;
+        public double frozen_surface;
+        public double frozen_deep_below_surface;
 
-        public GasProperty(float in_atm, float frozen_surface, float frozen_deep_below_surface) {
+        public GasProperty(double in_atm, double frozen_surface, double frozen_deep_below_surface) {
             this.in_atm = in_atm;
             this.frozen_surface = frozen_surface;
             this.frozen_deep_below_surface = frozen_deep_below_surface;

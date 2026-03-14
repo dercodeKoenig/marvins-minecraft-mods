@@ -37,10 +37,10 @@ public class DryIceBlock extends Block {
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false));
     }
 
-    public static int getTargetThickness(float frozen_co2_level, float noiseTemperature) {
+    public static int getTargetThickness(double frozen_co2_level, float noiseTemperature) {
         if(frozen_co2_level == 0)
             return 0;
-        float noiseThreshold = frozen_co2_level - 0.2f;
+        float noiseThreshold = (float) (frozen_co2_level - 0.2f);
         float difference = noiseThreshold - noiseTemperature;
         if (difference < 0)
             return 0;
@@ -69,11 +69,11 @@ public class DryIceBlock extends Block {
 
         // dry ice should remove itself on block tick when the frozen gas coverage no longer meets the noise temperature
 
-        float frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
-        float frozen_co2_level_at_last_placement = 0; // default
+        double frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
+        double frozen_co2_level_at_last_placement = 0; // default
         String positionKey = String.valueOf(pos0.asLong());
         if (chunkEntry.contains(positionKey)) {
-            frozen_co2_level_at_last_placement = chunkEntry.getFloat(positionKey);
+            frozen_co2_level_at_last_placement = chunkEntry.getDouble(positionKey);
         }
 
         // Check if the CO2 level increased significantly
@@ -113,18 +113,18 @@ public class DryIceBlock extends Block {
                 } else {
                     // do not place ice blocks on things like flowers or water.
                     // mark the corrent co2 level as completed
-                    chunkEntry.putFloat(positionKey, frozen_co2_level);
+                    chunkEntry.putDouble(positionKey, frozen_co2_level);
                     ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
                 }
             } else {
                 // We have enough blocks: mark the position as completed by updating the tag
-                chunkEntry.putFloat(positionKey, frozen_co2_level);
+                chunkEntry.putDouble(positionKey, frozen_co2_level);
                 ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
             }
         }
         // If the level decreased significantly, immediately update the tag to mark the new lower value as completed
         else if (frozen_co2_level < frozen_co2_level_at_last_placement - epsilon) {
-            chunkEntry.putFloat(positionKey, frozen_co2_level);
+            chunkEntry.putDouble(positionKey, frozen_co2_level);
             ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
         }
     }
@@ -146,7 +146,7 @@ public class DryIceBlock extends Block {
         BlockPos pos0 = new BlockPos(pos.getX(), 0, pos.getZ());
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (dim instanceof PlanetDimension planet) {
-            float frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
+            double frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
             float noiseTemperature = ChunkUtils.getNoiseTemperatureAt(planet, pos0); // -1 to 1
 
             int targetThickness = getTargetThickness(frozen_co2_level, noiseTemperature);
@@ -176,25 +176,10 @@ public class DryIceBlock extends Block {
 
 
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if (level.isClientSide) return;
-        // increase surface value for the planet
-        // mostly for testing, this usually should not happen too often...
-        // reduce surface value for the gas
-        Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-        if (dim instanceof PlanetDimension planet) {
-            planet.getGasProperty(GasRegistry.co2).frozen_surface += GasRegistry.singleBlockWeight / planet.getGravitationalMultiplier();
-        }
+        // TODO: increase or reduce level when rocket or railgun adds / removes to the planet
     }
 
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
-
-        if (state.getBlock() != newState.getBlock() && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
-            // reduce surface value for the gas
-            Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-            if (dim instanceof PlanetDimension planet) {
-                planet.getGasProperty(GasRegistry.co2).frozen_surface -= GasRegistry.singleBlockWeight / planet.getGravitationalMultiplier();
-            }
-        }
     }
 }

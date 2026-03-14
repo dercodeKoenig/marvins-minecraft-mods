@@ -1,35 +1,25 @@
 package advRocketry.Dimension;
 
-import ARLib.network.SimpleNetworkPacket;
+import advRocketry.Config;
 import advRocketry.GlobalTime;
-import advRocketry.Main;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
 import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -37,58 +27,27 @@ import java.util.Set;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
-public class PlanetDimension extends Dimension implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+public class PlanetDimension extends Dimension {
 
     public Vec3 currentSpeed = new Vec3(0, 0, 0);
+    // do not sync every time the temperature changes a few ticks.
+    public int lastSyncedTemperature100 = 0;
+    boolean requiresSync = true;
 
     public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
         currentSpeed = Vec3.ZERO;
-
-        if (dimensionManager.isClientSide)
-            // do NOT register on server or whatever is created last will be registered and receives the packet
-            // only the client instance should receive the packet
-            SimpleNetworkPacket.registerReceiver(getNetworkPacketId(), this);
     }
 
-    public String getNetworkPacketId() {
-        return Main.MODID + "_PlanetDimension_" + getDimensionId().toString();
-    }
-
-    // TODO: better register when something changed and send a full update packet.
-    // changes should not happen too frequently anyway
-    public CompoundTag getUpdateTag() {
-        // everything that can change and should be synced to player
-        // but not the entire property file
-        // most important, temp (calculated on server) and gas composition
-        CompoundTag tag = new CompoundTag();
-        tag.putDouble("currentTemp", properties().currentTemp);
-        tag.putString("atmComposition", new Gson().toJson(properties().atmosphereComposition));
-        return tag;
-    }
-
-    public void readClient(String data) {
-        try {
-            CompoundTag tag = TagParser.parseTag(data);
-            if (tag.contains("currentTemp")) {
-                properties().currentTemp = tag.getDouble("currentTemp");
-            }
-            if (tag.contains("atmComposition")) {
-                String atmComposition = tag.getString("atmComposition");
-                Type type = new TypeToken<HashMap<String, PlanetDimensionProperties.GasProperty>>() {
-                }.getType();
-                properties().atmosphereComposition = new Gson().fromJson(atmComposition, type);
-            }
-        } catch (CommandSyntaxException e) {
-            e.printStackTrace();
-        }
+    public void setRequiresSync(){
+        requiresSync = true;
     }
 
     public void updateDimensionProperties(DimensionProperties properties) {
         super.updateDimensionProperties(properties);
     }
 
-    PlanetDimensionProperties properties() {
+    private PlanetDimensionProperties properties() {
         return (PlanetDimensionProperties) properties;
     }
 
@@ -322,9 +281,9 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
     public float getFrozenGasCoverage() {
         float sum = 0;
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
-            sum += gas.frozen_surface;
+            sum += (float) gas.frozen_surface;
         }
-        if (getCurrentTemp() < 273) {
+        if (!canHaveLiquidWater()&& getCurrentTemp() < 370) {
             // water is frozen and contributes
             sum += (float) Math.min(getSeaLevel() / 120.0, 0.8);
         }
@@ -467,10 +426,10 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
 
         if (!isClientSide) {
 
-            if (GlobalTime.getGlobalTime() % 100 == 0) {
-                for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
-                    PacketDistributor.sendToPlayer(player, new SimpleNetworkPacket(getNetworkPacketId(), getUpdateTag().toString()));
-                }
+            if (GlobalTime.getGlobalTime() % 20 == 0 && requiresSync) {
+                requiresSync = false;
+                lastSyncedTemperature100 = (int)(properties().currentTemp * 100);
+                dimensionManager.syncDimensionProperties(this);
             }
 
             ServerLevel level = DimensionManager.getServerLevel(getDimensionId());
@@ -566,6 +525,10 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
             return;
         }
 
+        if(lastSyncedTemperature100 != (int)(properties().currentTemp * 100)) {
+            setRequiresSync();
+        }
+
         // Current state
         double currentTemp = getCurrentTemp();
 
@@ -606,7 +569,7 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         //System.out.println("insulation:" + insulation);
 
         // Water Vapor Feedback
-        if (currentTemp > 273.15) {
+        if (canHaveLiquidWater() && currentTemp < 400) {
             insulation += Math.min(getHumidity(), 50);
         }
 
@@ -622,7 +585,8 @@ public class PlanetDimension extends Dimension implements SimpleNetworkPacket.Si
         // Water and thick atmospheres resist temperature changes.
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
-        thermalMass = 1; // TODO: remove after testing
+        thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
+        //thermalMass = 1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
