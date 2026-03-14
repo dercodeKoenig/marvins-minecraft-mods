@@ -173,7 +173,7 @@ public class SpaceMapScreen extends Screen {
                 if(planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
                     description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
                 else
-                    description += "co2 in atmosphere increases greenhouse effect.\n\n";
+                    description += "Co2 in atmosphere increases greenhouse effect.\n\n";
             }
             if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.01) {
                 description += "Lots of Methane in atmosphere increases greenhouse effect.\n\n";
@@ -181,7 +181,7 @@ public class SpaceMapScreen extends Screen {
 
             if (planet.getGasProperty(GasRegistry.co2).in_atm > 0 &&
                     planet.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.co2).freezingTemp) {
-                description += "co2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
+                description += "Co2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
             }
             if ((planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 || planet.getGasProperty(GasRegistry.co2).frozen_deep_below_surface > 0) &&
                     planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.co2).sublimationTemp) {

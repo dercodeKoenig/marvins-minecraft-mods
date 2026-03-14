@@ -493,8 +493,8 @@ public class PlanetDimension extends Dimension {
             //properties().seaLevel = 45;
         }
         if(getName().equals("moon")) {
-            //getGasProperty("co2").in_atm = 0.1;
-            //getGasProperty("nitrogen").in_atm = 1;
+            //getGasProperty("co2").frozen_deep_below_surface = 0.03;
+            getGasProperty("nitrogen").in_atm = 1;
             //properties().seaLevel = 50;
         }
     }
@@ -612,7 +612,7 @@ public class PlanetDimension extends Dimension {
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
         thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
-        thermalMass = 1; // TODO: remove after testing
+        //thermalMass = 1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.

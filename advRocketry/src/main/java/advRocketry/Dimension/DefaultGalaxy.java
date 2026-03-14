@@ -65,7 +65,7 @@ public class DefaultGalaxy {
         moon.skyColor = SKY_COLOR_OVERWORLD();
         moon.hasRingSystem = true;
         moon.biomePreset = MOON.name;
-        moon.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 0.01f, 0));
+        moon.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 0.13f, 0));
         galaxy.add(moon);
 
 

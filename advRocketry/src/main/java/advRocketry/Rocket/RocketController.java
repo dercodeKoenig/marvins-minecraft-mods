@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.joml.Vector3f;
@@ -473,7 +474,7 @@ public class RocketController {
         }
         if (myDim instanceof PlanetDimension planet) {
             // lower acc near ground where there is probably more atmosphere and whatever it looks better
-            int y = Utils.findGroundY(level(), rocket.blockPosition());
+            int y = -1 + level().getHeight(Heightmap.Types.WORLD_SURFACE, rocket.blockPosition().getX(), rocket.blockPosition().getZ());
             double MAX_STRUCTURAL_ACC = EntityRocket.G * rocket.maxG;
             double h = rocket.position().y - y;
             double minH = 100;
