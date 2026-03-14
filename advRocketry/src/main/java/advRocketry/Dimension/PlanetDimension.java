@@ -492,9 +492,9 @@ public class PlanetDimension extends Dimension {
             //properties().seaLevel = 45;
         }
         if(getName().equals("moon")) {
-            getGasProperty("co2").in_atm = 0.05;
+            getGasProperty("co2").in_atm = 0.1;
             getGasProperty("nitrogen").in_atm = 1;
-            properties().seaLevel = 55;
+            properties().seaLevel = 50;
         }
     }
 
