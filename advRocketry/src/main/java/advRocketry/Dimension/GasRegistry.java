@@ -24,8 +24,8 @@ public class GasRegistry {
         gases.put(oxygen, new Gas(oxygen, 50, 55, Fluids.OXYGEN.get()));
         gases.put(hydrogen, new Gas(hydrogen, 14, 19, Fluids.HYDROGEN.get()));
         gases.put(nitrogen, new Gas(nitrogen, 60, 65, Fluids.NITROGEN.get()));
-        gases.put(methane, new Gas(methane, 85, 90, Fluids.METHANE.get(), 200));
-        gases.put(co2, new Gas(co2, 190, 195, Fluids.CO2.get(), 10));
+        gases.put(methane, new Gas(methane, 85, 90, Fluids.METHANE.get(), 20000));
+        gases.put(co2, new Gas(co2, 190, 195, Fluids.CO2.get(), 1000));
     }
 
     public static class Gas {
