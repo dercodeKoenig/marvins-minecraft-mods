@@ -28,6 +28,10 @@ public class GasRegistry {
         gases.put(co2, new Gas(co2, 190, 195, Fluids.CO2.get(), 1000));
     }
 
+    public static double getInsulationBonus(String gas, double in_atm){
+        return Math.log1p(in_atm * GasRegistry.gases.get(gas).greenhouseFactor);
+    }
+
     public static class Gas {
         public final String id;
         public final int freezingTemp;
