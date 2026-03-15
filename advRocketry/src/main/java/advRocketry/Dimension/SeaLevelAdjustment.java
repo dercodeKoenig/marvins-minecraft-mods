@@ -74,10 +74,26 @@ public class SeaLevelAdjustment {
                 // replace air with water
                 if (blockState.getBlock().equals(Blocks.LAVA)) {
                     level.setBlock(topBlockPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
+                    planet.setRaining();
                     return true;
-                } else if (blockState.isAir()) {
+                } else if (blockState.getBlock().equals(Blocks.WATER) && !blockState.getFluidState().isSource()) {
                     level.setBlock(topBlockPos, Blocks.WATER.defaultBlockState(), placementFlags);
+                    planet.setRaining();
                     return true;
+                }else if(!blockState.getBlock().equals(Blocks.WATER) && blockState.canBeReplaced()){
+                    level.setBlock(topBlockPos, Blocks.WATER.defaultBlockState(), placementFlags);
+                    planet.setRaining();
+                    return true;
+                }
+                else{
+                    // place water above the top block position, as the top block is never air
+                    //the blockstate above top block should always be air
+                    BlockPos aboveTopBlockPos = topBlockPos.above();
+                    if (aboveTopBlockPos.getY() <= seaLevelTarget) {
+                        level.setBlock(aboveTopBlockPos, Blocks.WATER.defaultBlockState(), placementFlags);
+                        planet.setRaining();
+                        return true;
+                    }
                 }
             }
         }
