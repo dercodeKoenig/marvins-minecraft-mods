@@ -165,20 +165,28 @@ public class SpaceMapScreen extends Screen {
 
             // composition analysis
 
-            if (planet.getFrozenGasCoverage() > 0.1 && planet.getFrozenGasCoverage() < 0.6) {
+            double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
+            double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
+            double humidity = planet.getHumidity();
+            double frozenGasCoverage =planet.getFrozenGasCoverage();
+            double oceanFraction = planet.getOceanFraction();
+            double co2Insulation = GasRegistry.getInsulationBonus(GasRegistry.co2, atmCo2);
+            double methaneInsulation = GasRegistry.getInsulationBonus(GasRegistry.methane, atmMethane);
+
+            if (frozenGasCoverage > 0.1 && frozenGasCoverage < 0.6) {
                 description += "Surface partially covered in ice, reducing energy gain.\n\n";
             }
-            if (planet.getFrozenGasCoverage() >= 0.6) {
+            if (frozenGasCoverage >= 0.6) {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if (planet.getOceanFraction() < 0.2 && planet.getHumidity() > 0.5)
+            if (oceanFraction < 0.2 && humidity > 0.5)
                 description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
-            if (planet.getHumidity() > 0.2 && planet.getHumidity() < 1.5)
-                description += "Humidity contributes to greenhouse effect.\n\n";
-            if (planet.getHumidity() >= 1.5)
-                description += "Extreme humidity significantly increases greenhouse effect.\n\n";
+            if (humidity > 0.1 && co2Insulation + methaneInsulation > 0.5)
+                description += "Humidity increases greenhouse effect, but reflective clouds reduce overall energy gain.\n\n";
+            if (humidity > 0.1 && co2Insulation + methaneInsulation <= 0.5)
+                description += "Humidity contributes to greenhouse effect, but the formation of reflective clouds reduces overall impact.\n\n";
 
             double co2OceanReductionTargetPercent = PlanetEvents.handleOceanCo2Reduction(planet, true) * 100;
             if (co2OceanReductionTargetPercent > 0) {
@@ -195,17 +203,20 @@ public class SpaceMapScreen extends Screen {
                 description += "The planet is too hot! Water slowly boils away.\n\n";
             }
 
-            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.01) {
-                if (planet.getGasProperty(GasRegistry.co2).in_atm > 0.1)
+            if (atmCo2 > 0.0002) {
+                if (atmCo2 > 0.1)
                     description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
                 else
-                    description += "Co2 in atmosphere increases greenhouse effect.\n\n";
+                    description += "Co2 in the atmosphere increases greenhouse effect.\n\n";
             }
-            if (planet.getGasProperty(GasRegistry.methane).in_atm > 0.001) {
-                description += "Methane in atmosphere significantly increases greenhouse effect.\n\n";
+            if (atmMethane > 0.0001) {
+                description += "Methane in the atmosphere significantly increases greenhouse effect.\n\n";
             }
 
-            if (planet.getGasProperty(GasRegistry.co2).in_atm > 0 &&
+
+
+
+            if (atmCo2 > 0 &&
                     planet.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.co2).freezingTemp) {
                 description += "Co2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
             }
