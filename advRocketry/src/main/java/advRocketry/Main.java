@@ -32,6 +32,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -61,9 +62,11 @@ import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Matrix4f;
 
 import java.io.File;
@@ -81,20 +84,21 @@ public class Main {
     public Main(IEventBus modEventBus, ModContainer modContaine) {
         // game events
         if (FMLLoader.getDist().isClient()) {
-            NeoForge.EVENT_BUS.addListener(this::onRenderStage);
+            NeoForge.EVENT_BUS.addListener(WorldEvents::onRenderStage);
             NeoForge.EVENT_BUS.addListener(Fog::renderFogEvent);
             NeoForge.EVENT_BUS.addListener(Fog::computeFogColorEvent);
-            NeoForge.EVENT_BUS.addListener(this::onClientTick);
-            NeoForge.EVENT_BUS.addListener(this::CalculateDetachedCameraDistance);
+            NeoForge.EVENT_BUS.addListener(WorldEvents::onClientTick);
+            NeoForge.EVENT_BUS.addListener(WorldEvents::CalculateDetachedCameraDistance);
         }
-        NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
-        NeoForge.EVENT_BUS.addListener(this::onDimensionChange);
-        NeoForge.EVENT_BUS.addListener(this::onServerTick);
-        NeoForge.EVENT_BUS.addListener(this::onServerStarted);
-        NeoForge.EVENT_BUS.addListener(this::onServerStop);
-        NeoForge.EVENT_BUS.addListener(this::onChunkLoad);
-        NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
-        NeoForge.EVENT_BUS.addListener(this::onLivingFallEvent);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onPlayerJoin);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onDimensionChange);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onServerTick);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onServerStarted);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onServerStop);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onChunkLoad);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onEntityInteract);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onLivingFallEvent);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onSourceCreate);
 
         // mod loading
         modEventBus.addListener(this::registerShaders);
@@ -135,167 +139,6 @@ public class Main {
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
         BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
 
-    }
-
-    /// game events ////////////////////////////////
-
-    void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer p) {
-            for (Dimension i : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
-                DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, i);
-            }
-            DimensionManager.SyncDimensionList.syncDimensionListToPlayer(p);
-        }
-    }
-
-    void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
-        ResourceLocation to = event.getTo().location();
-        if (event.getEntity() instanceof ServerPlayer player) {
-            Dimension dim = DimensionManager.INSTANCE_SERVER.get(to);
-            if (dim != null) {
-                DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(player, dim);
-            }
-        }
-    }
-
-    void onServerTick(ServerTickEvent.Post event) {
-        long t0 = System.nanoTime();
-        DimensionManager.INSTANCE_SERVER.tick();
-        GlobalTime.tickServer();
-        ForcedChunkManager.tick();
-        LifeSupportSystem.serverTick();
-        SatelliteManager.serverTick();
-        MissionManager.serverTick();
-        //System.out.println((double)(System.nanoTime() - t0) / 1000 / 1000);
-    }
-
-    void onClientTick(ClientTickEvent.Post event) {
-        if (ClientUtils.getPlayerLevel() == null) return; // my stuff is only for when playing
-        DimensionManager.INSTANCE_CLIENT.tick();
-        GlobalTime.tickClient();
-        EntityRocket.onClientTickEvent();
-
-        Dimension myDimension = ClientUtils.getPlayerDimension();
-        if (myDimension != null) {
-            Vec3 myPos = myDimension.getPosition(0);
-            PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
-        }
-
-        RocketParticleEngine.tick();
-    }
-
-    void onServerStarted(ServerStartedEvent event) {
-        Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
-        System.out.println("set world path: " + worldPath);
-        GlobalTime.load(); // important to load the time first!
-        DimensionManager.INSTANCE_SERVER.onServerStart(); // create dimensions next
-        ForcedChunkManager.restoreForcedChunks(); // restore forced chunks after dimensions are created
-        MissionManager.onServerStart();
-        SatelliteManager.onServerStart();
-        ItemAsteroidIdChip.onServerStart();
-    }
-
-    void onServerStop(ServerStoppingEvent event) {
-        SatelliteManager.onServerStop();
-        MissionManager.onServerStop();
-        ForcedChunkManager.saveForcedChunks();
-        DimensionManager.INSTANCE_SERVER.onServerStop();
-        GlobalTime.save();
-    }
-
-    void onRenderStage(RenderLevelStageEvent event) {
-        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
-        boolean is_fabulous = Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS;
-
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
-            //if(true)return;
-            Matrix4f proj = event.getProjectionMatrix();
-            Matrix4f view = event.getModelViewMatrix();
-            SkyRenderer.INSTANCE.renderSky(proj, view, partialTick);
-        }
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            // clouds will render next, disable stupid fog
-            FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
-
-            if (is_fabulous)
-                RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
-        }
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
-            // make it render after clouds then
-            if (!is_fabulous)
-                RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
-        }
-
-    }
-
-    void onChunkLoad(ChunkEvent.Load event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
-            // perform some terraforming checks and replacement rules on new chunks
-
-            // placement flags:
-            // 2  -> sync to player
-            // 16 -> no neighbor update (if i read it correctly)
-
-            if (event.isNewChunk()) {
-                long t0 = System.nanoTime();
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        int xB = event.getChunk().getPos().getBlockX(x);
-                        int zB = event.getChunk().getPos().getBlockZ(z);
-
-                        boolean shouldFreezeWater = !planet.warmEnoughForWater();
-
-                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
-                            BlockPos pos = new BlockPos(xB, y, zB);
-                            BlockState state = serverLevel.getBlockState(pos);
-
-                            // freeze water if possible
-                            if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
-                                serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
-                            }
-                        }
-
-                        SeaLevelAdjustment.saveInitialSeaLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
-                        while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, xB, zB, 2 | 16)) {
-                            continue; // nothing to do, all the action happens above
-                        }
-
-                        while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
-                            continue; // nothing to do, all the action happens above
-                        }
-                    }
-                }
-                //System.out.println("block replacement on chunk load: " + (double) (System.nanoTime() - t0) / 1000 / 1000);
-            }
-        }
-    }
-
-    void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
-        if (ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
-            int rocketsize = rocket.size.getY();
-            event.setDistance(event.getDistance() + rocketsize * 1.3f);
-        }
-    }
-
-    void onLivingFallEvent(LivingFallEvent event) {
-        Level l = event.getEntity().level();
-        float g = 1;
-        Dimension d = DimensionManager.getDimensionManager(l.isClientSide).get(l.dimension().location());
-        if (d != null)
-            g = d.getGravitationalMultiplier();
-        event.setDamageMultiplier(event.getDamageMultiplier() * g);
-    }
-
-    void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        ItemStack stack = event.getItemStack();
-        Player p = event.getEntity();
-        Entity target = event.getTarget();
-        if (stack.getItem() instanceof ItemLinker) {
-            if (ItemLinker.useOnEntity(p, stack, target)) {
-                event.setCancellationResult(InteractionResult.SUCCESS);
-                event.setCanceled(true);
-            }
-        }
     }
 
     /// mod load events /////////////////////////////////////

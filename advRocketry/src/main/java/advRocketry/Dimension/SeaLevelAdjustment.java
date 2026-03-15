@@ -12,6 +12,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public class SeaLevelAdjustment {
     public static String tagKey = "SeaLevelAdjustment";
 
+    // saves the original sea level used by the chunk generator to the chunk tag
     public static void saveInitialSeaLevelOnChunkGeneration(ServerLevel level, ChunkAccess chunk, int blockX, int blockZ) {
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
