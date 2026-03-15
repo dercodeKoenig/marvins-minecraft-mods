@@ -119,7 +119,7 @@ public class LifeSupportSystem {
                     if (e instanceof LivingEntity livingEntity) {
                         if (!canSurviveAt(level, livingEntity.blockPosition())) {
                             livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
-                            if(livingEntity instanceof Player player){
+                            if(livingEntity instanceof Player player && !player.isCreative() && !player.isSpectator()){
                                 String msg = "Life Support Warning: \n";
                                 for (Dimension.SurvivalProblem p  : problems) {
                                     msg += p.reason+"\n";
