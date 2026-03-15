@@ -46,7 +46,9 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
 
     // world gen related configs
-    public int seaLevel = 0;
+    public int seaLevelWorldgen = 0;
+    public int lavaLevelWorldgen = 0;
+    public double seaLevel = 0;
     public boolean generateStructures = false;
     public String biomePreset = null;
     public boolean generateVolcanos = false;

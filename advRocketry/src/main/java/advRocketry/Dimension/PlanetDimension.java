@@ -32,9 +32,6 @@ public class PlanetDimension extends Dimension {
     public int lastSyncedTemperature100 = 0;
     boolean requiresSync = true;
 
-    // store the sea level used for chunk generation so we know when we have to adjust sea level for a chunk
-    int generatedSeaLevel = 0;
-
     public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
         currentSpeed = Vec3.ZERO;
@@ -60,14 +57,12 @@ public class PlanetDimension extends Dimension {
         if (!dynamicDimensionRegistry.canCreateDimension(getDimensionId()))
             return;
 
-        generatedSeaLevel = getSeaLevel();
-
         System.out.println("creating dimension for " + getDimensionId());
 
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
                 Blocks.WATER.defaultBlockState(),
-                generatedSeaLevel,
+                properties().seaLevelWorldgen,
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
@@ -303,15 +298,24 @@ public class PlanetDimension extends Dimension {
         return Math.min(1, sum);
     }
 
-    public int getSeaLevel() {
+    public double getCurrentSeaLevel() {
         return properties().seaLevel;
     }
 
     public double getOceanFraction() {
-        int offset = 40;
-        int adjustedSeaLevel = (getSeaLevel() - offset); // the world does not really have ocean any lower
-        int maxSeaLevel = 100 - offset;
-        return Math.clamp((double) adjustedSeaLevel / maxSeaLevel, 0, 1);
+        double offset = 40;     // the world does not really have ocean any lower
+        double adjustedSeaLevel = (getCurrentSeaLevel() - offset);
+        double maxSeaLevel = 120 - offset;
+        // adjust for lava, if lava exists
+        double heightAboveLavaLevel = getCurrentSeaLevel() - properties().lavaLevelWorldgen;
+        if(heightAboveLavaLevel >= 0)
+            // if sea level is just slightly above lava level, ocean fraction is signifiantly reduced
+            adjustedSeaLevel *= Math.min(1, heightAboveLavaLevel);
+        else{
+            // lava is above sea level, no oceans
+            adjustedSeaLevel= 0;
+        }
+        return Math.clamp(adjustedSeaLevel / maxSeaLevel, 0, 1);
     }
 
     public double getHumidity() {

@@ -156,7 +156,8 @@ public class SpaceMapScreen extends Screen {
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
 
             if (planet.canVisit()) {
-                description += "Sea level: " + planet.getSeaLevel() + "\n";
+                description += "Sea level: " + String.format("%.2f", planet.getCurrentSeaLevel()) + "\n";
+                description += "Ocean Fraction: " + String.format("%.2f", planet.getOceanFraction()) + "\n";
                 description += "Humidity: " + String.format("%.2f", planet.getHumidity()) + "\n";
                 description += "Liquid water possible: " + (planet.warmEnoughForWater() && planet.getCurrentTemp() < 373) + "\n\n";
             }
@@ -171,25 +172,26 @@ public class SpaceMapScreen extends Screen {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if (planet.getHumidity() > 0.2) {
-                if (planet.getSeaLevel() < 45)
-                    description += "Extreme heat has forced most water into the atmosphere.\n\n";
+            if (planet.getOceanFraction() < 0.2 && planet.getHumidity() > 0.5)
+                description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
-                if (planet.getHumidity() < 1.5)
-                    description += "Humidity contributes to greenhouse effect.\n\n";
-                else
-                    description += "Extreme humidity significantly increases greenhouse effect.\n\n";
+            if (planet.getHumidity() > 0.2 && planet.getHumidity() < 1.5)
+                description += "Humidity contributes to greenhouse effect.\n\n";
+            if (planet.getHumidity() >= 1.5)
+                description += "Extreme humidity significantly increases greenhouse effect.\n\n";
+
+            double co2OceanReductionTargetPercent = PlanetEvents.handleOceanCo2Reduction(planet, true) * 100;
+            if (co2OceanReductionTargetPercent > 0) {
+                description += "A healthy sea level keeps co2 levels low (" +
+                        String.format("%.2f", co2OceanReductionTargetPercent) +
+                        "%).\n\n";
             }
 
-            if (planet.getSeaLevel() > 45 && planet.warmEnoughForWater()) {
-                description += "A healthy sea level keeps co2 levels low.\n\n";
-
-                if (PlanetEvents.getPhotosynthesisValue(planet) > 0) {
-                    description += "Algae thrive under ideal temperatures, converting co2 into Oxygen.\n\n";
-                }
+            if (PlanetEvents.handlePhotosynthesis(planet, true) > 0) {
+                description += "Algae thrive under ideal temperatures, converting co2 into Oxygen.\n\n";
             }
 
-            if (planet.getSeaLevel() > 0 && planet.getCurrentTemp() > 375) {
+            if (PlanetEvents.boilWaterWhenTooHot(planet, null, true)) {
                 description += "The planet is too hot! Water slowly boils away.\n\n";
             }
 
@@ -212,6 +214,13 @@ public class SpaceMapScreen extends Screen {
                 description += "Frozen co2 is quickly evaporating, significantly increasing future temperature.\n\n";
             }
 
+
+            if (planet.getAtmosphereDensity() < 0.1) {
+                if (planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 ||
+                        planet.getOceanFraction() > 0.1
+                )
+                    description += "Railgun usage possible to extract fluids or ice.\n\n";
+            }
         }
 
         return description;
