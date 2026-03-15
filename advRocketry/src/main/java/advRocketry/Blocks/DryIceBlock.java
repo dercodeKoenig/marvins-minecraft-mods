@@ -94,6 +94,8 @@ public class DryIceBlock extends Block {
 
             for (int i = 0; i < scanDepth; i++) {
                 BlockPos scanPos = topBlock.below(i);
+                if(scanPos.getY() <= level.getMinBuildHeight())
+                    return false;
                 BlockState state = level.getBlockState(scanPos);
 
                 if (state.getBlock() instanceof DryIceBlock) {

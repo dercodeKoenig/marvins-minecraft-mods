@@ -42,59 +42,46 @@ public class SeaLevelAdjustment {
             System.out.println(GlobalTime.getGlobalTime() + ":" + planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
             // sea level has to be possibly adjusted
 
-            // rules:
-            // only top blocks will be evaporated or placed
-            // when lava is top block, we replace lava with stone downward until we hit a non lava top block
-
             int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-            BlockPos topBlockPos = new BlockPos(blockX, y - 1, blockZ);
-            BlockState blockState = level.getBlockState(topBlockPos);
+            BlockPos topSolidOrWaterBlockPos = new BlockPos(blockX, y - 1, blockZ);
+            BlockState blockState = level.getBlockState(topSolidOrWaterBlockPos);
 
-            // adjust top block pos lower while there is lava
-            while (blockState.getBlock().equals(Blocks.LAVA)) {
-                BlockPos below = topBlockPos.below();
-                BlockState belowState = level.getBlockState(below);
-                if (belowState.getBlock().equals(Blocks.LAVA)) {
-                    blockState = belowState;
-                    topBlockPos = below;
-                }else
-                    // breaks once the block below the adjusted top block is not lava
-                    break;
-            }
-            System.out.println(blockState);
-
-            if (topBlockPos.getY() > seaLevelTarget) {
-                if (blockState.getBlock().equals(Blocks.WATER) && blockState.getFluidState().isSource()) {
+            // remove any water above sea level
+            for (int scanY = topSolidOrWaterBlockPos.getY(); scanY > seaLevelTarget; scanY--) {
+                BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
+                BlockState scanState = level.getBlockState(scanPos);
+                if (scanState.getBlock().equals(Blocks.WATER) &&
+                        scanState.getFluidState().isSource()) {
                     // water above target sea level requires to be removed
-                    level.setBlock(topBlockPos, Blocks.AIR.defaultBlockState(), placementFlags);
+                    level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
+                    planet.setClearWeather();
                     return true;
                 }
-            } else {
-                // when below or equal to target sea level,
-                // replace lava with obsidian
-                // replace air with water
-                if (blockState.getBlock().equals(Blocks.LAVA)) {
-                    level.setBlock(topBlockPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
+            }
+
+            // adjust top block pos lower while there is not full blocks or no water source
+            while (!blockState.isRedstoneConductor(level, topSolidOrWaterBlockPos) &&
+                    !(blockState.getBlock().equals(Blocks.WATER) && blockState.getFluidState().isSource())) {
+                topSolidOrWaterBlockPos = topSolidOrWaterBlockPos.below();
+                blockState = level.getBlockState(topSolidOrWaterBlockPos);
+                if (topSolidOrWaterBlockPos.getY() <= level.getMinBuildHeight())
+                    return false;
+            }
+            System.out.println(blockState + ":" + topSolidOrWaterBlockPos);
+
+            // scan back up to find the first replaceable block above the first solid block
+            for (int scanY = topSolidOrWaterBlockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
+                BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
+                BlockState scanState = level.getBlockState(scanPos);
+
+                if (scanState.getBlock().equals(Blocks.LAVA)) {
+                    level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
                     planet.setRaining();
                     return true;
-                } else if (blockState.getBlock().equals(Blocks.WATER) && !blockState.getFluidState().isSource()) {
-                    level.setBlock(topBlockPos, Blocks.WATER.defaultBlockState(), placementFlags);
+                } else if (scanState.canBeReplaced()) {
+                    level.setBlock(scanPos, Blocks.WATER.defaultBlockState(), placementFlags);
                     planet.setRaining();
                     return true;
-                }else if(!blockState.getBlock().equals(Blocks.WATER) && blockState.canBeReplaced()){
-                    level.setBlock(topBlockPos, Blocks.WATER.defaultBlockState(), placementFlags);
-                    planet.setRaining();
-                    return true;
-                }
-                else{
-                    // place water above the top block position, as the top block is never air
-                    //the blockstate above top block should always be air
-                    BlockPos aboveTopBlockPos = topBlockPos.above();
-                    if (aboveTopBlockPos.getY() <= seaLevelTarget) {
-                        level.setBlock(aboveTopBlockPos, Blocks.WATER.defaultBlockState(), placementFlags);
-                        planet.setRaining();
-                        return true;
-                    }
                 }
             }
         }
