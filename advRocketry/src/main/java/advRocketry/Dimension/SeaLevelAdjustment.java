@@ -63,7 +63,7 @@ public class SeaLevelAdjustment {
             }
 
             if (topBlockPos.getY() > seaLevelTarget) {
-                if (blockState.getBlock().equals(Blocks.WATER)) {
+                if (blockState.getBlock().equals(Blocks.WATER) && blockState.getFluidState().isSource()) {
                     // water above target sea level requires to be removed
                     level.setBlock(topBlockPos, Blocks.AIR.defaultBlockState(), placementFlags);
                     return true;
