@@ -2,6 +2,7 @@ package advRocketry.Dimension;
 
 import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
+import advRocketry.GlobalTime;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -20,20 +21,32 @@ public class PlanetEvents {
     // called from server level mixin
     public static void performRandomTickEvents(PlanetDimension planet, ServerLevel level, LevelChunk chunk) {
 
-        // pick a random position to work
         ChunkPos chunkPos = chunk.getPos();
-        int blockX = chunkPos.getBlockX(level.random.nextInt(16));
-        int blockZ = chunkPos.getBlockZ(level.random.nextInt(16));
 
-        int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-        int blockY = level.random.nextIntBetweenInclusive(worldSurface - 10, worldSurface);
+        int speed = 20;
 
-        // places dry ice if there is lots of frozen co2 on surface
-        // should take way below < 1ms to check with 4 checks a tick on average, probably even lower when nothing to do
-        if (level.random.nextInt(100) == 0) {
+        if ((GlobalTime.getGlobalTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
 
+            // 1. Get the current time in seconds
+            long currentSecond = GlobalTime.getGlobalTime() / speed;
+
+            // 2. Create a deterministic offset for this specific chunk.
+            // Multiplying by prime numbers spreads out the starting positions wildly across the world.
+            long chunkOffset = Math.abs((long) chunkPos.x * 31337L + (long) chunkPos.z * 31L);
+
+            // 3. Calculate the index within the 0-255 range (16x16 blocks = 256 total)
+            int blockIndex = (int) ((currentSecond + chunkOffset) % 256);
+
+            // 4. Convert the 1D index back into 2D local chunk coordinates (0-15)
+            int localX = blockIndex % 16;
+            int localZ = blockIndex / 16;
+
+            // 5. Get the actual world coordinates
+            int blockX = chunkPos.getBlockX(localX);
+            int blockZ = chunkPos.getBlockZ(localZ);
+
+            // Run the logic on the targeted block
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
-
             SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, blockX, blockZ, 3);
         }
     }
@@ -132,7 +145,7 @@ public class PlanetEvents {
                 double toReduce = photosynthesisValue * Config.INSTANCE.planet_Photosynthesis_Factor;
                 toReduce = Math.min(toReduce, co2.in_atm);
                 if (!simulate) {
-                   co2.in_atm -= toReduce;
+                    co2.in_atm -= toReduce;
                     o2.in_atm += toReduce;
                     planet.setRequiresSync();
                 }
