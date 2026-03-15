@@ -38,7 +38,7 @@ public class DryIceBlock extends Block {
     }
 
     public static int getTargetThickness(double frozen_co2_level, float noiseTemperature) {
-        if(frozen_co2_level == 0)
+        if (frozen_co2_level == 0)
             return 0;
         float noiseThreshold = (float) (frozen_co2_level - 0.2f);
         float difference = noiseThreshold - noiseTemperature;
@@ -48,12 +48,13 @@ public class DryIceBlock extends Block {
         return targetThickness;
     }
 
-    public static void placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ) {
+    public static boolean placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ) {
         // normal flags
-        placeDryIceIfPossible(planet, blockX, blockZ, 3);
+        return placeDryIceIfPossible(planet, blockX, blockZ, 3);
     }
 
-    public static void placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
+    // returns true if a block was placed, false if the xz position is considered fully worked
+    public static boolean placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
         ServerLevel level = DimensionManager.getServerLevel(planet.getDimensionId());
         ChunkAccess chunk = level.getChunk(pos0);
@@ -106,10 +107,12 @@ public class DryIceBlock extends Block {
                     // Not enough blocks: place exactly ONE more block on top of the surface.
                     // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
                     level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                    return true;
                 } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
                     // directly replace the top block like grass
                     // but still requires solid block below
                     level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                    return true;
                 } else {
                     // do not place ice blocks on things like flowers or water.
                     // mark the corrent co2 level as completed
@@ -127,6 +130,7 @@ public class DryIceBlock extends Block {
             chunkEntry.putDouble(positionKey, frozen_co2_level);
             ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
         }
+        return false;
     }
 
 

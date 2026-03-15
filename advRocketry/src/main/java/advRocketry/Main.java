@@ -250,11 +250,10 @@ public class Main {
                             }
                         }
 
-                        for (int i = 0; i < 20; i++) {
-                            // the ice could be multiple blocks so i run it multiple times (it is still fast enough)
+                        while(DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)){
                             // 2  -> sync to player
                             // 16 -> no neighbor update (if i read it correctly)
-                            DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16);
+                            continue; // nothing to do, all the action happens above
                         }
                     }
                 }
