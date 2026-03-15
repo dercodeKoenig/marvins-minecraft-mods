@@ -27,14 +27,15 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
 public class PlanetDimension extends Dimension {
 
-    public Vec3 currentSpeed = new Vec3(0, 0, 0);
+    public ServerLevel level = null; // null if no planet dimension exists
+
+    Vec3 currentSpeed = Vec3.ZERO;
     // do not sync every time the temperature changes a few ticks.
-    public int lastSyncedTemperature100 = 0;
+    int lastSyncedTemperature100 = 0;
     boolean requiresSync = true;
 
     public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
-        currentSpeed = Vec3.ZERO;
     }
 
     public void setRequiresSync() {
@@ -72,7 +73,7 @@ public class PlanetDimension extends Dimension {
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType(fixedTime);
         ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(getDimensionId(), generator, type);
         if (l == null) {
-            dynamicDimensionRegistry.createDynamicDimension(
+            l = dynamicDimensionRegistry.createDynamicDimension(
                     getDimensionId(),
                     generator,
                     type
@@ -81,6 +82,9 @@ public class PlanetDimension extends Dimension {
         } else {
             System.out.println("loaded dimension for " + getDimensionId());
         }
+
+        this.level= l;
+
         // maybe for terraforming to change biomes:
         // or try to set from a noise source? using the same biome source and level noise source?
         // ((PalettedContainer) l.getChunk(0,0).getSection(0).getBiomes()).get;
@@ -300,6 +304,16 @@ public class PlanetDimension extends Dimension {
 
     public double getCurrentSeaLevel() {
         return properties().seaLevel;
+    }
+
+    public int getWorldgenSeaLevel() {
+        // this is the one used for actual water placement
+        // planet events will adjust seaLevelWorldgen if required
+        return properties().seaLevelWorldgen;
+    }
+
+    public int getWorldgenLavaLevel() {
+        return properties().lavaLevelWorldgen;
     }
 
     public double getOceanFraction() {

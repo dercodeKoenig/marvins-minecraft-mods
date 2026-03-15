@@ -33,8 +33,6 @@ public class PlanetEvents {
         if (level.random.nextInt(100) == 0) {
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
         }
-
-
     }
 
     public static boolean boilWaterWhenTooHot(PlanetDimension planet, PlanetDimensionProperties properties, boolean simulate) {

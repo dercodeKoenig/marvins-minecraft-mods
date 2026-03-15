@@ -231,6 +231,11 @@ public class Main {
     void onChunkLoad(ChunkEvent.Load event) {
         if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
             // perform some terraforming checks and replacement rules on new chunks
+
+            // placement flags:
+            // 2  -> sync to player
+            // 16 -> no neighbor update (if i read it correctly)
+
             if (event.isNewChunk()) {
                 long t0 = System.nanoTime();
                 for (int x = 0; x < 16; x++) {
@@ -250,9 +255,12 @@ public class Main {
                             }
                         }
 
-                        while(DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)){
-                            // 2  -> sync to player
-                            // 16 -> no neighbor update (if i read it correctly)
+                        SeaLevelAdjustment.saveInitialSeaLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
+                        while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, xB, zB, 2 | 16)) {
+                            continue; // nothing to do, all the action happens above
+                        }
+
+                        while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
                             continue; // nothing to do, all the action happens above
                         }
                     }
