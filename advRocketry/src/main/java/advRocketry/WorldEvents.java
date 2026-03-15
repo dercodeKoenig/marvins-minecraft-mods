@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -30,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.CalculateDetachedCameraDistanceEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -214,6 +216,17 @@ public class WorldEvents {
                     e.setCanConvert(false);
                 }
             }
+        }
+    }
+
+    public static void onEntitySpawn(EntityJoinLevelEvent event) {
+        // prevent living entities to spawn where it is impossible
+        if (event.getLevel().isClientSide()) return;
+        if (event.getEntity() instanceof Player) return;
+        if (!(event.getEntity() instanceof LivingEntity)) return;
+
+        if (!LifeSupportSystem.canSurviveAt(event.getLevel(), event.getEntity().blockPosition())) {
+            event.setCanceled(true);
         }
     }
 }

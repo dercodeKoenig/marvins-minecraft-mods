@@ -40,6 +40,13 @@ public class PlanetDimension extends Dimension {
         requiresSync = true;
     }
 
+    public void setRaining() {
+        // when chunks are currently increasing sea level, it should rain!
+        ServerLevel level = level();
+        if (level != null && canRain())
+            level.setWeatherParameters(0, 20 * 10, true, false);
+    }
+
     public void updateDimensionProperties(DimensionProperties properties) {
         super.updateDimensionProperties(properties);
     }
@@ -480,9 +487,6 @@ public class PlanetDimension extends Dimension {
             if (level != null) {
                 if (!canRain()) {
                     level.setWeatherParameters(100, 0, false, false);
-                } else {
-                    //level.setWeatherParameters(0, 100, true, false);
-                    // TODO: custom weather logic
                 }
             }
 
@@ -510,7 +514,7 @@ public class PlanetDimension extends Dimension {
         if(getName().equals("Venus")) {
             //getGasProperty("co2").in_atm = 0;
             //getGasProperty("nitrogen").in_atm = 1;
-            //properties().seaLevel = 55;
+            properties().seaLevel = 62;
         }
         if(getName().equals("Earth")) {
             //getGasProperty("co2").in_atm = 0.03;

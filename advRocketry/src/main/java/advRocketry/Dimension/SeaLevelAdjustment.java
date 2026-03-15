@@ -61,6 +61,7 @@ public class SeaLevelAdjustment {
                     // breaks once the block below the adjusted top block is not lava
                     break;
             }
+            System.out.println(blockState);
 
             if (topBlockPos.getY() > seaLevelTarget) {
                 if (blockState.getBlock().equals(Blocks.WATER) && blockState.getFluidState().isSource()) {
