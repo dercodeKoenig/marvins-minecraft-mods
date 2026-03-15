@@ -46,6 +46,7 @@ public class PlanetDimension extends Dimension {
         if (level != null && canRain())
             level.setWeatherParameters(0, 20 * 1000, true, false);
     }
+
     public void setClearWeather() {
         // when chunks are currently increasing sea level, it should rain!
         ServerLevel level = level();
@@ -61,7 +62,7 @@ public class PlanetDimension extends Dimension {
         return (PlanetDimensionProperties) properties;
     }
 
-    public ServerLevel level(){
+    public ServerLevel level() {
         return DimensionManager.getServerLevel(getDimensionId());
     }
 
@@ -148,9 +149,9 @@ public class PlanetDimension extends Dimension {
         if (co2 > 0.01 * pressure)
             problems.add(SurvivalProblem.TOO_MUCH_CO2);
 
-        if(getCurrentTemp() < 273 - 30)
+        if (getCurrentTemp() < 273 - 30)
             problems.add(SurvivalProblem.TOO_COLD);
-        if(getCurrentTemp() > 273 + 40)
+        if (getCurrentTemp() > 273 + 40)
             problems.add(SurvivalProblem.TOO_HOT);
 
         return problems;
@@ -335,12 +336,12 @@ public class PlanetDimension extends Dimension {
         double maxSeaLevel = 120 - offset;
         // adjust for lava, if lava exists
         double heightAboveLavaLevel = getCurrentSeaLevel() - properties().lavaLevelWorldgen;
-        if(heightAboveLavaLevel >= 0)
+        if (heightAboveLavaLevel >= 0)
             // if sea level is just slightly above lava level, ocean fraction is signifiantly reduced
             adjustedSeaLevel *= Math.min(1, heightAboveLavaLevel);
-        else{
+        else {
             // lava is above sea level, no oceans
-            adjustedSeaLevel= 0;
+            adjustedSeaLevel = 0;
         }
         return Math.clamp(adjustedSeaLevel / maxSeaLevel, 0, 1);
     }
@@ -517,17 +518,17 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         properties().isKnown = true;
-        if(getName().equals("Venus")) {
+        if (getName().equals("Venus")) {
             //getGasProperty("co2").in_atm = 0;
             //getGasProperty("nitrogen").in_atm = 1;
             //properties().seaLevel = 50;
         }
-        if(getName().equals("Earth")) {
-            //getGasProperty("co2").in_atm = 0.03;
+        if (getName().equals("Earth")) {
+            //getGasProperty("co2").in_atm = 0.005;
             //getGasProperty("nitrogen").in_atm = 1;
             //properties().seaLevel = 45;
         }
-        if(getName().equals("moon")) {
+        if (getName().equals("moon")) {
             //getGasProperty("co2").frozen_deep_below_surface = 0.03;
             getGasProperty("nitrogen").in_atm = 1;
             //properties().seaLevel = 50;
@@ -595,7 +596,7 @@ public class PlanetDimension extends Dimension {
         // --- UNIVERSAL GAME CONSTANTS ---
         // This is the Stefan-Boltzmann constant scaled for the game's energy units.
         // It determines how aggressively planets try to radiate heat away.
-        final double EMISSION_CONSTANT = 0.0000000003;
+        final double EMISSION_CONSTANT = 0.00000000032;
 
         // 1. CALCULATE INCOMING ENERGY (Ein)
         double solarFlux = 0.0;
@@ -610,37 +611,37 @@ public class PlanetDimension extends Dimension {
 
         // Albedo (Reflectivity)
         double oceanFraction = getOceanFraction();
+        // base albedo
         double albedo = 0.3;
+        // ice reflects light
         albedo += (getFrozenGasCoverage() * 0.6);
+        // oceans are dark
         albedo += -(oceanFraction * 0.1);
+        // humidity makes white clouds, white clouds reflect light
+        albedo += Math.clamp(getHumidity(), 0, 1) * 0.4;
+        // final value clip
         albedo = Math.max(0.05, Math.min(albedo, 0.9));
-        //System.out.println(albedo);
 
         // The actual energy absorbed by the planet
         double energyIn = solarFlux * (1.0 - albedo);
-        //System.out.println("energyIn:" + energyIn);
 
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double insulation = 1.0;
-        for(String id : List.of(GasRegistry.co2, GasRegistry.methane)) {
-            insulation += getGasProperty(id).in_atm * GasRegistry.gases.get(id).greenhouseFactor;
+        for (String id : List.of(GasRegistry.co2, GasRegistry.methane)) {
+            double bonus = GasRegistry.getInsulationBonus(id, getGasProperty(id).in_atm);
+            insulation += bonus;
         }
-
-        //System.out.println("insulation:" + insulation);
 
         // Water Vapor Feedback
         if (warmEnoughForWater()) {
             insulation += Math.min(getHumidity(), 50);
         }
 
-        //System.out.println("insulation after water:" + insulation);
-
         // 3. CALCULATE OUTGOING ENERGY (Eout)
         // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.
         // The insulation divides the outgoing energy, trapping it.
         double energyOut = (EMISSION_CONSTANT * Math.pow(currentTemp, 4)) / insulation;
-        //System.out.println("energyOut:" + energyOut);
 
         // 4. CALCULATE THERMAL MASS (Inertia)
         // Water and thick atmospheres resist temperature changes.
