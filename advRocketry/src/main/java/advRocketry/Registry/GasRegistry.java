@@ -1,6 +1,5 @@
-package advRocketry.Dimension;
+package advRocketry.Registry;
 
-import advRocketry.Registry.Fluids;
 import net.minecraft.world.level.material.Fluid;
 
 import java.util.HashMap;

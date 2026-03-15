@@ -3,14 +3,13 @@ package advRocketry.Blocks;
 import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Registry.Blocks;
+import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,7 +18,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class DryIceBlock extends Block {

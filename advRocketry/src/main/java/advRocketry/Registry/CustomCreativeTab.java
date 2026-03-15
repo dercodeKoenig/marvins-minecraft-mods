@@ -1,7 +1,6 @@
-package advRocketry;
+package advRocketry.Registry;
 
 
-import advRocketry.Registry.Items;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;

@@ -5,6 +5,7 @@ import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.*;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemGalaxyDatabase;
+import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Utils.CelestialUtils;

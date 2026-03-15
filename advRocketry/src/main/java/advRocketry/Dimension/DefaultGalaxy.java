@@ -1,6 +1,7 @@
 package advRocketry.Dimension;
 
 import advRocketry.Main;
+import advRocketry.Registry.GasRegistry;
 import advRocketry.Worldgen.presets.HOT;
 import advRocketry.Worldgen.presets.MOON;
 import com.google.gson.GsonBuilder;

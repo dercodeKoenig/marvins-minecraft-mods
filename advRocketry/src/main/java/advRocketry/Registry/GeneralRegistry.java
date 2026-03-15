@@ -1,6 +1,5 @@
 package advRocketry.Registry;
 
-import advRocketry.CustomCreativeTab;
 import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
 import net.minecraft.core.particles.ParticleType;

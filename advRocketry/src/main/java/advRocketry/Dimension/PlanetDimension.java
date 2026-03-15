@@ -2,6 +2,7 @@ package advRocketry.Dimension;
 
 import advRocketry.Config;
 import advRocketry.GlobalTime;
+import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
