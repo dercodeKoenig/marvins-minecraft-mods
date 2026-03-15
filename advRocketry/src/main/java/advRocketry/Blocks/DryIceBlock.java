@@ -102,10 +102,11 @@ public class DryIceBlock extends Block {
             }
 
             if (existingDryIceCount < targetThickness) {
+                // Not enough blocks: place exactly ONE more block on top of the surface.
+                // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
                 BlockState topBlockState = level.getBlockState(topBlock);
                 if (topBlockState.isFaceSturdy(level, topBlock, Direction.UP)) {
-                    // Not enough blocks: place exactly ONE more block on top of the surface.
-                    // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
+                    // do not place ice blocks on things like flowers or water.
                     level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
                     return true;
                 } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
@@ -113,17 +114,14 @@ public class DryIceBlock extends Block {
                     // but still requires solid block below
                     level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
                     return true;
-                } else {
-                    // do not place ice blocks on things like flowers or water.
-                    // mark the corrent co2 level as completed
-                    chunkEntry.putDouble(positionKey, frozen_co2_level);
-                    ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
                 }
-            } else {
-                // We have enough blocks: mark the position as completed by updating the tag
-                chunkEntry.putDouble(positionKey, frozen_co2_level);
-                ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
             }
+
+            // We have enough blocks or placement was not possible
+            // mark the position as completed by updating the tag
+            chunkEntry.putDouble(positionKey, frozen_co2_level);
+            ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
+
         }
         // If the level decreased significantly, immediately update the tag to mark the new lower value as completed
         else if (frozen_co2_level < frozen_co2_level_at_last_placement - epsilon) {
