@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import advRocketry.GlobalTime;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -38,7 +39,7 @@ public class SeaLevelAdjustment {
 
 
         if (seaLevelTarget != seaLevelExisting) {
-            System.out.println(planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
+            System.out.println(GlobalTime.getGlobalTime() + ":" + planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
             // sea level has to be possibly adjusted
 
             // rules:
@@ -56,8 +57,9 @@ public class SeaLevelAdjustment {
                 if (belowState.getBlock().equals(Blocks.LAVA)) {
                     blockState = belowState;
                     topBlockPos = below;
-                }
-                // breaks once the block below the adjusted top block is not lava
+                }else
+                    // breaks once the block below the adjusted top block is not lava
+                    break;
             }
 
             if (topBlockPos.getY() > seaLevelTarget) {
