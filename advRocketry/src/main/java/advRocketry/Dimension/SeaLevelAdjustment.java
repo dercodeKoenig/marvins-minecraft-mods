@@ -39,7 +39,7 @@ public class SeaLevelAdjustment {
 
 
         if (seaLevelTarget != seaLevelExisting) {
-            System.out.println(GlobalTime.getGlobalTime() + ":" + planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
+            //System.out.println(GlobalTime.getGlobalTime() + ":" + planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
             // sea level has to be possibly adjusted
 
             int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
@@ -67,7 +67,7 @@ public class SeaLevelAdjustment {
                 if (topSolidOrWaterBlockPos.getY() <= level.getMinBuildHeight())
                     return false;
             }
-            System.out.println(blockState + ":" + topSolidOrWaterBlockPos);
+            //System.out.println(blockState + ":" + topSolidOrWaterBlockPos);
 
             // scan back up to find the first replaceable block above the first solid block
             for (int scanY = topSolidOrWaterBlockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
