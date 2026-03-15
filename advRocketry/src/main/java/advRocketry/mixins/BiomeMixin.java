@@ -38,7 +38,7 @@ public abstract class BiomeMixin {
             cancellable = true)
     public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
         if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
-            if (dimension.getCurrentTemp() > 350) {
+            if (dimension.getCurrentTemp() > 310) {
                 // too hot for any ice, even in frozen biomes
                 ci.setReturnValue(false);
                 ci.cancel();
