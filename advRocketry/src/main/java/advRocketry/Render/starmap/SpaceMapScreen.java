@@ -182,7 +182,7 @@ public class SpaceMapScreen extends Screen {
 
             double co2OceanReductionTargetPercent = PlanetEvents.handleOceanCo2Reduction(planet, true) * 100;
             if (co2OceanReductionTargetPercent > 0) {
-                description += "A healthy sea level keeps co2 levels low (" +
+                description += "A healthy sea level keeps co2 levels low (max " +
                         String.format("%.2f", co2OceanReductionTargetPercent) +
                         "%).\n\n";
             }
