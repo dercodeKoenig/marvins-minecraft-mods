@@ -13,16 +13,15 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 public class PlanetEvents {
 
-    public static void handleDimensionTransfer(ResourceLocation from, ResourceLocation to, FluidStack stack) {
-
-    }
-
     public static void handleDimensionTransfer(ResourceLocation from, ResourceLocation to, ItemStack stack) {
         // should be called by rocket on teleport / railgun when it carries items during teleport
         // scan all items / fluids and add / remove atm composition on entry / exit
         // for itemstacks, check if the itemstack is a fluidhandler containing fluid or maybe an itemhandler and scan recursive
         //new ItemStack().getCapability(Capabilities.ItemHandler.ITEM)
 
+        // EDIT: NO!
+        // I no longer want it!
+        // composition transfer should be more easy
 
     }
 

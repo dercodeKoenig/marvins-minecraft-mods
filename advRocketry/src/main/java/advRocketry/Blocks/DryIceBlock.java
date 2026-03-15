@@ -181,10 +181,10 @@ public class DryIceBlock extends Block {
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
 
-        // to prevent dry ice farming,
-        // surface levels should increase / decrease only on placement / removal, but not on dimension transfer
-        // this also fits more in minecraft style where you break a block and it is voided
-        // it also makes it more attractive to cool a planet to freezing and not compress atm and fly it away in rocket
+        // dry ice should be added / removed from composition on place / break
+        // item entity should replace it back into composition on despawn
+        // maybe adjust max stack size so you can not put an entire planet in a chest
+
         if (level.isClientSide) return;
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
