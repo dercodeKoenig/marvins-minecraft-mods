@@ -25,14 +25,20 @@ public class SeaLevelAdjustment {
     // returns true if a block was placed, false if the xz position is considered fully worked
     public static boolean adjustSeaLevelIfRequired(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
-        ServerLevel level = planet.level;
+        ServerLevel level = planet.level();
         ChunkAccess chunk = level.getChunk(pos0);
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
         String positionKey = String.valueOf(pos0.asLong());
-        // the position should be initially saved on chunk generation, so it should always be here
-        int seaLevelExisting = chunkEntry.getInt(positionKey);
+
         int seaLevelTarget = planet.getWorldgenSeaLevel();
+        int seaLevelExisting = -100;
+        if (chunkEntry.contains(positionKey))
+            // the position should be initially saved on chunk generation, so it should always be here
+            seaLevelExisting = chunkEntry.getInt(positionKey);
+
+
         if (seaLevelTarget != seaLevelExisting) {
+            System.out.println(planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
             // sea level has to be possibly adjusted
 
             // rules:

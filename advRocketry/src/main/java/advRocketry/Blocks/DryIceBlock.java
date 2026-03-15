@@ -56,7 +56,7 @@ public class DryIceBlock extends Block {
     // returns true if a block was placed, false if the xz position is considered fully worked
     public static boolean placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
-        ServerLevel level = DimensionManager.getServerLevel(planet.getDimensionId());
+        ServerLevel level = planet.level();
         ChunkAccess chunk = level.getChunk(pos0);
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, dryIceDataTag);
 

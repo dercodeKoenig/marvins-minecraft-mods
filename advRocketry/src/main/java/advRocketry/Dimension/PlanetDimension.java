@@ -27,8 +27,6 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
 public class PlanetDimension extends Dimension {
 
-    public ServerLevel level = null; // null if no planet dimension exists
-
     Vec3 currentSpeed = Vec3.ZERO;
     // do not sync every time the temperature changes a few ticks.
     int lastSyncedTemperature100 = 0;
@@ -48,6 +46,10 @@ public class PlanetDimension extends Dimension {
 
     private PlanetDimensionProperties properties() {
         return (PlanetDimensionProperties) properties;
+    }
+
+    public ServerLevel level(){
+        return DimensionManager.getServerLevel(getDimensionId());
     }
 
     public void createDimension() {
@@ -82,8 +84,6 @@ public class PlanetDimension extends Dimension {
         } else {
             System.out.println("loaded dimension for " + getDimensionId());
         }
-
-        this.level= l;
 
         // maybe for terraforming to change biomes:
         // or try to set from a noise source? using the same biome source and level noise source?

@@ -37,7 +37,7 @@ public class ChunkUtils {
 
 
     public static float getNoiseTemperatureAt(PlanetDimension planet, BlockPos pos) {
-        ServerLevel level = DimensionManager.getServerLevel(planet.getDimensionId());
+        ServerLevel level = planet.level();
 
         RandomState randomState = level.getChunkSource().randomState();
 

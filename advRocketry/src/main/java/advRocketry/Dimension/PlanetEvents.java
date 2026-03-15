@@ -31,7 +31,10 @@ public class PlanetEvents {
         // places dry ice if there is lots of frozen co2 on surface
         // should take way below < 1ms to check with 4 checks a tick on average, probably even lower when nothing to do
         if (level.random.nextInt(100) == 0) {
+
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
+
+            SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, blockX, blockZ, 3);
         }
     }
 
@@ -128,8 +131,8 @@ public class PlanetEvents {
                 PlanetDimensionProperties.GasProperty o2 = planet.getGasProperty(GasRegistry.oxygen);
                 double toReduce = photosynthesisValue * Config.INSTANCE.planet_Photosynthesis_Factor;
                 toReduce = Math.min(toReduce, co2.in_atm);
-                if(!simulate) {
-                    co2.in_atm -= toReduce;
+                if (!simulate) {
+                   co2.in_atm -= toReduce;
                     o2.in_atm += toReduce;
                     planet.setRequiresSync();
                 }
@@ -139,9 +142,9 @@ public class PlanetEvents {
         return 0;
     }
 
-    public static void adjustWorldgenSeaLevelIfRequired(PlanetDimension planet, PlanetDimensionProperties properties){
+    public static void adjustWorldgenSeaLevelIfRequired(PlanetDimension planet, PlanetDimensionProperties properties) {
         // do not use round, i want some significant change before i adjust worldgen sea level
-        if(Math.abs(properties.seaLevel - properties.seaLevelWorldgen) > 0.6){
+        if (Math.abs(properties.seaLevel - properties.seaLevelWorldgen) > 0.6) {
             properties.seaLevelWorldgen = (int) Math.round(properties.seaLevel);
             planet.setRequiresSync();
         }
