@@ -55,9 +55,10 @@ public class PlanetEvents {
         // slowly reduced target sea level while too hot
         // water will simply be voided, it is way too complicated to handle it in atm
         // because it would heavily interfere with player placed water and would not allow a sea level changing satellite
-        if (planet.getCurrentTemp() > 375) {
+        if (planet.getCurrentTemp() > 375 && planet.getCurrentSeaLevel() > 0) {
             if (!simulate) {
                 properties.seaLevel -= 0.001;
+                properties.seaLevel = Math.max(0, properties.seaLevel);
                 planet.setRequiresSync();
             }
             return true;
