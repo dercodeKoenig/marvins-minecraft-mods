@@ -3,18 +3,26 @@ package advRocketry.Dimension;
 import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
 import advRocketry.GlobalTime;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 public class PlanetEvents {
 
-    public static void handleDimensionTransfer() {
+    public static void handleDimensionTransfer(ResourceLocation from, ResourceLocation to, FluidStack stack) {
+
+    }
+
+    public static void handleDimensionTransfer(ResourceLocation from, ResourceLocation to, ItemStack stack) {
         // should be called by rocket on teleport / railgun when it carries items during teleport
         // scan all items / fluids and add / remove atm composition on entry / exit
         // for itemstacks, check if the itemstack is a fluidhandler containing fluid or maybe an itemhandler and scan recursive
         //new ItemStack().getCapability(Capabilities.ItemHandler.ITEM)
+
 
     }
 
@@ -46,7 +54,7 @@ public class PlanetEvents {
             int blockZ = chunkPos.getBlockZ(localZ);
 
             // Run the logic on the targeted block
-            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ);
+            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);
             SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, blockX, blockZ, 3);
         }
     }

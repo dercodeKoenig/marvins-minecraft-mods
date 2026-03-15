@@ -54,10 +54,10 @@ public class Config {
 
 
     // how much adding / removing 1000mb(1 bucket) of liquid should impact atmosphere composition
-    // default: 10000 buckets of fluid modify the composition by 1% of earth atmosphere
-    //          so you would require to remove 100 * 10k buckets to fully drain a gas
+    // default: 50000 buckets of fluid modify the composition by 1% of earth atmosphere
+    //          so you would require to remove 100 * 50k buckets to fully drain a gas
     //          if it ha sa presence of 1 in atmosphere
-    public double fluid_Contribution_To_Composition_Per_1000MB = 0.01 / 10000;
+    public double fluid_Contribution_To_Composition_Per_1000MB = 0.01 / 50000;
 
     // how much gas should evaporate or freeze per tick when temperature falls / rises above the threshold
     // default: 100 seconds for a difference of 0.01

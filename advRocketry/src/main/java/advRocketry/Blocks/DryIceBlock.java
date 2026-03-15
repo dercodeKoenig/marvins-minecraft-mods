@@ -1,9 +1,7 @@
 package advRocketry.Blocks;
 
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.GasRegistry;
-import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Config;
+import advRocketry.Dimension.*;
 import advRocketry.Registry.Blocks;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
@@ -22,6 +20,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class DryIceBlock extends Block {
 
@@ -37,6 +36,11 @@ public class DryIceBlock extends Block {
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false));
     }
 
+    public static double getCompositionModifier(PlanetDimension planet){
+        // a block is worth much more than a bucket
+        return 100 * Config.INSTANCE.fluid_Contribution_To_Composition_Per_1000MB / planet.getGravitationalMultiplier();
+    }
+
     public static int getTargetThickness(double frozen_co2_level, float noiseTemperature) {
         if (frozen_co2_level == 0)
             return 0;
@@ -46,11 +50,6 @@ public class DryIceBlock extends Block {
             return 0;
         int targetThickness = 1 + (int) (difference / 0.3f);
         return targetThickness;
-    }
-
-    public static boolean placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ) {
-        // normal flags
-        return placeDryIceIfPossible(planet, blockX, blockZ, 3);
     }
 
     // returns true if a block was placed, false if the xz position is considered fully worked
@@ -94,7 +93,7 @@ public class DryIceBlock extends Block {
 
             for (int i = 0; i < scanDepth; i++) {
                 BlockPos scanPos = topBlock.below(i);
-                if(scanPos.getY() <= level.getMinBuildHeight())
+                if (scanPos.getY() <= level.getMinBuildHeight())
                     return false;
                 BlockState state = level.getBlockState(scanPos);
 
@@ -141,7 +140,7 @@ public class DryIceBlock extends Block {
 
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.isClientSide) return;
-        if (level.random.nextInt(20) != 0) return;
+        if (level.random.nextInt(5) != 0) return;
         // we remove dry ice if the planet has not enough ice on surface to meet the threshold
 
         if (level.getBlockState(pos.above()).getBlock() instanceof DryIceBlock)
@@ -179,11 +178,35 @@ public class DryIceBlock extends Block {
     }
 
 
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        // TODO: increase or reduce level when rocket or railgun adds / removes to the planet
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+
+        // to prevent dry ice farming,
+        // surface levels should increase / decrease only on placement / removal, but not on dimension transfer
+        // this also fits more in minecraft style where you break a block and it is voided
+        // it also makes it more attractive to cool a planet to freezing and not compress atm and fly it away in rocket
+        if (level.isClientSide) return;
+
+        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+            if (!Objects.equals(oldState.getBlock(), state.getBlock())) {
+                PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
+                co2.frozen_surface += getCompositionModifier(planet);
+                System.out.println(co2.frozen_surface);
+            }
+        }
     }
 
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
+
+        if(level.isClientSide)return;
+
+        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+            if (!Objects.equals(newState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
+                PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
+                co2.frozen_surface -= Math.min(getCompositionModifier(planet), co2.frozen_surface);
+                System.out.println(co2.frozen_surface);
+            }
+        }
     }
 }
