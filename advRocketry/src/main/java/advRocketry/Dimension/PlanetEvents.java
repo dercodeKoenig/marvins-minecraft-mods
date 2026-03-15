@@ -124,8 +124,8 @@ public class PlanetEvents {
                     co2.in_atm -= toReduce;
                     planet.setRequiresSync();
                 }
-                return targetCO2;
             }
+            return targetCO2;
         }
         return -1;
     }
