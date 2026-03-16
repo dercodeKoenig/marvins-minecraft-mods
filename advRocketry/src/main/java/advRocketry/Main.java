@@ -104,7 +104,6 @@ public class Main {
         // mod loading
         modEventBus.addListener(this::registerShaders);
         modEventBus.addListener(this::addCreative);
-        modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerParticles);
@@ -200,10 +199,6 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(Blocks.STRUCTURE_TOWER.get(), RenderType.cutout());
     }
 
     void registerParticles(RegisterParticleProvidersEvent event) {

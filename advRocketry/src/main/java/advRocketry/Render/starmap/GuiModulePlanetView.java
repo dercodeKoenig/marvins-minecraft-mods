@@ -186,6 +186,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
                 new Vector3f(0, 0, 0),
                 0,
                 false,
+                1,
                 partialTick
         );
 
@@ -197,6 +198,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
                     new Matrix4f(),
                     planetMatrix,
                     renderScale,
+                    1,
                     partialTick
             );
         }

@@ -12,6 +12,7 @@
 
         { "name": "scale", "type": "float", "count": 1, "values": [3] },
         { "name": "planetGeometryScale", "type": "float", "count": 1, "values": [3] },
+        { "name": "BrightnessMultiplier", "type": "float", "count": 1, "values": [ 1.0 ]},
 
         { "name": "LightCount", "type": "int", "count": 1, "values": [0] },
 

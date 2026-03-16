@@ -7,6 +7,7 @@ uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
 uniform vec3 LightVectors[MAX_LIGHTS];
 uniform int LightCount;
 
+uniform float BrightnessMultiplier;
 uniform vec4 emissiveColor;      // planet’s self-emission (rgb + intensity)
 uniform float AtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
@@ -75,7 +76,7 @@ void main() {
         / (dist * dist);
 
 
-        totalReflectedLight += reflected;
+        totalReflectedLight += reflected * BrightnessMultiplier;
     }
 
     vec3 emitted = vec3(0,0,0);

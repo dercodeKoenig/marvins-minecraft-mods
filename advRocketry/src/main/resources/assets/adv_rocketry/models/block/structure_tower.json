@@ -1,5 +1,6 @@
 {
   "parent": "block/cube",
+  "render_type": "minecraft:cutout",
   "textures": {
     "down": "adv_rocketry:block/structure_tower",
     "up": "adv_rocketry:block/structure_tower",

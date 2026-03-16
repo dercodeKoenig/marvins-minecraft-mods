@@ -7,6 +7,8 @@ uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
 uniform vec3 LightVectors[MAX_LIGHTS];
 uniform int LightCount;
 
+uniform float BrightnessMultiplier;
+
 in vec2 texcoord;
 in vec3 viewDir;
 in vec3 normalUniverseSpace;
@@ -111,7 +113,7 @@ void main() {
         vec3 L = normalize(LightVectors[i]);
         vec3 C = LightColors[i].rgb * LightColors[i].a;
 
-        vec3 C1 = C  / (distance*distance);
+        vec3 C1 = C  / (distance*distance) * BrightnessMultiplier;
 
         float shadowFactor = getSoftShadowFactorApprox(
             position,

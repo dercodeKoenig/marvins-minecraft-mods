@@ -74,6 +74,7 @@ public class SkyRenderer {
             Vector3f myCurrentFogColor,
             float playerHeightAboveSea,
             boolean isMyDimension,
+            float brightnessModifider,
             float partialtick
     ) {
         RenderSystem.setShader(shaderUtils::getPlanetShader);
@@ -102,6 +103,8 @@ public class SkyRenderer {
 
         Vector3f TargetReflectiveTextureTintColor = RenderUtils.gamma_reverse(planetDimension.getReflectiveTextureTintColor());
         shader.getUniform("TargetReflectiveTextureTintColor").set(TargetReflectiveTextureTintColor);
+
+        shader.getUniform("BrightnessMultiplier").set(brightnessModifider);
 
         shader.getUniform("playerHeight").set(playerHeightAboveSea);
 
@@ -144,6 +147,7 @@ public class SkyRenderer {
             Matrix4f worldMatrix,
             Matrix4f planetMatrix,
             float planetGeometryScale,
+            float brightnessModifider,
             float partialtick
     ) {
         // nice thing, the planet matrix is already transformed
@@ -160,6 +164,8 @@ public class SkyRenderer {
 
         shader.getUniform("scale").set(4f);
         shader.getUniform("planetGeometryScale").set(planetGeometryScale);
+
+        shader.getUniform("BrightnessMultiplier").set(brightnessModifider);
 
         int totalLights = 0;
         Vec3 myPosition = planetDimension.getPosition(partialtick);
@@ -492,6 +498,7 @@ public class SkyRenderer {
                         myCurrentSpaceObject.computeTerrainFogColor(partialtick),
                         playerHeightAboveSea,
                         isMyDimension,
+                        1,
                         partialtick
                 );
 
@@ -505,6 +512,7 @@ public class SkyRenderer {
                         worldMatrix,
                         planetMatrix,
                         (float) planetGeometryScale,
+                        1,
                         partialtick
                 );
             }
