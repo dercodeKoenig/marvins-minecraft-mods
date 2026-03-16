@@ -104,6 +104,7 @@ public class Main {
         // mod loading
         modEventBus.addListener(this::registerShaders);
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::onClientSetup);
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerParticles);
@@ -199,6 +200,22 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    void onClientSetup(FMLClientSetupEvent event) {
+        ItemBlockRenderTypes.setRenderLayer(Fluids.ROCKET_FUEL.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.OXYGEN.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.HYDROGEN.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.NITROGEN.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.METHANE.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.CO2.get(), RenderType.translucent());
+
+        ItemBlockRenderTypes.setRenderLayer(Fluids.ROCKET_FUEL_FLOWING.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.OXYGEN_FLOWING.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.HYDROGEN_FLOWING.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.NITROGEN_FLOWING.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.METHANE_FLOWING.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Fluids.CO2_FLOWING.get(), RenderType.translucent());
     }
 
     void registerParticles(RegisterParticleProvidersEvent event) {
