@@ -108,7 +108,7 @@ public class DefaultGalaxy {
         jupyter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupyter");
         jupyter.parentDimensionId = sun.dimensionId;
         jupyter.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/jupyter_ico_1k.png");
-        jupyter.orbitalDistanceToParent = 2f;
+        jupyter.orbitalDistanceToParent = 5f;
         jupyter.earthRadiusMultiplier = 10f;
         jupyter.gravitationalMultiplier = 30f;
         jupyter.canGasMine = true;
@@ -138,7 +138,7 @@ public class DefaultGalaxy {
         saturn.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "saturn");
         saturn.parentDimensionId = sun.dimensionId;
         saturn.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/saturn_ico_1k.png");
-        saturn.orbitalDistanceToParent = 3f;
+        saturn.orbitalDistanceToParent = 8f;
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 10f;
         saturn.hasRingSystem = true;
@@ -149,7 +149,7 @@ public class DefaultGalaxy {
         PlanetDimensionProperties titan = new PlanetDimensionProperties();
         titan.name = "Titan";
         titan.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "titan");
-        titan.parentDimensionId = jupyter.dimensionId;
+        titan.parentDimensionId = saturn.dimensionId;
         titan.dayTimeReference = sun.dimensionId;
         titan.currentTemp = 100;
         titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");;

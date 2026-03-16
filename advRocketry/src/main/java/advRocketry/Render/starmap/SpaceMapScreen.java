@@ -114,22 +114,18 @@ public class SpaceMapScreen extends Screen {
             description += "Mass: " + String.format("%.2f", planet.getGravitationalMultiplier()) + "g\n\n";
         }
         if (composition >= dataMax) {
-            // Header with specific spacing
-            description += String.format("%-10s %5s %5s %5s\n", "Gas", "Atm", "Surf", "Deep");
-            description += "---------------\n";
+            description += String.format("Composition:\n");
 
             for (String gas : GasRegistry.gases.keySet()) {
                 PlanetDimensionProperties.GasProperty prop = planet.getGasProperty(gas);
-
-                // %-10s  -> Gas name, left-aligned, 10 chars wide
-                // %8.4f  -> Float, 8 chars wide, 4 decimal places
-                // %8.2f  -> Float, 8 chars wide, 2 decimal places
-                description += String.format("%-10s %5.4f %5.4f %5.4f\n",
-                        gas,
-                        prop.in_atm,
-                        prop.frozen_surface,
-                        prop.frozen_deep_below_surface
-                );
+                if (prop.in_atm > 0)
+                    description += "g  " + String.format("%-10s", gas) + String.format("%.5f", prop.in_atm) + "\n";
+                if (prop.liquid > 0)
+                    description += "l   " + String.format("%-10s", gas) + String.format("%.5f", prop.liquid) + "\n";
+                if (prop.frozen_surface > 0)
+                    description += "s  " + String.format("%-10s", gas) + String.format("%.5f", prop.frozen_surface) + "\n";
+                if (prop.frozen_deep_below_surface > 0)
+                    description += "sg " + String.format("%-10s", gas) + String.format("%.5f", prop.frozen_deep_below_surface) + "\n";
             }
             description += "\n";
         }
