@@ -123,7 +123,8 @@ public class DefaultGalaxy {
         europa.dayTimeReference = sun.dimensionId;
         europa.currentTemp = 100;
         europa.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");;
-        europa.orbitalDistanceToParent = 0.01f;
+        europa.orbitalDistanceToParent = 0.02f;
+        europa.orbitalBaseOffsetDegrees = 90;
         europa.earthRadiusMultiplier = 0.5f;
         europa.gravitationalMultiplier = 0.3f;
         europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
