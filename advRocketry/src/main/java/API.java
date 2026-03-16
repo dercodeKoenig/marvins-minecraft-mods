@@ -20,10 +20,12 @@ public class API {
         return 0;
     }
 
-    public static void addGasInBuckets(ResourceLocation levelId, String gasId, double buckets, boolean isClientside) {
-        if (getDimension(levelId, isClientside) instanceof PlanetDimension planet) {
+    public static void addGasInBuckets(ResourceLocation levelId, String gasId, double buckets) {
+        if (getDimension(levelId, false) instanceof PlanetDimension planet) {
             double toAdd = buckets * Config.INSTANCE.fluid_Contribution_To_Composition_Per_1000MB / planet.getGravitationalMultiplier();
             planet.getGasProperty(gasId).in_atm += toAdd;
+            planet.getGasProperty(gasId).in_atm = Math.max(0, planet.getGasProperty(gasId).in_atm);
+            planet.setRequiresSync();
         }
     }
 
