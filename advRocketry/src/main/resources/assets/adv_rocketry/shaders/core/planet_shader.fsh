@@ -54,7 +54,7 @@ void main() {
         float viewAngle = 1.0 - abs(dot(N, viewDir));
         // rim intensity (thicker with higher TargetAtmDensity)
         // the thing that glows on the side
-        float rim = pow(viewAngle, 4);  // the more at the side the more atmosphere we will see
+        float rim = pow(viewAngle, 2);  // the more at the side the more atmosphere we will see
 
         vec3 atmLight =
          2 * rim * atmLightFactor * TargetSkyColor // the atm glow around the planet
