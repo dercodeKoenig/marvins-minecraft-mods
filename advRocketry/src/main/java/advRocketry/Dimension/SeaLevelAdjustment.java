@@ -100,12 +100,12 @@ public class SeaLevelAdjustment {
                     return true;
                 }
             }
+
+            // if no replacement happen, mark the position as completed so it will not be worked again
+            chunkEntry.putInt(positionKey, seaLevelTarget);
+            ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
+
         }
-
-        // if no replacement happen, mark the position as completed
-        chunkEntry.putInt(positionKey, seaLevelTarget);
-        ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
-
         return false;
     }
 }

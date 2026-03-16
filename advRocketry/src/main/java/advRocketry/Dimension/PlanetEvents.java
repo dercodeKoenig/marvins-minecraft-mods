@@ -14,7 +14,7 @@ public class PlanetEvents {
 
         ChunkPos chunkPos = chunk.getPos();
 
-        int speed = 20;
+        int speed = 1;
 
         if ((level.getGameTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
 
