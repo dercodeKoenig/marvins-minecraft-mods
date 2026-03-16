@@ -141,7 +141,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
 
         public boolean maybeBoil(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity, boolean simulate) {
             if (liquid > 0 || frozen_surface > 0 || frozen_deep_below_surface > 0) {
-                if (temp > gas.getBoilingTemp(atmDensity) - 1) {
+                if (temp > gas.getBoilingTemp(atmDensity) + 1) {
                     if (!simulate) {
                         double toTransfer = getTransferSpeed(planet);
                         if (liquid > 0) {

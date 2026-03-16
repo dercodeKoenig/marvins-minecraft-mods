@@ -3,9 +3,13 @@ package advRocketry.Dimension;
 import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
 import advRocketry.Registry.GasRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 public class PlanetEvents {
 
@@ -14,7 +18,7 @@ public class PlanetEvents {
 
         ChunkPos chunkPos = chunk.getPos();
 
-        int speed = 1;
+        int speed = 5;
 
         if ((level.getGameTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
 
@@ -37,6 +41,15 @@ public class PlanetEvents {
             int blockZ = chunkPos.getBlockZ(localZ);
 
             // Run the logic on the targeted block
+
+            // boil away water blocks when too hot
+            // the other custom liquids / dry ice have random tick, water has not
+            int randomY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight() + 1, level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
+            BlockPos randomPos = new BlockPos(blockX, randomY, blockZ);
+            BlockState randomBlockState = level.getBlockState(randomPos);
+            if (randomBlockState.getBlock().equals(Blocks.WATER) && planet.getCurrentTemp() > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(planet.getAtmosphereDensity())) {
+                level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
+            }
 
             // spawn possible dry ice blocks
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);

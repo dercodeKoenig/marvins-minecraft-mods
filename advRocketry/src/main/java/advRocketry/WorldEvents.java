@@ -143,7 +143,7 @@ public class WorldEvents {
 
             double planetTemp = planet.getCurrentTemp();
             double atmLevel = planet.getAtmosphereDensity();
-            boolean shouldFreezeWater = planetTemp +1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel);
+            boolean shouldFreezeWater = planetTemp < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel) - 1;
 
             if (event.isNewChunk()) {
                 long t0 = System.nanoTime();
