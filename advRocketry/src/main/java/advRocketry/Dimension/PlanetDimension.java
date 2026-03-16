@@ -533,7 +533,7 @@ public class PlanetDimension extends Dimension {
         }
         if (getName().equals("moon")) {
             //getGasProperty("co2").frozen_deep_below_surface = 0.03;
-            getGasProperty("nitrogen").in_atm = 1;
+            //getGasProperty("nitrogen").in_atm = 0;
             //properties().seaLevel = 50;
         }
     }
