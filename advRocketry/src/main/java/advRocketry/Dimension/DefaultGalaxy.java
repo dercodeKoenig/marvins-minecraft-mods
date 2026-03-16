@@ -154,6 +154,7 @@ public class DefaultGalaxy {
         titan.currentTemp = 100;
         titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");;
         titan.orbitalDistanceToParent = 0.01f;
+        titan.orbitalBaseOffsetDegrees = 180;
         titan.earthRadiusMultiplier = 0.5f;
         titan.gravitationalMultiplier = 0.3f;
         titan.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
