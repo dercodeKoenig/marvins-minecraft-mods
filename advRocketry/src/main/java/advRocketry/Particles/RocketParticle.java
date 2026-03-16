@@ -15,7 +15,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
 
     public RocketParticle(ClientLevel level, double x, double y, double z,
                           double dx, double dy, double dz) {
-        this (level,x,y,z,dx,dy,dz,new Vector3f(1,1,1),1f, 1f, 200, false);
+        this (level,x,y,z,dx,dy,dz,new Vector3f(0.5f,0.5f,0.5f),0.2f, 1f, 200, false);
     }
 
     float alphaMultiplier = 1f;
@@ -25,7 +25,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
     public RocketParticle(ClientLevel level, double x, double y, double z,
                           double dx, double dy, double dz, Vector3f color, float alphaMultiplier, float size, int lifetime, boolean isGlowing) {
         super(level, x, y, z, dx, dy, dz);
-
+        
         this.friction = 0.99F;
         this.gravity = 0f;
         this.lifetime = lifetime;
