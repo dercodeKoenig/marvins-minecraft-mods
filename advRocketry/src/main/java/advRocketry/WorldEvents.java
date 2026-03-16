@@ -152,15 +152,6 @@ public class WorldEvents {
                         int xB = event.getChunk().getPos().getBlockX(x);
                         int zB = event.getChunk().getPos().getBlockZ(z);
 
-                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
-                            BlockPos pos = new BlockPos(xB, y, zB);
-                            BlockState state = serverLevel.getBlockState(pos);
-
-                            // freeze water if possible
-                            if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
-                                serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
-                            }
-                        }
 
                         SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
                         for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
@@ -171,6 +162,17 @@ public class WorldEvents {
 
                         while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
                             continue; // nothing to do, all the action happens above
+                        }
+
+
+                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
+                            BlockPos pos = new BlockPos(xB, y, zB);
+                            BlockState state = serverLevel.getBlockState(pos);
+
+                            // freeze water if possible, after the sea level is adjusted
+                            if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
+                                serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
+                            }
                         }
                     }
                 }
