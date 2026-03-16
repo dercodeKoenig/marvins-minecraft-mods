@@ -8,17 +8,18 @@ uniform mat4 ViewMat;
 uniform mat4 WorldMat;  // rotate universe space to world space
 uniform mat4 ModelMat; // Model space to universe space (planets are transformed in universe space, translated relative to the player position in universe space)
 uniform mat4 ProjMat;
+uniform vec3 playerEye;
 
 out vec2 texcoord;
 out vec3 normalUniverseSpace;
 out vec3 localUpUniverseSpace;
-out vec3 relativeFragPosUniverse;
+out vec3 viewDir;
 
 void main() {
 
     gl_Position = ProjMat * ViewMat * WorldMat * ModelMat * vec4(Position, 1.0);
 
-    relativeFragPosUniverse = (ModelMat * vec4(Position, 1.0)).xyz;
+    viewDir = normalize((ModelMat * vec4(Position, 1.0)).xyz - playerEye);
 
     texcoord = UV0;
 

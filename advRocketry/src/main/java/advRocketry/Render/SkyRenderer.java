@@ -69,6 +69,7 @@ public class SkyRenderer {
             Matrix4f viewMatrix,
             Matrix4f worldMatrix,
             Matrix4f planetMatrix,
+            Vector3f eyePos,
             float myAtmDensity,
             Vector3f mySunriseColor,
             Vector3f myCurrentFogColor,
@@ -108,6 +109,8 @@ public class SkyRenderer {
 
         shader.getUniform("playerHeight").set(playerHeightAboveSea);
 
+        shader.getUniform("playerEye").set(eyePos);
+
         shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
 
         Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentFogColor);
@@ -146,6 +149,7 @@ public class SkyRenderer {
             Matrix4f viewMatrix,
             Matrix4f worldMatrix,
             Matrix4f planetMatrix,
+            Vector3f eyePos,
             float planetGeometryScale,
             float brightnessModifider,
             float partialtick
@@ -161,6 +165,8 @@ public class SkyRenderer {
         shader.getUniform("ViewMat").set(viewMatrix);
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(planetMatrix);
+
+        shader.getUniform("playerEye").set(eyePos);
 
         shader.getUniform("scale").set(4f);
         shader.getUniform("planetGeometryScale").set(planetGeometryScale);
@@ -493,6 +499,7 @@ public class SkyRenderer {
                         viewMatrix,
                         worldMatrix,
                         planetMatrix,
+                        new Vector3f(0,0,0),
                         myCurrentSpaceObject.getAtmosphereDensity(),
                         myCurrentSpaceObject.getSunRiseColor(),
                         myCurrentSpaceObject.computeTerrainFogColor(partialtick),
@@ -511,6 +518,7 @@ public class SkyRenderer {
                         viewMatrix,
                         worldMatrix,
                         planetMatrix,
+                        new Vector3f(0,0,0),
                         (float) planetGeometryScale,
                         1,
                         partialtick

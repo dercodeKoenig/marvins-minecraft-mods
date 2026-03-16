@@ -8,6 +8,7 @@ uniform mat4 ViewMat;
 uniform mat4 WorldMat;  // rotate universe space to world space
 uniform mat4 ModelMat; // Model space to universe space (planets are transformed in universe space, translated relative to the player position in universe space)
 uniform mat4 ProjMat;
+uniform vec3 playerEye;
 
 // uniform vec3 playerPosInUniverse = 0,0,0 <- the model matrix is already translated relative to player
 
@@ -26,7 +27,7 @@ void main() {
 
     position = (ModelMat * vec4(scaledPosition, 1.0)).xyz;
 
-    viewDir = normalize(position);
+    viewDir = normalize(position-playerEye);
 
     planetCenter = (ModelMat * vec4(0,0,0,1)).xyz;
 

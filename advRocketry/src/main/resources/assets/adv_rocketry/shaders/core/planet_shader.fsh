@@ -23,7 +23,7 @@ uniform vec3 localTerrainFogColor;
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
 in vec3 localUpUniverseSpace;
-in vec3 relativeFragPosUniverse;
+in vec3 viewDir;
 
 out vec4 fragColor;
 
@@ -51,11 +51,10 @@ void main() {
         atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
 
         // how much of the edge (horizon) we see
-        vec3 viewDir = normalize(relativeFragPosUniverse);
         float viewAngle = 1.0 - abs(dot(N, viewDir));
         // rim intensity (thicker with higher TargetAtmDensity)
         // the thing that glows on the side
-        float rim = pow(viewAngle, 2);  // the more at the side the more atmosphere we will see
+        float rim = pow(viewAngle, 4);  // the more at the side the more atmosphere we will see
 
         vec3 atmLight =
          2 * rim * atmLightFactor * TargetSkyColor // the atm glow around the planet
@@ -83,7 +82,7 @@ void main() {
     if(emissiveColor.a > 0) {
         // atmosphere modifies how the star appears
         float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
-        float starUp = dot(localUpUniverseSpace, normalize(relativeFragPosUniverse));
+        float starUp = dot(localUpUniverseSpace, viewDir);
         float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
         atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
         atmThicknessMod *= altitudeAtmThicknessMod;

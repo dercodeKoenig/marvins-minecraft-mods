@@ -46,6 +46,7 @@ public class SpaceMapScreen extends Screen {
     private float scale = 0.3f;
     private float sidebarScrollAmount = 0;
     private int lastMaxScroll = 0; // To clamp scrolling
+    Vector3f eyePos = new Vector3f(0,0,0);
 
     private String planetInfoText = "";
 
@@ -331,6 +332,8 @@ public class SpaceMapScreen extends Screen {
         // A safe middle ground for a top-down-to-side view is:
         Vector3f up = new Vector3f(0, 1, 1);
 
+        eyePos = eye;
+
         return new Matrix4f().lookAt(eye, target, up);
     }
 
@@ -554,6 +557,7 @@ public class SpaceMapScreen extends Screen {
                     viewMatrix,
                     new Matrix4f(),
                     planetMatrix,
+                    eyePos,
                     0,
                     new Vector3f(0, 0, 0),
                     new Vector3f(0, 0, 0),
@@ -570,6 +574,7 @@ public class SpaceMapScreen extends Screen {
                         viewMatrix,
                         new Matrix4f(),
                         planetMatrix,
+                        eyePos,
                         renderScale,
                         brightnessModifier,
                         partialTick
