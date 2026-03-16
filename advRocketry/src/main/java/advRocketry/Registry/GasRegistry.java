@@ -56,7 +56,7 @@ public class GasRegistry {
 
             // Clamp density to prevent Math.log10(0) returning -Infinity.
             // 0.001 atm is basically a vacuum in this context.
-            double safeAtm = Math.max(0.001, atmDensity);
+            double safeAtm = Math.max(0.0001, atmDensity);
 
             // At 1 atm, log10(1) = 0. Boiling temp stays normal.
             // At 10 atm, log10(10) = 1. Boiling temp increases by 25 degrees.
