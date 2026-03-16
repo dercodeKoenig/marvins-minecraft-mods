@@ -25,6 +25,7 @@ public class DryIceBlock extends Block {
     // will be set to true just before the block evaporates so that the evaporation caused
     // by too little co2 on surface does not change the composition again
     public static BooleanProperty PREVENT_COMPOSITION_CHANGE_ON_BREAK = BooleanProperty.create("ignore_composition_change_on_break");
+    public static BooleanProperty PREVENT_COMPOSITION_CHANGE_ON_PLACE = BooleanProperty.create("ignore_composition_change_on_place");
 
     public static String dryIceDataTag = "dryIceDataTag";
     public static float epsilon = 0.001f; // the magnitude of change required to place more dry ice
@@ -32,6 +33,7 @@ public class DryIceBlock extends Block {
     public DryIceBlock(Properties properties) {
         super(properties.randomTicks());
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false));
+        registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, false));
     }
 
     public static double getCompositionModifier(PlanetDimension planet){
@@ -106,12 +108,12 @@ public class DryIceBlock extends Block {
                 BlockState topBlockState = level.getBlockState(topBlock);
                 if (topBlockState.isFaceSturdy(level, topBlock, Direction.UP)) {
                     // do not place ice blocks on things like flowers or water.
-                    level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                    level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, true), placementFlags);
                     return true;
                 } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
                     // directly replace the top block like grass
                     // but still requires solid block below
-                    level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState(), placementFlags);
+                    level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, true), placementFlags);
                     return true;
                 }
             }
@@ -133,6 +135,7 @@ public class DryIceBlock extends Block {
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(PREVENT_COMPOSITION_CHANGE_ON_BREAK);
+        builder.add(PREVENT_COMPOSITION_CHANGE_ON_PLACE);
         super.createBlockStateDefinition(builder);
     }
 
@@ -186,8 +189,9 @@ public class DryIceBlock extends Block {
         if (level.isClientSide) return;
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-            if (!Objects.equals(oldState.getBlock(), state.getBlock())) {
+            if (!Objects.equals(oldState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE)) {
                 PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
+                System.out.println("place before:"+co2.frozen_surface);
                 co2.frozen_surface += getCompositionModifier(planet);
                 System.out.println(co2.frozen_surface);
             }
@@ -202,6 +206,7 @@ public class DryIceBlock extends Block {
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
             if (!Objects.equals(newState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
                 PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
+                System.out.println("before:"+co2.frozen_surface);
                 co2.frozen_surface -= Math.min(getCompositionModifier(planet), co2.frozen_surface);
                 System.out.println(co2.frozen_surface);
             }

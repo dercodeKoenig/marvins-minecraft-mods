@@ -2,12 +2,15 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,9 +33,16 @@ public abstract class IceBlockMixin {
             at = @At("HEAD"),
             cancellable = true)
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
-        if (!level.getBiome(pos).value().shouldFreeze(level, pos)) {
-            this.melt(state, level, pos);
-            ci.cancel();
+        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+            if (!level.getBiome(pos).value().shouldFreeze(level, pos)) {
+                if (pos.getY() > planet.getGasProperty(GasRegistry.water).worldGenSeaLevel)
+                    // melt into air because it is above sea level
+                    level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                else
+                    // normal melt into water
+                    this.melt(state, level, pos);
+                ci.cancel();
+            }
         }
     }
 }

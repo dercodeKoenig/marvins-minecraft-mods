@@ -2,11 +2,8 @@ package advRocketry.Dimension;
 
 import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
-import advRocketry.GlobalTime;
 import advRocketry.Registry.GasRegistry;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -17,19 +14,19 @@ public class PlanetEvents {
 
         ChunkPos chunkPos = chunk.getPos();
 
-        int speed = 20;
+        int speed = 1;
 
-        if ((GlobalTime.getGlobalTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
+        if ((level.getGameTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
 
             // 1. Get the current time in seconds
-            long currentSecond = GlobalTime.getGlobalTime() / speed;
+            long currentIndex = level.getGameTime() / speed;
 
             // 2. Create a deterministic offset for this specific chunk.
             // Multiplying by prime numbers spreads out the starting positions wildly across the world.
             long chunkOffset = Math.abs((long) chunkPos.x * 31337L + (long) chunkPos.z * 31L);
 
             // 3. Calculate the index within the 0-255 range (16x16 blocks = 256 total)
-            int blockIndex = (int) ((currentSecond + chunkOffset) % 256);
+            int blockIndex = (int) ((currentIndex + chunkOffset) % 256);
 
             // 4. Convert the 1D index back into 2D local chunk coordinates (0-15)
             int localX = blockIndex % 16;
