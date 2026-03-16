@@ -141,7 +141,6 @@ public class DryIceBlock extends Block {
 
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.isClientSide) return;
-        if (level.random.nextInt(5) != 0) return;
         // we remove dry ice if the planet has not enough ice on surface to meet the threshold
 
         if (level.getBlockState(pos.above()).getBlock() instanceof DryIceBlock)

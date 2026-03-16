@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import advRocketry.Blocks.CompositionLiquidBlock;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
@@ -60,6 +61,10 @@ public class SeaLevelAdjustment {
                 if (scanState.getBlock().equals(fluidBlock) &&
                         scanState.getFluidState().isSource()) {
                     // fluid above target sea level requires to be removed
+                    if(fluidBlock instanceof CompositionLiquidBlock){
+                        // make sure it doesn't modify atmosphere before deleting it
+                        level.setBlock(scanPos, scanState.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
+                    }
                     level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
                     planet.setClearWeather();
                     return true;
@@ -86,7 +91,11 @@ public class SeaLevelAdjustment {
                     planet.setRaining();
                     return true;
                 } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
-                    level.setBlock(scanPos, fluidBlock.defaultBlockState(), placementFlags);
+                    BlockState state = fluidBlock.defaultBlockState();
+                    if(fluidBlock instanceof CompositionLiquidBlock){
+                        state = state.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
+                    }
+                    level.setBlock(scanPos, state, placementFlags);
                     planet.setRaining();
                     return true;
                 }

@@ -43,7 +43,7 @@ public class PlanetEvents {
 
             // adjust sea level for all the gases
             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                if(SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3)
+                if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
                     break; // avoid gas mixing if many gases exist
             }
         }
@@ -55,7 +55,7 @@ public class PlanetEvents {
         // and plants would again absorb more co2, so i say temperature cancels out and use sea level only
         // this should result in about 0.3% target at 63 sea level
         // is not the thing that makes a planet habitable, but at least it reduces co2
-        double oceanFractionWater =planet.getOceanFraction(GasRegistry.water);
+        double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
         if (oceanFractionWater > 0.1 && planet.getGasProperty(GasRegistry.water).liquid > 0) {
             double targetCO2 = 0.001 / oceanFractionWater;
             PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
@@ -81,7 +81,7 @@ public class PlanetEvents {
         // this process should significantly slow down as it gets cold and cut off long before freezing point
         // to prevent taking all co2 from the atmosphere and causing a freeze
         PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
-        double oceanFractionWater =planet.getOceanFraction(GasRegistry.water);
+        double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
         if (oceanFractionWater > 0.1 && planet.getGasProperty(GasRegistry.water).liquid > 0 && co2.in_atm > 0) {
             double sweetSpotForAlgae = 273.15 + 30;
             double maxTemperatureDeviationForAlgae = 15;

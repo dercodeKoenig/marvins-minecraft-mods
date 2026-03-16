@@ -1,4 +1,5 @@
-import advRocketry.Config;
+package advRocketry;
+
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
