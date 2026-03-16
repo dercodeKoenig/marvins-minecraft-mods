@@ -163,7 +163,7 @@ public class WorldEvents {
                         }
 
                         SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
-                        for(GasRegistry.Gas gas :  GasRegistry.gases.values()) {
+                        for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                             while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, xB, zB, 2 | 16)) {
                                 continue; // nothing to do, all the action happens above
                             }
@@ -218,7 +218,8 @@ public class WorldEvents {
             if (dim instanceof PlanetDimension planet) {
                 // can only convert if below sea level
                 int seaLevel = planet.getGasProperty(GasRegistry.water).worldGenSeaLevel;
-                if (e.getPos().getY() > seaLevel) {
+                if (e.getPos().getY() > seaLevel ||
+                        planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(planet.getAtmosphereDensity())) {
                     e.setCanConvert(false);
                 }
             }
