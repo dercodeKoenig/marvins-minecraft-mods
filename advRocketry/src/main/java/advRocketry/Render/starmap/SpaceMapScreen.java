@@ -544,7 +544,8 @@ public class SpaceMapScreen extends Screen {
             }
             float brightnessModifier = 1;
             if(brightness < 1)
-                brightnessModifier = (float) (1 / Math.sqrt(brightness));
+                //brightnessModifier = (float) (1 / Math.sqrt(brightness));
+                brightnessModifier = (float) (1 / Math.pow(brightness, 0.7));
 
             // render the planet as if we observe it from space (0 atm density, no sky color...)
             SkyRenderer.renderPlanet(

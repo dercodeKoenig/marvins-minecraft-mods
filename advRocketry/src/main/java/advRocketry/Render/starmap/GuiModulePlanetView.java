@@ -184,7 +184,8 @@ public class GuiModulePlanetView extends GuiModuleBase {
         }
         float brightnessModifier = 1;
         if(brightness < 1)
-            brightnessModifier = (float) (1 / Math.sqrt(brightness));
+            //brightnessModifier = (float) (1 / Math.sqrt(brightness));
+            brightnessModifier = (float) (1 / brightness);
 
         // render the planet as if we observe it from space (0 atm density, no sky color...)
         SkyRenderer.renderPlanet(
