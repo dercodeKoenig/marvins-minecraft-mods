@@ -157,10 +157,11 @@ public class SpaceMapScreen extends Screen {
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
 
             if (planet.canVisit()) {
-                description += "Sea level: " + String.format("%.2f", planet.getCurrentSeaLevel()) + "\n";
-                description += "Ocean Fraction: " + String.format("%.2f", planet.getOceanFraction()) + "\n";
+                description += "Sea level (water): " + String.format("%.2f", planet.getGasProperty(GasRegistry.water).getSeaLevel()) + "\n";
+                description += "Ocean Fraction: " + String.format("%.2f", planet.getOceanFraction(null)) + "\n";
                 description += "Humidity: " + String.format("%.2f", planet.getHumidity()) + "\n";
-                description += "Liquid water possible: " + (planet.warmEnoughForWater() && planet.getCurrentTemp() < 373) + "\n\n";
+                GasRegistry.Gas water = GasRegistry.gases.get(GasRegistry.water);
+                description += "Liquid water possible: " + (planet.getCurrentTemp() < water.getBoilingTemp(planet.getAtmosphereDensity()) && planet.getCurrentTemp() > water.getFreezeTemp(planet.getAtmosphereDensity())) + "\n\n";
             }
 
 
@@ -169,8 +170,8 @@ public class SpaceMapScreen extends Screen {
             double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
             double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
             double humidity = planet.getHumidity();
-            double frozenGasCoverage =planet.getFrozenGasCoverage();
-            double oceanFraction = planet.getOceanFraction();
+            double frozenGasCoverage = planet.getFrozenGasCoverage();
+            double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
             double co2Insulation = GasRegistry.getInsulationBonus(GasRegistry.co2, atmCo2);
             double methaneInsulation = GasRegistry.getInsulationBonus(GasRegistry.methane, atmMethane);
 
@@ -181,7 +182,7 @@ public class SpaceMapScreen extends Screen {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if (oceanFraction < 0.2 && humidity > 0.5)
+            if (oceanFractionWater < 0.2 && humidity > 0.5)
                 description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
             if (humidity > 0.1 && co2Insulation + methaneInsulation > 0.5)
@@ -200,10 +201,6 @@ public class SpaceMapScreen extends Screen {
                 description += "Algae thrive under ideal temperatures, converting co2 into Oxygen.\n\n";
             }
 
-            if (PlanetEvents.boilWaterWhenTooHot(planet, null, true)) {
-                description += "The planet is too hot! Water slowly boils away.\n\n";
-            }
-
             if (atmCo2 > 0.0002) {
                 if (atmCo2 > 0.1)
                     description += "Lots of co2 in atmosphere significantly increases greenhouse effect.\n\n";
@@ -214,22 +211,9 @@ public class SpaceMapScreen extends Screen {
                 description += "Methane in the atmosphere significantly increases greenhouse effect.\n\n";
             }
 
-
-
-
-            if (atmCo2 > 0 &&
-                    planet.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.co2).freezingTemp) {
-                description += "Co2 is freezing and snowing to the surface, significantly reducing future temperature.\n\n";
-            }
-            if ((planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 || planet.getGasProperty(GasRegistry.co2).frozen_deep_below_surface > 0) &&
-                    planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.co2).sublimationTemp) {
-                description += "Frozen co2 is quickly evaporating, significantly increasing future temperature.\n\n";
-            }
-
-
             if (planet.getAtmosphereDensity() < 0.1) {
                 if (planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 ||
-                        planet.getOceanFraction() > 0.1
+                        planet.getOceanFraction(null) > 0.1
                 )
                     description += "Railgun usage possible to extract fluids or ice.\n\n";
             }

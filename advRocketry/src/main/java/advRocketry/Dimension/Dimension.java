@@ -102,14 +102,6 @@ public abstract class Dimension {
         this.properties = properties;
     }
 
-    public boolean warmEnoughForWater() {
-        // with little to no atmosphere it should not be liquid
-        // this should make a nice curve that quickly increases required temperature when atmosphere pressure is low
-        double requiredTempForLiquid = 273 + Math.max(0, (1 - Math.sqrt(getAtmosphereDensity())) * 50);
-
-        return getCurrentTemp() > requiredTempForLiquid;
-    }
-
     public enum SurvivalProblem {
         TOO_HOT("too hot"),
         TOO_COLD("too cold"),

@@ -61,7 +61,7 @@ public class Config {
 
     // how much gas should evaporate or freeze per tick when temperature falls / rises above the threshold
     // default: 100 seconds for a difference of 0.01
-    public double gas_Atm_Ground_Transition_Speed = 0.01 / 20 / 100;
+    public double gas_Atm_Transition_Speed = 0.01 / 20 / 100;
 
     // how fast a planet can change its temperature
     //  thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100) * planet_Heat_Capacity_Multiplier;

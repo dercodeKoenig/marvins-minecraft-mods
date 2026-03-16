@@ -1,10 +1,11 @@
 package advRocketry.Dimension;
 
-import advRocketry.GlobalTime;
+import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -14,72 +15,74 @@ public class SeaLevelAdjustment {
     public static String tagKey = "SeaLevelAdjustment";
 
     // saves the original sea level used by the chunk generator to the chunk tag
-    public static void saveInitialSeaLevelOnChunkGeneration(ServerLevel level, ChunkAccess chunk, int blockX, int blockZ) {
+    public static void saveInitialWaterLevelOnChunkGeneration(ServerLevel level, ChunkAccess chunk, int blockX, int blockZ) {
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
-        String positionKey = String.valueOf(pos0.asLong());
+        String positionKey = pos0.asLong() + GasRegistry.water;
         int originalSeaLevel = level.getChunkSource().getGenerator().getSeaLevel();
         chunkEntry.putInt(positionKey, originalSeaLevel);
         ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
     }
 
     // returns true if a block was placed, false if the xz position is considered fully worked
-    public static boolean adjustSeaLevelIfRequired(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
+    public static boolean adjustSeaLevelIfRequired(PlanetDimension planet, GasRegistry.Gas fluid, int blockX, int blockZ, int placementFlags) {
+
+        Block fluidBlock = fluid.fluidBlock;
+        if (fluidBlock == null)
+            return false;
+
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
         ServerLevel level = planet.level();
         ChunkAccess chunk = level.getChunk(pos0);
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
-        String positionKey = String.valueOf(pos0.asLong());
+        String positionKey = pos0.asLong() + fluid.id;
 
-        int seaLevelTarget = planet.getWorldgenSeaLevel();
-        int seaLevelExisting = -100;
+        int seaLevelTarget = planet.getGasProperty(fluid.id).worldGenSeaLevel;
+        int seaLevelExisting = -1000;
         if (chunkEntry.contains(positionKey))
-            // the position should be initially saved on chunk generation, so it should always be here
             seaLevelExisting = chunkEntry.getInt(positionKey);
 
-
         if (seaLevelTarget != seaLevelExisting) {
-            //System.out.println(GlobalTime.getGlobalTime() + ":" + planet.getName() + ":" + blockX + ":" + blockZ + " requires sea level update: " + seaLevelExisting + ":" + seaLevelTarget);
             // sea level has to be possibly adjusted
 
             int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-            BlockPos topSolidOrWaterBlockPos = new BlockPos(blockX, y - 1, blockZ);
-            BlockState blockState = level.getBlockState(topSolidOrWaterBlockPos);
+            BlockPos blockPos = new BlockPos(blockX, y - 1, blockZ);
+            BlockState blockState = level.getBlockState(blockPos);
 
-            // remove any water above sea level
-            for (int scanY = topSolidOrWaterBlockPos.getY(); scanY > seaLevelTarget; scanY--) {
+            // remove any fluid above its sea level
+            for (int scanY = blockPos.getY(); scanY > seaLevelTarget; scanY--) {
                 BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                 BlockState scanState = level.getBlockState(scanPos);
-                if (scanState.getBlock().equals(Blocks.WATER) &&
+                if (scanState.getBlock().equals(fluidBlock) &&
                         scanState.getFluidState().isSource()) {
-                    // water above target sea level requires to be removed
+                    // fluid above target sea level requires to be removed
                     level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
                     planet.setClearWeather();
                     return true;
                 }
             }
 
-            // adjust top block pos lower while there is not full blocks or no water source
-            while (!blockState.isRedstoneConductor(level, topSolidOrWaterBlockPos) &&
-                    !(blockState.getBlock().equals(Blocks.WATER) && blockState.getFluidState().isSource())) {
-                topSolidOrWaterBlockPos = topSolidOrWaterBlockPos.below();
-                blockState = level.getBlockState(topSolidOrWaterBlockPos);
-                if (topSolidOrWaterBlockPos.getY() <= level.getMinBuildHeight())
+            // adjust top block pos lower while there is not full block
+            while (!blockState.isRedstoneConductor(level, blockPos)) {
+                blockPos = blockPos.below();
+                blockState = level.getBlockState(blockPos);
+                if (blockPos.getY() <= level.getMinBuildHeight())
                     return false;
             }
             //System.out.println(blockState + ":" + topSolidOrWaterBlockPos);
 
-            // scan back up to find the first replaceable block above the first solid block
-            for (int scanY = topSolidOrWaterBlockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
+            // scan back up to find the first replaceable block above the first solid block that is not already a fluid source
+            for (int scanY = blockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
                 BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                 BlockState scanState = level.getBlockState(scanPos);
 
                 if (scanState.getBlock().equals(Blocks.LAVA)) {
+                    // special case: lave is replaced with obsidian
                     level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
                     planet.setRaining();
                     return true;
-                } else if (scanState.canBeReplaced()) {
-                    level.setBlock(scanPos, Blocks.WATER.defaultBlockState(), placementFlags);
+                } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
+                    level.setBlock(scanPos, fluidBlock.defaultBlockState(), placementFlags);
                     planet.setRaining();
                     return true;
                 }

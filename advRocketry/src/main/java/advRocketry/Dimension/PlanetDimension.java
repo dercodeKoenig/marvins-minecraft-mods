@@ -44,7 +44,7 @@ public class PlanetDimension extends Dimension {
     public void setRaining() {
         // when chunks are currently increasing sea level, it should rain!
         ServerLevel level = level();
-        if (level != null && canRain())
+        if (level != null)
             level.setWeatherParameters(0, 20 * 1000, true, false);
     }
 
@@ -80,7 +80,7 @@ public class PlanetDimension extends Dimension {
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
                 Blocks.WATER.defaultBlockState(),
-                properties().seaLevelWorldgen,
+                getGasProperty(GasRegistry.water).worldGenSeaLevel,
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
@@ -163,7 +163,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public boolean canRain() {
-        return getHumidity() > 0.1;
+        return getAtmosphereDensity() > 0.2;
     }
 
     public Vector3f getEmissiveColor() {
@@ -289,7 +289,7 @@ public class PlanetDimension extends Dimension {
 
     public PlanetDimensionProperties.GasProperty getGasProperty(String id) {
         if (!properties().atmosphereComposition.containsKey(id))
-            properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0, 0));
+            properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0, 0, 0));
         return properties().atmosphereComposition.get(id);
     }
 
@@ -310,47 +310,47 @@ public class PlanetDimension extends Dimension {
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
             sum += (float) gas.frozen_surface;
         }
-        if (!warmEnoughForWater()) {
-            // water is frozen and contributes
-            sum += (float) Math.min(getOceanFraction(), 0.8);
-        }
         return Math.min(1, sum);
     }
 
-    public double getCurrentSeaLevel() {
-        return properties().seaLevel;
+    public int getCustomSeaFluidLevel() {
+        return properties().customSeaFluidLevel;
     }
 
-    public int getWorldgenSeaLevel() {
-        // this is the one used for actual water placement
-        // planet events will adjust seaLevelWorldgen if required
-        return properties().seaLevelWorldgen;
-    }
+    // how much of the planet do we consider ocean?
+    // if gas is null, it will take the max from all gases available
+    public double getOceanFraction(@Nullable String gasId) {
 
-    public int getWorldgenLavaLevel() {
-        return properties().lavaLevelWorldgen;
-    }
+        double maxSeaLevel = 0;
+        if (gasId != null)
+            maxSeaLevel = getGasProperty(gasId).getSeaLevel();
+        else {
+            for (String gas : GasRegistry.gases.keySet()) {
+                maxSeaLevel = Math.max(maxSeaLevel, getGasProperty(gas).getSeaLevel());
+            }
+        }
 
-    public double getOceanFraction() {
-        double offset = 40;     // the world does not really have ocean any lower
-        double adjustedSeaLevel = (getCurrentSeaLevel() - offset);
-        double maxSeaLevel = 120 - offset;
+        double relativeSeaLevel = maxSeaLevel / PlanetDimensionProperties.GasProperty.maxSeaLevel;
+        // usually it should already be between 0 and 1 but just to be sure...
+        relativeSeaLevel = Math.clamp(relativeSeaLevel, 0, 1);
+
         // adjust for lava, if lava exists
-        double heightAboveLavaLevel = getCurrentSeaLevel() - properties().lavaLevelWorldgen;
+        double heightAboveLavaLevel = maxSeaLevel - properties().customSeaFluidLevel;
         if (heightAboveLavaLevel >= 0)
             // if sea level is just slightly above lava level, ocean fraction is signifiantly reduced
-            adjustedSeaLevel *= Math.min(1, heightAboveLavaLevel);
+            relativeSeaLevel *= Math.min(1, heightAboveLavaLevel);
         else {
             // lava is above sea level, no oceans
-            adjustedSeaLevel = 0;
+            relativeSeaLevel = 0;
         }
-        return Math.clamp(adjustedSeaLevel / maxSeaLevel, 0, 1);
+        return relativeSeaLevel;
     }
 
     public double getHumidity() {
-        if (warmEnoughForWater()) {
-            double dt = Math.min(getCurrentTemp() - 273.15, 100);
-            return Math.pow(1.02, dt) * getOceanFraction() * 1;
+        double waterFreezeTemp = GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(getAtmosphereDensity());
+        if (getCurrentTemp() > waterFreezeTemp) {
+            double dt = Math.min(getCurrentTemp() - waterFreezeTemp, 100);
+            return Math.pow(1.02, dt) * getOceanFraction(GasRegistry.water) * 1;
         } else {
             return 0;
         }
@@ -501,6 +501,8 @@ public class PlanetDimension extends Dimension {
 
             tickTemperature();
 
+            tickGasProperties();
+
             if (level != null) {
                 PlanetEvents.tick(this, properties(), level);
             }
@@ -611,12 +613,12 @@ public class PlanetDimension extends Dimension {
         }
 
         // Albedo (Reflectivity)
-        double oceanFraction = getOceanFraction();
+        double oceanFraction = getOceanFraction(null); // any gas
         // base albedo
         double albedo = 0.3;
         // ice reflects light
         albedo += (getFrozenGasCoverage() * 0.6);
-        // oceans are dark
+        // oceans are dark ( usually )
         albedo += -(oceanFraction * 0.1);
         // humidity makes white clouds, white clouds reflect light
         albedo += Math.clamp(getHumidity(), 0, 1) * 0.4;
@@ -635,9 +637,7 @@ public class PlanetDimension extends Dimension {
         }
 
         // Water Vapor Feedback
-        if (warmEnoughForWater()) {
-            insulation += Math.min(getHumidity(), 50);
-        }
+        insulation += Math.min(getHumidity(), 50);
 
         // 3. CALCULATE OUTGOING ENERGY (Eout)
         // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.
@@ -657,5 +657,23 @@ public class PlanetDimension extends Dimension {
 
         // Apply the change to the planet
         properties().currentTemp += deltaTemp;
+    }
+
+    public void tickGasProperties() {
+        double temp = getCurrentTemp();
+        double atmDensity = getAtmosphereDensity();
+
+        for (String gasId : GasRegistry.gases.keySet()) {
+            PlanetDimensionProperties.GasProperty property = getGasProperty(gasId);
+            GasRegistry.Gas gas = GasRegistry.gases.get(gasId);
+
+            property.maybeBoil(gas, this, temp, atmDensity, false);
+            property.maybeRain(gas, this, temp, atmDensity, false);
+            property.maybeSnow(gas, this, temp, atmDensity, false);
+            property.maybeFreezeSurface(gas, this, temp, atmDensity, false);
+            property.maybeMeltSurface(gas, this, temp, atmDensity, false);
+
+            property.maybeAdjustWorldgenSeaLevel();
+        }
     }
 }

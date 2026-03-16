@@ -4,7 +4,9 @@ import advRocketry.Blocks.*;
 import advRocketry.Main;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -53,5 +55,31 @@ public class Blocks {
     public static final Supplier<Block> LAUNCH_STATION_SATELLITE_MISSIONS = BLOCKS.register("launch_station_satellite_missions", () -> new LaunchStationSatelliteMissions());
     public static final Supplier<Block> LAUNCH_STATION_ASTEROID_MISSIONS = BLOCKS.register("launch_station_asteroid_missions", () -> new LaunchStationAsteroidMissions());
 
+
+
+    public static final DeferredHolder<Block, LiquidBlock> METHANE_BLOCK = BLOCKS.register("methane_block", () -> new LiquidBlock(
+            Fluids.METHANE.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> CO2_BLOCK = BLOCKS.register("co2_block", () -> new LiquidBlock(
+            Fluids.CO2.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> OXYGEN_BLOCK = BLOCKS.register("oxygen_block", () -> new LiquidBlock(
+            Fluids.OXYGEN.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> HYDROGEN_BLOCK = BLOCKS.register("hydrogen_block", () -> new LiquidBlock(
+            Fluids.HYDROGEN.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> NITROGEN_BLOCK = BLOCKS.register("nitrogen_block", () -> new LiquidBlock(
+            Fluids.NITROGEN.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> ROCKET_FUEL_BLOCK = BLOCKS.register("rocket_fuel_block", () -> new LiquidBlock(
+            Fluids.ROCKET_FUEL.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
 
 }

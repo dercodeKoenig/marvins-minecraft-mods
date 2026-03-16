@@ -7,6 +7,7 @@ import advRocketry.Items.ItemLinker;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Missions.MissionManager;
 import advRocketry.Particles.RocketParticleEngine;
+import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Satellites.SatelliteManager;
@@ -140,14 +141,16 @@ public class WorldEvents {
             // 2  -> sync to player
             // 16 -> no neighbor update (if i read it correctly)
 
+            double planetTemp = planet.getCurrentTemp();
+            double atmLevel = planet.getAtmosphereDensity();
+            boolean shouldFreezeWater = planetTemp +1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel);
+
             if (event.isNewChunk()) {
                 long t0 = System.nanoTime();
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         int xB = event.getChunk().getPos().getBlockX(x);
                         int zB = event.getChunk().getPos().getBlockZ(z);
-
-                        boolean shouldFreezeWater = !planet.warmEnoughForWater();
 
                         for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
                             BlockPos pos = new BlockPos(xB, y, zB);
@@ -159,9 +162,11 @@ public class WorldEvents {
                             }
                         }
 
-                        SeaLevelAdjustment.saveInitialSeaLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
-                        while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, xB, zB, 2 | 16)) {
-                            continue; // nothing to do, all the action happens above
+                        SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
+                        for(GasRegistry.Gas gas :  GasRegistry.gases.values()) {
+                            while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, xB, zB, 2 | 16)) {
+                                continue; // nothing to do, all the action happens above
+                            }
                         }
 
                         while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
@@ -212,7 +217,8 @@ public class WorldEvents {
             }
             if (dim instanceof PlanetDimension planet) {
                 // can only convert if below sea level
-                if (e.getPos().getY() > planet.getWorldgenSeaLevel()) {
+                int seaLevel = planet.getGasProperty(GasRegistry.water).worldGenSeaLevel;
+                if (e.getPos().getY() > seaLevel) {
                     e.setCanConvert(false);
                 }
             }

@@ -12,7 +12,6 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-import static advRocketry.Dimension.PlanetDimensionProperties.SEA_LEVEL_OVERWORLD;
 import static advRocketry.Dimension.PlanetDimensionProperties.SKY_COLOR_OVERWORLD;
 
 public class DefaultGalaxy {
@@ -41,12 +40,12 @@ public class DefaultGalaxy {
         overworld.isKnown = true;
         overworld.canVisit = true;
         overworld.currentTemp = 300;
-        overworld.seaLevel = SEA_LEVEL_OVERWORLD();
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
         overworld.skyColor = SKY_COLOR_OVERWORLD();
-        overworld.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3f, 0, 0));
-        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0, 0));
-        overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003f, 0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3f, 0, 0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0,0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003f, 0, 0,0));
+        overworld.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.5, 0,0));
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
@@ -61,12 +60,11 @@ public class DefaultGalaxy {
         moon.targetDayLength = 12000;
         moon.canVisit = true;
         moon.currentTemp = 300;
-        moon.seaLevel = SEA_LEVEL_OVERWORLD();
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         moon.skyColor = SKY_COLOR_OVERWORLD();
         moon.hasRingSystem = true;
         moon.biomePreset = MOON.name;
-        moon.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 0.13f, 0));
+        moon.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 0.1f, 0, 0));
         galaxy.add(moon);
 
 
@@ -80,7 +78,6 @@ public class DefaultGalaxy {
         moon2.earthRadiusMultiplier = 0.1f;
         moon2.gravitationalMultiplier = 0.1f;
         moon2.targetDayLength = -1000;
-        moon2.seaLevel = 50;
         moon2.currentTemp = 300;
         moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
         moon2.canVisit = true;
@@ -98,12 +95,11 @@ public class DefaultGalaxy {
         venus.cloudColor = new Vector3f(194, 155, 64).mul(1f / 255);
         venus.canVisit = true;
         venus.biomePreset = HOT.name;
-        venus.seaLevel = 35;
         venus.currentTemp = 500;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
-        venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(1, 0, 0));
-        venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0));
+        venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(1, 0,0, 0));
+        venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0,0, 0));
         galaxy.add(venus);
 
 
@@ -116,13 +112,13 @@ public class DefaultGalaxy {
         jupyter.earthRadiusMultiplier = 10f;
         jupyter.gravitationalMultiplier = 30f;
         jupyter.canGasMine = true;
-        jupyter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0));
-        jupyter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0));
+        jupyter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
+        jupyter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0,0, 0));
         galaxy.add(jupyter);
 
         PlanetDimensionProperties europa = new PlanetDimensionProperties();
-        europa.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "europa");
         europa.name = "Europa";
+        europa.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "europa");
         europa.parentDimensionId = jupyter.dimensionId;
         europa.dayTimeReference = sun.dimensionId;
         europa.currentTemp = 100;
@@ -130,7 +126,7 @@ public class DefaultGalaxy {
         europa.orbitalDistanceToParent = 0.01f;
         europa.earthRadiusMultiplier = 0.5f;
         europa.gravitationalMultiplier = 0.3f;
-        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.1f,0.3f,0));
+        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
         europa.canVisit = true;
         europa.biomePreset = MOON.name;
         europa.isKnown = true;
@@ -146,9 +142,27 @@ public class DefaultGalaxy {
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 10f;
         saturn.hasRingSystem = true;
-        saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0));
-        saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0));
+        saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
+        saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f,0, 0, 0));
         galaxy.add(saturn);
+
+        PlanetDimensionProperties titan = new PlanetDimensionProperties();
+        titan.name = "Titan";
+        titan.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "titan");
+        titan.parentDimensionId = jupyter.dimensionId;
+        titan.dayTimeReference = sun.dimensionId;
+        titan.currentTemp = 100;
+        titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");;
+        titan.orbitalDistanceToParent = 0.01f;
+        titan.earthRadiusMultiplier = 0.5f;
+        titan.gravitationalMultiplier = 0.3f;
+        titan.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
+        titan.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0,0,0.5f,0));
+        titan.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0,0,1f,0));
+        titan.canVisit = true;
+        titan.biomePreset = MOON.name;
+        titan.isKnown = true;
+        galaxy.add(titan);
 
 
         PlanetDimensionProperties distantStar = new PlanetDimensionProperties();
