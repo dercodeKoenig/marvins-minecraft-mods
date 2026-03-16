@@ -27,6 +27,10 @@ public class SeaLevelAdjustment {
     // returns true if a block was placed, false if the xz position is considered fully worked
     public static boolean adjustSeaLevelIfRequired(PlanetDimension planet, GasRegistry.Gas fluid, int blockX, int blockZ, int placementFlags) {
 
+        if(fluid.id.equals(GasRegistry.co2))
+            // co2 has its own logic in dry ice block because it can not exist as liquid
+            return false;
+
         Block fluidBlock = fluid.fluidBlock;
         if (fluidBlock == null)
             return false;
