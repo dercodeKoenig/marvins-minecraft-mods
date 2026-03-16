@@ -51,7 +51,7 @@ public class SeaLevelAdjustment {
             // sea level has to be possibly adjusted
 
             int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-            BlockPos blockPos = new BlockPos(blockX, y - 1, blockZ);
+            BlockPos blockPos = new BlockPos(blockX, y, blockZ);
             BlockState blockState = level.getBlockState(blockPos);
 
             // remove any fluid above its sea level
