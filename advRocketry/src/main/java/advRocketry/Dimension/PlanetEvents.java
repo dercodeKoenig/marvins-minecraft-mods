@@ -43,7 +43,8 @@ public class PlanetEvents {
 
             // adjust sea level for all the gases
             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3);
+                if(SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3)
+                    break; // avoid gas mixing if many gases exist
             }
         }
     }

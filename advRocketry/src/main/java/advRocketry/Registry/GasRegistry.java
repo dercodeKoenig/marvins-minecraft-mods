@@ -22,8 +22,8 @@ public class GasRegistry {
     public static HashMap<String, Gas> gases = new LinkedHashMap<>();
 
     static {
-        gases.put(oxygen, new Gas(oxygen, 54, 90, Fluids.OXYGEN.get(), Blocks.OXYGEN_BLOCK.get(),0));
         gases.put(hydrogen, new Gas(hydrogen, 14, 20, Fluids.HYDROGEN.get(), Blocks.HYDROGEN_BLOCK.get(),0));
+        gases.put(oxygen, new Gas(oxygen, 54, 90, Fluids.OXYGEN.get(), Blocks.OXYGEN_BLOCK.get(),0));
         gases.put(nitrogen, new Gas(nitrogen, 63, 77, Fluids.NITROGEN.get(), Blocks.NITROGEN_BLOCK.get(),0));
         gases.put(methane, new Gas(methane, 91, 111, Fluids.METHANE.get(), Blocks.METHANE_BLOCK.get(),20000));
         gases.put(co2, new Gas(co2, 195, 195, Fluids.CO2.get(), Blocks.CO2_BLOCK.get(),1000));
