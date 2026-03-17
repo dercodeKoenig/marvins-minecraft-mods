@@ -527,7 +527,7 @@ public class PlanetDimension extends Dimension {
             //properties().seaLevel = 50;
         }
         if (getName().equals("Earth")) {
-            getGasProperty("water").liquid = 0.6;
+            //getGasProperty("water").liquid = 0.5;
         }
         if (getName().equals("Europa")) {
             //getGasProperty("co2").frozen_surface = 0.2;
