@@ -31,14 +31,13 @@ public class WaterCompositionTracker {
         if (wasH2O == isH2O)
             return;
 
-        // i add as gas simply because it will convert to the target ice or liquid anyway in a few ticks
         if (isWaterSource(newState)) {
             if (!shouldIgnoreEvent()) {
-                API.addGasInBuckets(level.dimension().location(), GasRegistry.water, 1);
+                API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, 1);
             }
         }
         if (isIce(newState)) {
-            API.addGasInBuckets(level.dimension().location(), GasRegistry.water, 100);
+            API.addSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, 100);
         }
 
         if (!isH2O) {
@@ -48,6 +47,7 @@ public class WaterCompositionTracker {
             if (isWaterSource(oldState)) {
                 if (!shouldIgnoreEvent()) {
                     removeWaterBucketsFromSurface(level, 1);
+                    System.out.println(oldState+":"+newState);
                 }
             }
         }
