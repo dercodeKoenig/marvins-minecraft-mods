@@ -42,7 +42,9 @@ public class ItemAtmAnalyzer extends Item {
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
 
-            String description = String.format("\n\nWater level: " + planet.getGasProperty(GasRegistry.water).getSeaLevel() + "\n\n");
+            String description = String.format("\n\nTemperature: " + planet.getCurrentTemp() + "\n\n");
+
+            description += String.format("Water level: " + planet.getGasProperty(GasRegistry.water).getSeaLevel() + "\n\n");
 
 
             description += String.format("Composition:\n");
