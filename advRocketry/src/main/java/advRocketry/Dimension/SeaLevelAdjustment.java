@@ -28,7 +28,7 @@ public class SeaLevelAdjustment {
     // returns true if a block was placed, false if the xz position is considered fully worked
     public static boolean adjustSeaLevelIfRequired(PlanetDimension planet, GasRegistry.Gas fluid, int blockX, int blockZ, int placementFlags) {
 
-        if(fluid.id.equals(GasRegistry.co2))
+        if (fluid.id.equals(GasRegistry.co2))
             // co2 has its own logic in dry ice block because it can not exist as liquid
             return false;
 
@@ -56,7 +56,7 @@ public class SeaLevelAdjustment {
 
             // remove any fluid above its sea level
             // but only if last sea level was above target sea level
-            if(seaLevelTarget< seaLevelExisting) {
+            if (seaLevelTarget < seaLevelExisting) {
                 for (int scanY = blockPos.getY(); scanY > seaLevelTarget; scanY--) {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
@@ -76,7 +76,7 @@ public class SeaLevelAdjustment {
             }
 
             // only place blocks when sea level increased
-            if(seaLevelTarget > seaLevelExisting) {
+            if (seaLevelTarget > seaLevelExisting) {
                 // adjust top block pos lower while there is not full block
                 while (!blockState.isRedstoneConductor(level, blockPos)) {
                     blockPos = blockPos.below();
