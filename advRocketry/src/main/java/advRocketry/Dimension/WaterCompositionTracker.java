@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
@@ -42,7 +43,9 @@ public class WaterCompositionTracker {
 
         if (!isH2O) {
             if (isIce(oldState)) {
-                API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, -1);
+                if(!shouldIgnoreEvent()) {
+                    API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, -1);
+                }
             }
             if (isWaterSource(oldState)) {
                 if (!shouldIgnoreEvent()) {
@@ -69,7 +72,8 @@ public class WaterCompositionTracker {
         // finds out where the setblock call came from and maybe we ignore it
         return WALKER.walk(frames -> frames.anyMatch(frame ->
                 frame.getDeclaringClass().equals(FlowingFluid.class) || // water spreading and source creation is skipped
-                        frame.getDeclaringClass().equals(SeaLevelAdjustment.class) // sea level adjustment is skipped
+                        frame.getDeclaringClass().equals(SeaLevelAdjustment.class)|| // sea level adjustment is skipped
+                        frame.getDeclaringClass().equals(IceBlock.class) // melt will evaporate (removed) when above sea level, ignore
         ));
     }
 
