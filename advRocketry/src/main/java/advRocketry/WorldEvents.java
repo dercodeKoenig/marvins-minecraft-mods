@@ -11,11 +11,13 @@ import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Satellites.SatelliteManager;
+import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
@@ -42,6 +45,9 @@ import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
+
+import static advRocketry.Dimension.SeaLevelAdjustment.getPosKey;
+import static advRocketry.Dimension.SeaLevelAdjustment.tagKey;
 
 public class WorldEvents {
     static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -218,8 +224,22 @@ public class WorldEvents {
                 e.setCanConvert(false);
             }
             if (dim instanceof PlanetDimension planet) {
-                // can only convert if below sea level
+
+                // the sea level that this chunk should have
                 int seaLevel = planet.getGasProperty(GasRegistry.water).worldGenSeaLevel;
+
+                // if terraforming increases sea level, do not form a source at target sea level
+                // until the xz position had its sea level adjusted or there can be leftover sources when sea level goes down again
+                ChunkAccess chunk = level.getChunk(e.getPos());
+                CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
+                String positionKey = getPosKey(e.getPos(), GasRegistry.water);
+                if (chunkEntry.contains(positionKey))
+                    seaLevel = Math.min(seaLevel, chunkEntry.getInt(positionKey));
+                else
+                    // error? why did the key not exist? maybe the chunk is just beeing generated?
+                    e.setCanConvert(false);
+
+                // can only convert if below sea level
                 if (e.getPos().getY() > seaLevel ||
                         planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(planet.getAtmosphereDensity())) {
                     e.setCanConvert(false);
