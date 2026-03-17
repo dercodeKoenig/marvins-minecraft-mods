@@ -1,9 +1,13 @@
 package advRocketry.Registry;
 
 import advRocketry.Main;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
@@ -120,9 +124,14 @@ public class Fluids {
                 }, Fluids.CO2_TYPE.get()
         );
     }
+
     // --- ROCKET FUEL ---
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> ROCKET_FUEL = FLUIDS.register("rocket_fuel",
-            () -> new BaseFlowingFluid.Source(Fluids.ROCKET_FUEL_PROPERTIES));
+            () -> new BaseFlowingFluid.Source(Fluids.ROCKET_FUEL_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> ROCKET_FUEL_FLOWING = FLUIDS.register("rocket_fuel_flowing",
             () -> new BaseFlowingFluid.Flowing(Fluids.ROCKET_FUEL_PROPERTIES));
     public static final BaseFlowingFluid.Properties ROCKET_FUEL_PROPERTIES = new BaseFlowingFluid.Properties(
@@ -135,7 +144,11 @@ public class Fluids {
 
     // --- METHANE ---
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> METHANE = FLUIDS.register("methane",
-            () -> new BaseFlowingFluid.Source(Fluids.METHANE_PROPERTIES));
+            () -> new BaseFlowingFluid.Source(Fluids.METHANE_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> METHANE_FLOWING = FLUIDS.register("methane_flowing",
             () -> new BaseFlowingFluid.Flowing(Fluids.METHANE_PROPERTIES));
     public static final BaseFlowingFluid.Properties METHANE_PROPERTIES = new BaseFlowingFluid.Properties(
@@ -148,7 +161,11 @@ public class Fluids {
 
     // --- CO2 ---
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> CO2 = FLUIDS.register("co2",
-            () -> new BaseFlowingFluid.Source(Fluids.CO2_PROPERTIES));
+            () -> new BaseFlowingFluid.Source(Fluids.CO2_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> CO2_FLOWING = FLUIDS.register("co2_flowing",
             () -> new BaseFlowingFluid.Flowing(Fluids.CO2_PROPERTIES));
     public static final BaseFlowingFluid.Properties CO2_PROPERTIES = new BaseFlowingFluid.Properties(
@@ -161,7 +178,11 @@ public class Fluids {
 
     // --- OXYGEN ---
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> OXYGEN = FLUIDS.register("oxygen",
-            () -> new BaseFlowingFluid.Source(Fluids.OXYGEN_PROPERTIES));
+            () -> new BaseFlowingFluid.Source(Fluids.OXYGEN_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> OXYGEN_FLOWING = FLUIDS.register("oxygen_flowing",
             () -> new BaseFlowingFluid.Flowing(Fluids.OXYGEN_PROPERTIES));
 
@@ -172,7 +193,11 @@ public class Fluids {
 
     // --- HYDROGEN ---
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> HYDROGEN = FLUIDS.register("hydrogen",
-            () -> new BaseFlowingFluid.Source(Fluids.HYDROGEN_PROPERTIES));
+            () -> new BaseFlowingFluid.Source(Fluids.HYDROGEN_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> HYDROGEN_FLOWING = FLUIDS.register("hydrogen_flowing",
             () -> new BaseFlowingFluid.Flowing(Fluids.HYDROGEN_PROPERTIES));
 
@@ -183,7 +208,11 @@ public class Fluids {
 
     // --- NITROGEN ---
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> NITROGEN = FLUIDS.register("nitrogen",
-            () -> new BaseFlowingFluid.Source(Fluids.NITROGEN_PROPERTIES));
+            () -> new BaseFlowingFluid.Source(Fluids.NITROGEN_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> NITROGEN_FLOWING = FLUIDS.register("nitrogen_flowing",
             () -> new BaseFlowingFluid.Flowing(Fluids.NITROGEN_PROPERTIES));
 
