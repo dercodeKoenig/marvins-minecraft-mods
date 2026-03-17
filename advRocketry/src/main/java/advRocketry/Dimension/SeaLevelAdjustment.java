@@ -94,7 +94,7 @@ public class SeaLevelAdjustment {
                         }
                     }
 
-                    if (scanState.getBlock().equals(fluidBlock)) {
+                    if (scanState.getBlock().equals(fluidBlock) && scanState.getFluidState().isSource()) {
                         if (fluidBlock instanceof CompositionLiquidBlock) {
                             level.setBlock(scanPos, scanState.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
                         }
