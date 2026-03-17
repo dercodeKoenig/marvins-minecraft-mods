@@ -158,8 +158,7 @@ public class DefaultGalaxy {
         titan.orbitalBaseOffsetDegrees = 180;
         titan.earthRadiusMultiplier = 0.5f;
         titan.gravitationalMultiplier = 0.3f;
-        titan.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
-        titan.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0,0,0.5f,0));
+        titan.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0,0.5f,0,0));
         titan.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(1,0,0f,0));
         titan.canVisit = true;
         titan.biomePreset = MOON.name;
