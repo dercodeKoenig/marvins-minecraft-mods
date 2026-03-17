@@ -30,6 +30,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.CalculateDetachedCameraDistanceEvent;
@@ -46,7 +47,6 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
 
-import static advRocketry.Dimension.SeaLevelAdjustment.getPosKey;
 import static advRocketry.Dimension.SeaLevelAdjustment.tagKey;
 
 public class WorldEvents {
@@ -217,7 +217,7 @@ public class WorldEvents {
 
     static void onSourceCreate(CreateFluidSourceEvent e) {
         Level level = e.getLevel();
-        if (e.getFluidState().getType().isSame(net.minecraft.world.level.material.Fluids.WATER)) {
+        if (e.getFluidState().is(Fluids.WATER)) {
             Dimension dim = DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location());
             if (dim instanceof SpaceStationDimension) {
                 // no sources on space stations
@@ -232,12 +232,13 @@ public class WorldEvents {
                 // until the xz position had its sea level adjusted or there can be leftover sources when sea level goes down again
                 ChunkAccess chunk = level.getChunk(e.getPos());
                 CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
-                String positionKey = getPosKey(e.getPos(), GasRegistry.water);
-                if (chunkEntry.contains(positionKey))
-                    seaLevel = Math.min(seaLevel, chunkEntry.getInt(positionKey));
-                else
-                    // error? why did the key not exist? maybe the chunk is just beeing generated?
-                    e.setCanConvert(false);
+
+                int[] seaLevels =SeaLevelAdjustment. getOrInitSeaLevelArray(chunkEntry, GasRegistry.water);
+                int localIndex = SeaLevelAdjustment.getLocalIndex(e.getPos().getX(), e.getPos().getZ());
+                int seaLevelExisting = seaLevels[localIndex];
+
+                seaLevel = Math.min(seaLevel, seaLevelExisting);
+
 
                 // can only convert if below sea level
                 if (e.getPos().getY() > seaLevel ||
