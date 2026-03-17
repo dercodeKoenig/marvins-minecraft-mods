@@ -17,6 +17,7 @@ import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -47,10 +48,12 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
 
+import java.util.List;
+
 import static advRocketry.Dimension.SeaLevelAdjustment.tagKey;
 
 public class WorldEvents {
-    static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer p) {
             for (Dimension i : DimensionManager.INSTANCE_SERVER.dimensions.values()) {
                 DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, i);
@@ -59,7 +62,7 @@ public class WorldEvents {
         }
     }
 
-    static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
         ResourceLocation to = event.getTo().location();
         if (event.getEntity() instanceof ServerPlayer player) {
             Dimension dim = DimensionManager.INSTANCE_SERVER.get(to);
@@ -69,7 +72,7 @@ public class WorldEvents {
         }
     }
 
-    static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(ServerTickEvent.Post event) {
         long t0 = System.nanoTime();
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
@@ -80,7 +83,7 @@ public class WorldEvents {
         //System.out.println((double)(System.nanoTime() - t0) / 1000 / 1000);
     }
 
-    static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick(ClientTickEvent.Post event) {
         if (ClientUtils.getPlayerLevel() == null) return; // my stuff is only for when playing
         DimensionManager.INSTANCE_CLIENT.tick();
         GlobalTime.tickClient();
@@ -95,7 +98,7 @@ public class WorldEvents {
         RocketParticleEngine.tick();
     }
 
-    static void onServerStarted(ServerStartedEvent event) {
+    public static void onServerStarted(ServerStartedEvent event) {
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + Main.worldPath);
         GlobalTime.load(); // important to load the time first!
@@ -106,7 +109,7 @@ public class WorldEvents {
         ItemAsteroidIdChip.onServerStart();
     }
 
-    static void onServerStop(ServerStoppingEvent event) {
+    public static void onServerStop(ServerStoppingEvent event) {
         SatelliteManager.onServerStop();
         MissionManager.onServerStop();
         ForcedChunkManager.saveForcedChunks();
@@ -114,7 +117,7 @@ public class WorldEvents {
         GlobalTime.save();
     }
 
-    static void onRenderStage(RenderLevelStageEvent event) {
+    public static void onRenderStage(RenderLevelStageEvent event) {
         float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         boolean is_fabulous = Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS;
 
@@ -139,7 +142,7 @@ public class WorldEvents {
 
     }
 
-    static void onChunkLoad(ChunkEvent.Load event) {
+    public static void onChunkLoad(ChunkEvent.Load event) {
         if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
             // perform some terraforming checks and replacement rules on new chunks
 
@@ -187,14 +190,14 @@ public class WorldEvents {
         }
     }
 
-    static void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
+    public static void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
         if (ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
             int rocketsize = rocket.size.getY();
             event.setDistance(event.getDistance() + rocketsize * 1.3f);
         }
     }
 
-    static void onLivingFallEvent(LivingFallEvent event) {
+    public static void onLivingFallEvent(LivingFallEvent event) {
         Level l = event.getEntity().level();
         float g = 1;
         Dimension d = DimensionManager.getDimensionManager(l.isClientSide).get(l.dimension().location());
@@ -203,7 +206,7 @@ public class WorldEvents {
         event.setDamageMultiplier(event.getDamageMultiplier() * g);
     }
 
-    static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         ItemStack stack = event.getItemStack();
         Player p = event.getEntity();
         Entity target = event.getTarget();
@@ -215,8 +218,9 @@ public class WorldEvents {
         }
     }
 
-    static void onSourceCreate(CreateFluidSourceEvent e) {
+    public static void onSourceCreate(CreateFluidSourceEvent e) {
         Level level = e.getLevel();
+        e.setCanConvert(false);
         if (e.getFluidState().is(Fluids.WATER)) {
             Dimension dim = DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location());
             if (dim instanceof SpaceStationDimension) {
@@ -226,21 +230,30 @@ public class WorldEvents {
             if (dim instanceof PlanetDimension planet) {
 
                 // the sea level that this chunk should have
-                int seaLevel = planet.getGasProperty(GasRegistry.water).worldGenSeaLevel;
+                int maxSeaLevel = planet.getGasProperty(GasRegistry.water).worldGenSeaLevel;
 
                 // if terraforming increases sea level, do not form a source at target sea level
                 // until the xz position had its sea level adjusted or there can be leftover sources when sea level goes down again
-                ChunkAccess chunk = level.getChunk(e.getPos());
-                CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, SeaLevelAdjustment.tagKey);
-                int[] seaLevels = SeaLevelAdjustment.getOrInitSeaLevelArray(chunkEntry, GasRegistry.water);
-                int localIndex = SeaLevelAdjustment.getLocalIndex(e.getPos().getX(), e.getPos().getZ());
-                int seaLevelExisting = seaLevels[localIndex];
+                // ok, so very important, the event position is the fucking neighbor of the block in question
+                // and because this bullshit event doesnt provide a direction, i will check if any block around here is yet to be adjusted
 
-                seaLevel = Math.min(seaLevel, seaLevelExisting);
+                // because when it makes a source and the chunk stops ticking while increasing sea level,
+                // and sea level goes down again, this source is not registered in the chunk tag,
+                // and this would cause it to not be considered "ocean" when the sea level is adjusted lower
+                for(Direction direction : List.of(Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH)) {
+                    BlockPos positionPossiblyInQuestion = e.getPos().relative(direction);
+                    ChunkAccess chunk = level.getChunk(positionPossiblyInQuestion);
+                    CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, SeaLevelAdjustment.tagKey);
+                    int[] seaLevels = SeaLevelAdjustment.getOrInitSeaLevelArray(chunkEntry, GasRegistry.water);
+                    int localIndex = SeaLevelAdjustment.getLocalIndex(positionPossiblyInQuestion.getX(), positionPossiblyInQuestion.getZ());
+                    int seaLevelExisting = seaLevels[localIndex];
+
+                    maxSeaLevel = Math.min(maxSeaLevel, seaLevelExisting);
+                }
 
 
                 // can only convert if below sea level
-                if (e.getPos().getY() > seaLevel ||
+                if (e.getPos().getY() > maxSeaLevel ||
                         planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(planet.getAtmosphereDensity())) {
                     e.setCanConvert(false);
                 }
