@@ -9,19 +9,23 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.Fluids;
 
 public class SeaLevelAdjustment {
     public static String tagKey = "SeaLevelAdjustment";
 
+    public static String getPosKey(BlockPos pos, String gas){
+        return new BlockPos(pos.getX(), 0, pos.getZ()).toShortString() + gas;
+    }
+
     // saves the original sea level used by the chunk generator to the chunk tag
     public static void saveInitialWaterLevelOnChunkGeneration(ServerLevel level, ChunkAccess chunk, int blockX, int blockZ) {
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
-        BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
-        String positionKey = pos0.asLong() + GasRegistry.water;
         int originalSeaLevel = level.getChunkSource().getGenerator().getSeaLevel();
-        chunkEntry.putInt(positionKey, originalSeaLevel);
+        chunkEntry.putInt(getPosKey(new BlockPos(blockX, 0, blockZ), GasRegistry.water), originalSeaLevel);
         ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
     }
 
@@ -40,7 +44,7 @@ public class SeaLevelAdjustment {
         ServerLevel level = planet.level();
         ChunkAccess chunk = level.getChunk(pos0);
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
-        String positionKey = pos0.asLong() + fluid.id;
+        String positionKey = getPosKey(pos0, fluid.id);
 
         int seaLevelTarget = planet.getGasProperty(fluid.id).worldGenSeaLevel;
         int seaLevelExisting = -1000;
@@ -60,8 +64,24 @@ public class SeaLevelAdjustment {
                 for (int scanY = blockPos.getY(); scanY > seaLevelTarget; scanY--) {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
-                    if (scanState.getBlock().equals(fluidBlock) &&
-                            scanState.getFluidState().isSource()) {
+
+                    // special case for water, fluid state can exist inside other blocks
+                    // or kelp for example has fluidstate water
+                    if (fluidBlock.equals(Blocks.WATER) && !scanState.getBlock().equals(Blocks.WATER)) {
+                        if (scanState.hasProperty(BlockStateProperties.WATERLOGGED) && scanState.getValue(BlockStateProperties.WATERLOGGED)) {
+                            scanState.setValue(BlockStateProperties.WATERLOGGED, false);
+                        }
+                        if(scanState.is(Blocks.KELP_PLANT) || scanState.is(Blocks.KELP)){
+                            level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
+                            return true;
+                        }
+                        if(scanState.is(Blocks.SEAGRASS) || scanState.is(Blocks.TALL_SEAGRASS)){
+                            level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
+                            return true;
+                        }
+                    }
+
+                    if (scanState.getBlock().equals(fluidBlock) && scanState.getFluidState().isSource()) {
                         // fluid above target sea level requires to be removed
                         if (fluidBlock instanceof CompositionLiquidBlock) {
                             // make sure it doesn't modify atmosphere before deleting it
@@ -103,6 +123,11 @@ public class SeaLevelAdjustment {
                         }
                         level.setBlock(scanPos, state, placementFlags);
                         planet.setRaining();
+
+                        // mark the generated sea level directly when the block was placed
+                        // so when the sea level decreases again this water can be removed
+                        chunkEntry.putInt(positionKey, scanPos.getY());
+                        ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
                         return true;
                     }
                 }
