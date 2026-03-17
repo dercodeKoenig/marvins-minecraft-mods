@@ -3,7 +3,6 @@ package advRocketry;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
-import advRocketry.Dimension.PlanetDimensionProperties;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
@@ -51,21 +50,21 @@ public class API {
         }
     }
 
-    public static double getAvailableSurfaceIceInBuckets(ResourceLocation levelId, String gasId, boolean isClientside) {
+    public static double getAvailableSurfaceIceInBlocks(ResourceLocation levelId, String gasId, boolean isClientside) {
         if (getDimension(levelId, isClientside) instanceof PlanetDimension planet) {
-            return planet.getGasProperty(gasId).frozen_surface * planet.getGravitationalMultiplier() / Config.INSTANCE.fluid_Contribution_To_Composition_Per_1000MB;
+            return planet.getGasProperty(gasId).frozen_surface * planet.getGravitationalMultiplier() / Config.INSTANCE.solid_Contribution_To_Composition_Per_Block;
         }
         return 0;
     }
 
-    public static void addSurfaceIceInBuckets(ResourceLocation levelId, String gasId, double buckets) {
+    public static void addSurfaceIceInBlocks(ResourceLocation levelId, String gasId, double blocks) {
         if (getDimension(levelId, false) instanceof PlanetDimension planet) {
-            double toAdd = buckets * Config.INSTANCE.fluid_Contribution_To_Composition_Per_1000MB / planet.getGravitationalMultiplier();
+            double toAdd = blocks * Config.INSTANCE.solid_Contribution_To_Composition_Per_Block / planet.getGravitationalMultiplier();
             planet.getGasProperty(gasId).frozen_surface += toAdd;
             planet.getGasProperty(gasId).frozen_surface = Math.max(0, planet.getGasProperty(gasId).frozen_surface);
             planet.setRequiresSync();
 
-            System.out.println("API added frozen buckets: " + gasId + ":" + buckets);
+            System.out.println("API added frozen blocks: " + gasId + ":" + blocks);
         }
     }
 

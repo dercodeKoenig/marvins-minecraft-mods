@@ -59,6 +59,9 @@ public class Config {
     //          if it ha sa presence of 1 in atmosphere
     public double fluid_Contribution_To_Composition_Per_1000MB = 0.01 / 50000;
 
+    // same as fluid contribution, but i give blocks more weight
+    public double solid_Contribution_To_Composition_Per_Block = 0.01 / 2000;
+
     // how much gas should evaporate or freeze per tick when temperature falls / rises above the threshold
     // default: 100 seconds for a difference of 0.01
     public double gas_Atm_Transition_Speed = 0.01 / 20 / 100;

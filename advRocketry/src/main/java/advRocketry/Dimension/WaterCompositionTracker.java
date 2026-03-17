@@ -37,27 +37,19 @@ public class WaterCompositionTracker {
             }
         }
         if (isIce(newState)) {
-            API.addSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, 100);
+            API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, 1);
         }
 
         if (!isH2O) {
             if (isIce(oldState)) {
-                removeWaterBucketsFromSurface(level, 100);
+                API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, -1);
             }
             if (isWaterSource(oldState)) {
                 if (!shouldIgnoreEvent()) {
-                    removeWaterBucketsFromSurface(level, 1);
-                    System.out.println(oldState+":"+newState);
+                    API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, -1);
                 }
             }
         }
-    }
-
-    private static void removeWaterBucketsFromSurface(Level level, double buckets) {
-        if (API.getAvailableLiquidInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
-            API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, -buckets);
-        else if (API.getAvailableSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
-            API.addSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, -buckets);
     }
 
     private static boolean isWaterSource(BlockState state) {

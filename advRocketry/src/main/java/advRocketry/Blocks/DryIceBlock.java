@@ -1,5 +1,6 @@
 package advRocketry.Blocks;
 
+import advRocketry.API;
 import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Registry.Blocks;
@@ -34,11 +35,6 @@ public class DryIceBlock extends Block {
         super(properties.randomTicks());
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false));
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, false));
-    }
-
-    public static double getCompositionModifier(PlanetDimension planet) {
-        // a block is worth much more than a bucket
-        return 100 * Config.INSTANCE.fluid_Contribution_To_Composition_Per_1000MB / planet.getGravitationalMultiplier();
     }
 
     public static int getTargetThickness(double frozen_co2_level, float noiseTemperature) {
@@ -189,10 +185,7 @@ public class DryIceBlock extends Block {
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
             if (!Objects.equals(oldState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE)) {
-                PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
-                //System.out.println("place before:" + co2.frozen_surface);
-                co2.frozen_surface += getCompositionModifier(planet);
-                //System.out.println(co2.frozen_surface);
+                API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.co2, 1);
             }
         }
     }
@@ -204,10 +197,7 @@ public class DryIceBlock extends Block {
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
             if (!Objects.equals(newState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
-                PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
-                //System.out.println("before:" + co2.frozen_surface);
-                co2.frozen_surface -= Math.min(getCompositionModifier(planet), co2.frozen_surface);
-                //System.out.println(co2.frozen_surface);
+                API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.co2, -1);
             }
         }
     }
