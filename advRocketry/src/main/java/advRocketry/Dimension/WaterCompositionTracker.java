@@ -56,8 +56,7 @@ public class WaterCompositionTracker {
     private static void removeWaterBucketsFromSurface(Level level, double buckets) {
         if (API.getAvailableLiquidInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
             API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, -buckets);
-
-        if (API.getAvailableSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
+        else if (API.getAvailableSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
             API.addSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, -buckets);
     }
 
