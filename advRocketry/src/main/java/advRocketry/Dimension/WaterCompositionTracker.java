@@ -9,8 +9,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 
 import java.awt.*;
 
@@ -33,22 +35,28 @@ public class WaterCompositionTracker {
             return;
 
         if (isWaterSource(newState)) {
+            if(!oldState.getBlock().equals(Blocks.WATER) && oldState.getFluidState().is(Fluids.WATER))
+                // old state was no water but had a water fluid state (kelp for example)
+                // this should not contribute to composition
+                return;
             if (!shouldIgnoreEvent()) {
                 API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, 1);
             }
         }
-        if (isIce(newState)) {
+        else if (isIce(newState)) {
             API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, 1);
         }
 
-        if (!isH2O) {
+        else if (!isH2O) {
             if (isIce(oldState)) {
                 if(!shouldIgnoreEvent()) {
                     API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, -1);
                 }
             }
-            if (isWaterSource(oldState)) {
+            if (isWaterSource(oldState) && newState.isAir()) {
                 if (!shouldIgnoreEvent()) {
+                    // only remove water from composition when it was replaced with air
+                    // so it ignores kelp growing or placing blocks in water
                     API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, -1);
                 }
             }
