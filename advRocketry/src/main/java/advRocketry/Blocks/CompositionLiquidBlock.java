@@ -81,7 +81,8 @@ public class CompositionLiquidBlock extends LiquidBlock {
         if (level.isClientSide) return;
 
         // Only remove composition if the block being removed was a source block
-        if (state.getFluidState().isSource()) {
+        // Only air removal is valid, no replacement by placing blocks in
+        if (state.getFluidState().isSource() && newState.isAir()) {
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
                 if (!Objects.equals(newState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
                     API.addLiquidInBuckets(level.dimension().location(),gasId,-1);
