@@ -55,49 +55,56 @@ public class SeaLevelAdjustment {
             BlockState blockState = level.getBlockState(blockPos);
 
             // remove any fluid above its sea level
-            for (int scanY = blockPos.getY(); scanY > seaLevelTarget; scanY--) {
-                BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
-                BlockState scanState = level.getBlockState(scanPos);
-                if (scanState.getBlock().equals(fluidBlock) &&
-                        scanState.getFluidState().isSource()) {
-                    // fluid above target sea level requires to be removed
-                    if(fluidBlock instanceof CompositionLiquidBlock){
-                        // make sure it doesn't modify atmosphere before deleting it
-                        level.setBlock(scanPos, scanState.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
+            // but only if last sea level was above target sea level
+            if(seaLevelTarget< seaLevelExisting) {
+                for (int scanY = blockPos.getY(); scanY > seaLevelTarget; scanY--) {
+                    BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
+                    BlockState scanState = level.getBlockState(scanPos);
+                    if (scanState.getBlock().equals(fluidBlock) &&
+                            scanState.getFluidState().isSource()) {
+                        // fluid above target sea level requires to be removed
+                        if (fluidBlock instanceof CompositionLiquidBlock) {
+                            // make sure it doesn't modify atmosphere before deleting it
+                            // it is only a reflection of change, not something that causes change
+                            level.setBlock(scanPos, scanState.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
+                        }
+                        level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
+                        planet.setClearWeather();
+                        return true;
                     }
-                    level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
-                    planet.setClearWeather();
-                    return true;
                 }
             }
 
-            // adjust top block pos lower while there is not full block
-            while (!blockState.isRedstoneConductor(level, blockPos)) {
-                blockPos = blockPos.below();
-                blockState = level.getBlockState(blockPos);
-                if (blockPos.getY() <= level.getMinBuildHeight())
-                    return false;
-            }
-            //System.out.println(blockState + ":" + topSolidOrWaterBlockPos);
+            // only place blocks when sea level increased
+            if(seaLevelTarget > seaLevelExisting) {
+                // adjust top block pos lower while there is not full block
+                while (!blockState.isRedstoneConductor(level, blockPos)) {
+                    blockPos = blockPos.below();
+                    blockState = level.getBlockState(blockPos);
+                    if (blockPos.getY() <= level.getMinBuildHeight())
+                        return false;
+                }
+                //System.out.println(blockState + ":" + topSolidOrWaterBlockPos);
 
-            // scan back up to find the first replaceable block above the first solid block that is not already a fluid source
-            for (int scanY = blockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
-                BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
-                BlockState scanState = level.getBlockState(scanPos);
+                // scan back up to find the first replaceable block above the first solid block that is not already a fluid source
+                for (int scanY = blockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
+                    BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
+                    BlockState scanState = level.getBlockState(scanPos);
 
-                if (scanState.getBlock().equals(Blocks.LAVA)) {
-                    // special case: lave is replaced with obsidian
-                    level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
-                    planet.setRaining();
-                    return true;
-                } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
-                    BlockState state = fluidBlock.defaultBlockState();
-                    if(fluidBlock instanceof CompositionLiquidBlock){
-                        state = state.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
+                    if (scanState.getBlock().equals(Blocks.LAVA)) {
+                        // special case: lave is replaced with obsidian
+                        level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
+                        planet.setRaining();
+                        return true;
+                    } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
+                        BlockState state = fluidBlock.defaultBlockState();
+                        if (fluidBlock instanceof CompositionLiquidBlock) {
+                            state = state.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
+                        }
+                        level.setBlock(scanPos, state, placementFlags);
+                        planet.setRaining();
+                        return true;
                     }
-                    level.setBlock(scanPos, state, placementFlags);
-                    planet.setRaining();
-                    return true;
                 }
             }
 
