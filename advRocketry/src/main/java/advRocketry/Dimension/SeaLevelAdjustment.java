@@ -80,7 +80,7 @@ public class SeaLevelAdjustment {
 
             // remove fluid above its sea level
             if (seaLevelTarget < seaLevelExisting) {
-                for (int scanY = seaLevelExisting + 1; scanY > seaLevelTarget; scanY--) {
+                for (int scanY = seaLevelExisting; scanY > seaLevelTarget; scanY--) {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
 
