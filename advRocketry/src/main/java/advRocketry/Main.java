@@ -275,6 +275,7 @@ public class Main {
             e.accept(Items.ITEM_PLANET_ID_CHIP.get());
             e.accept(Items.ITEM_ASTEROID_ID_CHIP.get());
             e.accept(Items.ITEM_DATA_STORAGE.get());
+            e.accept(Items.ITEM_ATM_ANALYZER.get());
 
             e.accept(Blocks.SATELLITE_ASSEMBLER.get());
             e.accept(Blocks.SATELLITE_MONITOR.get());
