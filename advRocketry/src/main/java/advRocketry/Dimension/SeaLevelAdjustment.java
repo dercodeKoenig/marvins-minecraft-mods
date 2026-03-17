@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.checkerframework.checker.units.qual.C;
 import org.codehaus.plexus.util.CachedMap;
@@ -66,7 +67,7 @@ public class SeaLevelAdjustment {
             return false;
 
         ServerLevel level = planet.level();
-        ChunkAccess chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+        ChunkAccess chunk = level.getChunkAt(new BlockPos(blockX, 0, blockZ));
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
 
         int[] seaLevels = getOrInitSeaLevelArray(chunkEntry, fluid.id);
@@ -112,7 +113,7 @@ public class SeaLevelAdjustment {
                 }
             }
 
-            // only place blocks when sea level increased
+            // place blocks up to sea level
             if (seaLevelTarget > seaLevelExisting) {
                 int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
                 BlockPos blockPos = new BlockPos(blockX, y, blockZ);
@@ -139,23 +140,31 @@ public class SeaLevelAdjustment {
                             state = state.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
                         }
 
+
+                        level.setBlock(scanPos, state, placementFlags);
+                        planet.setRaining(5);
+
                         if (scanPos.getY() > seaLevelExisting) {
                             seaLevels[localIndex] = scanPos.getY();
                             chunkEntry.putIntArray(fluid.id, seaLevels);
                             ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
                         }
-
-                        level.setBlock(scanPos, state, placementFlags);
-                        planet.setRaining(5);
                         return true;
                     }
                 }
+                /*
+                BlockState existingState1 = level.getBlockState(new BlockPos(blockX, seaLevelTarget, blockZ));
+                if(existingState1.getBlock().equals(Blocks.WATER))
+                    System.out.println(planet.getName()+" could not place water at "+blockX+":"+seaLevelTarget+":"+blockZ+":"+existingState1);
+                 */
+
             }
 
             // if no replacement happens, mark completed
             seaLevels[localIndex] = seaLevelTarget;
             chunkEntry.putIntArray(fluid.id, seaLevels);
             ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
+            return true;
         }
         return false;
     }
