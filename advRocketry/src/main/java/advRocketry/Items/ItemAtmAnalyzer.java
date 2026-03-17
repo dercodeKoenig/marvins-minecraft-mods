@@ -42,7 +42,7 @@ public class ItemAtmAnalyzer extends Item {
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
 
-            String description = String.format("Water level: " + planet.getGasProperty(GasRegistry.water).getSeaLevel() + "\n\n");
+            String description = String.format("\n\nWater level: " + planet.getGasProperty(GasRegistry.water).getSeaLevel() + "\n\n");
 
 
             description += String.format("Composition:\n");
@@ -62,14 +62,13 @@ public class ItemAtmAnalyzer extends Item {
 
             Set<Dimension.SurvivalProblem> problems = planet.getSurvivalProblems();
             if (problems.isEmpty()) {
-                description += "Survival Possible\n";
+                description += "Survival Possible";
             } else {
                 description += "Survival problems: \n";
                 for (Dimension.SurvivalProblem p : problems) {
                     description += p.reason + "\n";
                 }
             }
-            description += "\n";
 
             player.sendSystemMessage(Component.literal(description));
         }
