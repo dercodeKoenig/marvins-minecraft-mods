@@ -9,7 +9,8 @@
     "LivingEntityMixin",
     "ServerLevelMixin",
     "BiomeMixin",
-    "IceBlockMixin"
+    "IceBlockMixin",
+    "LevelMixin"
   ],
   "client": [
     "MixinWorldEffects",
