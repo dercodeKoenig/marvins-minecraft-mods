@@ -166,6 +166,7 @@ public class SpaceMapScreen extends Screen {
 
             double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
             double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
+            double atmWater = planet.getGasProperty(GasRegistry.water).in_atm;
             double humidity = planet.getHumidity();
             double frozenGasCoverage = planet.getFrozenGasCoverage();
             double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
@@ -206,6 +207,12 @@ public class SpaceMapScreen extends Screen {
             }
             if (atmMethane > 0.0001) {
                 description += "Methane in the atmosphere significantly increases greenhouse effect.\n\n";
+            }
+            if (atmWater > 0.0001) {
+                description += "Steam is a strong greenhouse gas.\n";
+                if(planet.getCurrentTemp() < 350)
+                    description += "Low atmosphere pressure turns water into steam at lower temperatures.\n";
+                description+="\n";
             }
 
             if (planet.getAtmosphereDensity() < 0.1) {
