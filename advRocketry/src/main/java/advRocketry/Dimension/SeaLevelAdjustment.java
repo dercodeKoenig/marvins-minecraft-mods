@@ -114,7 +114,7 @@ public class SeaLevelAdjustment {
                     if (scanState.getBlock().equals(Blocks.LAVA)) {
                         // special case: lave is replaced with obsidian
                         level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
-                        planet.setRaining();
+                        planet.setRaining(5);
                         return true;
                     } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
                         BlockState state = fluidBlock.defaultBlockState();
@@ -122,7 +122,7 @@ public class SeaLevelAdjustment {
                             state = state.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
                         }
                         level.setBlock(scanPos, state, placementFlags);
-                        planet.setRaining();
+                        planet.setRaining(5);
 
                         // mark the generated sea level directly when the block was placed
                         // so when the sea level decreases again this water can be removed
