@@ -1,5 +1,6 @@
 package advRocketry.Blocks;
 
+import advRocketry.API;
 import advRocketry.Config;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
@@ -32,10 +33,6 @@ public class CompositionLiquidBlock extends LiquidBlock {
                 .setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false)
                 .setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, false));
         this.gasId = gasId;
-    }
-
-    public static double getCompositionModifier(PlanetDimension planet) {
-        return Config.INSTANCE.fluid_Contribution_To_Composition_Per_1000MB / planet.getGravitationalMultiplier();
     }
 
     protected boolean isRandomlyTicking(BlockState state) {
@@ -71,10 +68,7 @@ public class CompositionLiquidBlock extends LiquidBlock {
         if (state.getFluidState().isSource()) {
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
                 if (!Objects.equals(oldState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE)) {
-                    PlanetDimensionProperties.GasProperty gas = planet.getGasProperty(gasId);
-                    gas.liquid += getCompositionModifier(planet);
-                    System.out.println("added " + gasId + " - " + gas.liquid);
-                    planet.setRequiresSync();
+                    API.addLiquidInBuckets(level.dimension().location(),gasId,1);
                 }
             }
         }
@@ -90,9 +84,7 @@ public class CompositionLiquidBlock extends LiquidBlock {
         if (state.getFluidState().isSource()) {
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
                 if (!Objects.equals(newState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
-                    PlanetDimensionProperties.GasProperty gas = planet.getGasProperty(gasId);
-                    gas.liquid -= Math.min(getCompositionModifier(planet), gas.liquid);
-                    System.out.println("removed " + gasId + " - " + gas.liquid);
+                    API.addLiquidInBuckets(level.dimension().location(),gasId,-1);
                 }
             }
         }
