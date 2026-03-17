@@ -41,11 +41,11 @@ public class PlanetDimension extends Dimension {
         requiresSync = true;
     }
 
-    public void setRaining() {
+    public void setRaining(int seconds) {
         // when chunks are currently increasing sea level, it should rain!
         ServerLevel level = level();
         if (level != null)
-            level.setWeatherParameters(0, 20 * 1000, true, false);
+            level.setWeatherParameters(0, 20 * seconds, true, false);
     }
 
     public void setClearWeather() {
@@ -529,7 +529,7 @@ public class PlanetDimension extends Dimension {
         if (getName().equals("Earth")) {
             //getGasProperty("co2").in_atm = 0.005;
             //getGasProperty("nitrogen").in_atm = 1;
-            //properties().seaLevel = 45;
+            //getGasProperty("water").liquid = 0.5;
         }
         if (getName().equals("moon")) {
             //getGasProperty("co2").frozen_deep_below_surface = 0.03;
