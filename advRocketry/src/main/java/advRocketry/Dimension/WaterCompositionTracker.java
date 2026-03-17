@@ -31,6 +31,7 @@ public class WaterCompositionTracker {
         if (wasH2O == isH2O)
             return;
 
+        // i add as gas simply because it will convert to the target ice or liquid anyway in a few ticks
         if (isWaterSource(newState)) {
             if (!shouldIgnoreEvent()) {
                 API.addGasInBuckets(level.dimension().location(), GasRegistry.water, 1);
@@ -42,14 +43,22 @@ public class WaterCompositionTracker {
 
         if (!isH2O) {
             if (isIce(oldState)) {
-                API.addGasInBuckets(level.dimension().location(), GasRegistry.water, -100);
+                removeWaterBucketsFromSurface(level, 100);
             }
             if (isWaterSource(oldState)) {
                 if (!shouldIgnoreEvent()) {
-                    API.addGasInBuckets(level.dimension().location(), GasRegistry.water, -1);
+                    removeWaterBucketsFromSurface(level, 1);
                 }
             }
         }
+    }
+
+    private static void removeWaterBucketsFromSurface(Level level, double buckets) {
+        if (API.getAvailableLiquidInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
+            API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, -buckets);
+
+        if (API.getAvailableSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, false) > buckets)
+            API.addSurfaceIceInBuckets(level.dimension().location(), GasRegistry.water, -buckets);
     }
 
     private static boolean isWaterSource(BlockState state) {
@@ -72,4 +81,5 @@ public class WaterCompositionTracker {
                         frame.getDeclaringClass().equals(SeaLevelAdjustment.class) // sea level adjustment is skipped
         ));
     }
+
 }
