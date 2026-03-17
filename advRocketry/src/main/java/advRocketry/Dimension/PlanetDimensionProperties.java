@@ -90,7 +90,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
                 return 0;
 
             double baseLevel = 40; // base value when there is any fluid
-            double levelAt05 = 63; // normal value on 0.5 composition, equal to overworld sea level
+            double levelAt05 = 62; // normal value on 0.5 composition, equal to overworld sea level
             double seaLevel = baseLevel + surfaceValue * 2 * (levelAt05 - baseLevel);
             seaLevel = Math.min(maxSeaLevel, seaLevel);
             return seaLevel;

@@ -80,7 +80,7 @@ public class PlanetDimension extends Dimension {
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
                 Blocks.WATER.defaultBlockState(),
-                getGasProperty(GasRegistry.water).worldGenSeaLevel,
+                getGasProperty(GasRegistry.water).worldGenSeaLevel + 1, // the sea level in the world generator is actually the block above the sea level
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
