@@ -527,14 +527,10 @@ public class PlanetDimension extends Dimension {
             //properties().seaLevel = 50;
         }
         if (getName().equals("Earth")) {
-            //getGasProperty("co2").in_atm = 0.005;
-            //getGasProperty("nitrogen").in_atm = 1;
-            getGasProperty("water").liquid = 0.5;
+            getGasProperty("water").liquid = 0.6;
         }
-        if (getName().equals("moon")) {
-            //getGasProperty("co2").frozen_deep_below_surface = 0.03;
-            //getGasProperty("nitrogen").in_atm = 0;
-            //properties().seaLevel = 50;
+        if (getName().equals("Europa")) {
+            //getGasProperty("co2").frozen_surface = 0.2;
         }
     }
 

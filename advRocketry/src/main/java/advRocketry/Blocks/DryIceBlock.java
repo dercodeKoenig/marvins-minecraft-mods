@@ -48,6 +48,23 @@ public class DryIceBlock extends Block {
         return targetThickness;
     }
 
+    // Converts world coordinates into a 0-255 local chunk index
+    public static int getLocalIndex(int blockX, int blockZ) {
+        return (blockX & 15) | ((blockZ & 15) << 4);
+    }
+
+    // Helper to get or initialize the Long array for doubles
+    private static long[] getOrInitDryIceArray(CompoundTag chunkEntry) {
+        if (chunkEntry.contains("levels", CompoundTag.TAG_LONG_ARRAY)) {
+            long[] levels = chunkEntry.getLongArray("levels");
+            if (levels.length == 256) {
+                return levels;
+            }
+        }
+        // Initialize new array. Default is 0L, which converts exactly to 0.0d
+        return new long[256];
+    }
+
     // returns true if a block was placed, false if the xz position is considered fully worked
     public static boolean placeDryIceIfPossible(PlanetDimension planet, int blockX, int blockZ, int placementFlags) {
         BlockPos pos0 = new BlockPos(blockX, 0, blockZ);
@@ -55,35 +72,24 @@ public class DryIceBlock extends Block {
         ChunkAccess chunk = level.getChunk(pos0);
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, dryIceDataTag);
 
-        // we place dry ice based on how much gas is frozen on the surface and the noise temperature
-
-        // we only place dry ice if the frozen value increased since last placement
-        // this avoids re-placing blocks that the player mined away
-
-        // we do not place a new dry ice block if there is already one at surface to avoid stacking
-        // them up to infinity every time the value increases a bit
-
-        // dry ice should remove itself on block tick when the frozen gas coverage no longer meets the noise temperature
+        long[] dryIceLevels = getOrInitDryIceArray(chunkEntry);
+        int localIndex = getLocalIndex(blockX, blockZ);
 
         double frozen_co2_level = planet.getGasProperty(GasRegistry.co2).frozen_surface;
-        double frozen_co2_level_at_last_placement = 0; // default
-        String positionKey = String.valueOf(pos0.asLong());
-        if (chunkEntry.contains(positionKey)) {
-            frozen_co2_level_at_last_placement = chunkEntry.getDouble(positionKey);
-        }
+        // Convert the long bits back into our double for math
+        double frozen_co2_level_at_last_placement = Double.longBitsToDouble(dryIceLevels[localIndex]);
 
         // Check if the CO2 level increased significantly
         if (frozen_co2_level > frozen_co2_level_at_last_placement + epsilon) {
             float noiseTemperature = ChunkUtils.getNoiseTemperatureAt(planet, pos0); // -1 to 1
 
             // Calculate the target thickness
-            // 1 block base + 1 block for every x units the threshold is above the temperature
             int targetThickness = getTargetThickness(frozen_co2_level, noiseTemperature);
 
             int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
             BlockPos topBlock = new BlockPos(blockX, y - 1, blockZ);
 
-            // Scan downwards to count existing dry ice blocks within the upper (targetThickness + 10) blocks
+            // Scan downwards to count existing dry ice blocks
             int existingDryIceCount = 0;
             int scanDepth = targetThickness + 10;
 
@@ -99,30 +105,27 @@ public class DryIceBlock extends Block {
             }
 
             if (existingDryIceCount < targetThickness) {
-                // Not enough blocks: place exactly ONE more block on top of the surface.
-                // We do NOT update the tag here, which ensures this logic runs again in the future to place more blocks if needed.
                 BlockState topBlockState = level.getBlockState(topBlock);
                 if (topBlockState.isFaceSturdy(level, topBlock, Direction.UP)) {
-                    // do not place ice blocks on things like flowers or water.
                     level.setBlock(topBlock.above(), Blocks.DRY_ICE.get().defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, true), placementFlags);
                     return true;
                 } else if (topBlockState.canBeReplaced() && level.getBlockState(topBlock.below()).isFaceSturdy(level, topBlock.below(), Direction.UP)) {
-                    // directly replace the top block like grass
-                    // but still requires solid block below
                     level.setBlock(topBlock, Blocks.DRY_ICE.get().defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, true), placementFlags);
                     return true;
                 }
             }
 
             // We have enough blocks or placement was not possible
-            // mark the position as completed by updating the tag
-            chunkEntry.putDouble(positionKey, frozen_co2_level);
+            // Convert the double to raw long bits to store in the array
+            dryIceLevels[localIndex] = Double.doubleToRawLongBits(frozen_co2_level);
+            chunkEntry.putLongArray("levels", dryIceLevels);
             ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
 
         }
         // If the level decreased significantly, immediately update the tag to mark the new lower value as completed
         else if (frozen_co2_level < frozen_co2_level_at_last_placement - epsilon) {
-            chunkEntry.putDouble(positionKey, frozen_co2_level);
+            dryIceLevels[localIndex] = Double.doubleToRawLongBits(frozen_co2_level);
+            chunkEntry.putLongArray("levels", dryIceLevels);
             ChunkUtils.setEntry(chunk, dryIceDataTag, chunkEntry);
         }
         return false;

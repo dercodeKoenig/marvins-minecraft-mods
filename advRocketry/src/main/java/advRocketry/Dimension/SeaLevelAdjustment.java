@@ -6,6 +6,7 @@ import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -56,7 +57,6 @@ public class SeaLevelAdjustment {
     public static boolean adjustSeaLevelIfRequired(PlanetDimension planet, GasRegistry.Gas fluid, int blockX, int blockZ, int placementFlags) {
 
 
-
         if (fluid.id.equals(GasRegistry.co2))
             // co2 has its own logic in dry ice block because it can not exist as liquid
             return false;
@@ -69,9 +69,6 @@ public class SeaLevelAdjustment {
         ChunkAccess chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
 
-
-        //ChunkUtils.setEntry(chunk,tagKey,new CompoundTag()); // TODO: REMOVE, this is only to clear old entry
-
         int[] seaLevels = getOrInitSeaLevelArray(chunkEntry, fluid.id);
         int localIndex = getLocalIndex(blockX, blockZ);
 
@@ -83,7 +80,7 @@ public class SeaLevelAdjustment {
 
             // remove fluid above its sea level
             if (seaLevelTarget < seaLevelExisting) {
-                for (int scanY = seaLevelExisting; scanY > seaLevelTarget; scanY--) {
+                for (int scanY = seaLevelExisting + 1; scanY > seaLevelTarget; scanY--) {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
 
@@ -97,10 +94,17 @@ public class SeaLevelAdjustment {
                         }
                     }
 
-                    if (scanState.getBlock().equals(fluidBlock) && scanState.getFluidState().isSource()) {
+                    if (scanState.getBlock().equals(fluidBlock)) {
                         if (fluidBlock instanceof CompositionLiquidBlock) {
                             level.setBlock(scanPos, scanState.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
                         }
+
+                        if (scanPos.getY() < seaLevelExisting) {
+                            seaLevels[localIndex] = scanPos.getY();
+                            chunkEntry.putIntArray(fluid.id, seaLevels);
+                            ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
+                        }
+
                         level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
                         planet.setClearWeather();
                         return true;

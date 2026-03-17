@@ -231,9 +231,8 @@ public class WorldEvents {
                 // if terraforming increases sea level, do not form a source at target sea level
                 // until the xz position had its sea level adjusted or there can be leftover sources when sea level goes down again
                 ChunkAccess chunk = level.getChunk(e.getPos());
-                CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
-
-                int[] seaLevels =SeaLevelAdjustment. getOrInitSeaLevelArray(chunkEntry, GasRegistry.water);
+                CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, SeaLevelAdjustment.tagKey);
+                int[] seaLevels = SeaLevelAdjustment.getOrInitSeaLevelArray(chunkEntry, GasRegistry.water);
                 int localIndex = SeaLevelAdjustment.getLocalIndex(e.getPos().getX(), e.getPos().getZ());
                 int seaLevelExisting = seaLevels[localIndex];
 

@@ -52,11 +52,11 @@ public class PlanetEvents {
             }
 
             // spawn possible dry ice blocks
-            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3 | 16);
+            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);
 
             // adjust sea level for all the gases
             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3 | 16))
+                if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
                     break; // avoid gas mixing if many gases exist
             }
         }
