@@ -159,7 +159,6 @@ public class WorldEvents {
 
     public static void onSourceCreate(CreateFluidSourceEvent e) {
         Level level = e.getLevel();
-        e.setCanConvert(false);
         if (e.getFluidState().is(Fluids.WATER)) {
             Dimension dim = DimensionManager.getDimensionManager(level.isClientSide).get(level.dimension().location());
             if (dim instanceof SpaceStationDimension) {

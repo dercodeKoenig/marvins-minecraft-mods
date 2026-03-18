@@ -3,8 +3,6 @@ package BetterPipes.Pipe;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.VertexBufferCleaner;
-import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
-import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -24,15 +22,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -43,8 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static BetterPipes.Registry.ENTITY_PIPE;
-import static BetterPipes.Registry.register;
-import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
 public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider, ICrankShaftConnector {
 
@@ -66,10 +59,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             setChanged();
         }
     };
-    FluidStack last_tankFluid = FluidStack.EMPTY;
-    int lastFill;
-    int ticksWithFluidInTank = 0;
-
     public FluidRenderData renderData = new FluidRenderData();
     public VertexBuffer vertexBuffer;
     public MeshData mesh;
@@ -78,7 +67,9 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     public boolean requiresMeshUpdate = false;
     public boolean requiresMeshUpdate2 = false;
     public int lastLight;
-
+    FluidStack last_tankFluid = FluidStack.EMPTY;
+    int lastFill;
+    int ticksWithFluidInTank = 0;
     boolean tankNorth = false;
     boolean tankEast = false;
     boolean tankWest = false;
@@ -87,7 +78,33 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     Direction crankShaftSide = null;
     boolean hasAnyExtractionConnections = false;
 
-    double mechanicalResistance = 1;
+    double mechanicalResistance = 3;
+    AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMaxStress() {
+            return 9999;
+        }
+
+        @Override
+        public double getInertia(Direction direction) {
+            return 0.1;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction direction) {
+            return mechanicalResistance;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction direction) {
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@Nullable Direction direction) {
+            return 1;
+        }
+    };
 
     public EntityPipe(BlockPos pos, BlockState blockState) {
         super(ENTITY_PIPE.get(), pos, blockState);
@@ -107,6 +124,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
     }
 
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityPipe) t).tick();
+    }
+
     public IFluidHandler getFluidHandler(Direction side) {
         return connections.get(side);
     }
@@ -123,10 +144,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
     }
 
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityPipe) t).tick();
-    }
-
     public void tick() {
         myMechanicalBlock.mechanicalTick();
 
@@ -140,12 +157,12 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
 
         // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
-        if(crankShaftSide != null && hasAnyExtractionConnections){
-            double otherRotation = ((IMechanicalBlockProvider)level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
-            if(Math.abs(myMechanicalBlock.currentRotation - otherRotation)>0.1){
-                myMechanicalBlock.currentRotation = otherRotation;
-            }
+        // this is easier than always reset the rotation on connect or unconnect
+        if (crankShaftSide != null && hasAnyExtractionConnections) {
+            double otherRotation = ((IMechanicalBlockProvider) level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
+            myMechanicalBlock.currentRotation = otherRotation;
         }
+
 
         // this is because for some reason minecraft stops updating the sprite
         // so i do it every tick
@@ -193,7 +210,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                     syncTanksToClient(null);
                 }
             }
-            mechanicalResistance = 1;
+            mechanicalResistance = 5;
             for (Direction direction : Direction.allShuffled(level.random)) {
                 PipeConnection conn = connections.get(direction);
                 if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.CONNECTED || state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
@@ -263,14 +280,23 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
                             // extract from a neighbor fluid handler
                             // this runs every tick
-                            int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
-                            toDrain = Math.abs(toDrain) * 1;
+                            double toDrainDouble = (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
+                            int toDrain = (int) toDrainDouble;
+                            toDrain = Math.abs(toDrain);
                             FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
                             int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
                             int toTransfer = Math.min(filled, drained.getAmount());
                             drained = neighbor.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
                             conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
-                            mechanicalResistance += drained.getAmount();
+
+
+                            if (toDrain == drained.getAmount()) {
+                                // make sure the resistance is about the same so it keeps the flow static and not updates the meshes all the time
+                                // use the double value for a consistent resistance force
+                                mechanicalResistance += toDrainDouble;
+                            } else
+                                // if not everything was drained, make the resistance depending on how much was drained
+                                mechanicalResistance += drained.getAmount();
                         }
                     }
 
@@ -360,7 +386,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         requiresMeshUpdate2 = true;
     }
 
-
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
@@ -386,7 +411,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
     }
-
 
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
@@ -427,39 +451,12 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
     }
 
-    AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
-        @Override
-        public double getMaxStress() {
-            return 9999;
-        }
-
-        @Override
-        public double getInertia(Direction direction) {
-            return 1;
-        }
-
-        @Override
-        public double getTorqueResistance(Direction direction) {
-            return mechanicalResistance;
-        }
-
-        @Override
-        public double getTorqueProduced(Direction direction) {
-            return 0;
-        }
-
-        @Override
-        public double getRotationMultiplierToInside(@Nullable Direction direction) {
-            return 1;
-        }
-    };
-
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
-        if (crankShaftSide == null){
+        if (crankShaftSide == null) {
             return null;
         }
-        if (direction != crankShaftSide){
+        if (direction != crankShaftSide) {
             return null;
         }
         // we need to have 1 or more connections in extraction mode to use the pump mode
