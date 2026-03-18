@@ -888,8 +888,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     // ──────────────────────────────────────────────────────────────────────────
 
     public static boolean shouldRenderCentered(Fluid f) {
-     //   return f.getFluidType().isLighterThanAir();
-        return true;
+        return f.getFluidType().isLighterThanAir();
     }
 
     /**
