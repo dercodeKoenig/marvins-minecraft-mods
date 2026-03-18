@@ -264,14 +264,23 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
                             // extract from a neighbor fluid handler
                             // this runs every tick
-                            int toDrain = (int) (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
-                            toDrain = Math.abs(toDrain) * 1;
+                            double toDrainDouble = (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
+                            int toDrain = (int) toDrainDouble;
+                            toDrain = Math.abs(toDrain);
                             FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
                             int filled = conn.fill(drained, IFluidHandler.FluidAction.SIMULATE);
                             int toTransfer = Math.min(filled, drained.getAmount());
                             drained = neighbor.drain(toTransfer, IFluidHandler.FluidAction.EXECUTE);
                             conn.fill(drained, IFluidHandler.FluidAction.EXECUTE);
-                            mechanicalResistance += drained.getAmount();
+
+
+                            if(toDrain == drained.getAmount()) {
+                                // make sure the resistance is about the same so it keeps the flow static and not updates the meshes all the time
+                                // use the double value for a consistent resistance force
+                                mechanicalResistance += toDrainDouble;
+                            }else
+                                // if not everything was drained, make the resistance depending on how much was drained
+                                mechanicalResistance += drained.getAmount();
                         }
                     }
 
