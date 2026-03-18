@@ -339,10 +339,11 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             vtx(v, x0, y0, z1, color, u1, v0, overlay, light,  0, -1,  0);
             vtx(v, x0, y0, z0, color, u0, v0, overlay, light,  0, -1,  0);
             if (y1 - y0OffE > EPS) {
-                vtx(v, x1, y0OffE, z0, color, u0, v0, overlay, light,  1, 0, 0);
-                vtx(v, x1, y1,     z0, color, u0, v1, overlay, light,  1, 0, 0);
-                vtx(v, x1, y1,     z1, color, u1, v1, overlay, light,  1, 0, 0);
-                vtx(v, x1, y0OffE, z1, color, u1, v0, overlay, light,  1, 0, 0);
+                // FIX: v1 at bottom (y0OffE), v0 at top (y1) → animation scrolls downward
+                vtx(v, x1, y0OffE, z0, color, u0, v1, overlay, light,  1, 0, 0);
+                vtx(v, x1, y1,     z0, color, u0, v0, overlay, light,  1, 0, 0);
+                vtx(v, x1, y1,     z1, color, u1, v0, overlay, light,  1, 0, 0);
+                vtx(v, x1, y0OffE, z1, color, u1, v1, overlay, light,  1, 0, 0);
             }
             if (y1 - y0OffW > EPS) {
                 vtx(v, x0, y0OffW, z1, color, u0, v0, overlay, light, -1, 0, 0);
@@ -374,10 +375,11 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             vtx(v, x0, y0, z1, color, u0, v1, overlay, light,  0, -1,  0);
             vtx(v, x0, y0, z0, color, u1, v1, overlay, light,  0, -1,  0);
             if (y1 - y0OffE > EPS) {
-                vtx(v, x1, y0OffE, z0, color, u1, v1, overlay, light,  1, 0, 0);
-                vtx(v, x1, y1,     z0, color, u1, v0, overlay, light,  1, 0, 0);
-                vtx(v, x1, y1,     z1, color, u0, v0, overlay, light,  1, 0, 0);
-                vtx(v, x1, y0OffE, z1, color, u0, v1, overlay, light,  1, 0, 0);
+                // FIX: v0 at bottom (y0OffE), v1 at top (y1) → animation scrolls upward
+                vtx(v, x1, y0OffE, z0, color, u1, v0, overlay, light,  1, 0, 0);
+                vtx(v, x1, y1,     z0, color, u1, v1, overlay, light,  1, 0, 0);
+                vtx(v, x1, y1,     z1, color, u0, v1, overlay, light,  1, 0, 0);
+                vtx(v, x1, y0OffE, z1, color, u0, v0, overlay, light,  1, 0, 0);
             }
             if (y1 - y0OffW > EPS) {
                 vtx(v, x0, y0OffW, z1, color, u1, v1, overlay, light, -1, 0, 0);
