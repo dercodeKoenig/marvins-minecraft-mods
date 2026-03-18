@@ -5,6 +5,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.API;
+import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.GlobalTime;
@@ -148,34 +149,41 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
                     }
                 }
                 tank.setFluid(FluidStack.EMPTY);
-            }
 
-            // send particles over every few ticks
-            if (!lastReleasedFluid.equals(Fluids.EMPTY)) {
-                if (GlobalTime.getGlobalTime() > lastParticleSent + 20) {
-                    CompoundTag info = new CompoundTag();
-                    info.putInt("release_gas", 0);
-                    PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
-                    lastParticleSent = GlobalTime.getGlobalTime();
+
+                Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
+                boolean isLiquidWater = false;
+                if (fluidStack.getFluid().equals(Fluids.WATER) && dim != null && dim.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(dim.getAtmosphereDensity()))
+                    isLiquidWater = true;
+
+
+                // send particles over every few ticks
+                if (!isLiquidWater) {
+                    if (GlobalTime.getGlobalTime() > lastParticleSent + 18) {
+                        CompoundTag info = new CompoundTag();
+                        info.putInt("release_gas", 0);
+                        PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
+                        lastParticleSent = GlobalTime.getGlobalTime();
+                    }
                 }
-            }
-
-            // water special, place fluid (composition tracker ignores this class)
-            if (fluidStack.getFluid().equals(Fluids.WATER)) {
-                if (!inFrontState.getBlock().equals(Blocks.WATER)) {
-                    if (accumulatedWaterBeforePlace > 1000) {
-                        level.setBlock(inFrontPos, Blocks.WATER.defaultBlockState(), 3);
-                        accumulatedWaterBeforePlace = 0;
-                    } else {
-                        accumulatedWaterBeforePlace += fluidStack.getAmount();
-                        System.out.println(accumulatedWaterBeforePlace);
+                // water special, place fluid (composition tracker ignores this class)
+                else {
+                    if (!inFrontState.getBlock().equals(Blocks.WATER)) {
+                        if (accumulatedWaterBeforePlace > 1000) {
+                            level.setBlock(inFrontPos, Blocks.WATER.defaultBlockState(), 3);
+                            accumulatedWaterBeforePlace = 0;
+                        } else {
+                            accumulatedWaterBeforePlace += fluidStack.getAmount();
+                        }
                     }
                 }
             }
             // remove water in front of me again (composition tracker ignores this class)
-            else if (lastReleasedFluid.equals(Fluids.WATER)) {
+            if (lastReleasedFluid.equals(Fluids.WATER) && !fluidStack.getFluid().equals(Fluids.WATER)) {
                 if (inFrontState.getBlock().equals(Blocks.WATER) && inFrontState.getFluidState().isSource()) {
                     level.setBlock(inFrontPos, Blocks.AIR.defaultBlockState(), 3);
+                    // since we removed the water, we can instantly place it again next tick and no need to wait
+                    accumulatedWaterBeforePlace = 1000;
                 }
             }
 

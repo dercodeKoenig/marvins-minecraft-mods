@@ -2,6 +2,7 @@ package advRocketry.Dimension;
 
 
 import advRocketry.API;
+import advRocketry.BlockEntities.EntityFluidRelease;
 import advRocketry.Blocks.FluidRelease;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
@@ -81,7 +82,7 @@ public class WaterCompositionTracker {
                         frame.getDeclaringClass().equals(SeaLevelAdjustment.class)|| // sea level adjustment is skipped
                         frame.getDeclaringClass().equals(IceBlock.class) ||  // melt will evaporate (removed) when above sea level, ignore
                         frame.getDeclaringClass().equals(PlanetEvents.class)|| // this has a method to boil water when too hot, a reflection of change - ignore
-                        frame.getDeclaringClass().equals(FluidRelease.class) // place fluids for visuals only during working, should not add / remove to composition (if the player picks up the water fluid and gains water, it will be removed from composition so it is no gain)
+                        frame.getDeclaringClass().equals(EntityFluidRelease.class) // place fluids for visuals only during working, should not add / remove to composition (if the player picks up the water fluid and gains water, it will be removed from composition so it is no gain)
         ));
     }
 
