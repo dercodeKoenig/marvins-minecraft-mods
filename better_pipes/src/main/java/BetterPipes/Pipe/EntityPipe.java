@@ -5,6 +5,7 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.VertexBufferCleaner;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
+import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntitySmallWoodenCrankShaft;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
@@ -87,7 +88,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     Direction crankShaftSide = null;
     boolean hasAnyExtractionConnections = false;
 
-    double mechanicalResistance = 1;
+    double mechanicalResistance = 3;
 
     public EntityPipe(BlockPos pos, BlockState blockState) {
         super(ENTITY_PIPE.get(), pos, blockState);
@@ -140,12 +141,12 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
 
         // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
+        // this is easier than always reset the rotation on connect or unconnect
         if(crankShaftSide != null && hasAnyExtractionConnections){
             double otherRotation = ((IMechanicalBlockProvider)level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
-            if(Math.abs(myMechanicalBlock.currentRotation - otherRotation)>0.1){
-                myMechanicalBlock.currentRotation = otherRotation;
-            }
+            myMechanicalBlock.currentRotation = otherRotation;
         }
+
 
         // this is because for some reason minecraft stops updating the sprite
         // so i do it every tick
@@ -193,7 +194,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                     syncTanksToClient(null);
                 }
             }
-            mechanicalResistance = 1;
+            mechanicalResistance = 5;
             for (Direction direction : Direction.allShuffled(level.random)) {
                 PipeConnection conn = connections.get(direction);
                 if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.CONNECTED || state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
@@ -435,7 +436,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
         @Override
         public double getInertia(Direction direction) {
-            return 1;
+            return 0.1;
         }
 
         @Override
