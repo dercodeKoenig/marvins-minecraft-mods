@@ -479,10 +479,10 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             vtx(v, x0, y1, z1, color, u0, v1, overlay, light,  0,  1,  0);
             vtx(v, x1, y1, z1, color, u1, v1, overlay, light,  0,  1,  0);
             vtx(v, x1, y1, z0, color, u1, v0, overlay, light,  0,  1,  0);
-            vtx(v, x1, y0, z0, color, u0, v1, overlay, light,  0, -1,  0);
-            vtx(v, x1, y0, z1, color, u1, v1, overlay, light,  0, -1,  0);
-            vtx(v, x0, y0, z1, color, u1, v0, overlay, light,  0, -1,  0);
-            vtx(v, x0, y0, z0, color, u0, v0, overlay, light,  0, -1,  0);
+            vtx(v, x1, y0, z0, color, u0, v0, overlay, light,  0, -1,  0);
+            vtx(v, x1, y0, z1, color, u0, v1, overlay, light,  0, -1,  0);
+            vtx(v, x0, y0, z1, color, u1, v1, overlay, light,  0, -1,  0);
+            vtx(v, x0, y0, z0, color, u1, v0, overlay, light,  0, -1,  0);
         }
 
         if (flowDirection == Direction.EAST) {
@@ -801,10 +801,6 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         vtx(v, xh1, yh0, z1, color, uh1, vh0, 0, light, 0, 0, 1);
 
         vtx(v, x1,  yh1, z1, color, u1,  vh1, 0, light, 0, 0, 1);
-        vtx(v, xh1, yh1, z1, color, uh1, vh1, 0, light, 0, 0, 1);
-        vtx(v, xh1, yh0, z1, color, uh1, vh0, 0, light, 0, 0, 1);
-
-        vtx(v, x1,  yh1, z1, color, u1,  vh1, 0, light, 0, 0, 1);
         vtx(v, x1,  y1,  z1, color, u1,  v1,  0, light, 0, 0, 1);
         vtx(v, xh1, y1,  z1, color, uh1, v1,  0, light, 0, 0, 1);
         vtx(v, xh1, yh1, z1, color, uh1, vh1, 0, light, 0, 0, 1);
@@ -892,8 +888,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     // ──────────────────────────────────────────────────────────────────────────
 
     public static boolean shouldRenderCentered(Fluid f) {
+     //   return f.getFluidType().isLighterThanAir();
         return true;
-        //return f.getFluidType().isLighterThanAir();
     }
 
     /**
@@ -1063,7 +1059,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                 } else if (conn.getsInputFromInside) {
                     numOut++;
                     outFlow = d;
-                    renderFluidFlowingCentered(cx0, cx1, cz0, cz1, cy0, cy1, u0f, u1f, 1f - vMid + v0f, v1f, color, d, v, light, overlay);
+                    renderFluidFlowingCentered(cx0, cx1, cz0, cz1, cy0, cy1, u0f, u1f, v1f - vMid + v0f, v1f, color, d, v, light, overlay);
                 } else {
                     renderVerticalFluidStill(cx0, cx1, cz0, cz1, cy0, cy1, u0s, u1s, v0s, v1s, color, v, light, overlay);
                 }
