@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -118,13 +119,15 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.inventory);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION.get(), (x, y) -> x.inventory);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_SATELLITE_MISSIONS.get(), (x, y) -> x.inventory);
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_ASTEROID_MISSIONS.get(), (x, y) -> x.inventory);
+
         //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
         //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SATELLITE_MONITOR.get(), (x, y) -> x.battery);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION.get(), (x, y) -> x.inventory);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_SATELLITE_MISSIONS.get(), (x, y) -> x.inventory);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_ASTEROID_MISSIONS.get(), (x, y) -> x.inventory);
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FLUID_RELEASE.get(), (x, y) -> y == x.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING) ? null : x.tank);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -231,6 +234,7 @@ public class Main {
             e.accept(Blocks.ASTROBODY_DATA_PROCESSOR.get());
             e.accept(Blocks.OXYGEN_VENT.get());
             e.accept(Blocks.WIRELESS_TRANSCEIVER.get());
+            e.accept(Blocks.FLUID_RELEASE.get());
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());

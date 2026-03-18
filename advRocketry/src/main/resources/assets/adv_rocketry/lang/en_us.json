@@ -32,6 +32,9 @@
   "block.adv_rocketry.data_storage_block": "Data Hatch",
   "item.adv_rocketry.data_storage_block": "Data Hatch",
 
+  "block.adv_rocketry.fluid_release": "Fluid Release",
+  "item.adv_rocketry.fluid_release": "Fluid Release",
+
   "block.adv_rocketry.satellite_monitor": "Satellite Monitor",
   "item.adv_rocketry.satellite_monitor": "Satellite Monitor",
 
