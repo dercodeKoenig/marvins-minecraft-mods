@@ -1,10 +1,8 @@
 package advRocketry.Blocks;
 
 import advRocketry.API;
-import advRocketry.Config;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
-import advRocketry.Dimension.PlanetDimensionProperties;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -20,14 +18,14 @@ import net.minecraft.world.level.material.FlowingFluid;
 
 import java.util.Objects;
 
-public class CompositionLiquidBlock extends LiquidBlock {
+public class CompositionFluidLiquidBlock extends LiquidBlock {
 
     public static final BooleanProperty PREVENT_COMPOSITION_CHANGE_ON_BREAK = BooleanProperty.create("ignore_composition_change_on_break");
     public static final BooleanProperty PREVENT_COMPOSITION_CHANGE_ON_PLACE = BooleanProperty.create("ignore_composition_change_on_place");
 
     String gasId;
 
-    public CompositionLiquidBlock(FlowingFluid fluid, Properties properties, String gasId) {
+    public CompositionFluidLiquidBlock(FlowingFluid fluid, Properties properties, String gasId) {
         super(fluid, properties);
         registerDefaultState(defaultBlockState()
                 .setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false)

@@ -1,21 +1,17 @@
 package advRocketry.Dimension;
 
-import advRocketry.Blocks.CompositionLiquidBlock;
+import advRocketry.Blocks.CompositionFluidLiquidBlock;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.checkerframework.checker.units.qual.C;
-import org.codehaus.plexus.util.CachedMap;
 
 import java.util.Arrays;
 
@@ -96,8 +92,8 @@ public class SeaLevelAdjustment {
                     }
 
                     if (scanState.getBlock().equals(fluidBlock) && scanState.getFluidState().isSource()) {
-                        if (fluidBlock instanceof CompositionLiquidBlock) {
-                            level.setBlock(scanPos, scanState.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
+                        if (fluidBlock instanceof CompositionFluidLiquidBlock) {
+                            level.setBlock(scanPos, scanState.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
                         }
 
                         if (scanPos.getY() < seaLevelExisting) {
@@ -136,8 +132,8 @@ public class SeaLevelAdjustment {
                         return true;
                     } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
                         BlockState state = fluidBlock.defaultBlockState();
-                        if (fluidBlock instanceof CompositionLiquidBlock) {
-                            state = state.setValue(CompositionLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
+                        if (fluidBlock instanceof CompositionFluidLiquidBlock) {
+                            state = state.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
                         }
 
 

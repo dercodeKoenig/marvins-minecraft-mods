@@ -57,27 +57,27 @@ public class Blocks {
 
 
 
-    public static final DeferredHolder<Block, LiquidBlock> METHANE_BLOCK = BLOCKS.register("methane_block", () -> new CompositionLiquidBlock(
+    public static final DeferredHolder<Block, LiquidBlock> METHANE_BLOCK = BLOCKS.register("methane_block", () -> new CompositionFluidLiquidBlock(
             Fluids.METHANE.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
             GasRegistry.methane
     ));
-    public static final DeferredHolder<Block, LiquidBlock> CO2_BLOCK = BLOCKS.register("co2_block", () -> new CompositionLiquidBlock(
+    public static final DeferredHolder<Block, LiquidBlock> CO2_BLOCK = BLOCKS.register("co2_block", () -> new CompositionFluidLiquidBlock(
             Fluids.CO2.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
             GasRegistry.co2
     ));
-    public static final DeferredHolder<Block, LiquidBlock> OXYGEN_BLOCK = BLOCKS.register("oxygen_block", () -> new CompositionLiquidBlock(
+    public static final DeferredHolder<Block, LiquidBlock> OXYGEN_BLOCK = BLOCKS.register("oxygen_block", () -> new CompositionFluidLiquidBlock(
             Fluids.OXYGEN.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
             GasRegistry.oxygen
     ));
-    public static final DeferredHolder<Block, LiquidBlock> HYDROGEN_BLOCK = BLOCKS.register("hydrogen_block", () -> new CompositionLiquidBlock(
+    public static final DeferredHolder<Block, LiquidBlock> HYDROGEN_BLOCK = BLOCKS.register("hydrogen_block", () -> new CompositionFluidLiquidBlock(
             Fluids.HYDROGEN.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
             GasRegistry.hydrogen
     ));
-    public static final DeferredHolder<Block, LiquidBlock> NITROGEN_BLOCK = BLOCKS.register("nitrogen_block", () -> new CompositionLiquidBlock(
+    public static final DeferredHolder<Block, LiquidBlock> NITROGEN_BLOCK = BLOCKS.register("nitrogen_block", () -> new CompositionFluidLiquidBlock(
             Fluids.NITROGEN.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
             GasRegistry.nitrogen
