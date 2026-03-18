@@ -37,9 +37,14 @@ public abstract class IceBlockMixin {
             if (!level.getBiome(pos).value().shouldFreeze(level, pos)) {
                 if (pos.getY() > planet.getGasProperty(GasRegistry.water).worldGenSeaLevel)
                     // melt into air because it is above sea level
+                    // if it would melt into water, the position was probably already worked by the sea level adjustment
+                    // and it would not remove the water, so directly melt into air
+                    // this is most important for if there is an ice ocean and temperature increases while sea level drops
+                    // composition tracker ignores setblock composition change when called from ice block (this)
                     level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                 else
                     // normal melt into water
+                    // freeze and melt go from ice->water or water->ice so the composition tracker ignores it
                     this.melt(state, level, pos);
                 ci.cancel();
             }
