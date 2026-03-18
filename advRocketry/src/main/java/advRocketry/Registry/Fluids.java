@@ -25,11 +25,11 @@ public class Fluids {
 
     public static final Supplier<FluidType> ROCKET_FUEL_TYPE = FLUID_TYPES.register("rocket_fuel_type", () -> new FluidType(FluidType.Properties.create()));
 
-    public static final Supplier<FluidType> OXYGEN_TYPE = FLUID_TYPES.register("oxygen_type", () -> new FluidType(FluidType.Properties.create()));
-    public static final Supplier<FluidType> HYDROGEN_TYPE = FLUID_TYPES.register("hydrogen_type", () -> new FluidType(FluidType.Properties.create()));
-    public static final Supplier<FluidType> NITROGEN_TYPE = FLUID_TYPES.register("nitrogen_type", () -> new FluidType(FluidType.Properties.create()));
-    public static final Supplier<FluidType> METHANE_TYPE = FLUID_TYPES.register("methane_type", () -> new FluidType(FluidType.Properties.create()));
-    public static final Supplier<FluidType> CO2_TYPE = FLUID_TYPES.register("co2_type", () -> new FluidType(FluidType.Properties.create()));
+    public static final Supplier<FluidType> OXYGEN_TYPE = FLUID_TYPES.register("oxygen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> HYDROGEN_TYPE = FLUID_TYPES.register("hydrogen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> NITROGEN_TYPE = FLUID_TYPES.register("nitrogen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> METHANE_TYPE = FLUID_TYPES.register("methane_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> CO2_TYPE = FLUID_TYPES.register("co2_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
 
     public static void registerFluidTypes(RegisterClientExtensionsEvent event) {
         event.registerFluidType(
