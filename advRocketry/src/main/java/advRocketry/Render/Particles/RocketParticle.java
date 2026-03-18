@@ -1,4 +1,4 @@
-package advRocketry.Particles;
+package advRocketry.Render.Particles;
 
 import advRocketry.Config;
 import com.mojang.blaze3d.vertex.*;

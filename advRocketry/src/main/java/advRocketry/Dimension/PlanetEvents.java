@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 
 public class PlanetEvents {
 
@@ -58,6 +59,54 @@ public class PlanetEvents {
             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                 if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
                     break; // avoid gas mixing if many gases exist
+            }
+        }
+    }
+
+    public static void onChunkLoad(ChunkEvent.Load event) {
+        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
+            // perform some terraforming checks and replacement rules on new chunks
+
+            // placement flags:
+            // 2  -> sync to player
+            // 16 -> no neighbor update (if i read it correctly)
+
+            double planetTemp = planet.getCurrentTemp();
+            double atmLevel = planet.getAtmosphereDensity();
+            boolean shouldFreezeWater = planetTemp < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel) - 1;
+
+            if (event.isNewChunk()) {
+                long t0 = System.nanoTime();
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        int xB = event.getChunk().getPos().getBlockX(x);
+                        int zB = event.getChunk().getPos().getBlockZ(z);
+
+
+                        SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
+                        for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
+                            while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, xB, zB, 2 | 16)) {
+                                continue; // nothing to do, all the action happens above
+                            }
+                        }
+
+                        while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
+                            continue; // nothing to do, all the action happens above
+                        }
+
+
+                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
+                            BlockPos pos = new BlockPos(xB, y, zB);
+                            BlockState state = serverLevel.getBlockState(pos);
+
+                            // freeze water if possible, after the sea level is adjusted
+                            if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
+                                serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
+                            }
+                        }
+                    }
+                }
+                //System.out.println("block replacement on chunk load: " + (double) (System.nanoTime() - t0) / 1000 / 1000);
             }
         }
     }

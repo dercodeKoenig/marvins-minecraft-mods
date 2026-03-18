@@ -2,7 +2,7 @@ package advRocketry.Rocket;
 
 import advRocketry.Config;
 import advRocketry.Dimension.*;
-import advRocketry.Particles.RocketParticle;
+import advRocketry.Render.Particles.RocketParticle;
 import advRocketry.Utils.Utils;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;

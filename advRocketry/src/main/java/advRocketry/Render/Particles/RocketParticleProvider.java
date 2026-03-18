@@ -1,4 +1,4 @@
-package advRocketry.Particles;
+package advRocketry.Render.Particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;

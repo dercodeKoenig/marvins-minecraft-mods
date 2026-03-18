@@ -1,12 +1,10 @@
 package advRocketry;
 
-import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemAsteroidIdChip;
-import advRocketry.Items.ItemLinker;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Missions.MissionManager;
-import advRocketry.Particles.RocketParticleEngine;
+import advRocketry.Render.Particles.RocketParticleEngine;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Rocket.EntityRocket;
@@ -20,17 +18,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
@@ -40,8 +32,6 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -49,8 +39,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
 
 import java.util.List;
-
-import static advRocketry.Dimension.SeaLevelAdjustment.tagKey;
 
 public class WorldEvents {
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -142,54 +130,6 @@ public class WorldEvents {
 
     }
 
-    public static void onChunkLoad(ChunkEvent.Load event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
-            // perform some terraforming checks and replacement rules on new chunks
-
-            // placement flags:
-            // 2  -> sync to player
-            // 16 -> no neighbor update (if i read it correctly)
-
-            double planetTemp = planet.getCurrentTemp();
-            double atmLevel = planet.getAtmosphereDensity();
-            boolean shouldFreezeWater = planetTemp < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel) - 1;
-
-            if (event.isNewChunk()) {
-                long t0 = System.nanoTime();
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        int xB = event.getChunk().getPos().getBlockX(x);
-                        int zB = event.getChunk().getPos().getBlockZ(z);
-
-
-                        SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
-                        for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                            while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, xB, zB, 2 | 16)) {
-                                continue; // nothing to do, all the action happens above
-                            }
-                        }
-
-                        while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
-                            continue; // nothing to do, all the action happens above
-                        }
-
-
-                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
-                            BlockPos pos = new BlockPos(xB, y, zB);
-                            BlockState state = serverLevel.getBlockState(pos);
-
-                            // freeze water if possible, after the sea level is adjusted
-                            if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
-                                serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
-                            }
-                        }
-                    }
-                }
-                //System.out.println("block replacement on chunk load: " + (double) (System.nanoTime() - t0) / 1000 / 1000);
-            }
-        }
-    }
-
     public static void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {
         if (ClientUtils.getSinglePlayer().getVehicle() instanceof EntityRocket rocket) {
             int rocketsize = rocket.size.getY();
@@ -206,15 +146,14 @@ public class WorldEvents {
         event.setDamageMultiplier(event.getDamageMultiplier() * g);
     }
 
-    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        ItemStack stack = event.getItemStack();
-        Player p = event.getEntity();
-        Entity target = event.getTarget();
-        if (stack.getItem() instanceof ItemLinker) {
-            if (ItemLinker.useOnEntity(p, stack, target)) {
-                event.setCancellationResult(InteractionResult.SUCCESS);
-                event.setCanceled(true);
-            }
+    public static void onEntitySpawn(EntityJoinLevelEvent event) {
+        // prevent living entities to spawn where it is impossible
+        if (event.getLevel().isClientSide()) return;
+        if (event.getEntity() instanceof Player) return;
+        if (!(event.getEntity() instanceof LivingEntity)) return;
+
+        if (!LifeSupportSystem.canSurviveAt(event.getLevel(), event.getEntity().blockPosition())) {
+            event.setCanceled(true);
         }
     }
 
@@ -258,17 +197,6 @@ public class WorldEvents {
                     e.setCanConvert(false);
                 }
             }
-        }
-    }
-
-    public static void onEntitySpawn(EntityJoinLevelEvent event) {
-        // prevent living entities to spawn where it is impossible
-        if (event.getLevel().isClientSide()) return;
-        if (event.getEntity() instanceof Player) return;
-        if (!(event.getEntity() instanceof LivingEntity)) return;
-
-        if (!LifeSupportSystem.canSurviveAt(event.getLevel(), event.getEntity().blockPosition())) {
-            event.setCanceled(true);
         }
     }
 }
