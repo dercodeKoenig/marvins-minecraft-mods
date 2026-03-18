@@ -59,11 +59,6 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
         super(ENTITY_FLUID_RELEASE.get(), pos, blockState);
         tank = new FluidTank(10000) {
             @Override
-            public void onContentsChanged() {
-                setChanged();
-            }
-
-            @Override
             public boolean isFluidValid(FluidStack stack) {
                 for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                     if (gas.fluid.equals(stack.getFluid()))
@@ -90,18 +85,17 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
         }
     }
 
+
+    // tank is emptied every tick unless the output is blocked
+    // i do not need to save the tank
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        CompoundTag tankNbt = new CompoundTag();
-        tank.writeToNBT(registries, tankNbt);
-        tag.put("tank", tankNbt);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        tank.readFromNBT(registries, tag.getCompound("tank"));
     }
 
     public void tick() {
