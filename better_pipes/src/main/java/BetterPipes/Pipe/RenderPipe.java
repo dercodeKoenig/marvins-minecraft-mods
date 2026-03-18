@@ -1406,7 +1406,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
         // ── Fluid mesh ─────────────────────────────────────────────────────
         if (tile.mesh != null) {
-            RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER.setupRenderState();
+            RENDERTYPE_ENTITY_TRANSLUCENT_SHADER.setupRenderState();
             TRANSLUCENT_TRANSPARENCY.setupRenderState();
             // Use the flowing texture atlas location; still texture must reside at the same atlas.
             RenderSystem.setShaderTexture(0, tile.renderData.spriteFLowing.atlasLocation());
@@ -1421,7 +1421,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             tile.vertexBuffer.draw();
             shader.clear();
 
-            RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER.clearRenderState();
+            RENDERTYPE_ENTITY_TRANSLUCENT_SHADER.clearRenderState();
             TRANSLUCENT_TRANSPARENCY.clearRenderState();
         }
 
