@@ -119,9 +119,6 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.inventory);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION.get(), (x, y) -> x.inventory);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_SATELLITE_MISSIONS.get(), (x, y) -> x.inventory);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_LAUNCH_STATION_ASTEROID_MISSIONS.get(), (x, y) -> x.inventory);
 
         //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
         //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);

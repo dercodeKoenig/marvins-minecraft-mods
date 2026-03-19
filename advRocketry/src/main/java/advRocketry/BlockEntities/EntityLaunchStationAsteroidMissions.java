@@ -1,11 +1,12 @@
 package advRocketry.BlockEntities;
 
+import ARLib.blockentities.EntityItemInputBlock;
+import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
-import advRocketry.Blocks.LaunchStation;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Missions.AsteroidManager;
@@ -16,12 +17,17 @@ import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketPrograms.ProgramAsteroidMiningMission;
 import advRocketry.Rocket.RocketPrograms.ProgramMissionStartBase;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
@@ -66,6 +72,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
         guiHandler.openGui(176, 165, true);
     }
 
+
     public boolean launch() {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
@@ -82,16 +89,11 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
                     ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target.key, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                     linkedRocket.setProgramAndSync(programMissionStartBase);
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
+                    cycleNavigationItem();
                     return true;
                 }
             }
-            // invalidate && pop chip
-            // TODO: output into nearby item output hatches and pull new chip from input hatches
-            /*
-            ItemAsteroidIdChip.setSelectedType(null, navigationItem);
-            inventory.setStackInSlot(0, ItemStack.EMPTY);
-            Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
-             */
+            cycleNavigationItem();
         }
         return false;
     }

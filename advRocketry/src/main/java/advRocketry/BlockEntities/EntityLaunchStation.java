@@ -1,5 +1,7 @@
 package advRocketry.BlockEntities;
 
+import ARLib.blockentities.EntityItemInputBlock;
+import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
@@ -7,6 +9,7 @@ import advRocketry.Blocks.LaunchStation;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,7 +19,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.items.ItemStackHandler;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
@@ -112,6 +119,56 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             activeTimeout = 40;
         }
         return res;
+    }
+
+    public void cycleNavigationItem() {
+        // remove chips to a nearby item output block and pull from item input block
+        List<BlockPos> possibleIOPositions = new LinkedList<>();
+        Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        possibleIOPositions.add(getBlockPos().relative(facing.getOpposite()));
+        possibleIOPositions.add(getBlockPos().relative(facing.getCounterClockWise()));
+        possibleIOPositions.add(getBlockPos().relative(facing.getClockWise()));
+
+        // output blocks extend inputs, so we need to filter correctly
+        List<EntityItemOutputBlock> outputBlocks = new LinkedList<>();
+        List<EntityItemInputBlock> inputBlocks = new LinkedList<>();
+        for (BlockPos p : possibleIOPositions) {
+            BlockEntity be = level.getBlockEntity(p);
+            // check for output first
+            if (be instanceof EntityItemOutputBlock outputBlock)
+                outputBlocks.add(outputBlock);
+                // check for input only if it is not already an output
+            else if (be instanceof EntityItemInputBlock inputBlock)
+                inputBlocks.add(inputBlock);
+        }
+
+        // try output chip into nearby output hatch first
+        for (EntityItemOutputBlock itemOutputBlock : outputBlocks) {
+            ItemStack canExtract = inventory.extractItem(0, 1, true);
+            if (canExtract.isEmpty())
+                break;
+            for (int i = 0; i < itemOutputBlock.inventory.getSlots(); i++) {
+                if (itemOutputBlock.inventory.insertItem(i, canExtract, true).isEmpty()) {
+                    itemOutputBlock.inventory.insertItem(i, inventory.extractItem(0, 1, false), false);
+                    break;
+                }
+            }
+        }
+
+        // try pull chip from nearby input hatch
+        for (EntityItemInputBlock inputBlock : inputBlocks) {
+            if (!inventory.getStackInSlot(0).isEmpty())
+                break;
+            for (int i = 0; i < inputBlock.inventory.getSlots(); i++) {
+                ItemStack canExtract = inputBlock.inventory.extractItem(i, 1, true);
+                if (!canExtract.isEmpty()) {
+                    if (inventory.insertItem(0, canExtract, true).isEmpty()) {
+                        inventory.insertItem(0, inputBlock.inventory.extractItem(i, 1, false), false);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @Override

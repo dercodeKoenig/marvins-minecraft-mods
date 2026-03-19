@@ -92,6 +92,7 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                 ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, ItemSatelliteIdChip.getTarget(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
+                cycleNavigationItem(); // cycle item in case you want to pull back many satellites
                 return true;
 
             } else if (navigationItem.getItem() instanceof ItemPlanetIdChip) {
