@@ -1,4 +1,4 @@
-package BetterPipes.Pipe;
+package BetterPipes.PipeBase;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;

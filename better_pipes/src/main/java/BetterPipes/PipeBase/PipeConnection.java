@@ -1,4 +1,4 @@
-package BetterPipes.Pipe;
+package BetterPipes.PipeBase;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,7 +10,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-import static BetterPipes.Pipe.EntityPipe.*;
+import static BetterPipes.PipeBase.EntityPipe.*;
 
 public class PipeConnection implements IFluidHandler {
 

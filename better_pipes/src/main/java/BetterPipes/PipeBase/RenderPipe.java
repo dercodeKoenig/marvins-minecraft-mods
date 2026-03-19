@@ -1,4 +1,4 @@
-package BetterPipes.Pipe;
+package BetterPipes.PipeBase;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
@@ -45,8 +45,11 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     static final float W_MIN = 0.02f;
     static final float W_MAX = 0.25f - EPS;
 
-    public RenderPipe(BlockEntityRendererProvider.Context c) {
+    ResourceLocation pumpArmTexture;
+
+    public RenderPipe(ResourceLocation pumpArmTexture) {
         super();
+        this.pumpArmTexture = pumpArmTexture;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -1338,8 +1341,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         if (tile.crankShaftSide != null && tile.hasAnyExtractionConnections) {
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
             ShaderInstance shader = RenderSystem.getShader();
-            RenderSystem.setShaderTexture(0,
-                    ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_structure.png"));
+            RenderSystem.setShaderTexture(0, pumpArmTexture);
 
             // Build base matrix: translate to block center, then rotate to face crankshaft side
             Matrix4f m1 = new Matrix4f(stack.last().pose()).translate(0.5f, 0.5f, 0.5f);

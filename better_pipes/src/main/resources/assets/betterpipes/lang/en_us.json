@@ -1,6 +1,6 @@
 {
-  "block.betterpipes.pipe": "Pipe",
-  "item.betterpipes.pipe": "Pipe",
+  "block.betterpipes.iron_pipe": "Iron Pipe",
+  "item.betterpipes.iron_pipe": "Iron Pipe",
 
   "block.betterpipes.tank": "Tank",
   "item.betterpipes.tank": "Tank"

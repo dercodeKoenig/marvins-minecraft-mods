@@ -1,9 +1,8 @@
-package BetterPipes.Pipe;
+package BetterPipes.PipeBase;
 
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
-import AgeOfSteam.Core.IMechanicalBlockProvider;
 import BetterPipes.Tank.BlockTank;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,6 +19,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 import static BetterPipes.Registry.*;
 
-public class BlockPipe extends Block implements EntityBlock {
+abstract public class BlockPipe extends Block implements EntityBlock {
     public static Map<Direction, EnumProperty<ConnectionState>> connections = new HashMap<>();
 
     static {
@@ -45,8 +45,8 @@ public class BlockPipe extends Block implements EntityBlock {
         }
     }
 
-    public BlockPipe(Properties properties) {
-        super(properties);
+    public BlockPipe() {
+        super(BlockBehaviour.Properties.of().noOcclusion().strength(1.0f).instabreak());
         BlockState state = this.stateDefinition.any();
         for (Direction i : Direction.values()) {
             state = state.setValue(connections.get(i), ConnectionState.NONE);
@@ -64,11 +64,6 @@ public class BlockPipe extends Block implements EntityBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return Shapes.create(0.25, 0.25, 0.25, 0.75, 0.75, 0.75);
-    }
-
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ENTITY_PIPE.get().create(pos, state);
     }
 
     @Override
