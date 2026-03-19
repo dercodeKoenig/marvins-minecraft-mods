@@ -7,7 +7,6 @@ import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
-import BetterPipes.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -23,6 +22,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -37,39 +37,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static BetterPipes.Registry.ENTITY_PIPE;
-
 public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider, ICrankShaftConnector {
-
-    public static int MAX_OUTPUT_RATE = Config.INSTANCE.maxOutputRate;
-    public static int REQUIRED_FILL_FOR_MAX_OUTPUT = Config.INSTANCE.mainRequiredFillForMaxOutput;
-    public static int MAIN_CAPACITY = Config.INSTANCE.main_capacity;
-
-    public static int CONNECTION_MAX_OUTPUT_RATE = Config.INSTANCE.maxOutputRate;
-    public static int CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT = Config.INSTANCE.connectionRequiredFillForMaxOutput;
-    public static int CONNECTION_CAPACITY = Config.INSTANCE.connection_capacity;
 
     public static int STATE_UPDATE_TICKS = 40;
     public static int FORCE_OUTPUT_AFTER_TICKS = 20;
 
     public Map<Direction, PipeConnection> connections = new HashMap<>();
-    public FluidTank tank = new FluidTank(MAIN_CAPACITY) {
-        @Override
-        protected void onContentsChanged() {
-            setChanged();
-        }
-    };
+    public FluidTank tank;
+    public int mainCapacity;
+    public int flowRate;
     FluidRenderData renderData = new FluidRenderData();
     VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
-    MeshData mesh;
+    MeshData fluidMesh;
     VertexBuffer vertexBufferCrankshaftConnection;
     VertexBuffer vertexBufferPumpCube;
     boolean requiresMeshUpdate = false;
     boolean requiresMeshUpdate2 = false;
     int lastLight;
+
     FluidStack last_tankFluid = FluidStack.EMPTY;
     int lastFill;
-    int ticksWithFluidInTank = 0;
+    int ticksWithFluidInTank;
     boolean tankNorth = false;
     boolean tankEast = false;
     boolean tankWest = false;
@@ -78,8 +66,34 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     Direction crankShaftSide = null;
     boolean hasAnyExtractionConnections = false;
 
-    double mechanicalResistance = 3;
-    AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+    double mechanicalResistance;
+    public EntityPipe(BlockEntityType type, BlockPos pos, BlockState blockState, int mainCapacity, int flowRate) {
+        super(type, pos, blockState);
+        this.mainCapacity = mainCapacity;
+        this.flowRate = flowRate;
+
+        tank = new FluidTank(mainCapacity) {
+            @Override
+            protected void onContentsChanged() {
+                setChanged();
+            }
+        };
+
+        for (Direction i : Direction.values()) {
+            connections.put(i, new PipeConnection(this, i, mainCapacity / 2));
+        }
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferCrankshaftConnection = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                vertexBufferPumpCube = new VertexBuffer(VertexBuffer.Usage.STATIC);
+
+                VertexBufferCleaner.register(this, vertexBuffer);
+                VertexBufferCleaner.register(this, vertexBufferCrankshaftConnection);
+                VertexBufferCleaner.register(this, vertexBufferPumpCube);
+            });
+        }
+    }    AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
             return 9999;
@@ -120,24 +134,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             }
         }
     };
-
-    public EntityPipe(BlockPos pos, BlockState blockState) {
-        super(ENTITY_PIPE.get(), pos, blockState);
-        for (Direction i : Direction.values()) {
-            connections.put(i, new PipeConnection(this, i));
-        }
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBufferCrankshaftConnection = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                vertexBufferPumpCube = new VertexBuffer(VertexBuffer.Usage.STATIC);
-
-                VertexBufferCleaner.register(this, vertexBuffer);
-                VertexBufferCleaner.register(this, vertexBufferCrankshaftConnection);
-                VertexBufferCleaner.register(this, vertexBufferPumpCube);
-            });
-        }
-    }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityPipe) t).tick();
@@ -224,12 +220,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                     if (conn.lastFill > 0) {
                         if (!conn.getsInputFromInside && isUpdateTick) {
                             //drain into main tank
-                            double transferRateMultiplier = (double) conn.lastFill / CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
-                            int toTransfer;
-                            int target_free = MAIN_CAPACITY - REQUIRED_FILL_FOR_MAX_OUTPUT;
-                            int has_free = MAIN_CAPACITY - lastFill;
+                            double transferRateMultiplier = (double) conn.lastFill / mainCapacity * 4;
+                            int target_free = mainCapacity / 2;
+                            int has_free = mainCapacity - lastFill;
                             double speedMultiplier = Math.min(1, (float) has_free / target_free);
-                            toTransfer = (int) (CONNECTION_MAX_OUTPUT_RATE * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
+                            int toTransfer = (int) (flowRate * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
 
                             if (toTransfer == 0 && conn.ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS / 2)
                                 toTransfer = 1;
@@ -247,12 +242,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                                     if (conn.neighborFluidHandler() instanceof PipeConnection pipeconn) {
                                         if (isUpdateTick) {
                                             // for pipes use normal 2 stage tick logic
-                                            double transferRateMultiplier = (double) conn.lastFill / CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                            int toTransfer;
-                                            int target_free = CONNECTION_CAPACITY - CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                            int has_free = CONNECTION_CAPACITY - pipeconn.lastFill;
+                                            double transferRateMultiplier = (double) conn.lastFill / mainCapacity * 4;
+                                            int target_free = mainCapacity / 4;
+                                            int has_free = mainCapacity / 2 - pipeconn.lastFill;
                                             double speedMultiplier = Math.min(1, (float) has_free / target_free);
-                                            toTransfer = (int) (CONNECTION_MAX_OUTPUT_RATE * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
+                                            int toTransfer = (int) (flowRate * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
 
                                             if (toTransfer == 0 && conn.ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS / 2)
                                                 toTransfer = 1;
@@ -264,10 +258,9 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                                         }
                                     } else {
                                         // for others, output every tick
-                                        double transferRateMultiplier = (double) conn.lastFill / CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                        int toTransfer = (int) (CONNECTION_MAX_OUTPUT_RATE * transferRateMultiplier);
-                                        if (toTransfer > CONNECTION_MAX_OUTPUT_RATE)
-                                            toTransfer = CONNECTION_MAX_OUTPUT_RATE + (int) (transferRateMultiplier * CONNECTION_MAX_OUTPUT_RATE / 10f);
+                                        double transferRateMultiplier = (double) conn.lastFill / mainCapacity * 4;
+                                        int toTransfer = (int) (flowRate * transferRateMultiplier);
+
                                         if (toTransfer == 0 && conn.ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS / 2)
                                             toTransfer = 1;
 
@@ -287,7 +280,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
                             // extract from a neighbor fluid handler
                             // this runs every tick
-                            double toDrainDouble = Math.min(CONNECTION_MAX_OUTPUT_RATE, CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
+                            double toDrainDouble = Math.min(flowRate, flowRate * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
                             int toDrain = (int) toDrainDouble;
                             toDrain = Math.abs(toDrain);
                             FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
@@ -311,11 +304,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         if (lastFill > 0) {
                             //drain main tank into connection, using 2 stage update
                             if (!conn.outputsToInside && state.getValue(BlockPipe.connections.get(direction)) != BlockPipe.ConnectionState.EXTRACTION) {
-                                double transferRateMultiplier = (double) lastFill / REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                int target_free = CONNECTION_CAPACITY - CONNECTION_REQUIRED_FILL_FOR_MAX_OUTPUT;
-                                int has_free = CONNECTION_CAPACITY - conn.lastFill;
+                                double transferRateMultiplier = (double) lastFill / mainCapacity * 2;
+                                int target_free = mainCapacity / 4;
+                                int has_free = mainCapacity / 2 - conn.lastFill;
                                 double speedMultiplier = Math.min(1, (float) has_free / target_free);
-                                int toTransfer = (int) (MAX_OUTPUT_RATE * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
+                                int toTransfer = (int) (flowRate * update_after_ticks * speedMultiplier * Math.min(1, transferRateMultiplier));
 
                                 if (toTransfer == 0 && ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS)
                                     toTransfer = 1;
@@ -433,6 +426,12 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         tag.putBoolean("tankSouth", tankSouth);
         tag.putBoolean("tankWest", tankWest);
 
+        // client might have different config file, and config packet might arrive after the tanks are created
+        // it needs the correct capacity to render the fluids correctly
+        // flow rate shouldnt matter for rendering
+        // i know it could be made simpler with a get method in the children classes, but the render code is >1400 lines and already refactored by a llm and it uses the tank capacity
+        tag.putInt("mainCapacity", mainCapacity);
+
         return tag;
     }
 
@@ -456,6 +455,14 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         tankNorth = tag.getBoolean("tankNorth");
         tankWest = tag.getBoolean("tankWest");
 
+        int serverMainCapacity = tag.getInt("mainCapacity");
+        if (serverMainCapacity != mainCapacity) {
+            mainCapacity = serverMainCapacity;
+            tank.setCapacity(mainCapacity);
+            for (PipeConnection connection : connections.values()) {
+                connection.tank.setCapacity(mainCapacity / 2);
+            }
+        }
     }
 
     @Override
@@ -500,4 +507,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             spriteFLowing = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidtextureFlowing);
         }
     }
+
+
 }

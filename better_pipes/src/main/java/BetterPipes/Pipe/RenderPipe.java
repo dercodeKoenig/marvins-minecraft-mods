@@ -1314,10 +1314,10 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             ByteBufferBuilder fluidBuf = new ByteBufferBuilder(TRANSIENT_BUFFER_SIZE);
             BufferBuilder bb = new BufferBuilder(fluidBuf, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
             RenderPipe.renderFluids(tile, bb, packedLight, 0);
-            tile.mesh = bb.build();
-            if (tile.mesh != null) {
+            tile.fluidMesh = bb.build();
+            if (tile.fluidMesh != null) {
                 tile.vertexBuffer.bind();
-                tile.vertexBuffer.upload(tile.mesh);
+                tile.vertexBuffer.upload(tile.fluidMesh);
             }
             fluidBuf.close();
 
@@ -1406,7 +1406,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         }
 
         // ── Fluid mesh ─────────────────────────────────────────────────────
-        if (tile.mesh != null) {
+        if (tile.fluidMesh != null) {
             RENDERTYPE_ENTITY_TRANSLUCENT_SHADER.setupRenderState();
             TRANSLUCENT_TRANSPARENCY.setupRenderState();
             // Use the flowing texture atlas location; still texture must reside at the same atlas.

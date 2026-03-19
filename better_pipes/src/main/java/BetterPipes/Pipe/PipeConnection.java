@@ -13,29 +13,32 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import static BetterPipes.Pipe.EntityPipe.*;
 
 public class PipeConnection implements IFluidHandler {
-    public int lastInputFromInside;
-    public int lastInputFromOutside;
-    public boolean getsInputFromInside;
-    public boolean getsInputFromOutside;
-    public int lastOutputToOutside;
-    public int lastOutputToInside;
-    public boolean outputsToInside;
-    public boolean outputsToOutside;
-    public int ticksWithFluidInTank = 0;
+
+    EntityPipe parent;
     Direction myDirection;
     FluidTank tank;
-    int lastFill;
-
     FluidRenderData renderData;
-    EntityPipe parent;
+
+    int lastInputFromInside;
+    int lastInputFromOutside;
+    boolean getsInputFromInside;
+    boolean getsInputFromOutside;
+    int lastOutputToOutside;
+    int lastOutputToInside;
+    boolean outputsToInside;
+    boolean outputsToOutside;
+    int ticksWithFluidInTank = 0;
+
+    int lastFill;
+    FluidStack last_tankFluid = FluidStack.EMPTY;
     boolean last_getsInputFromInside;
     boolean last_getsInputFromOutside;
     boolean last_outputsToInside;
     boolean last_outputsToOutside;
-    FluidStack last_tankFluid = FluidStack.EMPTY;
-    public PipeConnection(EntityPipe parent, Direction myDirection) {
+
+    public PipeConnection(EntityPipe parent, Direction myDirection, int tankCapacity) {
         this.myDirection = myDirection;
-        tank = new FluidTank(CONNECTION_CAPACITY) {
+        tank = new FluidTank(tankCapacity) {
             @Override
             protected void onContentsChanged() {
                 parent.setChanged();

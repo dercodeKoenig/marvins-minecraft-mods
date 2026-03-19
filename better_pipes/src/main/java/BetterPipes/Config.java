@@ -12,15 +12,8 @@ public class Config {
 
     public static Config INSTANCE = loadConfig();
 
-    public int maxOutputRate = 40;
-    public int mainRequiredFillForMaxOutput = 200;
-    public int main_capacity = 400;
-
-    public int connectionRequiredFillForMaxOutput = 100;
-    public int connection_capacity = 200;
-
-    public int stateUpdateAfterTicks = 20;
-    public int forceOutputAfterTicks = 10;
+    public int flowRateIronPipe = 40;
+    public int mainCapacityIronPipe = 400;
 
     public static Config loadConfig() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
