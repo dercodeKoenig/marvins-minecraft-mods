@@ -12,6 +12,7 @@ import FiniteWater.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -95,7 +96,8 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     // the blocks that have to be scanned
     ArrayDeque<BlockPos> nextBlocksToScan = new ArrayDeque<>();
     // the blocks already scanned to not scan double
-    HashSet<BlockPos> workedPositions = new HashSet<>();
+    // storing the positions as pos.asLong() in this hashSet was found to be faster than HashSet<BlockPos>
+    LongOpenHashSet workedPositions = new LongOpenHashSet();
     // mark the position with the largest distance that is the target to be pumped
     // (so we do not drain the local area and run out of fluid)
     BlockPos bestTarget = null;
@@ -235,7 +237,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                 if (n > maxSteps * 1000)
                     break;
                 BlockPos next = nextBlocksToScan.pollFirst();
-                if (workedPositions.add(next)) {
+                if (workedPositions.add(next.asLong())) {
 
                     double dx = next.getX() - getBlockPos().getX();
                     double dz = next.getZ() - getBlockPos().getZ();
@@ -270,7 +272,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                     // never scan down, the pump can not drain a block lower than the starting pos
                     for (Direction direction : HORIZONTAL_DIRECTIONS) {
                         BlockPos neighbor = next.relative(direction);
-                        if (!workedPositions.contains(neighbor)) {
+                        if (!workedPositions.contains(neighbor.asLong())) {
                             nextBlocksToScan.add(neighbor);
                         }
                     }
