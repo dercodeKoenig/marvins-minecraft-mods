@@ -59,14 +59,14 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             setChanged();
         }
     };
-    public FluidRenderData renderData = new FluidRenderData();
-    public VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
-    public MeshData mesh;
-    public VertexBuffer vertexBufferCrankshaftConnection;
-    public VertexBuffer vertexBufferPumpCube;
-    public boolean requiresMeshUpdate = false;
-    public boolean requiresMeshUpdate2 = false;
-    public int lastLight;
+    FluidRenderData renderData = new FluidRenderData();
+    VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
+    MeshData mesh;
+    VertexBuffer vertexBufferCrankshaftConnection;
+    VertexBuffer vertexBufferPumpCube;
+    boolean requiresMeshUpdate = false;
+    boolean requiresMeshUpdate2 = false;
+    int lastLight;
     FluidStack last_tankFluid = FluidStack.EMPTY;
     int lastFill;
     int ticksWithFluidInTank = 0;
@@ -280,7 +280,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                         if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
                             // extract from a neighbor fluid handler
                             // this runs every tick
-                            double toDrainDouble = (CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
+                            double toDrainDouble = Math.min(CONNECTION_MAX_OUTPUT_RATE, CONNECTION_MAX_OUTPUT_RATE * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
                             int toDrain = (int) toDrainDouble;
                             toDrain = Math.abs(toDrain);
                             FluidStack drained = neighbor.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);

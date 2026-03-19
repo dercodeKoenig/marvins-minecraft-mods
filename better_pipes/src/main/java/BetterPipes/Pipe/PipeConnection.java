@@ -4,51 +4,35 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import static BetterPipes.Pipe.EntityPipe.*;
 
 public class PipeConnection implements IFluidHandler {
-    Direction myDirection;
-
     public int lastInputFromInside;
     public int lastInputFromOutside;
     public boolean getsInputFromInside;
     public boolean getsInputFromOutside;
-
     public int lastOutputToOutside;
     public int lastOutputToInside;
     public boolean outputsToInside;
     public boolean outputsToOutside;
-
     public int ticksWithFluidInTank = 0;
-
+    Direction myDirection;
     FluidTank tank;
     int lastFill;
 
     FluidRenderData renderData;
     EntityPipe parent;
-
-    boolean isEnabled(BlockState parent) {
-        return parent.getValue(BlockPipe.connections.get(myDirection)) == BlockPipe.ConnectionState.EXTRACTION || parent.getValue(BlockPipe.connections.get(myDirection)) == BlockPipe.ConnectionState.CONNECTED;
-    }
-
-    IFluidHandler neighborFluidHandler() {
-        BlockPos neighborPos = parent.getBlockPos().relative(myDirection);
-        return parent.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, myDirection.getOpposite());
-    }
-
+    boolean last_getsInputFromInside;
+    boolean last_getsInputFromOutside;
+    boolean last_outputsToInside;
+    boolean last_outputsToOutside;
+    FluidStack last_tankFluid = FluidStack.EMPTY;
     public PipeConnection(EntityPipe parent, Direction myDirection) {
         this.myDirection = myDirection;
         tank = new FluidTank(CONNECTION_CAPACITY) {
@@ -61,11 +45,14 @@ public class PipeConnection implements IFluidHandler {
         renderData = new FluidRenderData();
     }
 
-    boolean last_getsInputFromInside;
-    boolean last_getsInputFromOutside;
-    boolean last_outputsToInside;
-    boolean last_outputsToOutside;
-    FluidStack last_tankFluid = FluidStack.EMPTY;
+    boolean isEnabled(BlockState parent) {
+        return parent.getValue(BlockPipe.connections.get(myDirection)) == BlockPipe.ConnectionState.EXTRACTION || parent.getValue(BlockPipe.connections.get(myDirection)) == BlockPipe.ConnectionState.CONNECTED;
+    }
+
+    IFluidHandler neighborFluidHandler() {
+        BlockPos neighborPos = parent.getBlockPos().relative(myDirection);
+        return parent.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, myDirection.getOpposite());
+    }
 
     public boolean needsSync() {
         boolean needsUpdate = false;

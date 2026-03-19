@@ -145,10 +145,9 @@ public class EntityTank extends BlockEntity implements INetworkTagReceiver {
     @Override
     public void readClient(CompoundTag compoundTag) {
         if (compoundTag.contains("tankTag")) {
-                CompoundTag tankTag = compoundTag.getCompound("tankTag");
-                myTank.readFromNBT(level.registryAccess(), tankTag);
-                updateSprites(myTank.getFluid().getFluid());
-            }
+            CompoundTag tankTag = compoundTag.getCompound("tankTag");
+            myTank.readFromNBT(level.registryAccess(), tankTag);
+            updateSprites(myTank.getFluid().getFluid());
         }
     }
 }
