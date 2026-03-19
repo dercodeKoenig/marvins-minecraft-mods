@@ -591,21 +591,26 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             sendUpdatePacket(null);
                         }
                         if (hasAsteroidChip && hasFreeOutputSlot) {
-                            double p = Math.random();
-                            double pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Tick;
                             consumeEnergy(Config.INSTANCE.observatory_Energy_Per_Tick, energyInputBlocks);
-                            extractData(REQUIRED_DATA, 1, dataTiles, false);
+                            double p = Math.random();
+                            double pTarget = (double) 1 / 10;
+                            // limit speed to max 2 steps / tick on average
                             if (p < pTarget) {
-                                // find a new asteroid
-                                AsteroidManager.DiscoveredAsteroid discoveredAsteroid = AsteroidManager.discoverNewAsteroid();
-                                if (discoveredAsteroid == null) {
-                                    // this should not happen if asteroids are configured
-                                    setStatusText("NO ASTEROIDS OUT THERE");
-                                    toggleTask(Task.IDLE, null);
-                                } else {
-                                    ItemStack asteroidChip = inputBlocks.get(inputBlockIndex).inventory.extractItem(inputSlotIndex, 1, false);
-                                    ItemAsteroidIdChip.setSelectedAsteroid(discoveredAsteroid, asteroidChip);
-                                    outputBlocks.get(outputBlockIndex).inventory.insertItem(outputSlotIndex, asteroidChip, false);
+                                extractData(REQUIRED_DATA, 1, dataTiles, false);
+                                p = Math.random();
+                                pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Tick;
+                                if (p < pTarget) {
+                                    // find a new asteroid
+                                    AsteroidManager.DiscoveredAsteroid discoveredAsteroid = AsteroidManager.discoverNewAsteroid();
+                                    if (discoveredAsteroid == null) {
+                                        // this should not happen if asteroids are configured
+                                        setStatusText("NO ASTEROIDS OUT THERE");
+                                        toggleTask(Task.IDLE, null);
+                                    } else {
+                                        ItemStack asteroidChip = inputBlocks.get(inputBlockIndex).inventory.extractItem(inputSlotIndex, 1, false);
+                                        ItemAsteroidIdChip.setSelectedAsteroid(discoveredAsteroid, asteroidChip);
+                                        outputBlocks.get(outputBlockIndex).inventory.insertItem(outputSlotIndex, asteroidChip, false);
+                                    }
                                 }
                             }
                         }
