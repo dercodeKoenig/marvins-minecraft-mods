@@ -37,24 +37,6 @@ import java.util.Map;
 import static BetterPipes.Registry.*;
 
 public class BlockPipe extends Block implements EntityBlock {
-    public enum ConnectionState implements StringRepresentable {
-        NONE("none"),
-        CONNECTED("connection"),
-        EXTRACTION("extraction"),
-        STRUCTURE("structure");
-
-        private final String name;
-
-        ConnectionState(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getSerializedName() {
-            return this.name;
-        }
-    }
-
     public static Map<Direction, EnumProperty<ConnectionState>> connections = new HashMap<>();
 
     static {
@@ -62,7 +44,6 @@ public class BlockPipe extends Block implements EntityBlock {
             connections.put(i, EnumProperty.create(i.getName(), ConnectionState.class));
         }
     }
-
 
     public BlockPipe(Properties properties) {
         super(properties);
@@ -110,6 +91,7 @@ public class BlockPipe extends Block implements EntityBlock {
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 
+    @Override
     protected int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
         return 2;
     }
@@ -156,24 +138,42 @@ public class BlockPipe extends Block implements EntityBlock {
         }
 
         BlockEntity other = level.getBlockEntity(neighborPos);
-        if(other instanceof EntityCrankShaftBase cs &&
-                cs.myType== ICrankShaftConnector.CrankShaftType.SMALL&&
+        if (other instanceof EntityCrankShaftBase cs &&
+                cs.myType == ICrankShaftConnector.CrankShaftType.SMALL &&
                 cs.getMechanicalBlock(direction.getOpposite()) != null &&
                 cs.getBlockEntity().getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != direction.getAxis()
-        ){
-            if(((EntityPipe) tile).crankShaftSide == null) {
+        ) {
+            if (((EntityPipe) tile).crankShaftSide == null) {
                 ((EntityPipe) tile).crankShaftSide = direction;
             }
-        }else{
-            if(((EntityPipe) tile).crankShaftSide == direction)
+        } else {
+            if (((EntityPipe) tile).crankShaftSide == direction)
                 ((EntityPipe) tile).crankShaftSide = null;
         }
 
         return state;
     }
 
-    //@Override
+    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityPipe::tick;
+    }
+
+    public enum ConnectionState implements StringRepresentable {
+        NONE("none"),
+        CONNECTED("connection"),
+        EXTRACTION("extraction"),
+        STRUCTURE("structure");
+
+        private final String name;
+
+        ConnectionState(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return this.name;
+        }
     }
 }
