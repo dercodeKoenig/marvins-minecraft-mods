@@ -542,16 +542,4 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntitySieve) t).tick();
     }
-
-
-    static List<CrankShaftType> allowedCrankshaftTypes = new ArrayList();
-
-    static {
-        allowedCrankshaftTypes.add(CrankShaftType.SMALL);
-    }
-
-    @Override
-    public List<CrankShaftType> getConnectableCrankshafts() {
-        return allowedCrankshaftTypes;
-    }
 }

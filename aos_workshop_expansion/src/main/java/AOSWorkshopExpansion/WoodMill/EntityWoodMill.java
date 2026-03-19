@@ -430,16 +430,4 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityWoodMill) t).tick();
     }
-
-
-    static List<CrankShaftType> allowedCrankshaftTypes = new ArrayList();
-
-    static {
-        allowedCrankshaftTypes.add(CrankShaftType.LARGE);
-    }
-
-    @Override
-    public List<CrankShaftType> getConnectableCrankshafts() {
-        return allowedCrankshaftTypes;
-    }
 }
