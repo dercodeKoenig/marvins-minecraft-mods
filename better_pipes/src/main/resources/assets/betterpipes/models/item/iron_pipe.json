@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:block/cube_all",
   "textures": {
-    "layer0": "betterpipes:block/fluid_pipe1"
+    "all": "betterpipes:item/fluid_pipe1"
   }
 }
