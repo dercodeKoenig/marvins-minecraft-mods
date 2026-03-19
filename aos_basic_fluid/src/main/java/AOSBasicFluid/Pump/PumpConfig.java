@@ -20,7 +20,6 @@ public class PumpConfig {
         int scanPerTick = 1000;
         int tankCapacity = 10000;
         double resistance = 60.0;
-        double unevenForceMultiplier = 30.0;
 
         public static PumpConfig loadConfig() {
             String filename = "mechanical_pump.json";
@@ -34,11 +33,11 @@ public class PumpConfig {
                     Files.createFile(filePath);
                     String json = gson.toJson(new PumpConfig());
                     Files.writeString(filePath, json);
-                    System.out.println("Created finite_water config file: " + filePath);
+                    System.out.println("Created Mechanical Pump config file: " + filePath);
                 }
                 String json = Files.readString(filePath);
                 PumpConfig c = gson.fromJson(json, PumpConfig.class);
-                System.out.println("Loaded finite_water config file: " + filePath);
+                System.out.println("Loaded Mechanical Pump config file: " + filePath);
                 return c;
 
             } catch (IOException e) {
