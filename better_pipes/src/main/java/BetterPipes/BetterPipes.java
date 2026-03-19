@@ -38,31 +38,29 @@ public class BetterPipes {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(IRON_PIPE.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(WOODEN_PIPE.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(TANK.get(), RenderType.cutout());
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_IRON_PIPE.get(), (c) -> new RenderPipe(ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_structure.png")));
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_PIPE.get(), (c) -> new RenderPipe(ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe0_structure.png")));
         event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab() == AgeOfSteam.Registry.AOS_CREATIVETAB.get()) {
             e.accept(IRON_PIPE.get());
+            e.accept(WOODEN_PIPE.get());
             e.accept(TANK.get());
         }
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_IRON_PIPE.get(), (tile, side) -> tile.getFluidHandler(side));
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_WOODEN_PIPE.get(), (tile, side) -> tile.getFluidHandler(side));
 
-
-
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_TANK.get(),
-                (tank, side) -> {
-                    return tank.myTank;
-                }
-        );
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_TANK.get(), (tank, side) -> tank.myTank);
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

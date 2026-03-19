@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "betterpipes:pipe"
+          "name": "betterpipes:wooden_pipe"
         }
       ]
     }

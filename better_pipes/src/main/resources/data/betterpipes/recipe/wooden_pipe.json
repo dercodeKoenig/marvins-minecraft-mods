@@ -7,14 +7,14 @@
   ],
   "key": {
     "I": {
-      "item": "minecraft:stone"
+      "tag": "minecraft:planks"
     },
     "G": {
       "item": "minecraft:glass"
     }
   },
   "result": {
-    "id": "betterpipes:pipe",
+    "id": "betterpipes:wooden_pipe",
     "count": 1
   }
 }

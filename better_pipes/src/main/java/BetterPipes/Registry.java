@@ -2,7 +2,9 @@ package BetterPipes;
 
 import BetterPipes.PipeBase.EntityPipe;
 import BetterPipes.Pipes.BlockIronPipe;
+import BetterPipes.Pipes.BlockWoodenPipe;
 import BetterPipes.Pipes.EntityIronPipe;
+import BetterPipes.Pipes.EntityWoodenPipe;
 import BetterPipes.Tank.BlockTank;
 import BetterPipes.Tank.EntityTank;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,6 +34,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityIronPipe::new, IRON_PIPE.get()).build(null)
     );
 
+    public static final Supplier<Block> WOODEN_PIPE = BLOCKS.register(
+            "wooden_pipe",
+            () -> new BlockWoodenPipe()
+    );
+    public static final Supplier<BlockEntityType<EntityWoodenPipe>> ENTITY_WOODEN_PIPE = BLOCK_ENTITIES.register(
+            "entity_wooden_pipe",
+            () -> BlockEntityType.Builder.of(EntityWoodenPipe::new, WOODEN_PIPE.get()).build(null)
+    );
+
     public static final Supplier<Block> TANK = BLOCKS.register(
             "tank",
             () -> new BlockTank()
@@ -43,6 +54,7 @@ public class Registry {
 
     public static void register(IEventBus modBus) {
         registerBlockItem("iron_pipe", IRON_PIPE);
+        registerBlockItem("wooden_pipe", WOODEN_PIPE);
         registerBlockItem("tank", TANK);
 
         BLOCKS.register(modBus);

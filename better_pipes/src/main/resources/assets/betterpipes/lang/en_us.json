@@ -2,6 +2,9 @@
   "block.betterpipes.iron_pipe": "Iron Pipe",
   "item.betterpipes.iron_pipe": "Iron Pipe",
 
+  "block.betterpipes.wooden_pipe": "Wooden Pipe",
+  "item.betterpipes.wooden_pipe": "Wooden Pipe",
+
   "block.betterpipes.tank": "Tank",
   "item.betterpipes.tank": "Tank"
 }

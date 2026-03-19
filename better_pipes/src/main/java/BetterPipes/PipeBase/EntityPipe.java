@@ -261,6 +261,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                                         double transferRateMultiplier = (double) conn.lastFill / mainCapacity * 4;
                                         int toTransfer = (int) (flowRate * transferRateMultiplier);
 
+                                        toTransfer = (int) Math.min(toTransfer, flowRate * 1.1);
+
                                         if (toTransfer == 0 && conn.ticksWithFluidInTank >= FORCE_OUTPUT_AFTER_TICKS / 2)
                                             toTransfer = 1;
 
@@ -293,10 +295,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                             if (toDrain == drained.getAmount()) {
                                 // make sure the resistance is about the same so it keeps the flow static and not updates the meshes all the time
                                 // use the double value for a consistent resistance force
-                                mechanicalResistance += toDrainDouble;
+                                mechanicalResistance += toDrainDouble / flowRate * 50;
                             } else
                                 // if not everything was drained, make the resistance depending on how much was drained
-                                mechanicalResistance += drained.getAmount();
+                                mechanicalResistance += (double) drained.getAmount() / flowRate * 50;
                         }
                     }
 

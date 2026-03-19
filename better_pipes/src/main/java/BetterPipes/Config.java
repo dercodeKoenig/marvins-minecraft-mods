@@ -12,8 +12,11 @@ public class Config {
 
     public static Config INSTANCE = loadConfig();
 
-    public int flowRateIronPipe = 40;
-    public int mainCapacityIronPipe = 400;
+    public int flowRateIronPipe = 100;
+    public int mainCapacityIronPipe = 1000;
+
+    public int flowRateWoodenPipe = 40;
+    public int mainCapacityWoodenPipe = 400;
 
     public static Config loadConfig() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
