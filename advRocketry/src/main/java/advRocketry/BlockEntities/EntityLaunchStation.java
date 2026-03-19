@@ -51,7 +51,7 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
             }
 
             @Override
-            public int getSlotLimit(int slot){
+            public int getSlotLimit(int slot) {
                 return 1;
             }
         };
@@ -92,17 +92,26 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
 
     }
 
-    public void openGui(){
+    public void openGui() {
         guiHandler.openGui(176, 135, true);
     }
 
-    public void launch() {
+    public boolean launch() {
         if (linkedRocket != null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
             linkedRocket.launch(navigationItem);
+            return true;
         }
-        level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
-        activeTimeout = 40;
+        return false;
+    }
+
+    public final boolean _launch() {
+        boolean res = launch();
+        if (res) {
+            level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+            activeTimeout = 40;
+        }
+        return res;
     }
 
     @Override
@@ -111,8 +120,8 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         if (compoundTag.contains("guiButtonClick")) {
             int btn = compoundTag.getInt("guiButtonClick");
             if (btn == launch_btn_id) {
-                launch();
-                guiHandler.signalCloseGui(serverPlayer);
+                if (_launch())
+                    guiHandler.signalCloseGui(serverPlayer);
             }
         }
     }

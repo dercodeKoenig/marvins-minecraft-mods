@@ -66,7 +66,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
         guiHandler.openGui(176, 165, true);
     }
 
-    public void launch() {
+    public boolean launch() {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
             if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
@@ -82,8 +82,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
                     ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target.key, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                     linkedRocket.setProgramAndSync(programMissionStartBase);
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
-                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
-                    activeTimeout = 40;
+                    return true;
                 }
             }
             // invalidate && pop chip
@@ -94,6 +93,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
             Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
              */
         }
+        return false;
     }
 
     @Override

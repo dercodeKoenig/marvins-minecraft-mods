@@ -111,7 +111,7 @@ public class AsteroidManager {
                 if (!asteroid.isExpired()) {
                     discoveredAsteroidList.add(asteroid);
                 } else {
-                    System.out.println("[AsteroidSystem] skip saving for expired asteroid: " + asteroid.asteroidId);
+                    System.out.println("[AsteroidSystem] skip saving for expired asteroid: " + asteroid.key);
                 }
             }
             String saveString = new GsonBuilder().setPrettyPrinting().create().toJson(discoveredAsteroidList);
