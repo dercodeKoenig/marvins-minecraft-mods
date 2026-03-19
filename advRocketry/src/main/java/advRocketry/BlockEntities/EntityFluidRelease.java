@@ -103,24 +103,26 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
         if (level.isClientSide) {
             if (clientParticleTimeout > 0) {
                 clientParticleTimeout--;
-                // reuse rocket particles
-                Vec3 worldPos = getBlockPos().getCenter();
-                Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                worldPos = worldPos.add(facing.getStepX() * 0.7, 0, facing.getStepZ() * 0.7);
-                new RocketParticle(
-                        (ClientLevel) level,
-                        worldPos.x + (Math.random() - 0.5) * 0.5,
-                        worldPos.y + (Math.random() - 0.5) * 0.5,
-                        worldPos.z + (Math.random() - 0.5) * 0.5,
-                        facing.getStepX() * 0.1,
-                        Math.random() * 0.1,
-                        facing.getStepZ() * 0.1,
-                        new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
-                        0.2f,
-                        1,
-                        100,
-                        false
-                );
+                if (GlobalTime.getGlobalTime() % 3 == 0) {
+                    // reuse rocket particles
+                    Vec3 worldPos = getBlockPos().getCenter();
+                    Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+                    worldPos = worldPos.add(facing.getStepX() * 0.7, 0, facing.getStepZ() * 0.7);
+                    new RocketParticle(
+                            (ClientLevel) level,
+                            worldPos.x + (Math.random() - 0.5) * 0.5,
+                            worldPos.y + (Math.random() - 0.5) * 0.5,
+                            worldPos.z + (Math.random() - 0.5) * 0.5,
+                            facing.getStepX() * 0.1,
+                            Math.random() * 0.1,
+                            facing.getStepZ() * 0.1,
+                            new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
+                            0.2f,
+                            1,
+                            100,
+                            false
+                    );
+                }
             }
         }
 
