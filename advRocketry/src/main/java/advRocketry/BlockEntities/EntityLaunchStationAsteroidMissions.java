@@ -78,9 +78,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
             ItemStack navigationItem = inventory.getStackInSlot(0);
             if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
                 AsteroidManager.DiscoveredAsteroid target = ItemAsteroidIdChip.getSelectedAsteroid(navigationItem);
-                if (target == null) {
-                    ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "Asteroid not found");
-                } else if (target.isExpired()) {
+                if (target == null || target.isExpired()) {
                     ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "We were too slow.\nAsteroid out of range now.");
                 } else {
                     lastLaunchedMissionUUID = UUID.randomUUID();

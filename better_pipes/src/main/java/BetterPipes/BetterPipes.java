@@ -47,7 +47,7 @@ public class BetterPipes {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+        if (e.getTab() == AgeOfSteam.Registry.AOS_CREATIVETAB.get()) {
             e.accept(IRON_PIPE.get());
             e.accept(TANK.get());
         }
