@@ -60,7 +60,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
     };
     public FluidRenderData renderData = new FluidRenderData();
-    public VertexBuffer vertexBuffer;
+    public VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
     public MeshData mesh;
     public VertexBuffer vertexBufferCrankshaftConnection;
     public VertexBuffer vertexBufferPumpCube;
