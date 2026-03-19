@@ -41,7 +41,7 @@ public abstract class AbstractMechanicalBlock {
 
     public double resetRotationAfterX = 360;
     // only one part of the network will be master during a tick, all the others will skip update
-    public boolean hasReceivedUpdate;
+    public long updateTime;
     public Map<Direction, AbstractMechanicalBlock> connectedParts = new HashMap<>();
 
 // for stress calculations
@@ -79,8 +79,9 @@ public abstract class AbstractMechanicalBlock {
      // called at the start of the tick update
     // notifies other parts in the network that the initial tick is done
     public void propagateTickBeforeUpdate() {
-        if (!hasReceivedUpdate) {
-            hasReceivedUpdate = true;
+        long gameTime = me.getBlockEntity().getLevel().getGameTime();
+        if (updateTime != gameTime) {
+            updateTime = gameTime;
             connectedParts = me.getConnectedParts(me, this);
 
             for (AbstractMechanicalBlock i : connectedParts.values()) {
@@ -381,8 +382,9 @@ public abstract class AbstractMechanicalBlock {
     public void mechanicalTick() {
 
         BlockEntity myTile = me.getBlockEntity();
+        long gameTime = me.getBlockEntity().getLevel().getGameTime();
         if (myTile.getLevel().isClientSide()) {
-            if (!hasReceivedUpdate) {
+            if (gameTime != updateTime) {
                 propagateTickBeforeUpdate();
 
                 double rotationDiff1 = serverRotation - currentRotation;
@@ -412,7 +414,7 @@ public abstract class AbstractMechanicalBlock {
         }
 
         if (!myTile.getLevel().isClientSide()) {
-            if (!hasReceivedUpdate) {
+            if (updateTime != gameTime) {
                 propagateTickBeforeUpdate();
 
                 HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
@@ -473,7 +475,6 @@ public abstract class AbstractMechanicalBlock {
                 }
             }
         }
-        hasReceivedUpdate = false;
         applyRotations();
 
         if(me.getBlockEntity(). getLevel().isClientSide) {

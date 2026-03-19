@@ -109,7 +109,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         public void propagateTickBeforeUpdate() {
             super.propagateTickBeforeUpdate();
 
-
             // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
             // this is easier than always reset the rotation on connect or unconnect
             // do not use this in tick, if the pipe ticks before crankshaft the rotation will be out of sync
@@ -477,11 +476,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     @Override
     public BlockEntity getBlockEntity() {
         return this;
-    }
-
-    @Override
-    public List<CrankShaftType> getConnectableCrankshafts() {
-        return List.of(CrankShaftType.SMALL);
     }
 
     public static class FluidRenderData {
