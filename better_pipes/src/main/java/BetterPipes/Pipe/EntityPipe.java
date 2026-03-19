@@ -104,6 +104,22 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         public double getRotationMultiplierToInside(@Nullable Direction direction) {
             return 1;
         }
+
+        @Override
+        public void propagateTickBeforeUpdate() {
+            super.propagateTickBeforeUpdate();
+
+
+            // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
+            // this is easier than always reset the rotation on connect or unconnect
+            // do not use this in tick, if the pipe ticks before crankshaft the rotation will be out of sync
+            // this is specifically what this method is designed to do, to run when all mechanical blocks are on same state before tick
+            // runs on both server and client side to keep the visuals correct
+            if (crankShaftSide != null && hasAnyExtractionConnections) {
+                double otherRotation = ((IMechanicalBlockProvider) level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
+                myMechanicalBlock.currentRotation = otherRotation;
+            }
+        }
     };
 
     public EntityPipe(BlockPos pos, BlockState blockState) {
@@ -155,14 +171,6 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                 break;
             }
         }
-
-        // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
-        // this is easier than always reset the rotation on connect or unconnect
-        if (crankShaftSide != null && hasAnyExtractionConnections) {
-            double otherRotation = ((IMechanicalBlockProvider) level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
-            myMechanicalBlock.currentRotation = otherRotation;
-        }
-
 
         // this is because for some reason minecraft stops updating the sprite
         // so i do it every tick
