@@ -188,6 +188,12 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     }
 
     public boolean isInfiniteWater(BlockPos p) {
+        // ok, so i know this might look like it is crazy expensive to compute, BUT:
+        // If you have finite water and are in an infinite water biome (where you would place the machine for constant operation),
+        // this will instantly return yes and the entire scanning stops
+        // If this is not an infinite water biome and you want to drain a pool, yes it is about 6x slower.
+        // But once the pool is drained no more compute is "wasted".
+        // Pumping out of the infinite water source directly below the pump and not scan all the area is 10x faster for normal operation.
         Holder<Biome> h = level.getBiome(p);
         ResourceLocation id = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
         String idString = id.toString();
