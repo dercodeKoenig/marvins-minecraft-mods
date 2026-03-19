@@ -8,7 +8,6 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.InventoryUtils;
 import advRocketry.Blocks.Observatory;
 import advRocketry.Config;
 import advRocketry.Data.DataTypes;
@@ -18,6 +17,7 @@ import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Missions.AsteroidManager;
 import advRocketry.Registry.BlockEntities;
 import advRocketry.Registry.Items;
 import advRocketry.Render.starmap.SpaceMapScreen;
@@ -597,14 +597,14 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             extractData(REQUIRED_DATA, 1, dataTiles, false);
                             if (p < pTarget) {
                                 // find a new asteroid
-                                ItemAsteroidIdChip.Asteroid asteroid = ItemAsteroidIdChip.getRandomAsteroid(new Random());
-                                if (asteroid == null) {
+                                AsteroidManager.DiscoveredAsteroid discoveredAsteroid = AsteroidManager.discoverNewAsteroid();
+                                if (discoveredAsteroid == null) {
                                     // this should not happen if asteroids are configured
                                     setStatusText("NO ASTEROIDS OUT THERE");
                                     toggleTask(Task.IDLE, null);
                                 } else {
                                     ItemStack asteroidChip = inputBlocks.get(inputBlockIndex).inventory.extractItem(inputSlotIndex, 1, false);
-                                    ItemAsteroidIdChip.setSelectedType(asteroid.id, asteroidChip);
+                                    ItemAsteroidIdChip.setSelectedAsteroid(discoveredAsteroid, asteroidChip);
                                     outputBlocks.get(outputBlockIndex).inventory.insertItem(outputSlotIndex, asteroidChip, false);
                                 }
                             }

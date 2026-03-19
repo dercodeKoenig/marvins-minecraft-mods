@@ -1,8 +1,8 @@
 package advRocketry;
 
 import advRocketry.Dimension.*;
-import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.LifeSupport.LifeSupportSystem;
+import advRocketry.Missions.AsteroidManager;
 import advRocketry.Missions.MissionManager;
 import advRocketry.Render.Particles.RocketParticleEngine;
 import advRocketry.Registry.GasRegistry;
@@ -94,10 +94,11 @@ public class WorldEvents {
         ForcedChunkManager.restoreForcedChunks(); // restore forced chunks after dimensions are created
         MissionManager.onServerStart();
         SatelliteManager.onServerStart();
-        ItemAsteroidIdChip.onServerStart();
+        AsteroidManager.onServerStart();
     }
 
     public static void onServerStop(ServerStoppingEvent event) {
+        AsteroidManager.onServerStop();
         SatelliteManager.onServerStop();
         MissionManager.onServerStop();
         ForcedChunkManager.saveForcedChunks();

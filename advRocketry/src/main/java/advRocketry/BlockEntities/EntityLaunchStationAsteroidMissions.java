@@ -8,25 +8,19 @@ import ARLib.gui.modules.guiModuleText;
 import advRocketry.Blocks.LaunchStation;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemAsteroidIdChip;
-import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Items.ItemSatelliteIdChip;
+import advRocketry.Missions.AsteroidManager;
 import advRocketry.Missions.MissionManager;
 import advRocketry.Missions.RocketMission;
 import advRocketry.Registry.BlockEntities;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketPrograms.ProgramAsteroidMiningMission;
 import advRocketry.Rocket.RocketPrograms.ProgramMissionStartBase;
-import advRocketry.Rocket.RocketPrograms.ProgramSatelliteDeployment;
-import advRocketry.Rocket.RocketPrograms.ProgramSatelliteRecovery;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.UUID;
 
@@ -75,20 +69,30 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
     public void launch() {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
-            if (navigationItem.getItem() instanceof ItemAsteroidIdChip && ItemAsteroidIdChip.getSelectedType(navigationItem) instanceof String target) {
-                lastLaunchedMissionUUID = UUID.randomUUID();
-                BlockPos landPos = linkedRocket.getDockingStationPos();
-                if (landPos == null) landPos = linkedRocket.blockPosition();
-                ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target, level.dimension().location(), landPos, lastLaunchedMissionUUID);
-                linkedRocket.setProgramAndSync(programMissionStartBase);
-                lastLaunchedRocketUUID = linkedRocket.getUUID();
-                level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
-                activeTimeout = 40;
+            if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
+                AsteroidManager.DiscoveredAsteroid target = ItemAsteroidIdChip.getSelectedAsteroid(navigationItem);
+                if (target == null) {
+                    ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "Asteroid not found");
+                } else if (target.isExpired()) {
+                    ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "We were too slow.\nAsteroid out of range now.");
+                } else {
+                    lastLaunchedMissionUUID = UUID.randomUUID();
+                    BlockPos landPos = linkedRocket.getDockingStationPos();
+                    if (landPos == null) landPos = linkedRocket.blockPosition();
+                    ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target.key, level.dimension().location(), landPos, lastLaunchedMissionUUID);
+                    linkedRocket.setProgramAndSync(programMissionStartBase);
+                    lastLaunchedRocketUUID = linkedRocket.getUUID();
+                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
+                    activeTimeout = 40;
+                }
             }
             // invalidate && pop chip
+            // TODO: output into nearby item output hatches and pull new chip from input hatches
+            /*
             ItemAsteroidIdChip.setSelectedType(null, navigationItem);
             inventory.setStackInSlot(0, ItemStack.EMPTY);
             Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
+             */
         }
     }
 
