@@ -15,8 +15,7 @@ import java.util.*;
 
 public class AsteroidManager {
 
-    //public static final int timeout = 20 * 60 * 60 * 48; // discovered asteroids are no longer valid after this many ticks game time
-    public static final int timeout = 20 * 60; // discovered asteroids are no longer valid after this many ticks game time
+    public static final int timeout = 20 * 60 * 60 * 48; // discovered asteroids are no longer valid after this many ticks game time
 
     public static final String saveFile = "AsteroidConfig.json";
     public static final String saveFileDiscoveredAsteroids = "adv_rocketry_discovered_asteroids.json";
