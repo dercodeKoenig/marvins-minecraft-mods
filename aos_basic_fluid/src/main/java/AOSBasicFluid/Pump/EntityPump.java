@@ -200,9 +200,11 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
     public void tryPumpBlock(BlockPos pos) {
         BlockState targetState = level.getBlockState(pos);
-        if (myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
-            myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.EXECUTE);
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        if (targetState.getFluidState().isSource()) { // verify source once again
+            if (myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
+                myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.EXECUTE);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            }
         }
     }
 
@@ -229,12 +231,12 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
                 }
             }
-            long t0 = System.nanoTime();
+
             int maxSteps = PumpConfig.INSTANCE.scanPerTick;
             int n = 0;
             while (!nextBlocksToScan.isEmpty()) {
                 n++;
-                if (n > maxSteps * 1000)
+                if (n > maxSteps)
                     break;
                 BlockPos next = nextBlocksToScan.pollFirst();
                 if (workedPositions.add(next.asLong())) {
@@ -291,8 +293,6 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                     }
                 }
             }
-            if (n > 0)
-                System.out.println((double) (System.nanoTime() - t0) / 1000 / 1000 + ":" + n);
 
             // if no next block to scan is available, everything is complete
             if (nextBlocksToScan.isEmpty()) {
