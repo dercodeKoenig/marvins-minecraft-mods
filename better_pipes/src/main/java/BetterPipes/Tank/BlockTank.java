@@ -66,12 +66,6 @@ public class BlockTank extends Block implements EntityBlock {
     }
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        super.setPlacedBy(level, pos, state, placer, stack);
-        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
-    }
-
-    @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
 
         if (otherConnections.containsKey(direction)) {

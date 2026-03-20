@@ -83,6 +83,7 @@ abstract public class BlockPipe extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
+        // required because we can connect to fluid handlers
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 

@@ -25,6 +25,7 @@ public class BlockEntities {
     public static final Supplier<BlockEntityType<EntitySolarPanel>> ENTITY_SOLAR_PANEL = BLOCK_ENTITIES.register("solar_panel", () -> BlockEntityType.Builder.of(EntitySolarPanel::new, Blocks.SOLAR_PANEL.get()).build(null));
     public static final Supplier<BlockEntityType<EntityWirelessTransceiver>> ENTITY_WIRELESS_TRANSCEIVER = BLOCK_ENTITIES.register("wireless_transceiver", () -> BlockEntityType.Builder.of(EntityWirelessTransceiver::new, Blocks.WIRELESS_TRANSCEIVER.get()).build(null));
     public static final Supplier<BlockEntityType<EntityFluidRelease>> ENTITY_FLUID_RELEASE = BLOCK_ENTITIES.register("fluid_release", () -> BlockEntityType.Builder.of(EntityFluidRelease::new, Blocks.FLUID_RELEASE.get()).build(null));
+    public static final Supplier<BlockEntityType<EntityPressureTank>> ENTITY_PRESSURE_TANK = BLOCK_ENTITIES.register("pressure_tank", () -> BlockEntityType.Builder.of(EntityPressureTank::new, Blocks.PRESSURE_TANK.get()).build(null));
 
     public static final Supplier<BlockEntityType<EntitySpaceStationAssembler>> ENTITY_SPACE_STATION_ASSEMBLER = BLOCK_ENTITIES.register("space_station_assembler", () -> BlockEntityType.Builder.of(EntitySpaceStationAssembler::new, Blocks.SPACE_STATION_ASSEMBLER.get()).build(null));
     public static final Supplier<BlockEntityType<EntityOrientationController>> ENTITY_ORIENTATION_CONTROLLER = BLOCK_ENTITIES.register("orientation_controller", () -> BlockEntityType.Builder.of(EntityOrientationController::new, Blocks.ORIENTATION_CONTROLLER.get()).build(null));

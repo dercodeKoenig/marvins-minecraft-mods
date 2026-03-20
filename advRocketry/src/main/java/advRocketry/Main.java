@@ -4,6 +4,7 @@ import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.BlockEntityRenderers.RenderObservatory;
+import advRocketry.BlockEntityRenderers.RenderPressureTank;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
@@ -125,6 +126,7 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SATELLITE_MONITOR.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FLUID_RELEASE.get(), (x, y) -> y == x.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING) ? null : x.tank);
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_PRESSURE_TANK.get(), (x, y) -> x.tank);
     }
 
     void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -132,6 +134,7 @@ public class Main {
         event.registerBlockEntityRenderer(BlockEntities.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
         event.registerBlockEntityRenderer(BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER.get(), RenderRocketAssembler::new);
         event.registerBlockEntityRenderer(BlockEntities.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
+        event.registerBlockEntityRenderer(BlockEntities.ENTITY_PRESSURE_TANK.get(), RenderPressureTank::new);
     }
 
     void registerShaders(RegisterShadersEvent event) {
@@ -232,6 +235,7 @@ public class Main {
             e.accept(Blocks.OXYGEN_VENT.get());
             e.accept(Blocks.WIRELESS_TRANSCEIVER.get());
             e.accept(Blocks.FLUID_RELEASE.get());
+            e.accept(Blocks.PRESSURE_TANK.get());
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
