@@ -116,7 +116,7 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
                             facing.getStepX() * 0.1,
                             Math.random() * 0.1,
                             facing.getStepZ() * 0.1,
-                            new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
+                            new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
                             0.2f,
                             1,
                             100,
