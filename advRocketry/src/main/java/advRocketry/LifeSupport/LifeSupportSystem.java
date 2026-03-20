@@ -77,6 +77,16 @@ public class LifeSupportSystem {
         return false;
     }
 
+    public static boolean isTemperatureRegulated(Level level, BlockPos pos){
+        // for events to destroy plants or freeze water
+        return false;
+    }
+
+    public static boolean isPressureRegulated(Level level, BlockPos pos){
+        // for events to destroy plants or freeze water
+        return false;
+    }
+
     public static int SCAN_LIMIT_PER_TICK() {
         return 200; // can only scan this many blocks in total per tick
     }
@@ -112,11 +122,11 @@ public class LifeSupportSystem {
                 Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
                 if (dim == null)
                     continue;
-                Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
-                if (problems.isEmpty())
-                    continue;
                 ServerLevel level = DimensionManager.getServerLevel(levelId);
                 if (level == null)
+                    continue;
+                Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
+                if (problems.isEmpty())
                     continue;
                 for (Entity e : level.getEntities().getAll()) {
                     if (e instanceof LivingEntity livingEntity) {

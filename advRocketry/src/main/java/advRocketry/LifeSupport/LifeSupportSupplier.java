@@ -109,7 +109,7 @@ public abstract class LifeSupportSupplier {
                 else
                     requiresFullShape = List.of(Direction.Axis.X, Direction.Axis.Y);
                 boolean bothAxisAreFullShapee = true;
-                VoxelShape shape = otherState.getShape(level, otherPos);
+                VoxelShape shape = otherState.getCollisionShape(level, otherPos);
                 for(Direction.Axis axis : requiresFullShape) {
                     if(shape.max(axis) < 1 || shape.min(axis) > 0) {
                         bothAxisAreFullShapee = false;
