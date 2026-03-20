@@ -54,8 +54,7 @@ public class LifeSupportSystem {
             if (info.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2) ||
                     info.contains(Dimension.SurvivalProblem.TOO_MUCH_O2) ||
                     info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_LOW_PRESSURE) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_PRESSURE)
+                    info.contains(Dimension.SurvivalProblem.TOO_LOW_PRESSURE)
             ) {
                 if (!instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos)) {
                     oxygen = false;
