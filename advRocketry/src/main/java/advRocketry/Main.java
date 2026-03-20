@@ -211,6 +211,7 @@ public class Main {
             e.accept(Blocks.STRUCTURE_TOWER.get());
 
             e.accept(Blocks.ROCKET_MOTOR.get());
+            e.accept(Blocks.ROCKET_MOTOR_IMPROVED.get());
             e.accept(Blocks.FUEL_TANK.get());
             e.accept(Blocks.GUIDANCE_COMPUTER.get());
             e.accept(Blocks.CARGO_HOLD.get());

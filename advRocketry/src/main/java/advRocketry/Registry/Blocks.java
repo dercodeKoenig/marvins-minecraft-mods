@@ -24,6 +24,7 @@ public class Blocks {
 
     // rocket part
     public static final Supplier<Block> ROCKET_MOTOR = BLOCKS.register("rocket_motor", () -> new RocketMotor());
+    public static final Supplier<Block> ROCKET_MOTOR_IMPROVED = BLOCKS.register("rocket_motor_improved", () -> new RocketMotorImproved());
     public static final Supplier<Block> FUEL_TANK = BLOCKS.register("fuel_tank", () -> new FuelTank());
     public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
     public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());

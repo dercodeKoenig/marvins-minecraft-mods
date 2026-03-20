@@ -19,7 +19,7 @@ public class Config {
 
     public float rocket_Block_Weight = 3;
     public float rocket_ItemStack_Weight = 10;
-    public float rocket_Fuel_Weight_Per_MB = 0.0005f;
+    public float rocket_Fluid_Weight_Per_MB = 0.0005f;
 
     public double station_SpaceTravel_AU_Per_Second = 1;
     public double station_SpaceTravel_Distance_For_Max_Speed = 10;
@@ -27,7 +27,7 @@ public class Config {
     public double station_SpaceTravel_Rotation_Rate = 0.005;
     public double station_Max_Orbit_R_Factor = 10;
 
-    // true scale is way too small, for example earth would only cover 8px on a 1080p screen.
+    // true scale is way too small, for example moon would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering
     public double planet_Render_Scale_Multiplier = 10;
 

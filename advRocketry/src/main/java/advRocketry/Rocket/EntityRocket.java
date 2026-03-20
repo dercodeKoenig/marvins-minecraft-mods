@@ -8,6 +8,7 @@ import ARLib.utils.DimensionUtils;
 import ARLib.utils.VertexBufferCleaner;
 import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntities.EntityPressureTank;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
@@ -16,7 +17,6 @@ import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Rocket.RocketPrograms.*;
 import advRocketry.Utils.ItemUtils;
 import advRocketry.Utils.CelestialUtils;
@@ -51,7 +51,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -978,7 +977,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void recalculateMass() {
         float mass = 0;
         mass += getBlockMass();
-        mass += getFuel() * Config.INSTANCE.rocket_Fuel_Weight_Per_MB; // fuel weight
+        mass += getFuel() * Config.INSTANCE.rocket_Fluid_Weight_Per_MB; // fuel weight
         for (BlockEntity e : blockEntities.values()) {
             if (e instanceof EntityCargoHold entityCargoHold) {
                 ItemStack carried = entityCargoHold.itemStackHandler.getStackInSlot(0);
@@ -986,6 +985,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     float relativeFill = (float) carried.getCount() / carried.getMaxStackSize();
                     mass += relativeFill * Config.INSTANCE.rocket_ItemStack_Weight;
                 }
+            }
+            if( e instanceof EntityPressureTank pressureTank){
+                mass += pressureTank.tank.getFluidAmount() * Config.INSTANCE.rocket_Fluid_Weight_Per_MB;
             }
         }
         if (mass != currentMass) {

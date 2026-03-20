@@ -32,6 +32,7 @@ public class Items {
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", Blocks.LAUNCHPAD);
     public static final Supplier<Item> ITEM_STRUCTURE_TOWER = registerBlockItem("structure_tower", Blocks.STRUCTURE_TOWER);
     public static final Supplier<Item> ITEM_ROCKET_MOTOR = registerBlockItem("rocket_motor", Blocks.ROCKET_MOTOR);
+    public static final Supplier<Item> ITEM_ROCKET_MOTOR_IMPROVED = registerBlockItem("rocket_motor_improved", Blocks.ROCKET_MOTOR_IMPROVED);
     public static final Supplier<Item> ITEM_FUEL_TANK = registerBlockItem("fuel_tank", Blocks.FUEL_TANK);
     public static final Supplier<Item> ITEM_GUIDANCE_COMPUTER = registerBlockItem("guidance_computer", Blocks.GUIDANCE_COMPUTER);
     public static final Supplier<Item> ITEM_SEAT = registerBlockItem("seat", Blocks.SEAT);
