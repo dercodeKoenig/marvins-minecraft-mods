@@ -89,9 +89,9 @@ public class PlanetDimensionProperties extends DimensionProperties {
             if (surfaceValue == 0)
                 return 0;
 
-            double baseLevel = 40; // base value when there is any fluid
-            double levelAt05 = 62; // normal value on 0.5 composition, equal to overworld sea level
-            double seaLevel = baseLevel + surfaceValue * 2 * (levelAt05 - baseLevel);
+
+            // 62 around 0.5, grows slower when high water composition and drops quickly on low comosition
+            double seaLevel =  Math.sqrt(surfaceValue) * 87.7;
             seaLevel = Math.min(maxSeaLevel, seaLevel);
             return seaLevel;
         }
