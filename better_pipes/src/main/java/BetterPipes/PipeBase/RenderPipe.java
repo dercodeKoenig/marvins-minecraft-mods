@@ -1334,7 +1334,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         LEQUAL_DEPTH_TEST.setupRenderState();
         LIGHTMAP.setupRenderState();
 
-        // ── Crankshaft pump arm ────────────────────────────────────────────
+        // ── Crankshaft pump (solids renders before transparent fluid) ────────────────────────────
         if (tile.crankShaftSide != null && tile.hasAnyExtractionConnections) {
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
             ShaderInstance shader = RenderSystem.getShader();
