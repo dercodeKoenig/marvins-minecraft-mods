@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,8 +26,6 @@ import static net.minecraft.client.renderer.RenderType.TRANSIENT_BUFFER_SIZE;
 
 public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
-    // The vertex format element order is critical — do not reorder.
-    // Unlike older versions the order is defined here, not by .addVertex() call order.
     private static final VertexFormat POSITION_COLOR_TEXTURE_NORMAL_LIGHT =
             VertexFormat.builder()
                     .add("Position", VertexFormatElement.POSITION)
@@ -47,9 +44,9 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
     ResourceLocation pumpArmTexture;
 
-    public RenderPipe(ResourceLocation pumpArmTexture) {
+    public RenderPipe() {
         super();
-        this.pumpArmTexture = pumpArmTexture;
+        this.pumpArmTexture = ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/crankshaft_pump.png");
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -1294,11 +1291,11 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     // Static mesh data (pump arm OBJ model)
     // ──────────────────────────────────────────────────────────────────────────
 
-    private static final WavefrontObject PIPE_PUMP_ARM;
+    static WavefrontObject PIPE_PUMP;
     static {
         try {
-            PIPE_PUMP_ARM = new WavefrontObject(
-                    ResourceLocation.fromNamespaceAndPath("betterpipes", "models/block/pipe_pump_arm.obj"));
+            PIPE_PUMP = new WavefrontObject(
+                    ResourceLocation.fromNamespaceAndPath("betterpipes", "models/block/pipe_pump.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
@@ -1326,8 +1323,8 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
             // Rebuild pump arm mesh only when light changes
             if (tile.lastLight != packedLight) {
-                uploadObjGroup(tile.vertexBufferPumpCube,         PIPE_PUMP_ARM, "Cube", packedLight);
-                uploadObjGroup(tile.vertexBufferCrankshaftConnection, PIPE_PUMP_ARM, "Arm",  packedLight);
+                uploadObjGroup(tile.vertexBufferPumpCube,         PIPE_PUMP, "base", packedLight);
+                uploadObjGroup(tile.vertexBufferPumpArm, PIPE_PUMP, "arm",  packedLight);
             }
 
             tile.lastLight = packedLight;
@@ -1382,22 +1379,22 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
             // Render connecting arm
             Matrix4f m2 = new Matrix4f(m1)
-                    .translate(txX, txY, -0.04f)
+                    .translate(txX, txY, -0.00f)
                     .rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -(float) (armAngle * 180.0 / Math.PI)))
                     .rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 180f));
             applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
-            tile.vertexBufferCrankshaftConnection.bind();
-            tile.vertexBufferCrankshaftConnection.draw();
+            tile.vertexBufferPumpArm.bind();
+            tile.vertexBufferPumpArm.draw();
 
             // Render pump cube (moving, reduced scale)
             float pumpX = -0.24f + (float) (txX + Math.cos(armAngle) * armLength) * 0.6f;
-            m2 = new Matrix4f(m1).translate(pumpX, 0f, 0f).scale(1f, 0.6f, 0.6f);
+            m2 = new Matrix4f(m1).translate(pumpX, 0f, 0f).scale(1f, 0.75f, 0.75f);
             applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
             tile.vertexBufferPumpCube.bind();
             tile.vertexBufferPumpCube.draw();
 
             // Render pump cube (static outer shell)
-            m2 = new Matrix4f(m1).translate(-0.3f, 0f, 0f).scale(1f, 0.75f, 0.75f);
+            m2 = new Matrix4f(m1).translate(-0.3f, 0f, 0f);
             applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
             tile.vertexBufferPumpCube.bind();
             tile.vertexBufferPumpCube.draw();
@@ -1457,7 +1454,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
     private static void uploadObjGroup(VertexBuffer target, WavefrontObject obj,
                                        String groupName, int packedLight) {
         ByteBufferBuilder buf = new ByteBufferBuilder(1024);
-        BufferBuilder bb = new BufferBuilder(buf, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        BufferBuilder bb = new BufferBuilder(buf, VertexFormat.Mode.QUADS, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
         for (Face face : obj.groupObjects.get(groupName).faces)
             face.addFaceForRender(new PoseStack(), bb, packedLight, 0, 0xffffffff);
         MeshData mesh = bb.build();

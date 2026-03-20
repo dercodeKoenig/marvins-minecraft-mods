@@ -49,7 +49,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     FluidRenderData renderData = new FluidRenderData();
     VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
     MeshData fluidMesh;
-    VertexBuffer vertexBufferCrankshaftConnection;
+    VertexBuffer vertexBufferPumpArm;
     VertexBuffer vertexBufferPumpCube;
     boolean requiresMeshUpdate = false;
     boolean requiresMeshUpdate2 = false;
@@ -85,11 +85,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBufferCrankshaftConnection = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                vertexBufferPumpArm = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 vertexBufferPumpCube = new VertexBuffer(VertexBuffer.Usage.STATIC);
 
                 VertexBufferCleaner.register(this, vertexBuffer);
-                VertexBufferCleaner.register(this, vertexBufferCrankshaftConnection);
+                VertexBufferCleaner.register(this, vertexBufferPumpArm);
                 VertexBufferCleaner.register(this, vertexBufferPumpCube);
             });
         }

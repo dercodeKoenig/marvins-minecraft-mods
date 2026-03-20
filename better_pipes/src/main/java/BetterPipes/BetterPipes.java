@@ -43,8 +43,8 @@ public class BetterPipes {
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_IRON_PIPE.get(), (c) -> new RenderPipe(ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe1_structure.png")));
-        event.registerBlockEntityRenderer(ENTITY_WOODEN_PIPE.get(), (c) -> new RenderPipe(ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/fluid_pipe0_structure.png")));
+        event.registerBlockEntityRenderer(ENTITY_IRON_PIPE.get(), (c) -> new RenderPipe());
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_PIPE.get(), (c) -> new RenderPipe());
         event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
     }
 
