@@ -1,7 +1,5 @@
 package advRocketry.Dimension;
 
-import advRocketry.Blocks.DryIceBlock;
-import advRocketry.Config;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
@@ -11,7 +9,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.neoforged.neoforge.event.level.ChunkEvent;
 
 public class DimensionEvents {
 
@@ -34,8 +31,8 @@ public class DimensionEvents {
         double pressure = dimension.getAtmosphereDensity();
         if(LifeSupportSystem.isTemperatureRegulated(level,randomPos))
             temp = 300;
-        if(LifeSupportSystem.isPressureRegulated(level,randomPos))
-            pressure = 1;
+        if(LifeSupportSystem.isAirSupplyRegulated(level,randomPos))
+            pressure = Math.max(pressure, 1);
 
         // boil away water blocks when too hot
         // the other custom liquids / dry ice have random tick, water has not

@@ -33,7 +33,7 @@ public class LifeSupportSystem {
     HashMap<LifeSupportType, LifeSupportData> lifeSupportData = new HashMap<>();
 
     public LifeSupportSystem() {
-        lifeSupportData.put(LifeSupportType.OXYGEN_SUPPLIER, new LifeSupportData());
+        lifeSupportData.put(LifeSupportType.AIR_SUPPLIER, new LifeSupportData());
         lifeSupportData.put(LifeSupportType.TEMPERATURE_REGULATOR, new LifeSupportData());
     }
 
@@ -45,44 +45,44 @@ public class LifeSupportSystem {
         if (info.isEmpty())
             return true;
 
-        LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
-        if (instance != null) {
+        if(info.contains(Dimension.SurvivalProblem.TOO_MUCH_PRESSURE))
+            return false;
 
-            boolean oxygen = true;
-            boolean temperature = true;
-
-            if (info.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_O2) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_LOW_PRESSURE)
-            ) {
-                if (!instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos)) {
-                    oxygen = false;
-                }
-            }
-
-            if (info.contains(Dimension.SurvivalProblem.TOO_COLD) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_HOT)
-            ) {
-                if (!instance.lifeSupportData.get(LifeSupportType.TEMPERATURE_REGULATOR).suppliedBlocks.contains(pos)) {
-                    temperature = false;
-                }
-            }
-
-            if (oxygen && temperature)
-                return true;
+        if (info.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2)||
+                info.contains(Dimension.SurvivalProblem.TOO_MUCH_O2) ||
+                info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2) ||
+                info.contains(Dimension.SurvivalProblem.TOO_LOW_PRESSURE)
+        ) {
+            if (!isAirSupplyRegulated(level, pos))
+                return false;
         }
 
-        return false;
+        if (info.contains(Dimension.SurvivalProblem.TOO_COLD) ||
+                info.contains(Dimension.SurvivalProblem.TOO_HOT)
+        ) {
+            if (!isTemperatureRegulated(level, pos))
+                return false;
+        }
+
+
+        return true;
     }
 
     public static boolean isTemperatureRegulated(Level level, BlockPos pos){
-        // for events to destroy plants or freeze water
+        LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
+        if (instance != null) {
+            return instance.lifeSupportData.get(LifeSupportType.TEMPERATURE_REGULATOR).suppliedBlocks.contains(pos);
+        }
         return false;
     }
 
-    public static boolean isPressureRegulated(Level level, BlockPos pos){
-        // for events to destroy plants or freeze water
+    public static boolean isAirSupplyRegulated(Level level, BlockPos pos){
+        // Note: doesnt mean you can live there, just means the air supply is active
+        // high pressure will still kill you
+        LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
+        if (instance != null) {
+            return instance.lifeSupportData.get(LifeSupportType.AIR_SUPPLIER).suppliedBlocks.contains(pos);
+        }
         return false;
     }
 
@@ -230,7 +230,7 @@ public class LifeSupportSystem {
     }
 
     public enum LifeSupportType {
-        OXYGEN_SUPPLIER, // this handles too much, too low, or too much co2 for simplicity
+        AIR_SUPPLIER, // this handles too much, too low, or too much co2 for simplicity
         TEMPERATURE_REGULATOR, // this is required when too cold / too cold
     }
 

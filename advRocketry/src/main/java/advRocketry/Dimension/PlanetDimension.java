@@ -141,13 +141,13 @@ public class PlanetDimension extends Dimension {
             problems.add(SurvivalProblem.TOO_MUCH_PRESSURE);
 
         double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
-        if (oxygen < 0.2 * pressure)
+        if (oxygen < 0.15 * pressure)
             problems.add(SurvivalProblem.TOO_LITTLE_O2);
-        if (oxygen > 0.5 * pressure)
+        if (oxygen > 0.7 * pressure)
             problems.add(SurvivalProblem.TOO_MUCH_O2);
 
         double co2 = getGasProperty(GasRegistry.co2).in_atm;
-        if (co2 > 0.01 * pressure)
+        if (co2 > 0.03 * pressure)
             problems.add(SurvivalProblem.TOO_MUCH_CO2);
 
         if (getCurrentTemp() < 273 - 30)

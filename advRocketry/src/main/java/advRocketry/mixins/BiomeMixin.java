@@ -2,16 +2,13 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -46,14 +43,14 @@ public abstract class BiomeMixin {
             double pressure = dimension.getAtmosphereDensity();
             if(LifeSupportSystem.isTemperatureRegulated(serverLevel,water))
                 temp = 300;
-            if(LifeSupportSystem.isPressureRegulated(serverLevel,water))
-                pressure = 1;
+            if(LifeSupportSystem.isAirSupplyRegulated(serverLevel,water))
+                pressure = Math.max(pressure, 1);
 
             if(dimension instanceof SpaceStationDimension){
                 // special case space stations:
                 // i want it to freeze when not regulated and not evaporate
                 // (maybe dimension event catches the block first and evaporates it, so there is a chance that evaporate or freeze can happen
-                if(!LifeSupportSystem.isPressureRegulated(serverLevel,water) &&
+                if(!LifeSupportSystem.isAirSupplyRegulated(serverLevel,water) &&
                         LifeSupportSystem.isTemperatureRegulated(serverLevel,water))
                 {
                     ci.setReturnValue(true);
