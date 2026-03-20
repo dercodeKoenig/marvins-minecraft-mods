@@ -23,12 +23,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Biome.class)
 public abstract class BiomeMixin {
 
-    @Inject(method="shouldSnow",
+    @Inject(method = "shouldSnow",
             at = @At("HEAD"),
-        cancellable = true)
+            cancellable = true)
     public void shouldSnow(LevelReader level, BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
         if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
-            if(!dimension.canRain()) {
+            if (!dimension.canRain()) {
                 // if it can not rain, it can not snow!
                 ci.setReturnValue(false);
                 ci.cancel();
@@ -42,17 +42,17 @@ public abstract class BiomeMixin {
     public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
         if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
             GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
-            if(LifeSupportSystem.isTemperatureRegulated(serverLevel,water)){
-                // regulated temperature does not form ice
+            if (LifeSupportSystem.isTemperatureRegulated(serverLevel, water) &&
+                    LifeSupportSystem.isPressureRegulated(serverLevel, water)
+            ) {
+                // regulated temperature / pressure does not form ice
                 ci.setReturnValue(false);
                 ci.cancel();
-            }
-            else if (dimension.getCurrentTemp() > waterGas.getBoilingTemp(dimension.getAtmosphereDensity())) {
+            } else if (dimension.getCurrentTemp() > waterGas.getBoilingTemp(dimension.getAtmosphereDensity())) {
                 // too hot for any ice, even in frozen biomes
                 ci.setReturnValue(false);
                 ci.cancel();
-            }
-            else if (dimension.getCurrentTemp() < waterGas.getFreezeTemp(dimension.getAtmosphereDensity())) {
+            } else if (dimension.getCurrentTemp() < waterGas.getFreezeTemp(dimension.getAtmosphereDensity())) {
                 // cold enough to force freeze
                 // the default code of Biome class follows:
                 if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight()) {
