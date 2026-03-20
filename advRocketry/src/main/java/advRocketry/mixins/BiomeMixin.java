@@ -47,7 +47,7 @@ public abstract class BiomeMixin {
                 temp = 300;
             if(LifeSupportSystem.isPressureRegulated(serverLevel,water))
                 pressure = 1;
-
+            
             GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
             if (temp > waterGas.getBoilingTemp(pressure)) {
                 // too hot for any ice, even in frozen biomes
