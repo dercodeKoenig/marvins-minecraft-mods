@@ -3,6 +3,7 @@ package advRocketry.mixins;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -39,13 +40,19 @@ public abstract class BiomeMixin {
             at = @At("HEAD"),
             cancellable = true)
     public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
-        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension dimension) {
+        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
             GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
-            if (dimension.getCurrentTemp() > waterGas.getBoilingTemp(dimension.getAtmosphereDensity())) {
+            if(LifeSupportSystem.isTemperatureRegulated(serverLevel,water)){
+                // regulated temperature does not form ice
+                ci.setReturnValue(false);
+                ci.cancel();
+            }
+            else if (dimension.getCurrentTemp() > waterGas.getBoilingTemp(dimension.getAtmosphereDensity())) {
                 // too hot for any ice, even in frozen biomes
                 ci.setReturnValue(false);
                 ci.cancel();
-            } else if (dimension.getCurrentTemp() < waterGas.getFreezeTemp(dimension.getAtmosphereDensity())) {
+            }
+            else if (dimension.getCurrentTemp() < waterGas.getFreezeTemp(dimension.getAtmosphereDensity())) {
                 // cold enough to force freeze
                 // the default code of Biome class follows:
                 if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight()) {
