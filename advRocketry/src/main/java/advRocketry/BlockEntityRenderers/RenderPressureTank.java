@@ -78,7 +78,7 @@ public class RenderPressureTank implements BlockEntityRenderer<EntityPressureTan
         if (renderTop)
             RenderUtils.renderTopFace(v, stack.last(), x0, x1, z0, z1, y1, u0, u1, v0, v1, light, overlay, tile.color);
         if (renderBottom)
-            RenderUtils.renderTopFace(v, stack.last(), x0, x1, z0, z1, y0, u0, u1, v0, v1, light, overlay, tile.color);
+            RenderUtils.renderBottomFace(v, stack.last(), x0, x1, z0, z1, y0, u0, u1, v0, v1, light, overlay, tile.color);
 
         RenderUtils.renderEastFace(v, stack.last(), y0, y1, z0, z1, x1, u0, u1, v0, v1, light, overlay, tile.color);
         RenderUtils.renderWestFace(v, stack.last(), y0, y1, z0, z1, x0, u0, u1, v0, v1, light, overlay, tile.color);
