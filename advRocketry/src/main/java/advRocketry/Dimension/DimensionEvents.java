@@ -17,28 +17,34 @@ public class DimensionEvents {
 
         ChunkPos chunkPos = chunk.getPos();
 
-        int localX = level.random.nextIntBetweenInclusive(0,15);
-        int localZ = level.random.nextIntBetweenInclusive(0,15);
+        double baseTemp = dimension.getCurrentTemp();
+        double basePressure = dimension.getAtmosphereDensity();
 
-        int blockX = chunkPos.getBlockX(localX);
-        int blockZ = chunkPos.getBlockZ(localZ);
-        int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
+        for (int i = 0; i < 5; i++) {
 
-        BlockPos randomPos = new BlockPos(blockX, blockY, blockZ);
-        BlockState randomBlockState = level.getBlockState(randomPos);
+            int localX = level.random.nextIntBetweenInclusive(0, 15);
+            int localZ = level.random.nextIntBetweenInclusive(0, 15);
 
-        double temp = dimension.getCurrentTemp();
-        double pressure = dimension.getAtmosphereDensity();
-        if(LifeSupportSystem.isTemperatureRegulated(level,randomPos))
-            temp = 300;
-        if(LifeSupportSystem.isAirSupplyRegulated(level,randomPos))
-            pressure = Math.max(pressure, 1);
+            int blockX = chunkPos.getBlockX(localX);
+            int blockZ = chunkPos.getBlockZ(localZ);
+            int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
 
-        // boil away water blocks when too hot
-        // the other custom liquids / dry ice have random tick, water has not
-        if (randomBlockState.getBlock().equals(Blocks.WATER) && temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
-            level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
-            randomBlockState = level.getBlockState(randomPos);
+            BlockPos randomPos = new BlockPos(blockX, blockY, blockZ);
+            BlockState randomBlockState = level.getBlockState(randomPos);
+
+            double temp = baseTemp;
+            double pressure = basePressure;
+            if (LifeSupportSystem.isTemperatureRegulated(level, randomPos))
+                temp = 300;
+            if (LifeSupportSystem.isAirSupplyRegulated(level, randomPos))
+                pressure = Math.max(pressure, 1);
+
+            // boil away water blocks when too hot
+            // the other custom liquids / dry ice have random tick, water has not
+            if (randomBlockState.getBlock().equals(Blocks.WATER) && temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
+                level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
+                randomBlockState = level.getBlockState(randomPos);
+            }
         }
     }
 }
