@@ -47,15 +47,17 @@ public class RenderPressureTank implements BlockEntityRenderer<EntityPressureTan
         boolean renderTop = true;
         boolean renderBottom = true;
 
-        if (tile.getLevel().getBlockEntity(tile.getBlockPos().below()) instanceof EntityPressureTank otherTank) {
-            if (FluidStack.isSameFluidSameComponents(otherTank.tank.getFluid(), tile.tank.getFluid())) {
-                renderBottom = false;
+        // level is null on rockets, so we always render the faces
+        if(tile.getLevel() != null) {
+            if (tile.getLevel().getBlockEntity(tile.getBlockPos().below()) instanceof EntityPressureTank otherTank) {
+                if (FluidStack.isSameFluidSameComponents(otherTank.tank.getFluid(), tile.tank.getFluid())) {
+                    renderBottom = false;
+                }
             }
-        }
-
-        if (tile.getLevel().getBlockEntity(tile.getBlockPos().above()) instanceof EntityPressureTank otherTank) {
-            if (FluidStack.isSameFluidSameComponents(otherTank.tank.getFluid(), tile.tank.getFluid())) {
-                renderTop = false;
+            if (tile.getLevel().getBlockEntity(tile.getBlockPos().above()) instanceof EntityPressureTank otherTank) {
+                if (FluidStack.isSameFluidSameComponents(otherTank.tank.getFluid(), tile.tank.getFluid())) {
+                    renderTop = false;
+                }
             }
         }
 
