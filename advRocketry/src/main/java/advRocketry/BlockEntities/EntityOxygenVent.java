@@ -42,7 +42,7 @@ public class EntityOxygenVent extends BlockEntity {
         heatSupplier = new LifeSupportSupplier(level, getBlockPos()){
             @Override
             public LifeSupportSystem.LifeSupportType getType() {
-                return LifeSupportSystem.LifeSupportType.HEAT_SUPPLIER;
+                return LifeSupportSystem.LifeSupportType.TEMPERATURE_REGULATOR;
             }
         };
         LifeSupportSystem.registerLifeSupportSupplier(level, oxygenSupplier);

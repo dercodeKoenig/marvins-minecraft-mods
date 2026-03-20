@@ -2,6 +2,7 @@ package advRocketry.mixins;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -38,7 +39,7 @@ public abstract class BiomeMixin {
             at = @At("HEAD"),
             cancellable = true)
     public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
-        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
+        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension dimension) {
             GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
             if (dimension.getCurrentTemp() > waterGas.getBoilingTemp(dimension.getAtmosphereDensity())) {
                 // too hot for any ice, even in frozen biomes
@@ -46,7 +47,7 @@ public abstract class BiomeMixin {
                 ci.cancel();
             } else if (dimension.getCurrentTemp() < waterGas.getFreezeTemp(dimension.getAtmosphereDensity())) {
                 // cold enough to force freeze
-                // default code of Biome class follows:
+                // the default code of Biome class follows:
                 if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight()) {
                     BlockState blockstate = level.getBlockState(water);
                     FluidState fluidstate = level.getFluidState(water);

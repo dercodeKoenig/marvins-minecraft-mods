@@ -23,7 +23,6 @@ import java.util.Set;
 ///  note:  this system was initially designed to work for oxygen only,
 ///         so you will find comments / variable names that might be confusing
 ///         it will use the same system but copied multiple times for different types of life support
-///
 
 // finds oxygen supplied blocks, distributes scanning over many ticks to improve performance
 public class LifeSupportSystem {
@@ -35,8 +34,7 @@ public class LifeSupportSystem {
 
     public LifeSupportSystem() {
         lifeSupportData.put(LifeSupportType.OXYGEN_SUPPLIER, new LifeSupportData());
-        lifeSupportData.put(LifeSupportType.HEAT_SUPPLIER, new LifeSupportData());
-        lifeSupportData.put(LifeSupportType.COOLING_SUPPLIER, new LifeSupportData());
+        lifeSupportData.put(LifeSupportType.TEMPERATURE_REGULATOR, new LifeSupportData());
     }
 
     public static boolean canSurviveAt(Level level, BlockPos pos) {
@@ -50,25 +48,30 @@ public class LifeSupportSystem {
         LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
         if (instance != null) {
 
+            boolean oxygen = true;
+            boolean temperature = true;
+
             if (info.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2) ||
                     info.contains(Dimension.SurvivalProblem.TOO_MUCH_O2) ||
-                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2)) {
-                if (instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos)) {
-                    return true;
+                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2) ||
+                    info.contains(Dimension.SurvivalProblem.TOO_LOW_PRESSURE) ||
+                    info.contains(Dimension.SurvivalProblem.TOO_MUCH_PRESSURE)
+            ) {
+                if (!instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos)) {
+                    oxygen = false;
                 }
             }
 
-            if (info.contains(Dimension.SurvivalProblem.TOO_COLD)) {
-                if (instance.lifeSupportData.get(LifeSupportType.HEAT_SUPPLIER).suppliedBlocks.contains(pos)) {
-                    return true;
+            if (info.contains(Dimension.SurvivalProblem.TOO_COLD) ||
+                    info.contains(Dimension.SurvivalProblem.TOO_HOT)
+            ) {
+                if (!instance.lifeSupportData.get(LifeSupportType.TEMPERATURE_REGULATOR).suppliedBlocks.contains(pos)) {
+                    temperature = false;
                 }
             }
 
-            if (info.contains(Dimension.SurvivalProblem.TOO_HOT)) {
-                if (instance.lifeSupportData.get(LifeSupportType.HEAT_SUPPLIER).suppliedBlocks.contains(pos)) {
-                    return true;
-                }
-            }
+            if (oxygen && temperature)
+                return true;
         }
 
         return false;
@@ -119,10 +122,10 @@ public class LifeSupportSystem {
                     if (e instanceof LivingEntity livingEntity) {
                         if (!canSurviveAt(level, livingEntity.blockPosition())) {
                             livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
-                            if(livingEntity instanceof Player player && !player.isCreative() && !player.isSpectator()){
+                            if (livingEntity instanceof Player player && !player.isCreative() && !player.isSpectator()) {
                                 String msg = "Life Support Warning: \n";
-                                for (Dimension.SurvivalProblem p  : problems) {
-                                    msg += p.reason+"\n";
+                                for (Dimension.SurvivalProblem p : problems) {
+                                    msg += p.reason + "\n";
                                 }
                                 player.sendSystemMessage(Component.literal(
                                         msg
@@ -223,8 +226,7 @@ public class LifeSupportSystem {
 
     public enum LifeSupportType {
         OXYGEN_SUPPLIER, // this handles too much, too low, or too much co2 for simplicity
-        HEAT_SUPPLIER, // this is required when too cold
-        COOLING_SUPPLIER, // this is required when too hot
+        TEMPERATURE_REGULATOR, // this is required when too cold / too cold
     }
 
     public static class LifeSupportData {
