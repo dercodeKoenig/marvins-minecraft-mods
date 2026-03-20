@@ -147,10 +147,6 @@ public class LifeSupportSystem {
         }
 
         for (ResourceLocation levelId : LifeSupportSystems.keySet()) {
-            // skip the scanning if there is life possible anyway
-            Dimension dim = DimensionManager.INSTANCE_SERVER.get(levelId);
-            if (dim == null || dim.getSurvivalProblems().isEmpty())
-                continue;
             LifeSupportSystems.get(levelId).tick();
         }
     }

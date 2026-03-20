@@ -41,18 +41,19 @@ public abstract class BiomeMixin {
             cancellable = true)
     public void shouldFreeze(LevelReader level, BlockPos water, boolean mustBeAtEdge, CallbackInfoReturnable<Boolean> ci) {
         if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
+            double temp = dimension.getCurrentTemp();
+            double pressure = dimension.getAtmosphereDensity();
+            if(LifeSupportSystem.isTemperatureRegulated(serverLevel,water))
+                temp = 300;
+            if(LifeSupportSystem.isPressureRegulated(serverLevel,water))
+                pressure = 1;
+
             GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
-            if (LifeSupportSystem.isTemperatureRegulated(serverLevel, water) &&
-                    LifeSupportSystem.isPressureRegulated(serverLevel, water)
-            ) {
-                // regulated temperature / pressure does not form ice
-                ci.setReturnValue(false);
-                ci.cancel();
-            } else if (dimension.getCurrentTemp() > waterGas.getBoilingTemp(dimension.getAtmosphereDensity())) {
+            if (temp > waterGas.getBoilingTemp(pressure)) {
                 // too hot for any ice, even in frozen biomes
                 ci.setReturnValue(false);
                 ci.cancel();
-            } else if (dimension.getCurrentTemp() < waterGas.getFreezeTemp(dimension.getAtmosphereDensity())) {
+            } else if (temp < waterGas.getFreezeTemp(pressure)) {
                 // cold enough to force freeze
                 // the default code of Biome class follows:
                 if (water.getY() >= level.getMinBuildHeight() && water.getY() < level.getMaxBuildHeight()) {
