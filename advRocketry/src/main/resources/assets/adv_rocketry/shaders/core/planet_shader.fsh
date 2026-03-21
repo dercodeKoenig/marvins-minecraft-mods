@@ -26,6 +26,7 @@ in vec2 texcoord;
 in vec3 normalUniverseSpace;
 in vec3 localUpUniverseSpace;
 in vec3 viewDir;
+in vec3 normalModelSpace;
 
 out vec4 fragColor;
 
@@ -61,17 +62,28 @@ void main() {
         vec3 atmLight =
          2 * rim * atmLightFactor * TargetSkyColor // the atm glow around the planet
          + atmLightFactor * baseSurfaceColor; // the light scatters through atm and hits terrain. not for cloudy atmosphere, but this is what the texture is for!
-        ;
-
 
         // the reflected light without atmosphere consideration is normal dot light
         float NdotL = pow(max(0,dot(N, L)),2);
-        vec3 reflectedLight = NdotL * baseSurfaceColor;
+        vec3 surfaceLight = NdotL * baseSurfaceColor;
+
+        float amp = 1;
+        float freq = 2;
+        float cloudValue = 0;
+        float noiseOffset = +0.1;
+        for (int i = 0; i < 5; i++) {
+            cloudValue += (cnoise(normalModelSpace*freq) + noiseOffset) * amp;
+            amp *= 0.5;
+            freq *= 2;
+        }
+        vec3 cloudLight = pow(max(0,cloudValue),2) * vec3(1) * pow(atmLightFactor, 0.5);
+
+
+        // blend surface light and atm light
+        vec3 finalLight = cloudLight + mix(surfaceLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity));
 
         vec3 reflected =
-        (
-            mix(reflectedLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity))
-        )
+        finalLight
         * TargetReflectiveTextureTintColor
         * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);

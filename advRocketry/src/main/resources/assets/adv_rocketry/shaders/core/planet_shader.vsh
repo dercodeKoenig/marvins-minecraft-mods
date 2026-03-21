@@ -14,14 +14,19 @@ out vec2 texcoord;
 out vec3 normalUniverseSpace;
 out vec3 localUpUniverseSpace;
 out vec3 viewDir;
+out vec3 normalModelSpace;
 
 void main() {
 
     gl_Position = ProjMat * ViewMat * WorldMat * ModelMat * vec4(Position, 1.0);
 
-    viewDir = normalize((ModelMat * vec4(Position, 1.0)).xyz - playerEye);
+    vec3 fragPosUniverseSpace = (ModelMat * vec4(Position, 1.0)).xyz;
+
+    viewDir = normalize(fragPosUniverseSpace - playerEye);
 
     texcoord = UV0;
+
+    normalModelSpace = Normal;
 
     // Get the rotation matrices
     mat3 rotModel = mat3(ModelMat);
