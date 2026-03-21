@@ -82,9 +82,11 @@ public class SpaceStationDimension extends Dimension {
     public Set<SurvivalProblem> getSurvivalProblems() {
         return SurvivalProblem.spaceProblems;
     }
-    
+
     @Override
-    public boolean hasEnoughOxygenToBurn(){return false;}
+    public boolean hasEnoughOxygenToBurn() {
+        return false;
+    }
 
     @Override
     public boolean canRain() {
@@ -187,7 +189,7 @@ public class SpaceStationDimension extends Dimension {
         lastPropertiesSyncTime = GlobalTime.getGlobalTime();
     }
 
-    public void setFrontFacing(Direction facing){
+    public void setFrontFacing(Direction facing) {
         properties().frontFacing = facing;
         dimensionManager.syncDimensionProperties(this);
     }
@@ -368,7 +370,7 @@ public class SpaceStationDimension extends Dimension {
 
             // when too far away from target, leave orbit and go in space travel
             // ( for example when orbiting a large star where changing orbit distance would take forever )
-            if(getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 60 * 20){
+            if (getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 60 * 20) {
                 isCloseEnoughForOrbit = false;
             }
 
@@ -429,7 +431,7 @@ public class SpaceStationDimension extends Dimension {
                 if (nextTargetPositionRelative.length() > 0.0001)
                     offNextTargetMultiplier = Math.max(0, nextTargetPositionRelative.scale(10000).normalize().dot(getFront()) - 0.5) * 1.5;
 
-                double speed = maxSpeed * offTargetMultiplier + e * offNextTargetMultiplier;
+                double speed = (maxSpeed + e * 5) * offTargetMultiplier + e * offNextTargetMultiplier;
 
                 setTargetFront(nextTargetPositionRelative, false);
 
@@ -466,8 +468,8 @@ public class SpaceStationDimension extends Dimension {
                 // fix the position, we are to close
                 // scale before normalize or numerical errors will break it!
                 Vec3 planetToStation = getPosition(0).subtract(closestPlanetPosition);
-                if(planetToStation.length() < 0.000001)
-                    planetToStation = new Vec3(Math.random()*2-1,0,Math.random()*2-1);
+                if (planetToStation.length() < 0.000001)
+                    planetToStation = new Vec3(Math.random() * 2 - 1, 0, Math.random() * 2 - 1);
                 properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.25));
             }
         }
