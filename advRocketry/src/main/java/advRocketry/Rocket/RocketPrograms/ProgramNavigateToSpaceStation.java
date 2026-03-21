@@ -197,18 +197,9 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
     public void teleportToStation(EntityRocket rocket) {
         if(rocket.level().isClientSide) return;
 
-        ServerLevel targetLevel = DimensionManager.getServerLevel(targetDimensionId);
-
-        Vec3 targetPos = spawnPos.getCenter();
-
-        Vec3 entrySpeed = new Vec3(0, 0, 0);
-
-        EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
-
-        Vec3 toTarget = target.getCenter().subtract(newRocket.position());
-        newRocket.controller.setHeadingAndFrontDirect(toTarget, toTarget.cross(new Vec3(0, 1, 0).cross(toTarget)));
 
         // if station is first visited, set position and parent dimension
+        // this should happen before teleport so the position is correct on initial sync
         SpaceStationDimension spaceStationDimension = (SpaceStationDimension) DimensionManager.INSTANCE_SERVER.get(targetDimensionId);
         if (!spaceStationDimension.isPositionInitialized()) {
             // set the position and parent for the station depending on where we launch it
@@ -226,6 +217,18 @@ public class ProgramNavigateToSpaceStation implements RocketProgram {
                 spaceStationDimension.initializePosition(rocket.universePosition, null);
             }
         }
+
+
+        ServerLevel targetLevel = DimensionManager.getServerLevel(targetDimensionId);
+
+        Vec3 targetPos = spawnPos.getCenter();
+
+        Vec3 entrySpeed = new Vec3(0, 0, 0);
+
+        EntityRocket newRocket = rocket.teleportTo(targetLevel, targetPos, entrySpeed);
+
+        Vec3 toTarget = target.getCenter().subtract(newRocket.position());
+        newRocket.controller.setHeadingAndFrontDirect(toTarget, toTarget.cross(new Vec3(0, 1, 0).cross(toTarget)));
     }
 
     void placeInitialBlocks(EntityRocket rocket) {
