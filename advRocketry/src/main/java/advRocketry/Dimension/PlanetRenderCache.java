@@ -13,7 +13,7 @@ public class PlanetRenderCache {
     }
 
     public static PlanetRenderCache INSTANCE = new PlanetRenderCache();
-
+// TODO: distance cull
     // depth sorts planets for correct rendering using bubble sort
     // bubble sort is good because it can be distributed over many ticks and will approach target sort fast
     public void updatePlanetsToRenderInSky(Vec3 myDimensionPosition) {
