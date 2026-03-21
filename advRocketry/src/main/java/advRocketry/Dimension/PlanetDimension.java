@@ -346,13 +346,13 @@ public class PlanetDimension extends Dimension {
         // usually it should already be between 0 and 1 but just to be sure...
         relativeSeaLevel = Math.clamp(relativeSeaLevel, 0, 1);
 
-        // adjust for lava, if lava exists
-        double heightAboveLavaLevel = maxSeaLevel - properties().customSeaFluidLevel;
-        if (heightAboveLavaLevel >= 0)
-            // if sea level is just slightly above lava level, ocean fraction is signifiantly reduced
-            relativeSeaLevel *= Math.min(1, heightAboveLavaLevel);
+        // adjust for custom fluid
+        double heightAboveCustomFluidLevel = maxSeaLevel - properties().customSeaFluidLevel;
+        if (heightAboveCustomFluidLevel >= 0)
+            // if sea level is just slightly above custom fluid level, ocean fraction is signifiantly reduced
+            relativeSeaLevel *= Math.min(1, heightAboveCustomFluidLevel);
         else {
-            // lava is above sea level, no oceans
+            // custom fluid is above sea level, no oceans
             relativeSeaLevel = 0;
         }
         return relativeSeaLevel;
