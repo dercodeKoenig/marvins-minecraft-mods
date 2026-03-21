@@ -66,12 +66,13 @@ void main() {
          + atmLightFactor * baseSurfaceColor; // the light scatters through atm and hits terrain. not for cloudy atmosphere, but this is what the texture is for!
 
         // the reflected light without atmosphere consideration is normal dot light
-        float NdotL = pow(max(0,dot(N, L)),2);
+        float NdotL = max(0,dot(N, L));
+        NdotL = pow(NdotL, 2);
         vec3 surfaceLight = NdotL * baseSurfaceColor;
 
         float amp = 1;
         float freq = 2;
-        float noiseOffset = TargetCloudValue * 2 - 1;
+        float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
         float cloudValue = noiseOffset;
         if(noiseOffset > -0.9){
             for (int i = 0; i < 5; i++) {
@@ -80,7 +81,7 @@ void main() {
                 freq *= 2;
             }
         }
-        vec3 cloudLight = pow(clamp(cloudValue, 0, 1),2) * TargetCloudColor * pow(atmLightFactor, 0.5);
+        vec3 cloudLight = pow(clamp(cloudValue, 0, 1),2) * TargetCloudColor * atmLightFactor;
 
 
         // blend surface light and atm light
