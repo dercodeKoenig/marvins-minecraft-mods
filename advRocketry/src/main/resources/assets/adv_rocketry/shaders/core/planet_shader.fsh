@@ -1,5 +1,7 @@
 #version 150
 
+#moj_import "adv_rocketry:noise.glsl"
+
 uniform sampler2D Sampler0; // surface texture
 
 #define MAX_LIGHTS 4
@@ -47,14 +49,14 @@ void main() {
 
 
         // the atm adds extra light after the normal falloff
-        float atmLightFactor = clamp(dot(N, L) * 0.7 + 0.3, 0.0, 1.0);
+        float atmLightFactor = clamp(dot(N, L) * 0.8 + 0.2, 0.0, 1.0);
         atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
 
         // how much of the edge (horizon) we see
         float viewAngle = 1.0 - abs(dot(N, viewDir));
         // rim intensity (thicker with higher TargetAtmDensity)
         // the thing that glows on the side
-        float rim = pow(viewAngle, 2);  // the more at the side the more atmosphere we will see
+        float rim = pow(viewAngle, 3);  // the more at the side the more atmosphere we will see
 
         vec3 atmLight =
          2 * rim * atmLightFactor * TargetSkyColor // the atm glow around the planet
