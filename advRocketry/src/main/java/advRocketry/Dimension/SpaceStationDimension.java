@@ -150,7 +150,7 @@ public class SpaceStationDimension extends Dimension {
 
     @Override
     public Vec3 getPosition(float partialTick) {
-        return lazyPosition;
+        return lazyPosition.subtract(getMovement().scale(1-partialTick));
     }
 
     @Override
