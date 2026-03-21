@@ -110,6 +110,9 @@ public class SkyRenderer {
         float TargetCloudValue = planetDimension.computeCloudValue();
         shader.getUniform("TargetCloudValue").set(TargetCloudValue);
 
+        shader.getUniform("CloudWarp").set(Config.INSTANCE.planet_Cloud_Noise_Warp ? 1 : 0);
+        shader.getUniform("CloudSampleSteps").set(Config.INSTANCE.planet_Cloud_Noise_Samples);
+
         Vector3f TargetReflectiveTextureTintColor = RenderUtils.gamma_reverse(planetDimension.getReflectiveTextureTintColor());
         shader.getUniform("TargetReflectiveTextureTintColor").set(TargetReflectiveTextureTintColor);
 

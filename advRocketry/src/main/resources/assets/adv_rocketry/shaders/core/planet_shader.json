@@ -19,6 +19,8 @@
         { "name": "TargetSkyColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
         { "name": "TargetCloudColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
         { "name": "TargetCloudValue", "type": "float", "count": 1, "values": [ 1.0 ] },
+        { "name": "CloudSampleSteps", "type": "int", "count": 1, "values": [ 1 ] },
+        { "name": "CloudWarp", "type": "int", "count": 1, "values": [ 1 ] },
         { "name": "TargetReflectiveTextureTintColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
         { "name": "BrightnessMultiplier", "type": "float", "count": 1, "values": [ 1.0 ]},
         { "name": "isLocalPlanet", "type": "int", "count": 1, "values": [ 0 ] },

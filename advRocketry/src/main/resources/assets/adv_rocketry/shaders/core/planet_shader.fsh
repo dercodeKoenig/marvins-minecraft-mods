@@ -17,6 +17,8 @@ uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
 uniform vec3 TargetSkyColor;       // target planets sky color
 uniform vec3 TargetCloudColor;      // cloud color of the target planet
 uniform float TargetCloudValue;       // how much clouds to render, 0 - 1
+uniform int CloudSampleSteps;
+uniform int CloudWarp;
 uniform vec3 TargetReflectiveTextureTintColor; // tint the texture for diffuse light
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
 uniform float planetSkyHeight;      // how high is considered out of atmosphere
@@ -50,14 +52,20 @@ void main() {
     // the noise is extremly expensive and crashes fps significantly on integrated graphics
     // i skip it on local planet where the fragment number is too high
     float cloudValue = 0;
-    if(isLocalPlanet != 1){
+    if(isLocalPlanet != 1 && CloudSampleSteps > 0){
         float amp = 1;
         float freq = 2;
         float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
         cloudValue = noiseOffset;
         if (noiseOffset > - 0.9){
-            vec3 warp = fbm_vec3(normalModelSpace, 1, time * 0.002);
-            for (int i = 0; i < 5; i++) {
+            vec3 warp;
+            if (CloudWarp == 1){
+                warp = fbm_vec3(normalModelSpace, 1, time * 0.002);
+            }else{
+                warp = normalModelSpace+vec3(time*0.001);
+            }
+
+            for (int i = 0; i < CloudSampleSteps; i++) {
                 float noiseVal = cnoise(warp * freq);
                 cloudValue +=noiseVal * amp;
                 amp *= 0.5;
