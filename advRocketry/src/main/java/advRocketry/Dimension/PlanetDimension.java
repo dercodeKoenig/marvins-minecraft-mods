@@ -195,10 +195,12 @@ public class PlanetDimension extends Dimension {
     }
 
     public float computeCloudValue() {
-        // i simplify, when we have humidity, we have clouds
         float totalCloud = 0;
         for (String gas : GasRegistry.gases.keySet()) {
-            totalCloud += (float) getHumidity(gas);
+            double maxCapacity = calculateVaporCapacity(getCurrentTemp(), gas);
+            double overSaturation = getHumidity(gas) - maxCapacity * 0.7;
+            if(overSaturation > 0)
+                totalCloud += (float) overSaturation * 3;
         }
         return Math.min(1,totalCloud);
     }
@@ -381,7 +383,8 @@ public class PlanetDimension extends Dimension {
         double surfaceExposure = getOceanFraction(gas);
 
         // 3. The actual amount of vapor in the air
-        double actualHumidity = maxCapacity * surfaceExposure;
+        // *2 to have over-saturation in the air on high sea level so we can form clouds
+        double actualHumidity = maxCapacity * surfaceExposure * 2;
 
         return actualHumidity;
     }
