@@ -124,7 +124,7 @@ public class SkyRenderer {
         Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentFogColor);
         shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
 
-        float time = (float)(System.currentTimeMillis() - startTime) / 1000f;
+        float time = (float)(System.currentTimeMillis() - startTime + planetDimension.getDimensionId().hashCode()) / 1000f;
         shader.getUniform("time").set(time);
 
         int totalLights = 0;

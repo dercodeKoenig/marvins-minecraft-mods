@@ -56,7 +56,7 @@ void main() {
         float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
         cloudValue = noiseOffset;
         if (noiseOffset > - 0.9){
-            vec3 warp = fbm_vec3(normalModelSpace, 1, time * 0.01);
+            vec3 warp = fbm_vec3(normalModelSpace, 1, time * 0.002);
             for (int i = 0; i < 5; i++) {
                 float noiseVal = cnoise(warp * freq);
                 cloudValue +=noiseVal * amp;
