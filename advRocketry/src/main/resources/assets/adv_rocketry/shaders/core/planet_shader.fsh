@@ -75,7 +75,7 @@ void main() {
         float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
         float cloudValue = noiseOffset;
         if(noiseOffset > -0.9){
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 4; i++) {
                 cloudValue += cnoise(normalModelSpace * freq) * amp;
                 amp *= 0.5;
                 freq *= 2;
