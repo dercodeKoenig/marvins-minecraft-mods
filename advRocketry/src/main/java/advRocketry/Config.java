@@ -1,6 +1,7 @@
 package advRocketry;
 
 public class Config {
+    // TODO: split in server config to be synced and client config like render stuff
     public static Config INSTANCE = new Config();
 
     public double planet_Sky_Height = 5000;
