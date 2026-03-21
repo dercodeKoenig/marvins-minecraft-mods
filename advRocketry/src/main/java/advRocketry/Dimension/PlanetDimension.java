@@ -555,18 +555,8 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         properties().isKnown = true;
-        if (getName().equals("Venus")) {
-            //getGasProperty("co2").in_atm = 0;
-            //getGasProperty("nitrogen").in_atm = 1;
-            //properties().seaLevel = 50;
-        }
         if (getName().equals("Earth")) {
             //getGasProperty("water").liquid = 0.5;
-        }
-        if (getName().equals("Europa")) {
-            //getGasProperty("co2").frozen_surface = 0.2;
-        }
-        if (getName().equals("Titan")) {
         }
     }
 
