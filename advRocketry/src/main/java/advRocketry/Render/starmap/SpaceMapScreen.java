@@ -35,9 +35,7 @@ public class SpaceMapScreen extends Screen {
     private final int SIDEBAR_WIDTH = 200;
 
     private PlanetDimension selectedPlanet = null;
-
     private net.minecraft.client.gui.components.Button actionButton;
-
     private float camX = 0;
     private float camY = 0;
     private float zoom = 1000f;
@@ -46,9 +44,8 @@ public class SpaceMapScreen extends Screen {
     private float scale = 0.3f;
     private float sidebarScrollAmount = 0;
     private int lastMaxScroll = 0; // To clamp scrolling
-    Vector3f eyePos = new Vector3f(0,0,0);
-
     private String planetInfoText = "";
+    private Vector3f eyePos = new Vector3f(0, 0, 0);
 
     private VertexBuffer vertexBufferOrbitCircle = null;
 
@@ -154,9 +151,9 @@ public class SpaceMapScreen extends Screen {
             description += "Temperature: " + String.format("%.2f", planet.getCurrentTemp()) + "\n\n";
 
             if (planet.canVisit()) {
-                description += "Sea level (water): " + String.format("%.2f", planet.getGasProperty(GasRegistry.water).getSeaLevel()) + "\n";
+                description += "Water level: " + String.format("%.2f", planet.getGasProperty(GasRegistry.water).getSeaLevel()) + "\n";
                 description += "Ocean Fraction: " + String.format("%.2f", planet.getOceanFraction(null)) + "\n";
-                description += "Humidity: " + String.format("%.2f", planet.getHumidity()) + "\n";
+                description += "Humidity: " + String.format("%.2f", planet.getHumidity(GasRegistry.water)) + "\n";
                 GasRegistry.Gas water = GasRegistry.gases.get(GasRegistry.water);
                 description += "Liquid water possible: " + (planet.getCurrentTemp() < water.getBoilingTemp(planet.getAtmosphereDensity()) && planet.getCurrentTemp() > water.getFreezeTemp(planet.getAtmosphereDensity())) + "\n\n";
             }
@@ -167,11 +164,10 @@ public class SpaceMapScreen extends Screen {
             double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
             double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
             double atmWater = planet.getGasProperty(GasRegistry.water).in_atm;
-            double humidity = planet.getHumidity();
+            double humidity = planet.getHumidity(GasRegistry.water);
+            double cloudValue = planet.computeCloudValue();
             double frozenGasCoverage = planet.getFrozenGasCoverage();
             double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
-            double co2Insulation = GasRegistry.getInsulationBonus(GasRegistry.co2, atmCo2);
-            double methaneInsulation = GasRegistry.getInsulationBonus(GasRegistry.methane, atmMethane);
 
             if (frozenGasCoverage > 0.1 && frozenGasCoverage < 0.6) {
                 description += "Surface partially covered in ice, reducing energy gain.\n\n";
@@ -183,10 +179,10 @@ public class SpaceMapScreen extends Screen {
             if (oceanFractionWater < 0.2 && humidity > 0.5)
                 description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
-            if (humidity > 0.1 && co2Insulation + methaneInsulation > 0.5)
-                description += "Humidity increases greenhouse effect, but reflective clouds reduce overall energy gain.\n\n";
-            if (humidity > 0.1 && co2Insulation + methaneInsulation <= 0.5)
-                description += "Humidity contributes to greenhouse effect, but the formation of reflective clouds reduces overall impact.\n\n";
+            if (humidity > 0.1)
+                description += "Humidity contributes to greenhouse effect\n\n";
+            if (cloudValue > 0.1)
+                description += "Clouds reflect sunlight, reducing energy gain\n\n";
 
             double co2OceanReductionTargetPercent = PlanetEvents.handleOceanCo2Reduction(planet, true) * 100;
             if (co2OceanReductionTargetPercent > 0) {
@@ -210,9 +206,9 @@ public class SpaceMapScreen extends Screen {
             }
             if (atmWater > 0.0001) {
                 description += "Steam is a strong greenhouse gas.\n";
-                if(planet.getCurrentTemp() < 350)
+                if (planet.getCurrentTemp() < 350)
                     description += "Low atmosphere pressure turns water into steam at lower temperatures.\n";
-                description+="\n";
+                description += "\n";
             }
 
             if (planet.getAtmosphereDensity() < 0.1) {
@@ -553,7 +549,7 @@ public class SpaceMapScreen extends Screen {
                 }
             }
             float brightnessModifier = 1;
-            if(brightness < 1)
+            if (brightness < 1)
                 //brightnessModifier = (float) (1 / Math.sqrt(brightness));
                 brightnessModifier = (float) (1 / Math.pow(brightness, 0.7));
 

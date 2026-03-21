@@ -21,19 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Biome.class)
 public abstract class BiomeMixin {
 
-    @Inject(method = "shouldSnow",
-            at = @At("HEAD"),
-            cancellable = true)
-    public void shouldSnow(LevelReader level, BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
-        if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
-            if (!dimension.canRain()) {
-                // if it can not rain, it can not snow!
-                ci.setReturnValue(false);
-                ci.cancel();
-            }
-        }
-    }
-
     @Inject(method = "shouldFreeze(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Z)Z",
             at = @At("HEAD"),
             cancellable = true)

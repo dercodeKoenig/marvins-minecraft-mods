@@ -162,10 +162,6 @@ public class PlanetDimension extends Dimension {
         return getGasProperty(GasRegistry.oxygen).in_atm > 0.1;
     }
 
-    public boolean canRain() {
-        return getAtmosphereDensity() > 0.2;
-    }
-
     public Vector3f getEmissiveColor() {
         return properties().emissiveColor;
     }
@@ -198,16 +194,30 @@ public class PlanetDimension extends Dimension {
         return properties().currentTemp;
     }
 
-    public double getTerrainBrightness(float partialTick) {
+    public float computeCloudValue() {
+        // i simplify, when we have humidity, we have clouds
+        float totalCloud = 0;
+        for (String gas : GasRegistry.gases.keySet()) {
+            totalCloud += (float) getHumidity(gas);
+        }
+        return Math.min(1,totalCloud);
+    }
+
+    public double computeTerrainBrightness(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
         brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
         return brightness;
     }
 
-    public Vector3f getCloudColor(float partialTick) {
+    public Vector3f computeRawCloudColor(){
+        // return properties cloud color if not null, else compute based on atm composition
+        return new Vector3f(properties().cloudColor);
+    }
+
+    public Vector3f computeTerrainCloudColor(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
         brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
-        return new Vector3f(properties().cloudColor).mul((float) brightness);
+        return computeRawCloudColor().mul((float) brightness);
     }
 
     public Vector3f computeTerrainFogColor(float partialTick) {
@@ -346,14 +356,34 @@ public class PlanetDimension extends Dimension {
         return relativeSeaLevel;
     }
 
-    public double getHumidity() {
-        double waterFreezeTemp = GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(getAtmosphereDensity());
-        if (getCurrentTemp() > waterFreezeTemp) {
-            double dt = Math.min(getCurrentTemp() - waterFreezeTemp, 100);
-            return Math.pow(1.02, dt) * getOceanFraction(GasRegistry.water) * 1;
-        } else {
-            return 0;
-        }
+    public double calculateVaporCapacity(double currentTemp, String gas) {
+        // You'll need to make sure your Gas properties include a boiling point!
+        double boilingTemp = GasRegistry.gases.get(gas).getBoilingTemp(getAtmosphereDensity());
+
+        // Calculate the difference between current temp and boiling temp
+        double tempDifference = currentTemp - boilingTemp;
+
+        // Exponential curve: capacity drops drastically in the cold,
+        // but grows massively as you approach/exceed boiling temp.
+        double baseCapacity = Math.exp(tempDifference / 100.0);
+
+        // Cap it so we don't get infinite capacity at crazy high temperatures
+        return Math.min(baseCapacity, 1000.0);
+    }
+
+    public double getHumidity(String gas) {
+        // 1. How much vapor CAN the air hold at this temperature?
+        double maxCapacity = calculateVaporCapacity(getCurrentTemp(), gas);
+
+        // 2. How much surface liquid/ice is exposed to the air to evaporate?
+        // An ocean fraction of 1.0 means it easily reaches max capacity.
+        // A desert planet (0.01) means very little actually evaporates.
+        double surfaceExposure = getOceanFraction(gas);
+
+        // 3. The actual amount of vapor in the air
+        double actualHumidity = maxCapacity * surfaceExposure;
+
+        return actualHumidity;
     }
 
     public double getRotationAngle(float partialTick) {
@@ -493,7 +523,8 @@ public class PlanetDimension extends Dimension {
             }
 
             if (level != null) {
-                if (!canRain()) {
+                if (computeCloudValue() < 0.1) {
+                    // can not rain / snow without clouds
                     setClearWeather();
                 }
             }
@@ -618,8 +649,8 @@ public class PlanetDimension extends Dimension {
         albedo += (getFrozenGasCoverage() * 0.6);
         // oceans are dark ( usually )
         albedo += -(oceanFraction * 0.1);
-        // humidity makes white clouds, white clouds reflect light
-        albedo += Math.clamp(getHumidity(), 0, 1) * 0.4;
+        // clouds reflect light
+        albedo += Math.clamp(computeCloudValue(), 0, 1) * 0.4;
         // final value clip
         albedo = Math.max(0.05, Math.min(albedo, 0.9));
 
@@ -635,7 +666,7 @@ public class PlanetDimension extends Dimension {
         }
 
         // Water Vapor Feedback
-        insulation += Math.min(getHumidity(), 50);
+        insulation += Math.min(getHumidity(GasRegistry.water), 50);
 
         // 3. CALCULATE OUTGOING ENERGY (Eout)
         // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.

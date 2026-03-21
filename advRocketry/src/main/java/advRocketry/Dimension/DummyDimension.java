@@ -32,8 +32,8 @@ public class DummyDimension extends Dimension {
     public boolean hasEnoughOxygenToBurn(){return false;}
 
     @Override
-    public boolean canRain() {
-        return false;
+    public float computeCloudValue() {
+        return 0;
     }
 
     @Override
@@ -77,12 +77,12 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
-    public double getTerrainBrightness(float partialTick) {
+    public double computeTerrainBrightness(float partialTick) {
         return 0;
     }
 
     @Override
-    public Vector3f getCloudColor(float partialTick) {
+    public Vector3f computeTerrainCloudColor(float partialTick) {
         return null;
     }
 

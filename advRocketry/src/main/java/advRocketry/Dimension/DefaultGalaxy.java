@@ -84,6 +84,24 @@ public class DefaultGalaxy {
         moon2.biomePreset = HOT.name;
         galaxy.add(moon2);
 
+        PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
+        mustafar.name = "Mustafar";
+        mustafar.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "mustafar");
+        mustafar.parentDimensionId = sun.dimensionId;
+        mustafar.dayTimeReference = sun.dimensionId;
+        mustafar.currentTemp = 100;
+        mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/volcanic_1_1k.png");;
+        mustafar.orbitalDistanceToParent = 0.5f;
+        mustafar.orbitalBaseOffsetDegrees = 90;
+        mustafar.earthRadiusMultiplier = 0.9f;
+        mustafar.gravitationalMultiplier = 0.9f;
+        mustafar.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
+        mustafar.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
+        mustafar.canVisit = true;
+        mustafar.biomePreset = MOON.name;
+        mustafar.isKnown = true;
+        galaxy.add(mustafar);
+
 
         PlanetDimensionProperties venus = new PlanetDimensionProperties();
         venus.name = "Venus";
@@ -132,6 +150,25 @@ public class DefaultGalaxy {
         europa.biomePreset = MOON.name;
         europa.isKnown = true;
         galaxy.add(europa);
+
+        PlanetDimensionProperties kalos = new PlanetDimensionProperties();
+        kalos.name = "Kalos";
+        kalos.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "kalos");
+        kalos.parentDimensionId = jupyter.dimensionId;
+        kalos.dayTimeReference = sun.dimensionId;
+        kalos.currentTemp = 100;
+        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/alpine_1_1k.png");;
+        kalos.orbitalDistanceToParent = 0.03f;
+        kalos.orbitalBaseOffsetDegrees = 90;
+        kalos.earthRadiusMultiplier = 0.8f;
+        kalos.gravitationalMultiplier = 0.7f;
+        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.05,0,0f,0));
+        kalos.canVisit = true;
+        kalos.biomePreset = HOT.name;
+        kalos.isKnown = true;
+        galaxy.add(kalos);
 
 
         PlanetDimensionProperties saturn = new PlanetDimensionProperties();

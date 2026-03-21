@@ -14,9 +14,11 @@
         { "name": "playerHeight", "type": "float", "count": 1, "values": [ 1] },
         { "name": "playerEye", "type": "float", "count": 3, "values": [ 0,0,0 ] },
         { "name": "planetSkyHeight", "type": "float", "count": 1, "values": [ 1] },
-        { "name": "AtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
+        { "name": "LocalAtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
         { "name": "TargetAtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
         { "name": "TargetSkyColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+        { "name": "TargetCloudColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+        { "name": "TargetCloudValue", "type": "float", "count": 1, "values": [ 1.0 ] },
         { "name": "TargetReflectiveTextureTintColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
         { "name": "BrightnessMultiplier", "type": "float", "count": 1, "values": [ 1.0 ]},
 

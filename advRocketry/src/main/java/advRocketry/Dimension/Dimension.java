@@ -53,8 +53,6 @@ public abstract class Dimension {
 
     abstract public boolean hasEnoughOxygenToBurn();
 
-    abstract public boolean canRain();
-
     abstract public float getGravitationalMultiplier();
 
     abstract public Vector3f getEmissiveColor();
@@ -71,9 +69,11 @@ public abstract class Dimension {
 
     abstract public boolean hasCustomSky();
 
-    abstract public double getTerrainBrightness(float partialTick);
+    abstract public double computeTerrainBrightness(float partialTick);
 
-    abstract public Vector3f getCloudColor(float partialTick); // maybe based on atm composition?
+    abstract public float computeCloudValue(); // how much cloud is there
+
+    abstract public Vector3f computeTerrainCloudColor(float partialTick); // maybe based on atm composition?
 
     abstract public Vector3f computeTerrainFogColor(float partialTick);
 

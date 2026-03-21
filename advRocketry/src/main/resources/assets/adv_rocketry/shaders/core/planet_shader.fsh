@@ -11,10 +11,12 @@ uniform int LightCount;
 
 uniform float BrightnessMultiplier;
 uniform vec4 emissiveColor;      // planet’s self-emission (rgb + intensity)
-uniform float AtmDensity;        // observer planet atmosphere
+uniform float LocalAtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
 uniform vec3 TargetSkyColor;       // target planets sky color
+uniform vec3 TargetCloudColor;      // cloud color of the target planet
+uniform float TargetCloudValue;       // how much clouds to render, 0 - 1
 uniform vec3 TargetReflectiveTextureTintColor; // tint the texture for diffuse light
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
 uniform float planetSkyHeight;      // how high is considered out of atmosphere
@@ -69,14 +71,16 @@ void main() {
 
         float amp = 1;
         float freq = 2;
-        float cloudValue = 0;
-        float noiseOffset = +0.1;
-        for (int i = 0; i < 5; i++) {
-            cloudValue += (cnoise(normalModelSpace*freq) + noiseOffset) * amp;
-            amp *= 0.5;
-            freq *= 2;
+        float noiseOffset = TargetCloudValue * 2 - 1;
+        float cloudValue = noiseOffset;
+        if(noiseOffset > -0.9){
+            for (int i = 0; i < 5; i++) {
+                cloudValue += cnoise(normalModelSpace * freq) * amp;
+                amp *= 0.5;
+                freq *= 2;
+            }
         }
-        vec3 cloudLight = pow(max(0,cloudValue),2) * vec3(1) * pow(atmLightFactor, 0.5);
+        vec3 cloudLight = pow(clamp(cloudValue, 0, 1),2) * TargetCloudColor * pow(atmLightFactor, 0.5);
 
 
         // blend surface light and atm light
@@ -97,7 +101,7 @@ void main() {
         // atmosphere modifies how the star appears
         float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
         float starUp = dot(localUpUniverseSpace, viewDir);
-        float atmThicknessMod = AtmDensity / (1.0 + AtmDensity);
+        float atmThicknessMod = LocalAtmDensity / (1.0 + LocalAtmDensity);
         atmThicknessMod *= pow(1.0 - max(0.0, starUp), 2.0) * 0.5 + 0.4;
         atmThicknessMod *= altitudeAtmThicknessMod;
 

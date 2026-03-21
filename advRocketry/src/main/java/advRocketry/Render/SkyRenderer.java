@@ -92,7 +92,7 @@ public class SkyRenderer {
         Vector3f emissiveColor = RenderUtils.gamma_reverse(planetDimension.getEmissiveColor());
         shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, planetDimension.getRadiationIntensity()));
 
-        shader.getUniform("AtmDensity").set(myAtmDensity);
+        shader.getUniform("LocalAtmDensity").set(myAtmDensity);
 
         Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(mySunriseColor);
         shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
@@ -101,6 +101,12 @@ public class SkyRenderer {
 
         Vector3f TargetSkyColor = RenderUtils.gamma_reverse(planetDimension.getSkyColor());
         shader.getUniform("TargetSkyColor").set(TargetSkyColor);
+
+        Vector3f TargetCloudColor = RenderUtils.gamma_reverse(planetDimension.computeRawCloudColor());
+        shader.getUniform("TargetCloudColor").set(TargetCloudColor);
+
+        float TargetCloudValue = planetDimension.computeCloudValue();
+        shader.getUniform("TargetCloudValue").set(TargetCloudValue);
 
         Vector3f TargetReflectiveTextureTintColor = RenderUtils.gamma_reverse(planetDimension.getReflectiveTextureTintColor());
         shader.getUniform("TargetReflectiveTextureTintColor").set(TargetReflectiveTextureTintColor);
