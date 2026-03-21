@@ -21,9 +21,9 @@
         { "name": "TargetCloudValue", "type": "float", "count": 1, "values": [ 1.0 ] },
         { "name": "TargetReflectiveTextureTintColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
         { "name": "BrightnessMultiplier", "type": "float", "count": 1, "values": [ 1.0 ]},
-
         { "name": "isLocalPlanet", "type": "int", "count": 1, "values": [ 0 ] },
         { "name": "localTerrainFogColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+        { "name": "time", "type": "float", "count": 1, "values": [ 0.0 ]},
 
         { "name": "LightCount", "type": "int", "count": 1, "values": [0] },
 

@@ -20,9 +20,9 @@ uniform float TargetCloudValue;       // how much clouds to render, 0 - 1
 uniform vec3 TargetReflectiveTextureTintColor; // tint the texture for diffuse light
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
 uniform float planetSkyHeight;      // how high is considered out of atmosphere
-
 uniform int isLocalPlanet;           // if this is my planet, some special rendering applies
 uniform vec3 localTerrainFogColor;
+uniform float time; // time in seconds for noise offset
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
@@ -46,47 +46,60 @@ void main() {
 
     vec3 N = normalize(normalUniverseSpace);
 
-    for (int i = 0; i < LightCount; i++) {
-        vec3 L = normalize(LightVectors[i]);
-        float dist = length(LightVectors[i]);
-
-
-        // the atm adds extra light after the normal falloff
-        float atmLightFactor = clamp(dot(N, L) * 0.8 + 0.2, 0.0, 1.0);
-        atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
-
-        // how much of the edge (horizon) we see
-        float viewAngle = 1.0 - abs(dot(N, viewDir));
-        // rim intensity (thicker with higher TargetAtmDensity)
-        // the thing that glows on the side
-        float rim = pow(viewAngle, 3);  // the more at the side the more atmosphere we will see
-
-        vec3 atmLight =
-         2 * rim * atmLightFactor * TargetSkyColor // the atm glow around the planet
-         + atmLightFactor * baseSurfaceColor; // the light scatters through atm and hits terrain. not for cloudy atmosphere, but this is what the texture is for!
-
-        // the reflected light without atmosphere consideration is normal dot light
-        float NdotL = max(0,dot(N, L));
-        NdotL = pow(NdotL, 2);
-        vec3 surfaceLight = NdotL * baseSurfaceColor;
-
+    // calculate clouds first, the value is independent from lights
+    // the noise is extremly expensive and crashes fps significantly on integrated graphics
+    // i skip it on local planet where the fragment number is too high
+    float cloudValue = 0;
+    if(isLocalPlanet != 1){
         float amp = 1;
         float freq = 2;
         float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
-        float cloudValue = noiseOffset;
-        if(noiseOffset > -0.9){
-            for (int i = 0; i < 4; i++) {
-                cloudValue += cnoise(normalModelSpace * freq) * amp;
+        cloudValue = noiseOffset;
+        if (noiseOffset > - 0.9){
+            vec3 warp = fbm_vec3(normalModelSpace, 1, time * 0.01);
+            for (int i = 0; i < 5; i++) {
+                float noiseVal = cnoise(warp * freq);
+                cloudValue +=noiseVal * amp;
                 amp *= 0.5;
                 freq *= 2;
             }
         }
+    }
+
+
+    // for atmosphere
+    // how much of the edge (horizon) we see
+    float viewAngle = 1.0 - abs(dot(N, viewDir));
+    // rim intensity (thicker with higher TargetAtmDensity)
+    // the thing that glows on the side
+    float rim = pow(viewAngle, 3);  // the more at the side the more atmosphere we will see
+
+    vec3 atmLightMix =
+    2 * rim * TargetSkyColor // the atm glow around the planet
+    + baseSurfaceColor; // the light scatters through atm and hits terrain. not for cloudy atmosphere, but this is what the texture is for!
+
+
+    for (int i = 0; i < LightCount; i++) {
+        vec3 L = normalize(LightVectors[i]);
+        float dist = length(LightVectors[i]);
+
+        // the atm adds extra light after the normal falloff and uses the sky color/rim mix
+        float atmLightFactor = clamp(dot(N, L) * 0.8 + 0.2, 0.0, 1.0);
+        atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
+        vec3 atmLight = atmLightMix * atmLightFactor;
+
+        // the reflected light without atmosphere consideration, just surface and n°l
+        float NdotL = max(0,dot(N, L));
+        NdotL = pow(NdotL, 2);
+        vec3 surfaceLight = NdotL * baseSurfaceColor;
+
+        // clouds color
         vec3 cloudLight = pow(clamp(cloudValue, 0, 1),2) * TargetCloudColor * atmLightFactor;
 
-
-        // blend surface light and atm light
+        // blend surface light and atm light and clouds
         vec3 finalLight = cloudLight + mix(surfaceLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity));
 
+        // final reflected light for this star
         vec3 reflected =
         finalLight
         * TargetReflectiveTextureTintColor

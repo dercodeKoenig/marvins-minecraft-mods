@@ -49,6 +49,7 @@ public class SkyRenderer {
     public static TextureTarget bloomBlurTarget2;
 
     boolean finishedLoading = false;
+    public static long startTime;
 
 
     public SkyRenderer() {
@@ -61,6 +62,7 @@ public class SkyRenderer {
             setupRenderTargets();
             finishedLoading = true;
         });
+        startTime = System.currentTimeMillis();
     }
 
     public static void renderPlanet(
@@ -121,6 +123,9 @@ public class SkyRenderer {
 
         Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentFogColor);
         shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
+
+        float time = (float)(System.currentTimeMillis() - startTime) / 1000f;
+        shader.getUniform("time").set(time);
 
         int totalLights = 0;
         Vec3 myPosition = planetDimension.getPosition(partialtick);
