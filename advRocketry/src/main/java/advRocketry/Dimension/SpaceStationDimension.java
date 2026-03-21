@@ -166,7 +166,6 @@ public class SpaceStationDimension extends Dimension {
     @Override
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         // don't ask me why, 180 is just the offset that works
-        // TODO: partial tick should be included for more smooth movement, especially when rotating fast
         double angleDeg = properties().frontFacing.toYRot() + 180;
         Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), getUp(), angleDeg);
         return new AxisDirections(
