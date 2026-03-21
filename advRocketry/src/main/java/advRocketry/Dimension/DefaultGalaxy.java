@@ -122,8 +122,8 @@ public class DefaultGalaxy {
 
 
         PlanetDimensionProperties jupyter = new PlanetDimensionProperties();
-        jupyter.name = "Jupyter";
-        jupyter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupyter");
+        jupyter.name = "Jupiter";
+        jupyter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupiter");
         jupyter.parentDimensionId = sun.dimensionId;
         jupyter.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/jupyter_ico_1k.png");
         jupyter.orbitalDistanceToParent = 5f;
