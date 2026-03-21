@@ -823,13 +823,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             BlockState state = blocks.get(p);
             CompoundTag blockEntityTag = blockTag.getCompound("blockEntity");
             BlockEntity existingBlockEntity = blockEntities.get(p);
-            if (existingBlockEntity != null && existingBlockEntity.isValidBlockState(state))
-                existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
-            else {
-                BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
-                be.loadCustomOnly(blockEntityTag, registryAccess());
-                blockEntities.put(p, be);
-                makeGui();
+            if (state != null) {
+                if (existingBlockEntity != null && existingBlockEntity.isValidBlockState(state))
+                    existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
             }
         }
     }
