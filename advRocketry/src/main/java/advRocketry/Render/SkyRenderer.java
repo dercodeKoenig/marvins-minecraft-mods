@@ -165,6 +165,9 @@ public class SkyRenderer {
             Matrix4f worldMatrix,
             Matrix4f planetMatrix,
             Vector3f eyePos,
+            float myAtmDensity,
+            Vector3f mySunriseColor,
+            float playerHeightAboveSea,
             float planetGeometryScale,
             float brightnessModifider,
             float partialtick
@@ -187,6 +190,14 @@ public class SkyRenderer {
         shader.getUniform("planetGeometryScale").set(planetGeometryScale);
 
         shader.getUniform("BrightnessMultiplier").set(brightnessModifider);
+
+        // for atm filter
+        shader.getUniform("LocalAtmDensity").set(myAtmDensity);
+        Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(mySunriseColor);
+        shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
+        shader.getUniform("playerHeight").set(playerHeightAboveSea);
+        shader.getUniform("playerEye").set(eyePos);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
 
         int totalLights = 0;
         Vec3 myPosition = planetDimension.getPosition(partialtick);
@@ -536,6 +547,8 @@ public class SkyRenderer {
             newProj.set(2, 2, -(f + n) / (f - n));
             newProj.set(3, 2, -(2f * f * n) / (f - n));
 
+            float myAtmDensity = myCurrentSpaceObject.getAtmosphereDensity();
+
             if (!skipPlanetRender) {
 
                 renderPlanet(
@@ -545,7 +558,7 @@ public class SkyRenderer {
                         worldMatrix,
                         planetMatrix,
                         new Vector3f(0, 0, 0),
-                        myCurrentSpaceObject.getAtmosphereDensity(),
+                        myAtmDensity,
                         myCurrentSpaceObject.getSunRiseColor(),
                         myCurrentSpaceObject.computeTerrainFogColor(partialtick),
                         playerHeightAboveSea,
@@ -564,6 +577,9 @@ public class SkyRenderer {
                         worldMatrix,
                         planetMatrix,
                         new Vector3f(0, 0, 0),
+                        myAtmDensity,
+                        myCurrentSpaceObject.getSunRiseColor(),
+                        playerHeightAboveSea,
                         (float) adjustedGeometryScale,
                         1,
                         partialtick

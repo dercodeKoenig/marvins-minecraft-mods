@@ -2,6 +2,8 @@
 
 uniform sampler2D Sampler0; // surface texture
 
+#moj_import "adv_rocketry:atmFilter.glsl"
+
 #define MAX_LIGHTS 4
 uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
 uniform vec3 LightVectors[MAX_LIGHTS];
@@ -16,6 +18,13 @@ in vec3 normalUniverseSpace;
 in vec3 position; // the position of the fragment
 in vec3 planetCenter; // the position of the planet
 uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale())
+
+// for atm shading modifier
+in vec3 localUpUniverseSpace;
+uniform float LocalAtmDensity;
+uniform vec3 LocalSunriseColor;
+uniform float playerHeight;
+uniform float planetSkyHeight;
 
 out vec4 fragColor;
 
@@ -148,6 +157,18 @@ void main() {
         float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 4);
         totalColor+= transmission * C1 * baseColorLinRGB;
     }
+
+
+    vec3 atmFilter = getAtmFilter(
+        planetSkyHeight,
+        playerHeight,
+        localUpUniverseSpace,
+        viewDir,
+        LocalAtmDensity,
+        LocalSunriseColor
+    );
+
+    totalColor *= atmFilter;
 
     vec4 normalColor = vec4(totalColor, alpha);
 

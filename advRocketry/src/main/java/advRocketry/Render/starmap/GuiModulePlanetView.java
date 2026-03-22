@@ -212,6 +212,9 @@ public class GuiModulePlanetView extends GuiModuleBase {
                     new Matrix4f(),
                     planetMatrix,
                     eyePos,
+                    0,
+                    new Vector3f(0, 0, 0),
+                    0,
                     renderScale,
                     brightnessModifier,
                     partialTick
