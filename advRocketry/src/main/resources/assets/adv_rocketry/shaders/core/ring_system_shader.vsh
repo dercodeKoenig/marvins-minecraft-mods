@@ -6,18 +6,16 @@ in vec3 Normal;
 uniform float scale;
 uniform mat4 ViewMat;
 uniform mat4 WorldMat;  // rotate universe space to world space
-uniform mat4 ModelMat; // Model space to universe space (planets are transformed in universe space, translated relative to the player position in universe space)
+uniform mat4 ModelMat; // Model space to universe space (planets are transformed in universe space)
 uniform mat4 ProjMat;
 uniform vec3 playerEye;
 
-// uniform vec3 playerPosInUniverse = 0,0,0 <- the model matrix is already translated relative to player
-
 out vec2 texcoord;
 out vec3 normalUniverseSpace;
-out vec3 viewDir; // the direction of the fragment relative to the camera for specular light
+out vec3 viewDir; // the direction of the fragment relative to the camera for light calculations
 
-out vec3 position; // the position of the fragment relative to the camera
-out vec3 planetCenter; // the position of the planets center relative to camera
+out vec3 position; // the position of the fragment
+out vec3 planetCenter; // the position of the planet for shadow approximation
 
 void main() {
 

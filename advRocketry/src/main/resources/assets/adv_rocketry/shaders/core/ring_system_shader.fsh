@@ -13,9 +13,9 @@ in vec2 texcoord;
 in vec3 viewDir;
 in vec3 normalUniverseSpace;
 
-in vec3 position; // the position of the fragment relative to the camera
-in vec3 planetCenter; // the position of the planets center relative to camera
-uniform float planetGeometryScale; // the actual geometry radius that is used for render
+in vec3 position; // the position of the fragment
+in vec3 planetCenter; // the position of the planet
+uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale())
 
 out vec4 fragColor;
 
