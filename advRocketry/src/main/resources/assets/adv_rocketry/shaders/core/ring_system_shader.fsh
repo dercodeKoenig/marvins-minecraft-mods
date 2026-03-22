@@ -145,7 +145,7 @@ void main() {
         vec3 halfway = L - viewDir;
         if(length(halfway) > 0){
             halfway = normalize(halfway);
-            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 25);
+            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 10);
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
