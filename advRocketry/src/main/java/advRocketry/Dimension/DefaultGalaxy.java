@@ -26,9 +26,10 @@ public class DefaultGalaxy {
         sun.gravitationalMultiplier = 200;
         sun.earthRadiusMultiplier = 100;
         sun.rotationAxis = new Vec3(0, 1, 0).normalize();
-        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
+        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_adjusted.png");
         sun.emissiveColor = new Vector3f(1f, 1f, 0.8f).mul(1.2f);
         sun.radiationIntensity = 2;
+        sun.textureBrightness = 5;
         sun.isKnown = true;
         galaxy.add(sun);
 
@@ -199,7 +200,8 @@ public class DefaultGalaxy {
         distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
         distantStar.radiationIntensity = 3;
-        distantStar.position = new Vec3(500, 20, 0);
+        distantStar.textureBrightness = 5;
+        distantStar.position = new Vec3(500, 0, 20);
         galaxy.add(distantStar);
 
 
