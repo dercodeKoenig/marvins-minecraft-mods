@@ -505,7 +505,7 @@ public class SkyRenderer {
             if (otherDimension.isStar()) {
                 // A threshold representing roughly 1-2 pixels on screen.
                 // Note: You may need to tweak this specific value slightly depending on your camera FOV!
-                double minApparentSize = 0.0000000025;
+                double minApparentSize = 0.000000002;
 
                 double distanceAU = relativePos.length();
                 double apparentSizeRatio = scale / distanceAU;
@@ -519,7 +519,7 @@ public class SkyRenderer {
                     brightness = (float) (1.0 / (scaleCorrection * scaleCorrection));
 
                     // clamp brightness so it doesn't drop completely to 0 and disappear
-                    brightness = Math.max(brightness, 0.4f);
+                    brightness = Math.max(brightness, 0.1f);
                 }
             }
 
