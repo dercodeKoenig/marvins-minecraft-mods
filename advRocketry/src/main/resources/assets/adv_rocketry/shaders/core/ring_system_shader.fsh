@@ -107,7 +107,10 @@ void main() {
 
     vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
 
-    vec3 normalUniverseSpaceAdjusted = normalize(gl_FrontFacing ? normalUniverseSpace : -normalUniverseSpace);
+    vec3 normalUniverseSpaceNormalized = normalize(normalUniverseSpace);
+    vec3 normalUniverseSpaceAdjusted = gl_FrontFacing ? normalUniverseSpaceNormalized : -normalUniverseSpaceNormalized;
+
+    vec3 viewDirNormalized = normalize(viewDir);
 
     vec3 totalColor = vec3(0,0,0);
 
@@ -136,13 +139,13 @@ void main() {
         C1 *= shadowFactor;
 
         vec3 F0 = vec3(0.04);
-        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpace, viewDir)), F0);
+        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpaceNormalized, viewDirNormalized)), F0);
 
         float NdotL = dot(L, normalUniverseSpaceAdjusted);
-        float LdotV = dot(L, viewDir);
+        float LdotV = dot(L, viewDirNormalized);
 
         // specular - bright when starlight reflects into my view
-        vec3 halfway = L - viewDir;
+        vec3 halfway = L - viewDirNormalized;
         if(length(halfway) > 0){
             halfway = normalize(halfway);
             float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 10);
@@ -154,7 +157,7 @@ void main() {
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
-        float transmission = pow(LdotV * 0.5 + 0.5, 50) * (1-abs(NdotL));
+        float transmission = pow(LdotV * 0.5 + 0.5, 50);
         totalColor+= transmission * C1 * baseColorLinRGB;
 
         // Ambient light reflected from planet
@@ -173,8 +176,8 @@ void main() {
     vec3 atmFilter = getAtmFilter(
         planetSkyHeight,
         playerHeight,
-        localUpUniverseSpace,
-        viewDir,
+        normalize(localUpUniverseSpace),
+        viewDirNormalized,
         LocalAtmDensity,
         LocalSunriseColor
     );

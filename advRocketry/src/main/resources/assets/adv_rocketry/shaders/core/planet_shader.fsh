@@ -38,6 +38,9 @@ out vec4 fragColor;
 
 void main() {
 
+    vec3 viewDirNormalized = normalized(viewDir);
+    vec3 normalModelSpaceNormalized = normalize(normalModelSpace);
+
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
     baseSurfaceColor = pow(baseSurfaceColor, vec3(2.2)); // gamma reverse
     baseSurfaceColor *= textureBrightness;
@@ -63,9 +66,9 @@ void main() {
         if (noiseOffset > - 0.9){
             vec3 warp;
             if (CloudWarp == 1){
-                warp = fbm_vec3(normalModelSpace, 1, time * 0.002);
+                warp = fbm_vec3(normalModelSpaceNormalized, 1, time * 0.002);
             }else{
-                warp = normalModelSpace+vec3(time*0.001);
+                warp = normalModelSpaceNormalized+vec3(time*0.001);
             }
 
             for (int i = 0; i < CloudSampleSteps; i++) {
@@ -80,7 +83,7 @@ void main() {
 
     // for atmosphere
     // how much of the edge (horizon) we see
-    float viewAngle = 1.0 - abs(dot(N, viewDir));
+    float viewAngle = 1.0 - abs(dot(N, viewDirNormalized));
     // rim intensity (thicker with higher TargetAtmDensity)
     // the thing that glows on the side
     float rim = pow(viewAngle, 3);  // the more at the side the more atmosphere we will see
@@ -131,8 +134,8 @@ void main() {
     vec3 atmFilter = getAtmFilter(
         planetSkyHeight,
         playerHeight,
-        localUpUniverseSpace,
-        viewDir,
+        normalize(localUpUniverseSpace),
+        viewDirNormalized,
         LocalAtmDensity,
         LocalSunriseColor
     );
