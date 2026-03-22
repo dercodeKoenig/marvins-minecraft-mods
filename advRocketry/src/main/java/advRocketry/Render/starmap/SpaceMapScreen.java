@@ -271,24 +271,38 @@ public class SpaceMapScreen extends Screen {
         // Check if mouse is over the sidebar
         if (selectedPlanet != null && mouseX > this.width - SIDEBAR_WIDTH) {
             // scrollY is positive for scrolling up, negative for down
-            // We subtract it because we want the text to move UP when we scroll DOWN
             sidebarScrollAmount -= (float) (scrollY * 20);
             sidebarScrollAmount = Math.max(0, Math.min(sidebarScrollAmount, lastMaxScroll));
             return true;
         }
 
-        // scrollY is the vertical scroll amount.
-        float scrollFactor = 1.5f; // x% change per scroll tick
+        // 1. Save the old zoom before we change it
+        float oldZoom = zoom;
+
+        // 2. Apply zoom logic
+        float scrollFactor = 1.5f;
         if (scrollY < 0) {
             zoom *= scrollFactor; // Zoom out
         } else if (scrollY > 0) {
             zoom /= scrollFactor; // Zoom in
         }
 
-        // Clamp zoom so we don't go past the planets or infinitely far away
+        // 3. Clamp zoom
         zoom = Math.max(0.01f, Math.min(zoom, 2000000f));
 
-        return true; // Return true to tell Minecraft we handled the input
+        // --- ZOOM TO MOUSE LOGIC ---
+        // Find how far the mouse is from the exact center of the screen
+        double dx = mouseX - (this.width / 2.0);
+        double dy = mouseY - (this.height / 2.0);
+
+        // We use the same '310f' sensitivity ratio from your mouseDragged method.
+        // The camera shifts by the mouse offset multiplied by the difference in scale.
+        float sensitivityDiff = (oldZoom - zoom) / 310f;
+
+        camX -= (float) (dx * sensitivityDiff);
+        camY -= (float) (dy * sensitivityDiff);
+
+        return true;
     }
 
     // This method is inherited from GuiEventListener
