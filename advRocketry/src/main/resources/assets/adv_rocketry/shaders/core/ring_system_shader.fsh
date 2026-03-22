@@ -98,7 +98,7 @@ void main() {
     if(texcoord.x < 0)
         discard;
 
-    float alphaMultiplier = 0.5;
+    float alphaMultiplier = 1;
     // TODO: tint color?, specular color?
 
     vec4 baseColor = texture(Sampler0, texcoord);
@@ -145,7 +145,7 @@ void main() {
         vec3 halfway = L - viewDir;
         if(length(halfway) > 0){
             halfway = normalize(halfway);
-            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 50);
+            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 25);
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
