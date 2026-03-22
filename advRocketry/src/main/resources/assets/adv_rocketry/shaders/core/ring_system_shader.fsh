@@ -95,10 +95,10 @@ float getSoftShadowFactorApprox(
 
 
 void main() {
+    if(texcoord.x < 0)
+        discard;
 
-    float specularPower = 5;
-
-    float alphaMultiplier = 1;
+    float alphaMultiplier = 0.5;
     // TODO: tint color?, specular color?
 
     vec4 baseColor = texture(Sampler0, texcoord);
@@ -145,7 +145,7 @@ void main() {
         vec3 halfway = L - viewDir;
         if(length(halfway) > 0){
             halfway = normalize(halfway);
-            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), specularPower);
+            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 50);
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
@@ -154,8 +154,19 @@ void main() {
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
-        float transmission = pow(LdotV * 0.5 + 0.5, 4) * (1-abs(NdotL));
+        float transmission = pow(LdotV * 0.5 + 0.5, 50) * (1-abs(NdotL));
         totalColor+= transmission * C1 * baseColorLinRGB;
+
+        // Ambient light reflected from planet
+        // (but not in the shadow)
+        // Apply a small constant 'ambient' that doesn't care about the normal
+        // This ensures the rings never go pitch black
+        // I want it more significant in front of the planet and less significant behind
+        // (optional) i could multiply it with planet reflective texture tint but i am lazy
+        float distanceToPlanet = 1 + texcoord.x;
+        vec3 planetShine = baseColorLinRGB * C1 / (distanceToPlanet * distanceToPlanet);
+        float shineFactor = pow(dot(normalize(position-planetCenter), L) * 0.5 + 1, 2);
+        totalColor += planetShine * shineFactor * 0.01;
     }
 
 

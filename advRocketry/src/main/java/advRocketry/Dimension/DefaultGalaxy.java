@@ -50,7 +50,7 @@ public class DefaultGalaxy {
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
-        moon.name = "moon";
+        moon.name = "Moon";
         moon.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
         moon.parentDimensionId = overworld.dimensionId;
         moon.dayTimeReference = sun.dimensionId;
