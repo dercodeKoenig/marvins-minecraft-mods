@@ -421,6 +421,9 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(new Matrix4f());
         shader.getUniform("ProjMat").set(newProj2);
+        // lots of atmosphere makes it dark
+        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1);
+        shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         shader.apply();
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();
