@@ -70,6 +70,7 @@ public class ItemGalaxyDatabase extends Item {
     }
 
     public static void setPlanetInfo(ItemStack stack, PlanetDimension planet, PlanetInfo info) {
+        if(planet == null) return;
         setPlanetInfo(stack, planet.getDimensionId(), info);
     }
 
