@@ -26,7 +26,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public float orbitalDistanceToParent = 1;
     public float orbitalBaseOffsetDegrees = 0;
     public ResourceLocation dayTimeReference = null;  // required reference for day start
-    public float radiationIntensity = 0; // radiation strength, used for terrain shading, and temperature calculation and to scale emissive light in planet render
+    public float radiationIntensity = 0; // radiation strength, used for terrain shading, and temperature calculation and to scale emissive light in planet render, 2 is default for sun
     public int latitude_len = 400000;// how much you have to move in z direction to "go around the planet" 0% = equator, 25% = South Pole, 50% = equator again, 75% = North Pole
     public int targetDayLength = 24000; // set negative or 0 for fixed time
 
@@ -52,6 +52,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public Vector3f sunRiseColor = new Vector3f(3f, 2f, 0.2f); // the atm shading on sunrise
     public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f); // maybe reflect only green light? or red?
     public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
+    public float textureBrightness = 1; // multiplier for texture only, use it to make png texture hdr
     public boolean hasRingSystem = false;
 
     public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
