@@ -778,6 +778,8 @@ public class SpaceMapScreen extends Screen {
                 }
             }
         }
-        return dimension.getPosition(partialTick);
+        Vec3 pos = dimension.getPosition(partialTick);
+        // map requires y=0
+        return new Vec3(pos.x, 0, pos.z);
     }
 }
