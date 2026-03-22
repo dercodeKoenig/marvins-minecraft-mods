@@ -64,7 +64,7 @@ void main() {
         // apply intensity + distance modifier
         perStarBrightnessMultiplier *= starColor.a / (starDistance * starDistance);
         // if a fragment is closely aligned with the sun, make it more bright so that the area around the sun is brighter
-        perStarBrightnessMultiplier *= 1 + pow(max(0,sunDot), 5) * 2 * AtmDensity;
+        perStarBrightnessMultiplier *= 1 + pow(max(0,sunDot), 2) * AtmDensity;
 
         // how much is the fragment at the horizon, can be used to scale sunrise color vertically
         float horizonFactor = pow(1 - max(0,verticalDot), 8);
