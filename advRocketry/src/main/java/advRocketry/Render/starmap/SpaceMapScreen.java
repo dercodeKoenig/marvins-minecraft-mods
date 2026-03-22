@@ -278,9 +278,12 @@ public class SpaceMapScreen extends Screen {
         }
 
         // scrollY is the vertical scroll amount.
-        // We use an exponential zoom so it feels smooth at all distances.
-        float zoomSpeed = zoom * 0.2f;
-        zoom -= (float) (scrollY * zoomSpeed);
+        float scrollFactor = 1.5f; // x% change per scroll tick
+        if (scrollY < 0) {
+            zoom *= scrollFactor; // Zoom out
+        } else if (scrollY > 0) {
+            zoom /= scrollFactor; // Zoom in
+        }
 
         // Clamp zoom so we don't go past the planets or infinitely far away
         zoom = Math.max(0.01f, Math.min(zoom, 2000000f));
