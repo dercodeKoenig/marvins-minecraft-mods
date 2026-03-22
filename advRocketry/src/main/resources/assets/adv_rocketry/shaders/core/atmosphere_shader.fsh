@@ -89,6 +89,11 @@ void main() {
         cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
     }
 
+    // Apply global extinction once after all lights are added
+    // Lots of atmosphere makes it dark
+    float extinction = exp(-AtmDensity * 0.25);
+    cumulativeSkyColor *= extinction;
+
     fragColor = vec4(cumulativeSkyColor, 1);
 
 }
