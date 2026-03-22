@@ -29,13 +29,13 @@ void main() {
     normalModelSpace = Normal;
 
     // Get the rotation matrices
-    mat3 rotModel = mat3(ModelMat);
     // Normal is transformed from Model -> Universe (rotModel)
-    normalUniverseSpace = normalize(rotModel * Normal);
+    mat3 normalMatrix = transpose(inverse(mat3(ModelMat)));
+    normalUniverseSpace = normalize(normalMatrix * Normal);
 
     // up to Universe space
     // rotWorldInv transforms vectors from World space to Universe space
     mat3 rotWorldInv = transpose(mat3(WorldMat));
-    localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0)).xyz;
+    localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));
 
 }
