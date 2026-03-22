@@ -109,8 +109,6 @@ void main() {
 
     vec3 normalUniverseSpaceAdjusted = normalize(gl_FrontFacing ? normalUniverseSpace : -normalUniverseSpace);
 
-    vec3 viewDirNormalized = normalize(viewDir);
-
     vec3 totalColor = vec3(0,0,0);
 
     for (int i = 0; i < LightCount; i++) {
@@ -138,10 +136,12 @@ void main() {
         C1 *= shadowFactor;
 
         vec3 F0 = vec3(0.04);
-        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpace, viewDirNormalized)), F0);
+        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpace, viewDir)), F0);
+
+        float NdotL = dot(L, normalUniverseSpaceAdjusted);
+        float LdotV = dot(L, viewDir);
 
         // specular - bright when starlight reflects into my view
-        // TODO: this might not be perfect because it also reflects backside ?
         vec3 halfway = L - viewDir;
         if(length(halfway) > 0){
             halfway = normalize(halfway);
@@ -150,11 +150,11 @@ void main() {
         }
 
         // diffuse - brignt when face is facing the star
-        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted)*0.8+0.2);
+        float diffuse = max(0,NdotL*0.9+0.1);
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
-        float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 4);
+        float transmission = pow(LdotV * 0.5 + 0.5, 4) * (1-abs(NdotL));
         totalColor+= transmission * C1 * baseColorLinRGB;
     }
 
