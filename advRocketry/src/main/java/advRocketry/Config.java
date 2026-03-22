@@ -30,7 +30,7 @@ public class Config {
 
     // true scale is way too small, for example moon would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering
-    public double planet_Render_Scale_Multiplier = 10;
+    public double planet_Render_Scale_Multiplier = 8;
     // noise rendering is extremely expensive, so make it configurable
     public int planet_Cloud_Noise_Samples = 5; // can be 0 for no clouds
     public boolean planet_Cloud_Noise_Warp = true;
