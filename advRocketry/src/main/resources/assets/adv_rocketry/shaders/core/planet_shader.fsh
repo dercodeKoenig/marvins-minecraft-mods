@@ -38,7 +38,7 @@ out vec4 fragColor;
 
 void main() {
 
-    vec3 viewDirNormalized = normalized(viewDir);
+    vec3 viewDirNormalized = normalize(viewDir);
     vec3 normalModelSpaceNormalized = normalize(normalModelSpace);
 
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
