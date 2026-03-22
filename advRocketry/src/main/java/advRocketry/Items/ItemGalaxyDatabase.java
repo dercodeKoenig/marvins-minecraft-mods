@@ -53,6 +53,8 @@ public class ItemGalaxyDatabase extends Item {
 
     @Nullable
     public static PlanetInfo getPlanetInfo(ItemStack stack, PlanetDimension planet) {
+        if(planet == null)
+            return null;
         return getPlanetInfo(stack, planet.getDimensionId().toString());
     }
 
