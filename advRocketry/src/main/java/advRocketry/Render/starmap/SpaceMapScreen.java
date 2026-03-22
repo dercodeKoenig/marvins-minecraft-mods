@@ -40,8 +40,8 @@ public class SpaceMapScreen extends Screen {
     private float camY = 0;
     private float zoom = 1000f;
     private float rotY = 0;
-    private float logScale = 0.5f;
-    private float scale = 0.3f;
+    private float logScale = 0.6f;
+    private float scale = 0.25f;
     private float sidebarScrollAmount = 0;
     private int lastMaxScroll = 0; // To clamp scrolling
     private String planetInfoText = "";
@@ -283,7 +283,7 @@ public class SpaceMapScreen extends Screen {
         zoom -= (float) (scrollY * zoomSpeed);
 
         // Clamp zoom so we don't go past the planets or infinitely far away
-        zoom = Math.max(1f, Math.min(zoom, 2000000f));
+        zoom = Math.max(0.1f, Math.min(zoom, 2000000f));
 
         return true; // Return true to tell Minecraft we handled the input
     }
@@ -507,7 +507,7 @@ public class SpaceMapScreen extends Screen {
             }
 
             // render the orbit lines
-            float colorModulator = 0.03f * Math.clamp(1.3f + rotY, 0, 1);
+            float colorModulator = 0.05f * Math.clamp(1.3f + rotY, 0, 1);
             if (planet.getParentDimensionId() != null && colorModulator > 0) {
                 Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()), partialTick);
                 Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
@@ -724,13 +724,13 @@ public class SpaceMapScreen extends Screen {
 
     public Vector3f getPlanetTranslation(Dimension planet, float pTicks) {
         Vec3 pos = getPositionScaled(planet, pTicks);
-        return new Vector3f((float) pos.x * 100, (float) pos.y * 100, (float) pos.z * 100);
+        return new Vector3f((float) pos.x * 1, (float) pos.y * 1, (float) pos.z * 1);
     }
 
     public float getPlanetRenderScale(PlanetDimension planet) {
-        float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (1 + (this.scale * 100)) / 20;
+        float renderScale = (float) Math.pow(planet.getEarthRadiusMultiplier(), 1 - (logScale * 0.95 + 0.05)) * (0.1f + (this.scale * 1f)) / 20;
         if (planet.isStar())
-            renderScale *= Math.max(1, zoom / 1000); // make larger on high zoom to keep stars visible
+            renderScale *= Math.max(1, zoom / 50); // make larger on high zoom to keep stars visible
         return renderScale;
     }
 
