@@ -166,6 +166,10 @@ public class PlanetDimension extends Dimension {
         return properties().emissiveColor;
     }
 
+    public float getTextureBrightness() {
+        return properties().textureBrightness;
+    }
+
     public float getGravitationalMultiplier() {
         return properties().gravitationalMultiplier;
     }
@@ -196,13 +200,24 @@ public class PlanetDimension extends Dimension {
 
     public float computeCloudValue() {
         float totalCloud = 0;
+
+        // 1. Get the density (0.0 for vacuum, 1.0 for Earth-like)
+        double atmosphereFactor = getAtmosphereDensity();
+
+        // 2. If there's no air, there are no clouds. Period.
+        if (atmosphereFactor < 0.01) return 0;
+
         for (String gas : GasRegistry.gases.keySet()) {
             double maxCapacity = calculateVaporCapacity(getCurrentTemp(), gas);
             double overSaturation = getHumidity(gas) - maxCapacity * 0.7;
-            if(overSaturation > 0)
-                totalCloud += (float) overSaturation * 3;
+
+            if (overSaturation > 0) {
+                // 3. Scale the clouds by how much atmosphere there is to hold them
+                totalCloud += (float) (overSaturation * 3 * atmosphereFactor);
+            }
         }
-        return Math.min(1,totalCloud);
+
+        return Math.min(1.0f, totalCloud);
     }
 
     public double computeTerrainBrightness(float partialTick) {
@@ -555,8 +570,8 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         properties().isKnown = true;
-        if (getName().equals("Earth")) {
-            //getGasProperty("water").liquid = 0.5;
+        if (getName().equals("Sun")) {
+
         }
     }
 
