@@ -94,6 +94,8 @@ public class SkyRenderer {
         Vector3f emissiveColor = RenderUtils.gamma_reverse(planetDimension.getEmissiveColor());
         shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, planetDimension.getRadiationIntensity()));
 
+        shader.getUniform("textureBrightness").set(planetDimension.getTextureBrightness());
+
         shader.getUniform("LocalAtmDensity").set(myAtmDensity);
 
         Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(mySunriseColor);

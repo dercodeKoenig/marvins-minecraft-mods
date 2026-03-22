@@ -11,6 +11,7 @@ uniform int LightCount;
 
 uniform float BrightnessMultiplier;
 uniform vec4 emissiveColor;      // planet’s self-emission (rgb + intensity)
+uniform float textureBrightness;        // float that scales only texture brightness, emissive color shades other planets, this value only shades this planet, for example to have a bright red star with bloom effect
 uniform float LocalAtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
@@ -38,6 +39,7 @@ void main() {
 
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
     baseSurfaceColor = pow(baseSurfaceColor, vec3(2.2)); // gamma reverse
+    baseSurfaceColor *= textureBrightness;
 
     if(isLocalPlanet == 1){
         float mixvalue = clamp((playerHeight-350) / planetSkyHeight * 5, 0, 1);
@@ -53,7 +55,7 @@ void main() {
     // i skip it on local planet where the fragment number is too high
     float cloudValue = 0;
     if(isLocalPlanet != 1 && CloudSampleSteps > 0){
-        float amp = 1;
+        float amp = 0.8;
         float freq = 2;
         float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
         cloudValue = noiseOffset;

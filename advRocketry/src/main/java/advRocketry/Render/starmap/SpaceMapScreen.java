@@ -502,6 +502,10 @@ public class SpaceMapScreen extends Screen {
             float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
+            if(renderScale / eyePos.distance(new Vector3f(pos.x, pos.y, pos.z)) < 0.0005 && !planet.isStar()){
+                continue;
+            }
+
             // render the orbit lines
             float colorModulator = 0.03f * Math.clamp(1.3f + rotY, 0, 1);
             if (planet.getParentDimensionId() != null && colorModulator > 0) {
