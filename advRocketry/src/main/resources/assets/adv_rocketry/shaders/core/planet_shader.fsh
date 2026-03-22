@@ -1,6 +1,7 @@
 #version 150
 
 #moj_import "adv_rocketry:noise.glsl"
+#moj_import "adv_rocketry:atmFilter.glsl"
 
 uniform sampler2D Sampler0; // surface texture
 
@@ -120,27 +121,6 @@ void main() {
         totalReflectedLight += reflected;
     }
 
-    // atmosphere modifies how the planet appears
-    float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
-    float planetUp = dot(localUpUniverseSpace, viewDir);
-    float atmThicknessMod = LocalAtmDensity / (1.0 + LocalAtmDensity);
-    atmThicknessMod *= pow(1.0 - max(0.0, planetUp), 2.0) * 0.9 + 0.1;
-    atmThicknessMod *= altitudeAtmThicknessMod;
-
-
-    // 1. Normalize the sunrise color so it acts as our base transmittance target
-    float maxSunriseColor = max(LocalSunriseColor.r, max(LocalSunriseColor.g, LocalSunriseColor.b));
-    vec3 sunRiseTintNormalized = LocalSunriseColor / max(maxSunriseColor, 0.0001);
-
-    // 2. Calculate what colors the atmosphere is absorbing (inverting the sunrise color)
-    // If the sunrise is red, the atmosphere is absorbing green and blue.
-    vec3 absorptionCoefficients = vec3(1.0) - clamp(sunRiseTintNormalized, 0.0, 1.0);
-
-    // 3. Apply Beer's Law for atmospheric transmittance.
-    // You can increase the 'extinctionIntensity' to make the effect stronger
-    float extinctionIntensity = 4.0;
-    vec3 atmFilter = exp(-extinctionIntensity * atmThicknessMod * absorptionCoefficients);
-
     vec3 emitted = vec3(0,0,0);
     if(emissiveColor.a > 0) {
         float starBrightness = emissiveColor.a;
@@ -148,6 +128,14 @@ void main() {
         emitted = starColor * starBrightness;
     }
 
-    // The exp() function above naturally handles the dimming (extinction) of the light!
+    vec3 atmFilter = getAtmFilter(
+        planetSkyHeight,
+        playerHeight,
+        localUpUniverseSpace,
+        viewDir,
+        LocalAtmDensity,
+        LocalSunriseColor
+    );
+
     fragColor = vec4(totalReflectedLight + emitted, 1.0) * BrightnessMultiplier * vec4(atmFilter, 1);
 }
