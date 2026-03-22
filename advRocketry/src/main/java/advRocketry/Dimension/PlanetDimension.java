@@ -663,7 +663,7 @@ public class PlanetDimension extends Dimension {
         albedo = Math.max(0.05, Math.min(albedo, 0.9));
 
         // The actual energy absorbed by the planet
-        double energyIn = solarFlux * (1.0 - albedo);
+        double energyIn = solarFlux * (1.0 - albedo) + properties().baseEnergyGain;
 
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.

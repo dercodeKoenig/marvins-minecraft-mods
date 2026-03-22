@@ -10,11 +10,8 @@ import java.util.HashMap;
 
 
 public class PlanetDimensionProperties extends DimensionProperties {
-    // TODO: add always rain / always thunder values or custom rain times
-    // gas mining should mine relative to the planet mass
-    // when decreasing or increasing pressure, calculate the new gas value as +- 1 / planet mass
-    // so moon would require less gas to reach a value of 1 while jupyter provides lots of gas to mine
-    // gas can be mined if config flag enables it until the relative value of a gas drops < 1
+
+    public String description = ""; // a custom text to show on the space map
 
     // planet related configs
     public Vec3 position = new Vec3(0, 0, 0);
@@ -29,6 +26,8 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public float radiationIntensity = 0; // radiation strength, used for terrain shading, and temperature calculation and to scale emissive light in planet render, 2 is default for sun
     public int latitude_len = 400000;// how much you have to move in z direction to "go around the planet" 0% = equator, 25% = South Pole, 50% = equator again, 75% = North Pole
     public int targetDayLength = 24000; // set negative or 0 for fixed time
+    public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
+    public float baseEnergyGain = 0; // the base energy gain, maybe by hot core or gravity force pulling on the planet
 
     public boolean canVisit = false;
     public boolean canGasMine = false;
@@ -54,8 +53,6 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
     public float textureBrightness = 1; // multiplier for texture only, use it to make png texture hdr
     public boolean hasRingSystem = false;
-
-    public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
 
     public float dayTime; // do not set yourself
     public double currentTemp = 300; // do set yourself to have a starting value
