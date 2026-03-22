@@ -533,7 +533,7 @@ public class SkyRenderer {
                     brightness = (float) (1.0 / (scaleCorrection * scaleCorrection));
 
                     // clamp brightness so it doesn't drop completely to 0 and disappear
-                    brightness = Math.max(brightness, 0.1f);
+                    brightness = Math.max(brightness, 0.3f);
                 }
             }
 
@@ -649,6 +649,7 @@ public class SkyRenderer {
         shader = RenderSystem.getShader();
         shader.setSampler("frame", PlanetsTarget.getColorTextureId());
         shader.getUniform("threshold").set(1f);
+        shader.getUniform("resolution").set(PlanetsTarget.width, PlanetsTarget.height);
         shader.apply();
         vertexBufferSquare.draw();
         shader.clear();

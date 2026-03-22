@@ -166,7 +166,7 @@ void main() {
         float distanceToPlanet = 1 + texcoord.x;
         vec3 planetShine = baseColorLinRGB * C1 / (distanceToPlanet * distanceToPlanet);
         float shineFactor = pow(dot(normalize(position-planetCenter), L) * 0.5 + 1, 2);
-        totalColor += planetShine * shineFactor * 0.01;
+        totalColor += planetShine * shineFactor * 0.03;
     }
 
 
