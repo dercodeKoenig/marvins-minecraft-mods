@@ -78,7 +78,7 @@ void main() {
         SunriseColor *
         starColor.rgb *
         sunriseGlowMultiplier * // glow more where the sun is aligned with the fragment
-        pow(sunAtHorizon, 3) * // glow more when sun is at horizon
+        pow(sunAtHorizon, 5) * // glow more when sun is at horizon
         horizonFactor * // glow more when the fragment is at horizon (you dont want glow high above you)
         globalBrightnessModifier;
 
