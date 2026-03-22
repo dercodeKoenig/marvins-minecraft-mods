@@ -619,7 +619,7 @@ public class PlanetDimension extends Dimension {
         currentSpeed = properties().position.subtract(lastPosition);
     }
 
-
+// TODO; base temperature from gravity, close moons heat up
     public void tickTemperature() {
         if (isStar()) {
             properties().currentTemp = getRadiationIntensity() * 3000;
