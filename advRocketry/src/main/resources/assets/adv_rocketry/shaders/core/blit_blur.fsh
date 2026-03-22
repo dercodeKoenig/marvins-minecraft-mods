@@ -12,18 +12,19 @@ void main()
     // The size of a single texel
     float texelSize = 1.0 / resolution;
 
-    float weight[6];
-    weight[0] = 0.2270;
-    weight[1] = 0.1946;
-    weight[2] = 0.1216;
-    weight[3] = 0.0541;
-    weight[4] = 0.0162;
-    weight[5] = 0.0037;
+    float weight[7];
+    weight[0] = 0.2279672;
+    weight[1] = 0.1936276;
+    weight[2] = 0.1186456;
+    weight[3] = 0.0524476;
+    weight[4] = 0.0167259;
+    weight[5] = 0.0038481;
+    weight[6] = 0.0006387;
 
     vec3 result = texture(image, texCoord).rgb * weight[0]; // Start with the center pixel
 
     // Loop through the 4 steps on either side of the center (9 total samples)
-    for(int i = 1; i < 6; ++i)
+    for(int i = 1; i < 7; ++i)
     {
         if(horizontal == 1)
         {
