@@ -117,7 +117,7 @@ void main() {
         / (dist * dist);
 
 
-        totalReflectedLight += reflected * BrightnessMultiplier;
+        totalReflectedLight += reflected;
     }
 
     vec3 emitted = vec3(0,0,0);
@@ -143,5 +143,5 @@ void main() {
         emitted = atmAdjustedEmissiveColor * baseSurfaceColor * starBrightness;
     }
 
-    fragColor = vec4(totalReflectedLight + emitted, 1.0);
+    fragColor = vec4(totalReflectedLight + emitted, 1.0) * BrightnessMultiplier;
 }

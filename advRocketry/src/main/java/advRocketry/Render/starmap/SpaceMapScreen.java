@@ -554,7 +554,7 @@ public class SpaceMapScreen extends Screen {
                 }
             }
             float brightnessModifier = 1;
-            if (brightness < 1)
+            if (brightness < 1 && !planet.isStar())
                 //brightnessModifier = (float) (1 / Math.sqrt(brightness));
                 brightnessModifier = (float) (1 / Math.pow(brightness, 0.7));
 

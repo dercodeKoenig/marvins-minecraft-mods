@@ -47,9 +47,8 @@ public class SkyRenderer {
     public static TextureTarget bloomBrightTarget;
     public static TextureTarget bloomBlurTarget1;
     public static TextureTarget bloomBlurTarget2;
-
-    boolean finishedLoading = false;
     public static long startTime;
+    boolean finishedLoading = false;
 
 
     public SkyRenderer() {
@@ -129,7 +128,7 @@ public class SkyRenderer {
         Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentFogColor);
         shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);
 
-        float time = (float)(System.currentTimeMillis() - startTime + planetDimension.getDimensionId().hashCode()) / 1000f;
+        float time = (float) (System.currentTimeMillis() - startTime + planetDimension.getDimensionId().hashCode()) / 1000f;
         shader.getUniform("time").set(time);
 
         int totalLights = 0;
@@ -493,12 +492,39 @@ public class SkyRenderer {
             double planetRotationAngle = otherDimension.getRotationAngle(partialtick);
             planetMatrix.rotate(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 1, 0), (float) planetRotationAngle));
 
+            float brightness = 1.0f;
 
             // to scale correctly we need to convert the radius (in earth radius multiplier) to astronomical units
             double trueRadius = CelestialUtils.fromEarthRadius(otherDimension.getEarthRadiusMultiplier());
-            double scaleAU = CelestialUtils.toAU(trueRadius); // bc we do not render at true distance multiplier ( 1AU is too large to handle ) we need to also scale the size correctly
-            double planetGeometryScale = (scaleAU * distance_multiplier * Config.INSTANCE.planet_Render_Scale_Multiplier);
-            planetMatrix.scale((float) planetGeometryScale);
+            double scale = CelestialUtils.toAU(trueRadius) * Config.INSTANCE.planet_Render_Scale_Multiplier;
+            // bc we do not render at true distance multiplier ( 1AU is too large to handle ) we need to also scale the size correctly
+            double adjustedGeometryScale = (scale * distance_multiplier);
+
+            // to avoid star not being rendered because to small, it should be scaled to cover 1 or 2 px minimum
+            // but the brightness has to be scaled too or it wil look strange
+            if (otherDimension.isStar()) {
+                // A threshold representing roughly 1-2 pixels on screen.
+                // Note: You may need to tweak this specific value slightly depending on your camera FOV!
+                double minApparentSize = 0.000000003;
+
+                double distanceAU = relativePos.length();
+                double apparentSizeRatio = scale / distanceAU;
+                if (apparentSizeRatio < minApparentSize) {
+                    // 1. Inflate the star so it hits the minimum pixel size
+                    double scaleCorrection = minApparentSize / apparentSizeRatio;
+                    adjustedGeometryScale *= scaleCorrection;
+
+                    // 2. Dim the star to conserve energy (inverse square law)
+                    // If we make it twice as big, it should be 4 times dimmer.
+                    brightness = (float) (1.0 / (scaleCorrection * scaleCorrection));
+
+                    // clamp brightness so it doesn't drop completely to 0 and disappear
+                    brightness = Math.max(brightness, 0.05f);
+                }
+            }
+
+            planetMatrix.scale((float) adjustedGeometryScale);
+
 
             // custom proj matrix for every draw because of high potential distance range
             Matrix4f newProj = new Matrix4f(proj);
@@ -515,13 +541,13 @@ public class SkyRenderer {
                         viewMatrix,
                         worldMatrix,
                         planetMatrix,
-                        new Vector3f(0,0,0),
+                        new Vector3f(0, 0, 0),
                         myCurrentSpaceObject.getAtmosphereDensity(),
                         myCurrentSpaceObject.getSunRiseColor(),
                         myCurrentSpaceObject.computeTerrainFogColor(partialtick),
                         playerHeightAboveSea,
                         isMyDimension,
-                        1,
+                        brightness,
                         partialtick
                 );
 
@@ -534,8 +560,8 @@ public class SkyRenderer {
                         viewMatrix,
                         worldMatrix,
                         planetMatrix,
-                        new Vector3f(0,0,0),
-                        (float) planetGeometryScale,
+                        new Vector3f(0, 0, 0),
+                        (float) adjustedGeometryScale,
                         1,
                         partialtick
                 );
