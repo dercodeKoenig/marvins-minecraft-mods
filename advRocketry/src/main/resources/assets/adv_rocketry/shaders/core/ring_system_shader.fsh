@@ -146,7 +146,7 @@ void main() {
 
         // specular - bright when starlight reflects into my view
         vec3 halfway = L - viewDirNormalized;
-        if(length(halfway) > 0){
+        if(length(halfway) > 0.0001){
             halfway = normalize(halfway);
             float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 10);
             totalColor += reflectionMultiplier * C1 * fr ;
@@ -157,7 +157,10 @@ void main() {
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
-        float transmission = pow(LdotV * 0.5 + 0.5, 50);
+        // ok, LdotV should always be -1 to 1 and *0.5 +0.5 should always make it 0-1
+        // BUT float precision can cause it to go negative and it blacks out entire regions of the screen from NAN
+        // so ALWAYS CLAMP RESULTS!!!!
+        float transmission = pow(max(0,LdotV * 0.5 + 0.5), 50) + 0.01;
         totalColor+= transmission * C1 * baseColorLinRGB;
 
         // Ambient light reflected from planet
