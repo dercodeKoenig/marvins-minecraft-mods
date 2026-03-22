@@ -38,7 +38,7 @@ public class SpaceMapScreen extends Screen {
     private net.minecraft.client.gui.components.Button actionButton;
     private float camX = 0;
     private float camY = 0;
-    private float zoom = 1000f;
+    private float zoom = 100f;
     private float rotY = 0;
     private float logScale = 0.6f;
     private float scale = 0.25f;
