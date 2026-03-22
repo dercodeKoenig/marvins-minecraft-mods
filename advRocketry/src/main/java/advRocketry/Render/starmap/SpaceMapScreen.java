@@ -463,6 +463,7 @@ public class SpaceMapScreen extends Screen {
         shader.getUniform("WorldMat").set(new Matrix4f());
         shader.getUniform("ModelMat").set(new Matrix4f());
         shader.getUniform("ProjMat").set(new Matrix4f().setPerspective(90F, (float) (windowWidth / windowHeight), 10F, 1000000F));
+        shader.getUniform("BrightnessModifier").set(1);
         shader.apply();
         SkyRenderer.vertexBufferStarBackground.bind();
         SkyRenderer.vertexBufferStarBackground.draw();
