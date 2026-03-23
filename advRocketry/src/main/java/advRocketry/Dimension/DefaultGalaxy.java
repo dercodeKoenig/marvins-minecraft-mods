@@ -178,6 +178,7 @@ public class DefaultGalaxy {
         titan.parentDimensionId = saturn.dimensionId;
         titan.dayTimeReference = sun.dimensionId;
         titan.currentTemp = 100;
+        titan.baseEnergyGain = 0.02f;
         titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_titan.png");;
         titan.orbitalDistanceToParent = 0.01f;
         titan.orbitalBaseOffsetDegrees = 180;

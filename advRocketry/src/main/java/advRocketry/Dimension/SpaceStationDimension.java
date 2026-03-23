@@ -432,9 +432,9 @@ public class SpaceStationDimension extends Dimension {
                 double e = Config.INSTANCE.station_SpaceTravel_Min_Speed;
                 double offNextTargetMultiplier = 1;
                 if (nextTargetPositionRelative.length() > 0.0001)
-                    offNextTargetMultiplier = Math.max(0, nextTargetPositionRelative.scale(10000).normalize().dot(getFront()) - 0.5) * 1.5;
+                    offNextTargetMultiplier = Math.max(0, nextTargetPositionRelative.scale(10000).normalize().dot(getFront()) - 0.8) * 5;
 
-                double speed = (maxSpeed + e * 5) * offTargetMultiplier + e * offNextTargetMultiplier;
+                double speed = ((maxSpeed + e * 5) * offTargetMultiplier + e) * offNextTargetMultiplier;
 
                 setTargetFront(nextTargetPositionRelative, false);
 
