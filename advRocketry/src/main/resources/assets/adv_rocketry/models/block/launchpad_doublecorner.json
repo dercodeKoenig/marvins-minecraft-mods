@@ -2,7 +2,8 @@
   "parent": "block/block",
   "textures": {
     "main": "adv_rocketry:block/launchpad_main",
-    "corner": "adv_rocketry:block/launchpad_doublecorner"
+    "corner": "adv_rocketry:block/launchpad_doublecorner",
+    "particle": "adv_rocketry:block/launchpad_main"
   },
   "elements": [
     {

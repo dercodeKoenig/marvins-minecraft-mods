@@ -6,6 +6,7 @@
     "north": "adv_rocketry:block/guidance_computer",
     "south": "adv_rocketry:block/guidance_computer",
     "west": "adv_rocketry:block/guidance_computer",
-    "east": "adv_rocketry:block/guidance_computer"
+    "east": "adv_rocketry:block/guidance_computer",
+    "particle": "adv_rocketry:block/guidance_computer"
   }
 }

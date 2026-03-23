@@ -6,6 +6,7 @@
     "north": "adv_rocketry:block/intake",
     "south": "arlib:block/fluidinput2",
     "west": "arlib:block/machinegeneric2",
-    "east": "arlib:block/machinegeneric2"
+    "east": "arlib:block/machinegeneric2",
+    "particle": "adv_rocketry:block/machinegeneric2"
   }
 }

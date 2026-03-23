@@ -6,6 +6,7 @@
     "north": "adv_rocketry:block/monitor_satellite",
     "south": "adv_rocketry:block/monitor_backside",
     "west": "adv_rocketry:block/monitor_side",
-    "east": "adv_rocketry:block/monitor_side"
+    "east": "adv_rocketry:block/monitor_side",
+    "particle": "adv_rocketry:block/machinegeneric"
   }
 }

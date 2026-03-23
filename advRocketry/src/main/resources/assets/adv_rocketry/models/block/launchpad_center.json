@@ -6,6 +6,7 @@
     "north": "adv_rocketry:block/launchpad_main",
     "south": "adv_rocketry:block/launchpad_main",
     "west": "adv_rocketry:block/launchpad_main",
-    "east": "adv_rocketry:block/launchpad_main"
+    "east": "adv_rocketry:block/launchpad_main",
+    "particle": "adv_rocketry:block/launchpad_main"
   }
 }

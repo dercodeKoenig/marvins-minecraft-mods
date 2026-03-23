@@ -6,6 +6,7 @@
     "north": "adv_rocketry:block/data_hatch",
     "south": "adv_rocketry:block/data_hatch",
     "west": "adv_rocketry:block/data_hatch",
-    "east": "adv_rocketry:block/data_hatch"
+    "east": "adv_rocketry:block/data_hatch",
+    "particle": "adv_rocketry:block/data_hatch"
   }
 }

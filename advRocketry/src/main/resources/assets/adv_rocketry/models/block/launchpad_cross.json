@@ -2,7 +2,8 @@
   "parent": "block/block",
   "textures": {
     "main": "adv_rocketry:block/launchpad_main",
-    "cross": "adv_rocketry:block/launchpad_cross"
+    "cross": "adv_rocketry:block/launchpad_cross",
+    "particle": "adv_rocketry:block/launchpad_main"
   },
   "elements": [
     {
