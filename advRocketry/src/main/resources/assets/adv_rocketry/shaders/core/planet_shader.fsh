@@ -91,7 +91,7 @@ void main() {
 
     vec3 atmLightMix =
     2 * rim * TargetSkyColor // the atm glow around the planet
-    + baseSurfaceColor * TargetReflectiveTextureTintColor; // the light scatters through atm and hits terrain
+    + surfaceLightBase; // the light scatters through atm and hits terrain
 
 
     for (int i = 0; i < LightCount; i++) {
