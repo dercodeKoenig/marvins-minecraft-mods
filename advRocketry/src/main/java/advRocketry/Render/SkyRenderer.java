@@ -81,7 +81,7 @@ public class SkyRenderer {
             float partialtick
     ) {
         RenderSystem.setShader(shaderUtils::getPlanetShader);
-        // TODO: mipmap is not supported by the normal simple texture that is used, maybe make custom texture
+
         TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
         AbstractTexture texture = texturemanager.getTexture(planetDimension.getTexture());
         if(!(texture instanceof MipmapSimpleTexture)){
@@ -182,8 +182,6 @@ public class SkyRenderer {
         // nice thing, the planet matrix is already transformed
         RenderSystem.setShader(shaderUtils::getRingSystemShader);
         ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
-        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-        texturemanager.getTexture(tex).setFilter(true, true);
         RenderSystem.setShaderTexture(0, tex);
         ShaderInstance shader = RenderSystem.getShader();
         shader.getUniform("ProjMat").set(proj);
