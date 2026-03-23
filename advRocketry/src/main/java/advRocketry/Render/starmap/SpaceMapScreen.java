@@ -563,18 +563,6 @@ public class SpaceMapScreen extends Screen {
                 shader.clear();
             }
 
-            // make sure it is not too dark
-            double brightness = 0;
-            for (ResourceLocation id : planet.getCurrentMainStars()) {
-                if (DimensionManager.INSTANCE_CLIENT.get(id) instanceof PlanetDimension star) {
-                    double distance = planet.getPosition(0).distanceTo(star.getPosition(0));
-                    brightness += star.getRadiationIntensity() / (distance * distance);
-                }
-            }
-            float brightnessModifier = 1;
-            if (brightness < 1 && !planet.isStar())
-                //brightnessModifier = (float) (1 / Math.sqrt(brightness));
-                brightnessModifier = (float) (1 / Math.pow(brightness, 0.7));
 
             // render the planet as if we observe it from space (0 atm density, no sky color...)
             SkyRenderer.renderPlanet(
@@ -589,7 +577,7 @@ public class SpaceMapScreen extends Screen {
                     new Vector3f(0, 0, 0),
                     0,
                     false,
-                    brightnessModifier,
+                    1,
                     partialTick
             );
 
@@ -605,7 +593,7 @@ public class SpaceMapScreen extends Screen {
                         new Vector3f(0, 0, 0),
                         0,
                         renderScale,
-                        brightnessModifier,
+                        1,
                         partialTick
                 );
             }
