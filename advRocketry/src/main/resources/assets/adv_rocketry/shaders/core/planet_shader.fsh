@@ -143,7 +143,7 @@ void main() {
     vec3 finalColor =
         (totalReflectedLight + emitted)
         * atmFilter
-        * BrightnessMultiplier
+        * BrightnessMultiplier;
 
     fragColor = vec4(finalColor, 1.0);
 }
