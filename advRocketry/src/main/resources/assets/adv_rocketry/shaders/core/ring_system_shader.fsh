@@ -152,15 +152,15 @@ void main() {
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
-        // diffuse - brignt when face is facing the star
-        float diffuse = max(0,NdotL*0.9+0.1);
+        // diffuse - bright when face is facing the star
+        float diffuse = max(0,NdotL*0.95+0.05);
         totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
 
         // transmission
         // ok, LdotV should always be -1 to 1 and *0.5 +0.5 should always make it 0-1
         // BUT float precision can cause it to go negative and it blacks out entire regions of the screen from NAN
         // so ALWAYS CLAMP RESULTS!!!!
-        float transmission = pow(max(0,LdotV * 0.5 + 0.5), 50) + 0.01;
+        float transmission = pow(max(0,LdotV * 0.5 + 0.5), 50);
         totalColor+= transmission * C1 * baseColorLinRGB;
 
         // Ambient light reflected from planet
@@ -171,8 +171,9 @@ void main() {
         // (optional) i could multiply it with planet reflective texture tint but i am lazy
         float distanceToPlanet = 1 + texcoord.x;
         vec3 planetShine = baseColorLinRGB * C1 / (distanceToPlanet * distanceToPlanet);
-        float shineFactor = pow(dot(normalize(position-planetCenter), L) * 0.5 + 1, 2);
-        totalColor += planetShine * shineFactor * 0.03;
+        float shineFactor = dot(normalize(position-planetCenter), L) * 0.5 + 0.5;
+        shineFactor = pow(max(0, shineFactor), 2);
+        totalColor += planetShine * shineFactor * 0.05;
     }
 
 
