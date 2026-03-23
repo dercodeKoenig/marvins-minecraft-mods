@@ -7,6 +7,6 @@
     "south": "adv_rocketry:block/vent",
     "west": "adv_rocketry:block/vent",
     "east": "adv_rocketry:block/vent",
-    "particle": "adv_rocketry:block/machinegeneric"
+    "particle": "arlib:block/machinegeneric"
   }
 }

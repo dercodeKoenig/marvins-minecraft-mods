@@ -7,6 +7,6 @@
     "south": "arlib:block/machinegeneric",
     "west": "arlib:block/machinegeneric",
     "east": "arlib:block/machinegeneric",
-    "particle": "adv_rocketry:block/machinegeneric"
+    "particle": "arlib:block/machinegeneric"
   }
 }

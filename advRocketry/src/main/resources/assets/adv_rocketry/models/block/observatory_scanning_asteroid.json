@@ -4,6 +4,6 @@
     "top": "arlib:block/machinegeneric",
     "front": "adv_rocketry:block/monitor_asteroids",
     "side": "arlib:block/machinegeneric",
-    "particle": "adv_rocketry:block/machinegeneric"
+    "particle": "arlib:block/machinegeneric"
   }
 }
