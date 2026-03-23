@@ -32,5 +32,7 @@ void main() {
     float noise = interleavedGradientNoise(gl_FragCoord.xy);
     textureColor += (noise - 0.5) / 255.0;
 
+    textureColor = clamp(textureColor, 0, 1);
+
     fragColor = vec4(textureColor,1);
 }
