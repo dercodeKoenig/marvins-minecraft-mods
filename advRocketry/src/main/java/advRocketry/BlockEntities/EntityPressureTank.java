@@ -45,7 +45,7 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
             @Override
             public void onContentsChanged() {
                 setChanged();
-                if (!level.isClientSide) {
+                if (level != null && !level.isClientSide) {
                     syncTank(null);
                 }
             }
@@ -74,6 +74,7 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     }
 
     public int forwardFillToAbove(FluidStack resource, IFluidHandler.FluidAction action) {
+        if(level == null) return 0; // can be null when in rocket
         BlockEntity entityAbove = level.getBlockEntity(getBlockPos().above());
         if (entityAbove instanceof EntityPressureTank tankAbove) {
             return tankAbove.tank.fill(resource, action);

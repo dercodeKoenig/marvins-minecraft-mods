@@ -27,7 +27,7 @@ import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Blocks.RocketItemLoader.IS_DRAIN;
 import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ITEM_LOADER;
 
-public class EntityRocketItemLoader extends EntityRocketInfrastructureBase implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
+public class EntityRocketItemLoader extends EntityRocketInfrastructureBase implements INetworkTagReceiver {
 
     public BlockEntityBattery battery;
     public ItemStackHandler inventory;

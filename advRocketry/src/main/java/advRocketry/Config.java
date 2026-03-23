@@ -54,6 +54,7 @@ public class Config {
     public int fueling_Station_Fuel_Per_Tick = 50;
 
     public int item_Loader_Energy_Per_Tick = 100;
+    public int fluid_Loader_Energy_Per_Tick = 100;
 
 
 

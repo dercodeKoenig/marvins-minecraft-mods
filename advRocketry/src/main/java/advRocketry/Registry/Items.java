@@ -43,6 +43,7 @@ public class Items {
     public static final Supplier<Item> ITEM_FUELING_STATION = registerBlockItem("fueling_station", Blocks.FUELING_STATION);
     public static final Supplier<Item> ITEM_LAUNCH_STATION = registerBlockItem("launch_station", Blocks.LAUNCH_STATION);
     public static final Supplier<Item> ITEM_ROCKET_ITEM_LOADER = registerBlockItem("rocket_item_loader", Blocks.ROCKET_ITEM_LOADER);
+    public static final Supplier<Item> ITEM_ROCKET_FLUID_LOADER = registerBlockItem("rocket_fluid_loader", Blocks.ROCKET_FLUID_LOADER);
 
     public static final Supplier<Item> ITEM_ASTROBODY_DATA_PROCESSOR = registerBlockItem("astrobody_data_processor", Blocks.ASTROBODY_DATA_PROCESSOR);
     public static final Supplier<Item> ITEM_OBSERVATORY = registerBlockItem("observatory", Blocks.OBSERVATORY);

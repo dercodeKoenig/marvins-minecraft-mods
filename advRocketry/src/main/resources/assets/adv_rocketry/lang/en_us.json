@@ -80,8 +80,11 @@
   "block.adv_rocketry.fueling_station": "Fueling Station",
   "item.adv_rocketry.fueling_station": "Fueling Station",
 
-  "block.adv_rocketry.rocket_item_loader": "Rocket Loader",
-  "item.adv_rocketry.rocket_item_loader": "Rocket Loader",
+  "block.adv_rocketry.rocket_item_loader": "Rocket Item Loader",
+  "item.adv_rocketry.rocket_item_loader": "Rocket Item Loader",
+
+  "block.adv_rocketry.rocket_fluid_loader": "Rocket Fluid Loader",
+  "item.adv_rocketry.rocket_fluid_loader": "Rocket Fluid Loader",
 
   "block.adv_rocketry.launch_station": "Launch Station",
   "item.adv_rocketry.launch_station": "Launch Station",

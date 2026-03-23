@@ -17,6 +17,7 @@ public class BlockEntities {
     public static final Supplier<BlockEntityType<EntityCargoHold>> ENTITY_CARGO_HOLD = BLOCK_ENTITIES.register("cargo_hold", () -> BlockEntityType.Builder.of(EntityCargoHold::new, Blocks.CARGO_HOLD.get()).build(null));
     public static final Supplier<BlockEntityType<EntityLaunchStation>> ENTITY_LAUNCH_STATION = BLOCK_ENTITIES.register("launch_station", () -> BlockEntityType.Builder.of(EntityLaunchStation::new, Blocks.LAUNCH_STATION.get()).build(null));
     public static final Supplier<BlockEntityType<EntityRocketItemLoader>> ENTITY_ROCKET_ITEM_LOADER = BLOCK_ENTITIES.register("rocket_item_loader", () -> BlockEntityType.Builder.of(EntityRocketItemLoader::new, Blocks.ROCKET_ITEM_LOADER.get()).build(null));
+    public static final Supplier<BlockEntityType<EntityRocketFluidLoader>> ENTITY_ROCKET_FLUID_LOADER = BLOCK_ENTITIES.register("rocket_fluid_loader", () -> BlockEntityType.Builder.of(EntityRocketFluidLoader::new, Blocks.ROCKET_FLUID_LOADER.get()).build(null));
 
     public static final Supplier<BlockEntityType<EntityAstrobodyDataProcessor>> ENTITY_ASTROBODY_DATA_PROCESSOR = BLOCK_ENTITIES.register("astrobody_data_processor", () -> BlockEntityType.Builder.of(EntityAstrobodyDataProcessor::new, Blocks.ASTROBODY_DATA_PROCESSOR.get()).build(null));
     public static final Supplier<BlockEntityType<EntityObservatory>> ENTITY_OBSERVATORY = BLOCK_ENTITIES.register("observatory", () -> BlockEntityType.Builder.of(EntityObservatory::new, Blocks.OBSERVATORY.get()).build(null));

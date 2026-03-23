@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "is_drain=false": {
+      "model": "arlib:block/block_fluid_input_block"
+    },
+    "is_drain=true": {
+      "model": "arlib:block/block_fluid_output_block"
+    }
+  }
+}

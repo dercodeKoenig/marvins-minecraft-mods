@@ -20,6 +20,7 @@ public class Blocks {
     public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
     public static final Supplier<Block> FUELING_STATION = BLOCKS.register("fueling_station", () -> new FuelingStation());
     public static final Supplier<Block> ROCKET_ITEM_LOADER = BLOCKS.register("rocket_item_loader", () -> new RocketItemLoader());
+    public static final Supplier<Block> ROCKET_FLUID_LOADER = BLOCKS.register("rocket_fluid_loader", () -> new RocketFluidLoader());
     public static final Supplier<Block> LAUNCH_STATION = BLOCKS.register("launch_station", () -> new LaunchStation());
 
     // rocket part

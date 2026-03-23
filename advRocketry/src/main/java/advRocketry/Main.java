@@ -120,6 +120,8 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_FUELING_STATION.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.inventory);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ITEM_LOADER.get(), (x, y) -> x.battery);
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_ROCKET_FLUID_LOADER.get(), (x, y) -> x.tank);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_FLUID_LOADER.get(), (x, y) -> x.battery);
 
         //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
         //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
@@ -223,6 +225,7 @@ public class Main {
             e.accept(Items.ITEM_ROCKET_FUEL_BUCKET.get());
             e.accept(Blocks.LAUNCH_STATION.get());
             e.accept(Blocks.ROCKET_ITEM_LOADER.get());
+            e.accept(Blocks.ROCKET_FLUID_LOADER.get());
 
             e.accept(Blocks.SPACE_STATION_ASSEMBLER.get());
             e.accept(Blocks.STATION_CONTROLLER.get());
