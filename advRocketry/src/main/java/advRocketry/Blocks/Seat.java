@@ -3,6 +3,7 @@ package advRocketry.Blocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -12,7 +13,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class Seat extends Block {
     public Seat() {
-        super(Properties.of().instabreak().noOcclusion());
+        super(Properties.of().instabreak().noOcclusion().sound(SoundType.WOOL));
     }
 
     VoxelShape myShape = Shapes.create(new AABB(0,0,0,1,0.25,1));

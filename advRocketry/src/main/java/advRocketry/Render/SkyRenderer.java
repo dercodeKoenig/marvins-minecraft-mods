@@ -80,6 +80,7 @@ public class SkyRenderer {
             float partialtick
     ) {
         RenderSystem.setShader(shaderUtils::getPlanetShader);
+        // TODO: mipmap is not supported by the normal simple texture that is used, maybe make custom texture
         TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
         texturemanager.getTexture(planetDimension.getTexture()).setFilter(true, true);
         RenderSystem.setShaderTexture(0, planetDimension.getTexture());

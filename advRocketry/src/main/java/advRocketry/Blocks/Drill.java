@@ -5,7 +5,7 @@ import net.minecraft.world.level.block.Block;
 
 public class Drill extends Block implements ICustomWeightBlock {
     public Drill() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
     }
 
     @Override

@@ -23,7 +23,7 @@ public class RocketItemLoader extends Block implements EntityBlock {
     public static BooleanProperty IS_DRAIN = BooleanProperty.create("is_drain");
 
     public RocketItemLoader() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
         BlockState state = getStateDefinition().any().setValue(IS_DRAIN, false);
         registerDefaultState(state);
     }

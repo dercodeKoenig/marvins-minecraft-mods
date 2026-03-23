@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 
 public class FuelTank extends Block implements ICustomWeightBlock {
     public FuelTank() {
-        super(Properties.of().noOcclusion());
+        super(Properties.of().noOcclusion().destroyTime(0.5f));
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.DOWN, false).setValue(BlockStateProperties.UP, false));
     }
 

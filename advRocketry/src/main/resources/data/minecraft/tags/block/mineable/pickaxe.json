@@ -3,6 +3,7 @@
   "values": [
     "adv_rocketry:moon_turf",
     "adv_rocketry:moon_turf_dark",
-    "adv_rocketry:dry_ice"
+    "adv_rocketry:dry_ice",
+    "adv_rocketry:launchpad"
   ]
 }

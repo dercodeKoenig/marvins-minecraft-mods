@@ -32,7 +32,7 @@ public class DryIceBlock extends Block {
     public static float epsilon = 0.001f; // the magnitude of change required to place more dry ice
 
     public DryIceBlock(Properties properties) {
-        super(properties.randomTicks());
+        super(properties.randomTicks().strength(0.2f));
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, false));
         registerDefaultState(defaultBlockState().setValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE, false));
     }

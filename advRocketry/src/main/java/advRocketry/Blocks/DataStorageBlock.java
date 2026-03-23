@@ -20,7 +20,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_DATA_STORAGE_BLOCK;
 
 public class DataStorageBlock extends BlockMultiblockPart implements EntityBlock {
     public DataStorageBlock() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
         this.isSpecialBlock = true;
     }
 

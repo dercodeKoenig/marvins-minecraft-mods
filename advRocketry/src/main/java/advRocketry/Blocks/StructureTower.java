@@ -17,7 +17,7 @@ import java.util.HashSet;
 
 public class StructureTower extends Block {
     public StructureTower() {
-        super(Properties.of().noOcclusion());
+        super(Properties.of().noOcclusion().destroyTime(0.5f).isRedstoneConductor((x,y,z) -> false));
     }
 
     @Override

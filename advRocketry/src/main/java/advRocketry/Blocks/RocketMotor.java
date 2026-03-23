@@ -5,7 +5,7 @@ import net.minecraft.world.level.block.Block;
 
 public class RocketMotor extends Block implements ICustomWeightBlock {
     public RocketMotor() {
-        super(Properties.of().noOcclusion());
+        super(Properties.of().noOcclusion().destroyTime(0.5f));
     }
 
     public float getThrust() {

@@ -16,7 +16,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 public class OxygenVent extends Block implements EntityBlock{
 
     public OxygenVent() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
     }
 
     @Override
