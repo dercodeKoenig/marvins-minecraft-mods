@@ -30,16 +30,17 @@ uniform float time; // time in seconds for noise offset
 
 in vec2 texcoord;
 in vec3 normalUniverseSpace;
-in vec3 localUpUniverseSpace;
 in vec3 viewDir;
 in vec3 normalModelSpace;
+in vec3 localUpUniverseSpace;
 
 out vec4 fragColor;
 
 void main() {
 
-    vec3 viewDirNormalized = normalize(viewDir);
-    vec3 normalModelSpaceNormalized = normalize(normalModelSpace);
+    vec3 V = normalize(viewDir);
+    vec3 N = normalize(normalUniverseSpace);
+    vec3 N_model = normalize(normalModelSpace);
 
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
     baseSurfaceColor = pow(baseSurfaceColor, vec3(2.2)); // gamma reverse
@@ -51,8 +52,6 @@ void main() {
     }
 
     vec3 totalReflectedLight = vec3(0.0);
-
-    vec3 N = normalize(normalUniverseSpace);
 
     // calculate clouds first, the value is independent from lights
     // the noise is extremly expensive and crashes fps significantly on integrated graphics
@@ -66,31 +65,33 @@ void main() {
         if (noiseOffset > - 0.9){
             vec3 warp;
             if (CloudWarp == 1){
-                warp = fbm_vec3(normalModelSpaceNormalized, 1, time * 0.002);
+                warp = fbm_vec3(N_model, 1, time * 0.002);
             }else{
-                warp = normalModelSpaceNormalized+vec3(time*0.001);
+                warp = N_model + vec3(time * 0.002);
             }
 
             for (int i = 0; i < CloudSampleSteps; i++) {
                 float noiseVal = cnoise(warp * freq);
-                cloudValue +=noiseVal * amp;
+                cloudValue += noiseVal * amp;
                 amp *= 0.5;
                 freq *= 2;
             }
         }
     }
+    vec3 cloudColorBase = pow(clamp(cloudValue, 0, 1), 2) * TargetCloudColor;
 
+    vec3 surfaceLightBase = baseSurfaceColor * TargetReflectiveTextureTintColor;
 
     // for atmosphere
     // how much of the edge (horizon) we see
-    float viewAngle = 1.0 - abs(dot(N, viewDirNormalized));
+    float viewAngle = 1.0 - abs(dot(N, V));
     // rim intensity (thicker with higher TargetAtmDensity)
     // the thing that glows on the side
     float rim = pow(viewAngle, 3);  // the more at the side the more atmosphere we will see
 
     vec3 atmLightMix =
     2 * rim * TargetSkyColor // the atm glow around the planet
-    + baseSurfaceColor; // the light scatters through atm and hits terrain. not for cloudy atmosphere, but this is what the texture is for!
+    + baseSurfaceColor * TargetReflectiveTextureTintColor; // the light scatters through atm and hits terrain
 
 
     for (int i = 0; i < LightCount; i++) {
@@ -98,17 +99,17 @@ void main() {
         float dist = length(LightVectors[i]);
 
         // the atm adds extra light after the normal falloff and uses the sky color/rim mix
-        float atmLightFactor = clamp(dot(N, L) * 0.8 + 0.2, 0.0, 1.0);
+        float atmLightFactor = max(0, dot(N, L) * 0.8 + 0.2);
         atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
-        vec3 atmLight = atmLightMix * atmLightFactor;
+        vec3 atmLight = atmLightFactor * atmLightMix;
 
         // the reflected light without atmosphere consideration, just surface and n°l
-        float NdotL = max(0,dot(N, L));
-        NdotL = pow(NdotL, 2);
-        vec3 surfaceLight = NdotL * baseSurfaceColor;
+        float surfaceLightFactor = max(0, dot(N, L));
+        surfaceLightFactor = pow(surfaceLightFactor, 2);
+        vec3 surfaceLight = surfaceLightFactor * surfaceLightBase;
 
         // clouds color
-        vec3 cloudLight = pow(clamp(cloudValue, 0, 1),2) * TargetCloudColor * atmLightFactor;
+        vec3 cloudLight = cloudColorBase * atmLightFactor;
 
         // blend surface light and atm light and clouds
         vec3 finalLight = cloudLight + mix(surfaceLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity));
@@ -116,7 +117,6 @@ void main() {
         // final reflected light for this star
         vec3 reflected =
         finalLight
-        * TargetReflectiveTextureTintColor
         * LightColors[i].rgb * LightColors[i].a
         / (dist * dist);
 
@@ -135,10 +135,15 @@ void main() {
         planetSkyHeight,
         playerHeight,
         normalize(localUpUniverseSpace),
-        viewDirNormalized,
+        V,
         LocalAtmDensity,
         LocalSunriseColor
     );
 
-    fragColor = vec4(totalReflectedLight + emitted, 1.0) * BrightnessMultiplier * vec4(atmFilter, 1);
+    vec3 finalColor =
+        (totalReflectedLight + emitted)
+        * atmFilter
+        * BrightnessMultiplier
+
+    fragColor = vec4(finalColor, 1.0);
 }
