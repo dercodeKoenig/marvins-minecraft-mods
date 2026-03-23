@@ -124,12 +124,12 @@ void main() {
 
         float distance = length(planetToLight);
 
-        float brightness = LightColors[i].a / (dist * dist);
+        float brightness = LightColors[i].a / (distance * distance);
         totalBrightness += brightness;
 
         vec3 L = normalize(LightVectors[i]);
 
-        vec3 C1 = LightColors[i].rgb  / brightness;
+        vec3 C1 = LightColors[i].rgb * brightness;
 
         float shadowFactor = getSoftShadowFactorApprox(
             position,
