@@ -21,6 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
@@ -82,7 +83,12 @@ public class SkyRenderer {
         RenderSystem.setShader(shaderUtils::getPlanetShader);
         // TODO: mipmap is not supported by the normal simple texture that is used, maybe make custom texture
         TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-        texturemanager.getTexture(planetDimension.getTexture()).setFilter(true, true);
+        AbstractTexture texture = texturemanager.getTexture(planetDimension.getTexture());
+        if(!(texture instanceof MipmapSimpleTexture)){
+            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(planetDimension.getTexture(), 6);
+            texturemanager.register(planetDimension.getTexture(), newTexture);
+            System.out.println("SkyRenderer registering mipmap texture for "+planetDimension.getTexture());
+        }
         RenderSystem.setShaderTexture(0, planetDimension.getTexture());
         ShaderInstance shader = RenderSystem.getShader();
 
