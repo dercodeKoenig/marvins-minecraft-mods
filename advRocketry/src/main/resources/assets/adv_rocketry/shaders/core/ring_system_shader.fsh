@@ -114,16 +114,22 @@ void main() {
 
     vec3 totalColor = vec3(0,0,0);
 
+    // see why this exists in planet shader
+    float totalBrightness = 0;
+
     for (int i = 0; i < LightCount; i++) {
 
         // Reconstruct light position and fragment->light direction
         vec3 planetToLight = LightVectors[i];
 
         float distance = length(planetToLight);
-        vec3 L = normalize(LightVectors[i]);
-        vec3 C = LightColors[i].rgb * LightColors[i].a;
 
-        vec3 C1 = C  / (distance * distance);
+        float brightness = LightColors[i].a / (dist * dist);
+        totalBrightness += brightness;
+
+        vec3 L = normalize(LightVectors[i]);
+
+        vec3 C1 = LightColors[i].rgb  / brightness;
 
         float shadowFactor = getSoftShadowFactorApprox(
             position,
@@ -175,6 +181,10 @@ void main() {
         float shineFactor = dot(normalize(position - planetCenter), L) * 0.5 + 0.7;
         shineFactor = pow(shineFactor, 2);
         totalColor += planetShine * shineFactor * 0.05;
+    }
+
+    if(totalBrightness < 1){
+        totalColor *= 1 / pow(totalBrightness, 0.5);
     }
 
 

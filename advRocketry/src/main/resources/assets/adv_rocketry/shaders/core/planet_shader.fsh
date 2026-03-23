@@ -94,9 +94,18 @@ void main() {
     + surfaceLightBase; // the light scatters through atm and hits terrain
 
 
+    // distant planets like saturn have maybe 1% of earth sunlight
+    // eyes would adapt slightly but i do not control the entire render pipeline
+    // so i will accumulate the entire star brightness and modify the output brightness with it
+    // (only modulate reflected light)
+    float totalBrightness = 0;
+
     for (int i = 0; i < LightCount; i++) {
         vec3 L = normalize(LightVectors[i]);
         float dist = length(LightVectors[i]);
+
+        float brightness = LightColors[i].a / (dist * dist);
+        totalBrightness += brightness;
 
         // the atm adds extra light after the normal falloff and uses the sky color/rim mix
         float atmLightFactor = max(0, dot(N, L) * 0.8 + 0.2);
@@ -117,11 +126,15 @@ void main() {
         // final reflected light for this star
         vec3 reflected =
         finalLight
-        * LightColors[i].rgb * LightColors[i].a
-        / (dist * dist);
+        * LightColors[i].rgb * brightness;
 
 
         totalReflectedLight += reflected;
+    }
+
+    if(totalBrightness < 1){
+        // do not divide by entire brightness to keep the falloff somewhat correct visually ( or sun would be blue from a star 400AU away )
+        totalReflectedLight *= 1 / pow(totalBrightness, 0.5);
     }
 
     vec3 emitted = vec3(0,0,0);
