@@ -216,6 +216,14 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
     }
 
+    public void reloadPropertiesFromConfig(){
+        System.out.println("[DimensionManager] Reloading dimension properties from main config - this will NOT remove any dimension already defined in your local world folder!");
+        Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.SAVE_DIR);
+        loadDimensionsFromDirectory(defaultDir);
+        for(Dimension d : dimensions.values()){
+            syncDimensionProperties(d);
+        }
+    }
 
     public void onServerStart() {
 

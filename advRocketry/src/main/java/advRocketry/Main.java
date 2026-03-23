@@ -20,6 +20,7 @@ import advRocketry.Worldgen.presets.MOON;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
@@ -36,6 +37,7 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -205,6 +207,17 @@ public class Main {
     void loadComplete(FMLLoadCompleteEvent e) {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
+    }
+
+void onRegisterCommands(RegisterCommandsEvent event) {
+        event.getDispatcher().register(
+                Commands.literal("adv_rocketry_reset_galaxy")
+                        .requires(source -> source.hasPermission(2))
+                        .executes((context) -> {
+                            DimensionManager.INSTANCE_SERVER.reloadPropertiesFromConfig();
+                            return 1;
+                        })
+        );
     }
 
     void addCreative(BuildCreativeModeTabContentsEvent e) {
