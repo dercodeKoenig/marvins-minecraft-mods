@@ -96,21 +96,21 @@ float getSoftShadowFactorApprox(
 
 void main() {
     if(texcoord.x < 0)
+        // too close to planet
         discard;
 
     float alphaMultiplier = 1;
     // TODO: tint color?, specular color?
 
     vec4 baseColor = texture(Sampler0, texcoord);
+    vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
 
     float alpha = baseColor.a * alphaMultiplier;
 
-    vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
+    vec3 N0 = normalize(normalUniverseSpace);
+    vec3 N = gl_FrontFacing ? N0 : -N0;
 
-    vec3 normalUniverseSpaceNormalized = normalize(normalUniverseSpace);
-    vec3 normalUniverseSpaceAdjusted = gl_FrontFacing ? normalUniverseSpaceNormalized : -normalUniverseSpaceNormalized;
-
-    vec3 viewDirNormalized = normalize(viewDir);
+    vec3 V = normalize(viewDir);
 
     vec3 totalColor = vec3(0,0,0);
 
@@ -123,7 +123,7 @@ void main() {
         vec3 L = normalize(LightVectors[i]);
         vec3 C = LightColors[i].rgb * LightColors[i].a;
 
-        vec3 C1 = C  / (distance*distance) * BrightnessMultiplier;
+        vec3 C1 = C  / (distance * distance);
 
         float shadowFactor = getSoftShadowFactorApprox(
             position,
@@ -134,33 +134,34 @@ void main() {
         );
 
         if(shadowFactor <= 0)
-        continue;
+            continue;
 
         C1 *= shadowFactor;
 
-        vec3 F0 = vec3(0.04);
-        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpaceNormalized, viewDirNormalized)), F0);
+        float NdotV = clamp(dot(N, V), -1, 1);
+        float NdotL = clamp(dot(L, N), -1, 1);
+        float LdotV = clamp(dot(L, V), -1, 1);
 
-        float NdotL = dot(L, normalUniverseSpaceAdjusted);
-        float LdotV = dot(L, viewDirNormalized);
+        vec3 F0 = vec3(0.04);
+        vec3 fr = fresnelSchlick(abs(NdotV), F0);
 
         // specular - bright when starlight reflects into my view
-        vec3 halfway = L - viewDirNormalized;
+        vec3 halfway = L - V;
         if(length(halfway) > 0.0001){
             halfway = normalize(halfway);
-            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), 10);
+            float reflectionMultiplier = pow(max(0, dot(halfway, N)), 10);
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
         // diffuse - bright when face is facing the star
-        float diffuse = max(0,NdotL*0.95+0.05);
-        totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
+        float diffuse = max(0, NdotL * 0.95 + 0.05);
+        totalColor+= diffuse * C1 * baseColorLinRGB * (1 - fr) ;
 
         // transmission
         // ok, LdotV should always be -1 to 1 and *0.5 +0.5 should always make it 0-1
         // BUT float precision can cause it to go negative and it blacks out entire regions of the screen from NAN
         // so ALWAYS CLAMP RESULTS!!!!
-        float transmission = pow(max(0,LdotV * 0.5 + 0.5), 50) * (1-0.9*abs(NdotL));
+        float transmission = pow(max(0, LdotV * 0.5 + 0.5), 50) * (1 - 0.9 * abs(NdotL));
         totalColor+= transmission * C1 * baseColorLinRGB;
 
         // Ambient light reflected from planet
@@ -171,7 +172,7 @@ void main() {
         // (optional) i could multiply it with planet reflective texture tint but i am lazy
         float distanceToPlanet = 1 + texcoord.x;
         vec3 planetShine = baseColorLinRGB * C1 / (distanceToPlanet * distanceToPlanet);
-        float shineFactor = dot(normalize(position-planetCenter), L) * 0.5 + 0.7;
+        float shineFactor = dot(normalize(position - planetCenter), L) * 0.5 + 0.7;
         shineFactor = pow(shineFactor, 2);
         totalColor += planetShine * shineFactor * 0.05;
     }
@@ -181,15 +182,15 @@ void main() {
         planetSkyHeight,
         playerHeight,
         normalize(localUpUniverseSpace),
-        viewDirNormalized,
+        V,
         LocalAtmDensity,
         LocalSunriseColor
     );
 
+    totalColor *= BrightnessMultiplier;
+
     totalColor *= atmFilter;
 
-    vec4 normalColor = vec4(totalColor, alpha);
-
-    fragColor = normalColor;
+    fragColor = vec4(totalColor, alpha);
 
 }
