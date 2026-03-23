@@ -28,6 +28,7 @@ void main() {
     textureColor = pow(textureColor, vec3(1.0 / 2.2));
 
     // Apply dithering (shift the noise to be between -0.5 and 0.5, then divide by 255)
+    // (without it there will be strange artifacts because colors are limited to 8bit)
     float noise = interleavedGradientNoise(gl_FragCoord.xy);
     textureColor += (noise - 0.5) / 255.0;
 
