@@ -180,7 +180,7 @@ void main() {
         vec3 planetShine = baseColorLinRGB * C1 / (distanceToPlanet * distanceToPlanet);
         float shineFactor = dot(normalize(position - planetCenter), L) * 0.5 + 0.7;
         shineFactor = pow(shineFactor, 2);
-        totalColor += planetShine * shineFactor * 0.05;
+        totalColor += planetShine * shineFactor * 0.2;
     }
 
     if(totalBrightness < 1){
