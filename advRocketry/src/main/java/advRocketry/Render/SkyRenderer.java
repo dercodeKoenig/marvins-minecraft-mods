@@ -300,7 +300,7 @@ public class SkyRenderer {
         }
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION_NORMAL);
         for (Face i : ringModel.groupObjects.get("Circle").faces) {
             i.addFaceForRender(new PoseStack(), b);
         }
