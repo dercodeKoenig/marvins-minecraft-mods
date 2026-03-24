@@ -2,6 +2,7 @@ package advRocketry.Render;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
+import ARLib.obj.Vertex;
 import ARLib.obj.WavefrontObject;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
@@ -84,10 +85,10 @@ public class SkyRenderer {
 
         TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
         AbstractTexture texture = texturemanager.getTexture(planetDimension.getTexture());
-        if(!(texture instanceof MipmapSimpleTexture)){
+        if (!(texture instanceof MipmapSimpleTexture)) {
             MipmapSimpleTexture newTexture = new MipmapSimpleTexture(planetDimension.getTexture(), 6);
             texturemanager.register(planetDimension.getTexture(), newTexture);
-            System.out.println("SkyRenderer registering mipmap texture for "+planetDimension.getTexture());
+            System.out.println("SkyRenderer registering mipmap texture for " + planetDimension.getTexture());
         }
         RenderSystem.setShaderTexture(0, planetDimension.getTexture());
         ShaderInstance shader = RenderSystem.getShader();
@@ -243,38 +244,53 @@ public class SkyRenderer {
         }
     }
 
+    public static void debugCommandRender() {
+        
+    }
+
     void createStarBackgroundBuffer() {
-        int starCount = 1000;
+        // making it too small makes it not work with the minecraft bobbing effect and stars will jump around
+        int starCount = 12000;
+        // need them far away or view bobbing will break shit
+        float BoxSize = 50000;
+        float scale = 5f;
+
+        WavefrontObject cube;
+        try {
+            cube = new WavefrontObject(ResourceLocation.fromNamespaceAndPath(Main.MODID, "models/environment/smooth_cube.obj"));
+        } catch (ModelFormatException ex) {
+            throw new RuntimeException(ex);
+        }
+
         vertexBufferStarBackground = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(starCount * 4 * 16);
-        BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, POSITION_COLOR);
-        float radius = 1000; // about 1 - 2 px on a full hd screen?
-        float scale = 1f;
-        Random random = new Random(42);
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(starCount * 8 * 32);
+        BufferBuilder bufferbuilder = new BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, STAR_BACKGROUND);
+
+
         for (int i = 0; i < starCount; i++) {
-            double theta = random.nextFloat() * 2.0 * Math.PI; // azimuth
-            double phi = Math.acos(2.0 * random.nextFloat() - 1.0); // polar angle
-            double x = Math.sin(phi) * Math.cos(theta);
-            double y = Math.sin(phi) * Math.sin(theta);
-            double z = Math.cos(phi);
+            // 1. Generate a random center
+            float cx = (float) ((Math.random() - 0.5) * BoxSize);
+            float cy = (float) ((Math.random() - 0.5) * BoxSize);
+            float cz = (float) ((Math.random() - 0.5) * BoxSize);
 
-            Vec3 position = new Vec3(x, y, z).normalize().scale(radius);
+            int color = RenderUtils.packColor(1, 1, 1, 1);
 
-            Vec3 normal1 = position.cross(new Vec3(0, 1, 0)).normalize().scale(1);
-            Vec3 normal2 = normal1.cross(position).normalize().scale(1);
+            for (Face face : cube.groupObjects.get("Cube").faces) {
+                for (int j = 0; j < face.vertices.length; ++j) {
+                    // Get the raw local vertex from the OBJ (e.g., -1.0 or 1.0)
+                    float vx = face.vertices[j].x * scale;
+                    float vy = face.vertices[j].y * scale;
+                    float vz = face.vertices[j].z * scale;
 
-            Vector3f point1 = position.add(normal1.scale(-scale)).add(normal2.scale(-scale)).toVector3f();
-            Vector3f point2 = position.add(normal1.scale(scale)).add(normal2.scale(-scale)).toVector3f();
-            Vector3f point3 = position.add(normal1.scale(scale)).add(normal2.scale(scale)).toVector3f();
-            Vector3f point4 = position.add(normal1.scale(-scale)).add(normal2.scale(scale)).toVector3f();
-
-            Vector4f color = new Vector4f(0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 0.9f + random.nextFloat() * 0.1f, 1f);
-            color.mul(0.0f + random.nextFloat() * 1f);
-
-            bufferbuilder.addVertex(point1.x, point1.y, point1.z).setColor(color.x, color.y, color.z, color.w);
-            bufferbuilder.addVertex(point2.x, point2.y, point2.z).setColor(color.x, color.y, color.z, color.w);
-            bufferbuilder.addVertex(point3.x, point3.y, point3.z).setColor(color.x, color.y, color.z, color.w);
-            bufferbuilder.addVertex(point4.x, point4.y, point4.z).setColor(color.x, color.y, color.z, color.w);
+                    // ADD THE CENTER TO THE POSITION
+                    // STORE THE LOCAL OFFSET IN THE NORMAL
+                    bufferbuilder
+                            .addVertex(cx + vx, cy + vy, cz + vz)
+                            .setColor(color)
+                            .setNormal(vx / scale, vy / scale, vz / scale);
+                    // We divide by scale so the normal is exactly -1.0 or 1.0
+                }
+            }
         }
 
         MeshData mesh = bufferbuilder.build();
@@ -350,7 +366,7 @@ public class SkyRenderer {
         }
 
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION);
         for (Face i : SkyBoxSphere.groupObjects.get("Icosphere").faces) {
             i.addFaceForRender(new PoseStack(), b);
         }
@@ -423,26 +439,37 @@ public class SkyRenderer {
     private void renderSpaceBodies(Matrix4f proj, Matrix4f viewMatrix, Matrix4f worldMatrix, float partialtick) {
 
         Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
+        Vec3 myDimensionPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
+
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
         // for star background
+        // it is important that we not use set setPerspective because it kills the bobbing effect already inside proj and makes things look very strange
         Matrix4f newProj2 = new Matrix4f(proj);
-        float n2 = 10f;
-        float f2 = 10000f;
+        float n2 = 100f;
+        float f2 = 1000000;
         newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
         newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
         // render star background first
         // no depth write required
         GlStateManager._depthMask(false);
+        Matrix4f starBackgroundModelMat = new Matrix4f();
+        starBackgroundModelMat.translate(myDimensionPositionInSpace.toVector3f().mul(-1));
+
         RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
         ShaderInstance shader = RenderSystem.getShader();
         shader.getUniform("ViewMat").set(viewMatrix);
         shader.getUniform("WorldMat").set(worldMatrix);
-        shader.getUniform("ModelMat").set(new Matrix4f());
+        shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
         // lots of atmosphere makes it dark
         float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1);
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
+        Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
+        shader.getUniform("WarpMovement").set(movement);
+        shader.getUniform("ScreenSize").set(windowWidth, windowHeight);
         shader.apply();
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();
@@ -452,13 +479,7 @@ public class SkyRenderer {
         // enable depth test for planet rendering so the rings render correctly only in front of the planet
         LEQUAL_DEPTH_TEST.setupRenderState();
 
-        // for the proj matrix effects like bobbing, the planets have to be rendered FAR away or it will bounce around
-        // we will scale translation and scale factor by this multiplier
-        float distance_multiplier = 1000000; // this should be 1AU but i am not sure how it would handle precision at such scale and no idea if something breaks so...
-
         float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
-
-        Vec3 myDimensionPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
 
         // Render planets / stars
         for (PlanetDimension otherDimension : PlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
@@ -480,8 +501,8 @@ public class SkyRenderer {
 
             if (isMyDimension) {
                 // special case: to correctly render the planet below, we need to add the up vector * radius * render multiplier to get the players location and not the planet center
-                float playerHeightAboveMyPlanetCenterAU =
-                        (float) (CelestialUtils.toAU(
+                double playerHeightAboveMyPlanetCenterAU =
+                        (CelestialUtils.toAU(
                                 ((PlanetDimension) myCurrentSpaceObject).getEarthRadiusMultiplier()
                                         * CelestialUtils.EARTH_RADIUS
                                         * Config.INSTANCE.planet_Render_Scale_Multiplier
@@ -497,9 +518,8 @@ public class SkyRenderer {
             Vec3 otherPosition = otherDimension.getPosition(partialtick);
 
             Vec3 relativePos = otherPosition.subtract(myCurrentPositionInSpace); // in Astronomical units
-            relativePos = relativePos.scale(distance_multiplier);
+            relativePos = relativePos.scale(CelestialUtils.ASTRONOMICAL_UNIT); // scale in m. float precision is relative so this should work
             planetMatrix.translate((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
-
 
             Vec3 modelUp = new Vec3(0, 1, 0);
             Vec3 targetNorth = otherDimension.getRotationAxis().normalize();
@@ -516,44 +536,44 @@ public class SkyRenderer {
 
             float brightness = 1.0f;
 
-            // to scale correctly we need to convert the radius (in earth radius multiplier) to astronomical units
+            // translation is in M, so scale has to be in M too.
             double trueRadius = CelestialUtils.fromEarthRadius(otherDimension.getEarthRadiusMultiplier());
-            double scale = CelestialUtils.toAU(trueRadius) * Config.INSTANCE.planet_Render_Scale_Multiplier;
-            // bc we do not render at true distance multiplier ( 1AU is too large to handle ) we need to also scale the size correctly
-            double adjustedGeometryScale = (scale * distance_multiplier);
+            double geometryScale = trueRadius * Config.INSTANCE.planet_Render_Scale_Multiplier;
 
             // to avoid star not being rendered because to small, it should be scaled to cover 1 or 2 px minimum
             // but the brightness has to be scaled too or it wil look strange
-            if (otherDimension.isStar()) {
-                // A threshold representing roughly 1-2 pixels on screen.
-                // Note: You may need to tweak this specific value slightly depending on your camera FOV!
-                double minApparentSize = 0.000000002;
 
-                double distanceAU = relativePos.length();
-                double apparentSizeRatio = scale / distanceAU;
-                if (apparentSizeRatio < minApparentSize) {
-                    // 1. Inflate the star so it hits the minimum pixel size
-                    double scaleCorrection = minApparentSize / apparentSizeRatio;
-                    adjustedGeometryScale *= scaleCorrection;
+            // A threshold representing roughly 1-2 pixels on screen.
+            // Note: You may need to tweak this specific value slightly depending on your camera FOV!
+            double minApparentSize = 0.001;
 
-                    // 2. Dim the star to conserve energy (inverse square law)
-                    // If we make it twice as big, it should be 4 times dimmer.
-                    brightness = (float) (1.0 / (scaleCorrection * scaleCorrection));
+            double distance = relativePos.length();
+            double apparentSizeRatio = geometryScale / distance;
+            if (apparentSizeRatio < minApparentSize) {
+                // 1. Inflate the star so it hits the minimum pixel size
+                double scaleCorrection = minApparentSize / apparentSizeRatio;
+                geometryScale *= scaleCorrection;
 
-                    // clamp brightness so it doesn't drop completely to 0 and disappear
-                    brightness = Math.max(brightness, 0.3f);
-                }
+                // 2. Dim the star to conserve energy (inverse square law)
+                // If we make it twice as big, it should be 4 times dimmer.
+                brightness = (float) (1.0 / (scaleCorrection * scaleCorrection));
+
+                // clamp brightness so it doesn't drop completely to 0 and disappear
+                brightness = Math.max(brightness, 0.01f);
+            }
+            if (apparentSizeRatio < minApparentSize / 5) {
+                // skip the render entirely
+                continue;
             }
 
-            planetMatrix.scale((float) adjustedGeometryScale);
+            planetMatrix.scale((float) geometryScale);
 
 
             // custom proj matrix for every draw because of high potential distance range
-            Matrix4f newProj = new Matrix4f(proj);
-            float n = (float) (relativePos.length() / 10000);
-            float f = (float) (relativePos.length() * 100);
-            newProj.set(2, 2, -(f + n) / (f - n));
-            newProj.set(3, 2, -(2f * f * n) / (f - n));
+            n2 = (float) (relativePos.length() / 10000);
+            f2 = (float) (relativePos.length() * 100);
+            newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
+            newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
             float myAtmDensity = myCurrentSpaceObject.getAtmosphereDensity();
 
@@ -561,7 +581,7 @@ public class SkyRenderer {
 
                 renderPlanet(
                         otherDimension,
-                        newProj,
+                        newProj2,
                         viewMatrix,
                         worldMatrix,
                         planetMatrix,
@@ -580,7 +600,7 @@ public class SkyRenderer {
             if (otherDimension.hasRings()) {
                 renderRingSystem(
                         otherDimension,
-                        newProj,
+                        newProj2,
                         viewMatrix,
                         worldMatrix,
                         planetMatrix,
@@ -588,7 +608,7 @@ public class SkyRenderer {
                         myAtmDensity,
                         myCurrentSpaceObject.getSunRiseColor(),
                         playerHeightAboveSea,
-                        (float) adjustedGeometryScale,
+                        (float) geometryScale,
                         1,
                         partialtick
                 );

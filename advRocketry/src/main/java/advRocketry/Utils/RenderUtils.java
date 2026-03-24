@@ -69,6 +69,16 @@ public class RenderUtils {
         vertexConsumer.addVertex(pose, x0, y0, z).setColor(color).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(n.x(), n.y(), n.z());
     }
 
+    public static int packColor(float r, float g, float b, float a) {
+        int R = (int)(Math.max(0, Math.min(1, r)) * 255.0f + 0.5f);
+        int G = (int)(Math.max(0, Math.min(1, g)) * 255.0f + 0.5f);
+        int B = (int)(Math.max(0, Math.min(1, b)) * 255.0f + 0.5f);
+        int A = (int)(Math.max(0, Math.min(1, a)) * 255.0f + 0.5f);
+
+        return (A << 24) | (R << 16) | (G << 8) | B;
+    }
+
+
     public static Vector3f gamma_reverse(Vector3f color){
         return new Vector3f(
                 (float) Math.pow(color.x, 2.2),

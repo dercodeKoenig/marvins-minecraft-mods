@@ -20,11 +20,12 @@ public class shaderUtils {
             .add("Position", VertexFormatElement.POSITION)
             .add("Normal", VertexFormatElement.NORMAL)
             .build();
-    public static VertexFormat POSITION_COLOR = VertexFormat.builder()
+
+    public static VertexFormat STAR_BACKGROUND = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
+            .add("Normal", VertexFormatElement.NORMAL) // using the normal space as center for the star cube for warp
             .add("Color", VertexFormatElement.COLOR)
             .build();
-
 
 
 

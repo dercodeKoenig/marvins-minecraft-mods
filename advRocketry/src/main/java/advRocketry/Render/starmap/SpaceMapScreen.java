@@ -335,8 +335,9 @@ public class SpaceMapScreen extends Screen {
     }
 
     private Matrix4f viewMat() {
-        // 1. Target is fixed to the map center
-        Vector3f target = new Vector3f(camX, 0, camY);
+        // 1. Target is fixed to the galaxy center
+        // Planets will be translated to match cam view to avoid float precision errors
+        Vector3f target = new Vector3f(0, 0, 0);
 
         // 2. Camera position (Eye)
         // We keep X/Z at the target, only Y changes based on pitch
@@ -345,7 +346,7 @@ public class SpaceMapScreen extends Screen {
         float offset = (float) (zoom * Math.sin(rotY));
 
         // We offset the eye on the Y-axis to create the tilt
-        Vector3f eye = new Vector3f(camX, eyeY, camY + offset);
+        Vector3f eye = new Vector3f(0, eyeY, 0 + offset);
 
         // 3. Up vector
         // Since we are only tilting, we keep the Up vector consistent.
@@ -364,8 +365,8 @@ public class SpaceMapScreen extends Screen {
         Matrix4f projMatrix = new Matrix4f();
         float fov = (float) Math.toRadians(45.0f); // less stretching
         float aspect = (float) windowWidth / windowHeight;
-        float near = (zoom+1) * 0.001f;
-        float far = (zoom+1) * 2;
+        float near = (zoom + 1) * 0.001f;
+        float far = (zoom + 1) * 2;
         projMatrix.setPerspective(fov, aspect, near, far);
         return projMatrix;
     }
@@ -520,7 +521,7 @@ public class SpaceMapScreen extends Screen {
             float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
-            if(renderScale / eyePos.distance(new Vector3f(pos.x, pos.y, pos.z)) < 0.0005 && !planet.isStar()){
+            if (renderScale / pos.length() < 0.0005 && !planet.isStar()) {
                 continue;
             }
 
@@ -784,7 +785,7 @@ public class SpaceMapScreen extends Screen {
             }
         }
         Vec3 pos = dimension.getPosition(partialTick);
-        // map requires y=0
-        return new Vec3(pos.x, 0, pos.z);
+        // map requires y=0, also lower translation or shit will break due to fp precision errors
+        return new Vec3(pos.x / 1000 - camX, 0,   pos.z / 1000 - camY);
     }
 }

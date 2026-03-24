@@ -178,7 +178,7 @@ public class DefaultGalaxy {
         priate.emissiveColor = new Vector3f(1f, 0.9f, 0.8f);
         priate.radiationIntensity = 1.5f;
         priate.textureBrightness = 3;
-        priate.position = new Vec3(500, 50, 20);
+        priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
 
 

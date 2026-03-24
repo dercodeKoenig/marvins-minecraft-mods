@@ -26,7 +26,8 @@ import static advRocketry.Utils.CelestialUtils.getPlanetRenderRadiusAU;
 
 public class SpaceStationDimension extends Dimension {
 
-    private static final double lerpFactor = 0.01;
+    private static double lerpFactorPosition = 0.05;
+    private static double lerpFactorRotation = 0.003f;
 
     // interpolate toward target for smooth movement / sync
     private Vec3 lazyPosition;
@@ -150,7 +151,7 @@ public class SpaceStationDimension extends Dimension {
 
     @Override
     public Vec3 getPosition(float partialTick) {
-        return lazyPosition.subtract(getMovement().scale(1-partialTick));
+        return lazyPosition.subtract(getMovement().scale(1 - partialTick));
     }
 
     @Override
@@ -327,7 +328,7 @@ public class SpaceStationDimension extends Dimension {
         // planets only variably for position is the global time, but here it is more difficult
         // i will send the properties to the client every few seconds
         // but only to the players on this dimension
-        if (GlobalTime.getGlobalTime() % (20 * 10) == 0) {
+        if (GlobalTime.getGlobalTime() % (20 * 1) == 0) {
             dimensionManager.syncDimensionProperties(this, true);
         }
         if (dimensionManager.isClientSide && !Objects.equals(getDimensionId(), ClientUtils.getPlayerLevel().dimension().location()))
@@ -342,10 +343,9 @@ public class SpaceStationDimension extends Dimension {
         tickPosition();
 
         Vec3 positionError = properties().position.subtract(lazyPosition);
-        Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactor));
+        Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactorPosition));
         this.movement = newLazyPosition.subtract(lazyPosition);
         this.lazyPosition = newLazyPosition;
-
     }
 
     public void tickPosition() {
@@ -370,7 +370,7 @@ public class SpaceStationDimension extends Dimension {
 
             // when too far away from target, leave orbit and go in space travel
             // ( for example when orbiting a large star where changing orbit distance would take forever )
-            if (getPosition(0).distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 60 * 20) {
+            if (position.distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 180 * 20) {
                 isCloseEnoughForOrbit = false;
             }
 
@@ -412,7 +412,8 @@ public class SpaceStationDimension extends Dimension {
                 Vec3 nextTargetPositionRelative = travelTarget.subtract(position);
 
                 double maxSpeed = Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20;
-                double distanceForMaxSpeed = Config.INSTANCE.station_SpaceTravel_Distance_For_Max_Speed;
+                double distanceForMaxSpeed = Config.INSTANCE.station_SpaceTravel_AU_Per_Second*10;
+                double e = Config.INSTANCE.station_SpaceTravel_Min_Speed;
 
                 // slow down when near target
                 double nearTargetMultiplier = Math.min(1, finalTargetPositionRelative.length() / distanceForMaxSpeed);
@@ -427,18 +428,33 @@ public class SpaceStationDimension extends Dimension {
 
                 maxSpeed *= Math.min(nearTargetMultiplier, nearOriginMultiplier);
 
-                double offTargetMultiplier = Math.max(0, finalTargetPositionRelative.normalize().dot(getFront()) - 0.98) * 50;
-
-                double e = Config.INSTANCE.station_SpaceTravel_Min_Speed;
+                // slow down when off target
                 double offNextTargetMultiplier = 1;
-                if (nextTargetPositionRelative.length() > 0.0001)
-                    offNextTargetMultiplier = Math.max(0, nextTargetPositionRelative.scale(10000).normalize().dot(getFront()) - 0.8) * 5;
+                double distanceNextTarget = nextTargetPositionRelative.length();
+                if (distanceNextTarget > 0.0001)
+                    offNextTargetMultiplier = nextTargetPositionRelative.scale(10000).normalize().dot(getFront());
 
-                double speed = ((maxSpeed + e * 5) * offTargetMultiplier + e) * offNextTargetMultiplier;
+                double offNextTargetMultiplier2 = Math.pow(Math.max(0, offNextTargetMultiplier - 0.95) * 20, 4);
+
+                double speed = maxSpeed * offNextTargetMultiplier2
+                        + e * 5 * offNextTargetMultiplier2;
 
                 setTargetFront(nextTargetPositionRelative, false);
 
+                double vel = Math.max(0, getMovement().length() * getMovement().scale(1000).normalize().dot(getFront()));
+                double aM = 0.1;
+                if(vel > Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20 / 100000)
+                    aM = 1;
+                double maxAcc = Math.max(0, (vel - 10 * e) * aM) + e;
+
+                double diff = speed - vel;
+                if (Math.abs(diff) > maxAcc) {
+                    diff = maxAcc * Math.signum(diff);
+                }
+                speed = vel + diff;
+
                 movement = getFront().scale(speed);
+                //System.out.println(vel / e + ":" + diff / maxAcc + ":" + speed);
             }
         } else {
             // station has no target
@@ -474,6 +490,7 @@ public class SpaceStationDimension extends Dimension {
                 if (planetToStation.length() < 0.000001)
                     planetToStation = new Vec3(Math.random() * 2 - 1, 0, Math.random() * 2 - 1);
                 properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.25));
+                System.out.println("fixed distance " + closestDistance / (planetRadius * 1.2));
             }
         }
     }
@@ -481,9 +498,16 @@ public class SpaceStationDimension extends Dimension {
     // mostly copied from rocket controller
     public void tickRotation() {
         double rotationRate = Config.INSTANCE.station_SpaceTravel_Rotation_Rate;
+
         Vec3 rotationCorrection;
-        if (properties().targetFront.dot(properties().front) > -0.99)
-            rotationCorrection = properties().targetFront.subtract(properties().front).scale(rotationRate);
+        if (properties().targetFront.dot(properties().front) > -0.99) {
+            Vec3 error = properties().targetFront.subtract(properties().front);
+            if(error.length() > rotationRate){
+                rotationCorrection = error.normalize().scale(rotationRate * (1 + error.length()*1));
+            }else{
+                rotationCorrection = error;
+            }
+        }
         else
             rotationCorrection = properties().up.cross(properties().front).scale(rotationRate / 10);
 
@@ -502,9 +526,9 @@ public class SpaceStationDimension extends Dimension {
 
 
         // interpolate the lazy values
-        rotationCorrection = properties().front.subtract(lazyFront).scale(lerpFactor);
+        rotationCorrection = properties().front.subtract(lazyFront).scale(lerpFactorRotation);
         lazyFront = lazyFront.add(rotationCorrection).normalize();
-        rotationCorrection = properties().up.subtract(lazyUp).scale(lerpFactor);
+        rotationCorrection = properties().up.subtract(lazyUp).scale(lerpFactorRotation);
         Vec3 lazyUpInvalid = lazyUp.add(rotationCorrection);
         lazyUp = lazyFront.cross(lazyUpInvalid.cross(lazyFront)).normalize();
 

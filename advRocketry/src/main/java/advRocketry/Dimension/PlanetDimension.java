@@ -584,7 +584,10 @@ public class PlanetDimension extends Dimension {
         // TODO: remove after testing
         properties().isKnown = true;
         if (getName().equals("Mustafar")) {
-            
+
+        }
+        if(getName().equals("Priate")) {
+
         }
     }
 
@@ -657,7 +660,7 @@ public class PlanetDimension extends Dimension {
             if (dimensionManager.get(starId) instanceof PlanetDimension star) {
                 Vec3 starPos = star.getPosition(0);
                 double distanceAU = starPos.distanceTo(planetPos);
-                solarFlux += star.getRadiationIntensity() / (distanceAU * distanceAU);
+                solarFlux += star.getRadiationIntensity() / (distanceAU * distanceAU + 0.00001);
             }
         }
 
@@ -680,7 +683,7 @@ public class PlanetDimension extends Dimension {
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double insulation = 1.0;
-        for (String id : List.of(GasRegistry.co2, GasRegistry.methane)) {
+        for (String id : List.of(GasRegistry.co2, GasRegistry.methane, GasRegistry.water)) {
             double bonus = GasRegistry.getInsulationBonus(id, getGasProperty(id).in_atm);
             insulation += bonus;
         }

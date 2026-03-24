@@ -1,7 +1,6 @@
 #version 150
 
 in vec3 Position;
-in vec3 Normal;
 
 uniform mat4 ViewMat;
 uniform mat4 ModelMat; // Model space to World space
@@ -21,7 +20,7 @@ void main() {
     mat3 rotWorldInv = transpose(mat3(WorldMat));
 
     // We use the local Position as the direction.
-    // This works perfectly for a sphere centered at 0,0,0.
+    // This works perfectly for a sphere centered at eye pos.
     vertexDirUniverseSpace = normalize(rotWorldInv * (rotModel * Position));
 
     // World up in universe space
