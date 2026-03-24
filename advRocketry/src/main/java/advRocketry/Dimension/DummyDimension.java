@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class DummyDimension extends Dimension {
 
-    public DummyDimension(DummyDimensionProperties properties, DimensionManager dimensionManager) {
+    public DummyDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
     }
 

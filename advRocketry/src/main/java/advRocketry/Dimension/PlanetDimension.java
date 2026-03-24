@@ -33,7 +33,7 @@ public class PlanetDimension extends Dimension {
     int lastSyncedTemperature100 = 0;
     boolean requiresSync = true;
 
-    public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
+    public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
     }
 
@@ -57,6 +57,16 @@ public class PlanetDimension extends Dimension {
 
     public void updateDimensionProperties(DimensionProperties properties) {
         super.updateDimensionProperties(properties);
+
+
+        // VERY important, because your position is usually 0 0 0 at start when you orbit another planet
+        // now, it can take 2 ticks until all planets have received their position but in tick 0 any planet might query the position of a star.
+        // for example temperature wants distance to star, but when all planets are at 0 0 0 first tick, this is 0 and /0 = nan
+        // this runs on server when dimensions are reloaded from main config
+        if(!dimensionManager.isClientSide) {
+            tickPosition(); // first tick sets position
+            tickPosition(); // second tick resets movement
+        }
     }
 
     private PlanetDimensionProperties properties() {
@@ -199,6 +209,9 @@ public class PlanetDimension extends Dimension {
     }
 
     public float computeCloudValue() {
+        if(properties().cloudValueOverwrite >= 0)
+            return Math.clamp(properties().cloudValueOverwrite, 0, 1);
+
         float totalCloud = 0;
 
         // 1. Get the density (0.0 for vacuum, 1.0 for Earth-like)
@@ -619,7 +632,6 @@ public class PlanetDimension extends Dimension {
         currentSpeed = properties().position.subtract(lastPosition);
     }
 
-// TODO; base temperature from gravity, close moons heat up
     public void tickTemperature() {
         if (isStar()) {
             properties().currentTemp = getRadiationIntensity() * 3000;

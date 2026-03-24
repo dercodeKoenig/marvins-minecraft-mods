@@ -14,13 +14,12 @@ import advRocketry.Render.*;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.Worldgen.BiomeConfig;
 
-import advRocketry.Worldgen.presets.HOT;
-import advRocketry.Worldgen.presets.HOT_DRY;
-import advRocketry.Worldgen.presets.MOON;
+import advRocketry.Worldgen.presets.*;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
@@ -81,6 +80,7 @@ public class Main {
         modEventBus.addListener(this::registerClientExtensions);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::registerTickets);
+        NeoForge.EVENT_BUS.addListener(this::registerCommands); // uses the other bus, but for me it belongs to mod loading and not game events
 
         Blocks.BLOCKS.register(modEventBus);
         Items.ITEMS.register(modEventBus);
@@ -109,6 +109,8 @@ public class Main {
         BiomeConfig.makePresetIfNotExist(HOT.name, HOT.create());
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
         BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
+        BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
+        BiomeConfig.makePresetIfNotExist(VOLCANIC.name, VOLCANIC.create());
 
     }
 
@@ -209,12 +211,15 @@ public class Main {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
     }
 
-void onRegisterCommands(RegisterCommandsEvent event) {
+    void registerCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_reset_galaxy")
                         .requires(source -> source.hasPermission(2))
                         .executes((context) -> {
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Reloading properties now... (this may lag)"));
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("This will NOT remove dimensions already loaded or saved in your world folder!"));
                             DimensionManager.INSTANCE_SERVER.reloadPropertiesFromConfig();
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Properties reloaded!"));
                             return 1;
                         })
         );

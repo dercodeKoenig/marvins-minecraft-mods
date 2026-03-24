@@ -86,22 +86,25 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         syncDimensionProperties(dimension, false);
     }
 
+    private String getSaveFile(ResourceLocation id){
+        return id.getNamespace() + "_" + id.getPath() + ".json";
+    }
 
-    public void saveDimensionProperties(Path saveDir) {
+    public void saveDimensionProperties(Path saveDir, List<DimensionProperties> properties) {
         // save current properties and if required, delete old properties to support dynamic deletion of dimensions
 
         // the save file name is namespace_path.json
         // if a user sets a planet config to planet1 it would still be saved as namespace_planet1 so we need to keep track of the saved filenames to remove invalid ones after save
-        HashMap<ResourceLocation, String> saveFiles = new HashMap<>();
+        HashMap<ResourceLocation, String> savedFiles = new HashMap<>();
 
-        System.out.println("[DimensionManager] saving current dimension properties...");
+        System.out.println("[DimensionManager] saving dimension properties...");
         try {
             Files.createDirectories(saveDir);
-            for (Dimension i : dimensions.values()) {
-                Path saveFile = Path.of(String.valueOf(saveDir), i.getDimensionId().getNamespace() + "_" + i.getDimensionId().getPath() + ".json");
-                String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i.properties);
+            for (DimensionProperties i : properties) {
+                Path saveFile = Path.of(String.valueOf(saveDir), getSaveFile(i.dimensionId));
+                String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i);
                 Files.writeString(saveFile, s);
-                saveFiles.put(i.getDimensionId(), saveFile.getFileName().toString());
+                savedFiles.put(i.dimensionId, saveFile.getFileName().toString());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -116,15 +119,13 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                     String content = Files.readString(file);
                     DimensionProperties props = new Gson().fromJson(content, DimensionProperties.class);
                     // delete if the dimension does not exist
-                    if (!dimensions.containsKey(props.dimensionId)) {
+                    if (!savedFiles.containsKey(props.dimensionId)) {
                         Files.delete(file);
-                        System.out.println("[DimensionManager] Deleted file for " + props.dimensionId + " because it no longer exists on server");
-                    }
-                    // delete if it was saved under different name
-                    if (saveFiles.containsKey(props.dimensionId)) {
-                        if (!saveFiles.get(props.dimensionId).equals(file.getFileName().toString())) {
+                        System.out.println("[DimensionManager] Deleted file for " + props.dimensionId + " because the dimension no longer exists or never existed");
+                    }else{
+                        if(!savedFiles.get(props.dimensionId).equals(file.getFileName().toString())){
                             Files.delete(file);
-                            System.out.println("[DimensionManager] Deleted file for " + props.dimensionId + " because it was saved under a different filename: " + saveFiles.get(props.dimensionId));
+                            System.out.println("[DimensionManager] Deleted file " + file.getFileName() + " because the dimension was saved under a different name: "+savedFiles.get(props.dimensionId));
                         }
                     }
 
@@ -145,7 +146,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
         // save dimension properties
         Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
-        saveDimensionProperties(saveDir);
+        saveDimensionProperties(saveDir, dimensions.values().stream().map(dim -> dim.properties).toList());
 
         // save dimensions
         System.out.println("[DimensionManager] unloading and saving dimensions...");
@@ -157,21 +158,33 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     }
 
-    private void loadDimensionFromString(String dimensionProperties) {
+    private DimensionProperties createPropertiesFromString(String dimensionProperties){
         Gson gson = new Gson();
         DimensionProperties propsBase = gson.fromJson(dimensionProperties, DimensionProperties.class);
         if (propsBase.type == DimensionProperties.DimensionType.PLANET) {
-            PlanetDimensionProperties planetProps = gson.fromJson(dimensionProperties, PlanetDimensionProperties.class);
-            if (dimensions.containsKey(planetProps.dimensionId)) {
-                dimensions.get(planetProps.dimensionId).updateDimensionProperties(planetProps);
+            return gson.fromJson(dimensionProperties, PlanetDimensionProperties.class);
+        }
+        if (propsBase.type == DimensionProperties.DimensionType.DUMMY) {
+            return gson.fromJson(dimensionProperties, DummyDimensionProperties.class);
+        }
+        if (propsBase.type == DimensionProperties.DimensionType.SPACE_STATION) {
+            return gson.fromJson(dimensionProperties, SpaceStationDimensionProperties.class);
+        }
+        return propsBase;
+    }
+
+    private void loadDimensionFromString(String dimensionProperties) {
+        DimensionProperties properties = createPropertiesFromString(dimensionProperties);
+        if (properties.type == DimensionProperties.DimensionType.PLANET) {
+            if (dimensions.containsKey(properties.dimensionId)) {
+                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
             } else {
-                PlanetDimension dimension = new PlanetDimension(planetProps, this);
+                PlanetDimension dimension = new PlanetDimension(properties, this);
                 dimensions.put(dimension.getDimensionId(), dimension);
                 System.out.println("[DimensionManager] created PlanetDimension for " + dimension.getDimensionId());
             }
         }
-        if (propsBase.type == DimensionProperties.DimensionType.DUMMY) {
-            DummyDimensionProperties properties = gson.fromJson(dimensionProperties, DummyDimensionProperties.class);
+        if (properties.type == DimensionProperties.DimensionType.DUMMY) {
             if (dimensions.containsKey(properties.dimensionId)) {
                 dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
             } else {
@@ -180,8 +193,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                 System.out.println("[DimensionManager] created DummyDimension for " + dummyDimension.getDimensionId());
             }
         }
-        if (propsBase.type == DimensionProperties.DimensionType.SPACE_STATION) {
-            SpaceStationDimensionProperties properties = gson.fromJson(dimensionProperties, SpaceStationDimensionProperties.class);
+        if (properties.type == DimensionProperties.DimensionType.SPACE_STATION) {
             if (dimensions.containsKey(properties.dimensionId)) {
                 dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
             } else {
@@ -225,28 +237,36 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
     }
 
+    public void resetDefaultGalaxy(Path defaultDir){
+        System.out.println("[DimensionManager] creating default galaxy...");
+        List<String> defaultGalaxy = DefaultGalaxy.createDefaultGalaxy();
+        List<DimensionProperties> properties = new LinkedList<>();
+        for (String s : defaultGalaxy) {
+            properties.add(createPropertiesFromString(s));
+        }
+        saveDimensionProperties(defaultDir, properties);
+    }
+
     public void onServerStart() {
 
         dimensions = new HashMap<>(); // clear from old sessions
 
+        boolean debug_forceDefaultGalaxy = true;
+
         Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
         Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.SAVE_DIR);
 
-        boolean debug_forceDefaultGalaxy = false;
+        // init default galaxy
+        if(!Files.exists(defaultDir) || debug_forceDefaultGalaxy){
+            resetDefaultGalaxy(defaultDir);
+        }
 
-        if (Files.exists(worldDir) && !debug_forceDefaultGalaxy) {
+        if (Files.exists(worldDir)) {
             System.out.println("[DimensionManager] Loading dimensions from world path...");
             loadDimensionsFromDirectory(worldDir);
-        } else if (Files.exists(defaultDir) && !debug_forceDefaultGalaxy) {
+        } else if (Files.exists(defaultDir)) {
             System.out.println("[DimensionManager] Loading dimensions from default config...");
             loadDimensionsFromDirectory(defaultDir);
-        } else {
-            System.out.println("[DimensionManager] No saved dimensions found, creating default galaxy...");
-            List<String> defaultGalaxy = DefaultGalaxy.createDefaultGalaxy();
-            for (String s : defaultGalaxy) {
-                loadDimensionFromString(s);
-            }
-            saveDimensionProperties(defaultDir);
         }
 
         // add the rocket travel dimension
