@@ -109,6 +109,9 @@ public class SkyRenderer {
 
         shader.getUniform("TargetAtmDensity").set(planetDimension.getAtmosphereDensity());
 
+        Vector3f TargetSunriseColor = RenderUtils.gamma_reverse(planetDimension.getSunRiseColor());
+        shader.getUniform("TargetSunriseColor").set(TargetSunriseColor);
+
         Vector3f TargetSkyColor = RenderUtils.gamma_reverse(planetDimension.getSkyColor());
         shader.getUniform("TargetSkyColor").set(TargetSkyColor);
 

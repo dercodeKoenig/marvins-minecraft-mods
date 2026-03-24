@@ -16,6 +16,7 @@ uniform float textureBrightness;        // float that scales only texture bright
 uniform float LocalAtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
+uniform vec3 TargetSunriseColor;  // tint for clouds
 uniform vec3 TargetSkyColor;       // target planets sky color
 uniform vec3 TargetCloudColor;      // cloud color of the target planet
 uniform float TargetCloudValue;       // how much clouds to render, 0 - 1
@@ -78,9 +79,9 @@ void main() {
             }
         }
     }
-    vec3 cloudColorBase = pow(clamp(cloudValue, 0, 1), 2) * TargetCloudColor;
-
-    vec3 surfaceLightBase = baseSurfaceColor * TargetReflectiveTextureTintColor;
+    float extraCloud = max(0,cloudValue - 0.8); // this avoids flat clouds by giving them some more color
+    cloudValue = clamp(cloudValue, 0, 1);
+    cloudValue = pow(cloudValue, 3);
 
     // for atmosphere
     // how much of the edge (horizon) we see
@@ -88,10 +89,7 @@ void main() {
     // rim intensity (thicker with higher TargetAtmDensity)
     // the thing that glows on the side
     float rim = pow(viewAngle, 3);  // the more at the side the more atmosphere we will see
-
-    vec3 atmLightMix =
-    2 * rim * TargetSkyColor // the atm glow around the planet
-    + surfaceLightBase; // the light scatters through atm and hits terrain
+    vec3 atmGlow = 2 * rim * TargetSkyColor * TargetAtmDensity / (1 + TargetAtmDensity); // the atm glow around the planet
 
 
     // distant planets like saturn have maybe 1% of earth sunlight
@@ -107,27 +105,50 @@ void main() {
         float brightness = LightColors[i].a / (dist * dist);
         totalBrightness += brightness;
 
+        float NdotL = dot(N, L);
+
         // the atm adds extra light after the normal falloff and uses the sky color/rim mix
-        float atmLightFactor = max(0, dot(N, L) * 0.8 + 0.2);
+        float atmLightFactor = max(0, NdotL * 0.8 + 0.2);
         atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
-        vec3 atmLight = atmLightFactor * atmLightMix;
 
         // the reflected light without atmosphere consideration, just surface and n°l
-        float surfaceLightFactor = max(0, dot(N, L));
+        float surfaceLightFactor = max(0, NdotL);
         surfaceLightFactor = pow(surfaceLightFactor, 2);
-        vec3 surfaceLight = surfaceLightFactor * surfaceLightBase;
 
-        // clouds color
-        vec3 cloudLight = cloudColorBase * atmLightFactor;
+        // mix surface light
+        // when no atmosphere use ndotl,
+        // when atmosphere, extend the ndotl because atm scatters light past the 0 line
+        float NdotLmix = mix(surfaceLightFactor, atmLightFactor, TargetAtmDensity / (1 + TargetAtmDensity));
+        vec3 surfaceLight = baseSurfaceColor * TargetReflectiveTextureTintColor * NdotLmix;
+
+        // clouds color are higher up and use the extended dot
+        // the following logic aims to keep clouds nice and bright for the day side
+        // but have a smooth falloff and sunset tint toward the dark side
+        float cloudLightFactorExtended = max(0, NdotL * 0.8 + 0.2); // extend for sunset and smooth falloff
+        cloudLightFactorExtended = pow(cloudLightFactorExtended, 1.5); // smooth falloff
+        float cloudHorizonFactor = pow(1 - cloudLightFactorExtended, 20); // how much clouds are at or behind horizon
+        float sunriseColorMax = max(TargetSunriseColor.r, max(TargetSunriseColor.g, TargetSunriseColor.b));
+        vec3 scaledSunsetTint = TargetSunriseColor / max(1, sunriseColorMax); // normalize hdr colors to 0-1
+        vec3 cloudLight = TargetCloudColor * (1+extraCloud) *
+                            (
+                            cloudLightFactorExtended * (1-cloudHorizonFactor) +
+                            cloudLightFactorExtended * cloudHorizonFactor * scaledSunsetTint
+                            );
 
         // blend surface light and atm light and clouds
-        vec3 finalLight = cloudLight + mix(surfaceLight, atmLight, TargetAtmDensity / (1+TargetAtmDensity));
+        // clouds cover surface, so when we add clouds, we need to remove surface color
+        //vec3 surfaceCloudMix = mix(surfaceLight, cloudLight, cloudValue);
+        vec3 surfaceCloudMix = surfaceLight * (1-cloudValue) + cloudLight * cloudValue;
 
-        // final reflected light for this star
+        // atmosphere glow
+        vec3 atmLight = atmGlow * atmLightFactor;
+
+        // add atmosphere glow to the surface mix
+        vec3 finalLight = surfaceCloudMix + atmLight;
+
+        // final reflected light computed using this star
         vec3 reflected =
-        finalLight
-        * LightColors[i].rgb * brightness;
-
+        finalLight * LightColors[i].rgb * brightness;
 
         totalReflectedLight += reflected;
     }
@@ -144,6 +165,16 @@ void main() {
         emitted = starColor * starBrightness;
     }
 
+    // Extract the "Overbright" parts as self-emission
+    // Anything that exceeds 1.0 after textureBrightness is applied becomes a light source and glows independent of star light
+    vec3 textureEmission = max(0,(1 - cloudValue)) * max(vec3(0.0), baseSurfaceColor - vec3(1));
+
+    // some ambient air glow or whatever
+    vec3 airGlow1 = TargetSkyColor * TargetAtmDensity / (1+TargetAtmDensity) * viewAngle * 0.005;
+    vec3 surfaceGlow = (1.0 - cloudValue) * airGlow1 * baseSurfaceColor;
+    vec3 cloudGlow = cloudValue * airGlow1 * TargetCloudColor;
+    vec3 airglow = surfaceGlow + cloudGlow;
+
     vec3 atmFilter = getAtmFilter(
         planetSkyHeight,
         playerHeight,
@@ -154,7 +185,7 @@ void main() {
     );
 
     vec3 finalColor =
-        (totalReflectedLight + emitted)
+        (totalReflectedLight + emitted + textureEmission + airglow)
         * atmFilter
         * BrightnessMultiplier;
 
