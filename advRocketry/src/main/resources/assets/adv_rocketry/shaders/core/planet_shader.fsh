@@ -61,7 +61,7 @@ void main() {
     if(isLocalPlanet != 1 && CloudSampleSteps > 0){
         float amp = 0.8;
         float freq = 2;
-        float noiseOffset = pow(TargetCloudValue, 0.5) * 2 - 1;
+        float noiseOffset = pow(max(0, TargetCloudValue), 0.5) * 2 - 1;
         cloudValue = noiseOffset;
         if (noiseOffset > - 0.9){
             vec3 warp;
@@ -126,7 +126,7 @@ void main() {
         // but have a smooth falloff and sunset tint toward the dark side
         float cloudLightFactorExtended = max(0, NdotL * 0.8 + 0.2); // extend for sunset and smooth falloff
         cloudLightFactorExtended = pow(cloudLightFactorExtended, 1.5); // smooth falloff
-        float cloudHorizonFactor = pow(1 - cloudLightFactorExtended, 20); // how much clouds are at or behind horizon
+        float cloudHorizonFactor = pow(max(0, 1 - cloudLightFactorExtended), 20); // how much clouds are at or behind horizon
         float sunriseColorMax = max(TargetSunriseColor.r, max(TargetSunriseColor.g, TargetSunriseColor.b));
         vec3 scaledSunsetTint = TargetSunriseColor / max(1, sunriseColorMax); // normalize hdr colors to 0-1
         vec3 cloudLight = TargetCloudColor * (1+extraCloud) *
