@@ -404,7 +404,10 @@ public class SpaceMapScreen extends Screen {
 
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
             Vector3f planetWorldPos = getPlanetTranslation(planet, pTicks);
-            float renderScale = getPlanetRenderScale(planet) * 1.05f;
+            float renderScale = getPlanetRenderScale(planet);
+
+            if (tooSmallToRender(planetWorldPos, renderScale))
+                continue;
 
             // 4. Pass RAW pixels and RAW window size to the check
             if (isHoveringPlanet(planetWorldPos, renderScale)) {
@@ -418,45 +421,67 @@ public class SpaceMapScreen extends Screen {
     private boolean isHoveringPlanet(Vector3f planetPos, float radius) {
 
         // 1. Get RAW pixel coordinates from Minecraft's MouseHandler
-        // 'mouseX' from the method is scaled (e.g. 400), but we need pixels (e.g. 1920)
         double rawX = Minecraft.getInstance().mouseHandler.xpos();
         double rawY = Minecraft.getInstance().mouseHandler.ypos();
+
+        // The amount of pixels we want to extend the hitbox by
+        double pixelPadding = 3.0;
 
         // 2. Get RAW window dimensions
         int winW = Minecraft.getInstance().getWindow().getScreenWidth();
         int winH = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        // 3. Recreate matrices (Must match your render() exactly)
+        // 3. Recreate matrices
         Matrix4f view = viewMat();
         Matrix4f proj = projMat();
+        Matrix4f invVP = new Matrix4f(proj).mul(view).invert();
 
-        // 1. Convert Raw Pixel to NDC
+        // 4. Convert Raw Pixel to NDC (Original Mouse)
         float x = (float) (2.0f * rawX / winW - 1.0f);
         float y = (float) (1.0f - 2.0f * rawY / winH);
 
-        // 2. Unproject to find the Ray
-        Matrix4f invVP = new Matrix4f(proj).mul(view).invert();
+        // Calculate NDC for an offset mouse (e.g., 3 pixels to the right)
+        float xOffset = (float) (2.0f * (rawX + pixelPadding) / winW - 1.0f);
 
-        // We shoot from the Near Plane to the Far Plane
+        // 5. Unproject the Original Ray
         Vector4f near = new Vector4f(x, y, -1.0f, 1.0f);
         Vector4f far = new Vector4f(x, y, 1.0f, 1.0f);
-
         invVP.transform(near);
         invVP.transform(far);
-
         near.div(near.w);
         far.div(far.w);
 
         Vector3d rayOrigin = new Vector3d(near.x, near.y, near.z);
         Vector3d rayDir = new Vector3d(far.x - near.x, far.y - near.y, far.z - near.z).normalize();
 
-        // 3. Ray-Sphere Intersection
+        // 6. Unproject the Offset Ray (to figure out how big 3 pixels are in 3D)
+        Vector4f nearOffset = new Vector4f(xOffset, y, -1.0f, 1.0f);
+        Vector4f farOffset = new Vector4f(xOffset, y, 1.0f, 1.0f);
+        invVP.transform(nearOffset);
+        invVP.transform(farOffset);
+        nearOffset.div(nearOffset.w);
+        farOffset.div(farOffset.w);
+
+        Vector3d rayOriginOffset = new Vector3d(nearOffset.x, nearOffset.y, nearOffset.z);
+        Vector3d rayDirOffset = new Vector3d(farOffset.x - nearOffset.x, farOffset.y - nearOffset.y, farOffset.z - nearOffset.z).normalize();
+
+        // 7. Calculate Dynamic Padding
         Vector3d oc = new Vector3d(rayOrigin).sub(planetPos);
+        double distToPlanet = oc.length();
+
+        // Calculate where both rays are at the specific depth of the planet
+        Vector3d hitOriginal = new Vector3d(rayOrigin).add(new Vector3d(rayDir).mul(distToPlanet));
+        Vector3d hitOffset = new Vector3d(rayOriginOffset).add(new Vector3d(rayDirOffset).mul(distToPlanet));
+
+        // The distance between these two 3D points is exactly our pixel padding in world-space
+        double worldPadding = hitOriginal.distance(hitOffset);
+        double paddedRadius = radius + worldPadding;
+
+        // 8. Ray-Sphere Intersection with Padded Radius
         double b = oc.dot(rayDir);
-        double c = oc.dot(oc) - radius * radius;
+        double c = oc.dot(oc) - (paddedRadius * paddedRadius);
         double discriminant = b * b - c;
 
-        // If discriminant < 0, the ray missed entirely.
         return (discriminant > 0);
     }
 
@@ -535,7 +560,7 @@ public class SpaceMapScreen extends Screen {
             float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
-            if (renderScale / pos.length() < 0.0005) {
+            if (tooSmallToRender(pos, renderScale)) {
                 continue;
             }
 
@@ -753,6 +778,10 @@ public class SpaceMapScreen extends Screen {
 
     public Vector3f getPlanetTranslation(Dimension planet, float pTicks) {
         return getPositionScaled(planet, pTicks).toVector3f();
+    }
+
+    public boolean tooSmallToRender(Vector3f pos, float renderScale){
+        return renderScale / pos.length() < 0.0005;
     }
 
     public float getPlanetRenderScale(PlanetDimension planet) {
