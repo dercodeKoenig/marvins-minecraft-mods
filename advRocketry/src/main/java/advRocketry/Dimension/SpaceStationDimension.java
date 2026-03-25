@@ -41,6 +41,9 @@ public class SpaceStationDimension extends Dimension {
     private long lastPropertiesSyncTime = 0;
 
     private Vec3 movement = Vec3.ZERO;
+    private Vec3 movementFrontRot = Vec3.ZERO;
+    private Vec3 movementUpRot = Vec3.ZERO;
+
     private boolean isInOrbit;
     private boolean isInSpaceTravel;
 
@@ -168,10 +171,10 @@ public class SpaceStationDimension extends Dimension {
     public AxisDirections getGlobalAxisDirections(float partialTick) {
         // don't ask me why, 180 is just the offset that works
         double angleDeg = properties().frontFacing.toYRot() + 180;
-        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(), getUp(), angleDeg);
+        Vec3 frontRotatedToFacing = CelestialUtils.rotate(getFront(partialTick), getUp(partialTick), angleDeg);
         return new AxisDirections(
                 frontRotatedToFacing,
-                getUp()
+                getUp(partialTick)
         );
     }
 
@@ -285,13 +288,12 @@ public class SpaceStationDimension extends Dimension {
             dimensionManager.syncDimensionProperties(this);
     }
 
-    public Vec3 getFront() {
-        // TODO: make use of partial tick for smooth movement similar to how position does it!!!!!!
-        return lazyFront;
+    public Vec3 getFront(float partialTick) {
+        return lazyFront.subtract(movementFrontRot.scale(1-partialTick));
     }
 
-    public Vec3 getUp() {
-        return lazyUp;
+    public Vec3 getUp(float partialTick) {
+        return lazyUp.subtract(movementUpRot.scale(1-partialTick));
     }
 
     public void setRotationSettings(double yaw, double roll, double pitch, SpaceStationDimensionProperties.RotationMode mode) {
@@ -342,11 +344,6 @@ public class SpaceStationDimension extends Dimension {
 
         tickRotation();
         tickPosition();
-
-        Vec3 positionError = properties().position.subtract(lazyPosition);
-        Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactorPosition));
-        this.movement = newLazyPosition.subtract(lazyPosition);
-        this.lazyPosition = newLazyPosition;
     }
 
     public void tickPosition() {
@@ -433,7 +430,7 @@ public class SpaceStationDimension extends Dimension {
                 double offNextTargetMultiplier = 1;
                 double distanceNextTarget = nextTargetPositionRelative.length();
                 if (distanceNextTarget > 0.0001)
-                    offNextTargetMultiplier = nextTargetPositionRelative.scale(10000).normalize().dot(getFront());
+                    offNextTargetMultiplier = nextTargetPositionRelative.scale(10000).normalize().dot(getFront(1));
 
                 double offNextTargetMultiplier2 = Math.pow(Math.max(0, offNextTargetMultiplier - 0.95) * 20, 4);
 
@@ -442,7 +439,7 @@ public class SpaceStationDimension extends Dimension {
 
                 setTargetFront(nextTargetPositionRelative, false);
 
-                double vel = Math.max(0, getMovement().length() * getMovement().scale(1000).normalize().dot(getFront()));
+                double vel = Math.max(0, getMovement().length() * getMovement().scale(1000).normalize().dot(getFront(1)));
                 double aM = 0.1;
                 if(vel > Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20 / 100000)
                     aM = 1;
@@ -454,7 +451,7 @@ public class SpaceStationDimension extends Dimension {
                 }
                 speed = vel + diff;
 
-                movement = getFront().scale(speed);
+                movement = getFront(1).scale(speed);
                 //System.out.println(vel / e + ":" + diff / maxAcc + ":" + speed);
             }
         } else {
@@ -465,7 +462,7 @@ public class SpaceStationDimension extends Dimension {
 
         properties().position = position.add(movement);
 
-        // avoid collision with other planets
+        // avoid collision with other planets -----------------------
         // for performance, i only check against closest planet.
         // unless the second closes planet has a giant radius it should work well
         PlanetDimension closestPlanet = null;
@@ -494,6 +491,12 @@ public class SpaceStationDimension extends Dimension {
                 System.out.println("fixed distance " + closestDistance / (planetRadius * 1.2));
             }
         }
+
+        // lazy movement / movement capture -----------------
+        Vec3 positionError = properties().position.subtract(lazyPosition);
+        Vec3 newLazyPosition = lazyPosition.add(positionError.scale(lerpFactorPosition));
+        this.movement = newLazyPosition.subtract(lazyPosition);
+        this.lazyPosition = newLazyPosition;
     }
 
     // mostly copied from rocket controller
@@ -527,16 +530,23 @@ public class SpaceStationDimension extends Dimension {
 
 
         // interpolate the lazy values
+        Vec3 oldLazyFront = lazyFront;
+        Vec3 oldLazyUp = lazyUp;
         rotationCorrection = properties().front.subtract(lazyFront).scale(lerpFactorRotation);
         lazyFront = lazyFront.add(rotationCorrection).normalize();
         rotationCorrection = properties().up.subtract(lazyUp).scale(lerpFactorRotation);
         Vec3 lazyUpInvalid = lazyUp.add(rotationCorrection);
         lazyUp = lazyFront.cross(lazyUpInvalid.cross(lazyFront)).normalize();
 
+        movementFrontRot = lazyFront.subtract(oldLazyFront);
+        movementUpRot = lazyUp.subtract(oldLazyUp);
+
         // move toward the target rotation given in the settings
         if (!isInSpaceTravel) {
             tickRotationFromSettings();
         }
+
+
     }
 
     public void tickRotationFromSettings() {
