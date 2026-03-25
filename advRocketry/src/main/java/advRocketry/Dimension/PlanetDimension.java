@@ -3,12 +3,16 @@ package advRocketry.Dimension;
 import advRocketry.Config;
 import advRocketry.GlobalTime;
 import advRocketry.Registry.GasRegistry;
+import advRocketry.Render.MipmapSimpleTexture;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
 import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -292,7 +296,15 @@ public class PlanetDimension extends Dimension {
     }
 
     public ResourceLocation getTexture() {
-        return properties().texture;
+        ResourceLocation texture = properties().texture;
+        // ensure it is using the mipmap texture
+        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+        if (!(texturemanager.getTexture(texture) instanceof MipmapSimpleTexture)) {
+            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(texture, 6);
+            texturemanager.register(texture, newTexture);
+            System.out.println("registering mipmap texture for " + texture);
+        }
+        return texture;
     }
 
     public Vec3 getRotationAxis() {

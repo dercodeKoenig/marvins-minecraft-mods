@@ -80,13 +80,6 @@ public class SkyRenderer {
     ) {
         RenderSystem.setShader(shaderUtils::getPlanetShader);
 
-        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-        AbstractTexture texture = texturemanager.getTexture(planetDimension.getTexture());
-        if (!(texture instanceof MipmapSimpleTexture)) {
-            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(planetDimension.getTexture(), 6);
-            texturemanager.register(planetDimension.getTexture(), newTexture);
-            System.out.println("SkyRenderer registering mipmap texture for " + planetDimension.getTexture());
-        }
         RenderSystem.setShaderTexture(0, planetDimension.getTexture());
         ShaderInstance shader = RenderSystem.getShader();
 
