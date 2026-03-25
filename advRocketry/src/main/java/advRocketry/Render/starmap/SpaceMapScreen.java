@@ -57,7 +57,6 @@ public class SpaceMapScreen extends Screen {
     public void tick() {
         super.tick();
 
-
         if (selectedPlanet != null) {
             String actionBtnText = getInteractText(selectedPlanet.getDimensionId());
             if (actionBtnText != null && !actionBtnText.isEmpty()) {
@@ -76,6 +75,7 @@ public class SpaceMapScreen extends Screen {
 
         // depth sort the planets
         SpaceMapPlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
+
     }
 
     public void interact(ResourceLocation dimensionId) {
@@ -159,8 +159,13 @@ public class SpaceMapScreen extends Screen {
                 description += "Liquid water possible: " + (planet.getCurrentTemp() < water.getBoilingTemp(planet.getAtmosphereDensity()) && planet.getCurrentTemp() > water.getFreezeTemp(planet.getAtmosphereDensity())) + "\n\n";
             }
 
+            if(planet.getDescription() instanceof String d && !d.isEmpty())
+                description+=d+"\n\n";
+
 
             // composition analysis
+
+            description +="\nAnalysis:\n\n";
 
             double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
             double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
@@ -380,19 +385,17 @@ public class SpaceMapScreen extends Screen {
             return super.mouseClicked(mouseX, mouseY, button);
         }
 
-        // 1. Get RAW pixel coordinates from Minecraft's MouseHandler
-        // 'mouseX' from the method is scaled (e.g. 400), but we need pixels (e.g. 1920)
-        double rawMouseX = Minecraft.getInstance().mouseHandler.xpos();
-        double rawMouseY = Minecraft.getInstance().mouseHandler.ypos();
+        if(getHoveredPlanet() instanceof PlanetDimension planetDimension){
+            selectedPlanet = planetDimension;
+            sidebarScrollAmount = 0;
+            return true;
+        }
 
-        // 2. Get RAW window dimensions
-        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
-        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+        selectedPlanet = null;
+        return false;
+    }
 
-        // 3. Recreate matrices (Must match your render() exactly)
-        Matrix4f viewMatrix = viewMat();
-        Matrix4f projMatrix = projMat(); // Uses the same FOV and window aspect ratio
-
+    public PlanetDimension getHoveredPlanet(){
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky().reversed()) {
 
             // dont test for hidden planets
@@ -401,21 +404,32 @@ public class SpaceMapScreen extends Screen {
 
             float pTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
             Vector3f planetWorldPos = getPlanetTranslation(planet, pTicks);
-            float renderScale = getPlanetRenderScale(planet);
+            float renderScale = getPlanetRenderScale(planet) * 1.05f;
 
             // 4. Pass RAW pixels and RAW window size to the check
-            if (isHoveringPlanet(rawMouseX, rawMouseY, windowWidth, windowHeight, planetWorldPos, renderScale, viewMatrix, projMatrix)) {
-                selectedPlanet = planet;
-                sidebarScrollAmount = 0;
-                return true;
+            if (isHoveringPlanet(planetWorldPos, renderScale)) {
+                return planet;
             }
         }
-        selectedPlanet = null;
-        return false;
+        return null;
     }
 
     // made by gemini
-    private boolean isHoveringPlanet(double rawX, double rawY, int winW, int winH, Vector3f planetPos, float radius, Matrix4f view, Matrix4f proj) {
+    private boolean isHoveringPlanet(Vector3f planetPos, float radius) {
+
+        // 1. Get RAW pixel coordinates from Minecraft's MouseHandler
+        // 'mouseX' from the method is scaled (e.g. 400), but we need pixels (e.g. 1920)
+        double rawX = Minecraft.getInstance().mouseHandler.xpos();
+        double rawY = Minecraft.getInstance().mouseHandler.ypos();
+
+        // 2. Get RAW window dimensions
+        int winW = Minecraft.getInstance().getWindow().getScreenWidth();
+        int winH = Minecraft.getInstance().getWindow().getScreenHeight();
+
+        // 3. Recreate matrices (Must match your render() exactly)
+        Matrix4f view = viewMat();
+        Matrix4f proj = projMat();
+
         // 1. Convert Raw Pixel to NDC
         float x = (float) (2.0f * rawX / winW - 1.0f);
         float y = (float) (1.0f - 2.0f * rawY / winH);
@@ -521,7 +535,7 @@ public class SpaceMapScreen extends Screen {
             float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
-            if (renderScale / pos.length() < 0.0005 && !planet.isStar()) {
+            if (renderScale / pos.length() < 0.0005) {
                 continue;
             }
 
@@ -601,7 +615,7 @@ public class SpaceMapScreen extends Screen {
 
             // The planets render depth sorted
             // but it looks strange when you rotate it
-            // i choose to clear only when we view top down because this is how it is depth sorted
+            // i choose to clear only when we view top down
             if (rotY > -0.2)
                 RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
@@ -677,6 +691,11 @@ public class SpaceMapScreen extends Screen {
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
+        if (mouseX < this.width - SIDEBAR_WIDTH || selectedPlanet == null) {
+            if(getHoveredPlanet() instanceof PlanetDimension planet){
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(planet.getName()),mouseX, mouseY);
+            }
+        }
 
         if (selectedPlanet != null) {
             int xStart = this.width - SIDEBAR_WIDTH;
@@ -733,8 +752,7 @@ public class SpaceMapScreen extends Screen {
     }
 
     public Vector3f getPlanetTranslation(Dimension planet, float pTicks) {
-        Vec3 pos = getPositionScaled(planet, pTicks);
-        return new Vector3f((float) pos.x * 1, (float) pos.y * 1, (float) pos.z * 1);
+        return getPositionScaled(planet, pTicks).toVector3f();
     }
 
     public float getPlanetRenderScale(PlanetDimension planet) {

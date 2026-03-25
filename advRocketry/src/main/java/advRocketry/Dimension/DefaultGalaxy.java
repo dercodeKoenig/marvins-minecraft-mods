@@ -34,6 +34,7 @@ public class DefaultGalaxy {
 
         PlanetDimensionProperties overworld = new PlanetDimensionProperties();
         overworld.name = "Earth";
+        overworld.description = "A nice green planet";
         overworld.dimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         overworld.parentDimensionId = sun.dimensionId;
         overworld.dayTimeReference = sun.dimensionId;
@@ -184,11 +185,13 @@ public class DefaultGalaxy {
 
         PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
         mustafar.name = "Mustafar";
+        mustafar.description = "A planet heated by gravitational forces";
         mustafar.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "mustafar");
         mustafar.parentDimensionId = priate.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 100;
-        mustafar.orbitalDistanceToParent = 0.5f;
+        mustafar.baseEnergyGain = 0.5f;
+        mustafar.orbitalDistanceToParent = 1.5f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;

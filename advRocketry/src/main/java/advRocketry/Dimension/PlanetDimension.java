@@ -323,6 +323,8 @@ public class PlanetDimension extends Dimension {
         return properties().isKnown;
     }
 
+    public String getDescription(){return properties().description;}
+
     public ResourceLocation getParentDimensionId() {
         return properties().parentDimensionId;
     }
