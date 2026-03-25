@@ -13,11 +13,13 @@ import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
@@ -39,7 +41,7 @@ public class PlanetDimension extends Dimension {
 
     public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
-        if(isClientSide) {
+        if (isClientSide) {
             // ensure mipmap textures are created at start to avoid lag during space travel
             getTexture();
         }
@@ -71,7 +73,7 @@ public class PlanetDimension extends Dimension {
         // now, it can take 2 ticks until all planets have received their position but in tick 0 any planet might query the position of a star.
         // for example temperature wants distance to star, but when all planets are at 0 0 0 first tick, this is 0 and /0 = nan
         // this runs on server when dimensions are reloaded from main config
-        if(!dimensionManager.isClientSide) {
+        if (!dimensionManager.isClientSide) {
             tickPosition(); // first tick sets position
             tickPosition(); // second tick resets movement
         }
@@ -95,10 +97,18 @@ public class PlanetDimension extends Dimension {
 
         System.out.println("creating dimension for " + getDimensionId());
 
+        BlockState seaFluid = Blocks.WATER.defaultBlockState();
+        int seaLevel = getGasProperty(GasRegistry.water).worldGenSeaLevel;
+
+        if (properties().customSeaFluid != null) {
+            seaFluid = BuiltInRegistries.BLOCK.get(properties().customSeaFluid).defaultBlockState();
+            seaLevel = properties().customSeaFluidLevel;
+        }
+
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
-                Blocks.WATER.defaultBlockState(),
-                getGasProperty(GasRegistry.water).worldGenSeaLevel + 1, // the sea level in the world generator is actually the block above the sea level
+                seaFluid,
+                seaLevel + 1, // the sea level in the world generator is actually the block above the sea level
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
@@ -217,7 +227,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public float computeCloudValue() {
-        if(properties().cloudValueOverwrite >= 0)
+        if (properties().cloudValueOverwrite >= 0)
             return Math.clamp(properties().cloudValueOverwrite, 0, 1);
 
         float totalCloud = 0;
@@ -247,7 +257,7 @@ public class PlanetDimension extends Dimension {
         return brightness;
     }
 
-    public Vector3f computeRawCloudColor(){
+    public Vector3f computeRawCloudColor() {
         // return properties cloud color if not null, else compute based on atm composition
         return new Vector3f(properties().cloudColor);
     }
@@ -323,7 +333,9 @@ public class PlanetDimension extends Dimension {
         return properties().isKnown;
     }
 
-    public String getDescription(){return properties().description;}
+    public String getDescription() {
+        return properties().description;
+    }
 
     public ResourceLocation getParentDimensionId() {
         return properties().parentDimensionId;
@@ -369,10 +381,6 @@ public class PlanetDimension extends Dimension {
             sum += (float) gas.frozen_surface;
         }
         return Math.min(1, sum);
-    }
-
-    public int getCustomSeaFluidLevel() {
-        return properties().customSeaFluidLevel;
     }
 
     // how much of the planet do we consider ocean?
@@ -604,7 +612,7 @@ public class PlanetDimension extends Dimension {
         if (getName().equals("Mustafar")) {
 
         }
-        if(getName().equals("Priate")) {
+        if (getName().equals("Priate")) {
 
         }
     }
