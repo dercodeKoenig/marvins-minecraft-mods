@@ -34,7 +34,7 @@ public abstract class IceBlockMixin {
             cancellable = true)
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-            if (!level.getBiome(pos).value().shouldFreeze(level, pos)) {
+            if (!level.getBiome(pos).value().shouldFreeze(level, pos,false)) {
                 if (pos.getY() > planet.getGasProperty(GasRegistry.water).worldGenSeaLevel)
                     // melt into air because it is above sea level
                     // if it would melt into water, the position was probably already worked by the sea level adjustment
@@ -46,8 +46,8 @@ public abstract class IceBlockMixin {
                     // normal melt into water
                     // freeze and melt go from ice->water or water->ice so the composition tracker ignores it
                     this.melt(state, level, pos);
-                ci.cancel();
             }
+            ci.cancel();
         }
     }
 }
