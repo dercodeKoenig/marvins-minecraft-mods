@@ -538,6 +538,7 @@ public class SpaceStationDimension extends Dimension {
         Vec3 lazyUpInvalid = lazyUp.add(rotationCorrection);
         lazyUp = lazyFront.cross(lazyUpInvalid.cross(lazyFront)).normalize();
 
+        // capture movement for smooth rotations
         movementFrontRot = lazyFront.subtract(oldLazyFront);
         movementUpRot = lazyUp.subtract(oldLazyUp);
 
