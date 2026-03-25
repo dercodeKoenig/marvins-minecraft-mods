@@ -146,33 +146,30 @@ public class Main {
 
     void registerShaders(RegisterShadersEvent event) {
         try {
+            shaderUtils.warpTravelShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "warp_travel_shader"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.warpTravelShader, x -> {});
+
             shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.localAtmosphereShader, x -> {
-            });
+            event.registerShader(shaderUtils.localAtmosphereShader, x -> {});
 
             shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
-            event.registerShader(shaderUtils.planetShader, x -> {
-            });
+            event.registerShader(shaderUtils.planetShader, x -> {});
 
             shaderUtils.blitAddTonemapShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add_tonemap"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitAddTonemapShader, x -> {
-            });
+            event.registerShader(shaderUtils.blitAddTonemapShader, x -> {});
 
             shaderUtils.blitExtractBright = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_extract_bright"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitExtractBright, x -> {
-            });
+            event.registerShader(shaderUtils.blitExtractBright, x -> {});
 
             shaderUtils.blitBlur = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_blur"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitBlur, x -> {
-            });
+            event.registerShader(shaderUtils.blitBlur, x -> {});
 
             shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.STAR_BACKGROUND);
-            event.registerShader(shaderUtils.starBackgroundShader, x -> {
-            });
+            event.registerShader(shaderUtils.starBackgroundShader, x -> {});
 
             shaderUtils.ringSystemShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "ring_system_shader"), shaderUtils.POSITION_NORMAL);
-            event.registerShader(shaderUtils.ringSystemShader, x -> {
-            });
+            event.registerShader(shaderUtils.ringSystemShader, x -> {});
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

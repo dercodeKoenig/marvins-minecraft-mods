@@ -5,10 +5,7 @@ import ARLib.obj.ModelFormatException;
 import ARLib.obj.Vertex;
 import ARLib.obj.WavefrontObject;
 import advRocketry.Config;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
-import advRocketry.Dimension.PlanetDimension;
-import advRocketry.Dimension.PlanetRenderCache;
+import advRocketry.Dimension.*;
 import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Utils.AxisDirections;
@@ -245,7 +242,7 @@ public class SkyRenderer {
     }
 
     public static void debugCommandRender() {
-        
+
     }
 
     void createStarBackgroundBuffer() {
@@ -382,6 +379,33 @@ public class SkyRenderer {
         bloomBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
         bloomBlurTarget1 = new HDRTextureTarget(1000, 1000, false, false);
         bloomBlurTarget2 = new HDRTextureTarget(1000, 1000, false, false);
+    }
+
+    private void renderWarpTravelBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
+        Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
+
+        // render only on space station and only when warp travel to save gpu load
+        if (myCurrentSpaceObject instanceof SpaceStationDimension spaceStation && spaceStation.getMovement().length() > 0.0001) {
+
+            Matrix4f modelMat = new Matrix4f();
+            modelMat.scale(Minecraft.getInstance().gameRenderer.getRenderDistance()); // this prevents bobbing by zooming out
+
+            RenderSystem.setShader(shaderUtils::getWarpTravelShader);
+            ShaderInstance shader = RenderSystem.getShader();
+
+            shader.getUniform("WorldMat").set(worldMatrix);
+            shader.getUniform("ProjMat").set(proj);
+            shader.getUniform("ViewMat").set(view);
+            shader.getUniform("ModelMat").set(modelMat);
+            shader.getUniform("time").set((float) (System.currentTimeMillis() - startTime) / 1000);
+            shader.getUniform("intensity").set((float) Math.pow((spaceStation.getMovement().length() - 0.0001) / Config.INSTANCE.station_SpaceTravel_AU_Per_Second * 20 * 5, 0.5));
+
+            shader.apply();
+            vertexBufferSkyBox.bind();
+            vertexBufferSkyBox.draw();
+            shader.clear();
+            VertexBuffer.unbind();
+        }
     }
 
     private void renderSkyBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
@@ -654,7 +678,12 @@ public class SkyRenderer {
 
         AtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSkyBox(proj, view, worldMatrix, partialtick);
+        if (myCurrentSpaceObject instanceof PlanetDimension)
+            // only planets need atm shader
+            renderSkyBox(proj, view, worldMatrix, partialtick);
+        if (myCurrentSpaceObject instanceof SpaceStationDimension)
+            // space station has now atm, but maybe warp travel effects
+            renderWarpTravelBox(proj, view, worldMatrix, partialtick);
 
 
         ShaderInstance shader;

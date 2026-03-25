@@ -170,7 +170,7 @@ void main() {
     vec3 textureEmission = max(0,(1 - cloudValue)) * max(vec3(0.0), baseSurfaceColor - vec3(1));
 
     // some ambient air glow or whatever
-    vec3 airGlow1 = TargetSkyColor * TargetAtmDensity / (1+TargetAtmDensity) * (viewAngle*0.2+0.8) * 0.05;
+    vec3 airGlow1 = TargetSkyColor * TargetAtmDensity / (1+TargetAtmDensity) * (viewAngle*0.2+0.8) * 0.03;
     vec3 surfaceGlow = (1.0 - cloudValue) * airGlow1 * baseSurfaceColor;
     vec3 cloudGlow = cloudValue * airGlow1 * TargetCloudColor;
     vec3 airglow = surfaceGlow + cloudGlow;

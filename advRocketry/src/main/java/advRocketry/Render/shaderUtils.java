@@ -28,6 +28,10 @@ public class shaderUtils {
             .build();
 
 
+    public static ShaderInstance warpTravelShader;
+    public static ShaderInstance getWarpTravelShader() {
+        return warpTravelShader;
+    }
 
     public static ShaderInstance localAtmosphereShader;
     public static ShaderInstance getLocalAtmosphereShader() {

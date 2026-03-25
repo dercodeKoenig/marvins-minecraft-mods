@@ -286,6 +286,7 @@ public class SpaceStationDimension extends Dimension {
     }
 
     public Vec3 getFront() {
+        // TODO: make use of partial tick for smooth movement similar to how position does it!!!!!!
         return lazyFront;
     }
 
