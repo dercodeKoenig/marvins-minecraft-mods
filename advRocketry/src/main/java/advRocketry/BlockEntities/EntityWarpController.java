@@ -81,6 +81,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                     openGui();
                                 }
 
+                                @Override
                                 public void interact(ResourceLocation dimensionId) {
                                     CompoundTag info = new CompoundTag();
                                     info.putString("interact", dimensionId.toString());
@@ -88,6 +89,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                     openGui();
                                 }
 
+                                @Override
                                 public String getInteractText(ResourceLocation dimensionId) {
                                     PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                     if (planet == null) return "";
@@ -97,7 +99,8 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                     return "";
                                 }
 
-                                public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo ignored) {
+                                @Override
+                                public String getPlanetInfoText(ResourceLocation dimensionId, ItemStack ignored) {
                                     PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                     if (planet == null) return "";
 
@@ -105,9 +108,10 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                         return "We require more information about this planet.";
                                     }
 
-                                    return super.getPlanetInfoText(dimensionId, client_getPlanetInfo(dimensionId));
+                                    return super.getPlanetInfoText(dimensionId, galaxyStorageGuiSlot.client_getItemStackToRender());
                                 }
 
+                                @Override
                                 public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
                                     Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
                                     if (d == null) return false;
@@ -116,10 +120,16 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                         return true;
                                     }
 
-                                    if (client_IsDimensionKnown(dimensionId))
+                                    if (ItemGalaxyDatabase.isDimensionKnown(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId))
                                         return true;
 
                                     return false;
+                                }
+
+                                public boolean client_IsDistanceUnlocked(ResourceLocation dimensionId) {
+                                    if (DimensionManager.INSTANCE_CLIENT.get(dimensionId) instanceof PlanetDimension planetDimension)
+                                        return ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorageGuiSlot.client_getItemStackToRender(), planetDimension);
+                                    else return false;
                                 }
                             }
                     );
@@ -273,20 +283,5 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     public void openGui() {
         if (level.isClientSide)
             guiHandler.openGui(250, 220, true);
-    }
-
-    // helper methods for gui rendering
-    public boolean client_IsDimensionKnown(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.isDimensionKnown(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId);
-    }
-
-    public boolean client_IsDistanceUnlocked(ResourceLocation dimensionId) {
-        if (DimensionManager.INSTANCE_CLIENT.get(dimensionId) instanceof PlanetDimension planetDimension)
-            return ItemGalaxyDatabase.isDistanceUnlocked(galaxyStorageGuiSlot.client_getItemStackToRender(), planetDimension);
-        else return false;
-    }
-
-    public ItemGalaxyDatabase.PlanetInfo client_getPlanetInfo(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.getPlanetInfo(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId);
     }
 }

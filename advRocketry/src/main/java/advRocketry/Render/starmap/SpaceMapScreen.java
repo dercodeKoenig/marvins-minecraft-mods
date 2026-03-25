@@ -20,11 +20,13 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
+import java.util.Objects;
 import java.util.Set;
 
 import static advRocketry.Utils.CelestialUtils.fromAU;
@@ -86,13 +88,14 @@ public class SpaceMapScreen extends Screen {
         return "interact";
     }
 
-    public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo planetInfo) {
+    public String getPlanetInfoText(ResourceLocation dimensionId, ItemStack database) {
         PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
         if (planet == null) return "";
         String description = "";
         int distance = 0;
         int mass = 0;
         int composition = 0;
+        ItemGalaxyDatabase.PlanetInfo planetInfo = ItemGalaxyDatabase.getPlanetInfo(database, dimensionId);
         if (planetInfo != null) {
             distance = planetInfo.get(DataTypes.distance);
             mass = planetInfo.get(DataTypes.mass);
@@ -158,14 +161,33 @@ public class SpaceMapScreen extends Screen {
                 GasRegistry.Gas water = GasRegistry.gases.get(GasRegistry.water);
                 description += "Liquid water possible: " + (planet.getCurrentTemp() < water.getBoilingTemp(planet.getAtmosphereDensity()) && planet.getCurrentTemp() > water.getFreezeTemp(planet.getAtmosphereDensity())) + "\n\n";
             }
+        }
 
-            if(planet.getDescription() instanceof String d && !d.isEmpty())
-                description+=d+"\n\n";
+        if (planet.getDescription() instanceof String d && !d.isEmpty())
+            description += d + "\n\n";
 
+        if (planet.isStar()) {
+            // list planets orbiting the star
+            int sats = 0;
+            for (Dimension d : DimensionManager.INSTANCE_CLIENT.dimensions.values()) {
+                // only consider planets
+                if (d instanceof PlanetDimension otherPlanet) {
+                    // check if parent dimension matches
+                    if (Objects.equals(otherPlanet.getParentDimensionId(), planet.getDimensionId())) {
+                        // check if sat is known by default or discovered
+                        if (otherPlanet.isKnown() || ItemGalaxyDatabase.isDimensionKnown(database, otherPlanet.getDimensionId())) {
+                            sats++;
+                        }
+                    }
+                }
+            }
+            description += "Known planets: " + sats + "\n\n";
+        }
 
+        if (mass >= dataMax && composition >= dataMax) {
             // composition analysis
 
-            description +="\nAnalysis:\n\n";
+            description += "\nAnalysis:\n\n";
 
             double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
             double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
@@ -371,7 +393,7 @@ public class SpaceMapScreen extends Screen {
         float fov = (float) Math.toRadians(45.0f); // less stretching
         float aspect = (float) windowWidth / windowHeight;
         float near = (zoom + 1) * 0.001f;
-        float far = (zoom + 1) * 2;
+        float far = (zoom + 1) * 1000;
         projMatrix.setPerspective(fov, aspect, near, far);
         return projMatrix;
     }
@@ -385,7 +407,7 @@ public class SpaceMapScreen extends Screen {
             return super.mouseClicked(mouseX, mouseY, button);
         }
 
-        if(getHoveredPlanet() instanceof PlanetDimension planetDimension){
+        if (getHoveredPlanet() instanceof PlanetDimension planetDimension) {
             selectedPlanet = planetDimension;
             sidebarScrollAmount = 0;
             return true;
@@ -395,7 +417,7 @@ public class SpaceMapScreen extends Screen {
         return false;
     }
 
-    public PlanetDimension getHoveredPlanet(){
+    public PlanetDimension getHoveredPlanet() {
         for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky().reversed()) {
 
             // dont test for hidden planets
@@ -406,11 +428,14 @@ public class SpaceMapScreen extends Screen {
             Vector3f planetWorldPos = getPlanetTranslation(planet, pTicks);
             float renderScale = getPlanetRenderScale(planet);
 
-            if (tooSmallToRender(planetWorldPos, renderScale))
+            if (tooSmallToRender(planetWorldPos, renderScale) && !planet.isStar())
                 continue;
 
-            // 4. Pass RAW pixels and RAW window size to the check
-            if (isHoveringPlanet(planetWorldPos, renderScale)) {
+            double pixelPadding = 1;
+            if(planet.isStar())
+                // when zoomed far out on space map only stars are visible but they are very small
+                pixelPadding = 20;
+            if (isHoveringPlanet(planetWorldPos, renderScale, pixelPadding)) {
                 return planet;
             }
         }
@@ -418,14 +443,11 @@ public class SpaceMapScreen extends Screen {
     }
 
     // made by gemini
-    private boolean isHoveringPlanet(Vector3f planetPos, float radius) {
+    private boolean isHoveringPlanet(Vector3f planetPos, float radius, double pixelPadding) {
 
         // 1. Get RAW pixel coordinates from Minecraft's MouseHandler
         double rawX = Minecraft.getInstance().mouseHandler.xpos();
         double rawY = Minecraft.getInstance().mouseHandler.ypos();
-
-        // The amount of pixels we want to extend the hitbox by
-        double pixelPadding = 3.0;
 
         // 2. Get RAW window dimensions
         int winW = Minecraft.getInstance().getWindow().getScreenWidth();
@@ -560,7 +582,7 @@ public class SpaceMapScreen extends Screen {
             float renderScale = getPlanetRenderScale(planet);
             planetMatrix.scale(renderScale);
 
-            if (tooSmallToRender(pos, renderScale)) {
+            if (tooSmallToRender(pos, renderScale) && !planet.isStar()) {
                 continue;
             }
 
@@ -717,8 +739,8 @@ public class SpaceMapScreen extends Screen {
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         if (mouseX < this.width - SIDEBAR_WIDTH || selectedPlanet == null) {
-            if(getHoveredPlanet() instanceof PlanetDimension planet){
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(planet.getName()),mouseX, mouseY);
+            if (getHoveredPlanet() instanceof PlanetDimension planet) {
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(planet.getName()), mouseX, mouseY);
             }
         }
 
@@ -780,8 +802,8 @@ public class SpaceMapScreen extends Screen {
         return getPositionScaled(planet, pTicks).toVector3f();
     }
 
-    public boolean tooSmallToRender(Vector3f pos, float renderScale){
-        return renderScale / pos.length() < 0.0005;
+    public boolean tooSmallToRender(Vector3f pos, float renderScale) {
+        return renderScale / pos.length() < 0.001;
     }
 
     public float getPlanetRenderScale(PlanetDimension planet) {
@@ -833,6 +855,6 @@ public class SpaceMapScreen extends Screen {
         }
         Vec3 pos = dimension.getPosition(partialTick);
         // map requires y=0, also lower translation or shit will break due to fp precision errors
-        return new Vec3(pos.x / 1000 - camX, 0,   pos.z / 1000 - camY);
+        return new Vec3(pos.x / 1000 - camX, 0, pos.z / 1000 - camY);
     }
 }
