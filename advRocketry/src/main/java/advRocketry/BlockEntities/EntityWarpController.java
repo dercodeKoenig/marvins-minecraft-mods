@@ -29,6 +29,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3f;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_WARP_CONTROLLER;
@@ -67,6 +68,24 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                 public void onButtonClicked() {
                     Minecraft.getInstance().setScreen(
                             new SpaceMapScreen() {
+                                @Override
+                                public void init(){
+                                    super.init();
+                                    // translate to selected planet
+                                    if(targetView.dimensionId != null) {
+                                        // find the translation
+                                        Dimension selectedDim = DimensionManager.INSTANCE_CLIENT.get(targetView.dimensionId);
+                                        if (selectedDim instanceof PlanetDimension planetDimension) {
+                                            Vector3f translation = super.getPlanetTranslation(planetDimension, 0);
+                                            // move the camera there
+                                            super.camX = translation.x;
+                                            super.camY = translation.z;
+                                            float renderScale = super.getPlanetRenderScale(planetDimension);
+                                            super.zoom = 30 * renderScale;
+                                        }
+                                    }
+                                }
+
                                 @Override
                                 public void tick() {
                                     super.tick();

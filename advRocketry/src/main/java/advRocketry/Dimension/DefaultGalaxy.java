@@ -191,7 +191,7 @@ public class DefaultGalaxy {
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 300;
         mustafar.baseEnergyGain = 0.5f;
-        mustafar.orbitalDistanceToParent = 2f;
+        mustafar.orbitalDistanceToParent = 2.5f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;

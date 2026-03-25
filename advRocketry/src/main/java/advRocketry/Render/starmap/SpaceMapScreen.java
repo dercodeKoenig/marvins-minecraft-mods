@@ -36,15 +36,15 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class SpaceMapScreen extends Screen {
     private final int SIDEBAR_WIDTH = 200;
 
-    private PlanetDimension selectedPlanet = null;
+    public PlanetDimension selectedPlanet = null;
+    public float camX = 0;
+    public float camY = 0;
+    public float zoom = 100f;
+    public float rotY = 0;
+    public float logScale = 0.6f;
+    public float scale = 0.25f;
+    public float sidebarScrollAmount = 0;
     private net.minecraft.client.gui.components.Button actionButton;
-    private float camX = 0;
-    private float camY = 0;
-    private float zoom = 100f;
-    private float rotY = 0;
-    private float logScale = 0.6f;
-    private float scale = 0.25f;
-    private float sidebarScrollAmount = 0;
     private int lastMaxScroll = 0; // To clamp scrolling
     private String planetInfoText = "";
     private Vector3f eyePos = new Vector3f(0, 0, 0);
