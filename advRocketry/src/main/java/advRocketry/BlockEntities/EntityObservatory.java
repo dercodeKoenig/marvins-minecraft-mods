@@ -202,19 +202,16 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 EntityObservatory.this.setChanged();
             }
         };
-        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 130, 150);
+        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 10, 130);
         guiHandler.modules.add(storageDiskSlot1);
-        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 150);
+        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 30, 130);
         guiHandler.modules.add(storageDiskSlot2);
-        guiHandler.modules.add(
-                new guiModuleText(3, "galaxy database:", guiHandler, 10, 153, 0xff000000, false)
-        );
 
-        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 130);
+        planetIdChipSlot = new guiModuleItemHandlerSlot(2, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 130);
         guiHandler.modules.add(planetIdChipSlot);
-        guiHandler.modules.add(
-                new guiModuleText(5, "planet id chip:", guiHandler, 10, 133, 0xff000000, false)
-        );
+
+        guiHandler.modules.add(new guiModuleItemStackRender(3, new ItemStack(Items.ITEM_GALAXY_DATABASE.get(), 2),1,guiHandler,50,130));
+        guiHandler.modules.add(new guiModuleItemStackRender(4, new ItemStack(Items.ITEM_PLANET_ID_CHIP.get(), 1),1,guiHandler,130,130));
 
         if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
             guiHandler.modules.add(
@@ -222,6 +219,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                         public void onButtonClicked() {
                             Minecraft.getInstance().setScreen(
                                     new SpaceMapScreen() {
+                                        @Override
+                                        public void init(){
+                                            super.init();
+                                            super.focusPlanet(level.dimension().location());
+                                        }
+
                                         @Override
                                         public void tick() {
                                             super.tick();

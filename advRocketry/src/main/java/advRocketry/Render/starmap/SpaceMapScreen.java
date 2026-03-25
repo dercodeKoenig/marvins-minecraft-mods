@@ -25,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
+import javax.annotation.Nullable;
 import java.lang.Math;
 import java.util.Objects;
 import java.util.Set;
@@ -181,7 +182,7 @@ public class SpaceMapScreen extends Screen {
                     }
                 }
             }
-            if(sats > 0)
+            if (sats > 0)
                 description += "Known planets: " + sats + "\n\n";
         }
 
@@ -253,6 +254,19 @@ public class SpaceMapScreen extends Screen {
 
     public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
         return true;
+    }
+
+    public void focusPlanet(@Nullable ResourceLocation dimId) {
+        // find the translation
+        Dimension selectedDim = DimensionManager.INSTANCE_CLIENT.get(dimId);
+        if (selectedDim instanceof PlanetDimension planetDimension) {
+            Vector3f translation = getPlanetTranslation(planetDimension, 0);
+            // move the camera there
+            camX = translation.x;
+            camY = translation.z;
+            float renderScale = getPlanetRenderScale(planetDimension);
+            zoom = 30 * renderScale;
+        }
     }
 
     @Override
@@ -433,7 +447,7 @@ public class SpaceMapScreen extends Screen {
                 continue;
 
             double pixelPadding = 1;
-            if(planet.isStar())
+            if (planet.isStar())
                 // when zoomed far out on space map only stars are visible but they are very small
                 pixelPadding = 20;
             if (isHoveringPlanet(planetWorldPos, renderScale, pixelPadding)) {
@@ -544,7 +558,7 @@ public class SpaceMapScreen extends Screen {
         shader.getUniform("ModelMat").set(new Matrix4f());
         shader.getUniform("ProjMat").set(new Matrix4f().setPerspective(90F, (float) (windowWidth / windowHeight), 10F, 1000000F));
         shader.getUniform("BrightnessModifier").set(1f);
-        shader.getUniform("WarpMovement").set(new Vector3f(0,0,0));
+        shader.getUniform("WarpMovement").set(new Vector3f(0, 0, 0));
         shader.getUniform("ScreenSize").set(windowWidth, windowHeight);
         shader.apply();
         SkyRenderer.vertexBufferStarBackground.bind();
