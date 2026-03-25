@@ -230,38 +230,41 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             guiHandler.serverTick();
 
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
-                if (spaceStation.isInOrbit()) {
-                    currentView.setTargetAndSync(spaceStation.getParentDimensionId());
-                } else {
-                    currentView.setTargetAndSync(null);
-                }
+                if (!guiHandler.playersTrackingGui.isEmpty()) {
 
-                Dimension currentOrbitedPlanet = currentView.dimensionId == null ? null : DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId);
-                Dimension targetPlanet = targetView.dimensionId == null ? null : DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId);
+                    if (spaceStation.isInOrbit()) {
+                        currentView.setTargetAndSync(spaceStation.getParentDimensionId());
+                    } else {
+                        currentView.setTargetAndSync(null);
+                    }
 
-                String inOrbitString = "Space";
-                if (currentOrbitedPlanet != null && spaceStation.isInOrbit())
-                    inOrbitString = currentOrbitedPlanet.getName();
-                inOrbitText.setTextAndSync("In Orbit:\n" + inOrbitString);
+                    Dimension currentOrbitedPlanet = currentView.dimensionId == null ? null : DimensionManager.INSTANCE_SERVER.get(currentView.dimensionId);
+                    Dimension targetPlanet = targetView.dimensionId == null ? null : DimensionManager.INSTANCE_SERVER.get(targetView.dimensionId);
 
-                String targetString = "Space";
-                if (targetPlanet != null)
-                    targetString = targetPlanet.getName();
-                targetText.setTextAndSync("Target:\n" + targetString);
+                    String inOrbitString = "Space";
+                    if (currentOrbitedPlanet != null && spaceStation.isInOrbit())
+                        inOrbitString = currentOrbitedPlanet.getName();
+                    inOrbitText.setTextAndSync("In Orbit:\n" + inOrbitString);
 
-                if (targetPlanet != null && spaceStation.isInSpaceTravel() && targetPlanet.getDimensionId().equals(spaceStation.getParentDimensionId())) {
-                    String text = "In Space Travel\n";
-                    double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
-                    distance = (double) Math.round(distance * 100) / 100;
-                    text += "Distance: " + distance + " AU";
-                    statusText.setTextAndSync(text);
-                } else if (targetPlanet != null && targetPlanet != currentOrbitedPlanet) {
-                    double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
-                    distance = (double) Math.round(distance * 100) / 100;
-                    String text = "Distance to target:\n" + distance + " AU";
-                    statusText.setTextAndSync(text);
-                } else {
-                    statusText.setTextAndSync("");
+                    String targetString = "Space";
+                    if (targetPlanet != null)
+                        targetString = targetPlanet.getName();
+                    targetText.setTextAndSync("Target:\n" + targetString);
+
+                    if (targetPlanet != null && spaceStation.isInSpaceTravel() && targetPlanet.getDimensionId().equals(spaceStation.getParentDimensionId())) {
+                        String text = "In Space Travel\n";
+                        double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
+                        distance = (double) Math.round(distance * 100) / 100;
+                        text += "Dist: " + distance + " AU";
+                        statusText.setTextAndSync(text);
+                    } else if (targetPlanet != null && targetPlanet != currentOrbitedPlanet) {
+                        double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
+                        distance = (double) Math.round(distance * 100) / 100;
+                        String text = "Distance to target:\n" + distance + " AU";
+                        statusText.setTextAndSync(text);
+                    } else {
+                        statusText.setTextAndSync("");
+                    }
                 }
             }
         }
