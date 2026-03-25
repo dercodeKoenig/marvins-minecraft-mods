@@ -14,6 +14,7 @@ import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Items.ItemPlanetIdChip;
@@ -222,7 +223,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                         @Override
                                         public void init() {
                                             super.init();
-                                            super.focusPlanet(level.dimension().location());
+                                            ResourceLocation id = level.dimension().location();
+                                            if(DimensionManager.INSTANCE_CLIENT.get(id) instanceof SpaceStationDimension spaceStationDimension){
+                                                super.focusPlanet(spaceStationDimension.getParentDimensionId());
+                                            }else {
+                                                super.focusPlanet(id);
+                                            }
                                         }
 
                                         @Override
