@@ -181,7 +181,8 @@ public class SpaceMapScreen extends Screen {
                     }
                 }
             }
-            description += "Known planets: " + sats + "\n\n";
+            if(sats > 0)
+                description += "Known planets: " + sats + "\n\n";
         }
 
         if (mass >= dataMax && composition >= dataMax) {
