@@ -17,7 +17,7 @@ uniform ivec2 ScreenSize;
 void main() {
     float BoxSize = 50000;
     float scale = 5;
-    float warpScale = 2;
+    float warpScale = 0.5;
 
     // 1. Get the star's static center
     vec3 staticCenter = Position - (Normal * scale);
