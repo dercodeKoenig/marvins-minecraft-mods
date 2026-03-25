@@ -185,13 +185,13 @@ public class DefaultGalaxy {
 
         PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
         mustafar.name = "Mustafar";
-        mustafar.description = "A planet heated by gravitational forces";
+        mustafar.description = "The gravimetric duel between the gas giants Jestefad and Lefrani over Mustafar heated the planet's core, transforming the world into an imbalanced volcanic hellscape.";
         mustafar.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "mustafar");
         mustafar.parentDimensionId = priate.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
-        mustafar.currentTemp = 100;
+        mustafar.currentTemp = 300;
         mustafar.baseEnergyGain = 0.5f;
-        mustafar.orbitalDistanceToParent = 1.5f;
+        mustafar.orbitalDistanceToParent = 2f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
@@ -200,10 +200,10 @@ public class DefaultGalaxy {
         mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
         mustafar.canVisit = true;
         mustafar.biomePreset = VOLCANIC.name;
-        mustafar.isKnown = true;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
         mustafar.cloudValueOverwrite = 0.7f;
         mustafar.cloudColor = new Vector3f(0.2f,0.2f,0.2f);
+        mustafar.skyColor = new Vector3f(0.3f,0.3f,0.4f);
         mustafar.textureBrightness = 2f; // make lava glow
         galaxy.add(mustafar);
 
