@@ -4,8 +4,11 @@ import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -42,14 +45,14 @@ public class PlanetEvents {
 
             // Run the logic on the targeted block
 
-            // spawn possible dry ice blocks
-            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);
-
             // adjust sea level for all the gases
             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                 if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
                     break; // avoid gas mixing if many gases exist
             }
+
+            // spawn possible dry ice blocks
+            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);
         }
     }
 
@@ -67,32 +70,30 @@ public class PlanetEvents {
 
             if (event.isNewChunk()) {
                 long t0 = System.nanoTime();
-                for (int x = 0; x < 16; x++) {
-                    for (int z = 0; z < 16; z++) {
-                        int xB = event.getChunk().getPos().getBlockX(x);
-                        int zB = event.getChunk().getPos().getBlockZ(z);
-
-
-                        // TODO: place custom sea block here before everything else
-
+                for (int cx = 0; cx < 16; cx++) {
+                    for (int cz = 0; cz < 16; cz++) {
+                        int x = event.getChunk().getPos().getBlockX(cx);
+                        int z = event.getChunk().getPos().getBlockZ(cz);
 
                         // adjust sea levels
-                        SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), xB, zB);
+                        if(((PlanetDimensionProperties)planet.properties).customSeaFluid == null) {
+                            // it generated water, save initial water level so that it doesn't rain by default and fill caves
+                            SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), x, z);
+                        }
                         for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                            while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, xB, zB, 2 | 16)) {
+                            while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, x, z, 2 | 16)) {
                                 continue; // nothing to do, all the action happens above
                             }
                         }
 
                         // place dry ice
-                        while (DryIceBlock.placeDryIceIfPossible(planet, xB, zB, 2 | 16)) {
+                        while (DryIceBlock.placeDryIceIfPossible(planet, x, z, 2 | 16)) {
                             continue; // nothing to do, all the action happens above
                         }
 
-
                         // after sea level adjustment, maybe freeze water or do other actions
-                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, xB, zB); y++) {
-                            BlockPos pos = new BlockPos(xB, y, zB);
+                        for (int y = serverLevel.getMinBuildHeight(); y < serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, x, z); y++) {
+                            BlockPos pos = new BlockPos(x, y, z);
                             BlockState state = serverLevel.getBlockState(pos);
 
                             // freeze water if possible, after the sea level is adjusted
