@@ -39,7 +39,10 @@ public class PlanetDimension extends Dimension {
 
     public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
-        getTexture(); // ensure mipmap textures are created at start to avoid lag during space travel
+        if(isClientSide) {
+            // ensure mipmap textures are created at start to avoid lag during space travel
+            getTexture();
+        }
     }
 
     public void setRequiresSync() {
