@@ -126,7 +126,8 @@ public class SeaLevelAdjustment {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
 
-                    if (scanState.getBlock().equals(Blocks.LAVA)) {
+                    if (scanState.getBlock().equals(Blocks.LAVA) && level.getBlockState(scanPos.above()).isAir()) {
+                        // only replace lava with obsidian if it is top block to allow for lava below surface
                         level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
                         planet.setRaining(5);
                         return true;
