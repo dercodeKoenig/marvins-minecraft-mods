@@ -544,6 +544,8 @@ public class SpaceMapScreen extends Screen {
         shader.getUniform("ModelMat").set(new Matrix4f());
         shader.getUniform("ProjMat").set(new Matrix4f().setPerspective(90F, (float) (windowWidth / windowHeight), 10F, 1000000F));
         shader.getUniform("BrightnessModifier").set(1f);
+        shader.getUniform("WarpMovement").set(new Vector3f(0,0,0));
+        shader.getUniform("ScreenSize").set(windowWidth, windowHeight);
         shader.apply();
         SkyRenderer.vertexBufferStarBackground.bind();
         SkyRenderer.vertexBufferStarBackground.draw();
@@ -589,6 +591,7 @@ public class SpaceMapScreen extends Screen {
 
             // render the orbit lines
             float colorModulator = 0.05f * Math.clamp(1.3f + rotY, 0, 1);
+            colorModulator *= Math.clamp((1 - zoom / renderScale / 5000), 0, 1);
             if (planet.getParentDimensionId() != null && colorModulator > 0) {
                 Vector3f parentPosition = getPlanetTranslation(DimensionManager.INSTANCE_CLIENT.get(planet.getParentDimensionId()), partialTick);
                 Vector3f parentToPlanet = new Vector3f(pos).sub(parentPosition);
