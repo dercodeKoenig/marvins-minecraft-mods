@@ -24,7 +24,6 @@ import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
-import java.util.Arrays;
 
 import static advRocketry.Render.shaderUtils.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -650,7 +649,7 @@ public class SkyRenderer {
         VertexBuffer.unbind();
     }
 
-    public void performPostProcessingAndRenderToScreen() {
+    public void performPostProcessingAndBlitToScreen() {
         ShaderInstance shader;
 
         GlStateManager._depthMask(false);
@@ -703,8 +702,7 @@ public class SkyRenderer {
         vertexBufferSquare.draw();
         shader.clear();
 
-
-        // Switch back to main render target, combine framebuffers
+        // Switch back to main render target, clear & combine framebuffers
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT| GL30.GL_DEPTH_BUFFER_BIT, false);
         RenderSystem.setShader(shaderUtils::getBlitPostProcessingShader);
@@ -716,8 +714,8 @@ public class SkyRenderer {
         vertexBufferSquare.draw();
         shader.clear();
 
+        // clear states
         VertexBuffer.unbind();
-
         GlStateManager._depthMask(true);
         NO_DEPTH_TEST.clearRenderState();
     }
@@ -761,13 +759,12 @@ public class SkyRenderer {
         // now render the planets and stars
         PlanetsAndStarsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-
         renderSpaceBodies(proj, view, worldMatrix, partialtick);
 
 
         // post processing
 
-        performPostProcessingAndRenderToScreen();
+        performPostProcessingAndBlitToScreen();
 
 
         // Clear depth buffer for subsequent rendering

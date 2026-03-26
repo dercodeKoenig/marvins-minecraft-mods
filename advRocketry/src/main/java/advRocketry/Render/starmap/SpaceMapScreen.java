@@ -10,7 +10,6 @@ import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -691,7 +690,7 @@ public class SpaceMapScreen extends Screen {
 
         LEQUAL_DEPTH_TEST.clearRenderState();
 
-        SkyRenderer.INSTANCE.performPostProcessingAndRenderToScreen();
+        SkyRenderer.INSTANCE.performPostProcessingAndBlitToScreen();
 
         VertexBuffer.unbind();
 
