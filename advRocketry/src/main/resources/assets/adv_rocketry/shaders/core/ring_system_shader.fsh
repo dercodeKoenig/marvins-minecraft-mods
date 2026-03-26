@@ -17,7 +17,7 @@ in vec3 normalUniverseSpace;
 
 in vec3 position; // the position of the fragment
 in vec3 planetCenter; // the position of the planet
-uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale())
+uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale()), used for the shadow calculation
 
 // for atm shading modifier
 in vec3 localUpUniverseSpace;
@@ -112,6 +112,8 @@ void main() {
 
     vec3 V = normalize(viewDir);
 
+    vec3 U = normalize(localUpUniverseSpace);
+
     vec3 totalColor = vec3(0,0,0);
 
     // see why this exists in planet shader
@@ -191,11 +193,11 @@ void main() {
     vec3 atmFilter = getAtmFilter(
         planetSkyHeight,
         playerHeight,
-        normalize(localUpUniverseSpace),
+        U,
         V,
         LocalAtmDensity,
         LocalSunriseColor
-    ).rgb;
+    );
 
     totalColor *= BrightnessMultiplier;
 

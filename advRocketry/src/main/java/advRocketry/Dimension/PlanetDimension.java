@@ -607,10 +607,13 @@ public class PlanetDimension extends Dimension {
         // TODO: remove after testing
         properties().isKnown = true;
         if (getName().equals("Mustafar")) {
-
+            properties().textureTintColor = new Vector3f(1,1,1).mul(2f);
         }
         if (getName().equals("Priate")) {
-
+            properties().textureTintColor = new Vector3f(1,1,1).mul(6f);
+        }
+        if (getName().equals("Sun")) {
+            properties().textureTintColor = new Vector3f(1,1,1).mul(6f);
         }
     }
 

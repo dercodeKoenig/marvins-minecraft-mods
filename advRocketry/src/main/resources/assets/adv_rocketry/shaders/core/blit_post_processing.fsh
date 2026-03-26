@@ -20,7 +20,7 @@ void main() {
     // add bloom & texture
     textureColor = textureColor + bloomColor;
 
-    // tonemapping
+    // tonemapping, TODO: use a better contrast preserving method
     textureColor = textureColor / (vec3(1) + textureColor);
 
     // gamma correction

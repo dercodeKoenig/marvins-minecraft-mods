@@ -480,7 +480,7 @@ public class SkyRenderer {
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
         // lots of atmosphere makes it dark, TODO: maybe also darken based on atmosphere & terrain brightness so they are only visible at night even on dark sky planets?
-        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 4);
+        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1) * 5;
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);

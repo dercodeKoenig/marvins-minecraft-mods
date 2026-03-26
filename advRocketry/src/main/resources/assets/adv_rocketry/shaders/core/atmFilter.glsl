@@ -1,19 +1,21 @@
-vec4 getAtmFilter(
+float getAtmThickness(float relativeHeight, vec3 U, vec3 V, float baseValue){
+    float atmThickness = baseValue;
+    atmThickness *= pow(1.0 - max(0.0, dot(U, V)), 4.0) * 0.8 + 0.2;
+    atmThickness *= relativeHeight;
+    return atmThickness;
+}
+
+vec3 getAtmFilter(
     float planetSkyHeight,
     float playerHeight,
-    vec3 localUpUniverseSpace,
-    vec3 viewDir,
+    vec3 U,
+    vec3 V,
     float LocalAtmDensity,
     vec3 LocalSunriseColor
 ) {
 
-    // atmosphere modifies how the planet appears
-    float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
-    float planetUp = dot(localUpUniverseSpace, viewDir);
-    float atmThicknessMod = LocalAtmDensity;
-    atmThicknessMod *= pow(1.0 - max(0.0, planetUp), 2.0) * 0.8 + 0.2;
-    atmThicknessMod *= altitudeAtmThicknessMod;
-
+    float relativeHeight = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
+    float atmThickness = getAtmThickness(relativeHeight, U, V, LocalAtmDensity);
 
     // 1. Normalize the sunrise color so it acts as our base transmittance target
     float maxSunriseColor = max(LocalSunriseColor.r, max(LocalSunriseColor.g, LocalSunriseColor.b));
@@ -25,8 +27,8 @@ vec4 getAtmFilter(
 
     // 3. Apply Beer's Law for atmospheric transmittance.
     // You can increase the 'extinctionIntensity' to make the effect stronger
-    float extinctionIntensity = 4.0;
-    vec3 atmFilter = exp(-extinctionIntensity * atmThicknessMod * absorptionCoefficients);
+    float extinctionIntensity = 3.0;
+    vec3 atmFilter = exp(-extinctionIntensity * atmThickness * absorptionCoefficients);
 
-    return vec4(atmFilter, atmThicknessMod);
+    return vec3(atmFilter);
 }
