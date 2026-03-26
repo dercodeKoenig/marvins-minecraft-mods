@@ -29,6 +29,7 @@ import org.joml.Vector3f;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static advRocketry.Dimension.PlanetDimensionProperties.SKY_COLOR_OVERWORLD;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
@@ -194,10 +195,6 @@ public class PlanetDimension extends Dimension {
         return properties().emissiveColor;
     }
 
-    public float getTextureBrightness() {
-        return properties().textureBrightness;
-    }
-
     public float getGravitationalMultiplier() {
         return properties().gravitationalMultiplier;
     }
@@ -297,8 +294,8 @@ public class PlanetDimension extends Dimension {
         return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
     }
 
-    public Vector3f getReflectiveTextureTintColor() {
-        return new Vector3f(properties().reflectiveTextureTintColor);
+    public Vector3f getTextureTintColor() {
+        return new Vector3f(properties().textureTintColor);
     }
 
     public boolean hasRings() {

@@ -155,8 +155,11 @@ public class Main {
             shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
             event.registerShader(shaderUtils.planetShader, x -> {});
 
-            shaderUtils.blitAddTonemapShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add_tonemap"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitAddTonemapShader, x -> {});
+            shaderUtils.blitPostProcessingShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_post_processing"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitPostProcessingShader, x -> {});
+
+            shaderUtils.blitAddShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitAddShader, x -> {});
 
             shaderUtils.blitExtractBright = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_extract_bright"), shaderUtils.POSITION);
             event.registerShader(shaderUtils.blitExtractBright, x -> {});
