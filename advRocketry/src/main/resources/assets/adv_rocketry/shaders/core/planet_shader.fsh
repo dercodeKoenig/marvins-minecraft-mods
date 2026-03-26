@@ -2,7 +2,7 @@
 
 #moj_import "adv_rocketry:noise.glsl"
 #moj_import "adv_rocketry:utils.glsl"
-#moj_import "adv_rocketry:atmFilter.glsl"
+#moj_import "adv_rocketry:atm_filter.glsl"
 
 uniform sampler2D Sampler0; // surface texture
 uniform sampler2D AtmTexture; // atmosphere frame
@@ -90,7 +90,7 @@ void main() {
             }
         }
     }
-    float extraCloud = max(0,cloudValue - 1); // this avoids flat clouds by giving them some more color
+    float extraCloud = max(0,cloudValue - 0.8); // this avoids flat clouds by giving them some more color
     cloudValue = clamp(cloudValue, 0, 1);
     cloudValue = pow(cloudValue, 3);
 
