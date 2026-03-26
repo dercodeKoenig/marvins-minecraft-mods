@@ -12,7 +12,7 @@ uniform int LightCount;
 
 uniform float BrightnessMultiplier;
 uniform vec4 emissiveColor;      // planet’s self-emission (rgb + intensity)
-uniform float textureBrightness;        // float that scales only texture brightness, emissive color shades other planets, this value only shades this planet, for example to have a bright red star with bloom effect
+uniform vec3 TargetTextureTintColor; // tint the texture
 uniform float LocalAtmDensity;        // observer planet atmosphere
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 LocalSunriseColor;  // tint for sunrise / sunset
@@ -22,7 +22,6 @@ uniform vec3 TargetCloudColor;      // cloud color of the target planet
 uniform float TargetCloudValue;       // how much clouds to render, 0 - 1
 uniform int CloudSampleSteps;
 uniform int CloudWarp;
-uniform vec3 TargetReflectiveTextureTintColor; // tint the texture for diffuse light
 uniform float playerHeight;         // how high the player is to reduce atm tint for star
 uniform float planetSkyHeight;      // how high is considered out of atmosphere
 uniform int isLocalPlanet;           // if this is my planet, some special rendering applies
@@ -45,7 +44,7 @@ void main() {
 
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
     baseSurfaceColor = pow(baseSurfaceColor, vec3(2.2)); // gamma reverse
-    baseSurfaceColor *= textureBrightness;
+    baseSurfaceColor *= TargetTextureTintColor;
 
     if(isLocalPlanet == 1){
         float mixvalue = clamp((playerHeight-350) / planetSkyHeight * 5, 0, 1);
@@ -119,7 +118,7 @@ void main() {
         // when no atmosphere use ndotl,
         // when atmosphere, extend the ndotl because atm scatters light past the 0 line
         float NdotLmix = mix(surfaceLightFactor, atmLightFactor, TargetAtmDensity / (1 + TargetAtmDensity));
-        vec3 surfaceLight = baseSurfaceColor * TargetReflectiveTextureTintColor * NdotLmix;
+        vec3 surfaceLight = baseSurfaceColor * NdotLmix;
 
         // clouds color are higher up and use the extended dot
         // the following logic aims to keep clouds nice and bright for the day side
@@ -182,7 +181,7 @@ void main() {
         V,
         LocalAtmDensity,
         LocalSunriseColor
-    );
+    ).rgb;
 
     vec3 finalColor =
         (totalReflectedLight + emitted + textureEmission + airglow)

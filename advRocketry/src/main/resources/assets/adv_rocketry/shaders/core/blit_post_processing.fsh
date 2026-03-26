@@ -1,8 +1,7 @@
 #version 150
 
-uniform sampler2D Atmosphere;
-uniform sampler2D SpaceBackground;
-uniform sampler2D SpaceBackgroundBloom;
+uniform sampler2D Frame;
+uniform sampler2D Bloom;
 uniform float bloomIntensity;
 
 in vec2 texCoord;
@@ -14,9 +13,9 @@ float interleavedGradientNoise(vec2 n) {
 }
 
 void main() {
-    vec3 textureColor = texture(SpaceBackground, texCoord).rgb + texture(Atmosphere, texCoord).rgb;
+    vec3 textureColor = texture(Frame, texCoord).rgb;
 
-    vec3 bloomColor = texture(SpaceBackgroundBloom, texCoord).rgb * bloomIntensity;
+    vec3 bloomColor = texture(Bloom, texCoord).rgb * bloomIntensity;
 
     // add bloom & texture
     textureColor = textureColor + bloomColor;

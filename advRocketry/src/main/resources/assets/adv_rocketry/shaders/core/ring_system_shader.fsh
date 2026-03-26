@@ -195,7 +195,7 @@ void main() {
         V,
         LocalAtmDensity,
         LocalSunriseColor
-    );
+    ).rgb;
 
     totalColor *= BrightnessMultiplier;
 

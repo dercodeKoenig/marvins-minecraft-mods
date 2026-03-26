@@ -1,4 +1,4 @@
-vec3 getAtmFilter(
+vec4 getAtmFilter(
     float planetSkyHeight,
     float playerHeight,
     vec3 localUpUniverseSpace,
@@ -10,8 +10,8 @@ vec3 getAtmFilter(
     // atmosphere modifies how the planet appears
     float altitudeAtmThicknessMod = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
     float planetUp = dot(localUpUniverseSpace, viewDir);
-    float atmThicknessMod = LocalAtmDensity / (1.0 + LocalAtmDensity);
-    atmThicknessMod *= pow(1.0 - max(0.0, planetUp), 2.0) * 0.9 + 0.1;
+    float atmThicknessMod = LocalAtmDensity;
+    atmThicknessMod *= pow(1.0 - max(0.0, planetUp), 2.0) * 0.8 + 0.2;
     atmThicknessMod *= altitudeAtmThicknessMod;
 
 
@@ -28,5 +28,5 @@ vec3 getAtmFilter(
     float extinctionIntensity = 4.0;
     vec3 atmFilter = exp(-extinctionIntensity * atmThicknessMod * absorptionCoefficients);
 
-    return atmFilter;
+    return vec4(atmFilter, atmThicknessMod);
 }

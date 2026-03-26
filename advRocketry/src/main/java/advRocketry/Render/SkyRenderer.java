@@ -2,7 +2,6 @@ package advRocketry.Render;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
-import ARLib.obj.Vertex;
 import ARLib.obj.WavefrontObject;
 import advRocketry.Config;
 import advRocketry.Dimension.*;
@@ -19,8 +18,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
@@ -41,11 +38,14 @@ public class SkyRenderer {
     public static VertexBuffer vertexBufferSquare;
     public static VertexBuffer vertexBufferStarBackground;
 
-    public static TextureTarget PlanetsTarget;
-    public static TextureTarget AtmosphereTarget;
-    public static TextureTarget bloomBrightTarget;
-    public static TextureTarget bloomBlurTarget1;
-    public static TextureTarget bloomBlurTarget2;
+    public static TextureTarget AtmosphereTarget; // render atm first
+    public static TextureTarget PlanetsAndStarsTarget;  // can use atm depth from alpha channel of AtmosphereTarget
+    public static TextureTarget PlanetsStarsAndAtmosphereTarget; // add atmosphere and planets together
+    public static TextureTarget bloomExtractBrightTarget; // extract bright regions for bloom shader
+    public static TextureTarget bloomBlurHorizontal;   // blur horizontal
+    public static TextureTarget bloomBlurVertical;  // blur vertical
+    // final addition of bloomBlurVertical and PlanetsStarsAndAtmosphereTarget and post processing into main render target
+
     public static long startTime;
     boolean finishedLoading = false;
 
@@ -91,8 +91,6 @@ public class SkyRenderer {
         Vector3f emissiveColor = RenderUtils.gamma_reverse(planetDimension.getEmissiveColor());
         shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, planetDimension.getRadiationIntensity()));
 
-        shader.getUniform("textureBrightness").set(planetDimension.getTextureBrightness());
-
         shader.getUniform("LocalAtmDensity").set(myAtmDensity);
 
         Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(mySunriseColor);
@@ -115,8 +113,7 @@ public class SkyRenderer {
         shader.getUniform("CloudWarp").set(Config.INSTANCE.planet_Cloud_Noise_Warp ? 1 : 0);
         shader.getUniform("CloudSampleSteps").set(Config.INSTANCE.planet_Cloud_Noise_Samples);
 
-        Vector3f TargetReflectiveTextureTintColor = RenderUtils.gamma_reverse(planetDimension.getReflectiveTextureTintColor());
-        shader.getUniform("TargetReflectiveTextureTintColor").set(TargetReflectiveTextureTintColor);
+        shader.getUniform("TargetTextureTintColor").set(planetDimension.getTextureTintColor());
 
         shader.getUniform("BrightnessMultiplier").set(brightnessModifider);
 
@@ -235,12 +232,12 @@ public class SkyRenderer {
     }
 
     public static void debugCommandRender() {
-
+        //INSTANCE.createStarBackgroundBuffer();
     }
 
     void createStarBackgroundBuffer() {
         // making it too small makes it not work with the minecraft bobbing effect and stars will jump around
-        int starCount = 12000;
+        int starCount = 8000;
         // need them far away or view bobbing will break shit
         float BoxSize = 50000;
         float scale = 5f;
@@ -367,11 +364,12 @@ public class SkyRenderer {
     }
 
     private void setupRenderTargets() {
-        PlanetsTarget = new HDRTextureTarget(1000, 1000, true, false);
+        PlanetsAndStarsTarget = new HDRTextureTarget(1000, 1000, true, false);
         AtmosphereTarget = new HDRTextureTarget(1000, 1000, false, false);
-        bloomBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
-        bloomBlurTarget1 = new HDRTextureTarget(1000, 1000, false, false);
-        bloomBlurTarget2 = new HDRTextureTarget(1000, 1000, false, false);
+        PlanetsStarsAndAtmosphereTarget = new HDRTextureTarget(1000, 1000, true, false);
+        bloomExtractBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
+        bloomBlurHorizontal = new HDRTextureTarget(1000, 1000, false, false);
+        bloomBlurVertical = new HDRTextureTarget(1000, 1000, false, false);
     }
 
     private void renderWarpTravelBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
@@ -481,8 +479,8 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
-        // lots of atmosphere makes it dark
-        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1);
+        // lots of atmosphere makes it dark, TODO: maybe also darken based on atmosphere & terrain brightness so they are only visible at night even on dark sky planets?
+        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 4);
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);
@@ -501,6 +499,7 @@ public class SkyRenderer {
         // Render planets / stars
         for (PlanetDimension otherDimension : PlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
 
+            // current position could be slightly modified when this is my planet, thats why i make a copy
             Vec3 myCurrentPositionInSpace = myDimensionPositionInSpace;
 
             boolean isMyDimension = otherDimension.equals(myCurrentSpaceObject);
@@ -656,19 +655,17 @@ public class SkyRenderer {
                 myGlobalAxis.front.toVector3f(),
                 myGlobalAxis.up.toVector3f()    // Up direction
         );
-        // adjust frame buffer size for render
+
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
 
-        adjustRenderTargetSize(PlanetsTarget, windowWidth, windowHeight, 1f);
+        adjustRenderTargetSize(PlanetsAndStarsTarget, windowWidth, windowHeight, 1f);
         adjustRenderTargetSize(AtmosphereTarget, windowWidth, windowHeight, 0.25f);
+        adjustRenderTargetSize(PlanetsStarsAndAtmosphereTarget, windowWidth, windowHeight, 1f);
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
 
-        PlanetsTarget.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSpaceBodies(proj, view, worldMatrix, partialtick);
-
+        // render atmosphere first
         AtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         if (myCurrentSpaceObject instanceof PlanetDimension)
@@ -677,6 +674,11 @@ public class SkyRenderer {
         if (myCurrentSpaceObject instanceof SpaceStationDimension)
             // space station has now atm, but maybe warp travel effects
             renderWarpTravelBox(proj, view, worldMatrix, partialtick);
+
+        // now render the planets and stars
+        PlanetsAndStarsTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        renderSpaceBodies(proj, view, worldMatrix, partialtick);
 
 
         ShaderInstance shader;
@@ -688,18 +690,29 @@ public class SkyRenderer {
         vertexBufferSquare.bind();
 
         float bloomWindowSizeMultiplier = 1f;
-        adjustRenderTargetSize(bloomBlurTarget1, 480, 270, bloomWindowSizeMultiplier);
-        adjustRenderTargetSize(bloomBlurTarget2, 480, 270, bloomWindowSizeMultiplier);
-        adjustRenderTargetSize(bloomBrightTarget, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBlurHorizontal, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBlurVertical, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomExtractBrightTarget, 480, 270, bloomWindowSizeMultiplier);
+
+        // add atmosphere and stars/planets together
+        PlanetsStarsAndAtmosphereTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        RenderSystem.setShader(shaderUtils::getBlitAddShader);
+        shader = RenderSystem.getShader();
+        shader.setSampler("Frame1", PlanetsAndStarsTarget.getColorTextureId());
+        shader.setSampler("Frame2", AtmosphereTarget.getColorTextureId());
+        shader.apply();
+        vertexBufferSquare.draw();
+        shader.clear();
 
         // blit extract bright regions
-        bloomBrightTarget.bindWrite(true);
+        bloomExtractBrightTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         RenderSystem.setShader(shaderUtils::getBlitExtractBrightShader);
         shader = RenderSystem.getShader();
-        shader.setSampler("frame", PlanetsTarget.getColorTextureId());
+        shader.setSampler("frame", PlanetsStarsAndAtmosphereTarget.getColorTextureId());
         shader.getUniform("threshold").set(1f);
-        shader.getUniform("resolution").set(PlanetsTarget.width, PlanetsTarget.height);
+        shader.getUniform("resolution").set(PlanetsStarsAndAtmosphereTarget.width, PlanetsStarsAndAtmosphereTarget.height);
         shader.apply();
         vertexBufferSquare.draw();
         shader.clear();
@@ -708,19 +721,19 @@ public class SkyRenderer {
         RenderSystem.setShader(shaderUtils::getBlitBlurShader);
         shader = RenderSystem.getShader();
 
-        bloomBlurTarget1.bindWrite(true);
+        bloomBlurHorizontal.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        shader.setSampler("image", bloomBrightTarget.getColorTextureId());
-        shader.getUniform("resolution").set(bloomBrightTarget.width);
+        shader.setSampler("image", bloomExtractBrightTarget.getColorTextureId());
+        shader.getUniform("resolution").set(bloomExtractBrightTarget.width);
         shader.getUniform("horizontal").set(1);
         shader.apply();
         vertexBufferSquare.draw();
         shader.clear();
 
-        bloomBlurTarget2.bindWrite(true);
+        bloomBlurVertical.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        shader.setSampler("image", bloomBlurTarget1.getColorTextureId());
-        shader.getUniform("resolution").set(bloomBlurTarget1.height);
+        shader.setSampler("image", bloomBlurHorizontal.getColorTextureId());
+        shader.getUniform("resolution").set(bloomBlurHorizontal.height);
         shader.getUniform("horizontal").set(0);
         shader.apply();
         vertexBufferSquare.draw();
@@ -729,11 +742,10 @@ public class SkyRenderer {
 
         // Switch back to main render target, combine framebuffers
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-        RenderSystem.setShader(shaderUtils::getBlitAddTonemapShader);
+        RenderSystem.setShader(shaderUtils::getBlitPostProcessingShader);
         shader = RenderSystem.getShader();
-        shader.setSampler("SpaceBackground", PlanetsTarget.getColorTextureId());
-        shader.setSampler("SpaceBackgroundBloom", bloomBlurTarget2.getColorTextureId());
-        shader.setSampler("Atmosphere", AtmosphereTarget.getColorTextureId());
+        shader.setSampler("Frame", PlanetsStarsAndAtmosphereTarget.getColorTextureId());
+        shader.setSampler("Bloom", bloomBlurVertical.getColorTextureId());
         shader.getUniform("bloomIntensity").set(1f);
         shader.apply();
         vertexBufferSquare.draw();

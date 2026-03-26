@@ -43,9 +43,14 @@ public class shaderUtils {
         return planetShader;
     }
 
-    public static ShaderInstance blitAddTonemapShader;
-    public static ShaderInstance getBlitAddTonemapShader() {
-        return blitAddTonemapShader;
+    public static ShaderInstance blitPostProcessingShader;
+    public static ShaderInstance getBlitPostProcessingShader() {
+        return blitPostProcessingShader;
+    }
+
+    public static ShaderInstance blitAddShader;
+    public static ShaderInstance getBlitAddShader() {
+        return blitAddShader;
     }
 
     public static ShaderInstance blitExtractBright;
