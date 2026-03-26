@@ -2,7 +2,7 @@
 
 uniform sampler2D Sampler0; // surface texture
 
-#moj_import "adv_rocketry:atmFilter.glsl"
+#moj_import "adv_rocketry:atm_filter.glsl"
 
 #define MAX_LIGHTS 4
 uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
