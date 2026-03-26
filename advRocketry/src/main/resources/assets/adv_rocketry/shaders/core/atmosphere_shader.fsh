@@ -32,9 +32,9 @@ void main() {
 
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
-    float fogFactor = max(0, -verticalDot - 0.5 * (1 - brightnessModifierPlayerAltitude));
+    float fogFactor = max(0, (-verticalDot+0.2)/1.2 - 0.5 * (1 - brightnessModifierPlayerAltitude));
     // 4. Apply the artistic curve
-    fogFactor = pow(fogFactor, 0.7); // Adjust exponent for feel
+    fogFactor = pow(fogFactor, 1.2); // Adjust exponent for feel
 
     vec3 finalFogColor = FogColor * fogFactor * globalBrightnessModifier;
 
@@ -79,7 +79,7 @@ void main() {
         SunriseColor *
         starColor.rgb *
         sunriseGlowMultiplier * // glow more where the sun is aligned with the fragment
-        pow(sunAtHorizon, 5) * // glow more when sun is at horizon
+        pow(sunAtHorizon, 10) * // glow more when sun is at horizon
         horizonFactor * // glow more when the fragment is at horizon (you dont want glow high above you)
         globalBrightnessModifier;
 
