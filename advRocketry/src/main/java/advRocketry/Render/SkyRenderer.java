@@ -24,6 +24,7 @@ import org.joml.*;
 import org.lwjgl.opengl.GL30;
 
 import java.lang.Math;
+import java.util.Arrays;
 
 import static advRocketry.Render.shaderUtils.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
@@ -79,9 +80,10 @@ public class SkyRenderer {
             float partialtick
     ) {
         RenderSystem.setShader(shaderUtils::getPlanetShader);
+        ShaderInstance shader = RenderSystem.getShader();
 
         RenderSystem.setShaderTexture(0, planetDimension.getTexture());
-        ShaderInstance shader = RenderSystem.getShader();
+        shader.setSampler("Sampler0", RenderSystem.getShaderTexture(0));
 
         shader.getUniform("ProjMat").set(proj);
         shader.getUniform("ViewMat").set(viewMatrix);
@@ -172,9 +174,12 @@ public class SkyRenderer {
     ) {
         // nice thing, the planet matrix is already transformed
         RenderSystem.setShader(shaderUtils::getRingSystemShader);
+        ShaderInstance shader = RenderSystem.getShader();
+
         ResourceLocation tex = ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/planet/8k_saturn_ring_alpha.png");
         RenderSystem.setShaderTexture(0, tex);
-        ShaderInstance shader = RenderSystem.getShader();
+        shader.setSampler("Sampler0", RenderSystem.getShaderTexture(0));
+
         shader.getUniform("ProjMat").set(proj);
         shader.getUniform("ViewMat").set(viewMatrix);
         shader.getUniform("WorldMat").set(worldMatrix);
@@ -365,11 +370,17 @@ public class SkyRenderer {
 
     private void setupRenderTargets() {
         PlanetsAndStarsTarget = new HDRTextureTarget(1000, 1000, true, false);
-        AtmosphereTarget = new HDRTextureTarget(1000, 1000, false, false);
+        AtmosphereTarget = new HDRTextureTarget(1000, 1000, true, false);
         PlanetsStarsAndAtmosphereTarget = new HDRTextureTarget(1000, 1000, true, false);
         bloomExtractBrightTarget = new HDRTextureTarget(1000, 1000, false, false);
         bloomBlurHorizontal = new HDRTextureTarget(1000, 1000, false, false);
         bloomBlurVertical = new HDRTextureTarget(1000, 1000, false, false);
+
+
+        float bloomWindowSizeMultiplier = 1f;
+        adjustRenderTargetSize(bloomBlurHorizontal, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomBlurVertical, 480, 270, bloomWindowSizeMultiplier);
+        adjustRenderTargetSize(bloomExtractBrightTarget, 480, 270, bloomWindowSizeMultiplier);
     }
 
     private void renderWarpTravelBox(Matrix4f proj, Matrix4f view, Matrix4f worldMatrix, float partialTick) {
@@ -480,7 +491,7 @@ public class SkyRenderer {
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
         // lots of atmosphere makes it dark, TODO: maybe also darken based on atmosphere & terrain brightness so they are only visible at night even on dark sky planets?
-        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1) * 5;
+        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1);
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);
@@ -639,60 +650,13 @@ public class SkyRenderer {
         VertexBuffer.unbind();
     }
 
-    public void renderSky(Matrix4f proj, Matrix4f view, float partialtick) {
-        if (!finishedLoading) return;
-
-        Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
-        if (myCurrentSpaceObject == null) return;
-        if (!myCurrentSpaceObject.hasCustomSky()) return;
-
-        AxisDirections myGlobalAxis = myCurrentSpaceObject.getGlobalAxisDirections(partialtick);
-
-        // Create the base orientation for our skybox using the planet's axes.
-        // This matrix transforms global space coordinates into world coordinates
-        Matrix4f worldMatrix = new Matrix4f().lookAt(
-                new Vector3f(0, 0, 0),
-                myGlobalAxis.front.toVector3f(),
-                myGlobalAxis.up.toVector3f()    // Up direction
-        );
-
-        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
-        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
-
-        adjustRenderTargetSize(PlanetsAndStarsTarget, windowWidth, windowHeight, 1f);
-        adjustRenderTargetSize(AtmosphereTarget, windowWidth, windowHeight, 0.25f);
-        adjustRenderTargetSize(PlanetsStarsAndAtmosphereTarget, windowWidth, windowHeight, 1f);
-
-        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
-
-        // render atmosphere first
-        AtmosphereTarget.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        if (myCurrentSpaceObject instanceof PlanetDimension)
-            // only planets need atm shader
-            renderSkyBox(proj, view, worldMatrix, partialtick);
-        if (myCurrentSpaceObject instanceof SpaceStationDimension)
-            // space station has now atm, but maybe warp travel effects
-            renderWarpTravelBox(proj, view, worldMatrix, partialtick);
-
-        // now render the planets and stars
-        PlanetsAndStarsTarget.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSpaceBodies(proj, view, worldMatrix, partialtick);
-
-
+    public void performPostProcessingAndRenderToScreen() {
         ShaderInstance shader;
 
-        // post processing
-
         GlStateManager._depthMask(false);
+        NO_DEPTH_TEST.setupRenderState();
 
         vertexBufferSquare.bind();
-
-        float bloomWindowSizeMultiplier = 1f;
-        adjustRenderTargetSize(bloomBlurHorizontal, 480, 270, bloomWindowSizeMultiplier);
-        adjustRenderTargetSize(bloomBlurVertical, 480, 270, bloomWindowSizeMultiplier);
-        adjustRenderTargetSize(bloomExtractBrightTarget, 480, 270, bloomWindowSizeMultiplier);
 
         // add atmosphere and stars/planets together
         PlanetsStarsAndAtmosphereTarget.bindWrite(true);
@@ -742,6 +706,7 @@ public class SkyRenderer {
 
         // Switch back to main render target, combine framebuffers
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT| GL30.GL_DEPTH_BUFFER_BIT, false);
         RenderSystem.setShader(shaderUtils::getBlitPostProcessingShader);
         shader = RenderSystem.getShader();
         shader.setSampler("Frame", PlanetsStarsAndAtmosphereTarget.getColorTextureId());
@@ -754,6 +719,56 @@ public class SkyRenderer {
         VertexBuffer.unbind();
 
         GlStateManager._depthMask(true);
+        NO_DEPTH_TEST.clearRenderState();
+    }
+
+    public void renderSky(Matrix4f proj, Matrix4f view, float partialtick) {
+        if (!finishedLoading) return;
+
+        Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
+        if (myCurrentSpaceObject == null) return;
+        if (!myCurrentSpaceObject.hasCustomSky()) return;
+
+        AxisDirections myGlobalAxis = myCurrentSpaceObject.getGlobalAxisDirections(partialtick);
+
+        // Create the base orientation for our skybox using the planet's axes.
+        // This matrix transforms global space coordinates into world coordinates
+        Matrix4f worldMatrix = new Matrix4f().lookAt(
+                new Vector3f(0, 0, 0),
+                myGlobalAxis.front.toVector3f(),
+                myGlobalAxis.up.toVector3f()    // Up direction
+        );
+
+        int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
+        int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
+
+        adjustRenderTargetSize(PlanetsAndStarsTarget, windowWidth, windowHeight, 1f);
+        adjustRenderTargetSize(AtmosphereTarget, windowWidth, windowHeight, 0.25f);
+        adjustRenderTargetSize(PlanetsStarsAndAtmosphereTarget, windowWidth, windowHeight, 1f);
+
+        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
+
+        // render atmosphere first
+        AtmosphereTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        if (myCurrentSpaceObject instanceof PlanetDimension)
+            // only planets need atm shader
+            renderSkyBox(proj, view, worldMatrix, partialtick);
+        if (myCurrentSpaceObject instanceof SpaceStationDimension)
+            // space station has now atm, but maybe warp travel effects
+            renderWarpTravelBox(proj, view, worldMatrix, partialtick);
+
+        // now render the planets and stars
+        PlanetsAndStarsTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+
+        renderSpaceBodies(proj, view, worldMatrix, partialtick);
+
+
+        // post processing
+
+        performPostProcessingAndRenderToScreen();
+
 
         // Clear depth buffer for subsequent rendering
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
