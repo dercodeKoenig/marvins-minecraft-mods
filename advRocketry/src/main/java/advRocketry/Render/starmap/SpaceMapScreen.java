@@ -540,17 +540,19 @@ public class SpaceMapScreen extends Screen {
         // 3. PROJECTION MATRIX
         Matrix4f projMatrix = projMat();
 
-        SkyRenderer.adjustRenderTargetSize(SkyRenderer.PlanetsAndStarsTarget, windowWidth, windowHeight, 1f);
-        SkyRenderer.adjustRenderTargetSize(SkyRenderer.AtmosphereTarget, windowWidth, windowHeight, 0.25f);
-
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
 
+        // atmosphere: no atmosphere
+        SkyRenderer.AtmosphereTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+
+        // render planets and stars
         SkyRenderer.PlanetsAndStarsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
 
         ShaderInstance shader;
 
-        // render star background first
+        // render star background
         RenderSystem.setShader(shaderUtils::getstarBackgroundShader);
         shader = RenderSystem.getShader();
         shader.getUniform("ViewMat").set(new Matrix4f());
@@ -564,6 +566,7 @@ public class SpaceMapScreen extends Screen {
         SkyRenderer.vertexBufferStarBackground.bind();
         SkyRenderer.vertexBufferStarBackground.draw();
         shader.clear();
+
         RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false);
 
         // for the orbit lines
@@ -688,68 +691,7 @@ public class SpaceMapScreen extends Screen {
 
         LEQUAL_DEPTH_TEST.clearRenderState();
 
-        // this one is only required for the blit shader later bc i dont want to write another shader
-        SkyRenderer.AtmosphereTarget.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-
-        // post processing
-
-        GlStateManager._depthMask(false);
-
-        SkyRenderer.vertexBufferSquare.bind();
-
-        float bloomWindowSizeMultiplier = 1f;
-        SkyRenderer.adjustRenderTargetSize(SkyRenderer.bloomBlurHorizontal, 480, 270, bloomWindowSizeMultiplier);
-        SkyRenderer.adjustRenderTargetSize(SkyRenderer.bloomBlurVertical, 480, 270, bloomWindowSizeMultiplier);
-        SkyRenderer.adjustRenderTargetSize(SkyRenderer.bloomExtractBrightTarget, 480, 270, bloomWindowSizeMultiplier);
-
-        // blit extract bright regions
-        SkyRenderer.bloomExtractBrightTarget.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        RenderSystem.setShader(shaderUtils::getBlitExtractBrightShader);
-        shader = RenderSystem.getShader();
-        shader.setSampler("frame", SkyRenderer.PlanetsAndStarsTarget.getColorTextureId());
-        shader.getUniform("threshold").set(1f);
-        shader.apply();
-        SkyRenderer.vertexBufferSquare.draw();
-        shader.clear();
-
-        // blit blur
-        RenderSystem.setShader(shaderUtils::getBlitBlurShader);
-        shader = RenderSystem.getShader();
-
-        SkyRenderer.bloomBlurHorizontal.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        shader.setSampler("image", SkyRenderer.bloomExtractBrightTarget.getColorTextureId());
-        shader.getUniform("resolution").set(SkyRenderer.bloomExtractBrightTarget.width);
-        shader.getUniform("horizontal").set(1);
-        shader.apply();
-        SkyRenderer.vertexBufferSquare.draw();
-        shader.clear();
-
-        SkyRenderer.bloomBlurVertical.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        shader.setSampler("image", SkyRenderer.bloomBlurHorizontal.getColorTextureId());
-        shader.getUniform("resolution").set(SkyRenderer.bloomBlurHorizontal.height);
-        shader.getUniform("horizontal").set(0);
-        shader.apply();
-        SkyRenderer.vertexBufferSquare.draw();
-        shader.clear();
-
-
-        // Switch back to main render target, combine framebuffers
-        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-        RenderSystem.setShader(shaderUtils::getBlitPostProcessingShader);
-        shader = RenderSystem.getShader();
-        shader.setSampler("SpaceBackground", SkyRenderer.PlanetsAndStarsTarget.getColorTextureId());
-        shader.setSampler("SpaceBackgroundBloom", SkyRenderer.bloomBlurVertical.getColorTextureId());
-        shader.setSampler("Atmosphere", SkyRenderer.AtmosphereTarget.getColorTextureId());
-        shader.getUniform("bloomIntensity").set(1f);
-        shader.apply();
-        SkyRenderer.vertexBufferSquare.draw();
-        shader.clear();
-
-        GlStateManager._depthMask(true);
+        SkyRenderer.INSTANCE.performPostProcessingAndRenderToScreen();
 
         VertexBuffer.unbind();
 
