@@ -32,7 +32,7 @@ void main() {
 
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
-    float fogFactor = max(0, (-verticalDot+0.1)/1.1 - 0.5 * (1 - brightnessModifierPlayerAltitude));
+    float fogFactor = max(0, -verticalDot - 0.5 * (1 - brightnessModifierPlayerAltitude));
     // 4. Apply the artistic curve
     fogFactor = pow(fogFactor, 0.7); // Adjust exponent for feel
 
