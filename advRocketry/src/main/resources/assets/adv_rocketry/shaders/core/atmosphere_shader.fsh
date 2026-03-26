@@ -1,6 +1,6 @@
 #version 150
 
-#moj_import "adv_rocketry:atmFilter.glsl"
+#moj_import "adv_rocketry:atm_filter.glsl"
 
 uniform vec3 SkyColor;
 uniform vec3 SunriseColor;
@@ -98,7 +98,7 @@ void main() {
 
     // Apply global extinction once after all lights are added
     // Lots of atmosphere makes it dark
-    float extinction = exp(-atmThickness * 0.25);
+    float extinction = exp(-atmThickness);
     cumulativeSkyColor *= extinction;
 
     // encode atmThickness in alpha channel to be potentially used in future shaders
