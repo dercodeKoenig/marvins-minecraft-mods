@@ -38,7 +38,7 @@ void main() {
 
     vec3 finalFogColor = FogColor * fogFactor * globalBrightnessModifier;
 
-    vec3 SkyColorBase = globalBrightnessModifier * SkyColor;
+    vec3 SkyColorBase = globalBrightnessModifier * SkyColor * (1-fogFactor);
 
 
 
