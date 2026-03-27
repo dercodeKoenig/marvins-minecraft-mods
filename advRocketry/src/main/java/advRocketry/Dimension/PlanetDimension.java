@@ -622,10 +622,10 @@ public class PlanetDimension extends Dimension {
             properties().fogColor = new Vector3f(0.85f, 0.4f, 0f).mul(3);
         }
         if (getName().equals("Priate")) {
-            properties().textureTintColor = new Vector3f(1, 1, 1).mul(6f);
+            properties().textureTintColor = new Vector3f(1, 1, 1).mul(7f);
         }
         if (getName().equals("Sun")) {
-            properties().textureTintColor = new Vector3f(1, 1, 1).mul(6f);
+            properties().textureTintColor = new Vector3f(1, 1, 1).mul(7f);
         }
     }
 
