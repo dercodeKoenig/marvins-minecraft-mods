@@ -653,7 +653,6 @@ public class SkyRenderer {
         ShaderInstance shader;
 
         GlStateManager._depthMask(false);
-        NO_DEPTH_TEST.setupRenderState();
 
         vertexBufferSquare.bind();
 
@@ -704,7 +703,7 @@ public class SkyRenderer {
 
         // Switch back to main render target, clear & combine framebuffers
         Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT| GL30.GL_DEPTH_BUFFER_BIT, false);
+        RenderSystem.clear(GL30.GL_DEPTH_BUFFER_BIT, false); // always render on top
         RenderSystem.setShader(shaderUtils::getBlitPostProcessingShader);
         shader = RenderSystem.getShader();
         shader.setSampler("Frame", PlanetsStarsAndAtmosphereTarget.getColorTextureId());
@@ -717,7 +716,6 @@ public class SkyRenderer {
         // clear states
         VertexBuffer.unbind();
         GlStateManager._depthMask(true);
-        NO_DEPTH_TEST.clearRenderState();
     }
 
     public void renderSky(Matrix4f proj, Matrix4f view, float partialtick) {
@@ -763,7 +761,6 @@ public class SkyRenderer {
 
 
         // post processing
-
         performPostProcessingAndBlitToScreen();
 
 
