@@ -100,8 +100,12 @@ void main() {
     float proximityFade = smoothstep(fadeStart, fadeEnd, distToCamera);
     proximityFade *= 1-smoothstep(outOfRangeFadeStart, outOfRangeFadeEnd, distToCamera);
 
-    // Apply the fade to the alpha channel
-    vColor = Color * (1.0 + speed * 0.05) * 1.5;
+    // Color calculation
+    vColor = Color;
+    // Increase brightness when in warp travel with normalized speed
+    vColor *= (1.0 + speed / (1 + speed) * 3);
+    // Adjust for increases star size
     vColor *= brightnessComp;
-    vColor *= proximityFade; // alpha is not used in this render pipeline, so scale rgb
+    // Apply the fade out
+    vColor *= proximityFade;
 }

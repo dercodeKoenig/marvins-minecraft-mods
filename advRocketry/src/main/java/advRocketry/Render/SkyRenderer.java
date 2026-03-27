@@ -440,7 +440,7 @@ public class SkyRenderer {
         shader.getUniform("LightCount").set(totalLights);
 
         Vector3f SkyColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSkyColor());
-        SkyColorLin.mul(1-myCurrentSpaceObject.getSkyDarken());
+        SkyColorLin.mul(1 - myCurrentSpaceObject.getSkyDarken());
         shader.getUniform("SkyColor").set(SkyColorLin.x, SkyColorLin.y, SkyColorLin.z);
 
         Vector3f SunriseColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
@@ -468,7 +468,7 @@ public class SkyRenderer {
         Vec3 myDimensionPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
         float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
         float myAtmDensity = myCurrentSpaceObject.getAtmosphereDensity();
-       Vector3f mySunRiseColor = myCurrentSpaceObject.getSunRiseColor();
+        Vector3f mySunRiseColor = myCurrentSpaceObject.getSunRiseColor();
         Vector3f myFogColor = myCurrentSpaceObject.computeTerrainFogColor(partialtick);
 
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
@@ -494,15 +494,19 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
-        float BrightnessModifier = (float) (1 + 2 * Math.max(0,(Minecraft.getInstance().options.gamma().get() - 0.5)));
-        BrightnessModifier *= (1-myCurrentSpaceObject.getSkyDarken());
-        shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);
         shader.getUniform("ScreenSize").set(windowWidth, windowHeight);
         shader.getUniform("LocalAtmDensity").set(myAtmDensity);
         shader.getUniform("playerHeight").set(playerHeightAboveSea);
         shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
+
+        double overGamma = Math.max(0, Minecraft.getInstance().options.gamma().get() - 0.5);
+        float BrightnessModifier = 2;
+        BrightnessModifier += (float) (2 * overGamma);
+        BrightnessModifier *= (float) Math.max(0, (1 - Math.pow(myCurrentSpaceObject.getSkyDarken(), 0.1))); // stars will darken very fast even on low values while sky darkens normally
+        shader.getUniform("BrightnessModifier").set(BrightnessModifier);
+
         shader.apply();
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();

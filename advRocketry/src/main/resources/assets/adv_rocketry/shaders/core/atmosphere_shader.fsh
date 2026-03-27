@@ -1,6 +1,7 @@
 #version 150
 
 #moj_import "adv_rocketry:atm_filter.glsl"
+#moj_import "adv_rocketry:utils.glsl"
 
 uniform vec3 SkyColor;
 uniform vec3 SunriseColor;
@@ -96,14 +97,13 @@ void main() {
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
     float fogFactor = clamp((-verticalDot+0.2) * 4 - 0.5 * (1 - playerHeight), 0, 1);
-    // Apply the artistic curve
-    fogFactor = pow(fogFactor, 2); // Adjust exponent for feel
+    fogFactor = pow(smoothStep(fogFactor), 4);
     // the fog should not be modified in any way because it has to match the terrain fog color
     // simple blend will do
 
     // blend skycolor and fog color and add sunrise glow
     cumulativeSkyColor =
-        cumulativeSkyColor * (1.1 - fogFactor)
+        cumulativeSkyColor * (1 - fogFactor)
         + FogColor * fogFactor
         + cumulativeSunriseGlow;
 

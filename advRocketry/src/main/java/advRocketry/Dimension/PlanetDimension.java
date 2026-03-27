@@ -252,7 +252,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public double computeTerrainBrightness(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
         brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
         return brightness;
     }
@@ -270,16 +270,11 @@ public class PlanetDimension extends Dimension {
 
     // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
         brightness = Math.pow(brightness, 0.8);
         double atmDensity = getAtmosphereDensity();
-        double exctinction = Math.exp(-atmDensity);;
-        double visibility = 1-exctinction;
 
-        Vector3f skyFactor = RenderUtils.gamma_reverse(properties().skyColor).mul((float) (1 - visibility));
-        Vector3f fogFactor = RenderUtils.gamma_reverse(properties().fogColor).mul((float) (visibility));
-
-        return skyFactor.add(fogFactor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
+        return RenderUtils.gamma_reverse(properties().fogColor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
         // TODO: tint in sunrise color when player is facing toward star as minecraft does it
         //      ( there is always just a single color for terrain fog )
     }
@@ -619,9 +614,10 @@ public class PlanetDimension extends Dimension {
         properties().isKnown = true;
 
         if (getName().equals("Mustafar")) {
-            properties().skyDarken = 0.5f;
+            properties().skyDarken = 0.7f;
+            properties().fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
         }
-        if (getName().equals("Priate")) {
+        if (getName().equals("Earth")) {
 
         }
         if (getName().equals("Sun")) {
