@@ -33,6 +33,9 @@ void main() {
     float noise = interleavedGradientNoise(gl_FragCoord.xy);
     textureColor += (noise - 0.5) / 255.0;
 
+    // TODO: apply gamma setting for increase or decrease brightness
+    //textureColor += (1 - textureColor) * 0.25; // TODO: multiply by the part over 50%
+
     textureColor = clamp(textureColor, 0, 1);
 
     fragColor = vec4(textureColor,1);

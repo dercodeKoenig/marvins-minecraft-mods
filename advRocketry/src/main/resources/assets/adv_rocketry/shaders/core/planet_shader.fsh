@@ -180,21 +180,25 @@ void main() {
     vec3 textureEmission = max(0,(1 - cloudValue)) * max(vec3(0.0), baseSurfaceColor - vec3(1));
 
     // some ambient air glow
-    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.2 + 0.8) * 0.03;
+    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.6 + 0.4) * 0.03;
     vec3 surfaceGlow = (1.0 - cloudValue) * airGlow1 * baseSurfaceColor;
     vec3 cloudGlow = cloudValue * airGlow1 * TargetCloudColor;
     vec3 airglow = surfaceGlow + cloudGlow;
 
 
     // for atmosphere tint
-    vec3 atmFilter = getAtmFilter(
-        planetSkyHeight,
-        playerHeight,
-        U,
-        V,
-        LocalAtmDensity,
-        LocalSunriseColor
-    );
+    vec3 atmFilter = vec3(1);
+    if(isLocalPlanet == 0){
+        // not on local planet, looks strange because below would be lots of atmosphere
+        atmFilter = getAtmFilter(
+            planetSkyHeight,
+            playerHeight,
+            U,
+            V,
+            LocalAtmDensity,
+            LocalSunriseColor
+        );
+    }
 
     vec3 finalColor =
         (totalReflectedLight + emitted + textureEmission + airglow)

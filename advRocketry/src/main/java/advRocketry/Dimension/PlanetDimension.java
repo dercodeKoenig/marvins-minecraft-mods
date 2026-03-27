@@ -204,6 +204,8 @@ public class PlanetDimension extends Dimension {
         return new Vector3f(properties().skyColor);
     }
 
+    public float getSkyDarken(){ return properties().skyDarken;}
+
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
     }
@@ -619,7 +621,9 @@ public class PlanetDimension extends Dimension {
         if (getName().equals("Mustafar")) {
             properties().textureTintColor = new Vector3f(1, 1, 1).mul(3f);
             properties().cloudValueOverwrite = 0.7f;
+            properties().baseEnergyGain = 0.1f;
             properties().fogColor = new Vector3f(0.85f, 0.4f, 0f).mul(3);
+            properties().skyDarken = 0.5f;
         }
         if (getName().equals("Priate")) {
             properties().textureTintColor = new Vector3f(1, 1, 1).mul(7f);

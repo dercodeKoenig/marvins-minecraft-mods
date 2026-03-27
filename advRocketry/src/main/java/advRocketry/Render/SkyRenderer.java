@@ -440,6 +440,7 @@ public class SkyRenderer {
         shader.getUniform("LightCount").set(totalLights);
 
         Vector3f SkyColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSkyColor());
+        SkyColorLin.mul(1-myCurrentSpaceObject.getSkyDarken());
         shader.getUniform("SkyColor").set(SkyColorLin.x, SkyColorLin.y, SkyColorLin.z);
 
         Vector3f SunriseColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
@@ -494,6 +495,7 @@ public class SkyRenderer {
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
         float BrightnessModifier = (float) (1 + 8 * Minecraft.getInstance().options.gamma().get());
+        BrightnessModifier *= (1-myCurrentSpaceObject.getSkyDarken());
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);
@@ -600,8 +602,8 @@ public class SkyRenderer {
 
 
             // custom proj matrix for every draw because of high potential distance range
-            n2 = (float) (relativePos.length() / 10000);
-            f2 = (float) (relativePos.length() * 100);
+            n2 = (float) (relativePos.length() / 100000);
+            f2 = (float) (relativePos.length() * 10);
             newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
             newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
@@ -637,7 +639,7 @@ public class SkyRenderer {
                         mySunRiseColor,
                         playerHeightAboveSea,
                         (float) geometryScale,
-                        1,
+                        brightness,
                         partialtick
                 );
             }

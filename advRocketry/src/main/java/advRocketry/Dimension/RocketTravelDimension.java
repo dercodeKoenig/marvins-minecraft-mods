@@ -133,6 +133,9 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
+    public float getSkyDarken(){ return 0;}
+
+    @Override
     public Vector3f getSunRiseColor() {
         return new Vector3f(0, 0, 0);
     }

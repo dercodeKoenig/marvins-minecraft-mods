@@ -59,6 +59,8 @@ public abstract class Dimension {
 
     abstract public Vector3f getSkyColor();
 
+    abstract public float getSkyDarken();
+
     abstract public Vector3f getSunRiseColor();
 
     abstract public Vector3f getFogColor();

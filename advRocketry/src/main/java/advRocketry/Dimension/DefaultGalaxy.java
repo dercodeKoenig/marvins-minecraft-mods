@@ -179,7 +179,7 @@ public class DefaultGalaxy {
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         priate.emissiveColor = new Vector3f(1f, 0.9f, 0.8f);
-        priate.radiationIntensity = 1.5f;
+        priate.radiationIntensity = 2f;
         priate.textureTintColor = new Vector3f(1,1,1).mul(3f);
         priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
@@ -192,8 +192,8 @@ public class DefaultGalaxy {
         mustafar.parentDimensionId = priate.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 300;
-        mustafar.baseEnergyGain = 0.5f;
-        mustafar.orbitalDistanceToParent = 2.5f;
+        mustafar.baseEnergyGain = 0.1f;
+        mustafar.orbitalDistanceToParent = 2f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
@@ -206,7 +206,6 @@ public class DefaultGalaxy {
         mustafar.customSeaFluidLevel = 56;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
         mustafar.cloudValueOverwrite = 0.7f;
-        //mustafar.skyColor = new Vector3f(0.35f, 0.4f, 0.60f).mul(1.5f);
         mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
         mustafar.fogColor = new Vector3f(0.55f, 0.35f, 0.30f).mul(3);
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
