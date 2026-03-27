@@ -5,6 +5,8 @@ in vec4 Color;
 in vec3 Normal;
 
 out vec4 vColor;
+out vec3 localUpUniverseSpace;
+out vec3 viewDir;
 
 uniform mat4 ViewMat;
 uniform mat4 ModelMat;
@@ -76,13 +78,15 @@ void main() {
 
     gl_Position = finalClipPos;
 
+    mat3 rotWorldInv = transpose(mat3(WorldMat));
+    localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));
+
+    // stars always render translated relative to player eve
+    viewDir = normalize(wrappedCenter + antiFlickerOffset);
+
 
 
     // Color fade in / out / special effects -------------
-
-    // Optional: Boost brightness during warp so the streaks look "energetic"
-    vColor = Color * BrightnessModifier * (1.0 + speed * 2);
-
 
     // --- Proximity Fade Logic ---
 

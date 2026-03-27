@@ -465,6 +465,10 @@ public class SkyRenderer {
 
         Dimension myCurrentSpaceObject = ClientUtils.getPlayerDimension();
         Vec3 myDimensionPositionInSpace = myCurrentSpaceObject.getPosition(partialtick);
+        float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
+        float myAtmDensity = myCurrentSpaceObject.getAtmosphereDensity();
+       Vector3f mySunRiseColor = myCurrentSpaceObject.getSunRiseColor();
+        Vector3f myFogColor = myCurrentSpaceObject.computeTerrainFogColor(partialtick);
 
         int windowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
         int windowHeight = Minecraft.getInstance().getWindow().getScreenHeight();
@@ -489,12 +493,14 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
-        // lots of atmosphere makes it dark, TODO: maybe also darken based on atmosphere & terrain brightness so they are only visible at night even on dark sky planets?
-        float BrightnessModifier = (float) Math.exp(-myCurrentSpaceObject.getAtmosphereDensity() * 1);
+        float BrightnessModifier = (float) (1 + 3*Minecraft.getInstance().options.gamma().get());
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);
         shader.getUniform("ScreenSize").set(windowWidth, windowHeight);
+        shader.getUniform("LocalAtmDensity").set(myAtmDensity);
+        shader.getUniform("playerHeight").set(playerHeightAboveSea);
+        shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
         shader.apply();
         vertexBufferStarBackground.bind();
         vertexBufferStarBackground.draw();
@@ -503,8 +509,6 @@ public class SkyRenderer {
 
         // enable depth test for planet rendering so the rings render correctly only in front of the planet
         LEQUAL_DEPTH_TEST.setupRenderState();
-
-        float playerHeightAboveSea = (float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel();
 
         // Render planets / stars
         for (PlanetDimension otherDimension : PlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
@@ -601,8 +605,6 @@ public class SkyRenderer {
             newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
             newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
-            float myAtmDensity = myCurrentSpaceObject.getAtmosphereDensity();
-
             if (!skipPlanetRender) {
 
                 renderPlanet(
@@ -613,8 +615,8 @@ public class SkyRenderer {
                         planetMatrix,
                         new Vector3f(0, 0, 0),
                         myAtmDensity,
-                        myCurrentSpaceObject.getSunRiseColor(),
-                        myCurrentSpaceObject.computeTerrainFogColor(partialtick),
+                        mySunRiseColor,
+                        myFogColor,
                         playerHeightAboveSea,
                         isMyDimension,
                         brightness,
@@ -632,7 +634,7 @@ public class SkyRenderer {
                         planetMatrix,
                         new Vector3f(0, 0, 0),
                         myAtmDensity,
-                        myCurrentSpaceObject.getSunRiseColor(),
+                        mySunRiseColor,
                         playerHeightAboveSea,
                         (float) geometryScale,
                         1,

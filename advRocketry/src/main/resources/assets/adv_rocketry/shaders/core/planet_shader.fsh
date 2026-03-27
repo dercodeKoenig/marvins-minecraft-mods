@@ -92,7 +92,7 @@ void main() {
     }
     float extraCloud = max(0,cloudValue - 0.8); // this avoids flat clouds by giving them some more color
     cloudValue = clamp(cloudValue, 0, 1);
-    cloudValue = pow(cloudValue, 3);
+    cloudValue = smoothStep(cloudValue);
 
     // for atmosphere
     // how much of the edge (horizon) we see
