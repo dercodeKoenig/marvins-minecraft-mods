@@ -110,7 +110,7 @@ public class NavigateInSpaceToTargetDimension {
 
         // move forward
         double maxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second / 20; // the maximum travel speed defined as in config adjusted for per tick
-        double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_Distance_For_Max_Speed; // we reach this speed only if we are 0.1 AU away from home / origin
+        double distanceForMaxSpeed = Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second * 10; // we reach this speed only if we are 0.1 AU away from home / origin
 
         // slow down when near target or origin
         double nearTargetMultiplier = Math.min(1, Math.max(0, distanceToFinalTarget - entryDistance) / distanceForMaxSpeed);

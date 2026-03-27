@@ -617,7 +617,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             if (p < pTarget) {
                                 extractData(REQUIRED_DATA, 1, dataTiles, false);
                                 p = Math.random();
-                                pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Tick;
+                                pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Data;
                                 if (p < pTarget) {
                                     // find a new asteroid
                                     AsteroidManager.DiscoveredAsteroid discoveredAsteroid = AsteroidManager.discoverNewAsteroid();
