@@ -7,6 +7,7 @@ import advRocketry.Render.MipmapSimpleTexture;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
+import advRocketry.Utils.RenderUtils;
 import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
@@ -265,12 +266,20 @@ public class PlanetDimension extends Dimension {
         return computeRawCloudColor().mul((float) brightness);
     }
 
+    // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
-        return new Vector3f(properties().fogColor)
-                .mul((float) brightness)
-                .mul(getAtmosphereDensity() / (1 + getAtmosphereDensity()));
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        brightness = Math.pow(brightness, 0.8);
+        double atmDensity = getAtmosphereDensity();
+        double exctinction = Math.exp(-atmDensity);;
+        double visibility = 1-exctinction;
+
+        Vector3f skyFactor = RenderUtils.gamma_reverse(properties().skyColor).mul((float) (1 - visibility));
+        Vector3f fogFactor = RenderUtils.gamma_reverse(properties().fogColor).mul((float) (visibility));
+
+        return skyFactor.add(fogFactor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
+        // TODO: tint in sunrise color when player is facing toward star as minecraft does it
+        //      ( there is always just a single color for terrain fog )
     }
 
     public float getAtmosphereDensity() {

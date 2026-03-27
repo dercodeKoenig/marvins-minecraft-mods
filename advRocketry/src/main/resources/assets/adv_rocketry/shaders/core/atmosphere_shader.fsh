@@ -40,19 +40,11 @@ void main() {
     // how bright the sky should be, TODO: this should also depend on weather multiplier - add global uniform modifier, encode eclipse modifier in star intensity value
     float globalBrightnessModifier = atmThickness;
 
-    // i want fog to blend in at the horizon and below
-    // i also want it to be lower when the player is high up
-    float fogFactor = max(0, (-verticalDot+0.2)/1.2 - 0.5 * (1 - playerHeight));
-    // Apply the artistic curve
-    fogFactor = pow(fogFactor, 1.2); // Adjust exponent for feel
-
-    vec3 finalFogColor = FogColor * fogFactor * globalBrightnessModifier;
-
-    vec3 SkyColorBase = SkyColor * (1-fogFactor) * globalBrightnessModifier;
-
-
+    vec3 SkyColorBase = SkyColor * globalBrightnessModifier;
 
     vec3 cumulativeSkyColor = vec3(0);
+
+    vec3 cumulativeSunriseGlow = vec3(0);
 
     for (int i = 0; i < LightCount; i++) {
 
@@ -89,17 +81,31 @@ void main() {
         horizonFactor * // glow more when the fragment is at horizon (you dont want glow high above you)
         globalBrightnessModifier;
 
-        // brightness adjustment, add fog, sky color and sunrise glow
-        vec3 skyColorOut = (finalFogColor + SkyColorBase + sunriseGlow) * perStarBrightnessMultiplier;
-
         // add
-        cumulativeSkyColor = cumulativeSkyColor + skyColorOut;
+        cumulativeSkyColor += SkyColorBase * perStarBrightnessMultiplier;
+        cumulativeSunriseGlow += sunriseGlow * perStarBrightnessMultiplier;
     }
 
     // Apply global extinction once after all lights are added
     // Lots of atmosphere makes it dark
     float extinction = exp(-atmThickness);
     cumulativeSkyColor *= extinction;
+    cumulativeSunriseGlow *= extinction;
+
+    // Add Fog
+    // i want fog to blend in at the horizon and below
+    // i also want it to be lower when the player is high up
+    float fogFactor = clamp((-verticalDot+0.1) * 4 - 0.5 * (1 - playerHeight), 0, 1);
+    // Apply the artistic curve
+    fogFactor = pow(fogFactor, 2); // Adjust exponent for feel
+    // the fog should not be modified in any way because it has to match the terrain fog color
+    // simple blend will do
+
+    // blend skycolor and fog color and add sunrise glow
+    cumulativeSkyColor =
+        cumulativeSkyColor * (1.1 - fogFactor)
+        + FogColor * fogFactor
+        + cumulativeSunriseGlow;
 
     // encode atmThickness in alpha channel to be potentially used in future shaders
     fragColor = vec4(cumulativeSkyColor, atmThickness);

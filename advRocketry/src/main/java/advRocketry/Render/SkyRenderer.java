@@ -445,7 +445,7 @@ public class SkyRenderer {
         Vector3f SunriseColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getSunRiseColor());
         shader.getUniform("SunriseColor").set(SunriseColorLin.x, SunriseColorLin.y, SunriseColorLin.z);
 
-        Vector3f FogColorLin = RenderUtils.gamma_reverse(myCurrentSpaceObject.getFogColor());
+        Vector3f FogColorLin = myCurrentSpaceObject.computeTerrainFogColor(partialTick); // comes in linear hdr
         shader.getUniform("FogColor").set(FogColorLin.x, FogColorLin.y, FogColorLin.z);
 
         shader.getUniform("playerHeight").set((float) Minecraft.getInstance().player.position().y - Minecraft.getInstance().level.getSeaLevel());
