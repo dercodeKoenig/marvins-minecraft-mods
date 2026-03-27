@@ -162,8 +162,11 @@ void main() {
         }
 
         // diffuse - bright when face is facing the star
-        float diffuse = max(0, NdotL * 0.95 + 0.05);
-        totalColor+= diffuse * C1 * baseColorLinRGB * (1 - fr) ;
+        // but rings are not a solid surface so allow for some backlight
+        float diffuse = pow(max(0, NdotL * 0.5 + 0.5), 3);
+        // when view from side the optical depth is larger, so i make it a bit more bright
+        diffuse *= 1 + 8 * pow((1 - abs(NdotV)), 4);
+        totalColor+= diffuse * C1 * baseColorLinRGB;
 
         // transmission
         // ok, LdotV should always be -1 to 1 and *0.5 +0.5 should always make it 0-1

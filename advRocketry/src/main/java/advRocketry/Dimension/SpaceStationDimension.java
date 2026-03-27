@@ -26,7 +26,7 @@ import static advRocketry.Utils.CelestialUtils.getPlanetRenderRadiusAU;
 
 public class SpaceStationDimension extends Dimension {
 
-    private static double lerpFactorPosition = 0.05;
+    private static double lerpFactorPosition = 0.02;
     private static double lerpFactorRotation = 0.003f;
 
     // interpolate toward target for smooth movement / sync
@@ -446,7 +446,7 @@ public class SpaceStationDimension extends Dimension {
                 double aM = 0.1;
                 if(vel > Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20 / 100000)
                     aM = 1;
-                double maxAcc = Math.max(0, (vel - 10 * e) * aM) + e;
+                double maxAcc = Math.max(0, (vel - 20 * e) * aM) + e;
 
                 double diff = speed - vel;
                 if (Math.abs(diff) > maxAcc) {

@@ -494,7 +494,7 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
-        float BrightnessModifier = (float) (1 + 8 * Minecraft.getInstance().options.gamma().get());
+        float BrightnessModifier = (float) (1 + 2 * Math.max(0,(Minecraft.getInstance().options.gamma().get() - 0.5)));
         BrightnessModifier *= (1-myCurrentSpaceObject.getSkyDarken());
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
@@ -538,8 +538,8 @@ public class SkyRenderer {
                                 ((PlanetDimension) myCurrentSpaceObject).getEarthRadiusMultiplier()
                                         * CelestialUtils.EARTH_RADIUS
                                         * Config.INSTANCE.planet_Render_Scale_Multiplier
-                                        * 1.0
-                                        + Minecraft.getInstance().player.position().y * 1
+                                        * 1.002
+                                        + Minecraft.getInstance().player.position().y * 2
                         ));
                 Vec3 localUp = myCurrentSpaceObject.getGlobalAxisDirections(0).up;
                 myCurrentPositionInSpace = myCurrentPositionInSpace.add(localUp.scale(playerHeightAboveMyPlanetCenterAU));
@@ -602,8 +602,8 @@ public class SkyRenderer {
 
 
             // custom proj matrix for every draw because of high potential distance range
-            n2 = (float) (relativePos.length() / 100000);
-            f2 = (float) (relativePos.length() * 10);
+            n2 = (float) (relativePos.length() / 10000);
+            f2 = (float) (relativePos.length() * 100);
             newProj2.set(2, 2, -(f2 + n2) / (f2 - n2));
             newProj2.set(3, 2, -(2f * f2 * n2) / (f2 - n2));
 
