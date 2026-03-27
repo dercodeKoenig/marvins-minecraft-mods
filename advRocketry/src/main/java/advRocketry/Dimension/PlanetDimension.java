@@ -619,9 +619,10 @@ public class PlanetDimension extends Dimension {
         if (getName().equals("Mustafar")) {
             properties().textureTintColor = new Vector3f(1, 1, 1).mul(3f);
             properties().cloudValueOverwrite = 0.7f;
+            properties().fogColor = new Vector3f(0.85f, 0.4f, 0f).mul(3);
         }
         if (getName().equals("Priate")) {
-
+            properties().textureTintColor = new Vector3f(1, 1, 1).mul(6f);
         }
         if (getName().equals("Sun")) {
             properties().textureTintColor = new Vector3f(1, 1, 1).mul(6f);

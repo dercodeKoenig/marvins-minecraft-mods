@@ -95,7 +95,7 @@ void main() {
     // Add Fog
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
-    float fogFactor = clamp((-verticalDot+0.1) * 4 - 0.5 * (1 - playerHeight), 0, 1);
+    float fogFactor = clamp((-verticalDot+0.2) * 4 - 0.5 * (1 - playerHeight), 0, 1);
     // Apply the artistic curve
     fogFactor = pow(fogFactor, 2); // Adjust exponent for feel
     // the fog should not be modified in any way because it has to match the terrain fog color
