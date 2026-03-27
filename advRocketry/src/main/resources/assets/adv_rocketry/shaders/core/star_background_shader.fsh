@@ -20,7 +20,8 @@ void main() {
     float relativeHeight = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
     float atmThickness = getAtmThickness(relativeHeight, U, V, LocalAtmDensity);
     // star background is very dark, our eyes are not color sensitive so do not use atm tint
-    vec4 color = vColor * exp(-atmThickness * 4) * BrightnessModifier;
+    // stars quickly darken with high atm density
+    vec4 color = vColor * exp(-atmThickness * 8) * BrightnessModifier;
 
     fragColor = color;
 }
