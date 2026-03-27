@@ -371,7 +371,8 @@ public class SpaceStationDimension extends Dimension {
 
             // when too far away from target, leave orbit and go in space travel
             // ( for example when orbiting a large star where changing orbit distance would take forever )
-            if (position.distanceTo(targetPosition) > Config.INSTANCE.station_SpaceTravel_Min_Speed * 180 * 20) {
+            double closeDistance = Config.INSTANCE.station_SpaceTravel_Min_Speed * 120 * 20;
+            if (position.distanceTo(targetPosition) > closeDistance) {
                 isCloseEnoughForOrbit = false;
             }
 
@@ -417,7 +418,8 @@ public class SpaceStationDimension extends Dimension {
                 double e = Config.INSTANCE.station_SpaceTravel_Min_Speed;
 
                 // slow down when near target
-                double nearTargetMultiplier = Math.min(1, finalTargetPositionRelative.length() / distanceForMaxSpeed);
+                double distToTarget = finalTargetPositionRelative.length() - closeDistance / 0.8;
+                double nearTargetMultiplier = Math.clamp(distToTarget / distanceForMaxSpeed, 0, 1);
 
                 // slow down when still near origin
                 double nearOriginMultiplier = 1;
@@ -443,15 +445,14 @@ public class SpaceStationDimension extends Dimension {
                 setTargetFront(nextTargetPositionRelative, false);
 
                 double vel = Math.max(0, getMovement().length() * getMovement().scale(1000).normalize().dot(getFront(1)));
-                double aM = 0.1;
-                if(vel > Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20 / 100000)
+                double aM = 0.2;
+                if(vel > e * 1000)
                     aM = 1;
-                double maxAcc = Math.max(0, (vel - 20 * e) * aM) + e;
+                double maxAcc = Math.max(0, (vel - 10 * e) * aM) + e / 2;
 
                 double diff = speed - vel;
-                if (Math.abs(diff) > maxAcc) {
+                if (Math.abs(diff) > maxAcc)
                     diff = maxAcc * Math.signum(diff);
-                }
                 speed = vel + diff;
 
                 movement = getFront(1).scale(speed);

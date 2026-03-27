@@ -71,7 +71,7 @@ void main() {
     float cloudValue = 0;
     if(isLocalPlanet != 1 && CloudSampleSteps > 0){
         float amp = 0.8;
-        float freq = 2;
+        float freq = 3;
         float noiseOffset = pow(max(0, TargetCloudValue), 0.5) * 2 - 1;
         cloudValue = noiseOffset;
         if (noiseOffset > - 0.9){
@@ -92,7 +92,7 @@ void main() {
     }
     float extraCloud = max(0,cloudValue - 0.8); // this avoids flat clouds by giving them some more color
     cloudValue = clamp(cloudValue, 0, 1);
-    cloudValue = pow(smoothStep(cloudValue), 3);
+    cloudValue = pow(smoothStep(cloudValue), 2);
 
     // for atmosphere
     // how much of the edge (horizon) we see
