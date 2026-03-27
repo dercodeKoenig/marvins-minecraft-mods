@@ -435,7 +435,7 @@ public class SpaceStationDimension extends Dimension {
                 if (distanceNextTarget > 0.0001)
                     offNextTargetMultiplier = nextTargetPositionRelative.scale(10000).normalize().dot(getFront(1));
 
-                double offNextTargetMultiplier2 = Math.pow(Math.max(0, offNextTargetMultiplier - 0.95) * 20, 4);
+                double offNextTargetMultiplier2 = Math.pow(Math.max(0, offNextTargetMultiplier - 0.9) * 10, 4);
 
                 double speed = maxSpeed * offNextTargetMultiplier2
                         + e * 5 * offNextTargetMultiplier2;
@@ -455,7 +455,7 @@ public class SpaceStationDimension extends Dimension {
                 speed = vel + diff;
 
                 movement = getFront(1).scale(speed);
-                //System.out.println(vel / e + ":" + diff / maxAcc + ":" + speed);
+                //System.out.println(vel / e + ":" + diff / maxAcc + ":" + speed+":"+offNextTargetMultiplier);
             }
         } else {
             // station has no target
