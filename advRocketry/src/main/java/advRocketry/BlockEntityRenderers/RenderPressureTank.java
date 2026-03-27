@@ -61,7 +61,7 @@ public class RenderPressureTank implements BlockEntityRenderer<EntityPressureTan
             }
         }
 
-        float e = 0.001f;
+        float e = 0.01f;
 
         float y0 = renderBottom ? e : 0;
         float y1 = renderTop ? relativeFill - e : relativeFill;
