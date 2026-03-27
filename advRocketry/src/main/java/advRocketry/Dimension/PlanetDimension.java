@@ -271,7 +271,7 @@ public class PlanetDimension extends Dimension {
     // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
-        brightness = Math.pow(brightness, 0.8);
+        brightness = Math.pow(brightness, 1.5);
         double atmDensity = getAtmosphereDensity();
 
         return RenderUtils.gamma_reverse(properties().fogColor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
