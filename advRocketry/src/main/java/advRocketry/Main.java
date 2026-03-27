@@ -224,7 +224,7 @@ public class Main {
                 Commands.literal("adv_rocketry_reset_galaxy")
                         .requires(source -> source.hasPermission(2))
                         .executes((context) -> {
-                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Reloading properties now... (this may lag)"));
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Reloading properties now..."));
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("This will NOT remove dimensions already loaded or saved in your world folder!"));
                             DimensionManager.INSTANCE_SERVER.reloadPropertiesFromConfig();
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("Properties reloaded!"));
