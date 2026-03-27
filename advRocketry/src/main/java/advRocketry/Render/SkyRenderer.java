@@ -493,7 +493,7 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix);
         shader.getUniform("ModelMat").set(starBackgroundModelMat);
         shader.getUniform("ProjMat").set(newProj2);
-        float BrightnessModifier = (float) (1 + 3*Minecraft.getInstance().options.gamma().get());
+        float BrightnessModifier = (float) (1 + 8 * Minecraft.getInstance().options.gamma().get());
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
         Vector3f movement = myCurrentSpaceObject.getMovement().toVector3f();
         shader.getUniform("WarpMovement").set(movement);
