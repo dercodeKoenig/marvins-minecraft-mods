@@ -428,7 +428,7 @@ public class SpaceStationDimension extends Dimension {
                     double distanceToOrigin = position.distanceTo(lastParentPlanet.getPosition(0));
                     nearOriginMultiplier = Math.pow(Math.clamp( distanceToOrigin / distanceForMaxSpeed, 0, 1), 0.98);
                 }
-                
+
                 maxSpeed *= Math.min(nearTargetMultiplier, nearOriginMultiplier);
 
                 // slow down when off target

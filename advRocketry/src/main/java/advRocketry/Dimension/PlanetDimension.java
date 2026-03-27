@@ -614,8 +614,7 @@ public class PlanetDimension extends Dimension {
         properties().isKnown = true;
 
         if (getName().equals("Mustafar")) {
-            properties().skyDarken = 0.7f;
-            properties().fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
+
         }
         if (getName().equals("Earth")) {
 

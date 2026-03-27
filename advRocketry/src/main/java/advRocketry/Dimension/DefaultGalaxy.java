@@ -206,8 +206,9 @@ public class DefaultGalaxy {
         mustafar.customSeaFluidLevel = 56;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
         mustafar.cloudValueOverwrite = 0.7f;
+        mustafar.skyDarken = 0.7f;
         mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
-        mustafar.fogColor = new Vector3f(0.85f, 0.4f, 0f).mul(3);
+        mustafar.fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
         mustafar.textureTintColor = new Vector3f(1,1,1).mul(3f); // make lava glow
         galaxy.add(mustafar);
