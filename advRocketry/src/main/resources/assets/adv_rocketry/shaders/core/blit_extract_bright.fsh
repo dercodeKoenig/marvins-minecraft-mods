@@ -1,16 +1,18 @@
 #version 150
 
-uniform sampler2D frame;
-uniform float threshold;
 in vec2 texCoord;
 out vec4 fragColor;
 
+#moj_import "adv_rocketry:utils.glsl"
+
+uniform sampler2D frame;
+uniform float threshold;
 uniform ivec2 resolution;
 
 // Helper to prevent flickering on high-intensity HDR pixels
 float KarisWeight(vec3 c) {
-    float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    return 1.0 / (1.0 + luma);
+    float l = lumi(c);
+    return 1.0 / (1.0 + l);
 }
 
 void main() {
@@ -25,7 +27,7 @@ void main() {
 
     // 2. A small helper to do your extraction logic per-pixel
     // (Defining it as a function or just doing it 4 times)
-    #define EXTRACT(col) col * (max(0.0, dot(col, vec3(0.2126, 0.7152, 0.0722)) - threshold) / max(dot(col, vec3(0.2126, 0.7152, 0.0722)), 0.0001))
+    #define EXTRACT(col) col * (max(0.0, lumi(col) - threshold) / max(lumi(col), 0.0001))
 
     vec3 s1 = EXTRACT(c1);
     vec3 s2 = EXTRACT(c2);

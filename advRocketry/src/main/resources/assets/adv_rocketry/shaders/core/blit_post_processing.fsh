@@ -4,6 +4,8 @@ uniform sampler2D Frame;
 uniform sampler2D Bloom;
 uniform float bloomIntensity;
 
+#moj_import "adv_rocketry:utils.glsl"
+
 in vec2 texCoord;
 
 out vec4 fragColor;
@@ -20,7 +22,7 @@ void main() {
     // add bloom & texture
     textureColor = textureColor + bloomColor;
 
-    // tonemapping, TODO: use a better contrast preserving method
+    // tonemapping
     textureColor = textureColor / (vec3(1) + textureColor);
 
     // gamma correction

@@ -12,7 +12,7 @@ uniform mat4 ViewMat;
 uniform mat4 ModelMat;
 uniform mat4 WorldMat;
 uniform mat4 ProjMat;
-uniform float BrightnessModifier;
+
 uniform vec3 WarpMovement; // The velocity vector of your travel
 uniform ivec2 ScreenSize;
 
@@ -101,7 +101,7 @@ void main() {
     proximityFade *= 1-smoothstep(outOfRangeFadeStart, outOfRangeFadeEnd, distToCamera);
 
     // Apply the fade to the alpha channel
-    vColor = Color * BrightnessModifier * (1.0 + speed * 0.05) * 1.5;
+    vColor = Color * (1.0 + speed * 0.05) * 1.5;
     vColor *= brightnessComp;
     vColor *= proximityFade; // alpha is not used in this render pipeline, so scale rgb
 }
