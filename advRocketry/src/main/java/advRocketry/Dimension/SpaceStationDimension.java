@@ -419,16 +419,16 @@ public class SpaceStationDimension extends Dimension {
 
                 // slow down when near target
                 double distToTarget = finalTargetPositionRelative.length() - closeDistance / 0.8;
-                double nearTargetMultiplier = Math.clamp(distToTarget / distanceForMaxSpeed, 0, 1);
+                double nearTargetMultiplier = Math.pow(Math.clamp(distToTarget / distanceForMaxSpeed, 0, 1), 1.02);
 
                 // slow down when still near origin
                 double nearOriginMultiplier = 1;
                 Dimension lastParent = dimensionManager.get(properties().lastParentDimensionId);
                 if (lastParent instanceof PlanetDimension lastParentPlanet) {
                     double distanceToOrigin = position.distanceTo(lastParentPlanet.getPosition(0));
-                    nearOriginMultiplier = Math.min(1, distanceToOrigin / distanceForMaxSpeed);
+                    nearOriginMultiplier = Math.pow(Math.clamp( distanceToOrigin / distanceForMaxSpeed, 0, 1), 0.98);
                 }
-
+                
                 maxSpeed *= Math.min(nearTargetMultiplier, nearOriginMultiplier);
 
                 // slow down when off target
