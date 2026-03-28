@@ -57,11 +57,11 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         gasSelector.color = 0xffffffff;
         guiHandler.modules.add(gasSelector);
 
-        statusText = new guiModuleText(76984, "status", guiHandler, 10, 50, 0xff000000, false);
+        statusText = new guiModuleText(76984, "status", guiHandler, 10, 45, 0xff000000, false);
         guiHandler.modules.add(statusText);
     }
 
-    public SpaceStationDimension getSpaceStation(){
+    public SpaceStationDimension getSpaceStation() {
         Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (!(myDim instanceof SpaceStationDimension spaceStationDimension)) {
             return null;
@@ -111,9 +111,10 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
                     int eta = (int) (runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
                     statusText.setTextAndSync("Mission in progress, eta: " + eta + "s");
                 } else {
-                    statusText.setTextAndSync("");
                     lastLaunchedMissionUUID = null;
                 }
+            } else {
+                statusText.setTextAndSync("status: ready for gas mining");
             }
         }
     }
