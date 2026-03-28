@@ -14,6 +14,7 @@ import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.Items.ItemAsteroidIdChip;
 import advRocketry.Items.ItemGalaxyDatabase;
 import advRocketry.Items.ItemPlanetIdChip;
@@ -202,19 +203,16 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                 EntityObservatory.this.setChanged();
             }
         };
-        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 130, 150);
+        storageDiskSlot1 = new guiModuleItemHandlerSlot(0, itemStackHandler, STORAGE_DISK_SLOT_1, 1, 0, guiHandler, 7, 130);
         guiHandler.modules.add(storageDiskSlot1);
-        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 150, 150);
+        storageDiskSlot2 = new guiModuleItemHandlerSlot(1, itemStackHandler, STORAGE_DISK_SLOT_2, 1, 0, guiHandler, 27, 130);
         guiHandler.modules.add(storageDiskSlot2);
-        guiHandler.modules.add(
-                new guiModuleText(3, "galaxy database:", guiHandler, 10, 153, 0xff000000, false)
-        );
 
-        planetIdChipSlot = new guiModuleItemHandlerSlot(4, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 150, 130);
+        planetIdChipSlot = new guiModuleItemHandlerSlot(2, itemStackHandler, PLANET_ID_CHIP_SLOT, 1, 0, guiHandler, 151, 130);
         guiHandler.modules.add(planetIdChipSlot);
-        guiHandler.modules.add(
-                new guiModuleText(5, "planet id chip:", guiHandler, 10, 133, 0xff000000, false)
-        );
+
+        guiHandler.modules.add(new guiModuleItemStackRender(3, new ItemStack(Items.ITEM_GALAXY_DATABASE.get(), 2), 1, guiHandler, 50, 130));
+        guiHandler.modules.add(new guiModuleItemStackRender(4, new ItemStack(Items.ITEM_PLANET_ID_CHIP.get(), 1), 1, guiHandler, 130, 130));
 
         if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
             guiHandler.modules.add(
@@ -222,6 +220,17 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                         public void onButtonClicked() {
                             Minecraft.getInstance().setScreen(
                                     new SpaceMapScreen() {
+                                        @Override
+                                        public void init() {
+                                            super.init();
+                                            ResourceLocation id = level.dimension().location();
+                                            if(DimensionManager.INSTANCE_CLIENT.get(id) instanceof SpaceStationDimension spaceStationDimension){
+                                                super.focusPlanet(spaceStationDimension.getParentDimensionId());
+                                            }else {
+                                                super.focusPlanet(id);
+                                            }
+                                        }
+
                                         @Override
                                         public void tick() {
                                             super.tick();
@@ -236,17 +245,19 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                             openGui(null);
                                         }
 
+                                        @Override
                                         public void interact(ResourceLocation dimensionId) {
                                             CompoundTag info = new CompoundTag();
                                             info.putString("interact", dimensionId.toString());
                                             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityObservatory.this, info));
                                         }
 
+                                        @Override
                                         public String getInteractText(ResourceLocation dimensionId) {
                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                             if (planet == null) return "";
 
-                                            if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
+                                            if (!planet.isKnown() && !isDistanceUnlocked(dimensionId)) {
                                                 // if the planet is not known but still rendered / clicked, assume the storage disk is inserted, no need to check
                                                 return "Analyze";
                                             }
@@ -257,22 +268,24 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                             return "";
                                         }
 
-                                        public String getPlanetInfoText(ResourceLocation dimensionId, ItemGalaxyDatabase.PlanetInfo ignored) {
+                                        @Override
+                                        public String getPlanetInfoText(ResourceLocation dimensionId, ItemStack ignored) {
                                             PlanetDimension planet = ((PlanetDimension) DimensionManager.INSTANCE_CLIENT.get(dimensionId));
                                             if (planet == null) return "";
 
-                                            if (!planet.isKnown() && !client_IsDistanceUnlocked(dimensionId)) {
+                                            if (!planet.isKnown() && !isDistanceUnlocked(dimensionId)) {
                                                 String s = "We require more information about this planet.";
-                                                ItemGalaxyDatabase.PlanetInfo info = client_getPlanetInfo(dimensionId);
+                                                ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(storageDiskSlot1.client_getItemStackToRender(), dimensionId);
                                                 if (info != null) {
                                                     s += "\ndistance: " + info.get(DataTypes.distance) + " / " + ItemGalaxyDatabase.POINTS_UNLOCKED(planet) + "\n";
                                                 }
                                                 return s;
                                             }
 
-                                            return super.getPlanetInfoText(dimensionId, client_getPlanetInfo(dimensionId));
+                                            return super.getPlanetInfoText(dimensionId, storageDiskSlot1.client_getItemStackToRender());
                                         }
 
+                                        @Override
                                         public boolean shouldRenderPlanet(ResourceLocation dimensionId) {
                                             Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
                                             if (d == null) return false;
@@ -281,10 +294,16 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                                 return true;
                                             }
 
-                                            if (client_IsDimensionKnown(dimensionId))
+                                            if (ItemGalaxyDatabase.isDimensionKnown(storageDiskSlot1.client_getItemStackToRender(), dimensionId))
                                                 return true;
 
                                             return false;
+                                        }
+
+                                        public boolean isDistanceUnlocked(ResourceLocation dimensionId) {
+                                            if (DimensionManager.INSTANCE_CLIENT.get(dimensionId) instanceof PlanetDimension planetDimension)
+                                                return ItemGalaxyDatabase.isDistanceUnlocked(storageDiskSlot1.client_getItemStackToRender(), planetDimension);
+                                            else return false;
                                         }
                                     }
                             );
@@ -333,7 +352,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         energyBar = new guiModuleVerticalProgressBar(300, guiHandler, 155, 60);
         guiHandler.modules.add(energyBar);
 
-        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 175, 10000, 0, 1, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 160, 10000, 0, 1, guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -598,7 +617,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                             if (p < pTarget) {
                                 extractData(REQUIRED_DATA, 1, dataTiles, false);
                                 p = Math.random();
-                                pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Tick;
+                                pTarget = Config.INSTANCE.observatory_Find_Asteroid_P_Per_Data;
                                 if (p < pTarget) {
                                     // find a new asteroid
                                     AsteroidManager.DiscoveredAsteroid discoveredAsteroid = AsteroidManager.discoverNewAsteroid();
@@ -933,7 +952,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     }
 
     public void popInventory() {
-        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+        for (int i : List.of(0, 0, 2)) {
+            // work index 0 2 times because when item is removed, the disk from slot 1 will go in slot 0
             Block.popResource(level, getBlockPos(), itemStackHandler.getStackInSlot(i));
             itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
         }
@@ -974,24 +994,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
     public void openGui(ServerPlayer player) {
         if (level.isClientSide)
-            guiHandler.openGui(176, 200, true);
+            guiHandler.openGui(176, 185, true);
         else if (player != null)
-            guiHandler.signalOpenGui(player, 176, 200, true);
-    }
-
-    // helper methods for gui rendering
-    public boolean client_IsDimensionKnown(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.isDimensionKnown(storageDiskSlot1.client_getItemStackToRender(), dimensionId);
-    }
-
-    public boolean client_IsDistanceUnlocked(ResourceLocation dimensionId) {
-        if (DimensionManager.INSTANCE_CLIENT.get(dimensionId) instanceof PlanetDimension planetDimension)
-            return ItemGalaxyDatabase.isDistanceUnlocked(storageDiskSlot1.client_getItemStackToRender(), planetDimension);
-        else return false;
-    }
-
-    public ItemGalaxyDatabase.PlanetInfo client_getPlanetInfo(ResourceLocation dimensionId) {
-        return ItemGalaxyDatabase.getPlanetInfo(storageDiskSlot1.client_getItemStackToRender(), dimensionId);
+            guiHandler.signalOpenGui(player, 176, 185, true);
     }
 
     public ItemStack getMainDatabase() {

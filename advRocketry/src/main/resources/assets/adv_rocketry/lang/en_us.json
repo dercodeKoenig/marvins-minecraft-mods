@@ -14,120 +14,50 @@
   "item.adv_rocketry.asteroid_id_chip": "Asteroid ID chip",
   "item.adv_rocketry.atm_analyzer": "Atmosphere Analyzer",
 
+  "block.adv_rocketry.data_storage_block": "Data Hatch",
+  "block.adv_rocketry.pressure_tank": "High Pressure Tank",
+  "block.adv_rocketry.fluid_release": "Fluid Release",
+  "block.adv_rocketry.satellite_monitor": "Satellite Monitor",
+  "block.adv_rocketry.satellite_assembler": "Satellite Assembler",
+  "block.adv_rocketry.launch_station_satellite_missions": "Satellite Launch Station",
+  "block.adv_rocketry.launch_station_asteroid_missions": "Asteroid Mission Launch Station",
+  "block.adv_rocketry.launchpad": "Launch Pad",
+  "block.adv_rocketry.structure_tower": "Structure tower",
+  "block.adv_rocketry.rocket_assembler": "Rocket Assembler",
+  "block.adv_rocketry.rocket_motor": "Rocket Engine",
+  "block.adv_rocketry.rocket_motor_improved": "Advanced Rocket Engine",
+  "block.adv_rocketry.fuel_tank": "Fuel Tank",
+  "block.adv_rocketry.guidance_computer": "Guidance Computer",
+  "block.adv_rocketry.cargo_hold": "Cargo Hold",
+  "block.adv_rocketry.drill": "Drill",
+  "block.adv_rocketry.gas_intake": "Gas Intake",
+  "block.adv_rocketry.fueling_station": "Fueling Station",
+  "block.adv_rocketry.rocket_item_loader": "Rocket Item Loader",
+  "block.adv_rocketry.rocket_fluid_loader": "Rocket Fluid Loader",
+  "block.adv_rocketry.launch_station": "Launch Station",
+  "block.adv_rocketry.seat": "Seat",
+  "block.adv_rocketry.observatory": "Observatory",
+  "block.adv_rocketry.astrobody_data_processor": "Astrobody Data Processor",
+  "block.adv_rocketry.wireless_transceiver": "Wireless Transceiver",
+  "block.adv_rocketry.solar_panel": "Solar Panel",
+  "block.adv_rocketry.oxygen_vent": "Oxygen Vent",
+  "block.adv_rocketry.space_station_assembler": "Space Station Assembler",
+  "block.adv_rocketry.station_controller": "Station Controller",
+  "block.adv_rocketry.orientation_controller": "Orientation Controller",
+  "block.adv_rocketry.warp_controller": "Warp Controller",
+  "block.adv_rocketry.moon_turf": "Moon Turf",
+  "block.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
+  "block.adv_rocketry.dry_ice": "Dry Ice",
+
   "item.adv_rocketry.oxygen_bucket": "Oxygen",
   "fluid_type.adv_rocketry.oxygen_type": "Oxygen",
-
   "item.adv_rocketry.nitrogen_bucket": "Nitrogen",
   "fluid_type.adv_rocketry.nitrogen_type": "Nitrogen",
-
   "item.adv_rocketry.hydrogen_bucket": "Hydrogen",
   "fluid_type.adv_rocketry.hydrogen_type": "Hydrogen",
-
   "item.adv_rocketry.methane_bucket": "Methane",
   "fluid_type.adv_rocketry.methane_type": "Methane",
-
   "item.adv_rocketry.co2_bucket": "CO2",
   "fluid_type.adv_rocketry.co2_type": "CO2",
-
-  "block.adv_rocketry.data_storage_block": "Data Hatch",
-  "item.adv_rocketry.data_storage_block": "Data Hatch",
-
-  "block.adv_rocketry.pressure_tank": "High Pressure Tank",
-  "item.adv_rocketry.pressure_tank": "High Pressure Tank",
-
-  "block.adv_rocketry.fluid_release": "Fluid Release",
-  "item.adv_rocketry.fluid_release": "Fluid Release",
-
-  "block.adv_rocketry.satellite_monitor": "Satellite Monitor",
-  "item.adv_rocketry.satellite_monitor": "Satellite Monitor",
-
-  "block.adv_rocketry.satellite_assembler": "Satellite Assembler",
-  "item.adv_rocketry.satellite_assembler": "Satellite Assembler",
-
-  "block.adv_rocketry.launch_station_satellite_missions": "Satellite Launch Station",
-  "item.adv_rocketry.launch_station_satellite_missions": "Satellite Launch Station",
-
-  "block.adv_rocketry.launch_station_asteroid_missions": "Asteroid Mission Launch Station",
-  "item.adv_rocketry.launch_station_asteroid_missions": "Asteroid Mission Launch Station",
-
-  "block.adv_rocketry.launchpad": "Launch Pad",
-  "item.adv_rocketry.launchpad": "Launch Pad",
-
-  "block.adv_rocketry.structure_tower": "Structure tower",
-  "item.adv_rocketry.structure_tower": "Structure tower",
-
-  "block.adv_rocketry.rocket_assembler": "Rocket Assembler",
-  "item.adv_rocketry.rocket_assembler": "Rocket Assembler",
-
-  "block.adv_rocketry.rocket_motor": "Rocket Engine",
-  "item.adv_rocketry.rocket_motor": "Rocket Engine",
-
-  "block.adv_rocketry.rocket_motor_improved": "Advanced Rocket Engine",
-  "item.adv_rocketry.rocket_motor_improved": "Advanced Rocket Engine",
-
-  "block.adv_rocketry.fuel_tank": "Fuel Tank",
-  "item.adv_rocketry.fuel_tank": "Fuel Tank",
-
-  "block.adv_rocketry.guidance_computer": "Guidance Computer",
-  "item.adv_rocketry.guidance_computer": "Guidance Computer",
-
-  "block.adv_rocketry.cargo_hold": "Cargo Hold",
-  "item.adv_rocketry.cargo_hold": "Cargo Hold",
-
-  "block.adv_rocketry.drill": "Drill",
-  "item.adv_rocketry.drill": "Drill",
-
-  "block.adv_rocketry.fueling_station": "Fueling Station",
-  "item.adv_rocketry.fueling_station": "Fueling Station",
-
-  "block.adv_rocketry.rocket_item_loader": "Rocket Item Loader",
-  "item.adv_rocketry.rocket_item_loader": "Rocket Item Loader",
-
-  "block.adv_rocketry.rocket_fluid_loader": "Rocket Fluid Loader",
-  "item.adv_rocketry.rocket_fluid_loader": "Rocket Fluid Loader",
-
-  "block.adv_rocketry.launch_station": "Launch Station",
-  "item.adv_rocketry.launch_station": "Launch Station",
-
-  "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
-  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel",
-
-  "block.adv_rocketry.seat": "Seat",
-  "item.adv_rocketry.seat": "Seat",
-
-  "block.adv_rocketry.observatory": "Observatory",
-  "item.adv_rocketry.observatory": "Observatory",
-
-  "block.adv_rocketry.astrobody_data_processor": "Astrobody Data Processor",
-  "item.adv_rocketry.astrobody_data_processor": "Astrobody Data Processor",
-
-  "block.adv_rocketry.wireless_transceiver": "Wireless Transceiver",
-  "item.adv_rocketry.wireless_transceiver": "Wireless Transceiver",
-
-  "block.adv_rocketry.solar_panel": "Solar Panel",
-  "item.adv_rocketry.solar_panel": "Solar Panel",
-
-  "block.adv_rocketry.oxygen_vent": "Oxygen Vent",
-  "item.adv_rocketry.oxygen_vent": "Oxygen Vent",
-
-  "block.adv_rocketry.space_station_assembler": "Space Station Assembler",
-  "item.adv_rocketry.space_station_assembler": "Space Station Assembler",
-
-  "block.adv_rocketry.station_controller": "Station Controller",
-  "item.adv_rocketry.station_controller": "Station Controller",
-
-  "block.adv_rocketry.orientation_controller": "Orientation Controller",
-  "item.adv_rocketry.orientation_controller": "Orientation Controller",
-
-  "block.adv_rocketry.warp_controller": "Warp Controller",
-  "item.adv_rocketry.warp_controller": "Warp Controller",
-
-  "block.adv_rocketry.moon_turf": "Moon Turf",
-  "item.adv_rocketry.moon_turf": "Moon Turf",
-
-  "block.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
-  "item.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
-
-  "block.adv_rocketry.dry_ice": "Dry Ice",
-  "item.adv_rocketry.dry_ice": "Dry Ice"
+  "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel"
 }

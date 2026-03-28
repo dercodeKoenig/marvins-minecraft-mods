@@ -18,11 +18,11 @@ out vec3 normalModelSpace;
 
 void main() {
 
-    gl_Position = ProjMat * ViewMat * WorldMat * ModelMat * vec4(Position, 1.0);
+    vec3 posUniverseSpace = (ModelMat * vec4(Position, 1.0)).xyz;
 
-    vec3 fragPosUniverseSpace = (ModelMat * vec4(Position, 1.0)).xyz;
+    gl_Position = ProjMat * ViewMat * WorldMat * vec4(posUniverseSpace, 1.0);
 
-    viewDir = normalize(fragPosUniverseSpace - playerEye);
+    viewDir = normalize(posUniverseSpace - playerEye);
 
     texcoord = UV0;
 

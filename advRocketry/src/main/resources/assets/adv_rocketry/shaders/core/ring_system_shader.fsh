@@ -2,7 +2,7 @@
 
 uniform sampler2D Sampler0; // surface texture
 
-#moj_import "adv_rocketry:atmFilter.glsl"
+#moj_import "adv_rocketry:atm_filter.glsl"
 
 #define MAX_LIGHTS 4
 uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
@@ -17,7 +17,7 @@ in vec3 normalUniverseSpace;
 
 in vec3 position; // the position of the fragment
 in vec3 planetCenter; // the position of the planet
-uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale())
+uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale()), used for the shadow calculation
 
 // for atm shading modifier
 in vec3 localUpUniverseSpace;
@@ -112,6 +112,8 @@ void main() {
 
     vec3 V = normalize(viewDir);
 
+    vec3 U = normalize(localUpUniverseSpace);
+
     vec3 totalColor = vec3(0,0,0);
 
     // see why this exists in planet shader
@@ -160,8 +162,11 @@ void main() {
         }
 
         // diffuse - bright when face is facing the star
-        float diffuse = max(0, NdotL * 0.95 + 0.05);
-        totalColor+= diffuse * C1 * baseColorLinRGB * (1 - fr) ;
+        // but rings are not a solid surface so allow for some backlight
+        float diffuse = pow(max(0, NdotL * 0.5 + 0.5), 3);
+        // when view from side the optical depth is larger, so i make it a bit more bright
+        diffuse *= 1 + 8 * pow((1 - abs(NdotV)), 4);
+        totalColor+= diffuse * C1 * baseColorLinRGB;
 
         // transmission
         // ok, LdotV should always be -1 to 1 and *0.5 +0.5 should always make it 0-1
@@ -191,7 +196,7 @@ void main() {
     vec3 atmFilter = getAtmFilter(
         planetSkyHeight,
         playerHeight,
-        normalize(localUpUniverseSpace),
+        U,
         V,
         LocalAtmDensity,
         LocalSunriseColor

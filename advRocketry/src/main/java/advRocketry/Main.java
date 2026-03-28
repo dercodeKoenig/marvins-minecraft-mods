@@ -15,6 +15,7 @@ import advRocketry.Rocket.RendererRocket;
 import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -145,33 +146,33 @@ public class Main {
 
     void registerShaders(RegisterShadersEvent event) {
         try {
-            shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION_NORMAL);
-            event.registerShader(shaderUtils.localAtmosphereShader, x -> {
-            });
+            shaderUtils.warpTravelShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "warp_travel_shader"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.warpTravelShader, x -> {});
+
+            shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.localAtmosphereShader, x -> {});
 
             shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
-            event.registerShader(shaderUtils.planetShader, x -> {
-            });
+            event.registerShader(shaderUtils.planetShader, x -> {});
 
-            shaderUtils.blitAddTonemapShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add_tonemap"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitAddTonemapShader, x -> {
-            });
+            shaderUtils.blitPostProcessingShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_post_processing"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitPostProcessingShader, x -> {});
+
+            shaderUtils.blitAddShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitAddShader, x -> {});
 
             shaderUtils.blitExtractBright = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_extract_bright"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitExtractBright, x -> {
-            });
+            event.registerShader(shaderUtils.blitExtractBright, x -> {});
 
             shaderUtils.blitBlur = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_blur"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitBlur, x -> {
-            });
+            event.registerShader(shaderUtils.blitBlur, x -> {});
 
-            shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.POSITION_COLOR);
-            event.registerShader(shaderUtils.starBackgroundShader, x -> {
-            });
+            shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.STAR_BACKGROUND);
+            event.registerShader(shaderUtils.starBackgroundShader, x -> {});
 
             shaderUtils.ringSystemShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "ring_system_shader"), shaderUtils.POSITION_NORMAL);
-            event.registerShader(shaderUtils.ringSystemShader, x -> {
-            });
+            event.registerShader(shaderUtils.ringSystemShader, x -> {});
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -211,15 +212,30 @@ public class Main {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
     }
 
+    void debugCommand(){
+        // whatever debug i currently need to execute on demand
+        RenderSystem.recordRenderCall(() -> {
+            SkyRenderer.debugCommandRender();
+        });
+    }
+
     void registerCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_reset_galaxy")
                         .requires(source -> source.hasPermission(2))
                         .executes((context) -> {
-                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Reloading properties now... (this may lag)"));
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Reloading properties now..."));
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("This will NOT remove dimensions already loaded or saved in your world folder!"));
                             DimensionManager.INSTANCE_SERVER.reloadPropertiesFromConfig();
                             context.getSource().getPlayer().sendSystemMessage(Component.literal("Properties reloaded!"));
+                            return 1;
+                        })
+        );
+
+        event.getDispatcher().register(
+                Commands.literal("adv_rocketry_debug")
+                        .executes((context) -> {
+                            debugCommand();
                             return 1;
                         })
         );
@@ -237,6 +253,7 @@ public class Main {
             e.accept(Blocks.CARGO_HOLD.get());
             e.accept(Blocks.SEAT.get());
             e.accept(Blocks.DRILL.get());
+            e.accept(Blocks.GAS_INTAKE.get());
 
             e.accept(Blocks.ROCKET_ASSEMBLER.get());
             e.accept(Blocks.FUELING_STATION.get());

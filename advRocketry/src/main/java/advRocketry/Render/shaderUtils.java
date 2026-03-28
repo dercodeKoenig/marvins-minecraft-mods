@@ -20,13 +20,18 @@ public class shaderUtils {
             .add("Position", VertexFormatElement.POSITION)
             .add("Normal", VertexFormatElement.NORMAL)
             .build();
-    public static VertexFormat POSITION_COLOR = VertexFormat.builder()
+
+    public static VertexFormat STAR_BACKGROUND = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
+            .add("Normal", VertexFormatElement.NORMAL) // using the normal space as center for the star cube for warp
             .add("Color", VertexFormatElement.COLOR)
             .build();
 
 
-
+    public static ShaderInstance warpTravelShader;
+    public static ShaderInstance getWarpTravelShader() {
+        return warpTravelShader;
+    }
 
     public static ShaderInstance localAtmosphereShader;
     public static ShaderInstance getLocalAtmosphereShader() {
@@ -38,9 +43,14 @@ public class shaderUtils {
         return planetShader;
     }
 
-    public static ShaderInstance blitAddTonemapShader;
-    public static ShaderInstance getBlitAddTonemapShader() {
-        return blitAddTonemapShader;
+    public static ShaderInstance blitPostProcessingShader;
+    public static ShaderInstance getBlitPostProcessingShader() {
+        return blitPostProcessingShader;
+    }
+
+    public static ShaderInstance blitAddShader;
+    public static ShaderInstance getBlitAddShader() {
+        return blitAddShader;
     }
 
     public static ShaderInstance blitExtractBright;

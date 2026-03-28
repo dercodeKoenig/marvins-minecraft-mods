@@ -52,6 +52,9 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
+    public float getSkyDarken(){ return 0;}
+
+    @Override
     public Vector3f getSunRiseColor() {
         return null;
     }

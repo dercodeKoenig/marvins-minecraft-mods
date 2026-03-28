@@ -220,6 +220,7 @@ public class EntityRocketFluidLoader extends EntityRocketInfrastructureBase impl
                 }
             }
 
+            /*
             // when drain, output fluid to nearby fluid handlers
             if (isDrain) {
                 if (!tank.isEmpty()) {
@@ -235,6 +236,7 @@ public class EntityRocketFluidLoader extends EntityRocketInfrastructureBase impl
                     }
                 }
             }
+             */
 
             if (isDrain) {
                 drainFillToggleButton.setBackgroundAndSync(BTN_BLACK, BTN_W, BTN_H);

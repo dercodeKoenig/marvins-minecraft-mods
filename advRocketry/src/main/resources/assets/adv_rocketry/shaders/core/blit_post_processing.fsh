@@ -1,9 +1,10 @@
 #version 150
 
-uniform sampler2D Atmosphere;
-uniform sampler2D SpaceBackground;
-uniform sampler2D SpaceBackgroundBloom;
+uniform sampler2D Frame;
+uniform sampler2D Bloom;
 uniform float bloomIntensity;
+
+#moj_import "adv_rocketry:utils.glsl"
 
 in vec2 texCoord;
 
@@ -14,9 +15,9 @@ float interleavedGradientNoise(vec2 n) {
 }
 
 void main() {
-    vec3 textureColor = texture(SpaceBackground, texCoord).rgb + texture(Atmosphere, texCoord).rgb;
+    vec3 textureColor = texture(Frame, texCoord).rgb;
 
-    vec3 bloomColor = texture(SpaceBackgroundBloom, texCoord).rgb * bloomIntensity;
+    vec3 bloomColor = texture(Bloom, texCoord).rgb * bloomIntensity;
 
     // add bloom & texture
     textureColor = textureColor + bloomColor;
@@ -31,6 +32,9 @@ void main() {
     // (without it there will be strange artifacts because colors are limited to 8bit)
     float noise = interleavedGradientNoise(gl_FragCoord.xy);
     textureColor += (noise - 0.5) / 255.0;
+
+    // TODO: apply gamma setting for increase or decrease brightness
+    //textureColor += (1 - textureColor) * 0.25; // TODO: multiply by the part over 50%
 
     textureColor = clamp(textureColor, 0, 1);
 

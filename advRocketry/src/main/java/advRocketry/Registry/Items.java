@@ -37,7 +37,8 @@ public class Items {
     public static final Supplier<Item> ITEM_GUIDANCE_COMPUTER = registerBlockItem("guidance_computer", Blocks.GUIDANCE_COMPUTER);
     public static final Supplier<Item> ITEM_SEAT = registerBlockItem("seat", Blocks.SEAT);
     public static final Supplier<Item> ITEM_CARGO_HOLD = registerBlockItem("cargo_hold", Blocks.CARGO_HOLD);
-    public static final Supplier<Item> ITEM_DRILL = registerBlockItem("drill", Blocks.DRILL);
+    public static final Supplier<Item> ITEM_DRILL = ITEMS.register("drill", () -> new ItemDrill());
+    public static final Supplier<Item> ITEM_GAS_INTAKE = ITEMS.register("gas_intake", () -> new ItemGasIntake());
 
     public static final Supplier<Item> ITEM_ROCKET_ASSEMBLER = registerBlockItem("rocket_assembler", Blocks.ROCKET_ASSEMBLER);
     public static final Supplier<Item> ITEM_FUELING_STATION = registerBlockItem("fueling_station", Blocks.FUELING_STATION);

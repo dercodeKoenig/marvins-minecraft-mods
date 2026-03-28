@@ -3,17 +3,24 @@ package advRocketry.Dimension;
 import advRocketry.Config;
 import advRocketry.GlobalTime;
 import advRocketry.Registry.GasRegistry;
+import advRocketry.Render.MipmapSimpleTexture;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
+import advRocketry.Utils.RenderUtils;
 import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
@@ -23,6 +30,7 @@ import org.joml.Vector3f;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static advRocketry.Dimension.PlanetDimensionProperties.SKY_COLOR_OVERWORLD;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
@@ -35,6 +43,10 @@ public class PlanetDimension extends Dimension {
 
     public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
+        if (isClientSide) {
+            // ensure mipmap textures are created at start to avoid lag during space travel
+            getTexture();
+        }
     }
 
     public void setRequiresSync() {
@@ -63,7 +75,7 @@ public class PlanetDimension extends Dimension {
         // now, it can take 2 ticks until all planets have received their position but in tick 0 any planet might query the position of a star.
         // for example temperature wants distance to star, but when all planets are at 0 0 0 first tick, this is 0 and /0 = nan
         // this runs on server when dimensions are reloaded from main config
-        if(!dimensionManager.isClientSide) {
+        if (!dimensionManager.isClientSide) {
             tickPosition(); // first tick sets position
             tickPosition(); // second tick resets movement
         }
@@ -87,10 +99,18 @@ public class PlanetDimension extends Dimension {
 
         System.out.println("creating dimension for " + getDimensionId());
 
+        BlockState seaFluid = Blocks.WATER.defaultBlockState();
+        int seaLevel = getGasProperty(GasRegistry.water).worldGenSeaLevel;
+
+        if (properties().customSeaFluid != null) {
+            seaFluid = BuiltInRegistries.BLOCK.get(properties().customSeaFluid).defaultBlockState();
+            seaLevel = properties().customSeaFluidLevel;
+        }
+
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
-                Blocks.WATER.defaultBlockState(),
-                getGasProperty(GasRegistry.water).worldGenSeaLevel + 1, // the sea level in the world generator is actually the block above the sea level
+                seaFluid,
+                seaLevel + 1, // the sea level in the world generator is actually the block above the sea level
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
@@ -176,10 +196,6 @@ public class PlanetDimension extends Dimension {
         return properties().emissiveColor;
     }
 
-    public float getTextureBrightness() {
-        return properties().textureBrightness;
-    }
-
     public float getGravitationalMultiplier() {
         return properties().gravitationalMultiplier;
     }
@@ -187,6 +203,8 @@ public class PlanetDimension extends Dimension {
     public Vector3f getSkyColor() {
         return new Vector3f(properties().skyColor);
     }
+
+    public float getSkyDarken(){ return properties().skyDarken;}
 
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
@@ -209,7 +227,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public float computeCloudValue() {
-        if(properties().cloudValueOverwrite >= 0)
+        if (properties().cloudValueOverwrite >= 0)
             return Math.clamp(properties().cloudValueOverwrite, 0, 1);
 
         float totalCloud = 0;
@@ -234,12 +252,12 @@ public class PlanetDimension extends Dimension {
     }
 
     public double computeTerrainBrightness(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
         brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
         return brightness;
     }
 
-    public Vector3f computeRawCloudColor(){
+    public Vector3f computeRawCloudColor() {
         // return properties cloud color if not null, else compute based on atm composition
         return new Vector3f(properties().cloudColor);
     }
@@ -250,12 +268,15 @@ public class PlanetDimension extends Dimension {
         return computeRawCloudColor().mul((float) brightness);
     }
 
+    // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
-        return new Vector3f(properties().fogColor)
-                .mul((float) brightness)
-                .mul(getAtmosphereDensity() / (1 + getAtmosphereDensity()));
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
+        brightness = Math.pow(brightness, 1.5);
+        double atmDensity = getAtmosphereDensity();
+
+        return RenderUtils.gamma_reverse(properties().fogColor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
+        // TODO: tint in sunrise color when player is facing toward star as minecraft does it
+        //      ( there is always just a single color for terrain fog )
     }
 
     public float getAtmosphereDensity() {
@@ -279,8 +300,8 @@ public class PlanetDimension extends Dimension {
         return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
     }
 
-    public Vector3f getReflectiveTextureTintColor() {
-        return new Vector3f(properties().reflectiveTextureTintColor);
+    public Vector3f getTextureTintColor() {
+        return new Vector3f(properties().textureTintColor);
     }
 
     public boolean hasRings() {
@@ -292,7 +313,15 @@ public class PlanetDimension extends Dimension {
     }
 
     public ResourceLocation getTexture() {
-        return properties().texture;
+        ResourceLocation texture = properties().texture;
+        // ensure it is using the mipmap texture
+        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+        if (!(texturemanager.getTexture(texture) instanceof MipmapSimpleTexture)) {
+            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(texture, 6);
+            texturemanager.register(texture, newTexture);
+            System.out.println("registering mipmap texture for " + texture);
+        }
+        return texture;
     }
 
     public Vec3 getRotationAxis() {
@@ -305,6 +334,10 @@ public class PlanetDimension extends Dimension {
 
     public boolean isKnown() {
         return properties().isKnown;
+    }
+
+    public String getDescription() {
+        return properties().description;
     }
 
     public ResourceLocation getParentDimensionId() {
@@ -351,10 +384,6 @@ public class PlanetDimension extends Dimension {
             sum += (float) gas.frozen_surface;
         }
         return Math.min(1, sum);
-    }
-
-    public int getCustomSeaFluidLevel() {
-        return properties().customSeaFluidLevel;
     }
 
     // how much of the planet do we consider ocean?
@@ -583,8 +612,15 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         properties().isKnown = true;
+
         if (getName().equals("Mustafar")) {
-            
+
+        }
+        if (getName().equals("Earth")) {
+
+        }
+        if (getName().equals("Sun")) {
+
         }
     }
 
@@ -657,7 +693,7 @@ public class PlanetDimension extends Dimension {
             if (dimensionManager.get(starId) instanceof PlanetDimension star) {
                 Vec3 starPos = star.getPosition(0);
                 double distanceAU = starPos.distanceTo(planetPos);
-                solarFlux += star.getRadiationIntensity() / (distanceAU * distanceAU);
+                solarFlux += star.getRadiationIntensity() / (distanceAU * distanceAU + 0.00001);
             }
         }
 
@@ -680,7 +716,7 @@ public class PlanetDimension extends Dimension {
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double insulation = 1.0;
-        for (String id : List.of(GasRegistry.co2, GasRegistry.methane)) {
+        for (String id : List.of(GasRegistry.co2, GasRegistry.methane, GasRegistry.water)) {
             double bonus = GasRegistry.getInsulationBonus(id, getGasProperty(id).in_atm);
             insulation += bonus;
         }

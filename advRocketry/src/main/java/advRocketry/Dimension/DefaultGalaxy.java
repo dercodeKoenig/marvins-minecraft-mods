@@ -28,12 +28,13 @@ public class DefaultGalaxy {
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_adjusted.png");
         sun.emissiveColor = new Vector3f(1f, 1f, 0.8f).mul(1.2f);
         sun.radiationIntensity = 2;
-        sun.textureBrightness = 3;
+        sun.textureTintColor = new Vector3f(1,1,1).mul(7f);
         sun.isKnown = true;
         galaxy.add(sun);
 
         PlanetDimensionProperties overworld = new PlanetDimensionProperties();
         overworld.name = "Earth";
+        overworld.description = "A nice green planet";
         overworld.dimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         overworld.parentDimensionId = sun.dimensionId;
         overworld.dayTimeReference = sun.dimensionId;
@@ -101,6 +102,8 @@ public class DefaultGalaxy {
         kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
         kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
         kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.4,0f,0));
+        kalos.customSeaFluid=ResourceLocation.parse("minecraft:lava");
+        kalos.customSeaFluidLevel = 53;
         kalos.skyColor = SKY_COLOR_OVERWORLD();
         kalos.canVisit = true;
         kalos.biomePreset = HOT.name;
@@ -176,19 +179,21 @@ public class DefaultGalaxy {
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         priate.emissiveColor = new Vector3f(1f, 0.9f, 0.8f);
-        priate.radiationIntensity = 1.5f;
-        priate.textureBrightness = 3;
-        priate.position = new Vec3(500, 50, 20);
+        priate.radiationIntensity = 3f;
+        priate.textureTintColor = new Vector3f(1,1,1).mul(7f);
+        priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
 
 
         PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
         mustafar.name = "Mustafar";
+        mustafar.description = "The gravimetric duel between the gas giants Jestefad and Lefrani over Mustafar heated the planet's core, transforming the world into an imbalanced volcanic hellscape.";
         mustafar.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "mustafar");
         mustafar.parentDimensionId = priate.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
-        mustafar.currentTemp = 100;
-        mustafar.orbitalDistanceToParent = 0.5f;
+        mustafar.currentTemp = 300;
+        mustafar.baseEnergyGain = 0.2f;
+        mustafar.orbitalDistanceToParent = 2f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
@@ -197,11 +202,15 @@ public class DefaultGalaxy {
         mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
         mustafar.canVisit = true;
         mustafar.biomePreset = VOLCANIC.name;
-        mustafar.isKnown = true;
+        mustafar.customSeaFluid = ResourceLocation.parse("minecraft:lava");
+        mustafar.customSeaFluidLevel = 56;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
         mustafar.cloudValueOverwrite = 0.7f;
-        mustafar.cloudColor = new Vector3f(0.2f,0.2f,0.2f);
-        mustafar.textureBrightness = 2f; // make lava glow
+        mustafar.skyDarken = 0.7f;
+        mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
+        mustafar.fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
+        mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
+        mustafar.textureTintColor = new Vector3f(1,1,1).mul(3f); // make lava glow
         galaxy.add(mustafar);
 
 

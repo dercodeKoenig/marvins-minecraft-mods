@@ -47,12 +47,12 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public ResourceLocation texture = null;
     public Vector3f skyColor = new Vector3f(1, 1, 1); // also used in atm shading when looking from a distant planet to this one
     public float cloudValueOverwrite = -1; // can overwrite cloud value, 0 to 1 or negative to disable
+    public float skyDarken = 0; // how much the sky / stars darken (think of volcanic ash in the air making it dark)
     public Vector3f cloudColor = new Vector3f(1, 1, 1); // TODO: calculate based on atm when null
-    public Vector3f fogColor = new Vector3f(0.89f, 0.95f, 1.0f); // base fog color to calculate actual color
+    public Vector3f fogColor = new Vector3f(0.8f, 0.9f, 1.1f); // fog color
     public Vector3f sunRiseColor = new Vector3f(3f, 1.6f, 0.2f); // the atm shading on sunrise
-    public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f); // maybe reflect only green light? or red?
+    public Vector3f textureTintColor = new Vector3f(1f, 1f, 1f); // texture is multiplied by this value to tint it or make it brighter
     public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
-    public float textureBrightness = 1; // multiplier for texture only, use it to make png texture hdr
     public boolean hasRingSystem = false;
 
     public float dayTime; // do not set yourself

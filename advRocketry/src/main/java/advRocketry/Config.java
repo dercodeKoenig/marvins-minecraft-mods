@@ -12,7 +12,6 @@ public class Config {
     public boolean use_Transparent_Particle_Engine = true;
 
     public double rocket_SpaceTravel_AU_Per_Second = 0.01;
-    public double rocket_SpaceTravel_Distance_For_Max_Speed = 0.1;
     public double rocket_SpaceTravel_Min_Speed = 0.000002;
     public double rocket_SpaceTravel_Rotation_Rate = 0.02;
     public double rocket_Planet_Entry_Speed_Y = -5;
@@ -22,10 +21,9 @@ public class Config {
     public float rocket_ItemStack_Weight = 10;
     public float rocket_Fluid_Weight_Per_MB = 0.0005f;
 
-    public double station_SpaceTravel_AU_Per_Second = 1;
-    public double station_SpaceTravel_Distance_For_Max_Speed = 10;
-    public double station_SpaceTravel_Min_Speed = 0.000002;
-    public double station_SpaceTravel_Rotation_Rate = 0.005;
+    public double station_SpaceTravel_AU_Per_Second = 10000;
+    public double station_SpaceTravel_Min_Speed = 0.000001;
+    public double station_SpaceTravel_Rotation_Rate = 0.01;
     public double station_Max_Orbit_R_Factor = 10;
 
     // true scale is way too small, for example moon would only cover 8px on a 1080p screen.
@@ -38,15 +36,15 @@ public class Config {
 
     // TODO: rework with tick probability, higher probability if in space staion and if has data
     //      observatory should only work when sky is not blocked
-    public double observatory_Find_Planet_P_Per_Tick = (double) 1 / 20 / 120; // 120s average
-    public double observatory_Find_Asteroid_P_Per_Tick = (double) 1 / 100;  // after 100 data average
+    public double observatory_Find_Planet_P_Per_Tick = (double) 1 / 20 / 300; // 300s average
+    public double observatory_Find_Asteroid_P_Per_Data = (double) 1 / 300;  // after 300 data average
     public int observatory_Energy_Per_Tick = 10;
 
     public int astrobody_Data_Processor_Energy_Per_Tick = 100;
 
     public double satellite_Radiation_Damage_Prob_Per_Second = (double) 1 / 10000;
 
-    public int rocket_Assembler_Max_Size = 66;
+    public int rocket_Assembler_Max_Size = 98;
     public int rocket_Assembler_Build_Time_Base = 12;
     public int rocket_Assembler_Energy_Per_Tick = 100;
 
