@@ -611,7 +611,7 @@ public class PlanetDimension extends Dimension {
             }
         }
         // TODO: remove after testing
-        properties().isKnown = true;
+        //properties().isKnown = true;
 
         if (getName().equals("Mustafar")) {
 

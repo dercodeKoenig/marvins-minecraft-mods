@@ -232,6 +232,7 @@ public class Main {
                         })
         );
 
+        /*
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_debug")
                         .executes((context) -> {
@@ -239,6 +240,7 @@ public class Main {
                             return 1;
                         })
         );
+         */
     }
 
     void addCreative(BuildCreativeModeTabContentsEvent e) {

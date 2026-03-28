@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
 
-///  this mixin adds support for NormalMat / UVOffset in some shaders
+///  this mixin adds support for NormalMat
 
 @Mixin(ShaderInstance.class)
 public abstract class ShaderInstanceMixin {
