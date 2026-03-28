@@ -1,13 +1,78 @@
 {
-  "parent": "block/cube",
   "render_type": "minecraft:cutout",
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": {
+          "texture": "#all"
+        },
+        "up": {
+          "texture": "#all"
+        },
+        "north": {
+          "texture": "#all"
+        },
+        "south": {
+          "texture": "#all"
+        },
+        "west": {
+          "texture": "#all"
+        },
+        "east": {
+          "texture": "#all"
+        }
+      }
+    }
+  ,
+    {
+      "from": [0.01, 0.01, 0.01],
+      "to": [16, 0.01, 16],
+      "faces": {
+        "up": { "texture": "#all"}
+      }
+    },
+    {
+      "from": [0.01, 15.99, 0.01],
+      "to": [16, 15.99, 16],
+      "faces": {
+        "down": { "texture": "#all"}
+      }
+    },
+    {
+      "from": [0.01, 0.01, 0.01],
+      "to": [0.01, 15.99, 15.99],
+      "faces": {
+        "east": { "texture": "#all" }
+      }
+    },
+    {
+      "from": [15.99, 0.01, 0.01],
+      "to": [15.99, 15.99, 15.99],
+      "faces": {
+        "west": { "texture": "#all" }
+      }
+    },
+    {
+      "from": [0.01, 0.01, 0.01],
+      "to": [15.99, 15.99, 0.01],
+      "faces": {
+        "south": { "texture": "#all" }
+      }
+    },
+    {
+      "from": [0.01, 0.01, 15.99],
+      "to": [15.99, 15.99, 15.99],
+      "faces": {
+        "north": { "texture": "#all" }
+      }
+    }
+
+
+  ],
   "textures": {
-    "down": "adv_rocketry:block/structure_tower",
-    "up": "adv_rocketry:block/structure_tower",
-    "north": "adv_rocketry:block/structure_tower",
-    "south": "adv_rocketry:block/structure_tower",
-    "west": "adv_rocketry:block/structure_tower",
-    "east": "adv_rocketry:block/structure_tower",
+    "all": "adv_rocketry:block/structure_tower",
     "particle": "adv_rocketry:block/structure_tower"
   }
 }

@@ -123,7 +123,7 @@ abstract public class BlockPipe extends Block implements EntityBlock {
                 state = state.setValue(connections.get(direction), ConnectionState.CONNECTED);
         } else {
 
-            if (neighborState.isSolidRender(level, neighborPos)) {
+            if (neighborState.isFaceSturdy(level, neighborPos, direction.getOpposite())) {
                 state = state.setValue(connections.get(direction), ConnectionState.STRUCTURE);
             } else {
                 state = state.setValue(connections.get(direction), ConnectionState.NONE);

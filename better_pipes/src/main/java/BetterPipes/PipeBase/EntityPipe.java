@@ -209,6 +209,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                     if (conn.needsSync())
                         requiresUpdate = true;
                 }
+
                 if (requiresUpdate) {
                     syncTanksToClient(null);
                 }
