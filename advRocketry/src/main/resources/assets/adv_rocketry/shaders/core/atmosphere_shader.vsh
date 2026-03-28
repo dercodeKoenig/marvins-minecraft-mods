@@ -1,7 +1,6 @@
 #version 150
 
 in vec3 Position;
-in vec3 Normal;
 
 uniform mat4 ViewMat;
 uniform mat4 ModelMat; // Model space to World space
@@ -9,8 +8,8 @@ uniform mat4 WorldMat; // Universe space to World space
 uniform mat4 ProjMat;
 
 
-out vec3 vertexDirUniverseSpace;
-out vec3 localUpUniverseSpace;
+out vec3 v_vertexDirUniverseSpace;
+out vec3 v_localUpUniverseSpace;
 
 void main() {
     gl_Position = ProjMat * ViewMat * ModelMat * vec4(Position, 1.0);
@@ -21,9 +20,9 @@ void main() {
     mat3 rotWorldInv = transpose(mat3(WorldMat));
 
     // We use the local Position as the direction.
-    // This works perfectly for a sphere centered at 0,0,0.
-    vertexDirUniverseSpace = normalize(rotWorldInv * (rotModel * Position));
+    // This works perfectly for a sphere centered at eye pos.
+    v_vertexDirUniverseSpace = normalize(rotWorldInv * (rotModel * Position));
 
     // World up in universe space
-    localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));
+    v_localUpUniverseSpace = normalize(rotWorldInv * vec3(0,1,0));
 }

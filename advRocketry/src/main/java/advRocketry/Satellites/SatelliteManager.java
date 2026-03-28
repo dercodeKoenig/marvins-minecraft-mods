@@ -88,7 +88,7 @@ public class SatelliteManager {
         }
         try {
             Files.writeString(Path.of(Main.worldPath.toString(), saveFile), tag.toString());
-            System.out.println("[SatelliteManager] saved " + satellites.size() + " missions");
+            System.out.println("[SatelliteManager] saved " + satellites.size() + " satellites");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

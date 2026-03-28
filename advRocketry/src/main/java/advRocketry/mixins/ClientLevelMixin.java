@@ -22,7 +22,7 @@ public abstract class ClientLevelMixin {
         Dimension dimension = ClientUtils.getPlayerDimension();
         double brightness;
         if (dimension != null) { // registered in DimensionManager
-            brightness = dimension.getTerrainBrightness(partialTick);
+            brightness = dimension.computeTerrainBrightness(partialTick);
         } else {
             // original code
             float f = level.getTimeOfDay(partialTick);
@@ -52,7 +52,7 @@ public abstract class ClientLevelMixin {
         float f4 = 1.0F;
 
         if (dimension != null) { // custom cloud colors!
-            Vector3f cloudColor = dimension.getCloudColor(partialTick);
+            Vector3f cloudColor = dimension.computeTerrainCloudColor(partialTick);
             f2 = cloudColor.x;
             f3 = cloudColor.y;
             f4 = cloudColor.z;

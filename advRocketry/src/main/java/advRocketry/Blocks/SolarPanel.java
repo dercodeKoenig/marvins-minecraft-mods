@@ -18,7 +18,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_SOLAR_PANEL;
 
 public class SolarPanel extends Block implements EntityBlock {
     public SolarPanel() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
     }
 
 

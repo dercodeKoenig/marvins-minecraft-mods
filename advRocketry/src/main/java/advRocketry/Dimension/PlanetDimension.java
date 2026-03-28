@@ -1,17 +1,26 @@
 package advRocketry.Dimension;
 
+import advRocketry.Config;
 import advRocketry.GlobalTime;
+import advRocketry.Registry.GasRegistry;
+import advRocketry.Render.MipmapSimpleTexture;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
+import advRocketry.Utils.RenderUtils;
 import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
@@ -19,29 +28,65 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
-import java.util.OptionalLong;
+import java.util.*;
 
+import static advRocketry.Dimension.PlanetDimensionProperties.SKY_COLOR_OVERWORLD;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
 public class PlanetDimension extends Dimension {
 
-    public Vec3 currentSpeed = new Vec3(0, 0, 0);
-    public Vec3 lastPosition = new Vec3(0, 0, 0);
+    Vec3 currentSpeed = Vec3.ZERO;
+    // do not sync every time the temperature changes a few ticks.
+    int lastSyncedTemperature100 = 0;
+    boolean requiresSync = true;
 
-    float targetsealevel; // for ticking, rise or lower sea level
-    float temperature; // should be autocalculated, will for example freeze water when cold or evaporate when too hot or superheated
-    // all the gases need to be added too, gascomposition
-    // maybe gases underground trapped / frozen that can be freed
-
-    public PlanetDimension(PlanetDimensionProperties properties, DimensionManager dimensionManager) {
+    public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
-        lastPosition = properties().position;
-        currentSpeed = Vec3.ZERO;
+        if (isClientSide) {
+            // ensure mipmap textures are created at start to avoid lag during space travel
+            getTexture();
+        }
+    }
+
+    public void setRequiresSync() {
+        requiresSync = true;
+    }
+
+    public void setRaining(int seconds) {
+        // when chunks are currently increasing sea level, it should rain!
+        ServerLevel level = level();
+        if (level != null)
+            level.setWeatherParameters(0, 20 * seconds, true, false);
+    }
+
+    public void setClearWeather() {
+        // when chunks are currently increasing sea level, it should rain!
+        ServerLevel level = level();
+        if (level != null)
+            level.setWeatherParameters(20 * 1000, 0, false, false);
+    }
+
+    public void updateDimensionProperties(DimensionProperties properties) {
+        super.updateDimensionProperties(properties);
+
+
+        // VERY important, because your position is usually 0 0 0 at start when you orbit another planet
+        // now, it can take 2 ticks until all planets have received their position but in tick 0 any planet might query the position of a star.
+        // for example temperature wants distance to star, but when all planets are at 0 0 0 first tick, this is 0 and /0 = nan
+        // this runs on server when dimensions are reloaded from main config
+        if (!dimensionManager.isClientSide) {
+            tickPosition(); // first tick sets position
+            tickPosition(); // second tick resets movement
+        }
     }
 
     private PlanetDimensionProperties properties() {
         return (PlanetDimensionProperties) properties;
+    }
+
+    public ServerLevel level() {
+        return DimensionManager.getServerLevel(getDimensionId());
     }
 
     public void createDimension() {
@@ -54,10 +99,18 @@ public class PlanetDimension extends Dimension {
 
         System.out.println("creating dimension for " + getDimensionId());
 
+        BlockState seaFluid = Blocks.WATER.defaultBlockState();
+        int seaLevel = getGasProperty(GasRegistry.water).worldGenSeaLevel;
+
+        if (properties().customSeaFluid != null) {
+            seaFluid = BuiltInRegistries.BLOCK.get(properties().customSeaFluid).defaultBlockState();
+            seaLevel = properties().customSeaFluidLevel;
+        }
+
         ChunkGenerator generator = PlanetDimensionGeneration.makeChunkGenerator(
                 Blocks.STONE.defaultBlockState(), // TODO: make this a property
-                Blocks.WATER.defaultBlockState(),
-                getSeaLevel(),
+                seaFluid,
+                seaLevel + 1, // the sea level in the world generator is actually the block above the sea level
                 BiomeConfig.loadPreset(properties().biomePreset),
                 properties().generateStructures
         );
@@ -67,7 +120,7 @@ public class PlanetDimension extends Dimension {
         DimensionType type = PlanetDimensionGeneration.makePlanetDimensionType(fixedTime);
         ServerLevel l = dynamicDimensionRegistry.loadDynamicDimension(getDimensionId(), generator, type);
         if (l == null) {
-            dynamicDimensionRegistry.createDynamicDimension(
+            l = dynamicDimensionRegistry.createDynamicDimension(
                     getDimensionId(),
                     generator,
                     type
@@ -76,6 +129,7 @@ public class PlanetDimension extends Dimension {
         } else {
             System.out.println("loaded dimension for " + getDimensionId());
         }
+
         // maybe for terraforming to change biomes:
         // or try to set from a noise source? using the same biome source and level noise source?
         // ((PalettedContainer) l.getChunk(0,0).getSection(0).getBiomes()).get;
@@ -94,10 +148,6 @@ public class PlanetDimension extends Dimension {
     //  on random tick, choose new target sky and fog colors and slowly interpolate between them to make diverse sky effects
     //  maybe adjust colors +-up to 10% of the original color channel value?
 
-    public boolean isKnown() {
-        return properties().isKnown;
-    }
-
     public boolean canVisit() {
         if (properties().dayTimeReference == null) {
             return false;
@@ -105,42 +155,56 @@ public class PlanetDimension extends Dimension {
         if (!properties().canVisit) {
             return false;
         }
+        if (isStar())
+            return false;
 
         return true;
     }
 
-    @Override
-    public boolean hasEnoughOxygen() {
-        return properties().atmosphereDensity > 0.5f; // TODO: improve this
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        Set<SurvivalProblem> problems = new HashSet<>();
+        double pressure = getAtmosphereDensity();
+        if (pressure < 0.7)
+            problems.add(SurvivalProblem.TOO_LOW_PRESSURE);
+
+        if (pressure > 1.6)
+            problems.add(SurvivalProblem.TOO_MUCH_PRESSURE);
+
+        double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
+        if (oxygen < 0.15 * pressure)
+            problems.add(SurvivalProblem.TOO_LITTLE_O2);
+        if (oxygen > 0.7 * pressure)
+            problems.add(SurvivalProblem.TOO_MUCH_O2);
+
+        double co2 = getGasProperty(GasRegistry.co2).in_atm;
+        if (co2 > 0.03 * pressure)
+            problems.add(SurvivalProblem.TOO_MUCH_CO2);
+
+        if (getCurrentTemp() < 273 - 30)
+            problems.add(SurvivalProblem.TOO_COLD);
+        if (getCurrentTemp() > 273 + 40)
+            problems.add(SurvivalProblem.TOO_HOT);
+
+        return problems;
     }
 
-    public boolean canRain() {
-        return getAtmosphereDensity() > 0.5f;
+    public boolean hasEnoughOxygenToBurn() {
+        return getGasProperty(GasRegistry.oxygen).in_atm > 0.1;
     }
 
     public Vector3f getEmissiveColor() {
         return properties().emissiveColor;
     }
 
-    public Vec3 getRotationAxis() {
-        return properties().rotationAxis;
-    }
-
-    public float getEarthRadiusMultiplier() {
-        return properties().earthRadiusMultiplier;
-    }
-
     public float getGravitationalMultiplier() {
         return properties().gravitationalMultiplier;
-    }
-
-    public ResourceLocation getTexture() {
-        return properties().texture;
     }
 
     public Vector3f getSkyColor() {
         return new Vector3f(properties().skyColor);
     }
+
+    public float getSkyDarken(){ return properties().skyDarken;}
 
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
@@ -148,18 +212,6 @@ public class PlanetDimension extends Dimension {
 
     public Vector3f getFogColor() {
         return new Vector3f(properties().fogColor);
-    }
-
-    public Vector3f getReflectiveTextureTintColor() {
-        return new Vector3f(properties().reflectiveTextureTintColor);
-    }
-
-    public boolean hasRings() {
-        return properties().hasRingSystem;
-    }
-
-    public float getAtmosphereDensity() {
-        return properties().atmosphereDensity;
     }
 
     public float getRadiationIntensity() {
@@ -170,55 +222,69 @@ public class PlanetDimension extends Dimension {
         return properties().hasCustomSky;
     }
 
-    public ResourceLocation getParentDimensionId() {
-        return properties().parentDimensionId;
+    public double getCurrentTemp() {
+        return properties().currentTemp;
     }
 
-    public float getorbitalDistanceToParent() {
-        return properties().orbitalDistanceToParent;
+    public float computeCloudValue() {
+        if (properties().cloudValueOverwrite >= 0)
+            return Math.clamp(properties().cloudValueOverwrite, 0, 1);
+
+        float totalCloud = 0;
+
+        // 1. Get the density (0.0 for vacuum, 1.0 for Earth-like)
+        double atmosphereFactor = getAtmosphereDensity();
+
+        // 2. If there's no air, there are no clouds. Period.
+        if (atmosphereFactor < 0.01) return 0;
+
+        for (String gas : GasRegistry.gases.keySet()) {
+            double maxCapacity = calculateVaporCapacity(getCurrentTemp(), gas);
+            double overSaturation = getHumidity(gas) - maxCapacity * 0.7;
+
+            if (overSaturation > 0) {
+                // 3. Scale the clouds by how much atmosphere there is to hold them
+                totalCloud += (float) (overSaturation * 3 * atmosphereFactor);
+            }
+        }
+
+        return Math.min(1.0f, totalCloud);
     }
 
-    public float getorbitalBaseOffsetDegrees() {
-        return properties().orbitalBaseOffsetDegrees;
-    }
-
-    public int getDataRequiredForUnlock(){ return properties().dataRequiredForUnlock;}
-
-    public Vec3 getOrbitAxis() {
-        return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);
-    }
-
-    @Override
-    public double getTerrainBrightness(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
+    public double computeTerrainBrightness(float partialTick) {
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
         brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
         return brightness;
     }
 
-    @Override
-    public Vector3f getCloudColor(float partialTick) {
+    public Vector3f computeRawCloudColor() {
+        // return properties cloud color if not null, else compute based on atm composition
+        return new Vector3f(properties().cloudColor);
+    }
+
+    public Vector3f computeTerrainCloudColor(float partialTick) {
         double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
         brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
-        return new Vector3f(properties().cloudColor).mul((float) brightness);
+        return computeRawCloudColor().mul((float) brightness);
     }
 
-    @Override
+    // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
-        return new Vector3f(properties().fogColor)
-                .mul((float) brightness)
-                .mul(getAtmosphereDensity() / (1 + getAtmosphereDensity()));
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
+        brightness = Math.pow(brightness, 1.5);
+        double atmDensity = getAtmosphereDensity();
+
+        return RenderUtils.gamma_reverse(properties().fogColor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
+        // TODO: tint in sunrise color when player is facing toward star as minecraft does it
+        //      ( there is always just a single color for terrain fog )
     }
 
-    public int getSeaLevel() {
-        return properties().seaLevel;
-    }
-
-    public double getRotationAngle(float partialTick) {
-        double actualDayTime = properties().dayTime + getDayTimePerTick() * partialTick;
-        double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
-        return rotation;
+    public float getAtmosphereDensity() {
+        float sum = 0;
+        for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
+            sum += gas.in_atm;
+        }
+        return sum;
     }
 
     public Vec3 getMovement() {
@@ -226,41 +292,164 @@ public class PlanetDimension extends Dimension {
     }
 
     public Vec3 getPosition(float partialTick) {
-        if (properties().parentDimensionId != null) {
-            Dimension parent = dimensionManager.get(properties().parentDimensionId);
-            if(parent == null) return properties().position;
+        return properties().position.subtract(getMovement().scale(1 - partialTick));
+    }
 
-            double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
-            double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
-            double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
+    public AxisDirections getGlobalAxisDirections(float partialTick) {
+        // this should never be called on server !!!
+        return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
+    }
 
-            // 1. Define a simple, non-zero vector to use for the cross-product
-            // This is an arbitrary direction, often chosen to align with a major axis.
-            Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
+    public Vector3f getTextureTintColor() {
+        return new Vector3f(properties().textureTintColor);
+    }
 
-            // 2. Find a starting vector orthogonal to the orbitAxis
-            Vec3 startDirection = properties().orbitAxis.cross(arbitraryVector);
+    public boolean hasRings() {
+        return properties().hasRingSystem;
+    }
 
-            // 3. Handle the edge case where orbitAxis is parallel to arbitraryVector (e.g., orbitAxis is <0,0,1>)
-            // If the cross-product is zero length, orbitAxis and arbitraryVector are parallel.
-            if (startDirection.length() < 0.0001d) {
-                // Fallback: cross with a different axis (e.g., the X-axis)
-                arbitraryVector = new Vec3(1, 0, 0);
-                startDirection = properties().orbitAxis.cross(arbitraryVector);
-            }
+    public boolean isStar() {
+        return getRadiationIntensity() > 0;
+    }
 
-            // 4. Normalize the orthogonal vector and scale it to the orbital distance
-            // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
-            Vec3 baseOffset = startDirection.normalize().scale(properties().orbitalDistanceToParent);
-
-            // 5. Rotate the baseOffset around the orbitAxis by the current angle
-            // baseOffset is now the vector V_start, and orbitAxis is the vector A.
-            Vec3 rotatedOffset = CelestialUtils.rotate(baseOffset, properties().orbitAxis, orbitAngleDegrees);
-
-            // 6. Add parent's position to get global position
-            properties().position = parent.getPosition(partialTick).add(rotatedOffset);
+    public ResourceLocation getTexture() {
+        ResourceLocation texture = properties().texture;
+        // ensure it is using the mipmap texture
+        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+        if (!(texturemanager.getTexture(texture) instanceof MipmapSimpleTexture)) {
+            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(texture, 6);
+            texturemanager.register(texture, newTexture);
+            System.out.println("registering mipmap texture for " + texture);
         }
-        return properties().position;
+        return texture;
+    }
+
+    public Vec3 getRotationAxis() {
+        return properties().rotationAxis;
+    }
+
+    public float getEarthRadiusMultiplier() {
+        return properties().earthRadiusMultiplier;
+    }
+
+    public boolean isKnown() {
+        return properties().isKnown;
+    }
+
+    public String getDescription() {
+        return properties().description;
+    }
+
+    public ResourceLocation getParentDimensionId() {
+        return properties().parentDimensionId;
+    }
+
+    public float getOrbitalDistanceToParent() {
+        return properties().orbitalDistanceToParent;
+    }
+
+    public float getOrbitalBaseOffsetDegrees() {
+        return properties().orbitalBaseOffsetDegrees;
+    }
+
+    public int getDataRequiredForUnlock() {
+        return properties().dataRequiredForUnlock;
+    }
+
+    public Vec3 getOrbitAxis() {
+        return new Vec3(properties().orbitAxis.x, properties().orbitAxis.y, properties().orbitAxis.z);
+    }
+
+    public PlanetDimensionProperties.GasProperty getGasProperty(String id) {
+        if (!properties().atmosphereComposition.containsKey(id))
+            properties().atmosphereComposition.put(id, new PlanetDimensionProperties.GasProperty(0, 0, 0, 0));
+        return properties().atmosphereComposition.get(id);
+    }
+
+    public Set<String> getGasMiningOptions() {
+        HashSet<String> set = new HashSet<>();
+        if (!properties().canGasMine)
+            return set;
+
+        for (String gas : GasRegistry.gases.keySet()) {
+            if (getGasProperty(gas).in_atm > 1)
+                set.add(gas);
+        }
+        return set;
+    }
+
+    public float getFrozenGasCoverage() {
+        float sum = 0;
+        for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
+            sum += (float) gas.frozen_surface;
+        }
+        return Math.min(1, sum);
+    }
+
+    // how much of the planet do we consider ocean?
+    // if gas is null, it will take the max from all gases available
+    public double getOceanFraction(@Nullable String gasId) {
+
+        double maxSeaLevel = 0;
+        if (gasId != null)
+            maxSeaLevel = getGasProperty(gasId).getSeaLevel();
+        else {
+            for (String gas : GasRegistry.gases.keySet()) {
+                maxSeaLevel = Math.max(maxSeaLevel, getGasProperty(gas).getSeaLevel());
+            }
+        }
+
+        double relativeSeaLevel = maxSeaLevel / PlanetDimensionProperties.GasProperty.maxSeaLevel;
+        // usually it should already be between 0 and 1 but just to be sure...
+        relativeSeaLevel = Math.clamp(relativeSeaLevel, 0, 1);
+
+        // adjust for custom fluid
+        double heightAboveCustomFluidLevel = maxSeaLevel - properties().customSeaFluidLevel;
+        if (heightAboveCustomFluidLevel >= 0)
+            // if sea level is just slightly above custom fluid level, ocean fraction is signifiantly reduced
+            relativeSeaLevel *= Math.min(1, heightAboveCustomFluidLevel);
+        else {
+            // custom fluid is above sea level, no oceans
+            relativeSeaLevel = 0;
+        }
+        return relativeSeaLevel;
+    }
+
+    public double calculateVaporCapacity(double currentTemp, String gas) {
+        // You'll need to make sure your Gas properties include a boiling point!
+        double boilingTemp = GasRegistry.gases.get(gas).getBoilingTemp(getAtmosphereDensity());
+
+        // Calculate the difference between current temp and boiling temp
+        double tempDifference = currentTemp - boilingTemp;
+
+        // Exponential curve: capacity drops drastically in the cold,
+        // but grows massively as you approach/exceed boiling temp.
+        double baseCapacity = Math.exp(tempDifference / 100.0);
+
+        // Cap it so we don't get infinite capacity at crazy high temperatures
+        return Math.min(baseCapacity, 1000.0);
+    }
+
+    public double getHumidity(String gas) {
+        // 1. How much vapor CAN the air hold at this temperature?
+        double maxCapacity = calculateVaporCapacity(getCurrentTemp(), gas);
+
+        // 2. How much surface liquid/ice is exposed to the air to evaporate?
+        // An ocean fraction of 1.0 means it easily reaches max capacity.
+        // A desert planet (0.01) means very little actually evaporates.
+        double surfaceExposure = getOceanFraction(gas);
+
+        // 3. The actual amount of vapor in the air
+        // *2 to have over-saturation in the air on high sea level so we can form clouds
+        double actualHumidity = maxCapacity * surfaceExposure * 2;
+
+        return actualHumidity;
+    }
+
+    public double getRotationAngle(float partialTick) {
+        double actualDayTime = properties().dayTime + getDayTimePerTick() * partialTick;
+        double rotation = actualDayTime / Level.TICKS_PER_DAY * 360;
+        return rotation;
     }
 
     public float getLatitudeFromZPosition(double z) {
@@ -284,11 +473,6 @@ public class PlanetDimension extends Dimension {
         }
 
         return latitude;
-    }
-
-    public AxisDirections getGlobalAxisDirections(float partialTick) {
-        // this should never be called on server !!!
-        return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
     }
 
     public AxisDirections getGlobalAxisDirections(float partialTick, double latitude) {
@@ -335,7 +519,7 @@ public class PlanetDimension extends Dimension {
         double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
             Dimension target = dimensionManager.get(targetId);
-            if(target == null) continue;
+            if (target == null) continue;
             Vec3 targetPosition = target.getPosition(partialTick);
             double distance = targetPosition.distanceTo(myPlanetPosition);
             double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
@@ -360,7 +544,6 @@ public class PlanetDimension extends Dimension {
         return dot;
     }
 
-
     public float getDayTimePerTick() {
         if (properties().targetDayLength <= 0) return 0;
         return (float) Level.TICKS_PER_DAY / properties().targetDayLength;
@@ -378,11 +561,16 @@ public class PlanetDimension extends Dimension {
     public void tick() {
         super.tickStarCache();
 
-        Vec3 position = getPosition(0);
-        currentSpeed = position.subtract(lastPosition);
-        lastPosition = position;
+        tickPosition();
 
         if (!isClientSide) {
+
+            if (GlobalTime.getGlobalTime() % 20 == 0 && requiresSync) {
+                requiresSync = false;
+                lastSyncedTemperature100 = (int) (properties().currentTemp * 100);
+                dimensionManager.syncDimensionProperties(this);
+            }
+
             ServerLevel level = DimensionManager.getServerLevel(getDimensionId());
             if (level != null) {
                 if (properties().targetDayLength > 0) { // time runs normal, when <= 0 it is fixed time
@@ -395,12 +583,19 @@ public class PlanetDimension extends Dimension {
             }
 
             if (level != null) {
-                if (!canRain()) {
-                    level.setWeatherParameters(100, 0, false, false);
-                } else {
-                    //level.setWeatherParameters(0, 100, true, false);
-                    // TODO: custom weather logic
+                if (computeCloudValue() < 0.1) {
+                    // can not rain / snow without clouds
+                    setClearWeather();
                 }
+            }
+
+
+            tickTemperature();
+
+            tickGasProperties();
+
+            if (level != null) {
+                PlanetEvents.tick(this, properties(), level);
             }
         }
 
@@ -414,6 +609,156 @@ public class PlanetDimension extends Dimension {
             } else {
                 trackDayTimeNormal();
             }
+        }
+        // TODO: remove after testing
+        properties().isKnown = true;
+
+        if (getName().equals("Mustafar")) {
+
+        }
+        if (getName().equals("Earth")) {
+
+        }
+        if (getName().equals("Sun")) {
+
+        }
+    }
+
+
+    // by ticking the position once and interpolating between last and current position it will
+    // reduce computation all the time we require the dimension. the movement will still be smooth, just not a perfect circle
+    public void tickPosition() {
+        Vec3 lastPosition = properties().position;
+
+        if (properties().parentDimensionId != null) {
+            Dimension parent = dimensionManager.get(properties().parentDimensionId);
+            if (parent != null) {
+                double ticksPerOrbit = CelestialUtils.calculateOrbitalPeriodTicks(fromEarthMasses(getGravitationalMultiplier()), fromEarthMasses(parent.getGravitationalMultiplier()), fromAU(properties().orbitalDistanceToParent));
+                double orbitalProgress = (GlobalTime.getGlobalTime() % ticksPerOrbit) + (GlobalTime.getGlobalTimeClientCorrection() % ticksPerOrbit);
+                double orbitAngleDegrees = orbitalProgress * (360.0 / ticksPerOrbit) + properties().orbitalBaseOffsetDegrees;
+
+                // 1. Define a simple, non-zero vector to use for the cross-product
+                // This is an arbitrary direction, often chosen to align with a major axis.
+                Vec3 arbitraryVector = new Vec3(0, 0, 1); // e.g., the Z-axis
+
+                // 2. Find a starting vector orthogonal to the orbitAxis
+                Vec3 startDirection = properties().orbitAxis.cross(arbitraryVector);
+
+                // 3. Handle the edge case where orbitAxis is parallel to arbitraryVector (e.g., orbitAxis is <0,0,1>)
+                // If the cross-product is zero length, orbitAxis and arbitraryVector are parallel.
+                if (startDirection.length() < 0.0001d) {
+                    // Fallback: cross with a different axis (e.g., the X-axis)
+                    arbitraryVector = new Vec3(1, 0, 0);
+                    startDirection = properties().orbitAxis.cross(arbitraryVector);
+                }
+
+                // 4. Normalize the orthogonal vector and scale it to the orbital distance
+                // This is your correct 'baseOffset' vector, originating at the parent and orthogonal to the rotation axis.
+                Vec3 baseOffset = startDirection.normalize().scale(properties().orbitalDistanceToParent);
+
+                // 5. Rotate the baseOffset around the orbitAxis by the current angle
+                // baseOffset is now the vector V_start, and orbitAxis is the vector A.
+                Vec3 rotatedOffset = CelestialUtils.rotate(baseOffset, properties().orbitAxis, orbitAngleDegrees);
+
+                // 6. Add parent's position to get global position
+                properties().position = parent.getPosition(0).add(rotatedOffset);
+            }
+        }
+
+        currentSpeed = properties().position.subtract(lastPosition);
+    }
+
+    public void tickTemperature() {
+        if (isStar()) {
+            properties().currentTemp = getRadiationIntensity() * 3000;
+            return;
+        }
+
+        if (lastSyncedTemperature100 != (int) (properties().currentTemp * 100)) {
+            setRequiresSync();
+        }
+
+        // Current state
+        double currentTemp = getCurrentTemp();
+
+        // --- UNIVERSAL GAME CONSTANTS ---
+        // This is the Stefan-Boltzmann constant scaled for the game's energy units.
+        // It determines how aggressively planets try to radiate heat away.
+        final double EMISSION_CONSTANT = 0.00000000024;
+
+        // 1. CALCULATE INCOMING ENERGY (Ein)
+        double solarFlux = 0.0;
+        Vec3 planetPos = getPosition(0);
+        for (ResourceLocation starId : getCurrentMainStars()) {
+            if (dimensionManager.get(starId) instanceof PlanetDimension star) {
+                Vec3 starPos = star.getPosition(0);
+                double distanceAU = starPos.distanceTo(planetPos);
+                solarFlux += star.getRadiationIntensity() / (distanceAU * distanceAU + 0.00001);
+            }
+        }
+
+        // Albedo (Reflectivity)
+        double oceanFraction = getOceanFraction(null); // any gas
+        // base albedo
+        double albedo = 0.3;
+        // ice reflects light
+        albedo += (getFrozenGasCoverage() * 0.6);
+        // oceans are dark ( usually )
+        albedo += -(oceanFraction * 0.1);
+        // clouds reflect light
+        albedo += Math.clamp(computeCloudValue(), 0, 1) * 0.4;
+        // final value clip
+        albedo = Math.max(0.05, Math.min(albedo, 0.9));
+
+        // The actual energy absorbed by the planet
+        double energyIn = solarFlux * (1.0 - albedo) + properties().baseEnergyGain;
+
+        // 2. CALCULATE INSULATION (Greenhouse Blanket)
+        // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
+        double insulation = 1.0;
+        for (String id : List.of(GasRegistry.co2, GasRegistry.methane, GasRegistry.water)) {
+            double bonus = GasRegistry.getInsulationBonus(id, getGasProperty(id).in_atm);
+            insulation += bonus;
+        }
+
+        // Water Vapor Feedback
+        insulation += Math.min(getHumidity(GasRegistry.water), 50);
+
+        // 3. CALCULATE OUTGOING ENERGY (Eout)
+        // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.
+        // The insulation divides the outgoing energy, trapping it.
+        double energyOut = (EMISSION_CONSTANT * Math.pow(currentTemp, 4)) / insulation;
+
+        // 4. CALCULATE THERMAL MASS (Inertia)
+        // Water and thick atmospheres resist temperature changes.
+        // This stops the temperature from dropping instantly if a player drains an ocean.
+        double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
+        thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
+        //thermalMass = 0.1; // TODO: remove after testing
+
+        // 5. APPLY DELTA (The simulation step)
+        // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
+        double deltaTemp = (energyIn - energyOut) / thermalMass;
+
+        // Apply the change to the planet
+        properties().currentTemp += deltaTemp;
+    }
+
+    public void tickGasProperties() {
+        double temp = getCurrentTemp();
+        double atmDensity = getAtmosphereDensity();
+
+        for (String gasId : GasRegistry.gases.keySet()) {
+            PlanetDimensionProperties.GasProperty property = getGasProperty(gasId);
+            GasRegistry.Gas gas = GasRegistry.gases.get(gasId);
+
+            property.maybeBoil(gas, this, temp, atmDensity, false);
+            property.maybeRain(gas, this, temp, atmDensity, false);
+            property.maybeSnow(gas, this, temp, atmDensity, false);
+            property.maybeFreezeSurface(gas, this, temp, atmDensity, false);
+            property.maybeMeltSurface(gas, this, temp, atmDensity, false);
+
+            property.maybeAdjustWorldgenSeaLevel();
         }
     }
 }

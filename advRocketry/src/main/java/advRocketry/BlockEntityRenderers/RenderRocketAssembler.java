@@ -135,11 +135,17 @@ public class RenderRocketAssembler implements BlockEntityRenderer<EntityRocketAs
         // render the scanning glowing thing not while it goes up, but only after it went up and activate it while it waits shortly before going back down
         if (entity.buildProgress > -1 && (float)entity.buildProgress / Config.INSTANCE.rocket_Assembler_Build_Time_Base < scanHeightMax+0.5f) {
             if (myFacingAxis == Direction.Axis.X) {
-                // normal uv
-                RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1 + (z1 - z0), packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
+                // Standard mapping: U follows X length, V follows Z length
+                RenderUtils.renderTopFace(vertexConsumer, stack.last(), x0, x1, z0, z1, y1,
+                        0, 1 + (x1 - x0),
+                        0, 1 + (z1 - z0),
+                        packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
             } else {
-                // rotate uv by 90°
-                RenderUtils.renderTopFace2(vertexConsumer, stack.last(), x0, x1, z0, z1, y1, 0, 1 + (x1 - x0), 0, 1 + (z1 - z0), packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
+                // Rotated mapping: U now follows Z length, V follows X length
+                RenderUtils.renderTopFace2(vertexConsumer, stack.last(), x0, x1, z0, z1, y1,
+                        0, 1 + (z1 - z0), // Swapped lengths to match the 90-degree flip
+                        0, 1 + (x1 - x0),
+                        packedLight, OverlayTexture.NO_OVERLAY, 0xffff0000);
             }
         }
     }

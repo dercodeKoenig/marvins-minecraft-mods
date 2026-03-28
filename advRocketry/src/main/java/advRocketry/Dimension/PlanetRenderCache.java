@@ -13,17 +13,16 @@ public class PlanetRenderCache {
     }
 
     public static PlanetRenderCache INSTANCE = new PlanetRenderCache();
-
+// TODO: distance cull
     // depth sorts planets for correct rendering using bubble sort
     // bubble sort is good because it can be distributed over many ticks and will approach target sort fast
     public void updatePlanetsToRenderInSky(Vec3 myDimensionPosition) {
 
-        HashSet<Dimension> allDimensions = new HashSet<>(DimensionManager.INSTANCE_CLIENT.dimensions.values());
-        planetsToRenderInSky.removeIf((dimension) -> !allDimensions.contains(dimension));
+        planetsToRenderInSky.removeIf((dimension) -> !DimensionManager.INSTANCE_CLIENT.dimensions.containsKey(dimension.getDimensionId()));
 
         HashSet<Dimension> planetsToRenderInSkySet = new HashSet<>(planetsToRenderInSky);
 
-        for (Dimension i : allDimensions) {
+        for (Dimension i : DimensionManager.INSTANCE_CLIENT.dimensions.values()) {
             if(i instanceof PlanetDimension p) {
                 if (!planetsToRenderInSkySet.contains(i)) {
                     planetsToRenderInSky.add(p);

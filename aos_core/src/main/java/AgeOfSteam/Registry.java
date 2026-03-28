@@ -25,10 +25,12 @@ import AgeOfSteam.Blocks.Mechanics.HandGenerator.EntityHandGenerator;
 import AgeOfSteam.Blocks.SimpleBlocks.BlockCasingSlab;
 import AgeOfSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -176,7 +178,11 @@ public class Registry {
 
 
     public static final Supplier<CreativeModeTab> AOS_CREATIVETAB = CREATIVE_TAB.register(
-            "age_of_steam",()->new CustomCreativeTab()
+            "age_of_steam",()->
+                    CreativeModeTab.builder()
+                            .title(Component.literal("Age Of Steam"))
+                            .icon(()->new ItemStack(ITEM_WOODEN_HAMMER.get()))
+                            .build()
     );
 
     static {

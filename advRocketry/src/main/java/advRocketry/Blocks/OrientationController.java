@@ -22,7 +22,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_ORIENTATION_CONTROLLER;
 
 public class OrientationController extends Block implements EntityBlock {
     public OrientationController() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 

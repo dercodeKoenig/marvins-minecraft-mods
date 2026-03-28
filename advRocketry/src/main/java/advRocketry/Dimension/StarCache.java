@@ -45,15 +45,15 @@ public class StarCache {
             }
 
             // skip if no color is emitted from other dimension
-            double emissiveBrightness = otherDimension.getRadiationIntensity();
-            if (emissiveBrightness <= 0) {
+            double radiationIntensity = otherDimension.getRadiationIntensity();
+            if (radiationIntensity <= 0) {
                 return;
             }
 
             Vec3 myPos = myDimension.getPosition(0);
             Vec3 targetPosition = otherDimension.getPosition(0);
             double distance = myPos.distanceTo(targetPosition);
-            double brightness = emissiveBrightness / (distance * distance);
+            double brightness = radiationIntensity / (distance * distance);
 
             // If we still have room, just add it
             if (significantLightSourcesCache.size() < MAX_LIGHT_SOURCES) {

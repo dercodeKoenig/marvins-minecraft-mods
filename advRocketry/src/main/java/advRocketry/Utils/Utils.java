@@ -45,28 +45,6 @@ public class Utils {
         return new Vec3i(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
     }
 
-
-    public static int findGroundY(Level level, BlockPos startPos) {
-
-        int x = startPos.getX();
-        int z = startPos.getZ();
-        int minY = level.getMinBuildHeight();
-
-
-        // start a bit above ground to skip air
-        for (int y = startPos.getY(); y >= minY; y--) {
-            BlockPos pos = new BlockPos(x, y, z);
-            if (!level.getBlockState(pos).isAir()) {
-                return y + 1; // return the top air block just above the ground
-            }
-        }
-
-        return minY ;
-    }
-
-
-
-
     public static Holder<Biome> getBiomeHolder(String biomeId) {
         return ServerLifecycleHooks.getCurrentServer().registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeId)));
     }

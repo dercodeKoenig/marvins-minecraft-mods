@@ -18,7 +18,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_GUIDANCE_COMPUTER;
 
 public class GuidanceComputer extends Block implements EntityBlock {
     public GuidanceComputer() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
     }
 
 

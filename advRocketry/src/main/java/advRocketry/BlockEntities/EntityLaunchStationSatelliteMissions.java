@@ -79,7 +79,7 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
         guiHandler.openGui(176, 165, true);
     }
 
-    public void launch() {
+    public boolean launch() {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
 
@@ -92,8 +92,8 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                 ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, ItemSatelliteIdChip.getTarget(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
-                level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
-                activeTimeout = 40;
+                cycleNavigationItem(); // cycle item in case you want to pull back many satellites
+                return true;
 
             } else if (navigationItem.getItem() instanceof ItemPlanetIdChip) {
                 ResourceLocation targetPlanet = ItemPlanetIdChip.getSelectedDimension(navigationItem);
@@ -101,11 +101,11 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                     ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(linkedRocket, targetPlanet, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                     linkedRocket.setProgramAndSync(programMissionStartBase);
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
-                    level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
-                    activeTimeout = 40;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     @Override

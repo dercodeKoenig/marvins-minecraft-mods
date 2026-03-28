@@ -1,9 +1,10 @@
 package BetterPipes;
 
-import BetterPipes.Pipe.RenderPipe;
+import BetterPipes.PipeBase.RenderPipe;
 import BetterPipes.Tank.RenderTank;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -14,8 +15,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
@@ -38,32 +37,30 @@ public class BetterPipes {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(PIPE.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(IRON_PIPE.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(WOODEN_PIPE.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(TANK.get(), RenderType.cutout());
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_PIPE.get(), RenderPipe::new);
+        event.registerBlockEntityRenderer(ENTITY_IRON_PIPE.get(), (c) -> new RenderPipe());
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_PIPE.get(), (c) -> new RenderPipe());
         event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
-            e.accept(PIPE.get());
+        if (e.getTab() == AgeOfSteam.Registry.AOS_CREATIVETAB.get()) {
+            e.accept(IRON_PIPE.get());
+            e.accept(WOODEN_PIPE.get());
             e.accept(TANK.get());
         }
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_PIPE.get(), (tile, side) -> tile.getFluidHandler(side));
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_IRON_PIPE.get(), (tile, side) -> tile.getFluidHandler(side));
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_WOODEN_PIPE.get(), (tile, side) -> tile.getFluidHandler(side));
 
-
-
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_TANK.get(),
-                (tank, side) -> {
-                    return tank.myTank;
-                }
-        );
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ENTITY_TANK.get(), (tank, side) -> tank.myTank);
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

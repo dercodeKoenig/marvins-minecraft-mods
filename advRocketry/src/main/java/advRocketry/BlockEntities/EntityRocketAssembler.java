@@ -6,10 +6,7 @@ import ARLib.gui.modules.guiModuleEnergy;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
-import advRocketry.Blocks.CargoHold;
-import advRocketry.Blocks.GuidanceComputer;
-import advRocketry.Blocks.LaunchPad;
-import advRocketry.Blocks.StructureTower;
+import advRocketry.Blocks.*;
 import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
@@ -390,6 +387,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
                         if (entityBlock instanceof GuidanceComputer)
                             shouldSaveNbt = true;
                         if (entityBlock instanceof CargoHold)
+                            shouldSaveNbt = true;
+                        if (entityBlock instanceof PressureTank)
                             shouldSaveNbt = true;
 
                         CompoundTag tag = null;

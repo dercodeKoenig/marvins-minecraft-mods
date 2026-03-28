@@ -4,7 +4,9 @@ import advRocketry.Blocks.*;
 import advRocketry.Main;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -18,15 +20,18 @@ public class Blocks {
     public static final Supplier<Block> ROCKET_ASSEMBLER = BLOCKS.register("rocket_assembler", () -> new RocketAssembler());
     public static final Supplier<Block> FUELING_STATION = BLOCKS.register("fueling_station", () -> new FuelingStation());
     public static final Supplier<Block> ROCKET_ITEM_LOADER = BLOCKS.register("rocket_item_loader", () -> new RocketItemLoader());
+    public static final Supplier<Block> ROCKET_FLUID_LOADER = BLOCKS.register("rocket_fluid_loader", () -> new RocketFluidLoader());
     public static final Supplier<Block> LAUNCH_STATION = BLOCKS.register("launch_station", () -> new LaunchStation());
 
     // rocket part
     public static final Supplier<Block> ROCKET_MOTOR = BLOCKS.register("rocket_motor", () -> new RocketMotor());
+    public static final Supplier<Block> ROCKET_MOTOR_IMPROVED = BLOCKS.register("rocket_motor_improved", () -> new RocketMotorImproved());
     public static final Supplier<Block> FUEL_TANK = BLOCKS.register("fuel_tank", () -> new FuelTank());
     public static final Supplier<Block> GUIDANCE_COMPUTER = BLOCKS.register("guidance_computer", () -> new GuidanceComputer());
     public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());
     public static final Supplier<Block> SEAT = BLOCKS.register("seat", () -> new Seat());
     public static final Supplier<Block> DRILL = BLOCKS.register("drill", () -> new Drill());
+    public static final Supplier<Block> GAS_INTAKE = BLOCKS.register("gas_intake", () -> new GasIntake());
 
     // station parts
     public static final Supplier<Block> WARP_CONTROLLER = BLOCKS.register("warp_controller", () -> new WarpController());
@@ -41,10 +46,13 @@ public class Blocks {
     public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
     public static final Supplier<Block> ASTROBODY_DATA_PROCESSOR = BLOCKS.register("astrobody_data_processor", () -> new AstrobodyDataProcessor());
     public static final Supplier<Block> WIRELESS_TRANSCEIVER = BLOCKS.register("wireless_transceiver", () -> new WirelessTransceiver());
+    public static final Supplier<Block> FLUID_RELEASE = BLOCKS.register("fluid_release", () -> new FluidRelease());
+    public static final Supplier<Block> PRESSURE_TANK = BLOCKS.register("pressure_tank", () -> new PressureTank());
 
     // basic blocks
     public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
     public static final Supplier<Block> MOON_TURF = BLOCKS.register("moon_turf", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
+    public static final Supplier<Block> DRY_ICE = BLOCKS.register("dry_ice", () -> new DryIceBlock(BlockBehaviour.Properties.of().strength(0.1f).requiresCorrectToolForDrops()));
 
     // satellite / missions
     public static final Supplier<Block> SATELLITE_ASSEMBLER = BLOCKS.register("satellite_assembler", () -> new SatelliteAssembler());
@@ -52,5 +60,36 @@ public class Blocks {
     public static final Supplier<Block> LAUNCH_STATION_SATELLITE_MISSIONS = BLOCKS.register("launch_station_satellite_missions", () -> new LaunchStationSatelliteMissions());
     public static final Supplier<Block> LAUNCH_STATION_ASTEROID_MISSIONS = BLOCKS.register("launch_station_asteroid_missions", () -> new LaunchStationAsteroidMissions());
 
+
+
+    public static final DeferredHolder<Block, LiquidBlock> METHANE_BLOCK = BLOCKS.register("methane_block", () -> new CompositionFluidLiquidBlock(
+            Fluids.METHANE.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
+            GasRegistry.methane
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> CO2_BLOCK = BLOCKS.register("co2_block", () -> new CompositionFluidLiquidBlock(
+            Fluids.CO2.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
+            GasRegistry.co2
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> OXYGEN_BLOCK = BLOCKS.register("oxygen_block", () -> new CompositionFluidLiquidBlock(
+            Fluids.OXYGEN.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
+            GasRegistry.oxygen
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> HYDROGEN_BLOCK = BLOCKS.register("hydrogen_block", () -> new CompositionFluidLiquidBlock(
+            Fluids.HYDROGEN.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
+            GasRegistry.hydrogen
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> NITROGEN_BLOCK = BLOCKS.register("nitrogen_block", () -> new CompositionFluidLiquidBlock(
+            Fluids.NITROGEN.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable(),
+            GasRegistry.nitrogen
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> ROCKET_FUEL_BLOCK = BLOCKS.register("rocket_fuel_block", () -> new LiquidBlock(
+            Fluids.ROCKET_FUEL.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
 
 }

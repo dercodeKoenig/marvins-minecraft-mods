@@ -10,8 +10,16 @@
         { "name": "ModelMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
         { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
 
+        { "name": "playerEye", "type": "float", "count": 3, "values": [ 0,0,0 ] },
         { "name": "scale", "type": "float", "count": 1, "values": [3] },
         { "name": "planetGeometryScale", "type": "float", "count": 1, "values": [3] },
+        { "name": "BrightnessMultiplier", "type": "float", "count": 1, "values": [ 1.0 ]},
+
+        { "name": "LocalSunriseColor", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+        { "name": "playerHeight", "type": "float", "count": 1, "values": [ 1] },
+        { "name": "playerEye", "type": "float", "count": 3, "values": [ 0,0,0 ] },
+        { "name": "planetSkyHeight", "type": "float", "count": 1, "values": [ 1] },
+        { "name": "LocalAtmDensity", "type": "float", "count": 1, "values": [ 0.0 ]},
 
         { "name": "LightCount", "type": "int", "count": 1, "values": [0] },
 

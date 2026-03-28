@@ -1,33 +1,33 @@
 package advRocketry.BlockEntities;
 
+import ARLib.blockentities.EntityItemInputBlock;
+import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
-import advRocketry.Blocks.LaunchStation;
 import advRocketry.GlobalTime;
 import advRocketry.Items.ItemAsteroidIdChip;
-import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Items.ItemSatelliteIdChip;
+import advRocketry.Missions.AsteroidManager;
 import advRocketry.Missions.MissionManager;
 import advRocketry.Missions.RocketMission;
 import advRocketry.Registry.BlockEntities;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Rocket.RocketPrograms.ProgramAsteroidMiningMission;
 import advRocketry.Rocket.RocketPrograms.ProgramMissionStartBase;
-import advRocketry.Rocket.RocketPrograms.ProgramSatelliteDeployment;
-import advRocketry.Rocket.RocketPrograms.ProgramSatelliteRecovery;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
@@ -72,24 +72,28 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
         guiHandler.openGui(176, 165, true);
     }
 
-    public void launch() {
+
+    public boolean launch() {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
-            if (navigationItem.getItem() instanceof ItemAsteroidIdChip && ItemAsteroidIdChip.getSelectedType(navigationItem) instanceof String target) {
-                lastLaunchedMissionUUID = UUID.randomUUID();
-                BlockPos landPos = linkedRocket.getDockingStationPos();
-                if (landPos == null) landPos = linkedRocket.blockPosition();
-                ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target, level.dimension().location(), landPos, lastLaunchedMissionUUID);
-                linkedRocket.setProgramAndSync(programMissionStartBase);
-                lastLaunchedRocketUUID = linkedRocket.getUUID();
-                level.setBlock(getBlockPos(), getBlockState().setValue(LaunchStation.STATE, LaunchStation.State.active), 3);
-                activeTimeout = 40;
+            if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
+                AsteroidManager.DiscoveredAsteroid target = ItemAsteroidIdChip.getSelectedAsteroid(navigationItem);
+                if (target == null || target.isExpired()) {
+                    ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "We were too slow.\nAsteroid out of range now.");
+                } else {
+                    lastLaunchedMissionUUID = UUID.randomUUID();
+                    BlockPos landPos = linkedRocket.getDockingStationPos();
+                    if (landPos == null) landPos = linkedRocket.blockPosition();
+                    ProgramMissionStartBase programMissionStartBase = new ProgramAsteroidMiningMission(linkedRocket, target.key, level.dimension().location(), landPos, lastLaunchedMissionUUID);
+                    linkedRocket.setProgramAndSync(programMissionStartBase);
+                    lastLaunchedRocketUUID = linkedRocket.getUUID();
+                    cycleNavigationItem();
+                    return true;
+                }
             }
-            // invalidate && pop chip
-            ItemAsteroidIdChip.setSelectedType(null, navigationItem);
-            inventory.setStackInSlot(0, ItemStack.EMPTY);
-            Block.popResource(level, getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), navigationItem);
+            cycleNavigationItem();
         }
+        return false;
     }
 
     @Override

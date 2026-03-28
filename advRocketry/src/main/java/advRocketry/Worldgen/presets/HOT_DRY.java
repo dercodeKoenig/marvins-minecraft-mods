@@ -1,52 +1,83 @@
 package advRocketry.Worldgen.presets;
 
 import advRocketry.Worldgen.BiomeConfig;
-import net.minecraft.world.level.biome.Biomes;
-
-import java.util.List;
 
 public class HOT_DRY {
     public static String name = "hot_dry.json";
 
     public static BiomeConfig create() {
-        BiomeConfig config = new BiomeConfig();
 
-        BiomeConfig.BiomeDefinition desert = new BiomeConfig.BiomeDefinition();
-        desert.biome1 = Biomes.DESERT.location().toString();
-        desert.biome2 = Biomes.BASALT_DELTAS.location().toString();
-        desert.peak1 = Biomes.STONY_PEAKS.location().toString();
-        desert.peak2 = Biomes.STONY_PEAKS.location().toString();        // jagged peak looks nice with basalt delta
-        desert.temperaturesList.addAll(List.of(BiomeConfig.Temperature.values()));
-        desert.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
-        desert.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.values()));
-        desert.erosionList.addAll(List.of(BiomeConfig.Erosion.values()));
-        config.biomes.add(desert);
+        // add base biomes
+        String[][] biomesByTemperatureAndHumidity = new String[][]{
+                // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
+                {
+                        "minecraft:savanna", "minecraft:savanna", "minecraft:plains", "minecraft:desert", "minecraft:desert"
+                }, // FROZEN (Relative to this planet - these are its "coolest" regions)
+                {
+                        "minecraft:sparse_jungle", "minecraft:savanna_plateau", "minecraft:savanna", "minecraft:desert", "minecraft:badlands"
+                }, // LOW
+                {
+                        "minecraft:wooded_badlands", "minecraft:wooded_badlands", "minecraft:badlands", "minecraft:desert", "minecraft:desert"
+                }, // MID
+                {
+                        "minecraft:badlands", "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:desert", "minecraft:desert"
+                }, // WARM
+                {
+                        "minecraft:eroded_badlands", "minecraft:desert", "minecraft:desert", "minecraft:desert", "minecraft:desert"
+                }  // HOT
+        };
 
-        BiomeConfig.BiomeDefinition badlands = new BiomeConfig.BiomeDefinition();
-        badlands.biome1 = Biomes.BADLANDS.location().toString();
-        badlands.temperaturesList.addAll(List.of(BiomeConfig.Temperature.values()));
-        badlands.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.WET, BiomeConfig.Humidity.VERY_WET));
-        badlands.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.values()));
-        badlands.erosionList.addAll(List.of(BiomeConfig.Erosion.values()));
-        config.biomes.add(badlands);
+        // peak biomes
+        String[][] peaksByTemperatureAndHumidity = new String[][]{
+                // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
+                {
+                        "minecraft:windswept_savanna", "minecraft:windswept_savanna", "minecraft:stony_peaks", "minecraft:stony_peaks", null
+                }, // FROZEN
+                {
+                        "minecraft:windswept_savanna", "minecraft:stony_peaks", null, null, "minecraft:eroded_badlands"
+                }, // LOW
+                {
+                        "minecraft:basalt_deltas", "minecraft:stony_peaks", null, null, null
+                }, // MID
+                {
+                        "minecraft:basalt_deltas", null, "minecraft:eroded_badlands", null, null
+                }, // WARM
+                {
+                        "minecraft:basalt_deltas", null, null, null, null
+                }  // HOT
+        };
 
-        BiomeConfig.BiomeDefinition eroded_badlands = new BiomeConfig.BiomeDefinition();
-        eroded_badlands.biome1 = Biomes.ERODED_BADLANDS.location().toString();
-        eroded_badlands.temperaturesList.addAll(List.of(BiomeConfig.Temperature.values()));
-        eroded_badlands.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
-        eroded_badlands.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.values()));
-        eroded_badlands.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_HIGH));
-        config.biomes.add(eroded_badlands);
+        // Drying out the rivers in the hotter zones
+        String[] riversByTemperature = new String[]
+                {   // FROZEN , LOW , MID , WARM , HOT
+                        "minecraft:river", "minecraft:river", "minecraft:desert", "minecraft:badlands", "minecraft:basalt_deltas"
+                };
 
-        BiomeConfig.BiomeDefinition wooded_badlands = new BiomeConfig.BiomeDefinition();
-        wooded_badlands.biome1 = Biomes.WOODED_BADLANDS.location().toString();
-        wooded_badlands.temperaturesList.addAll(List.of(BiomeConfig.Temperature.FROZEN, BiomeConfig.Temperature.LOW));
-        wooded_badlands.humidityList.addAll(List.of(BiomeConfig.Humidity.WET, BiomeConfig.Humidity.VERY_WET));
-        wooded_badlands.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.values()));
-        wooded_badlands.erosionList.addAll(List.of(BiomeConfig.Erosion.values()));
-        config.biomes.add(wooded_badlands);
+        // Rocky shores and mostly sand
+        String[] beachesByTemperature = new String[]
+                {   // FROZEN , LOW , MID , WARM , HOT
+                        "minecraft:beach", "minecraft:stony_shore", "minecraft:desert", null, null
+                };
 
+        // Oceans are predominantly warm, meaning coral reefs might spawn in the coolest areas, but mostly just warm water
+        String[] oceansByTemperature = new String[]
+                {   // FROZEN , LOW , MID , WARM , HOT
+                        "minecraft:lukewarm_ocean", "minecraft:warm_ocean", "minecraft:warm_ocean", "minecraft:warm_ocean", "minecraft:warm_ocean"
+                };
 
-        return config;
+        // Deep oceans follow the same warm trend
+        String[] deepOceansByTemperature = new String[]
+                {   // FROZEN , LOW , MID , WARM , HOT
+                        "minecraft:deep_lukewarm_ocean", "minecraft:warm_ocean", "minecraft:warm_ocean", "minecraft:warm_ocean", "minecraft:warm_ocean"
+                };
+
+        return BiomeConfigCreator.create(
+                biomesByTemperatureAndHumidity,
+                peaksByTemperatureAndHumidity,
+                riversByTemperature,
+                beachesByTemperature,
+                oceansByTemperature,
+                deepOceansByTemperature
+        );
     }
 }

@@ -1,0 +1,8 @@
+{
+  "parent": "adv_rocketry:block/pressure_tank",
+  "textures": {
+    "side": "adv_rocketry:block/pressure_tank_joined_all",
+    "down": "adv_rocketry:block/transparent",
+    "up": "adv_rocketry:block/transparent"
+  }
+}

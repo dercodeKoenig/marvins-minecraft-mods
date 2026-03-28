@@ -6,6 +6,7 @@
     "north": "adv_rocketry:block/solar_panel_side",
     "south": "adv_rocketry:block/solar_panel_side",
     "west": "adv_rocketry:block/solar_panel_side",
-    "east": "adv_rocketry:block/solar_panel_side"
+    "east": "adv_rocketry:block/solar_panel_side",
+    "particle": "adv_rocketry:block/solar_panel_side"
   }
 }

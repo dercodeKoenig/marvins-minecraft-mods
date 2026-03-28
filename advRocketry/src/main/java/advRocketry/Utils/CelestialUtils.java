@@ -43,7 +43,7 @@ public class CelestialUtils {
     }
 
     // --- Other physics calculations ---
-    public static final double G = 0.000001;
+    public static final double G = 0.0000001;
     public static final double ASTRONOMICAL_UNIT = 1.496 * Math.pow(10, 11);
     public static final double EARTH_MASS = 5.972 * Math.pow(10, 24);
     public static final double EARTH_RADIUS = 6_000_000;

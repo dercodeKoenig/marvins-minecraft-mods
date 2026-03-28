@@ -18,7 +18,7 @@ public abstract class LevelRendererMixin {
     public void renderClouds(PoseStack poseStack, Matrix4f frustumMatrix, Matrix4f projectionMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci) {
         Dimension dimension = ClientUtils.getPlayerDimension();
         if(dimension!=null){
-            if(!dimension.canRain())
+            if(dimension.computeCloudValue() < 0.1)
                 ci.cancel();
         }
     }

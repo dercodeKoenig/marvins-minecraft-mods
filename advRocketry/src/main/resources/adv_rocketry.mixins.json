@@ -6,7 +6,11 @@
     "AbstractArrowMixin",
     "FallingBlockEntityMixin",
     "ItemEntityMixin",
-    "LivingEntityMixin"
+    "LivingEntityMixin",
+    "ServerLevelMixin",
+    "BiomeMixin",
+    "IceBlockMixin",
+    "LevelMixin"
   ],
   "client": [
     "MixinWorldEffects",

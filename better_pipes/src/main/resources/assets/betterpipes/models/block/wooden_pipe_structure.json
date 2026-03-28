@@ -1,0 +1,6 @@
+{
+  "parent": "betterpipes:block/pipe_structure",
+  "textures": {
+    "pipe": "betterpipes:block/fluid_pipe0_structure"
+  }
+}

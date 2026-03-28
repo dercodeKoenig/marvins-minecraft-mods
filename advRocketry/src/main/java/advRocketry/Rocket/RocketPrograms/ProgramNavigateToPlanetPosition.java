@@ -15,6 +15,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Objects;
@@ -77,8 +78,8 @@ public class ProgramNavigateToPlanetPosition implements RocketProgram {
             double dz = targetVec3.z - rocket.position().z;
             double distanceToTargetXZ = Math.sqrt(dx * dx + dz * dz);
 
-            int yCurrentBelow = Utils.findGroundY(rocket.level(), new BlockPos(rocket.blockPosition().getX(), rocket.level().getMaxBuildHeight(), rocket.blockPosition().getZ()));
-            int yTargetBelow = Utils.findGroundY(rocket.level(), new BlockPos((int) targetVec3.x, rocket.level().getMaxBuildHeight(), (int) targetVec3.z));
+            int yCurrentBelow = rocket.level().getHeight(Heightmap.Types.WORLD_SURFACE,rocket.blockPosition().getX(), rocket.blockPosition().getZ());
+            int yTargetBelow =  rocket.level().getHeight(Heightmap.Types.WORLD_SURFACE,(int) targetVec3.x, (int) targetVec3.z);
 
             int maxY = Math.max(yTargetBelow, yCurrentBelow);
 

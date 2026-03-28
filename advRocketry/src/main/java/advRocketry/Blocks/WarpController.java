@@ -22,7 +22,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_WARP_CONTROLLER;
 
 public class WarpController extends Block implements EntityBlock {
     public WarpController() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f));
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 

@@ -8,6 +8,7 @@ import ARLib.utils.DimensionUtils;
 import ARLib.utils.VertexBufferCleaner;
 import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
+import advRocketry.BlockEntities.EntityPressureTank;
 import advRocketry.Blocks.FuelTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
@@ -16,7 +17,6 @@ import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
-import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Rocket.RocketPrograms.*;
 import advRocketry.Utils.ItemUtils;
 import advRocketry.Utils.CelestialUtils;
@@ -51,7 +51,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -622,7 +621,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (targetLevel != null) {
             ResourceLocation targetLevelId = targetLevel.dimension().location();
             Dimension targetDimension = DimensionManager.getDimensionManager(level().isClientSide).get(targetLevelId);
+            Dimension currentDimension = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
             if (targetDimension != null && targetDimension.canVisit()) {
+
+                if(currentDimension != null) {
+                    double distance = targetDimension.getPosition(0).distanceTo(currentDimension.getPosition(0));
+                    if(distance > 1.2){
+                        infoText.setTextAndSync("target out of range");
+                        temporaryInfoTimeout = 20 * 15;
+                        return false;
+                    }
+                }
+
+
                 if (targetDimension instanceof PlanetDimension) {
                     // target level is planet, use planet navigation program
                     ProgramNavigateToPlanetPosition p = new ProgramNavigateToPlanetPosition(this, targetLevelId, targetPos);
@@ -812,13 +823,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             BlockState state = blocks.get(p);
             CompoundTag blockEntityTag = blockTag.getCompound("blockEntity");
             BlockEntity existingBlockEntity = blockEntities.get(p);
-            if (existingBlockEntity != null && existingBlockEntity.isValidBlockState(state))
-                existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
-            else {
-                BlockEntity be = ((EntityBlock) state.getBlock()).newBlockEntity(p, state);
-                be.loadCustomOnly(blockEntityTag, registryAccess());
-                blockEntities.put(p, be);
-                makeGui();
+            if (state != null) {
+                if (existingBlockEntity != null && existingBlockEntity.isValidBlockState(state))
+                    existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
             }
         }
     }
@@ -978,7 +985,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public void recalculateMass() {
         float mass = 0;
         mass += getBlockMass();
-        mass += getFuel() * Config.INSTANCE.rocket_Fuel_Weight_Per_MB; // fuel weight
+        mass += getFuel() * Config.INSTANCE.rocket_Fluid_Weight_Per_MB; // fuel weight
         for (BlockEntity e : blockEntities.values()) {
             if (e instanceof EntityCargoHold entityCargoHold) {
                 ItemStack carried = entityCargoHold.itemStackHandler.getStackInSlot(0);
@@ -986,6 +993,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     float relativeFill = (float) carried.getCount() / carried.getMaxStackSize();
                     mass += relativeFill * Config.INSTANCE.rocket_ItemStack_Weight;
                 }
+            }
+            if( e instanceof EntityPressureTank pressureTank){
+                mass += pressureTank.tank.getFluidAmount() * Config.INSTANCE.rocket_Fluid_Weight_Per_MB;
             }
         }
         if (mass != currentMass) {

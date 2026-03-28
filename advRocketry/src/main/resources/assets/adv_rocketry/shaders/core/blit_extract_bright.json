@@ -5,6 +5,7 @@
         { "name": "frame" }
     ],
     "uniforms": [
-        { "name": "threshold", "type": "float", "count": 1, "values": [1] }
+        { "name": "threshold", "type": "float", "count": 1, "values": [1] },
+        { "name": "resolution", "type": "int", "count": 2, "values": [480,270] }
     ]
 }

@@ -2,8 +2,8 @@ package advRocketry.BlockEntities;
 
 import ARLib.utils.BlockEntityBattery;
 import ARLib.utils.SimpleFluidContainer;
-import advRocketry.Oxygen.OxygenSupplier;
-import advRocketry.Oxygen.OxygenSystem;
+import advRocketry.LifeSupport.LifeSupportSupplier;
+import advRocketry.LifeSupport.LifeSupportSystem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -14,7 +14,8 @@ import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 
 public class EntityOxygenVent extends BlockEntity {
 
-    OxygenSupplier oxygenSupplier;
+    LifeSupportSupplier oxygenSupplier;
+    LifeSupportSupplier heatSupplier;
     public BlockEntityBattery battery;
 
     SimpleFluidContainer fluidContainer;
@@ -32,15 +33,28 @@ public class EntityOxygenVent extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        oxygenSupplier = new OxygenSupplier(level, getBlockPos());
-        OxygenSystem.registerOxygenSupplier(level, oxygenSupplier);
+        oxygenSupplier = new LifeSupportSupplier(level, getBlockPos()){
+            @Override
+            public LifeSupportSystem.LifeSupportType getType() {
+                return LifeSupportSystem.LifeSupportType.AIR_SUPPLIER;
+            }
+        };
+        heatSupplier = new LifeSupportSupplier(level, getBlockPos()){
+            @Override
+            public LifeSupportSystem.LifeSupportType getType() {
+                return LifeSupportSystem.LifeSupportType.TEMPERATURE_REGULATOR;
+            }
+        };
+        LifeSupportSystem.registerLifeSupportSupplier(level, oxygenSupplier);
+        LifeSupportSystem.registerLifeSupportSupplier(level, heatSupplier);
 
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        OxygenSystem.removeOxygenSupplier(level, oxygenSupplier);
+        LifeSupportSystem.removeLifeSupportSupplier(level, oxygenSupplier);
+        LifeSupportSystem.removeLifeSupportSupplier(level, heatSupplier);
     }
 
     public void tick() {

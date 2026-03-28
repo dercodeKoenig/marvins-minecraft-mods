@@ -1,13 +1,18 @@
 package advRocketry.Registry;
 
-import advRocketry.Fluid.*;
 import advRocketry.Main;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
@@ -18,23 +23,13 @@ public class Fluids {
     public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.FLUID_TYPES, Main.MODID);
 
 
-    public static final Supplier<Fluid> ROCKET_FUEL = FLUIDS.register("rocket_fuel", () -> new RocketFuel());
     public static final Supplier<FluidType> ROCKET_FUEL_TYPE = FLUID_TYPES.register("rocket_fuel_type", () -> new FluidType(FluidType.Properties.create()));
 
-    public static final Supplier<Fluid> OXYGEN = FLUIDS.register("oxygen", () -> new Oxygen());
-    public static final Supplier<FluidType> OXYGEN_TYPE = FLUID_TYPES.register("oxygen_type", () -> new FluidType(FluidType.Properties.create()));
-
-    public static final Supplier<Fluid> HYDROGEN = FLUIDS.register("hydrogen", () -> new Hydrogen());
-    public static final Supplier<FluidType> HYDROGEN_TYPE = FLUID_TYPES.register("hydrogen_type", () -> new FluidType(FluidType.Properties.create()));
-
-    public static final Supplier<Fluid> NITROGEN = FLUIDS.register("nitrogen", () -> new Nitrogen());
-    public static final Supplier<FluidType> NITROGEN_TYPE = FLUID_TYPES.register("nitrogen_type", () -> new FluidType(FluidType.Properties.create()));
-
-    public static final Supplier<Fluid> METHANE = FLUIDS.register("methane", () -> new Methane());
-    public static final Supplier<FluidType> METHANE_TYPE = FLUID_TYPES.register("methane_type", () -> new FluidType(FluidType.Properties.create()));
-
-    public static final Supplier<Fluid> CO2 = FLUIDS.register("co2", () -> new Co2());
-    public static final Supplier<FluidType> CO2_TYPE = FLUID_TYPES.register("co2_type", () -> new FluidType(FluidType.Properties.create()));
+    public static final Supplier<FluidType> OXYGEN_TYPE = FLUID_TYPES.register("oxygen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> HYDROGEN_TYPE = FLUID_TYPES.register("hydrogen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> NITROGEN_TYPE = FLUID_TYPES.register("nitrogen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> METHANE_TYPE = FLUID_TYPES.register("methane_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+    public static final Supplier<FluidType> CO2_TYPE = FLUID_TYPES.register("co2_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
 
     public static void registerFluidTypes(RegisterClientExtensionsEvent event) {
         event.registerFluidType(
@@ -129,4 +124,102 @@ public class Fluids {
                 }, Fluids.CO2_TYPE.get()
         );
     }
+
+    // --- ROCKET FUEL ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> ROCKET_FUEL = FLUIDS.register("rocket_fuel",
+            () -> new BaseFlowingFluid.Source(Fluids.ROCKET_FUEL_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> ROCKET_FUEL_FLOWING = FLUIDS.register("rocket_fuel_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.ROCKET_FUEL_PROPERTIES));
+    public static final BaseFlowingFluid.Properties ROCKET_FUEL_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.ROCKET_FUEL_TYPE,
+            ROCKET_FUEL,
+            ROCKET_FUEL_FLOWING
+    )
+            .bucket(Items.ITEM_ROCKET_FUEL_BUCKET)
+            .block(Blocks.ROCKET_FUEL_BLOCK);
+
+    // --- METHANE ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> METHANE = FLUIDS.register("methane",
+            () -> new BaseFlowingFluid.Source(Fluids.METHANE_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> METHANE_FLOWING = FLUIDS.register("methane_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.METHANE_PROPERTIES));
+    public static final BaseFlowingFluid.Properties METHANE_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.METHANE_TYPE,
+            METHANE,
+            METHANE_FLOWING
+    )
+            .bucket(Items.ITEM_METHANE_BUCKET)
+            .block(Blocks.METHANE_BLOCK);
+
+    // --- CO2 ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> CO2 = FLUIDS.register("co2",
+            () -> new BaseFlowingFluid.Source(Fluids.CO2_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> CO2_FLOWING = FLUIDS.register("co2_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.CO2_PROPERTIES));
+    public static final BaseFlowingFluid.Properties CO2_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.CO2_TYPE,
+            CO2,
+            CO2_FLOWING
+    )
+            .bucket(Items.ITEM_CO2_BUCKET)
+            .block(Blocks.CO2_BLOCK);
+
+    // --- OXYGEN ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> OXYGEN = FLUIDS.register("oxygen",
+            () -> new BaseFlowingFluid.Source(Fluids.OXYGEN_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> OXYGEN_FLOWING = FLUIDS.register("oxygen_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.OXYGEN_PROPERTIES));
+
+    public static final BaseFlowingFluid.Properties OXYGEN_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.OXYGEN_TYPE, OXYGEN, OXYGEN_FLOWING)
+            .bucket(Items.ITEM_OXYGEN_BUCKET)
+            .block(Blocks.OXYGEN_BLOCK);
+
+    // --- HYDROGEN ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> HYDROGEN = FLUIDS.register("hydrogen",
+            () -> new BaseFlowingFluid.Source(Fluids.HYDROGEN_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> HYDROGEN_FLOWING = FLUIDS.register("hydrogen_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.HYDROGEN_PROPERTIES));
+
+    public static final BaseFlowingFluid.Properties HYDROGEN_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.HYDROGEN_TYPE, HYDROGEN, HYDROGEN_FLOWING)
+            .bucket(Items.ITEM_HYDROGEN_BUCKET)
+            .block(Blocks.HYDROGEN_BLOCK);
+
+    // --- NITROGEN ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> NITROGEN = FLUIDS.register("nitrogen",
+            () -> new BaseFlowingFluid.Source(Fluids.NITROGEN_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> NITROGEN_FLOWING = FLUIDS.register("nitrogen_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.NITROGEN_PROPERTIES));
+
+    public static final BaseFlowingFluid.Properties NITROGEN_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.NITROGEN_TYPE, NITROGEN, NITROGEN_FLOWING)
+            .bucket(Items.ITEM_NITROGEN_BUCKET)
+            .block(Blocks.NITROGEN_BLOCK);
+
+
 }

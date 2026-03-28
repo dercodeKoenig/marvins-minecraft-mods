@@ -2,6 +2,8 @@ package advRocketry.Render;
 
 import advRocketry.Dimension.Dimension;
 import advRocketry.Utils.ClientUtils;
+import advRocketry.Utils.RenderUtils;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 import org.joml.Vector3f;
 
@@ -22,6 +24,10 @@ public class Fog {
         Dimension myDimension = ClientUtils.getPlayerDimension();
         if (myDimension != null) {
             Vector3f fogColor = myDimension.computeTerrainFogColor((float) event.getPartialTick());
+            // fog color comes in linear hdr format
+            // apply same tone mapping and gamma correction as in shader so it matches the color
+            fogColor = RenderUtils.reinhard(fogColor);
+            fogColor = RenderUtils.gamma_correcct(fogColor);
             event.setRed(fogColor.x);
             event.setGreen(fogColor.y);
             event.setBlue(fogColor.z);

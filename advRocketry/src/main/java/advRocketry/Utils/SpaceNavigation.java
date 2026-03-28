@@ -38,9 +38,11 @@ public class SpaceNavigation {
         }
         if (closestPlanetPosition == null)
             return finalTarget; // no planet exists. this is unlikely, why would you have no planet or star in your system?
+        if(closestDistance > myPos.distanceTo(finalTarget))
+            return finalTarget; // the target is closer than the other closest planet so no way we can hit it
 
-        Vec3 travelDir = finalTarget.subtract(myPos).normalize();
-        Vec3 toPlanet = closestPlanetPosition.subtract(myPos).normalize();
+        Vec3 travelDir = finalTarget.subtract(myPos).scale(1000).normalize();
+        Vec3 toPlanet = closestPlanetPosition.subtract(myPos).scale(1000).normalize();
         if (travelDir.dot(toPlanet) < 0)
             return finalTarget; // planet is behind us, ignore it and move forward until another planet gets closer
 
@@ -55,7 +57,7 @@ public class SpaceNavigation {
                         Config.INSTANCE.planet_Render_Scale_Multiplier
                                 * closestPlanet.getEarthRadiusMultiplier()
                                 * CelestialUtils.EARTH_RADIUS
-                                * 2
+                                * 3
                 );
 
 
@@ -64,8 +66,17 @@ public class SpaceNavigation {
             Vec3 target = null;
             if (closestDistanceOnRay == 0) // go above and hope we dont fly along y axis
                 target = closestPlanetPosition.add(new Vec3(0, requiredDistance, 0));
-            else
-                target = closestPlanetPosition.add(closestPointOnRay.subtract(closestPlanetPosition).normalize().scale(requiredDistance));
+            else {
+                if(myPos.distanceTo(closestPlanetPosition) < requiredDistance){
+                    // too close, go around
+                    Vec3 ortho = toPlanet.cross(travelDir).normalize();
+                    Vec3 avoidanceVector = ortho.cross(toPlanet).normalize().scale(requiredDistance);
+                    target = myPos.add(avoidanceVector);
+                }else {
+                    // static target
+                    target = closestPlanetPosition.add(closestPointOnRay.subtract(closestPlanetPosition).scale(1000).normalize().scale(requiredDistance*1.5));
+                }
+            }
             return target;
         }
 

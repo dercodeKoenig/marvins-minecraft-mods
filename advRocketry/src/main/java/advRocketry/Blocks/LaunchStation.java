@@ -27,7 +27,7 @@ public class LaunchStation extends Block implements EntityBlock {
     public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
 
     public LaunchStation() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f).isRedstoneConductor((x,y,z) -> false));
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
                 .setValue(LaunchStation.STATE, LaunchStation.State.idle)
@@ -57,7 +57,7 @@ public class LaunchStation extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof EntityLaunchStation launchStation) {
             if (level.hasNeighborSignal(pos)) {
                 if (!launchStation.isRedstonePowered) {
-                    launchStation.launch();
+                    launchStation._launch();
                 }
                 launchStation.isRedstonePowered = true;
             } else {

@@ -1,7 +1,10 @@
 package BetterPipes;
 
-import BetterPipes.Pipe.BlockPipe;
-import BetterPipes.Pipe.EntityPipe;
+import BetterPipes.PipeBase.EntityPipe;
+import BetterPipes.Pipes.BlockIronPipe;
+import BetterPipes.Pipes.BlockWoodenPipe;
+import BetterPipes.Pipes.EntityIronPipe;
+import BetterPipes.Pipes.EntityWoodenPipe;
 import BetterPipes.Tank.BlockTank;
 import BetterPipes.Tank.EntityTank;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -9,7 +12,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 
 import java.util.function.Supplier;
@@ -23,13 +25,22 @@ public class Registry {
         ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
     }
 
-    public static final Supplier<Block> PIPE = BLOCKS.register(
-            "pipe",
-            () -> new BlockPipe(BlockBehaviour.Properties.of().noOcclusion().strength(1.0f).instabreak())
+    public static final Supplier<Block> IRON_PIPE = BLOCKS.register(
+            "iron_pipe",
+            () -> new BlockIronPipe()
     );
-    public static final Supplier<BlockEntityType<EntityPipe>> ENTITY_PIPE = BLOCK_ENTITIES.register(
-            "entity_pipe",
-            () -> BlockEntityType.Builder.of(EntityPipe::new, PIPE.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityIronPipe>> ENTITY_IRON_PIPE = BLOCK_ENTITIES.register(
+            "entity_iron_pipe",
+            () -> BlockEntityType.Builder.of(EntityIronPipe::new, IRON_PIPE.get()).build(null)
+    );
+
+    public static final Supplier<Block> WOODEN_PIPE = BLOCKS.register(
+            "wooden_pipe",
+            () -> new BlockWoodenPipe()
+    );
+    public static final Supplier<BlockEntityType<EntityWoodenPipe>> ENTITY_WOODEN_PIPE = BLOCK_ENTITIES.register(
+            "entity_wooden_pipe",
+            () -> BlockEntityType.Builder.of(EntityWoodenPipe::new, WOODEN_PIPE.get()).build(null)
     );
 
     public static final Supplier<Block> TANK = BLOCKS.register(
@@ -42,7 +53,8 @@ public class Registry {
     );
 
     public static void register(IEventBus modBus) {
-        registerBlockItem("pipe", PIPE);
+        registerBlockItem("iron_pipe", IRON_PIPE);
+        registerBlockItem("wooden_pipe", WOODEN_PIPE);
         registerBlockItem("tank", TANK);
 
         BLOCKS.register(modBus);

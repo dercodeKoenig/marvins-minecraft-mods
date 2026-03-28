@@ -1,7 +1,8 @@
 package advRocketry.Dimension;
 
-import advRocketry.Worldgen.presets.HOT;
-import advRocketry.Worldgen.presets.MOON;
+import advRocketry.Main;
+import advRocketry.Registry.GasRegistry;
+import advRocketry.Worldgen.presets.*;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
@@ -9,6 +10,8 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static advRocketry.Dimension.PlanetDimensionProperties.SKY_COLOR_OVERWORLD;
 
 public class DefaultGalaxy {
 
@@ -22,25 +25,32 @@ public class DefaultGalaxy {
         sun.gravitationalMultiplier = 200;
         sun.earthRadiusMultiplier = 100;
         sun.rotationAxis = new Vec3(0, 1, 0).normalize();
-        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        sun.emissiveColor = new Vector3f(1f, 1f, 0.8f);
+        sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_adjusted.png");
+        sun.emissiveColor = new Vector3f(1f, 1f, 0.8f).mul(1.2f);
         sun.radiationIntensity = 2;
+        sun.textureTintColor = new Vector3f(1,1,1).mul(7f);
         sun.isKnown = true;
         galaxy.add(sun);
 
         PlanetDimensionProperties overworld = new PlanetDimensionProperties();
         overworld.name = "Earth";
+        overworld.description = "A nice green planet";
         overworld.dimensionId = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
         overworld.parentDimensionId = sun.dimensionId;
         overworld.dayTimeReference = sun.dimensionId;
-        overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/earth_ico_1k.png");
-        overworld.hasRingSystem = false;
         overworld.isKnown = true;
         overworld.canVisit = true;
+        overworld.currentTemp = 300;
+        overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_earth_daymap.png");
+        overworld.skyColor = SKY_COLOR_OVERWORLD();
+        overworld.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3f, 0, 0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0,0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.001f, 0, 0,0));
+        overworld.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.5, 0,0));
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
-        moon.name = "moon";
+        moon.name = "Moon";
         moon.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon");
         moon.parentDimensionId = overworld.dimensionId;
         moon.dayTimeReference = sun.dimensionId;
@@ -49,30 +59,14 @@ public class DefaultGalaxy {
         moon.earthRadiusMultiplier = 0.272f;
         moon.gravitationalMultiplier = 0.3f;
         moon.targetDayLength = 12000;
-        moon.atmosphereDensity = 0;
-        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
-        moon.hasRingSystem = true;
         moon.canVisit = true;
+        moon.currentTemp = 300;
+        moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_moon.png");
+        moon.skyColor = SKY_COLOR_OVERWORLD();
+        moon.hasRingSystem = true;
         moon.biomePreset = MOON.name;
+        moon.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.3f, 0, 0));
         galaxy.add(moon);
-
-
-        PlanetDimensionProperties moon2 = new PlanetDimensionProperties();
-        moon2.name = "moon2";
-        moon2.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "moon2");
-        moon2.parentDimensionId = overworld.dimensionId;
-        moon2.dayTimeReference = sun.dimensionId;
-        moon2.orbitalDistanceToParent = 0.0032f;
-        moon2.orbitAxis = new Vec3(-0.1, 1, 0.2);
-        moon2.earthRadiusMultiplier = 0.1f;
-        moon2.gravitationalMultiplier = 0.1f;
-        moon2.targetDayLength = -1000;
-        moon2.atmosphereDensity = 0;
-        moon2.seaLevel = 50;
-        moon2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/moon_ico_1k.png");
-        moon2.canVisit = true;
-        moon2.biomePreset = HOT.name;
-        galaxy.add(moon2);
 
 
         PlanetDimensionProperties venus = new PlanetDimensionProperties();
@@ -80,55 +74,144 @@ public class DefaultGalaxy {
         venus.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "venus");
         venus.parentDimensionId = sun.dimensionId;
         venus.dayTimeReference = sun.dimensionId;
-        venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/venus_atm_ico_1k.png");
-        venus.orbitalDistanceToParent = 0.5f;
-        venus.atmosphereDensity = 2;
+        venus.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_venus_surface.png");
+        venus.orbitalDistanceToParent = 0.7f;
         venus.cloudColor = new Vector3f(194, 155, 64).mul(1f / 255);
         venus.canVisit = true;
-        venus.biomePreset = HOT.name;
+        venus.biomePreset = DESERT_WASTELAND.name;
+        venus.currentTemp = 500;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
+        venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(2, 0,0, 0));
+        venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0,0, 0));
         galaxy.add(venus);
 
+        PlanetDimensionProperties kalos = new PlanetDimensionProperties();
+        kalos.name = "Kalos";
+        kalos.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "kalos");
+        kalos.parentDimensionId = sun.dimensionId;
+        kalos.dayTimeReference = sun.dimensionId;
+        kalos.currentTemp = 100;
+        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");;
+        kalos.orbitalDistanceToParent = 2f;
+        kalos.orbitalBaseOffsetDegrees = 0;
+        kalos.earthRadiusMultiplier = 0.8f;
+        kalos.gravitationalMultiplier = 0.7f;
+        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.4,0f,0));
+        kalos.customSeaFluid=ResourceLocation.parse("minecraft:lava");
+        kalos.customSeaFluidLevel = 53;
+        kalos.skyColor = SKY_COLOR_OVERWORLD();
+        kalos.canVisit = true;
+        kalos.biomePreset = HOT.name;
+        galaxy.add(kalos);
 
-        PlanetDimensionProperties jupyter = new PlanetDimensionProperties();
-        jupyter.name = "Jupyter";
-        jupyter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupyter");
-        jupyter.parentDimensionId = sun.dimensionId;
-        jupyter.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/jupyter_ico_1k.png");
-        jupyter.orbitalDistanceToParent = 2f;
-        jupyter.earthRadiusMultiplier = 10f;
-        jupyter.gravitationalMultiplier = 30f;
-        jupyter.atmosphereDensity = 10;
-        jupyter.skyColor = new Vector3f(1,1,1);
-        galaxy.add(jupyter);
 
+        PlanetDimensionProperties jupiter = new PlanetDimensionProperties();
+        jupiter.name = "Jupiter";
+        jupiter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupiter");
+        jupiter.parentDimensionId = sun.dimensionId;
+        jupiter.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_jupiter.png");
+        jupiter.orbitalDistanceToParent = 5f;
+        jupiter.earthRadiusMultiplier = 10f;
+        jupiter.gravitationalMultiplier = 30f;
+        jupiter.canGasMine = true;
+        jupiter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
+        jupiter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5f, 0,0, 0));
+        galaxy.add(jupiter);
+
+        PlanetDimensionProperties europa = new PlanetDimensionProperties();
+        europa.name = "Europa";
+        europa.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "europa");
+        europa.parentDimensionId = jupiter.dimensionId;
+        europa.dayTimeReference = sun.dimensionId;
+        europa.currentTemp = 100;
+        europa.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_europa.png");;
+        europa.orbitalDistanceToParent = 0.02f;
+        europa.orbitalBaseOffsetDegrees = 90;
+        europa.earthRadiusMultiplier = 0.5f;
+        europa.gravitationalMultiplier = 0.3f;
+        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
+        europa.canVisit = true;
+        europa.biomePreset = MOON.name;
+        galaxy.add(europa);
 
         PlanetDimensionProperties saturn = new PlanetDimensionProperties();
         saturn.name = "Saturn";
         saturn.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "saturn");
         saturn.parentDimensionId = sun.dimensionId;
-        saturn.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/saturn_ico_1k.png");
-        saturn.orbitalDistanceToParent = 3f;
+        saturn.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_saturn.png");
+        saturn.orbitalDistanceToParent = 8f;
         saturn.earthRadiusMultiplier = 3f;
-        saturn.gravitationalMultiplier = 10f;
-        saturn.atmosphereDensity = 10;
+        saturn.gravitationalMultiplier = 8f;
         saturn.hasRingSystem = true;
-        saturn.skyColor = new Vector3f(1,1,1);
+        saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
+        saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f,0, 0, 0));
         galaxy.add(saturn);
 
+        PlanetDimensionProperties titan = new PlanetDimensionProperties();
+        titan.name = "Titan";
+        titan.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "titan");
+        titan.parentDimensionId = saturn.dimensionId;
+        titan.dayTimeReference = sun.dimensionId;
+        titan.currentTemp = 100;
+        titan.baseEnergyGain = 0.02f;
+        titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_titan.png");;
+        titan.orbitalDistanceToParent = 0.01f;
+        titan.orbitalBaseOffsetDegrees = 180;
+        titan.earthRadiusMultiplier = 0.5f;
+        titan.gravitationalMultiplier = 0.3f;
+        titan.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0,0.5f,0,0));
+        titan.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(1,0,0f,0));
+        titan.canVisit = true;
+        titan.biomePreset = MOON.name;
+        galaxy.add(titan);
 
-        PlanetDimensionProperties distantStar = new PlanetDimensionProperties();
-        distantStar.name = "Blue Star";
-        distantStar.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "blue_star");
-        distantStar.gravitationalMultiplier = 300;
-        distantStar.earthRadiusMultiplier = 300;
-        distantStar.rotationAxis = new Vec3(0, 1, 0).normalize();
-        distantStar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/sun_grayscale_ico_1k.png");
-        distantStar.emissiveColor = new Vector3f(0.5f, 0.8f, 4f);
-        distantStar.radiationIntensity = 1;
-        distantStar.position = new Vec3(50, 2, 0);
-        galaxy.add(distantStar);
+
+        PlanetDimensionProperties priate = new PlanetDimensionProperties();
+        priate.name = "Priate";
+        priate.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "priate");
+        priate.gravitationalMultiplier = 100;
+        priate.earthRadiusMultiplier = 100;
+        priate.rotationAxis = new Vec3(0, 1, 0).normalize();
+        priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
+        priate.emissiveColor = new Vector3f(1f, 0.9f, 0.8f);
+        priate.radiationIntensity = 3f;
+        priate.textureTintColor = new Vector3f(1,1,1).mul(7f);
+        priate.position = new Vec3(500000, 1000, -90000);
+        galaxy.add(priate);
+
+
+        PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
+        mustafar.name = "Mustafar";
+        mustafar.description = "The gravimetric duel between the gas giants Jestefad and Lefrani over Mustafar heated the planet's core, transforming the world into an imbalanced volcanic hellscape.";
+        mustafar.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "mustafar");
+        mustafar.parentDimensionId = priate.dimensionId;
+        mustafar.dayTimeReference = priate.dimensionId;
+        mustafar.currentTemp = 300;
+        mustafar.baseEnergyGain = 0.2f;
+        mustafar.orbitalDistanceToParent = 2f;
+        mustafar.orbitalBaseOffsetDegrees = 0;
+        mustafar.earthRadiusMultiplier = 0.9f;
+        mustafar.gravitationalMultiplier = 0.9f;
+        mustafar.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
+        mustafar.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.02,0,0f,0));
+        mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
+        mustafar.canVisit = true;
+        mustafar.biomePreset = VOLCANIC.name;
+        mustafar.customSeaFluid = ResourceLocation.parse("minecraft:lava");
+        mustafar.customSeaFluidLevel = 56;
+        mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
+        mustafar.cloudValueOverwrite = 0.7f;
+        mustafar.skyDarken = 0.7f;
+        mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
+        mustafar.fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
+        mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
+        mustafar.textureTintColor = new Vector3f(1,1,1).mul(3f); // make lava glow
+        galaxy.add(mustafar);
 
 
         List<String> dimensionProperties = new ArrayList<>();

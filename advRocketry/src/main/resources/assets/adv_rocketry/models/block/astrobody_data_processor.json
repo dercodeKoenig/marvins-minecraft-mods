@@ -6,6 +6,7 @@
     "north": "arlib:block/controlpanel",
     "south": "arlib:block/machinegeneric",
     "west": "arlib:block/machinegeneric",
-    "east": "arlib:block/machinegeneric"
+    "east": "arlib:block/machinegeneric",
+    "particle": "arlib:block/machinegeneric"
   }
 }

@@ -12,6 +12,7 @@ import FiniteWater.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -44,6 +46,7 @@ import static AOSBasicFluid.Registry.PUMP_EXT;
 public class EntityPump extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
 
+    static Direction[] HORIZONTAL_DIRECTIONS = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
     public VertexBuffer vertexBufferArm1;
     public MeshData meshArm1;
     public VertexBuffer vertexBufferArm2;
@@ -51,72 +54,14 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     public VertexBuffer vertexBufferArm3;
     public MeshData meshArm3;
     public int lastLight;
-
     public int maxRadiusSqr = PumpConfig.INSTANCE.maxRadius * PumpConfig.INSTANCE.maxRadius;
-
-    public PumpFluidTank myTank = new PumpFluidTank(PumpConfig.INSTANCE.tankCapacity) {
+    public OutputOnlyTank myTank = new OutputOnlyTank(PumpConfig.INSTANCE.tankCapacity) {
         @Override
         public void onContentsChanged() {
             setChanged();
         }
     };
-
     public double progress = 0;
-    FluidType fluidToPump = Fluids.EMPTY.getFluidType();
-    List<BlockPos> nextBlocksToScan = new LinkedList<>();
-    HashSet<BlockPos> workedPositions = new HashSet<>();
-    TreeSet<BlockPos> waterSourceBlocks = new TreeSet<>(
-            new Comparator<BlockPos>() {
-                @Override
-                public int compare(BlockPos o1, BlockPos o2) {
-                    // sort by distance to pump
-                    if (o1.getCenter().distanceTo(getBlockPos().getCenter()) > o2.getCenter().distanceTo(getBlockPos().getCenter()))
-                        return 1;
-                    if (o1.getCenter().distanceTo(getBlockPos().getCenter()) < o2.getCenter().distanceTo(getBlockPos().getCenter()))
-                        return -1;
-
-                    if (o1.getY() > o2.getY())
-                        return 1;
-                    if (o1.getY() < o2.getY())
-                        return -1;
-
-                    if (o1.getX() > o2.getX())
-                        return 1;
-                    if (o1.getX() < o2.getX())
-                        return -1;
-
-                    if (o1.getZ() > o2.getZ())
-                        return 1;
-                    if (o1.getZ() < o2.getZ())
-                        return -1;
-
-                    return 0;
-                }
-            }
-    );
-
-    public EntityPump(BlockPos p_155229_, BlockState p_155230_) {
-        super(ENTITY_PUMP.get(), p_155229_, p_155230_);
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBufferArm1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBufferArm2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBufferArm3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-
-                VertexBufferCleaner.register(this, vertexBufferArm1);
-                VertexBufferCleaner.register(this, vertexBufferArm2);
-                VertexBufferCleaner.register(this, vertexBufferArm3);
-            });
-        }
-    }
-
-    @Override
-    public void onLoad() {
-        myMechanicalBlock.mechanicalOnload();
-        super.onLoad();
-    }
-
-    double force = 0;
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -135,7 +80,7 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
 
         @Override
         public double getTorqueProduced(Direction face) {
-            return force;
+            return 0;
         }
 
         @Override
@@ -143,7 +88,46 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
             return 1;
         }
     };
+    // cache for distance check
+    Vec3 myCenter = Vec3.ZERO;
+    // holds the fluid below the pump block that is to be pumped
+    // Fluid can be flowing or still, but FluidType is same for both
+    FluidType fluidToPump = Fluids.EMPTY.getFluidType();
+    // the blocks that have to be scanned
+    ArrayDeque<BlockPos> nextBlocksToScan = new ArrayDeque<>();
+    // the blocks already scanned to not scan double
+    // storing the positions as pos.asLong() in this hashSet was found to be faster than HashSet<BlockPos>
+    LongOpenHashSet workedPositions = new LongOpenHashSet();
+    // mark the position with the largest distance that is the target to be pumped
+    // (so we do not drain the local area and run out of fluid)
+    BlockPos bestTarget = null;
+    double bestTargetDistance = -1;
 
+    public EntityPump(BlockPos p_155229_, BlockState p_155230_) {
+        super(ENTITY_PUMP.get(), p_155229_, p_155230_);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBufferArm1 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferArm2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBufferArm3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+
+                VertexBufferCleaner.register(this, vertexBufferArm1);
+                VertexBufferCleaner.register(this, vertexBufferArm2);
+                VertexBufferCleaner.register(this, vertexBufferArm3);
+            });
+        }
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityPump) t).tick();
+    }
+
+    @Override
+    public void onLoad() {
+        myMechanicalBlock.mechanicalOnload();
+        myCenter = getBlockPos().getCenter();
+        super.onLoad();
+    }
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
@@ -179,19 +163,21 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         return List.of(CrankShaftType.LARGE);
     }
 
-
-    public void findStartPos() {
+    public void initStartPosOrPlaceExtensions() {
         BlockPos start = getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite());
         while (true) {
             BlockPos below = start.below();
             if (below.getY() < level.getMinBuildHeight()) {
                 return;
             } else if (level.getBlockState(below).isAir()) {
+                // place pump extension and return, no action for this cycle
                 level.setBlock(below, PUMP_EXT.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)), 3);
                 return;
             } else if (level.getBlockState(below).getBlock().equals(PUMP_EXT.get())) {
+                // scan lower while there are extensions
                 start = start.below();
             } else if (!level.getBlockState(below).getFluidState().isEmpty()) {
+                // found a fluid below the pump, this will be pumped (if a source is found)
                 fluidToPump = level.getBlockState(below).getFluidState().getType().getFluidType();
                 nextBlocksToScan.add(below);
                 return;
@@ -202,27 +188,29 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
     }
 
     public boolean isInfiniteWater(BlockPos p) {
+        // ok, so i know this might look like it is crazy expensive to compute, BUT:
+        // If you have finite water and are in an infinite water biome (where you would place the machine for constant operation),
+        // this will instantly return yes and the entire scanning stops
+        // If this is not an infinite water biome and you want to drain a pool, yes it is about 6x slower.
+        // But once the pool is drained no more compute is "wasted".
+        // Pumping out of the infinite water source directly below the pump and not scan all the area is 10x faster for normal operation.
         Holder<Biome> h = level.getBiome(p);
         ResourceLocation id = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
         String idString = id.toString();
-
         if (Config.INSTANCE.biomes.contains(idString)) {
-            if (Config.INSTANCE.isBlackList) {
-                return false;
-            }
+            return !Config.INSTANCE.isBlackList;
         } else {
-            if (!Config.INSTANCE.isBlackList) {
-                return false;
-            }
+            return Config.INSTANCE.isBlackList;
         }
-        return true;
     }
 
     public void tryPumpBlock(BlockPos pos) {
         BlockState targetState = level.getBlockState(pos);
-        if (myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
-            myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.EXECUTE);
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        if (targetState.getFluidState().isSource()) { // verify source once again
+            if (myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
+                myTank._fill(new FluidStack(targetState.getFluidState().getType(), 1000), IFluidHandler.FluidAction.EXECUTE);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            }
         }
     }
 
@@ -230,17 +218,16 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         myMechanicalBlock.mechanicalTick();
 
         if (!level.isClientSide) {
-            double trig_res_force_multiplier = Math.sin(myMechanicalBlock.currentRotation / 180 * Math.PI);
-            force = -PumpConfig.INSTANCE.unevenForceMultiplier * trig_res_force_multiplier;
 
             progress += Math.abs(Static.rad_to_degree(myMechanicalBlock.internalVelocity) / (double) Static.TPS);
             progress = Math.min(progress, 3600);
             if (progress > 360) {
                 if (nextBlocksToScan.isEmpty()) {
                     progress -= 360;
+                    // reset
                     workedPositions.clear();
-                    waterSourceBlocks.clear();
-                    findStartPos();
+                    bestTarget = null;
+                    initStartPosOrPlaceExtensions();
 
                     if (!PumpConfig.INSTANCE.consumeWater && fluidToPump.equals(Fluids.WATER.getFluidType()) && !nextBlocksToScan.isEmpty()) {
                         // no actual pickup of water
@@ -257,54 +244,73 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
                 n++;
                 if (n > maxSteps)
                     break;
-                BlockPos next = nextBlocksToScan.removeFirst();
-                if (!workedPositions.contains(next)) {
-                    workedPositions.add(next);
+                BlockPos next = nextBlocksToScan.pollFirst();
+                if (workedPositions.add(next.asLong())) {
+
                     double dx = next.getX() - getBlockPos().getX();
                     double dz = next.getZ() - getBlockPos().getZ();
                     double d = dx * dx + dz * dz;
-                    BlockState s = level.getBlockState(next);
-                    if (s.getFluidState().getType().getFluidType().equals(fluidToPump) && d < maxRadiusSqr) {
-                        if (s.getFluidState().isSource()) {
-                            waterSourceBlocks.add(next);
+                    if (d > maxRadiusSqr)
+                        continue;
 
-                            if (ModList.get().isLoaded("finite_water") && fluidToPump.equals(Fluids.WATER.getFluidType())) {
-                                if (isInfiniteWater(next)) {
-                                    // if my finite water mod is loaded and the current scan target is in a infinite water biome, use this block as target and break scanning
-                                    nextBlocksToScan.clear();
-                                    waterSourceBlocks.clear();
-                                    waterSourceBlocks.add(next);
-                                    break;
-                                }
+                    BlockState state = level.getBlockState(next);
+                    if (!state.getFluidState().getType().getFluidType().equals(fluidToPump))
+                        continue;
+
+
+                    if (state.getFluidState().isSource()) {
+                        // remember the block most away to be pumped
+                        double dist = next.distToCenterSqr(myCenter);
+                        if (bestTarget == null || dist > bestTargetDistance) {
+                            bestTarget = next;
+                            bestTargetDistance = dist;
+                        }
+
+                        if (ModList.get().isLoaded("finite_water") && fluidToPump.equals(Fluids.WATER.getFluidType())) {
+                            if (isInfiniteWater(next)) {
+                                // if my finite water mod is loaded and the current scan target is in an infinite water biome, use this block as target and break scanning
+                                nextBlocksToScan.clear(); // signals to stop scanning
+                                bestTarget = next;
+                                break;
                             }
                         }
+                    }
 
-                        nextBlocksToScan.add(next.relative(Direction.SOUTH));
-                        nextBlocksToScan.add(next.relative(Direction.EAST));
-                        nextBlocksToScan.add(next.relative(Direction.NORTH));
-                        nextBlocksToScan.add(next.relative(Direction.WEST));
-
-                        BlockState aboveState = level.getBlockState(next.relative(Direction.UP));
-                        if (!aboveState.getFluidState().isEmpty() && aboveState.getFluidState().getType().getFluidType().equals(fluidToPump)) {
-                            waterSourceBlocks.clear();
-                            nextBlocksToScan.clear();
-                            workedPositions.clear();
-                            nextBlocksToScan.add(next.relative(Direction.UP));
+                    // possible next directions are horizontal or up
+                    // never scan down, the pump can not drain a block lower than the starting pos
+                    for (Direction direction : HORIZONTAL_DIRECTIONS) {
+                        BlockPos neighbor = next.relative(direction);
+                        if (!workedPositions.contains(neighbor.asLong())) {
+                            nextBlocksToScan.add(neighbor);
                         }
+                    }
 
+                    // special case up:
+                    // we always prefer to pump from the highest water available
+                    // (except if finite water is loaded, then we also pump the first infinite water to save compute)
+                    BlockPos abovePos = next.relative(Direction.UP);
+                    BlockState aboveState = level.getBlockState(abovePos);
+                    if (!aboveState.getFluidState().isEmpty() && aboveState.getFluidState().getType().getFluidType().equals(fluidToPump)) {
+                        // reset everything and use the above fluid as start position
+                        bestTarget = null;
+                        nextBlocksToScan.clear();
+                        workedPositions.clear();
+                        nextBlocksToScan.add(abovePos);
                     }
                 }
             }
+
+            // if no next block to scan is available, everything is complete
             if (nextBlocksToScan.isEmpty()) {
-                if (!waterSourceBlocks.isEmpty()) {
-                    BlockPos target = waterSourceBlocks.last();
-                    tryPumpBlock(target);
-                    waterSourceBlocks.clear();
+                if (bestTarget != null) {
+                    // pick up the water most far away (so we do not drain the local area and run out of water)
+                    tryPumpBlock(bestTarget);
+                    bestTarget = null;
                 }
             }
 
-
-            for (Direction d : new Direction[]{getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getClockWise(), getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getCounterClockWise()}) {
+            Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            for (Direction d : new Direction[]{facing.getClockWise(), facing.getCounterClockWise()}) {
                 if (!myTank.getFluid().isEmpty()) {
                     IFluidHandler fluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(d), d.getOpposite());
                     if (fluidHandler != null) {
@@ -336,9 +342,5 @@ public class EntityPump extends BlockEntity implements IMechanicalBlockProvider,
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
         myTank.writeToNBT(registries, tag);
-    }
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityPump) t).tick();
     }
 }

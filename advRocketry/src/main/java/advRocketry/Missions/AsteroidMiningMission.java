@@ -4,18 +4,12 @@ import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePartWithProbability;
 import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.Blocks.Drill;
-import advRocketry.Items.ItemAsteroidIdChip;
-import advRocketry.Items.ItemSatellite;
 import advRocketry.Rocket.EntityRocket;
-import advRocketry.Satellites.Satellite;
-import advRocketry.Satellites.SatelliteManager;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,8 +35,12 @@ public class AsteroidMiningMission extends RocketMission {
         if(drillBlocks == 0)
             return; // no loot for you!
 
-        ItemAsteroidIdChip.Asteroid asteroid = ItemAsteroidIdChip.asteroids.get(target);
-        if (asteroid != null) {
+        AsteroidManager.DiscoveredAsteroid discoveredAsteroid = AsteroidManager.getDiscoveredAsteroid(target);
+        AsteroidManager.Asteroid asteroid = AsteroidManager.getAsteroid(discoveredAsteroid);
+        if (asteroid != null ) {
+            // this asteroid is mined, remove it from the list of discovered asteroids
+            AsteroidManager.invalidateDiscoveredAsteroid(discoveredAsteroid);
+
             List<RecipePartWithProbability> loot = new ArrayList<>(asteroid.loot);
             // shuffle in case we dont have enough storage
             Collections.shuffle(loot);

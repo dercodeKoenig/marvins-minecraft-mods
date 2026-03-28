@@ -11,6 +11,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -27,7 +28,7 @@ import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ASSEMBLER;
 public class RocketAssembler extends Block implements EntityBlock {
 
     public RocketAssembler() {
-        super(Properties.of());
+        super(Properties.of().destroyTime(0.5f).sound(SoundType.ANVIL));
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 

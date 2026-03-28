@@ -3,6 +3,7 @@
   "textures": {
     "top": "arlib:block/machinegeneric",
     "front": "adv_rocketry:block/monitor_searching_planet",
-    "side": "arlib:block/machinegeneric"
+    "side": "arlib:block/machinegeneric",
+    "particle": "arlib:block/machinegeneric"
   }
 }

@@ -4,9 +4,12 @@ import advRocketry.Utils.AxisDirections;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.List;
+import java.util.Set;
+
 public class DummyDimension extends Dimension {
 
-    public DummyDimension(DummyDimensionProperties properties, DimensionManager dimensionManager) {
+    public DummyDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
     }
 
@@ -21,11 +24,16 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
-    public boolean hasEnoughOxygen() {return false;}
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        return SurvivalProblem.spaceProblems;
+    }
 
     @Override
-    public boolean canRain() {
-        return false;
+    public boolean hasEnoughOxygenToBurn(){return false;}
+
+    @Override
+    public float computeCloudValue() {
+        return 0;
     }
 
     @Override
@@ -42,6 +50,9 @@ public class DummyDimension extends Dimension {
     public Vector3f getSkyColor() {
         return null;
     }
+
+    @Override
+    public float getSkyDarken(){ return 0;}
 
     @Override
     public Vector3f getSunRiseColor() {
@@ -69,12 +80,12 @@ public class DummyDimension extends Dimension {
     }
 
     @Override
-    public double getTerrainBrightness(float partialTick) {
+    public double computeTerrainBrightness(float partialTick) {
         return 0;
     }
 
     @Override
-    public Vector3f getCloudColor(float partialTick) {
+    public Vector3f computeTerrainCloudColor(float partialTick) {
         return null;
     }
 
@@ -102,5 +113,10 @@ public class DummyDimension extends Dimension {
     @Override
     public void tick() {
 
+    }
+
+    @Override
+    public double getCurrentTemp() {
+        return 0;
     }
 }

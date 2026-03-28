@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "GGG",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "tag": "minecraft:planks"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    }
+  },
+  "result": {
+    "id": "betterpipes:wooden_pipe",
+    "count": 1
+  }
+}

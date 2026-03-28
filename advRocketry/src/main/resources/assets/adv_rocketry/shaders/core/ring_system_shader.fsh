@@ -2,18 +2,29 @@
 
 uniform sampler2D Sampler0; // surface texture
 
+#moj_import "adv_rocketry:atm_filter.glsl"
+
 #define MAX_LIGHTS 4
 uniform vec4 LightColors[MAX_LIGHTS]; // r,g,b + intensity
 uniform vec3 LightVectors[MAX_LIGHTS];
 uniform int LightCount;
 
+uniform float BrightnessMultiplier;
+
 in vec2 texcoord;
 in vec3 viewDir;
 in vec3 normalUniverseSpace;
 
-in vec3 position; // the position of the fragment relative to the camera
-in vec3 planetCenter; // the position of the planets center relative to camera
-uniform float planetGeometryScale; // the actual geometry radius that is used for render
+in vec3 position; // the position of the fragment
+in vec3 planetCenter; // the position of the planet
+uniform float planetGeometryScale; // the actual geometry radius that is used for render (in planetMatrix.scale()), used for the shadow calculation
+
+// for atm shading modifier
+in vec3 localUpUniverseSpace;
+uniform float LocalAtmDensity;
+uniform vec3 LocalSunriseColor;
+uniform float playerHeight;
+uniform float planetSkyHeight;
 
 out vec4 fragColor;
 
@@ -84,23 +95,29 @@ float getSoftShadowFactorApprox(
 
 
 void main() {
-
-    float specularPower = 5;
+    if(texcoord.x < 0)
+        // too close to planet
+        discard;
 
     float alphaMultiplier = 1;
     // TODO: tint color?, specular color?
 
     vec4 baseColor = texture(Sampler0, texcoord);
+    vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
 
     float alpha = baseColor.a * alphaMultiplier;
 
-    vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
+    vec3 N0 = normalize(normalUniverseSpace);
+    vec3 N = gl_FrontFacing ? N0 : -N0;
 
-    vec3 normalUniverseSpaceAdjusted = normalize(gl_FrontFacing ? normalUniverseSpace : -normalUniverseSpace);
+    vec3 V = normalize(viewDir);
 
-    vec3 viewDirNormalized = normalize(viewDir);
+    vec3 U = normalize(localUpUniverseSpace);
 
     vec3 totalColor = vec3(0,0,0);
+
+    // see why this exists in planet shader
+    float totalBrightness = 0;
 
     for (int i = 0; i < LightCount; i++) {
 
@@ -108,10 +125,13 @@ void main() {
         vec3 planetToLight = LightVectors[i];
 
         float distance = length(planetToLight);
-        vec3 L = normalize(LightVectors[i]);
-        vec3 C = LightColors[i].rgb * LightColors[i].a;
 
-        vec3 C1 = C  / (distance*distance);
+        float brightness = LightColors[i].a / (distance * distance);
+        totalBrightness += brightness;
+
+        vec3 L = normalize(LightVectors[i]);
+
+        vec3 C1 = LightColors[i].rgb * brightness;
 
         float shadowFactor = getSoftShadowFactorApprox(
             position,
@@ -122,33 +142,70 @@ void main() {
         );
 
         if(shadowFactor <= 0)
-        continue;
+            continue;
 
         C1 *= shadowFactor;
 
+        float NdotV = clamp(dot(N, V), -1, 1);
+        float NdotL = clamp(dot(L, N), -1, 1);
+        float LdotV = clamp(dot(L, V), -1, 1);
+
         vec3 F0 = vec3(0.04);
-        vec3 fr = fresnelSchlick(abs(dot(normalUniverseSpace, viewDirNormalized)), F0);
+        vec3 fr = fresnelSchlick(abs(NdotV), F0);
 
         // specular - bright when starlight reflects into my view
-        // TODO: this might not be perfect because it also reflects backside ?
-        vec3 halfway = L - viewDir;
-        if(length(halfway) > 0){
+        vec3 halfway = L - V;
+        if(length(halfway) > 0.0001){
             halfway = normalize(halfway);
-            float reflectionMultiplier = pow(max(0,dot(halfway, normalUniverseSpaceAdjusted)), specularPower);
+            float reflectionMultiplier = pow(max(0, dot(halfway, N)), 10);
             totalColor += reflectionMultiplier * C1 * fr ;
         }
 
-        // diffuse - brignt when face is facing the star
-        float diffuse = max(0,dot(L, normalUniverseSpaceAdjusted)*0.8+0.2);
-        totalColor+= diffuse * C1 * baseColorLinRGB * (1-fr) ;
+        // diffuse - bright when face is facing the star
+        // but rings are not a solid surface so allow for some backlight
+        float diffuse = pow(max(0, NdotL * 0.5 + 0.5), 3);
+        // when view from side the optical depth is larger, so i make it a bit more bright
+        diffuse *= 1 + 8 * pow((1 - abs(NdotV)), 4);
+        totalColor+= diffuse * C1 * baseColorLinRGB;
 
         // transmission
-        float transmission = pow(dot(L, viewDirNormalized) * 0.5 + 0.5, 4);
+        // ok, LdotV should always be -1 to 1 and *0.5 +0.5 should always make it 0-1
+        // BUT float precision can cause it to go negative and it blacks out entire regions of the screen from NAN
+        // so ALWAYS CLAMP RESULTS!!!!
+        float transmission = pow(max(0, LdotV * 0.5 + 0.5), 50) * (1 - 0.9 * abs(NdotL));
         totalColor+= transmission * C1 * baseColorLinRGB;
+
+        // Ambient light reflected from planet
+        // (but not in the shadow)
+        // Apply a small constant 'ambient' that doesn't care about the normal
+        // This ensures the rings never go pitch black
+        // I want it more significant in front of the planet and less significant behind
+        // (optional) i could multiply it with planet reflective texture tint but i am lazy
+        float distanceToPlanet = 1 + texcoord.x;
+        vec3 planetShine = baseColorLinRGB * C1 / (distanceToPlanet * distanceToPlanet);
+        float shineFactor = dot(normalize(position - planetCenter), L) * 0.5 + 0.7;
+        shineFactor = pow(shineFactor, 2);
+        totalColor += planetShine * shineFactor * 0.2;
     }
 
-    vec4 normalColor = vec4(totalColor, alpha);
+    if(totalBrightness < 1){
+        totalColor *= 1 / pow(totalBrightness, 0.5);
+    }
 
-    fragColor = normalColor;
+
+    vec3 atmFilter = getAtmFilter(
+        planetSkyHeight,
+        playerHeight,
+        U,
+        V,
+        LocalAtmDensity,
+        LocalSunriseColor
+    );
+
+    totalColor *= BrightnessMultiplier;
+
+    totalColor *= atmFilter;
+
+    fragColor = vec4(totalColor, alpha);
 
 }

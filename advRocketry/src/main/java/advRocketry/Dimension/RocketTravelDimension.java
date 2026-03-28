@@ -20,6 +20,8 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class RocketTravelDimension extends Dimension {
 
@@ -68,13 +70,16 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public boolean hasEnoughOxygen() {
-        return false;
+    public Set<SurvivalProblem> getSurvivalProblems() {
+        return SurvivalProblem.spaceProblems;
     }
 
     @Override
-    public boolean canRain() {
-        return false;
+    public boolean hasEnoughOxygenToBurn(){return false;}
+
+    @Override
+    public float computeCloudValue() {
+        return 0;
     }
 
     @Override
@@ -98,12 +103,12 @@ public class RocketTravelDimension extends Dimension {
     }
 
     @Override
-    public double getTerrainBrightness(float partialTick) {
+    public double computeTerrainBrightness(float partialTick) {
         return 0; // we use ambient light in space
     }
 
     @Override
-    public Vector3f getCloudColor(float partialTick) {
+    public Vector3f computeTerrainCloudColor(float partialTick) {
         return new Vector3f(0, 0, 0);
     }
 
@@ -126,6 +131,9 @@ public class RocketTravelDimension extends Dimension {
     public Vector3f getSkyColor() {
         return new Vector3f(0, 0, 0);
     }
+
+    @Override
+    public float getSkyDarken(){ return 0;}
 
     @Override
     public Vector3f getSunRiseColor() {
@@ -177,5 +185,10 @@ public class RocketTravelDimension extends Dimension {
     @Override
     public void tick() {
 
+    }
+
+    @Override
+    public double getCurrentTemp() {
+        return 200;
     }
 }

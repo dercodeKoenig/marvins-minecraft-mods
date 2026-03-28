@@ -6,6 +6,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public abstract class Dimension {
     protected DimensionProperties properties;
 
@@ -45,15 +49,17 @@ public abstract class Dimension {
 
     abstract public boolean canVisit();
 
-    abstract public boolean hasEnoughOxygen();
+    abstract public Set<SurvivalProblem> getSurvivalProblems();
 
-    abstract public boolean canRain();
+    abstract public boolean hasEnoughOxygenToBurn();
 
     abstract public float getGravitationalMultiplier();
 
     abstract public Vector3f getEmissiveColor();
 
     abstract public Vector3f getSkyColor();
+
+    abstract public float getSkyDarken();
 
     abstract public Vector3f getSunRiseColor();
 
@@ -65,9 +71,11 @@ public abstract class Dimension {
 
     abstract public boolean hasCustomSky();
 
-    abstract public double getTerrainBrightness(float partialTick);
+    abstract public double computeTerrainBrightness(float partialTick);
 
-    abstract public Vector3f getCloudColor(float partialTick); // maybe based on atm composition?
+    abstract public float computeCloudValue(); // how much cloud is there
+
+    abstract public Vector3f computeTerrainCloudColor(float partialTick); // maybe based on atm composition?
 
     abstract public Vector3f computeTerrainFogColor(float partialTick);
 
@@ -75,22 +83,42 @@ public abstract class Dimension {
 
     abstract public Vec3 getMovement();
 
-    protected void tickStarCache(){
-        starCache.updateSignificantLightSourcesCache(this);
-    }
-
-    public Iterable<ResourceLocation> getCurrentMainStars(){
-        return starCache.significantLightSourcesCache.keySet();
-    }
-
     /**
      * calculates universe space coordinates for the local font up coordinates of the dimension
      */
     abstract public AxisDirections getGlobalAxisDirections(float partialTick);
 
+    abstract public void tick();
+
+    abstract public double getCurrentTemp();
+
+    public Iterable<ResourceLocation> getCurrentMainStars(){
+        return starCache.significantLightSourcesCache.keySet();
+    }
+
+    protected void tickStarCache(){
+        starCache.updateSignificantLightSourcesCache(this);
+    }
+
     public void updateDimensionProperties(DimensionProperties properties){
         this.properties = properties;
     }
 
-    abstract public void tick();
+    public enum SurvivalProblem {
+        TOO_HOT("too hot"),
+        TOO_COLD("too cold"),
+        TOO_LITTLE_O2("need more oxygen"),
+        TOO_MUCH_O2("too much oxygen"),
+        TOO_MUCH_PRESSURE("pressure too high"),
+        TOO_LOW_PRESSURE("pressure too low"),
+        TOO_MUCH_CO2("too much co2");
+
+        public static final Set<SurvivalProblem> spaceProblems = new HashSet<>(List.of(TOO_LOW_PRESSURE, TOO_LITTLE_O2, TOO_COLD));
+
+        public final String reason;
+
+        SurvivalProblem(String reason){
+            this.reason = reason;
+        }
+    }
 }

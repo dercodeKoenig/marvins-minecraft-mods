@@ -21,6 +21,7 @@ public class Items {
     public static final Supplier<Item> ITEM_LINKER = ITEMS.register("linker", () -> new ItemLinker());
     public static final Supplier<Item> ITEM_ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(Fluids.ROCKET_FUEL.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
     public static final Supplier<Item> ITEM_ASTEROID_ID_CHIP = ITEMS.register("asteroid_id_chip", () -> new ItemAsteroidIdChip());
+    public static final Supplier<Item> ITEM_ATM_ANALYZER = ITEMS.register("atm_analyzer", () -> new ItemAtmAnalyzer());
 
     public static final Supplier<Item> ITEM_OXYGEN_BUCKET = ITEMS.register("oxygen_bucket", () -> new BucketItem(Fluids.OXYGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
     public static final Supplier<Item> ITEM_HYDROGEN_BUCKET = ITEMS.register("hydrogen_bucket", () -> new BucketItem(Fluids.HYDROGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
@@ -31,16 +32,19 @@ public class Items {
     public static final Supplier<Item> ITEM_LAUNCHPAD = registerBlockItem("launchpad", Blocks.LAUNCHPAD);
     public static final Supplier<Item> ITEM_STRUCTURE_TOWER = registerBlockItem("structure_tower", Blocks.STRUCTURE_TOWER);
     public static final Supplier<Item> ITEM_ROCKET_MOTOR = registerBlockItem("rocket_motor", Blocks.ROCKET_MOTOR);
+    public static final Supplier<Item> ITEM_ROCKET_MOTOR_IMPROVED = registerBlockItem("rocket_motor_improved", Blocks.ROCKET_MOTOR_IMPROVED);
     public static final Supplier<Item> ITEM_FUEL_TANK = registerBlockItem("fuel_tank", Blocks.FUEL_TANK);
     public static final Supplier<Item> ITEM_GUIDANCE_COMPUTER = registerBlockItem("guidance_computer", Blocks.GUIDANCE_COMPUTER);
     public static final Supplier<Item> ITEM_SEAT = registerBlockItem("seat", Blocks.SEAT);
     public static final Supplier<Item> ITEM_CARGO_HOLD = registerBlockItem("cargo_hold", Blocks.CARGO_HOLD);
-    public static final Supplier<Item> ITEM_DRILL = registerBlockItem("drill", Blocks.DRILL);
+    public static final Supplier<Item> ITEM_DRILL = ITEMS.register("drill", () -> new ItemDrill());
+    public static final Supplier<Item> ITEM_GAS_INTAKE = ITEMS.register("gas_intake", () -> new ItemGasIntake());
 
     public static final Supplier<Item> ITEM_ROCKET_ASSEMBLER = registerBlockItem("rocket_assembler", Blocks.ROCKET_ASSEMBLER);
     public static final Supplier<Item> ITEM_FUELING_STATION = registerBlockItem("fueling_station", Blocks.FUELING_STATION);
     public static final Supplier<Item> ITEM_LAUNCH_STATION = registerBlockItem("launch_station", Blocks.LAUNCH_STATION);
     public static final Supplier<Item> ITEM_ROCKET_ITEM_LOADER = registerBlockItem("rocket_item_loader", Blocks.ROCKET_ITEM_LOADER);
+    public static final Supplier<Item> ITEM_ROCKET_FLUID_LOADER = registerBlockItem("rocket_fluid_loader", Blocks.ROCKET_FLUID_LOADER);
 
     public static final Supplier<Item> ITEM_ASTROBODY_DATA_PROCESSOR = registerBlockItem("astrobody_data_processor", Blocks.ASTROBODY_DATA_PROCESSOR);
     public static final Supplier<Item> ITEM_OBSERVATORY = registerBlockItem("observatory", Blocks.OBSERVATORY);
@@ -48,6 +52,8 @@ public class Items {
     public static final Supplier<Item> ITEM_DATA_STORAGE_BLOCK = registerBlockItem("data_storage_block", Blocks.DATA_STORAGE_BLOCK);
     public static final Supplier<Item> ITEM_SOLAR_PANEL = ITEMS.register("solar_panel", () -> new ItemSolarPanel());
     public static final Supplier<Item> ITEM_WIRELESS_TRANSCEIVER = registerBlockItem("wireless_transceiver", Blocks.WIRELESS_TRANSCEIVER);
+    public static final Supplier<Item> ITEM_FLUID_RELEASE = ITEMS.register("fluid_release", () -> new ItemFluidRelease());
+    public static final Supplier<Item> ITEM_PRESSURE_TANK = registerBlockItem("pressure_tank",Blocks.PRESSURE_TANK);
 
     public static final Supplier<Item> ITEM_SPACE_STATION_ASSEMBLER = registerBlockItem("space_station_assembler", Blocks.SPACE_STATION_ASSEMBLER);
     public static final Supplier<Item> ITEM_ORIENTATION_CONTROLLER = registerBlockItem("orientation_controller", Blocks.ORIENTATION_CONTROLLER);
@@ -70,6 +76,7 @@ public class Items {
 
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);
+    public static final Supplier<Item> ITEM_DRY_ICE = registerBlockItem("dry_ice", Blocks.DRY_ICE);
 
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {
