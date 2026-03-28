@@ -253,6 +253,7 @@ public class Main {
             e.accept(Blocks.CARGO_HOLD.get());
             e.accept(Blocks.SEAT.get());
             e.accept(Blocks.DRILL.get());
+            e.accept(Blocks.GAS_INTAKE.get());
 
             e.accept(Blocks.ROCKET_ASSEMBLER.get());
             e.accept(Blocks.FUELING_STATION.get());

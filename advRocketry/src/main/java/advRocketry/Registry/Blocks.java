@@ -31,6 +31,7 @@ public class Blocks {
     public static final Supplier<Block> CARGO_HOLD = BLOCKS.register("cargo_hold", () -> new CargoHold());
     public static final Supplier<Block> SEAT = BLOCKS.register("seat", () -> new Seat());
     public static final Supplier<Block> DRILL = BLOCKS.register("drill", () -> new Drill());
+    public static final Supplier<Block> GAS_INTAKE = BLOCKS.register("gas_intake", () -> new GasIntake());
 
     // station parts
     public static final Supplier<Block> WARP_CONTROLLER = BLOCKS.register("warp_controller", () -> new WarpController());
