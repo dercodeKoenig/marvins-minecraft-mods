@@ -36,7 +36,7 @@ public class StationDockingProgram {
                     ).scale(baseDistance + rocket.size.getY() * 1.2)
             );
             Vec3 toTarget = checkpointPos.subtract(rocket.position());
-            if (rocket.getDeltaMovement().length() < 0.01 && toTarget.length() < 5) {
+            if (rocket.getDeltaMovement().length() < 0.005 && toTarget.length() < 5) {
                 rocket.controller.enableMainEngines(false, false);
                     if(dockingDirection.getAxis() != Direction.Axis.Y){
                         // for docking from side we don't need to slow down too much
