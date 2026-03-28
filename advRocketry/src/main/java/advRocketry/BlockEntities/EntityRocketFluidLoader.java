@@ -8,9 +8,11 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import ARLib.utils.SimpleFluidContainer;
+import advRocketry.Blocks.PressureTank;
 import advRocketry.Config;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.Rocket.PressureTankUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -141,7 +143,7 @@ public class EntityRocketFluidLoader extends EntityRocketInfrastructureBase impl
                 int canFill = pressureTank.tank.fill(canExtract, IFluidHandler.FluidAction.SIMULATE);
                 if (canFill > 0) {
                     pressureTank.tank.fill(tank.drain(canFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-                    linkedRocket.onBlockEntityChanged(pressureTank.getBlockPos());
+                    PressureTankUtils.onChanged(pressureTank.getBlockPos(), linkedRocket);
                     return 1;
                 }
             }
@@ -162,7 +164,7 @@ public class EntityRocketFluidLoader extends EntityRocketInfrastructureBase impl
                 int canFill = tank.fill(canExtract, IFluidHandler.FluidAction.SIMULATE);
                 if (canFill > 0) {
                     tank.fill(pressureTank.tank.drain(canFill, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-                    linkedRocket.onBlockEntityChanged(pressureTank.getBlockPos());
+                    PressureTankUtils.onChanged(pressureTank.getBlockPos(), linkedRocket);
                     return 1;
                 }
             }

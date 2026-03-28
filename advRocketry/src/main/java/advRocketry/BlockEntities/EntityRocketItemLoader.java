@@ -132,7 +132,6 @@ public class EntityRocketItemLoader extends EntityRocketInfrastructureBase imple
                                 // commit the transaction
                                 ItemStack extracted = inventory.extractItem(i, 1, false);
                                 cargoHold.itemStackHandler.insertItem(j, extracted, false);
-                                linkedRocket.onBlockEntityChanged(cargoHold.getBlockPos());
                                 return 1;
                             }
                         }
@@ -163,7 +162,6 @@ public class EntityRocketItemLoader extends EntityRocketInfrastructureBase imple
                                 // commit the transaction
                                 ItemStack extracted = cargoHold.itemStackHandler.extractItem(j, 1, false);
                                 inventory.insertItem(i, extracted, false);
-                                linkedRocket.onBlockEntityChanged(cargoHold.getBlockPos());
                                 return 1;
                             }
                         }

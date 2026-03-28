@@ -3,6 +3,7 @@ package advRocketry.Utils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class RenderUtils {
 
@@ -76,6 +77,17 @@ public class RenderUtils {
         int A = (int) (Math.max(0, Math.min(1, a)) * 255.0f + 0.5f);
 
         return (A << 24) | (R << 16) | (G << 8) | B;
+    }
+
+    public static Vector4f unpackColor(int argb) {
+        // 1. Isolate each channel using bitwise AND and right shifts
+        // 2. Divide by 255.0f to convert back to a 0.0 - 1.0 float range
+        float a = ((argb >> 24) & 0xFF) / 255.0f;
+        float r = ((argb >> 16) & 0xFF) / 255.0f;
+        float g = ((argb >> 8) & 0xFF) / 255.0f;
+        float b = (argb & 0xFF) / 255.0f;
+
+        return new Vector4f(r, g, b, a);
     }
 
 

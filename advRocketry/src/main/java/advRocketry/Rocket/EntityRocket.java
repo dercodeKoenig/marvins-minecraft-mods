@@ -10,6 +10,7 @@ import advRocketry.BlockEntities.EntityCargoHold;
 import advRocketry.BlockEntities.EntityGuidanceComputer;
 import advRocketry.BlockEntities.EntityPressureTank;
 import advRocketry.Blocks.FuelTank;
+import advRocketry.Blocks.PressureTank;
 import advRocketry.Blocks.RocketMotor;
 import advRocketry.Blocks.Seat;
 import advRocketry.Config;
@@ -48,7 +49,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.DimensionTransition;
@@ -74,7 +74,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public Vec3i size;
     public FluidTank fuelTank;
     public float currentMass;
-    public double maxG = 2;
+    public double maxG = 2.5;
 
     // for space travel
     public Vec3 universePosition = new Vec3(0, 0, 0);
@@ -109,16 +109,16 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     int lerpSteps;
     int lerpDeltaMovementSteps;
 
+    // cached values
+    float cachedThrust = -1;
+    int cachedFuelRate = -1;
+    float cachedBlockMass = -1;
+    ArrayList<BlockPos> cachedEnginePositions = null;
+    ArrayList<BlockPos> cachedSeatPositions = null;
+    ArrayList<BlockPos> cachedPressureTankPositions = null;
+
     // used to fix client out of sync with rocket, needs unmount and remount, minecraft bug maybe?
     private boolean firstTick = true;
-
-    // cached values
-    private float cachedThrust = -1;
-    private int cachedFuelRate = -1;
-    private float cachedBlockMass = -1;
-    private ArrayList<BlockPos> cachedEnginePositions = null;
-    private ArrayList<BlockPos> cachedSeatPositions = null;
-
 
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -587,6 +587,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             lastDeltaMovement = getDeltaMovement();
         }
 
+        // equalize fluid level in pressure tanks of move fluid down when on planet
+        PressureTankUtils.tick(this);
     }
 
     /// the normal launch code
@@ -624,9 +626,9 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             Dimension currentDimension = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
             if (targetDimension != null && targetDimension.canVisit()) {
 
-                if(currentDimension != null) {
+                if (currentDimension != null) {
                     double distance = targetDimension.getPosition(0).distanceTo(currentDimension.getPosition(0));
-                    if(distance > 1.2){
+                    if (distance > 1.2) {
                         infoText.setTextAndSync("target out of range");
                         temporaryInfoTimeout = 20 * 15;
                         return false;
@@ -755,17 +757,6 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         }
     }
 
-    // sync changes to client for render (for example the fluid level in a fluid container)
-    public void onBlockEntityChanged(BlockPos position) {
-        BlockEntity blockEntity = blockEntities.get(position);
-        CompoundTag blockEntityTag = new CompoundTag();
-        blockEntityTag.put("blockPos", NbtUtils.writeBlockPos(position));
-        blockEntityTag.put("blockEntity", blockEntity.saveCustomOnly(registryAccess()));
-        CompoundTag info = new CompoundTag();
-        info.put("updateBlockEntity", blockEntityTag);
-        sendToClients(info);
-    }
-
     /// / save, load and sync ////
 
     @Override
@@ -816,18 +807,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         if (compoundTag.contains("currentMass"))
             currentMass = compoundTag.getFloat("currentMass");
 
-        // notification about change in blockentity (useful for rendering)
-        if (compoundTag.contains("updateBlockEntity")) {
-            CompoundTag blockTag = compoundTag.getCompound("updateBlockEntity");
-            BlockPos p = NbtUtils.readBlockPos(blockTag, "blockPos").get();
-            BlockState state = blocks.get(p);
-            CompoundTag blockEntityTag = blockTag.getCompound("blockEntity");
-            BlockEntity existingBlockEntity = blockEntities.get(p);
-            if (state != null) {
-                if (existingBlockEntity != null && existingBlockEntity.isValidBlockState(state))
-                    existingBlockEntity.loadCustomOnly(blockEntityTag, registryAccess());
-            }
-        }
+        // notification on fluid level change
+        PressureTankUtils.readClient(compoundTag, this);
     }
 
     public void sendToClients(CompoundTag compoundTag) {
@@ -876,12 +857,8 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
 
         // add player inventory slots
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 190, 1000, 1, 0, guiHandler)) {
-            guiHandler.modules.add(i);
-        }
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 130, 2000, 1, 0, guiHandler)) {
-            guiHandler.modules.add(i);
-        }
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 190, 1000, 1, 0, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 130, 2000, 1, 0, guiHandler));
 
         // add inventory slots for cargo hold
         guiModuleScrollContainer inventoriesContainer =
@@ -904,13 +881,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                                     guiHandler,
                                     x * 18,
                                     y * 18
-                            ) {
-                                @Override
-                                public void server_handleInventoryClick(Player player, int button, boolean isShift) {
-                                    super.server_handleInventoryClick(player, button, isShift);
-                                    onBlockEntityChanged(cargoHold.getBlockPos());
-                                }
-                            };
+                            );
                     inventoriesContainer.modules.add(slot);
                     id++;
                     x++;
@@ -937,6 +908,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         cachedBlockMass = -1;
         cachedEnginePositions = null;
         cachedSeatPositions = null;
+        cachedPressureTankPositions = null;
         requiresMeshUpdate = true;
     }
 
@@ -994,7 +966,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                     mass += relativeFill * Config.INSTANCE.rocket_ItemStack_Weight;
                 }
             }
-            if( e instanceof EntityPressureTank pressureTank){
+            if (e instanceof EntityPressureTank pressureTank) {
                 mass += pressureTank.tank.getFluidAmount() * Config.INSTANCE.rocket_Fluid_Weight_Per_MB;
             }
         }
@@ -1015,7 +987,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public double getAtmDensityAtCurrentHeight() {
         Dimension myDim = DimensionManager.getDimensionManager(level().isClientSide).get(level().dimension().location());
         if (myDim instanceof PlanetDimension planet) {
-            return Math.max(0,planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height);
+            return Math.max(0, planet.getAtmosphereDensity() * (Config.INSTANCE.planet_Sky_Height - position().y) / Config.INSTANCE.planet_Sky_Height);
         }
         return 0;
     }
@@ -1046,5 +1018,19 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             }
         }
         return cachedSeatPositions;
+    }
+
+    public ArrayList<BlockPos> getPressureTankPositions() {
+        if (cachedPressureTankPositions == null) {
+            if (blocks.isEmpty()) return new ArrayList<>(); // still waiting for block data sync
+            cachedPressureTankPositions = new ArrayList<>();
+            for (BlockPos pos : blocks.keySet()) {
+                BlockState state = blocks.get(pos);
+                if (state.getBlock() instanceof PressureTank) {
+                    cachedPressureTankPositions.add(pos);
+                }
+            }
+        }
+        return cachedPressureTankPositions;
     }
 }

@@ -36,6 +36,11 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     public TextureAtlasSprite spriteStill;
     public int color;
 
+    // for when in rocket
+    public int renderMode = 0;
+    public boolean renderTopFace = true;
+    public boolean renderBottomFace = true;
+
     public EntityPressureTank(BlockEntityType type, BlockPos p_155229_, BlockState p_155230_, int capacity) {
         super(type, p_155229_, p_155230_);
         if (FMLEnvironment.dist == Dist.CLIENT) {

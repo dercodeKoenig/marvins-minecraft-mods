@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Quaternionf;
+import org.joml.Vector4f;
 
 public class RenderPressureTank implements BlockEntityRenderer<EntityPressureTank> {
 
@@ -59,6 +60,9 @@ public class RenderPressureTank implements BlockEntityRenderer<EntityPressureTan
                     renderTop = false;
                 }
             }
+        }else{
+            renderTop = tile.renderTopFace;
+            renderBottom = tile.renderBottomFace;
         }
 
         float e = 0.01f;
@@ -75,16 +79,27 @@ public class RenderPressureTank implements BlockEntityRenderer<EntityPressureTan
         float v0 = tile.spriteStill.getV0();
         float v1 = tile.spriteStill.getV1();
 
+        int color = tile.color;
+
+        if(tile.renderMode == 1) {
+            y1 = renderTop ? 1 - e : 1;
+            Vector4f color4f = RenderUtils.unpackColor(color);
+            color4f.w *= relativeFill;
+            if(color4f.w * 255 < 1)
+                color4f.w = 1f / 255;
+            color = RenderUtils.packColor(color4f.x, color4f.y, color4f.z, color4f.w);
+        }
+
         if (renderTop)
-            RenderUtils.renderTopFace(v, stack.last(), x0, x1, z0, z1, y1, u0, u1, v0, v1, light, overlay, tile.color);
+            RenderUtils.renderTopFace(v, stack.last(), x0, x1, z0, z1, y1, u0, u1, v0, v1, light, overlay, color);
         if (renderBottom)
-            RenderUtils.renderBottomFace(v, stack.last(), x0, x1, z0, z1, y0, u0, u1, v0, v1, light, overlay, tile.color);
+            RenderUtils.renderBottomFace(v, stack.last(), x0, x1, z0, z1, y0, u0, u1, v0, v1, light, overlay, color);
 
-        RenderUtils.renderEastFace(v, stack.last(), y0, y1, z0, z1, x1, u0, u1, v0, v1, light, overlay, tile.color);
-        RenderUtils.renderWestFace(v, stack.last(), y0, y1, z0, z1, x0, u0, u1, v0, v1, light, overlay, tile.color);
+        RenderUtils.renderEastFace(v, stack.last(), y0, y1, z0, z1, x1, u0, u1, v0, v1, light, overlay, color);
+        RenderUtils.renderWestFace(v, stack.last(), y0, y1, z0, z1, x0, u0, u1, v0, v1, light, overlay, color);
 
-        RenderUtils.renderNorthFace(v, stack.last(), y0, y1, x0, x1, z0, u0, u1, v0, v1, light, overlay, tile.color);
-        RenderUtils.renderSouthFace(v, stack.last(), y0, y1, x0, x1, z1, u0, u1, v0, v1, light, overlay, tile.color);
+        RenderUtils.renderNorthFace(v, stack.last(), y0, y1, x0, x1, z0, u0, u1, v0, v1, light, overlay, color);
+        RenderUtils.renderSouthFace(v, stack.last(), y0, y1, x0, x1, z1, u0, u1, v0, v1, light, overlay, color);
 
     }
 }
