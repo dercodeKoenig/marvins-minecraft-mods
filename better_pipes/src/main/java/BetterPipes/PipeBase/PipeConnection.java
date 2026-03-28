@@ -121,10 +121,23 @@ public class PipeConnection implements IFluidHandler {
     }
 
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        getsInputFromInside = tag.getBoolean("getsInputFromInside");
-        getsInputFromOutside = tag.getBoolean("getsInputFromOutside");
-        outputsToInside = tag.getBoolean("outputsToInside");
-        outputsToOutside = tag.getBoolean("outputsToOutside");
+        boolean newGetsInputFromInside  = tag.getBoolean("getsInputFromInside");
+        boolean newGetsInputFromOutside = tag.getBoolean("getsInputFromOutside");
+        boolean newOutputsToInside      = tag.getBoolean("outputsToInside");
+        boolean newOutputsToOutside     = tag.getBoolean("outputsToOutside");
+
+        if (newGetsInputFromInside  != getsInputFromInside  ||
+                newGetsInputFromOutside != getsInputFromOutside ||
+                newOutputsToInside      != outputsToInside      ||
+                newOutputsToOutside     != outputsToOutside) {
+            parent.setRequiresMeshUpdate();
+        }
+
+        getsInputFromInside  = newGetsInputFromInside;
+        getsInputFromOutside = newGetsInputFromOutside;
+        outputsToInside      = newOutputsToInside;
+        outputsToOutside     = newOutputsToOutside;
+
         FluidStack newFluid = FluidStack.EMPTY;
         if (tag.contains("fluid")) {
             newFluid = (FluidStack.parse(registries, tag.getCompound("fluid")).get());
