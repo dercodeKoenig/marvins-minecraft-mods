@@ -64,6 +64,7 @@ public class Items {
     public static final Supplier<Item> ITEM_SATELLITE_MONITOR = registerBlockItem("satellite_monitor", Blocks.SATELLITE_MONITOR);
     public static final Supplier<Item> ITEM_LAUNCH_STATION_SATELLITE_MISSIONS = registerBlockItem("launch_station_satellite_missions", Blocks.LAUNCH_STATION_SATELLITE_MISSIONS);
     public static final Supplier<Item> ITEM_LAUNCH_STATION_ASTEROID_MISSIONS = registerBlockItem("launch_station_asteroid_missions", Blocks.LAUNCH_STATION_ASTEROID_MISSIONS);
+    public static final Supplier<Item> ITEM_LAUNCH_STATION_GAS_MINING_MISSIONS = registerBlockItem("launch_station_gas_mining_missions", Blocks.LAUNCH_STATION_GAS_MINING_MISSIONS);
 
     public static final Supplier<Item> ITEM_RADIATION_SHIELD = ITEMS.register("radiation_shield", () -> new ItemRadiationShield());
     public static final Supplier<Item> ITEM_LORA_MODULE = ITEMS.register("lora_module", () -> new ItemLoraModule());

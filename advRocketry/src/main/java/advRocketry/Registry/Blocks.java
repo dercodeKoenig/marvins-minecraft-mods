@@ -59,6 +59,7 @@ public class Blocks {
     public static final Supplier<Block> SATELLITE_MONITOR = BLOCKS.register("satellite_monitor", () -> new SatelliteMonitor());
     public static final Supplier<Block> LAUNCH_STATION_SATELLITE_MISSIONS = BLOCKS.register("launch_station_satellite_missions", () -> new LaunchStationSatelliteMissions());
     public static final Supplier<Block> LAUNCH_STATION_ASTEROID_MISSIONS = BLOCKS.register("launch_station_asteroid_missions", () -> new LaunchStationAsteroidMissions());
+    public static final Supplier<Block> LAUNCH_STATION_GAS_MINING_MISSIONS = BLOCKS.register("launch_station_gas_mining_missions", () -> new LaunchStationGasMiningMissions());
 
 
 

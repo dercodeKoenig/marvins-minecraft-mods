@@ -21,6 +21,7 @@
   "block.adv_rocketry.satellite_assembler": "Satellite Assembler",
   "block.adv_rocketry.launch_station_satellite_missions": "Satellite Launch Station",
   "block.adv_rocketry.launch_station_asteroid_missions": "Asteroid Mission Launch Station",
+  "block.adv_rocketry.launch_station_gas_mining_missions": "Gas Mining Mission Terminal",
   "block.adv_rocketry.launchpad": "Launch Pad",
   "block.adv_rocketry.structure_tower": "Structure tower",
   "block.adv_rocketry.rocket_assembler": "Rocket Assembler",

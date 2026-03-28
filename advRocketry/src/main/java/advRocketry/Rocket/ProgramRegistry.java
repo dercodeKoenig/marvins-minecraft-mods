@@ -21,6 +21,7 @@ public class ProgramRegistry {
         registerProgram(ProgramSatelliteRecovery.class, "ProgramSatelliteRecovery");
         registerProgram(ProgramTestFlight.class, "ProgramTestFlight");
         registerProgram(ProgramAsteroidMiningMission.class, "ProgramAsteroidMiningMission");
+        registerProgram(ProgramGasMiningMission.class, "ProgramGasMiningMission");
     }
 
     public static void registerProgram(Class<? extends RocketProgram> programClass, String id) {

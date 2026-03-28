@@ -30,13 +30,11 @@ import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
 
 public class EntityLaunchStation extends EntityRocketInfrastructureBase implements ItemLinker.linkable, ItemLinker.linkableToEntity, INetworkTagReceiver {
 
+    public static int launch_btn_id = 10001;
     public ItemStackHandler inventory;
-
     public GuiHandlerBlockEntity guiHandler;
-
     public boolean isRedstonePowered = false;
     public int activeTimeout = 0; // when launch, shortly change the block state to active, change back after a few ticks
-    protected int launch_btn_id = 10001;
 
     public EntityLaunchStation(BlockPos pos, BlockState blockState) {
         this(ENTITY_LAUNCH_STATION.get(), pos, blockState);
