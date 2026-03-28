@@ -70,7 +70,7 @@ public class ProgramGasMiningMission extends ProgramMissionStartBase {
         }
 
         // remove the gas from composition
-        API.addGasInBuckets(ResourceLocation.parse(targetLevelId.toString()),targetGas, (double) totalFilled / 1000);
+        API.addGasInBuckets(ResourceLocation.parse(targetLevelId.toString()),targetGas, (double) -totalFilled / 1000);
 
         int time = 20 * 30;
         if (intakeBlocks > 0) {

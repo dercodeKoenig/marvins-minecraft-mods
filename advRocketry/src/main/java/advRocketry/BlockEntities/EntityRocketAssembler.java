@@ -19,6 +19,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -542,12 +543,8 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
         tag.putInt("dockingDirection", dockingDirection.ordinal());
         tag.putInt("dockingOrientation", dockingOrientation.ordinal());
         if (areaMin != null && areaMax != null) {
-            tag.putInt("minX", areaMin.getX());
-            tag.putInt("minY", areaMin.getY());
-            tag.putInt("minZ", areaMin.getZ());
-            tag.putInt("maxX", areaMax.getX());
-            tag.putInt("maxY", areaMax.getY());
-            tag.putInt("maxZ", areaMax.getZ());
+            tag.put("areaMin", NbtUtils.writeBlockPos(areaMin));
+            tag.put("areaMax", NbtUtils.writeBlockPos(areaMax));
         } else {
             tag.put("noArea", new CompoundTag());
         }
@@ -560,10 +557,10 @@ public class EntityRocketAssembler extends BlockEntity implements ARLib.network.
             areaMin = null;
             areaMax = null;
         }
-        if (tag.contains("minX") && tag.contains("minY") && tag.contains("minZ"))
-            areaMin = new BlockPos(tag.getInt("minX"), tag.getInt("minY"), tag.getInt("minZ"));
-        if (tag.contains("maxX") && tag.contains("maxY") && tag.contains("maxZ"))
-            areaMax = new BlockPos(tag.getInt("maxX"), tag.getInt("maxY"), tag.getInt("maxZ"));
+        if (tag.contains("areaMin"))
+            areaMin = NbtUtils.readBlockPos(tag, "areaMin").get();
+        if (tag.contains("areaMax"))
+            areaMax = NbtUtils.readBlockPos(tag, "areaMax").get();
         if (tag.contains("buildProgress"))
             buildProgress = tag.getInt("buildProgress");
         if (tag.contains("battery"))
