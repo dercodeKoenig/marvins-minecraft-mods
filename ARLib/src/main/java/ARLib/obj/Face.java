@@ -70,38 +70,7 @@ public class Face {
 
 
     public void addFaceForRender(PoseStack stack, VertexConsumer v) {
-        // Ensure vertexNormals array exists
-        if (this.vertexNormals == null || this.vertexNormals.length == 0) {
-            Vertex normal = this.calculateFaceNormal();
-            this.vertexNormals = new Vertex[this.vertices.length];
-            for (int i = 0; i < this.vertices.length; ++i) {
-                this.vertexNormals[i] = normal;
-            }
-        }
-
-        // Get the current pose & normal matrix
-        PoseStack.Pose pose = stack.last();
-        Matrix3f normalMatrix = pose.normal(); // transforms normals
-        // (positions are handled by v.addVertex(stack.last(), ...))
-
-        for (int i = 0; i < this.vertices.length; ++i) {
-            // Convert your normal to a Vector3f (adjust depending on your Vertex type)
-            Vertex srcNormal = this.vertexNormals[i];
-            Vector3f n = new Vector3f(srcNormal.x, srcNormal.y, srcNormal.z);
-
-            // Transform & normalize
-            normalMatrix.transform(n);
-            n.normalize();
-
-            if (this.textureCoordinates != null && this.textureCoordinates.length > 0) {
-                v.addVertex(pose, this.vertices[i].x, this.vertices[i].y, this.vertices[i].z)
-                        .setNormal(n.x(), n.y(), n.z())
-                        .setUv(this.textureCoordinates[i].u, this.textureCoordinates[i].v);
-            } else {
-                v.addVertex(pose, this.vertices[i].x, this.vertices[i].y, this.vertices[i].z)
-                        .setNormal(n.x(), n.y(), n.z());
-            }
-        }
+        addFaceForRender(stack,v,0,0,0);
     }
 
     public void scaleUV(float u0, float v0, float u1, float v1){

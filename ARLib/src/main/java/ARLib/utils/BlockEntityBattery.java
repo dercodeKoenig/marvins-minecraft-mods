@@ -29,34 +29,40 @@ public class BlockEntityBattery extends EnergyStorage {
         super(capacity, maxReceive, maxExtract, energy);
         this.parent = parent;
     }
-    public void setEnergy(int e){
+
+    public void setEnergy(int e) {
         energy = e;
         parent.setChanged();
     }
-    public void setCapacity(int c){
+
+    public void setCapacity(int c) {
         this.capacity = c;
         parent.setChanged();
     }
 
-    public int receiveEnergy(int toReceive, boolean simulate) {
-      int received = super.receiveEnergy(toReceive,simulate);
-      if(received != 0 && !simulate)
-          parent.setChanged();
-      return received;
+    public int receiveInternal(int toReceive, boolean simulate) {
+        int received = super.receiveEnergy(toReceive, simulate);
+        if (received != 0 && !simulate)
+            parent.setChanged();
+        return received;
     }
 
-    public int extractEnergy(int toExtract, boolean simulate) {
-        int extracted = super.extractEnergy(toExtract,simulate);
-        if(extracted != 0 && !simulate)
+    public int receiveEnergy(int toReceive, boolean simulate) {
+        if (!canReceive)
+            return 0;
+        else return receiveInternal(toReceive, simulate);
+    }
+
+    public int extractInternal(int toExtract, boolean simulate) {
+        int extracted = super.extractEnergy(toExtract, simulate);
+        if (extracted != 0 && !simulate)
             parent.setChanged();
         return extracted;
     }
 
-    public boolean canExtract() {
-        return super.canExtract() && canExtract;
-    }
-
-    public boolean canReceive() {
-        return super.canReceive() && canReceive;
+    public int extractEnergy(int toExtract, boolean simulate) {
+        if (!canExtract)
+            return 0;
+        else return extractInternal(toExtract, simulate);
     }
 }
