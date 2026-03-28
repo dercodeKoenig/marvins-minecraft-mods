@@ -39,6 +39,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
     public UUID lastLaunchedRocketUUID = null;
     public guiModuleText statusText;
     public guiModuleButton gasSelector;
+    public guiModuleButton launchButton;
 
     public EntityLaunchStationGasMiningMissions(BlockPos pos, BlockState blockState) {
         super(BlockEntities.ENTITY_LAUNCH_STATION_GAS_MINING_MISSIONS.get(), pos, blockState);
@@ -49,7 +50,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
 
         guiHandler.modules.add(new guiModuleText(0, "Gas Mining Mission Terminal", guiHandler, 5, 5, 0xff000000, false));
 
-        guiModuleButton launchButton = new guiModuleButton(launch_btn_id, "launch", guiHandler, 10, 20, 40, 15, BTN_GREEN, BTN_W, BTN_H);
+        launchButton = new guiModuleButton(launch_btn_id, "launch", guiHandler, 10, 20, 40, 15, BTN_GREEN, BTN_W, BTN_H);
         guiHandler.modules.add(launchButton);
 
         gasSelector = new guiModuleButton(gas_selector_btn_id, "no gas selected", guiHandler, 60, 20, 100, 15, BTN_BLACK, BTN_W, BTN_H);
@@ -60,10 +61,18 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         guiHandler.modules.add(statusText);
     }
 
-    public Pair<Boolean, String> canMine() {
+    public SpaceStationDimension getSpaceStation(){
         Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (!(myDim instanceof SpaceStationDimension spaceStationDimension)) {
-            return Pair.of(false, "requires space station for launch");
+            return null;
+        }
+        return spaceStationDimension;
+    }
+
+    public Pair<Boolean, String> canMine() {
+        SpaceStationDimension spaceStationDimension = getSpaceStation();
+        if (spaceStationDimension == null) {
+            return Pair.of(false, "requires space station");
         }
         Dimension parentDim = DimensionManager.INSTANCE_SERVER.get(spaceStationDimension.getParentDimensionId());
         if (!(parentDim instanceof PlanetDimension parentPlanet) || !spaceStationDimension.isInOrbit()) {
@@ -84,8 +93,10 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         Pair<Boolean, String> canMine = canMine();
         if (!canMine.getFirst()) {
             statusText.setTextAndSync(canMine.getSecond());
+            launchButton.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
             return;
         }
+        launchButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
 
         if (level instanceof ServerLevel serverLevel && !guiHandler.playersTrackingGui.isEmpty()) {
             if (lastLaunchedRocketUUID != null) {
@@ -117,7 +128,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
     }
 
     public void openGui() {
-        guiHandler.openGui(176, 165, true);
+        guiHandler.openGui(176, 70, true);
     }
 
 
@@ -130,7 +141,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
             lastLaunchedMissionUUID = UUID.randomUUID();
             BlockPos landPos = linkedRocket.getDockingStationPos();
             if (landPos == null) landPos = linkedRocket.blockPosition();
-            ProgramMissionStartBase programMissionStartBase = new ProgramGasMiningMission(linkedRocket, canMine.getSecond(), level.dimension().location(), landPos, lastLaunchedMissionUUID);
+            ProgramMissionStartBase programMissionStartBase = new ProgramGasMiningMission(linkedRocket, canMine.getSecond(), getSpaceStation().getParentDimensionId(), level.dimension().location(), landPos, lastLaunchedMissionUUID);
             linkedRocket.setProgramAndSync(programMissionStartBase);
             lastLaunchedRocketUUID = linkedRocket.getUUID();
             return true;

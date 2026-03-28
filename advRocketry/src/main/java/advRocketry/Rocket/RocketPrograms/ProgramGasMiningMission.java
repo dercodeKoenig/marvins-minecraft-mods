@@ -1,5 +1,6 @@
 package advRocketry.Rocket.RocketPrograms;
 
+import advRocketry.API;
 import advRocketry.BlockEntities.EntityPressureTank;
 import advRocketry.Blocks.GasIntake;
 import advRocketry.GlobalTime;
@@ -22,14 +23,16 @@ import java.util.UUID;
 
 public class ProgramGasMiningMission extends ProgramMissionStartBase {
     public String targetGas;
+    public ResourceLocation targetLevelId;
 
     public ProgramGasMiningMission() {
 
     }
 
-    public ProgramGasMiningMission(EntityRocket rocket, String targetGas, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
+    public ProgramGasMiningMission(EntityRocket rocket, String targetGas, ResourceLocation targetLevelId, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
         super(rocket, returnLevel, returnPos, missionId);
         this.targetGas = targetGas;
+        this.targetLevelId = targetLevelId;
     }
 
     public void startMission(EntityRocket rocket) {
@@ -66,6 +69,9 @@ public class ProgramGasMiningMission extends ProgramMissionStartBase {
             }
         }
 
+        // remove the gas from composition
+        API.addGasInBuckets(ResourceLocation.parse(targetLevelId.toString()),targetGas, (double) totalFilled / 1000);
+
         int time = 20 * 30;
         if (intakeBlocks > 0) {
             int extraTime = totalFilled * 20 / 1000 / 2; // 1s for 2 buckets
@@ -81,6 +87,8 @@ public class ProgramGasMiningMission extends ProgramMissionStartBase {
         super.readFromNbt(nbt);
         if (nbt.contains("targetGas"))
             targetGas = nbt.getString("targetGas");
+        if (nbt.contains("targetLevelId"))
+            targetLevelId = ResourceLocation.parse(nbt.getString("targetLevelId"));
     }
 
     @Override
@@ -88,6 +96,8 @@ public class ProgramGasMiningMission extends ProgramMissionStartBase {
         CompoundTag tag = super.saveToNbt();
         if (targetGas != null)
             tag.putString("targetGas", targetGas);
+        if(targetLevelId != null)
+            tag.putString("targetLevelId", targetLevelId.toString());
         return tag;
     }
 }

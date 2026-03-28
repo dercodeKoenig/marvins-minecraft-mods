@@ -90,21 +90,6 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
         }
     }
 
-    @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("tank"))
-            tank.readFromNBT(registries, tag.getCompound("tank"));
-    }
-
-    @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        CompoundTag tankTag = new CompoundTag();
-        tank.writeToNBT(registries, tankTag);
-        tag.put("tank", tankTag);
-    }
-
     public void tick() {
         if (!level.isClientSide) {
 
@@ -144,6 +129,24 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     public void readClient(CompoundTag compoundTag) {
         loadAdditional(compoundTag, level.registryAccess());
         updateSprites(tank.getFluid().getFluid());
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        if (tag.contains("tank"))
+            tank.readFromNBT(registries, tag.getCompound("tank"));
+        if(FMLEnvironment.dist.isClient())
+            // this is used for when tank is part of rocket and loads on client side
+            updateSprites(tank.getFluid().getFluid());
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        CompoundTag tankTag = new CompoundTag();
+        tank.writeToNBT(registries, tankTag);
+        tag.put("tank", tankTag);
     }
 
     public void updateSprites(Fluid f) {

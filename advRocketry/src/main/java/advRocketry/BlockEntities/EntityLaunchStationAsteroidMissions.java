@@ -79,7 +79,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
             if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
                 AsteroidManager.DiscoveredAsteroid target = ItemAsteroidIdChip.getSelectedAsteroid(navigationItem);
                 if (target == null || target.isExpired()) {
-                    ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "We were too slow.\nAsteroid out of range now.");
+                    ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "Asteroid invalid");
                 } else {
                     lastLaunchedMissionUUID = UUID.randomUUID();
                     BlockPos landPos = linkedRocket.getDockingStationPos();

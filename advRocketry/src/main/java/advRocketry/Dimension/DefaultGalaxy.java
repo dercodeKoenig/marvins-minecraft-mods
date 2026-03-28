@@ -147,9 +147,10 @@ public class DefaultGalaxy {
         saturn.orbitalDistanceToParent = 8f;
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 8f;
-        saturn.hasRingSystem = true;
+        saturn.canGasMine = true;
         saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
         saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f,0, 0, 0));
+        saturn.hasRingSystem = true;
         galaxy.add(saturn);
 
         PlanetDimensionProperties titan = new PlanetDimensionProperties();

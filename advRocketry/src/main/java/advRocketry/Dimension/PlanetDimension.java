@@ -372,7 +372,7 @@ public class PlanetDimension extends Dimension {
             return set;
 
         for (String gas : GasRegistry.gases.keySet()) {
-            if (getGasProperty(gas).in_atm > 1)
+            if (getGasProperty(gas).in_atm > 0.01)
                 set.add(gas);
         }
         return set;
