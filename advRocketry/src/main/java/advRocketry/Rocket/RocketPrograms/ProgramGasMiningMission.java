@@ -58,11 +58,13 @@ public class ProgramGasMiningMission extends ProgramMissionStartBase {
         Fluid toMine = GasRegistry.gases.get(targetGas).fluid;
         if (intakeBlocks > 0 && toMine != Fluids.EMPTY) {
             for (BlockEntity be : rocket.blockEntities.values()) {
+                if(availableFuel <= 0)
+                    break;
                 if (be instanceof EntityPressureTank pressureTank) {
                     FluidStack toFill = new FluidStack(toMine, availableFuel * mbPerFuel);
                     int filled = pressureTank.tank.fill(toFill, IFluidHandler.FluidAction.EXECUTE);
                     totalFilled += filled;
-                    int fuelDrain = filled / mbPerFuel;
+                    int fuelDrain = (int) Math.ceil((double) filled / mbPerFuel);
                     availableFuel -= fuelDrain;
                     rocket.fuelTank.drain(fuelDrain, IFluidHandler.FluidAction.EXECUTE);
                 }
