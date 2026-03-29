@@ -56,7 +56,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         guiHandler.modules.add(launchButton);
 
         guiHandler.modules.add(new guiModuleItemHandlerSlot(1, inventory, 0, 0, 1, guiHandler, 7, 60));
-        guiHandler.modules.add(new guiModuleItemStackRender(3,new ItemStack(Items.ITEM_GALAXY_DATABASE.get(),1),0.9f, guiHandler, 27,60));
+        guiHandler.modules.add(new guiModuleItemStackRender(3, new ItemStack(Items.ITEM_GALAXY_DATABASE.get(), 1), 0.9f, guiHandler, 27, 60));
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 150, 1000, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 90, 2000, 1, 0, guiHandler));
@@ -88,15 +88,15 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         }
 
         ItemStack stack = inventory.getStackInSlot(0);
-        if(!(stack.getItem() instanceof ItemGalaxyDatabase)){
+        if (!(stack.getItem() instanceof ItemGalaxyDatabase)) {
             return Pair.of(false, "missing database");
         }
-        ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(stack,parentPlanet);
+        ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(stack, parentPlanet);
         int composition = 0;
-        if(info != null)
+        if (info != null)
             composition = info.get(DataTypes.composition);
         int pointsRequired = ItemGalaxyDatabase.POINTS_UNLOCKED(parentPlanet);
-        if(composition < pointsRequired) {
+        if (composition < pointsRequired) {
             return Pair.of(false, "composition data: " + composition + " / " + pointsRequired);
         }
 
@@ -177,6 +177,54 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         }
     }
 
+    public void cycleSelection() {
+        Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
+        if (myDim instanceof SpaceStationDimension spaceStation) {
+            Dimension parentDim = DimensionManager.INSTANCE_SERVER.get(spaceStation.getParentDimensionId());
+            if (parentDim instanceof PlanetDimension parentPlanet && spaceStation.isInOrbit()) {
+
+                // only allow selection of gas when composition is unlocked to not spoiler the composition
+                ItemStack stack = inventory.getStackInSlot(0);
+                if (!(stack.getItem() instanceof ItemGalaxyDatabase)) {
+                    gasSelector.setTextAndSync("no gas selected");
+                    return;
+                }
+                ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(stack, parentPlanet);
+                if (info == null) {
+                    gasSelector.setTextAndSync("no gas selected");
+                    return;
+                }
+                int composition = info.get(DataTypes.composition);
+                int pointsRequired = ItemGalaxyDatabase.POINTS_UNLOCKED(parentPlanet);
+                if (composition < pointsRequired) {
+                    gasSelector.setTextAndSync("no gas selected");
+                    return;
+                }
+
+
+                // 1. Fetch the available options
+                List<String> options = new ArrayList<>(parentPlanet.getGasMiningOptions());
+                // 2. Handle the empty case
+                if (options.isEmpty()) {
+                    gasSelector.setTextAndSync("no gas selected");
+                    return;
+                }
+                // 3. Sort to ensure "cycling" isn't random every time the function runs
+                Collections.sort(options);
+                // 4. Find where our current string sits in the list
+                int currentIndex = options.indexOf(gasSelector.text);
+                // 5. If not found, or if it's the last item, wrap to the start (index 0)
+                // Otherwise, move to the next index
+                int nextIndex = (currentIndex == -1 || currentIndex == options.size() - 1)
+                        ? 0
+                        : currentIndex + 1;
+
+                String next = options.get(nextIndex);
+                gasSelector.setTextAndSync(next);
+            }
+        }
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
         super.readServer(compoundTag, serverPlayer);
@@ -185,31 +233,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
             int btn = compoundTag.getInt("guiButtonClick");
             if (btn == gas_selector_btn_id) {
                 // cycle gas mining selection
-                Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-                if (myDim instanceof SpaceStationDimension spaceStation) {
-                    Dimension parentDim = DimensionManager.INSTANCE_SERVER.get(spaceStation.getParentDimensionId());
-                    if (parentDim instanceof PlanetDimension parentPlanet && spaceStation.isInOrbit()) {
-                        // 1. Fetch the available options
-                        List<String> options = new ArrayList<>(parentPlanet.getGasMiningOptions());
-                        // 2. Handle the empty case
-                        if (options.isEmpty()) {
-                            gasSelector.setTextAndSync("no gas selected");
-                        } else {
-                            // 3. Sort to ensure "cycling" isn't random every time the function runs
-                            Collections.sort(options);
-                            // 4. Find where our current string sits in the list
-                            int currentIndex = options.indexOf(gasSelector.text);
-                            // 5. If not found, or if it's the last item, wrap to the start (index 0)
-                            // Otherwise, move to the next index
-                            int nextIndex = (currentIndex == -1 || currentIndex == options.size() - 1)
-                                    ? 0
-                                    : currentIndex + 1;
-
-                            String next = options.get(nextIndex);
-                            gasSelector.setTextAndSync(next);
-                        }
-                    }
-                }
+                cycleSelection();
             }
         }
     }
