@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Configuration
 MOD_FOLDERS = [
-    "advRocketry", "aos_basic_fluid", "aos_core", "ar_machines",
+    "advRocketry", "aos_basic_fluid", "aos_core", "ar_machines", "aos_workshop_expansion",
     "ARLib", "aw_generators", "better_pipes", "finite_water"
 ]
 TARGET_DIR = Path("./build")
