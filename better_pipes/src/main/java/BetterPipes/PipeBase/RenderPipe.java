@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,7 +45,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
     ResourceLocation pumpArmTexture;
 
-    public RenderPipe() {
+    public RenderPipe(BlockEntityRendererProvider.Context c) {
         super();
         this.pumpArmTexture = ResourceLocation.fromNamespaceAndPath("betterpipes", "textures/block/crankshaft_pump.png");
     }

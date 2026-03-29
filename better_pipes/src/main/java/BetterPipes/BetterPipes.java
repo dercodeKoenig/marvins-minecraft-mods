@@ -4,8 +4,6 @@ import BetterPipes.PipeBase.RenderPipe;
 import BetterPipes.Tank.RenderTank;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -43,8 +41,9 @@ public class BetterPipes {
     }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_IRON_PIPE.get(), (c) -> new RenderPipe());
-        event.registerBlockEntityRenderer(ENTITY_WOODEN_PIPE.get(), (c) -> new RenderPipe());
+        // use renderer::new and not new xyz() or server crashes
+        event.registerBlockEntityRenderer(ENTITY_IRON_PIPE.get(), RenderPipe::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_PIPE.get(), RenderPipe::new);
         event.registerBlockEntityRenderer(ENTITY_TANK.get(), RenderTank::new);
     }
 
