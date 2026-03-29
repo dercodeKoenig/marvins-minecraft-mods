@@ -18,6 +18,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
@@ -228,6 +229,16 @@ public class SkyRenderer {
 
     public static void debugCommandRender() {
         //INSTANCE.createStarBackgroundBuffer();
+    }
+
+    public static void ensureMipmapTexture(ResourceLocation texture){
+        // ensure it is using the mipmap texture
+        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+        if (!(texturemanager.getTexture(texture) instanceof MipmapSimpleTexture)) {
+            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(texture, 6);
+            texturemanager.register(texture, newTexture);
+            System.out.println("registering mipmap texture for " + texture);
+        }
     }
 
     void createStarBackgroundBuffer() {

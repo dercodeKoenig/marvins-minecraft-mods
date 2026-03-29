@@ -212,14 +212,16 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
                 if (Files.isRegularFile(file)) {
+                    String content;
                     try {
-                        String content = Files.readString(file);
-                        loadDimensionFromString(content);
-                        System.out.println("[DimensionManager] Loaded dimension from file: " + file.getFileName());
+                        content = Files.readString(file);
                     } catch (Exception e) {
                         System.err.println("[DimensionManager] Failed to read file: " + file + " (" + e.getMessage() + ")");
                         e.printStackTrace();
+                        continue;
                     }
+                    loadDimensionFromString(content);
+                    System.out.println("[DimensionManager] Loaded dimension from file: " + file.getFileName());
                 }
             }
         } catch (Exception e) {

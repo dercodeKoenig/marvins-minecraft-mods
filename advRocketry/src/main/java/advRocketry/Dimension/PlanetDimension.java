@@ -4,6 +4,7 @@ import advRocketry.Config;
 import advRocketry.GlobalTime;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.MipmapSimpleTexture;
+import advRocketry.Render.SkyRenderer;
 import advRocketry.Utils.AxisDirections;
 import advRocketry.Utils.CelestialUtils;
 import advRocketry.Utils.ClientUtils;
@@ -23,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
@@ -41,9 +43,10 @@ public class PlanetDimension extends Dimension {
 
     public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
-        if (isClientSide) {
-            // ensure mipmap textures are created at start to avoid lag during space travel
-            getTexture();
+        if (FMLEnvironment.dist.isClient()) {
+            // i can not do it in this class because it would load abstract texture to server and it crashes
+            // by wrapping it in another class it will not trigger server crash unless the class is loaded
+            SkyRenderer.ensureMipmapTexture(getTexture());
         }
     }
 
@@ -316,17 +319,7 @@ public class PlanetDimension extends Dimension {
         return getRadiationIntensity() > 0;
     }
 
-    public ResourceLocation getTexture() {
-        ResourceLocation texture = properties().texture;
-        // ensure it is using the mipmap texture
-        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-        if (!(texturemanager.getTexture(texture) instanceof MipmapSimpleTexture)) {
-            MipmapSimpleTexture newTexture = new MipmapSimpleTexture(texture, 6);
-            texturemanager.register(texture, newTexture);
-            System.out.println("registering mipmap texture for " + texture);
-        }
-        return texture;
-    }
+    public ResourceLocation getTexture() {return properties().texture;}
 
     public Vec3 getRotationAxis() {
         return properties().rotationAxis;
