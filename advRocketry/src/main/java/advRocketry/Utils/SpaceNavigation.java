@@ -67,8 +67,8 @@ public class SpaceNavigation {
             if (closestDistanceOnRay == 0) // go above and hope we dont fly along y axis
                 target = closestPlanetPosition.add(new Vec3(0, requiredDistance, 0));
             else {
-                if(myPos.distanceTo(closestPlanetPosition) < requiredDistance){
-                    // too close, go around
+                if(myPos.distanceTo(closestPlanetPosition) < requiredDistance * 2){
+                    // too close, go around ( use 2x because i think 1x causes it to flicker the target around )
                     Vec3 ortho = toPlanet.cross(travelDir).normalize();
                     Vec3 avoidanceVector = ortho.cross(toPlanet).normalize().scale(requiredDistance);
                     target = myPos.add(avoidanceVector);

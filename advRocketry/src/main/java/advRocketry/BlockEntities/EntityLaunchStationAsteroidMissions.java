@@ -64,10 +64,6 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
         return false;
     }
 
-    public void onInventoryChanged() {
-
-    }
-
     public void openGui() {
         guiHandler.openGui(176, 165, true);
     }

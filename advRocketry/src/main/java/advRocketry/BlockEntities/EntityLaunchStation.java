@@ -46,7 +46,6 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         inventory = new ItemStackHandler(1) {
             @Override
             protected void onContentsChanged(int slot) {
-                onInventoryChanged();
                 setChanged();
             }
 
@@ -90,11 +89,6 @@ public class EntityLaunchStation extends EntityRocketInfrastructureBase implemen
         if (stack.getItem() instanceof ItemLinker)
             return true;
         return false;
-    }
-
-    // overwrite in subclasses
-    public void onInventoryChanged() {
-
     }
 
     public void openGui() {

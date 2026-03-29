@@ -40,6 +40,8 @@ import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
 
 public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
 
+    // TODO: make option to recover asteroids by planet chip without asteroid id chip
+
     UUID lastLaunchedMissionUUID = null;
     UUID lastLaunchedRocketUUID = null;
     guiModuleText statusText;
@@ -69,10 +71,6 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
         if (stack.getItem() instanceof ItemPlanetIdChip) return true;
         if (stack.getItem() instanceof ItemSatelliteIdChip) return true;
         return false;
-    }
-
-    public void onInventoryChanged() {
-
     }
 
     public void openGui() {

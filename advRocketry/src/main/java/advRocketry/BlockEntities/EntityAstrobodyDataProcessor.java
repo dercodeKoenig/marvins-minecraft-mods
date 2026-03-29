@@ -161,7 +161,12 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                     data.dataBarDatabase.setHoverInfoAndSync(data.lastType + ": " + dataOnDisk + " / " + requiredData);
                 }
 
-                if (dataOnDisk < requiredData && dataStack != null && dataStack.amount > 0 && super.getTotalEnergyStored(energyInputBlocks) >= Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick) {
+                if (dataOnDisk < requiredData &&
+                        dataStack != null &&
+                        dataStack.amount > 0 &&
+                        targetPlanet != null &&
+                        super.getTotalEnergyStored(energyInputBlocks) >= Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick
+                ) {
                     super.consumeEnergy(Config.INSTANCE.astrobody_Data_Processor_Energy_Per_Tick, energyInputBlocks);
                     if (Math.random() < 0.1) {
                         dataStorageBlock.dataStorage.extractData(1, false);

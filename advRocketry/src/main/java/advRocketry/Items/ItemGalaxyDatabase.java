@@ -79,6 +79,7 @@ public class ItemGalaxyDatabase extends Item {
     }
 
     public static void discoverPlanet(ItemStack stack, PlanetDimension planet) {
+        if(planet == null) return;
         discoverPlanet(stack, planet.getDimensionId().toString());
     }
 
