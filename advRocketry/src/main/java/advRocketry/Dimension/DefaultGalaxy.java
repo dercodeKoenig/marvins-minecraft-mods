@@ -26,9 +26,9 @@ public class DefaultGalaxy {
         sun.earthRadiusMultiplier = 100;
         sun.rotationAxis = new Vec3(0, 1, 0).normalize();
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_adjusted.png");
-        sun.emissiveColor = new Vector3f(1f, 1f, 0.8f).mul(1.2f);
+        sun.emissiveLightColor = new Vector3f(1f, 1f, 0.8f).mul(1.2f);
         sun.radiationIntensity = 2;
-        sun.textureTintColor = new Vector3f(1,1,1).mul(7f);
+        sun.emissiveTextureTintColor = new Vector3f(1,1,1).mul(14f);
         sun.isKnown = true;
         galaxy.add(sun);
 
@@ -179,9 +179,9 @@ public class DefaultGalaxy {
         priate.earthRadiusMultiplier = 100;
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
-        priate.emissiveColor = new Vector3f(1f, 0.9f, 0.8f);
+        priate.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);
         priate.radiationIntensity = 3f;
-        priate.textureTintColor = new Vector3f(1,1,1).mul(7f);
+        priate.emissiveTextureTintColor = new Vector3f(1,1,1).mul(14f);
         priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
 
@@ -211,7 +211,7 @@ public class DefaultGalaxy {
         mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
         mustafar.fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
-        mustafar.textureTintColor = new Vector3f(1,1,1).mul(3f); // make lava glow
+        mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(3f); // make lava glow
         galaxy.add(mustafar);
 
 

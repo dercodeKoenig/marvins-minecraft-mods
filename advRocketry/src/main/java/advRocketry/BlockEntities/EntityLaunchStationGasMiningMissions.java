@@ -34,6 +34,8 @@ import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 
 public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
 
+    // TODO: add inventory back, requires galaxy database with full composition unlocked for mining!
+
     public static int gas_selector_btn_id = 6384;
     public UUID lastLaunchedMissionUUID = null;
     public UUID lastLaunchedRocketUUID = null;

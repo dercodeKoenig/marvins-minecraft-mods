@@ -23,7 +23,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public float orbitalDistanceToParent = 1;
     public float orbitalBaseOffsetDegrees = 0;
     public ResourceLocation dayTimeReference = null;  // required reference for day start
-    public float radiationIntensity = 0; // radiation strength, used for terrain shading, and temperature calculation and to scale emissive light in planet render, 2 is default for sun
+    public float radiationIntensity = 0; // radiation strength, used for terrain shading, and temperature calculation, and shading other planets
     public int latitude_len = 400000;// how much you have to move in z direction to "go around the planet" 0% = equator, 25% = South Pole, 50% = equator again, 75% = North Pole
     public int targetDayLength = 24000; // set negative or 0 for fixed time
     public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
@@ -51,8 +51,9 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public Vector3f cloudColor = new Vector3f(1, 1, 1); // TODO: calculate based on atm when null
     public Vector3f fogColor = new Vector3f(0.8f, 0.9f, 1.1f); // fog color
     public Vector3f sunRiseColor = new Vector3f(3f, 1.6f, 0.2f); // the atm shading on sunrise
-    public Vector3f textureTintColor = new Vector3f(1f, 1f, 1f); // texture is multiplied by this value to tint it or make it brighter
-    public Vector3f emissiveColor = new Vector3f(0, 0, 0); // the color that the planet radiates with for render
+    public Vector3f reflectiveTextureTintColor = new Vector3f(1f, 1f, 1f); // reflective texture is multiplied by th
+    public Vector3f emissiveTextureTintColor = new Vector3f(0, 0, 0); // the color that the planets emissive texture is tinted with
+    public Vector3f emissiveLightColor = new Vector3f(0, 0, 0); // the color that the planet radiates with to shade other planets
     public boolean hasRingSystem = false;
 
     public float dayTime; // do not set yourself

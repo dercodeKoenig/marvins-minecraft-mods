@@ -89,40 +89,31 @@ public class SkyRenderer {
         shader.getUniform("WorldMat").set(worldMatrix); // so it can transform universe space to world space
         shader.getUniform("ModelMat").set(planetMatrix); // the planet transformation in universe space
 
-        Vector3f emissiveColor = RenderUtils.gamma_reverse(planetDimension.getEmissiveColor());
-        shader.getUniform("emissiveColor").set(new Vector4f(emissiveColor.x, emissiveColor.y, emissiveColor.z, planetDimension.getRadiationIntensity()));
-
         shader.getUniform("LocalAtmDensity").set(myAtmDensity);
-
         Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(mySunriseColor);
         shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
 
         shader.getUniform("TargetAtmDensity").set(planetDimension.getAtmosphereDensity());
-
         Vector3f TargetSunriseColor = RenderUtils.gamma_reverse(planetDimension.getSunRiseColor());
         shader.getUniform("TargetSunriseColor").set(TargetSunriseColor);
-
         Vector3f TargetSkyColor = RenderUtils.gamma_reverse(planetDimension.getSkyColor());
         shader.getUniform("TargetSkyColor").set(TargetSkyColor);
 
         Vector3f TargetCloudColor = RenderUtils.gamma_reverse(planetDimension.computeRawCloudColor());
         shader.getUniform("TargetCloudColor").set(TargetCloudColor);
-
         float TargetCloudValue = planetDimension.computeCloudValue();
         shader.getUniform("TargetCloudValue").set(TargetCloudValue);
-
         shader.getUniform("CloudWarp").set(Config.INSTANCE.planet_Cloud_Noise_Warp ? 1 : 0);
         shader.getUniform("CloudSampleSteps").set(Config.INSTANCE.planet_Cloud_Noise_Samples);
 
-        shader.getUniform("TargetTextureTintColor").set(planetDimension.getTextureTintColor());
+        shader.getUniform("TargetTextureTintColor").set(planetDimension.getReflectiveTextureTintColor());
+        shader.getUniform("TargetEmissiveTextureColor").set(planetDimension.getEmissiveTextureTintColor());
 
         shader.getUniform("BrightnessMultiplier").set(brightnessModifider);
 
         shader.getUniform("playerHeight").set(playerHeightAboveSea);
-
-        shader.getUniform("playerEye").set(eyePos);
-
         shader.getUniform("planetSkyHeight").set((float) Config.INSTANCE.planet_Sky_Height);
+        shader.getUniform("playerEye").set(eyePos);
 
         Vector3f localTerrainFogColor = RenderUtils.gamma_reverse(myCurrentFogColor);
         shader.getUniform("localTerrainFogColor").set(localTerrainFogColor);

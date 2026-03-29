@@ -12,7 +12,6 @@ import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.PlanetDimensionGeneration;
 import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -30,7 +29,6 @@ import org.joml.Vector3f;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static advRocketry.Dimension.PlanetDimensionProperties.SKY_COLOR_OVERWORLD;
 import static advRocketry.Utils.CelestialUtils.fromAU;
 import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 
@@ -193,7 +191,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public Vector3f getEmissiveColor() {
-        return properties().emissiveColor;
+        return properties().emissiveLightColor;
     }
 
     public float getGravitationalMultiplier() {
@@ -303,8 +301,11 @@ public class PlanetDimension extends Dimension {
         return getGlobalAxisDirections(partialTick, getLatitudeFromZPosition(ClientUtils.getSinglePlayer().position().z));
     }
 
-    public Vector3f getTextureTintColor() {
-        return new Vector3f(properties().textureTintColor);
+    public Vector3f getReflectiveTextureTintColor() {
+        return new Vector3f(properties().reflectiveTextureTintColor);
+    }
+    public Vector3f getEmissiveTextureTintColor() {
+        return new Vector3f(properties().emissiveTextureTintColor);
     }
 
     public boolean hasRings() {

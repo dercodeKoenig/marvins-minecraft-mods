@@ -13,7 +13,7 @@ uniform vec3 LightVectors[MAX_LIGHTS];
 uniform int LightCount;
 
 uniform float BrightnessMultiplier;
-uniform vec4 emissiveColor;      // planet’s self-emission (rgb + intensity)
+uniform vec3 TargetEmissiveTextureColor;   // tint for emissive texture
 uniform vec3 TargetTextureTintColor; // tint the texture
 uniform float TargetAtmDensity;  // target planet atmosphere (affects rim)
 uniform vec3 TargetSunriseColor;  // tint for clouds
@@ -51,7 +51,6 @@ void main() {
 
     vec3 baseSurfaceColor = texture(Sampler0, texcoord).rgb;
     baseSurfaceColor = pow(baseSurfaceColor, vec3(2.2)); // gamma reverse
-    baseSurfaceColor *= TargetTextureTintColor;
 
     // if this is my current planet below, tint the surface in fog color for smooth transition
     if(isLocalPlanet == 1){
@@ -134,7 +133,7 @@ void main() {
         // when no atmosphere use ndotl,
         // when atmosphere, extend the ndotl because atm scatters light past the 0 line
         float NdotLmix = mix(surfaceLightFactor, atmLightFactor, normalizedTargetAtmDensity);
-        vec3 surfaceLight = baseSurfaceColor * NdotLmix;
+        vec3 surfaceLight = baseSurfaceColor * TargetTextureTintColor * NdotLmix;
 
         // clouds color are higher up and use the extended dot
         // the following logic aims to keep clouds nice and bright for the day side
@@ -169,15 +168,8 @@ void main() {
         totalReflectedLight *= 1 / pow(totalBrightness, 0.5);
     }
 
-    vec3 emitted = vec3(0,0,0);
-    if(emissiveColor.a > 0) {
-        emitted = emissiveColor.rgb * baseSurfaceColor * emissiveColor.a;
-    }
-
-    // Extract the "Overbright" texture parts as self-emission
-    // Anything that exceeds 1.0 after textureBrightness is applied becomes a light source and glows independent of star light
-    // (TODO: this could use an extra emissive texture in future)
-    vec3 textureEmission = max(0,(1 - cloudValue)) * max(vec3(0.0), baseSurfaceColor - vec3(1));
+    // emitted light
+    vec3 emitted = baseSurfaceColor * TargetEmissiveTextureColor * (1 - cloudValue);
 
     // some ambient air glow
     vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.02;
@@ -201,7 +193,7 @@ void main() {
     }
 
     vec3 finalColor =
-        (totalReflectedLight + emitted + textureEmission + airglow)
+        (totalReflectedLight + emitted + airglow)
         * atmFilter
         * BrightnessMultiplier;
 
