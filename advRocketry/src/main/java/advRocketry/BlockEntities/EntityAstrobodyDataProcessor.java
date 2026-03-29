@@ -40,10 +40,10 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
 
     public static Object[][][] structure =
             new Object[][][]{
-                            {{'s', 'c', 's'},
+                    {{'s', 'c', 's'},
                             {'s', 's', 's'}},
 
-                            {{'e', 'S', 'e'},
+                    {{'e', 'S', 'e'},
                             {'d', 'd', 'd'}}
             };
     public static HashMap<Character, List<Block>> charMapping = new HashMap<>();
@@ -74,8 +74,9 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
             public void onContentsChanged(int slot) {
                 setChanged();
             }
+
             @Override
-            public int getSlotLimit(int slot){
+            public int getSlotLimit(int slot) {
                 return 1;
             }
         };
@@ -174,7 +175,10 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                         ItemGalaxyDatabase.setPlanetInfo(database, targetPlanet, info);
                     }
                     setChanged();
-                } else if (database.getItem() instanceof ItemGalaxyDatabase && dataOnDisk >= requiredData && deleteLeftoverData) {
+                } else if (
+                        (dataOnDisk >= requiredData || targetPlanet == null) &&
+                                deleteLeftoverData
+                ) {
                     // clear leftover data
                     // database has to be inserted to check if dataOnDisk >= requiredData
                     dataStorageBlock.dataStorage.extractData(1, false);
@@ -202,7 +206,7 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
                 int maxEnergy = super.getMaxEnergyStored(energyInputBlocks);
                 energyBar.setProgressAndSync((double) energy / maxEnergy);
                 energyBar.setHoverInfoAndSync("rf: " + energy + " / " + maxEnergy);
-                if(deleteLeftoverData)
+                if (deleteLeftoverData)
                     deleteLeftoverDataBtn.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
                 else
                     deleteLeftoverDataBtn.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
@@ -213,9 +217,9 @@ public class EntityAstrobodyDataProcessor extends EntityMultiblockMachineMasterW
     @Override
     public void readServer(CompoundTag tag, ServerPlayer player) {
         guiHandler.readServer(tag);
-        if(tag.contains("guiButtonClick")){
+        if (tag.contains("guiButtonClick")) {
             int btn = tag.getInt("guiButtonClick");
-            if(btn == deleteLeftoverDataBtnId){
+            if (btn == deleteLeftoverDataBtnId) {
                 deleteLeftoverData = !deleteLeftoverData;
                 setChanged();
             }
