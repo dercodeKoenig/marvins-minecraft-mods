@@ -76,6 +76,7 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
                 AsteroidManager.DiscoveredAsteroid target = ItemAsteroidIdChip.getSelectedAsteroid(navigationItem);
                 if (target == null || target.isExpired()) {
                     ItemAsteroidIdChip.setDescriptionForAsteroid(navigationItem, "Asteroid invalid");
+                    setChanged();
                 } else {
                     lastLaunchedMissionUUID = UUID.randomUUID();
                     BlockPos landPos = linkedRocket.getDockingStationPos();
@@ -103,13 +104,27 @@ public class EntityLaunchStationAsteroidMissions extends EntityLaunchStation {
                     // no longer valid program
                     lastLaunchedRocketUUID = null;
                 }
-            } else if (lastLaunchedMissionUUID != null && MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission) {
-                int eta = (int) (runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
-                statusText.setTextAndSync("Mission in progress, eta: " + eta + "s");
+            } else if (lastLaunchedMissionUUID != null) {
+                if (MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission) {
+                    int eta = (int) (runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
+                    statusText.setTextAndSync("Mission in progress, eta: " + eta + "s");
+                } else {
+                    // mission completed or somehow invalid
+                    lastLaunchedMissionUUID = null;
+                }
             } else {
-                statusText.setTextAndSync("");
-                lastLaunchedMissionUUID = null;
-                lastLaunchedRocketUUID = null;
+                ItemStack navigationItem = inventory.getStackInSlot(0);
+                if (navigationItem.getItem() instanceof ItemAsteroidIdChip) {
+                    AsteroidManager.DiscoveredAsteroid target = ItemAsteroidIdChip.getSelectedAsteroid(navigationItem);
+                    if (target == null || target.isExpired()) {
+                        statusText.setTextAndSync("Asteroid invalid");
+                    } else {
+                        AsteroidManager.Asteroid asteroid = AsteroidManager.getAsteroid(target);
+                        statusText.setTextAndSync(asteroid.description);
+                    }
+                } else {
+                    statusText.setTextAndSync("");
+                }
             }
         }
     }
