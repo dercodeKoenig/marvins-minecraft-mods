@@ -28,7 +28,7 @@ public class ItemSolarPanel extends BlockItem implements SatelliteEnergyProducer
                     maxStarlight = Math.max(starlight, maxStarlight);
                 }
             }
-            double multiplier = 2.5;
+            double multiplier = 3.5;
             return Math.min(10, maxStarlight * multiplier);
         }
         return 1;
