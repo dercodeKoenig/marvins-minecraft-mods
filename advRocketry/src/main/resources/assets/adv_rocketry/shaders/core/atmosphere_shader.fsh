@@ -43,6 +43,8 @@ void main() {
 
     vec3 SkyColorBase = SkyColor * globalBrightnessModifier;
 
+    vec3 SunRiseColorBase = SunriseColor * globalBrightnessModifier;
+
     vec3 cumulativeSkyColor = vec3(0);
 
     vec3 cumulativeSunriseGlow = vec3(0);
@@ -75,12 +77,12 @@ void main() {
 
         // glowing sunrise color to be added to the base color
         vec3 sunriseGlow =
-        SunriseColor *
+        SunRiseColorBase *
         starColor.rgb *
         sunriseGlowMultiplier * // glow more where the sun is aligned with the fragment
         pow(sunAtHorizon, 10) * // glow more when sun is at horizon
-        horizonFactor * // glow more when the fragment is at horizon (you dont want glow high above you)
-        globalBrightnessModifier;
+        horizonFactor // glow more when the fragment is at horizon (you dont want glow high above you)
+        ;
 
         // add
         cumulativeSkyColor += SkyColorBase * perStarBrightnessMultiplier;

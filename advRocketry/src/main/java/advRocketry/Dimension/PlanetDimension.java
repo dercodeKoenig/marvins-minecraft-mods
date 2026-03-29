@@ -252,31 +252,34 @@ public class PlanetDimension extends Dimension {
     }
 
     public double computeTerrainBrightness(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0, 1);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.1f, 0.8f, null);
+        brightness = Math.clamp(brightness, 0, 1); // renderer mixin does *0.8+0.2
         return brightness;
     }
 
     public Vector3f computeRawCloudColor() {
-        // return properties cloud color if not null, else compute based on atm composition
+        // TODO return properties cloud color if not null, else compute based on atm composition
         return new Vector3f(properties().cloudColor);
     }
 
     public Vector3f computeTerrainCloudColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, null);
-        brightness = Math.clamp(Math.pow(brightness, 0.8), 0.2, 1);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, 0.8f,null);
+        brightness = Math.clamp(brightness, 0.2, 1);
         return computeRawCloudColor().mul((float) brightness);
     }
 
     // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, null);
-        brightness = Math.pow(brightness, 1.5);
+        // fog color calculation should match the sky color calculation in the atm shader
+        // atm shader uses 0.3 / 2 for brightness and  atm * exp(-atm) as modifier
+        // i use 1.5 pow for this to offset that we lose the star halo that the shader applies
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.3f, 1.5f, null);
         double atmDensity = getAtmosphereDensity();
-
-        return RenderUtils.gamma_reverse(properties().fogColor).mul((float) brightness).mul((float) (atmDensity/(1+atmDensity)));
-        // TODO: tint in sunrise color when player is facing toward star as minecraft does it
-        //      ( there is always just a single color for terrain fog )
+        double extinction = Math.exp(-atmDensity);
+        return RenderUtils.gamma_reverse(properties().fogColor)
+                .mul((float) brightness)
+                .mul((float) atmDensity)
+                .mul((float) (extinction));
     }
 
     public float getAtmosphereDensity() {
@@ -513,17 +516,21 @@ public class PlanetDimension extends Dimension {
     /**
      * Computes the accumulated star intensity by relevant stars adjusted by the surface dot to the targets with a dot offset.
      * For example, clouds should stay bright a little longer while terrain goes dark already, so increase dot offset for clouds
+     * Pow factor makes for a more slow start when > 1 or a quick start and flat elevated curve when < 1
      */
-    public double getAccumulatedStarIntensity(float partialTick, float dotOffset, @Nullable Vec3 myPlanetPosition) {
+    public double getAccumulatedStarIntensity(float partialTick, float dotOffset, float dotPow, @Nullable Vec3 myPlanetPosition) {
         if (myPlanetPosition == null) myPlanetPosition = getPosition(partialTick);
         double totalStarIntensity = 0;
         for (ResourceLocation targetId : getCurrentMainStars()) {
             Dimension target = dimensionManager.get(targetId);
             if (target == null) continue;
             Vec3 targetPosition = target.getPosition(partialTick);
-            double distance = targetPosition.distanceTo(myPlanetPosition);
-            double dotMultiplier = Math.max(0, (getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition) + dotOffset) / (1 + dotOffset));
-            double intensity = dotMultiplier * target.getRadiationIntensity() / (distance * distance);
+            double distanceToSqr = targetPosition.distanceToSqr(myPlanetPosition);
+            double dot = getSurfaceDotToTarget(target, partialTick, myPlanetPosition, targetPosition);
+            double dotMultiplier = (dot + dotOffset) / (1 + dotOffset);// offset
+            dotMultiplier = Math.max(0, dotMultiplier);// clip
+            dotMultiplier = Math.pow(dotMultiplier, dotPow);// pow
+            double intensity = dotMultiplier * target.getRadiationIntensity() / distanceToSqr;
             totalStarIntensity += intensity;
         }
         return totalStarIntensity;
