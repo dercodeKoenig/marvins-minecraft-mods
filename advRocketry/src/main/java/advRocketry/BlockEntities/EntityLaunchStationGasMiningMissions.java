@@ -113,14 +113,6 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
 
     public void updateGuiText() {
 
-        Pair<Boolean, String> canMine = canMine();
-        if (!canMine.getFirst()) {
-            statusText.setTextAndSync(canMine.getSecond());
-            launchButton.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
-            return;
-        }
-        launchButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
-
         if (level instanceof ServerLevel serverLevel && !guiHandler.playersTrackingGui.isEmpty()) {
             if (lastLaunchedRocketUUID != null) {
                 if (serverLevel.getEntity(lastLaunchedRocketUUID) instanceof EntityRocket rocket && rocket.currentProgram instanceof ProgramGasMiningMission programGasMiningMission) {
@@ -137,7 +129,14 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
                     lastLaunchedMissionUUID = null;
                 }
             } else {
-                statusText.setTextAndSync("status: ready for gas mining");
+                Pair<Boolean, String> canMine = canMine();
+                if (!canMine.getFirst()) {
+                    statusText.setTextAndSync(canMine.getSecond());
+                    launchButton.setBackgroundAndSync(BTN_RED, BTN_W, BTN_H);
+                }else {
+                    launchButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+                    statusText.setTextAndSync("status: ready for gas mining");
+                }
             }
         }
     }
