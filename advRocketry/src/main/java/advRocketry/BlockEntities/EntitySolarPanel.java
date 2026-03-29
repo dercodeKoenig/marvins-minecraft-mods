@@ -135,7 +135,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                 double distance = planetToStar.length();
                 double dot = Math.max(0, up.dot(planetToStar.normalize()));
                 double intensity = star.getRadiationIntensity();
-                double atmModifier = 1 - (dim.getAtmosphereDensity() / (1 + dim.getAtmosphereDensity()));
+                double atmModifier = Math.exp(-dim.getAtmosphereDensity());
                 double finalIntensity = dot * intensity * atmModifier / (distance * distance);
                 accumulatedStarlightIntensity += finalIntensity;
             }
@@ -143,7 +143,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
 
         // with normal atmosphere density (1) and sun intensity (2) and normal distance (1AU)
         // this should make it produce around 2.5rf/tick during noon
-        double multiplier = 2.5;
+        double multiplier = 3.5;
         return (float) Math.min(10,accumulatedStarlightIntensity * multiplier);
     }
 
