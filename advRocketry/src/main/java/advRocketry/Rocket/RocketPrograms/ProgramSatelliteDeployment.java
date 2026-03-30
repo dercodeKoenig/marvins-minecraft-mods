@@ -17,28 +17,22 @@ import java.util.UUID;
 
 public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
     ResourceLocation targetPlanet;
+    long missionDuration;
 
     public ProgramSatelliteDeployment(){
 
     }
 
-    public ProgramSatelliteDeployment(EntityRocket rocket, ResourceLocation targetPlanet, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
+    public ProgramSatelliteDeployment(EntityRocket rocket, ResourceLocation targetPlanet, long missionDuration, ResourceLocation returnLevel, BlockPos returnPos, UUID missionId) {
         super(rocket, returnLevel, returnPos, missionId);
         this.targetPlanet = targetPlanet;
+        this.missionDuration = missionDuration;
     }
 
     public void startMission(EntityRocket rocket) {
         SatelliteDeploymentMission mission = new SatelliteDeploymentMission();
         mission.setTarget(targetPlanet);
-        long duration = 20 * 30; // base wait
-        if(DimensionManager.INSTANCE_SERVER.get(targetPlanet) instanceof PlanetDimension planetDimension){
-            if(DimensionManager.INSTANCE_SERVER.get(super.returnLevel) instanceof Dimension origin){
-                double distanceAU = planetDimension.getPosition(0).distanceTo(origin.getPosition(0));
-                double extraSecond = distanceAU / Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
-                duration += (long) (20 * extraSecond * 3); // extra time for moving to long distance planets
-            }
-        }
-        mission.startMission(rocket, GlobalTime.getGlobalTime() + duration, missionId, returnLevel, returnPos);
+        mission.startMission(rocket, GlobalTime.getGlobalTime() + missionDuration, missionId, returnLevel, returnPos);
     }
 
     @Override
@@ -46,6 +40,7 @@ public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
         super.readFromNbt(nbt);
         if(nbt.contains("targetPlanet"))
             targetPlanet = ResourceLocation.parse(nbt.getString("targetPlanet"));
+        missionDuration = nbt.getLong("missionDuration");
     }
 
     @Override
@@ -53,6 +48,7 @@ public class ProgramSatelliteDeployment extends ProgramMissionStartBase {
         CompoundTag tag = super.saveToNbt();
         if(targetPlanet != null)
             tag.putString("targetPlanet", targetPlanet.toString());
+        tag.putLong("missionDuration", missionDuration);
         return tag;
     }
 }

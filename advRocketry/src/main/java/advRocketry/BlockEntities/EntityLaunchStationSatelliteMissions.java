@@ -5,6 +5,7 @@ import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Blocks.LaunchStation;
+import advRocketry.Config;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.GlobalTime;
@@ -46,7 +47,6 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
     // TODO: maybe make option to recover asteroids by planet chip without asteroid id chip ?
 
     static double maxRangeForMission = 10;
-    static double longRangeWarning = 3;
 
     UUID lastLaunchedMissionUUID = null;
     UUID lastLaunchedRocketUUID = null;
@@ -85,13 +85,20 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
         guiHandler.openGui(176, 165, true);
     }
 
+    public long getMissionDuration(double distanceToTarget) {
+        long duration = 20 * 30; // base time
+        double extraSecond = Math.max(distanceToTarget, 0) / Config.INSTANCE.rocket_SpaceTravel_AU_Per_Second;
+        duration += (long) (20 * extraSecond * 3); // extra time for moving to long distance planets
+        return duration;
+    }
+
     public double distanceToTarget(ItemStack navigationItem) {
         Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
         if (myDim == null)
             return -1;
         if (navigationItem.getItem() instanceof ItemSatelliteIdChip) {
             Satellite sat = SatelliteManager.getSatellite(ItemSatelliteIdChip.getTarget(navigationItem));
-            if(sat == null)
+            if (sat == null)
                 return -1;
             if (DimensionManager.INSTANCE_SERVER.get(sat.parentDimensionId) instanceof Dimension dim) {
                 return dim.getPosition(0).distanceTo(myDim.getPosition(0));
@@ -111,8 +118,11 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
         if (linkedRocket != null && linkedRocket.currentProgram == null) {
             ItemStack navigationItem = inventory.getStackInSlot(0);
 
-            if (distanceToTarget(navigationItem) > maxRangeForMission)
+            double distance = distanceToTarget(navigationItem);
+            if (distance > maxRangeForMission)
                 return false;
+
+            long duration = getMissionDuration(distance);
 
             BlockPos landPos = linkedRocket.getDockingStationPos();
             if (landPos == null) landPos = linkedRocket.blockPosition();
@@ -120,7 +130,10 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
             lastLaunchedMissionUUID = UUID.randomUUID();
 
             if (navigationItem.getItem() instanceof ItemSatelliteIdChip) {
-                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, ItemSatelliteIdChip.getTarget(navigationItem), level.dimension().location(), landPos, lastLaunchedMissionUUID);
+                UUID satId = ItemSatelliteIdChip.getTarget(navigationItem);
+                if(SatelliteManager.getSatellite(satId) == null)
+                    return false; // sat does not exist
+                ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, satId, duration, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
                 lastLaunchedRocketUUID = linkedRocket.getUUID();
                 cycleNavigationItem(); // cycle item in case you want to pull back many satellites
@@ -129,7 +142,7 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
             } else if (navigationItem.getItem() instanceof ItemPlanetIdChip) {
                 ResourceLocation targetPlanet = ItemPlanetIdChip.getSelectedDimension(navigationItem);
                 if (targetPlanet != null) {
-                    ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(linkedRocket, targetPlanet, level.dimension().location(), landPos, lastLaunchedMissionUUID);
+                    ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteDeployment(linkedRocket, targetPlanet, duration, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                     linkedRocket.setProgramAndSync(programMissionStartBase);
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
                     return true;
@@ -162,11 +175,13 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
             } else {
                 ItemStack navItem = inventory.getStackInSlot(0);
                 double distance = distanceToTarget(navItem);
+                long time = getMissionDuration(distance);
+                int seconds = (int) (time / 20);
                 if (distance > maxRangeForMission) {
                     statusText.setTextAndSync("target out of range");
-                } else if (distance > longRangeWarning) {
-                    statusText.setTextAndSync("warning: long travel distance");
-                } else {
+                } else if(distance >= 0){
+                    statusText.setTextAndSync("ETA: " + seconds + "s");
+                }else{
                     statusText.setTextAndSync("");
                 }
             }
