@@ -55,8 +55,8 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         launchButton = new guiModuleButton(launch_btn_id, "launch", guiHandler, 10, 20, 40, 15, BTN_GREEN, BTN_W, BTN_H);
         guiHandler.modules.add(launchButton);
 
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(1, inventory, 0, 0, 1, guiHandler, 7, 60));
-        guiHandler.modules.add(new guiModuleItemStackRender(3, new ItemStack(Items.ITEM_GALAXY_DATABASE.get(), 1), 0.9f, guiHandler, 27, 60));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(1, inventory, 0, 0, 1, guiHandler, 7, 62));
+        guiHandler.modules.add(new guiModuleItemStackRender(3, new ItemStack(Items.ITEM_GALAXY_DATABASE.get(), 1), 0.9f, guiHandler, 27, 62));
 
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 150, 1000, 1, 0, guiHandler));
         guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 90, 2000, 1, 0, guiHandler));
@@ -65,7 +65,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
         gasSelector.color = 0xffffffff;
         guiHandler.modules.add(gasSelector);
 
-        statusText = new guiModuleText(76967884, "status", guiHandler, 10, 45, 0xff000000, false);
+        statusText = new guiModuleText(76967884, "status", guiHandler, 10, 40, 0xff000000, false);
         guiHandler.modules.add(statusText);
     }
 
