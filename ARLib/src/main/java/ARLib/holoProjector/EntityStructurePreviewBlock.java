@@ -54,11 +54,12 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
         if (sec != last_sec) {
             last_sec = sec;
             i += 1;
-            if (i >= validBlocks.size()) {
-                i = 0;
-            }
         }
-        //System.out.println(validBlocks.get(i));
+
+        if (i >= validBlocks.size()) {
+            i = 0;
+        }
+
         if (validBlocks.isEmpty()) {
             return Blocks.AIR;
         }
