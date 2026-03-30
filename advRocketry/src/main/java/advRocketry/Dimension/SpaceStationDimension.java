@@ -475,7 +475,7 @@ public class SpaceStationDimension extends Dimension {
         for (Dimension dim : dimensionManager.dimensions.values()) {
             if (dim instanceof PlanetDimension planet) {
                 Vec3 planetPosition = planet.getPosition(0);
-                double distance = planetPosition.distanceTo(getPosition(0));
+                double distance = planetPosition.distanceTo(properties().position);
                 if (distance < closestDistance) {
                     closestDistance = distance;
                     closestPlanet = planet;
@@ -488,11 +488,11 @@ public class SpaceStationDimension extends Dimension {
             if (closestDistance < planetRadius * 1.2) {
                 // fix the position, we are to close
                 // scale before normalize or numerical errors will break it!
-                Vec3 planetToStation = getPosition(0).subtract(closestPlanetPosition);
+                Vec3 planetToStation = properties().position.subtract(closestPlanetPosition);
                 if (planetToStation.length() < 0.000001)
                     planetToStation = new Vec3(Math.random() * 2 - 1, 0, Math.random() * 2 - 1);
-                properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.25));
-                System.out.println("fixed distance " + closestDistance / (planetRadius * 1.2));
+                properties().position = closestPlanetPosition.add(planetToStation.scale(10000).normalize().scale(planetRadius * 1.20001));
+                //System.out.println("fixed distance " + closestDistance / (planetRadius * 1.2));
             }
         }
 

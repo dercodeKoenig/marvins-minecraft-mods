@@ -129,8 +129,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             // this is specifically what this method is designed to do, to run when all mechanical blocks are on same state before tick
             // runs on both server and client side to keep the visuals correct
             if (crankShaftSide != null && hasAnyExtractionConnections) {
-                double otherRotation = ((IMechanicalBlockProvider) level.getBlockEntity(getBlockPos().relative(crankShaftSide))).getMechanicalBlock(crankShaftSide.getOpposite()).currentRotation;
-                myMechanicalBlock.currentRotation = otherRotation;
+                if (level.getBlockEntity(getBlockPos().relative(crankShaftSide)) instanceof IMechanicalBlockProvider mechanicalBlockProvider &&
+                        mechanicalBlockProvider.getMechanicalBlock(crankShaftSide.getOpposite()) instanceof AbstractMechanicalBlock mechanicalBlock
+                ) {
+                    myMechanicalBlock.currentRotation = mechanicalBlock.currentRotation;
+                }
             }
         }
     };
