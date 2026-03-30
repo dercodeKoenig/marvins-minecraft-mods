@@ -101,7 +101,9 @@ public class PlanetDimension extends Dimension {
         System.out.println("creating dimension for " + getDimensionId());
 
         BlockState seaFluid = Blocks.WATER.defaultBlockState();
-        int seaLevel = getGasProperty(GasRegistry.water).worldGenSeaLevel;
+        PlanetDimensionProperties.GasProperty water = getGasProperty(GasRegistry.water);
+        water.maybeAdjustWorldgenSeaLevel(); // make it calculate initial sea level
+        int seaLevel = water.worldGenSeaLevel;
 
         if (properties().customSeaFluid != null) {
             seaFluid = BuiltInRegistries.BLOCK.get(properties().customSeaFluid).defaultBlockState();

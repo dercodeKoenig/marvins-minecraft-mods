@@ -81,7 +81,6 @@ public class PlanetDimensionProperties extends DimensionProperties {
             this.liquid = liquid;
             this.frozen_surface = frozen_surface;
             this.frozen_deep_below_surface = frozen_deep_below_surface;
-            maybeAdjustWorldgenSeaLevel();
         }
 
         public double getSeaLevel() {
