@@ -143,6 +143,12 @@ public class PlanetDimension extends Dimension {
         // terraformer will choose a template and create a virtual level to generate the new world and copy it
 
         // maybe when biome changing, pick flower features from biome?
+
+        // on chunk creation, store used preset and top5 generated blocks for every xz position in chunk data
+        // during terraforming, check if the preset != target preset, and if so, get or create dummy dimension with target preset
+        // fetch top 5 blocks for every xz position in this chunk once and cache it for later use
+        // replace top 5 blocks only when current blockstate matches generated blockstate
+        // update generated blockstate after terraforming
     }
 
     // TODO:
