@@ -91,6 +91,8 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
             return -1;
         if (navigationItem.getItem() instanceof ItemSatelliteIdChip) {
             Satellite sat = SatelliteManager.getSatellite(ItemSatelliteIdChip.getTarget(navigationItem));
+            if(sat == null)
+                return -1;
             if (DimensionManager.INSTANCE_SERVER.get(sat.parentDimensionId) instanceof Dimension dim) {
                 return dim.getPosition(0).distanceTo(myDim.getPosition(0));
             }
