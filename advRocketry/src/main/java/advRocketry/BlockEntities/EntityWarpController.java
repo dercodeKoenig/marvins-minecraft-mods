@@ -31,6 +31,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
+import java.util.Objects;
+
 import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_WARP_CONTROLLER;
 
@@ -52,9 +54,11 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             public boolean isItemValid(int slot, ItemStack stack) {
                 return stack.getItem().equals(Items.ITEM_GALAXY_DATABASE.get());
             }
-            public int getSlotLimit(int slot){
+
+            public int getSlotLimit(int slot) {
                 return 1;
             }
+
             public void onContentsChanged(int slot) {
                 EntityWarpController.this.setChanged();
             }
@@ -69,7 +73,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                     Minecraft.getInstance().setScreen(
                             new SpaceMapScreen() {
                                 @Override
-                                public void init(){
+                                public void init() {
                                     super.init();
                                     super.focusPlanet(targetView.dimensionId);
                                 }
@@ -123,12 +127,18 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                                     Dimension d = DimensionManager.INSTANCE_CLIENT.get(dimensionId);
                                     if (d == null) return false;
 
-                                    if (((PlanetDimension) (d)).isKnown()) {
+                                    if (((PlanetDimension) (d)).isKnown())
                                         return true;
-                                    }
 
                                     if (ItemGalaxyDatabase.isDimensionKnown(galaxyStorageGuiSlot.client_getItemStackToRender(), dimensionId))
                                         return true;
+
+                                    if (DimensionManager.INSTANCE_CLIENT.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
+                                        // orbited planet is always displayed
+                                        if (Objects.equals(dimensionId, spaceStation.getParentDimensionId()) && spaceStation.isInOrbit()) {
+                                            return true;
+                                        }
+                                    }
 
                                     return false;
                                 }

@@ -188,6 +188,17 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 info.put(DataTypes.distance, maxData);
                                 ItemGalaxyDatabase.setPlanetInfo(stack, planetDimension, info);
                             }
+                            if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStationDimension){
+                                // when on space station, always make the currently orbited planet known
+                                if(spaceStationDimension.isInOrbit() && Objects.equals(spaceStationDimension.getParentDimensionId(), dim.getDimensionId())){
+                                    // we orbit around this planet, it is distance-known
+                                    ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(stack, planetDimension);
+                                    if (info == null)
+                                        info = new ItemGalaxyDatabase.PlanetInfo();
+                                    info.put(DataTypes.distance, maxData);
+                                    ItemGalaxyDatabase.setPlanetInfo(stack, planetDimension, info);
+                                }
+                            }
                             if (planetDimension.isKnown()) {
                                 // known by default, unlock all data
                                 ItemGalaxyDatabase.PlanetInfo info = new ItemGalaxyDatabase.PlanetInfo();
@@ -632,6 +643,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                     }
                                 }
                             }
+                            setChanged();
                         }
                     }
                 }
