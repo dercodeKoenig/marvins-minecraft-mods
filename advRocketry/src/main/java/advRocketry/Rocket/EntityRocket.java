@@ -1,6 +1,7 @@
 package advRocketry.Rocket;
 
 import ARLib.gui.GuiHandlerEntity;
+import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
@@ -18,6 +19,7 @@ import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Registry.Items;
 import advRocketry.Rocket.RocketPrograms.*;
 import advRocketry.Utils.ItemUtils;
 import advRocketry.Utils.CelestialUtils;
@@ -27,6 +29,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -868,6 +871,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         int x = 0;
         int y = 0;
         int id = 20000;
+        // add cargo slots
         for (BlockEntity i : blockEntities.values()) {
             if (i instanceof EntityCargoHold cargoHold) {
                 for (int slotIndex = 0; slotIndex < cargoHold.itemStackHandler.getSlots(); slotIndex++) {
@@ -889,6 +893,61 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                         x = 0;
                         y++;
                     }
+                }
+            }
+        }
+        // new line
+        if (x != 0) {
+            x = 0;
+            y++;
+        }
+        // add pressure tank slots
+        for (BlockEntity i : blockEntities.values()) {
+            if (i instanceof EntityPressureTank pressureTank) {
+                guiModuleFluidTankDisplay slot = new guiModuleFluidTankDisplay(
+                        id,
+                        pressureTank.tank,
+                        0,
+                        guiHandler,
+                        x * 18,
+                        y * 18
+                ) {
+                    // render as simple item stack and add info on hover because fluid module is too large
+                    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                        ItemStack stack = new ItemStack(Items.ITEM_PRESSURE_TANK.get(), 1);
+                        guiGraphics.pose().pushPose();
+                        guiGraphics.pose().translate((float) this.onGuiX, (float) this.onGuiY, 0.0F);
+                        ModularScreen.renderItemStack(guiGraphics, 0, 0, stack);
+                        guiGraphics.pose().popPose();
+
+                        if (this.isMouseOver(mouseX, mouseY, this.onGuiX, this.onGuiY, 18, 18)) {
+                            String info = this.client_myFluidStack.isEmpty()
+                                    ? "0/" + this.maxCapacity + "mb"
+                                    : this.client_myFluidStack.getHoverName().getString() + ":" + this.client_myFluidStack.getAmount() + "/" + this.maxCapacity + "mb";
+
+                            // 1. Tell the GPU to ignore all clipping immediately
+                            RenderSystem.disableScissor();
+                            // 2. Render the tooltip
+                            guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(info), mouseX, mouseY);
+                            // 3. CRITICAL: Flush the buffer now!
+                            // This ensures the tooltip is drawn while the hardware scissor is still OFF.
+                            guiGraphics.flush();
+                            // 4. THE RESET HACK: Restore the parent's scissor state.
+                            // Since we can't access the private stack, we push a "fullscreen" scissor.
+                            // Due to the intersection rule, this forces GuiGraphics to re-calculate
+                            // the parent's area and re-apply it to the hardware.
+                            guiGraphics.enableScissor(0, 0, guiGraphics.guiWidth(), guiGraphics.guiHeight());
+                            guiGraphics.disableScissor(); // This pops the dummy and re-applies the true parent
+                        }
+
+                    }
+                };
+                inventoriesContainer.modules.add(slot);
+                id++;
+                x++;
+                if (x > 9) {
+                    x = 0;
+                    y++;
                 }
             }
         }
