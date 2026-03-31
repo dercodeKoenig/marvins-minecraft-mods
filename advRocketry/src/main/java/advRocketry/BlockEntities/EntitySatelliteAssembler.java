@@ -9,6 +9,7 @@ import advRocketry.Registry.Items;
 import advRocketry.Satellites.Satellite;
 import advRocketry.Satellites.SatellitePrimaryFunction;
 import advRocketry.Utils.ItemUtils;
+import advRocketry.Utils.ProxyItemHandler;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -237,51 +238,18 @@ public class EntitySatelliteAssembler extends BlockEntity implements INetworkTag
 
     // a proxy item handler to access the satellite inventory and to detect a change,
     // so it can re-write the satellite to the itemStack
-    public IItemHandler proxyItemHandler = new IItemHandler() {
+    public ProxyItemHandler proxyItemHandler = new ProxyItemHandler(7) {
+
         @Override
-        public int getSlots() {
-            return 7;
+        public IItemHandler getItemHandler() {
+            if(satellite != null)
+                return satellite.inventory;
+            return null;
         }
 
         @Override
-        public ItemStack getStackInSlot(int i) {
-            if (satellite != null)
-                return satellite.inventory.getStackInSlot(i);
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public ItemStack insertItem(int i, ItemStack itemStack, boolean b) {
-            if (satellite != null) {
-                ItemStack res = satellite.inventory.insertItem(i, itemStack, b);
-                saveSatelliteToInventory();
-                return res;
-            }
-            return itemStack;
-        }
-
-        @Override
-        public ItemStack extractItem(int i, int i1, boolean b) {
-            if (satellite != null) {
-                ItemStack res = satellite.inventory.extractItem(i, i1, b);
-                saveSatelliteToInventory();
-                return res;
-            }
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public int getSlotLimit(int i) {
-            if (satellite != null)
-                return satellite.inventory.getSlotLimit(i);
-            return 0;
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            if (satellite != null)
-                return satellite.inventory.isItemValid(slot, stack);
-            return false;
+        public void onContentsMaybeChanged() {
+            saveSatelliteToInventory();
         }
     };
 
