@@ -165,6 +165,7 @@ public class ModularScreen extends Screen {
             if (!(i < c.getModules().size())) break;
             GuiModuleBase m = c.getModules().get(i);
             m.render(guiGraphics, mouseX, mouseY, partialTick);
+            m.onRender1(guiGraphics, mouseX, mouseY, partialTick);
         }
         guiGraphics.pose().translate(0, 0, 100);
         ModularScreen.renderItemStack(guiGraphics, mouseX - 9, mouseY - 9, Minecraft.getInstance().player.inventoryMenu.getCarried());

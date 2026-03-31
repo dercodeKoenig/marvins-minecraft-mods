@@ -12,6 +12,8 @@ public class GuiModuleBase {
 
     public boolean isEnabled = true;
 
+    public boolean isMouseInScissor;
+
     protected int onGuiX;
     protected int onGuiY;
 
@@ -46,6 +48,7 @@ public class GuiModuleBase {
 
     public boolean isMouseOver(double mouseX, double mouseY, int x, int y, int w, int h) {
         if(!isEnabled)return false;
+        if(!isMouseInScissor) return false;
         return mouseX >= x &&
                 mouseX <= x + w &&
                 mouseY >= y &&
@@ -105,6 +108,12 @@ public class GuiModuleBase {
             float partialTick
     ) {
 
+    }
+    public void onRender1(GuiGraphics guiGraphics,
+                          int mouseX,
+                          int mouseY,
+                          float partialTick){
+        isMouseInScissor = guiGraphics.containsPointInScissor(mouseX, mouseY);
     }
 
     public String getMyTagKey(){
