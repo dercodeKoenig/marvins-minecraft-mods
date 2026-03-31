@@ -9,9 +9,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 public class ModularScreen extends Screen {
+
+    static LinkedList<ToolTip> toolTips = new LinkedList<>();
 
     ResourceLocation background = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_gui_background.png");
 
@@ -33,6 +37,16 @@ public class ModularScreen extends Screen {
         this.guiW = w;
         this.guiH = h;
         this.renderBackground = renderBackground;
+    }
+
+    public static void renderItemStack(GuiGraphics g, int x, int y, ItemStack stack) {
+        if (stack.isEmpty()) return;
+        g.renderItem(stack, x + 1, y + 1);
+        g.renderItemDecorations(Minecraft.getInstance().font, stack, x + 1, y + 1);
+    }
+
+    public static void addToolTip(ToolTip tt) {
+        toolTips.add(tt);
     }
 
     @Override
@@ -86,6 +100,7 @@ public class ModularScreen extends Screen {
 
         return true;
     }
+
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         setDragging(false);
@@ -99,7 +114,7 @@ public class ModularScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if(this.isDragging() && button == 0){
+        if (this.isDragging() && button == 0) {
             for (int i = 0; i < c.getModules().size(); i++) {
                 if (!(i < c.getModules().size())) break;
                 GuiModuleBase m = c.getModules().get(i);
@@ -131,7 +146,6 @@ public class ModularScreen extends Screen {
         }
         return true;
     }
-
 
     public void calculateGuiOffsetAndNotifyModules() {
         leftOffset = (this.width - guiW) / 2;
@@ -167,19 +181,23 @@ public class ModularScreen extends Screen {
             m.render(guiGraphics, mouseX, mouseY, partialTick);
             m.onRender1(guiGraphics, mouseX, mouseY, partialTick);
         }
+        for (ToolTip t : toolTips) {
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, t.text, t.x, t.y);
+        }
+        toolTips.clear();
+
         guiGraphics.pose().translate(0, 0, 100);
         ModularScreen.renderItemStack(guiGraphics, mouseX - 9, mouseY - 9, Minecraft.getInstance().player.inventoryMenu.getCarried());
-    }
-
-    public static void renderItemStack(GuiGraphics g, int x, int y, ItemStack stack) {
-        if (stack.isEmpty()) return;
-        g.renderItem(stack, x + 1, y + 1);
-        g.renderItemDecorations(Minecraft.getInstance().font, stack, x + 1, y + 1);
     }
 
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    public static class ToolTip {
+        public int x, y;
+        public Component text;
     }
 
 }
