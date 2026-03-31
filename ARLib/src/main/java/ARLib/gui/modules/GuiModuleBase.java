@@ -109,10 +109,10 @@ public class GuiModuleBase {
     ) {
 
     }
-    public void onRender1(GuiGraphics guiGraphics,
-                          int mouseX,
-                          int mouseY,
-                          float partialTick){
+    public void checkMouseInScissor(GuiGraphics guiGraphics,
+                                    int mouseX,
+                                    int mouseY,
+                                    float partialTick){
         isMouseInScissor = guiGraphics.containsPointInScissor(mouseX, mouseY);
     }
 

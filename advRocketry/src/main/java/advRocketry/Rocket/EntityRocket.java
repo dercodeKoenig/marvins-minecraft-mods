@@ -925,19 +925,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                                     ? "0/" + this.maxCapacity + "mb"
                                     : this.client_myFluidStack.getHoverName().getString() + ":" + this.client_myFluidStack.getAmount() + "/" + this.maxCapacity + "mb";
 
-                            // 1. Tell the GPU to ignore all clipping immediately
-                            RenderSystem.disableScissor();
-                            // 2. Render the tooltip
-                            guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(info), mouseX, mouseY);
-                            // 3. CRITICAL: Flush the buffer now!
-                            // This ensures the tooltip is drawn while the hardware scissor is still OFF.
-                            guiGraphics.flush();
-                            // 4. THE RESET HACK: Restore the parent's scissor state.
-                            // Since we can't access the private stack, we push a "fullscreen" scissor.
-                            // Due to the intersection rule, this forces GuiGraphics to re-calculate
-                            // the parent's area and re-apply it to the hardware.
-                            guiGraphics.enableScissor(0, 0, guiGraphics.guiWidth(), guiGraphics.guiHeight());
-                            guiGraphics.disableScissor(); // This pops the dummy and re-applies the true parent
+                            ModularScreen.addToolTip(new ModularScreen.ToolTip(mouseX, mouseY, Component.literal(info)));
                         }
 
                     }

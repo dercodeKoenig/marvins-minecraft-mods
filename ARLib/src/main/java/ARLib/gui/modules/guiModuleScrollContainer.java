@@ -144,6 +144,7 @@ public class guiModuleScrollContainer extends GuiModuleBase {
                 if (!(n < modules.size())) break;
                 GuiModuleBase i = modules.get(n);
                 i.render(guiGraphics, mouseX, mouseY, partialTick);
+                i.checkMouseInScissor(guiGraphics, mouseX, mouseY, partialTick);
             }
             guiGraphics.disableScissor();
         }

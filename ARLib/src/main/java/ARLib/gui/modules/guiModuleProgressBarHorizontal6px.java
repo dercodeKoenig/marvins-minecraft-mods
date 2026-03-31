@@ -1,6 +1,7 @@
 package ARLib.gui.modules;
 
 import ARLib.gui.IGuiHandler;
+import ARLib.gui.ModularScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
@@ -80,7 +81,7 @@ public class guiModuleProgressBarHorizontal6px extends GuiModuleBase {
             guiGraphics.blit(background, onGuiX, onGuiY, 0, 0, 54, 6, 54, 6);
             guiGraphics.fill(onGuiX + 1, onGuiY + 1, onGuiX + (int) (52 * progress) + 1, onGuiY + 4 + 1, color);
             if (this.isMouseOver((double)mouseX, (double)mouseY, this.onGuiX, this.onGuiY, 54, 6)) {
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(info), mouseX, mouseY);
+                ModularScreen.addToolTip(new ModularScreen.ToolTip( mouseX, mouseY, Component.literal(info)));
             }
         }
     }

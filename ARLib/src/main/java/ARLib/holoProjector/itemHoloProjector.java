@@ -1,7 +1,8 @@
 package ARLib.holoProjector;
 
 import ARLib.gui.GuiHandlerMainHandItem;
-import ARLib.gui.modules.GuiModuleBase;import ARLib.gui.modules.guiModuleButton;
+import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleScrollContainer;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketPlayerMainHand;
@@ -11,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +21,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -38,11 +41,19 @@ import static ARLib.ARLibRegistry.BLOCK_STRUCTURE_PREVIEW;
 
 
 public class itemHoloProjector extends Item implements INetworkTagReceiver {
-    static GuiHandlerMainHandItem guiHandler;
-
     public static Map<String, List<BlockInfo>> structureBlocks = new HashMap<>();
     public static Map<Integer, String> buttonIdToMachineName = new HashMap<>();
+    static GuiHandlerMainHandItem guiHandler;
     static int id = 0;
+
+    public itemHoloProjector(Properties properties) {
+        super(properties);
+
+        // Ensure the event listener is registered only on the client
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            NeoForge.EVENT_BUS.addListener(this::handleScroll);
+        }
+    }
 
     public static synchronized void registerMultiblock(String name, Object[][][] structure, HashMap<Character, List<Block>> charMapping) {
         List<BlockInfo> blockInfoList = new ArrayList<>();
@@ -59,7 +70,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
                 }
             }
         }
-        System.out.println("register multiblock in holo projector:"+id+":"+name);
+        System.out.println("register multiblock in holo projector:" + id + ":" + name);
         structureBlocks.put(name, blockInfoList);
         buttonIdToMachineName.put(id, name);
         id += 1;
@@ -80,17 +91,6 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
         return new ArrayList<>();
     }
 
-
-    public itemHoloProjector(Properties properties) {
-        super(properties);
-
-        // Ensure the event listener is registered only on the client
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            NeoForge.EVENT_BUS.addListener(this::handleScroll);
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
     private void handleScroll(InputEvent.MouseScrollingEvent event) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
@@ -121,7 +121,12 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
 
         for (int id : buttonIdToMachineName.keySet()) {
             String name = buttonIdToMachineName.get(id);
-            guiModuleButton button = new guiModuleButton(id, name, guiHandler, 5, 25 * id + 15, 80, 20, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_red.png"), 64, 20);
+            guiModuleButton button = new guiModuleButton(id, name, guiHandler, 5, 25 * id + 15, 80, 20, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_red.png"), 64, 20) {
+                public void onButtonClicked() {
+                    super.onButtonClicked();
+                    Minecraft.getInstance().popGuiLayer();
+                }
+            };
             button.color = 0xffffffff;
             containerModules.add(button);
         }
@@ -235,6 +240,14 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
         return InteractionResultHolder.pass(itemstack);
     }
 
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        CompoundTag tag = getStacktagOrEmpty(stack);
+        if (tag.contains("selectedMachine")) {
+            tooltipComponents.add(Component.literal(tag.getString("selectedMachine")));
+        }
+    }
+
     CompoundTag getStacktagOrEmpty(ItemStack stack) {
         try {
             return stack.get(DataComponents.CUSTOM_DATA).copyTag();
@@ -294,10 +307,9 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
     }
 
     static class BlockInfo {
-        BlockInfo() {
-        }
-
         List<Block> allowedBlocks;
         BlockPos pos;
+        BlockInfo() {
+        }
     }
 }

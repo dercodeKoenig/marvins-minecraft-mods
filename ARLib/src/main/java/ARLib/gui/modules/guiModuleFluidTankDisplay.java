@@ -1,6 +1,7 @@
 package ARLib.gui.modules;
 
 import ARLib.gui.IGuiHandler;
+import ARLib.gui.ModularScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -159,7 +160,7 @@ public class guiModuleFluidTankDisplay extends GuiModuleBase {
                 if (!client_myFluidStack.isEmpty()) {
                     info = client_myFluidStack.getHoverName().getString() + ":" + client_myFluidStack.getAmount() + "/" + maxCapacity + "mb";
                 }
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.literal(info), mouseX, mouseY);
+                ModularScreen.addToolTip(new ModularScreen.ToolTip(mouseX, mouseY, Component.literal(info)));
             }
         }
     }

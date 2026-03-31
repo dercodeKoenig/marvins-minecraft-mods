@@ -171,7 +171,7 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
 
             if (!client_getItemStackToRender().isEmpty() && isMouseOver(mouseX, mouseY, onGuiX, onGuiY, w, h)) {
                 guiGraphics.fill(onGuiX, onGuiY, w + onGuiX, h + onGuiY, 0x30FFFFFF); // Semi-transparent white
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, client_getItemStackToRender(), mouseX, mouseY);
+                ModularScreen.addToolTip(new ModularScreen.ToolTip(mouseX, mouseY, client_getItemStackToRender()));
             }
 
         }

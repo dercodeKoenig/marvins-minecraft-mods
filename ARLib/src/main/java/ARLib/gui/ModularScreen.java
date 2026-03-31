@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 
 public class ModularScreen extends Screen {
@@ -179,10 +178,13 @@ public class ModularScreen extends Screen {
             if (!(i < c.getModules().size())) break;
             GuiModuleBase m = c.getModules().get(i);
             m.render(guiGraphics, mouseX, mouseY, partialTick);
-            m.onRender1(guiGraphics, mouseX, mouseY, partialTick);
+            m.checkMouseInScissor(guiGraphics, mouseX, mouseY, partialTick);
         }
         for (ToolTip t : toolTips) {
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, t.text, t.x, t.y);
+            if(t.text != null)
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, t.text, t.x, t.y);
+            if(t.stack != null)
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, t.stack, t.x, t.y);
         }
         toolTips.clear();
 
@@ -196,8 +198,19 @@ public class ModularScreen extends Screen {
     }
 
     public static class ToolTip {
+        public ToolTip(int x, int y, Component text){
+            this.x = x;
+            this.y = y;
+            this.text = text;
+        }
+        public ToolTip(int x, int y, ItemStack stack){
+            this.x = x;
+            this.y = y;
+            this.stack = stack;
+        }
         public int x, y;
         public Component text;
+        public ItemStack stack;
     }
 
 }
