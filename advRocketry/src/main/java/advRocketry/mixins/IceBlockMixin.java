@@ -1,31 +1,21 @@
 package advRocketry.mixins;
 
-import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
-import advRocketry.Dimension.SpaceStationDimension;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
-import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(IceBlock.class)
 public abstract class IceBlockMixin {
@@ -43,7 +33,7 @@ public abstract class IceBlockMixin {
             double pressure = planet.getAtmosphereDensity();
             if (LifeSupportSystem.isTemperatureRegulated(level, pos))
                 temp = 300;
-            if (LifeSupportSystem.isAirSupplyRegulated(level, pos))
+            if (LifeSupportSystem.isPressurized(level, pos))
                 pressure = Math.max(pressure, 1);
 
 

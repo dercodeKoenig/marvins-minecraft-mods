@@ -34,7 +34,7 @@ public class MissionManager {
 
 
     public static void onServerStart() {
-        missions.clear();
+        if(!missions.isEmpty()) throw new AssertionError();
         try {
             String save = Files.readString(Path.of(Main.worldPath.toString(), saveFile));
             CompoundTag tag = TagParser.parseTag(save);
@@ -64,5 +64,6 @@ public class MissionManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        missions.clear();
     }
 }

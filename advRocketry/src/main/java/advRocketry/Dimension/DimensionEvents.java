@@ -36,7 +36,7 @@ public class DimensionEvents {
             double pressure = basePressure;
             if (LifeSupportSystem.isTemperatureRegulated(level, randomPos))
                 temp = 300;
-            if (LifeSupportSystem.isAirSupplyRegulated(level, randomPos))
+            if (LifeSupportSystem.isPressurized(level, randomPos))
                 pressure = Math.max(pressure, 1);
 
             // boil away water blocks when too hot

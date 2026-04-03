@@ -14,12 +14,11 @@ import java.util.List;
 // a block like oxygen vent is an oxygen supplier or creates an instance of it and registers it to the exygen system
 public abstract class LifeSupportSupplier {
 
-    private int scannedBlocksCounter = 0;
     private final BlockPos myPos;
     private final Level level;
     private final LinkedList<BlockPos> queue = new LinkedList<>();
-    private final HashSet<LifeSupportSupplier> connectedSuppliers = new HashSet<>();
-    private boolean isValidArea;
+    private int scannedBlocksCounter = 0;
+    private Network network = new Network();
     private boolean isComplete;
 
     public LifeSupportSupplier(Level level, BlockPos myPos) {
@@ -41,12 +40,13 @@ public abstract class LifeSupportSupplier {
 
     public void reset() {
         scannedBlocksCounter = 0;
-        isValidArea = false;
         isComplete = false;
-        connectedSuppliers.clear();
-        connectedSuppliers.add(this);
+        // reset queue
         queue.clear();
         queue.add(myPos);
+        // start with a fresh unique network
+        network = new Network();
+        network.members.add(this);
     }
 
     // scan all blocks that are connected until the entire area is scanned or we run out of scan limit
@@ -55,15 +55,13 @@ public abstract class LifeSupportSupplier {
         BlockPos current = queue.poll();
         if (current == null) {
             // ran out of room to scan, the area is probably valid
-            isValidArea = true;
             isComplete = true;
             return;
         }
         if (scannedBlocks.containsKey(current)) {
-            // this block is already processed by another LifeSupportSupplier or by this one, skip!
+            // this position is already worked
             LifeSupportSupplier otherSupplier = scannedBlocks.get(current);
-            // if this block was scanned by another LifeSupportSupplier, the other one is connected to this one
-            connectedSuppliers.add(otherSupplier);
+            network.merge(otherSupplier.network);
             return;
         }
 
@@ -71,31 +69,32 @@ public abstract class LifeSupportSupplier {
             // combined scan limit exhausted
             // the area is too large or invalid
             isComplete = true;
+            network.isValidArea = false;
             return;
         }
         scannedBlocksCounter++;
 
 
-        // add to the list that this block was now processed so it will not be processed double
+        // add to the set that this block was now processed so it will not be processed again
         scannedBlocks.put(current, this);
 
         // find reachable blocks to scan next
         for (Direction facing : Direction.values()) {
             BlockPos otherPos = current.relative(facing);
             if (scannedBlocks.containsKey(otherPos)) {
-                // early stopping saves iteration steps, but don't forget to add the other supplier!
-                connectedSuppliers.add(scannedBlocks.get(otherPos));
+                // early stopping saves iteration steps, but don't forget to merge networks
+                network.merge(scannedBlocks.get(otherPos).network);
             } else{
                 BlockState otherState = level.getBlockState(otherPos);
 
                 if(otherState.isAir()){
-                    // fast check for air
+                    // fast check for air, has to be scanned
                     queue.add(otherPos);
                     continue;
                 }
 
                 if(otherState.isCollisionShapeFullBlock(level, otherPos))
-                    // full block can not let air through
+                    // full block can not let air through, even if it is just a structure tower
                     continue;
 
                 // not air and not solid block, it needs some more analysis....
@@ -123,32 +122,10 @@ public abstract class LifeSupportSupplier {
         }
     }
 
-    // gather all connected suppliers
-    // a supplier might be indirectly connected through multiple other connectors
-    // we need to find and add indirect connections so everything works correctly
-    public void syncConnections(){
-        // for every connected supplier i will add to my list all the other suppliers connections
-        // over multiple ticks this should accumulate all connections
-        // warning, this is slow! so don't call it too often!
-        for (LifeSupportSupplier i : new HashSet<>(connectedSuppliers)){
-           connectedSuppliers.addAll(i.connectedSuppliers);
-        }
-    }
-
-    // if any connected block has an invalid area,
-    // this blocks area is also invalid because it is connected to the invalid area
-    public void syncAreaState() {
-        for (LifeSupportSupplier i : connectedSuppliers) {
-            if (!i.hasValidArea()) {
-                isValidArea = false;
-            }
-        }
-    }
-
     // find the combined remaining scan limit for the LifeSupport suppliers
     private int getCombinedRemainingScanLimit() {
         int myScanLimit = 0;
-        for (LifeSupportSupplier i : connectedSuppliers) {
+        for (LifeSupportSupplier i : network.members) {
             myScanLimit += i.getRemainingScanLimit();
         }
         return myScanLimit;
@@ -164,6 +141,32 @@ public abstract class LifeSupportSupplier {
     }
 
     public boolean hasValidArea() {
-        return isValidArea;
+        return network.isValidArea;
+    }
+
+    public static class Network{
+        public HashSet<LifeSupportSupplier> members = new HashSet<>();
+        // start assuming a valid area until it is invalid
+        // if only 1 connected member sets this to invalid, the entire network is invalid
+        // since parts will share the same network reference, it will make sure they all go invalid
+        boolean isValidArea = true;
+
+        public void merge(Network other) {
+            if (this == other) return; // Already the same network
+
+            // Move all members from the other network into this one
+            this.members.addAll(other.members);
+
+            // If either network was already marked invalid,
+            // the new combined network must be invalid.
+            if (!other.isValidArea) {
+                this.isValidArea = false;
+            }
+
+            // Point all members of the other network to THIS network, so they share it from now on
+            for (LifeSupportSupplier supplier : other.members) {
+                supplier.network = this;
+            }
+        }
     }
 }

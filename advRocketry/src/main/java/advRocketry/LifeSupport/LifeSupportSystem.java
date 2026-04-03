@@ -28,47 +28,17 @@ import java.util.Set;
 public class LifeSupportSystem {
 
     // one system for every level
-    static HashMap<ResourceLocation, LifeSupportSystem> LifeSupportSystems = new HashMap<>();
+    private static final HashMap<ResourceLocation, LifeSupportSystem> LifeSupportSystems = new HashMap<>();
 
-    HashMap<LifeSupportType, LifeSupportData> lifeSupportData = new HashMap<>();
+    // every type gets its own data to work with
+    private final HashMap<LifeSupportType, LifeSupportData> lifeSupportData = new HashMap<>();
 
     public LifeSupportSystem() {
-        lifeSupportData.put(LifeSupportType.AIR_SUPPLIER, new LifeSupportData());
+        lifeSupportData.put(LifeSupportType.OXYGEN_SUPPLIER, new LifeSupportData());
         lifeSupportData.put(LifeSupportType.TEMPERATURE_REGULATOR, new LifeSupportData());
     }
 
-    public static boolean canSurviveAt(Level level, BlockPos pos) {
-        Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
-        if (dim == null)
-            return true;
-        Set<Dimension.SurvivalProblem> info = dim.getSurvivalProblems();
-        if (info.isEmpty())
-            return true;
-
-        if(info.contains(Dimension.SurvivalProblem.TOO_MUCH_PRESSURE))
-            return false;
-
-        if (info.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2)||
-                info.contains(Dimension.SurvivalProblem.TOO_MUCH_O2) ||
-                info.contains(Dimension.SurvivalProblem.TOO_MUCH_CO2) ||
-                info.contains(Dimension.SurvivalProblem.TOO_LOW_PRESSURE)
-        ) {
-            if (!isAirSupplyRegulated(level, pos))
-                return false;
-        }
-
-        if (info.contains(Dimension.SurvivalProblem.TOO_COLD) ||
-                info.contains(Dimension.SurvivalProblem.TOO_HOT)
-        ) {
-            if (!isTemperatureRegulated(level, pos))
-                return false;
-        }
-
-
-        return true;
-    }
-
-    public static boolean isTemperatureRegulated(Level level, BlockPos pos){
+    public static boolean isTemperatureRegulated(Level level, BlockPos pos) {
         LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
         if (instance != null) {
             return instance.lifeSupportData.get(LifeSupportType.TEMPERATURE_REGULATOR).suppliedBlocks.contains(pos);
@@ -76,22 +46,28 @@ public class LifeSupportSystem {
         return false;
     }
 
-    public static boolean isAirSupplyRegulated(Level level, BlockPos pos){
-        // Note: doesnt mean you can live there, just means the air supply is active
-        // high pressure will still kill you
+    public static boolean isOxygenSupplied(Level level, BlockPos pos) {
         LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
         if (instance != null) {
-            return instance.lifeSupportData.get(LifeSupportType.AIR_SUPPLIER).suppliedBlocks.contains(pos);
+            return instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos);
+        }
+        return false;
+    }
+
+    public static boolean isPressurized(Level level, BlockPos pos) {
+        LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
+        if (instance != null) {
+            return instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos);
         }
         return false;
     }
 
     public static int SCAN_LIMIT_PER_TICK() {
-        return 200; // can only scan this many blocks in total per tick
+        return 100; // can only scan this many blocks in total per tick
     }
 
     public static int SECONDS_BETWEEN_FULL_SCAN() {
-        return 2;
+        return 5;
     }
 
     // onload the blockentity should register itself here
@@ -112,6 +88,28 @@ public class LifeSupportSystem {
                 .allRegisteredSuppliers.remove(supplier);
     }
 
+
+    // return the remaining problems
+    // perform survival tick, should be called in server tick every second
+    // maybe consume oxygen from equipment here
+    public static void trySurvive(LivingEntity e, Level level, BlockPos pos, Set<Dimension.SurvivalProblem> survivalProblems) {
+        SurvivalSystem.getSurvivalRule(e).trySurvive(e, level, pos, survivalProblems);
+    }
+
+    public static void mitigateProblems(Level level, BlockPos pos, Set<Dimension.SurvivalProblem> survivalProblems) {
+        if (isPressurized(level, pos)) {
+            survivalProblems.remove(Dimension.SurvivalProblem.TOO_LOW_PRESSURE);
+        }
+        if(isOxygenSupplied(level, pos)){
+            survivalProblems.remove(Dimension.SurvivalProblem.TOO_LITTLE_O2);
+            survivalProblems.remove(Dimension.SurvivalProblem.TOO_MUCH_CO2);
+        }
+        if (isTemperatureRegulated(level, pos)) {
+            survivalProblems.remove(Dimension.SurvivalProblem.TOO_COLD);
+            survivalProblems.remove(Dimension.SurvivalProblem.TOO_HOT);
+        }
+    }
+
     public static void serverTick() {
 
         // check entities and apply damage if required
@@ -126,19 +124,29 @@ public class LifeSupportSystem {
                     continue;
                 Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
                 if (problems.isEmpty())
+                    // this dimension is habitable, no problems
                     continue;
+
                 for (Entity e : level.getEntities().getAll()) {
                     if (e instanceof LivingEntity livingEntity) {
-                        if (!canSurviveAt(level, livingEntity.blockPosition())) {
+                        Set<Dimension.SurvivalProblem> remainingProblems = new HashSet<>(problems);
+
+                        // try mitigate problems with lifesupport systems
+                        mitigateProblems(level, livingEntity.blockPosition(), remainingProblems);
+                        if (remainingProblems.isEmpty())
+                            continue;
+
+                        // the entity has to survive the remaining problems
+                        trySurvive(livingEntity, level, livingEntity.blockPosition(), remainingProblems);
+
+                        if (!remainingProblems.isEmpty()) {
                             livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
-                            if (livingEntity instanceof Player player && !player.isCreative() && !player.isSpectator()) {
+                            if (livingEntity instanceof Player player) {
                                 String msg = "Life Support Warning: \n";
-                                for (Dimension.SurvivalProblem p : problems) {
+                                for (Dimension.SurvivalProblem p : remainingProblems) {
                                     msg += p.reason + "\n";
                                 }
-                                player.sendSystemMessage(Component.literal(
-                                        msg
-                                ));
+                                player.sendSystemMessage(Component.literal(msg));
                             }
                         }
                     }
@@ -146,9 +154,19 @@ public class LifeSupportSystem {
             }
         }
 
+
+        // in case a dimension is deleted by a death star laser maybe?
+        LifeSupportSystems.entrySet().removeIf(entry ->
+                DimensionManager.getServerLevel(entry.getKey()) == null
+        );
+        // tick for every level
         for (ResourceLocation levelId : LifeSupportSystems.keySet()) {
             LifeSupportSystems.get(levelId).tick();
         }
+    }
+
+    public static void onServerStop(){
+        LifeSupportSystems.clear();
     }
 
     void tick() {
@@ -172,26 +190,10 @@ public class LifeSupportSystem {
                         break;
                     }
                 }
-                // make sure we connect also to indirectly connected oxygen suppliers
-                // we could be 3 or 7 areas separated from a connected supplier over multiple iterations we should catch it
-                // this is important to find the correct max block limit to scan and to sync the final isValidArea state
-                // I choose to sync it only once per tick and not after each block scanned because it is slow.
-                // it only takes 5 ticks to connect to an area 5 sections away and this is rare anyway
-                // having the correct connections is important for:
-                //      - the final isAreaValid calculation (so only at end after all is complete, doesnt need to sync fast)
-                //      - to get the correct remaining scan limit per block, important if any block has a significantly lower scan limit than some other connected block
-                //
-                for (LifeSupportSupplier supplier : data.activeSuppliers) {
-                    supplier.syncConnections();
-                }
 
                 if (allCompleted) {
                     data.shouldScanNextTick = false;
 
-                    // gather results
-                    for (LifeSupportSupplier i : data.activeSuppliers) {
-                        i.syncAreaState();
-                    }
                     System.out.println("active:" + data.activeSuppliers.size());
 
                     HashSet<BlockPos> newOxygenSuppliedBlocks = new HashSet<>();
@@ -230,8 +232,8 @@ public class LifeSupportSystem {
     }
 
     public enum LifeSupportType {
-        AIR_SUPPLIER, // this handles too much, too low, or too much co2 for simplicity
-        TEMPERATURE_REGULATOR, // this is required when too cold / too cold
+        OXYGEN_SUPPLIER,
+        TEMPERATURE_REGULATOR,
     }
 
     public static class LifeSupportData {
@@ -255,14 +257,6 @@ public class LifeSupportSystem {
 }
 
 ///  this was written when it was only oxygen system but the same logic still applies
-
-///  speed test results:
-///  0.8ghz cpu clock
-///  32 OxygenSuppliers, all connected
-///  open area -> max scan time
-///  1k blocks max per supplier, 500 per tick
-///  took about 4 - 8 ms per tick
-///  on normal cpu clock, 1ms per tick
 
 /// how it works:
 /// step 1: reset

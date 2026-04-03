@@ -2,6 +2,7 @@ package advRocketry;
 
 import advRocketry.Dimension.*;
 import advRocketry.LifeSupport.LifeSupportSystem;
+import advRocketry.LifeSupport.SurvivalSystem;
 import advRocketry.Missions.AsteroidManager;
 import advRocketry.Missions.MissionManager;
 import advRocketry.Render.Particles.RocketParticleEngine;
@@ -19,8 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.Fluids;
@@ -29,8 +29,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.CalculateDetachedCameraDistanceEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -39,6 +40,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.joml.Matrix4f;
 
 import java.util.List;
+import java.util.Set;
 
 public class WorldEvents {
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -104,6 +106,7 @@ public class WorldEvents {
         ForcedChunkManager.saveForcedChunks();
         DimensionManager.INSTANCE_SERVER.onServerStop();
         GlobalTime.save();
+        LifeSupportSystem.onServerStop();
     }
 
     public static void onRenderStage(RenderLevelStageEvent event) {
@@ -147,13 +150,17 @@ public class WorldEvents {
         event.setDamageMultiplier(event.getDamageMultiplier() * g);
     }
 
-    public static void onEntitySpawn(EntityJoinLevelEvent event) {
-        // prevent living entities to spawn where it is impossible
+    public static void onMobSpawn(FinalizeSpawnEvent event) {
+        // prevent mobs to spawn where it is impossible
         if (event.getLevel().isClientSide()) return;
-        if (event.getEntity() instanceof Player) return;
-        if (!(event.getEntity() instanceof LivingEntity)) return;
+        Mob mob = event.getEntity();
 
-        if (!LifeSupportSystem.canSurviveAt(event.getLevel(), event.getEntity().blockPosition())) {
+        Dimension dim = DimensionManager.INSTANCE_SERVER.get(event.getLevel().getLevel().dimension().location());
+        if (dim == null) return;
+
+        Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
+        if (!SurvivalSystem.getSurvivalRule(mob)
+                .allowInMobSpawn(mob, event.getLevel().getLevel(), event.getX(), event.getY(), event.getZ(), problems)) {
             event.setCanceled(true);
         }
     }
@@ -179,7 +186,7 @@ public class WorldEvents {
                 // because when it makes a source and the chunk stops ticking while increasing sea level,
                 // and sea level goes down again, this source is not registered in the chunk tag,
                 // and this would cause it to not be considered "ocean" when the sea level is adjusted lower
-                for(Direction direction : List.of(Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH)) {
+                for (Direction direction : List.of(Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH)) {
                     BlockPos positionPossiblyInQuestion = e.getPos().relative(direction);
                     ChunkAccess chunk = level.getChunk(positionPossiblyInQuestion);
                     CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, SeaLevelAdjustment.tagKey);

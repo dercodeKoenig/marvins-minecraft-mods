@@ -69,7 +69,7 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(ItemLinker::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(WorldEvents::onLivingFallEvent);
         NeoForge.EVENT_BUS.addListener(WorldEvents::onSourceCreate);
-        NeoForge.EVENT_BUS.addListener(WorldEvents::onEntitySpawn);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onMobSpawn);
 
         // mod loading
         modEventBus.addListener(this::registerShaders);
