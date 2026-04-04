@@ -82,7 +82,7 @@ public class LifeSupportSystem {
     // on setremoved the blockentity should unregister itself
     public static void removeLifeSupportSupplier(Level level, LifeSupportSupplier supplier) {
         if (level.isClientSide) return;
-        LifeSupportSystems.putIfAbsent(level.dimension().location(), new LifeSupportSystem());
+        if (!LifeSupportSystems.containsKey(level.dimension().location())) return;
         LifeSupportSystems.get(level.dimension().location())
                 .lifeSupportData.get(supplier.getType())
                 .allRegisteredSuppliers.remove(supplier);
@@ -100,7 +100,7 @@ public class LifeSupportSystem {
         if (isPressurized(level, pos)) {
             survivalProblems.remove(Dimension.SurvivalProblem.TOO_LOW_PRESSURE);
         }
-        if(isOxygenSupplied(level, pos)){
+        if (isOxygenSupplied(level, pos)) {
             survivalProblems.remove(Dimension.SurvivalProblem.TOO_LITTLE_O2);
             survivalProblems.remove(Dimension.SurvivalProblem.TOO_MUCH_CO2);
         }
@@ -165,7 +165,7 @@ public class LifeSupportSystem {
         }
     }
 
-    public static void onServerStop(){
+    public static void onServerStop() {
         LifeSupportSystems.clear();
     }
 
