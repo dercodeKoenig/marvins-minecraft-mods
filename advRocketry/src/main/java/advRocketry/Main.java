@@ -92,6 +92,7 @@ public class Main {
         Fluids.FLUIDS.register(modEventBus);
         Fluids.FLUID_TYPES.register(modEventBus);
         GeneralRegistry.ATTACHMENT_TYPES.register(modEventBus);
+        GeneralRegistry.ARMOR_MATERIALS.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
@@ -309,6 +310,13 @@ public class Main {
             e.accept(Items.ITEM_NITROGEN_BUCKET.get());
             e.accept(Items.ITEM_CO2_BUCKET.get());
             e.accept(Items.ITEM_METHANE_BUCKET.get());
+
+            e.accept(Items.ITEM_SPACE_SUIT_HELMET.get());
+            e.accept(Items.ITEM_SPACE_SUIT_CHESTPLATE.get());
+            e.accept(Items.ITEM_SPACE_SUIT_LEGGINGS.get());
+            e.accept(Items.ITEM_SPACE_SUIT_BOOTS.get());
+
+
         }
     }
 }

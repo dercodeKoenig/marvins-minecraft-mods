@@ -2,15 +2,20 @@ package advRocketry.Registry;
 
 import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
+import advRocketry.SpaceSuit.SpaceSuit;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -48,4 +53,18 @@ public class GeneralRegistry {
                     .build()
     );
 
+    public static final DeferredRegister<ArmorMaterial>ARMOR_MATERIALS = DeferredRegister.create(BuiltInRegistries.ARMOR_MATERIAL, Main.MODID);
+
+    public static final Holder<ArmorMaterial> SPACE_SUIT_MATERIAL = ARMOR_MATERIALS.register(
+            "space_suit",
+            () -> new ArmorMaterial(
+                    SpaceSuit.protection,
+                    0,
+                    SoundEvents.ARMOR_EQUIP_LEATHER,
+                    () -> Ingredient.EMPTY,
+                    SpaceSuit.spaceSuitLayers,
+                    0.1f,
+                    0.1f
+            )
+    );
 }
