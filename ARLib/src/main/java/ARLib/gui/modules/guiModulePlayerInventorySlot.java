@@ -35,6 +35,7 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase {
         } else {
             player.getInventory().getItem(targetSlot).grow(to_insert);
         }
+        player.inventoryMenu.broadcastChanges();
         return stack.copyWithCount(stack.getCount() - to_insert);
     }
 
@@ -43,6 +44,7 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase {
         int to_extract = Math.min(current_count, amount);
         ItemStack ret = player.getInventory().getItem(targetSlot).copyWithCount(to_extract);
         player.getInventory().getItem(targetSlot).shrink(to_extract);
+        player.inventoryMenu.broadcastChanges();
         return ret;
     }
 
