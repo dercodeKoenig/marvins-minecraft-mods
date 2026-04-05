@@ -64,52 +64,41 @@ public interface IGuiHandler {
     default void dropPlayersCarriedItem(Player p) {
         ItemStack carried = p.inventoryMenu.getCarried();
         if (!carried.isEmpty()) {
-            // Calculate a direction vector based on the player's current facing direction
-            float yaw = p.getYRot();  // Yaw angle (horizontal rotation)
-            double xDir = -Math.sin(Math.toRadians(yaw));
-            double zDir = Math.cos(Math.toRadians(yaw));
-
-            // Adjust the momentum by setting a speed multiplier (e.g., 0.3)
-            double speed = 0.3;
-            double xVelocity = xDir * speed;
-            double yVelocity = 0.1;  // Small upward momentum to make the item "pop" up a bit
-            double zVelocity = zDir * speed;
-
-            ItemEntity itemEntity = new ItemEntity(p.level(), p.position().x, p.position().y, p.position().z, carried.copy());
-            itemEntity.setPickUpDelay(40);
-
-            // Set the velocity of the ItemEntity to give it momentum
-            itemEntity.setDeltaMovement(xVelocity, yVelocity, zVelocity);
-
-            p.level().addFreshEntity(itemEntity);
+            spawnDroppedItemEntity(p, carried.copy());
+            p.inventoryMenu.setCarried(ItemStack.EMPTY);
+            p.inventoryMenu.broadcastChanges();
         }
-        p.inventoryMenu.setCarried(ItemStack.EMPTY);
-        p.inventoryMenu.broadcastChanges();
     }
 
     default void dropSinglePlayersCarriedItem(Player p) {
         ItemStack carried = p.inventoryMenu.getCarried();
         if (!carried.isEmpty()) {
-            // Calculate a direction vector based on the player's current facing direction
-            float yaw = p.getYRot();  // Yaw angle (horizontal rotation)
-            double xDir = -Math.sin(Math.toRadians(yaw));
-            double zDir = Math.cos(Math.toRadians(yaw));
-
-            // Adjust the momentum by setting a speed multiplier (e.g., 0.3)
-            double speed = 0.3;
-            double xVelocity = xDir * speed;
-            double yVelocity = 0.1;  // Small upward momentum to make the item "pop" up a bit
-            double zVelocity = zDir * speed;
-            ItemEntity itemEntity = new ItemEntity(p.level(), p.position().x, p.position().y, p.position().z, carried.copyWithCount(1));
-            itemEntity.setPickUpDelay(40);
-
-            // Set the velocity of the ItemEntity to give it momentum
-            itemEntity.setDeltaMovement(xVelocity, yVelocity, zVelocity);
-
+            spawnDroppedItemEntity(p, carried.copyWithCount(1));
             carried.shrink(1);
             p.inventoryMenu.setCarried(carried);
-            p.level().addFreshEntity(itemEntity);
             p.inventoryMenu.broadcastChanges();
         }
+    }
+
+    // Private helper method to handle the math and entity spawning
+    private void spawnDroppedItemEntity(Player p, ItemStack stackToDrop) {
+        // Calculate a direction vector based on the player's current facing direction
+        float yaw = p.getYRot();  // Yaw angle (horizontal rotation)
+        double xDir = -Math.sin(Math.toRadians(yaw));
+        double zDir = Math.cos(Math.toRadians(yaw));
+
+        // Adjust the momentum by setting a speed multiplier (e.g., 0.3)
+        double speed = 0.3;
+        double xVelocity = xDir * speed;
+        double yVelocity = 0.1;  // Small upward momentum to make the item "pop" up a bit
+        double zVelocity = zDir * speed;
+
+        ItemEntity itemEntity = new ItemEntity(p.level(), p.position().x, p.position().y, p.position().z, stackToDrop);
+        itemEntity.setPickUpDelay(40);
+
+        // Set the velocity of the ItemEntity to give it momentum
+        itemEntity.setDeltaMovement(xVelocity, yVelocity, zVelocity);
+
+        p.level().addFreshEntity(itemEntity);
     }
 }

@@ -62,7 +62,7 @@ public class SatelliteManager {
     }
 
     public static void onServerStart() {
-        satellites.clear();
+        if(!satellites.isEmpty()) throw new AssertionError();
         try {
             String save = Files.readString(Path.of(Main.worldPath.toString(), saveFile));
             CompoundTag tag = TagParser.parseTag(save);
@@ -92,5 +92,6 @@ public class SatelliteManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        satellites.clear();
     }
 }

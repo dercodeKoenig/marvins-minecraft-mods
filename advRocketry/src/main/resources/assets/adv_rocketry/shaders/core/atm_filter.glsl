@@ -28,6 +28,7 @@ vec3 getAtmFilter(
     // 3. Apply Beer's Law for atmospheric transmittance.
     // You can increase the 'extinctionIntensity' to make the effect stronger
     float extinctionIntensity = 3.0;
+    // TODO: add base extinction based on atm density so even red will be slightly less bright
     vec3 atmFilter = exp(-extinctionIntensity * atmThickness * absorptionCoefficients);
 
     return vec3(atmFilter);

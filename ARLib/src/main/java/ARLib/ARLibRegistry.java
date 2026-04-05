@@ -29,7 +29,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import javax.swing.text.html.parser.Entity;
 import java.util.function.Supplier;
 
-//@Mod.EventBusSubscriber(modid = ARLib.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ARLibRegistry {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(BuiltInRegistries.BLOCK, ARLib.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, ARLib.MODID);
@@ -105,33 +104,5 @@ public class ARLibRegistry {
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
         CREATIVE_TAB.register(modBus);
-    }
-@OnlyIn(Dist.CLIENT)
-    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_STRUCTURE_PREVIEW.get(), RenderPreviewBlock::new);
-        event.registerBlockEntityRenderer(ENTITY_PLACEHOLDER.get(), RenderMultiblockPlaceholder::new);
-    }
-    public static void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTab() == CUSTOM_CREATIVE_TAB.get()) {
-            e.accept(BLOCK_ENERGY_INPUT_BLOCK.get());
-            //e.accept(BLOCK_ENERGY_OUTPUT_BLOCK.get());
-            e.accept(BLOCK_ITEM_INPUT_BLOCK.get());
-            e.accept(BLOCK_ITEM_OUTPUT_BLOCK.get());
-            e.accept(BLOCK_FLUID_INPUT_BLOCK.get());
-            e.accept(BLOCK_FLUID_OUTPUT_BLOCK.get());
-            e.accept(BLOCK_MOTOR.get());
-            e.accept(BLOCK_STRUCTURE.get());
-            e.accept(BLOCK_COIL_COPPER.get());
-            e.accept((ITEM_HOLOPROJECTOR.get()));
-        }
-    }
-
-    public static void registerCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ARLibRegistry.ENTITY_ENERGY_INPUT_BLOCK.get(), (x, y) -> ((EntityEnergyInputBlock) x).energyStorage);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ARLibRegistry.ENTITY_ENERGY_OUTPUT_BLOCK.get(), (x, y) -> ((EntityEnergyOutputBlock) x).energyStorage);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ARLibRegistry.ENTITY_ITEM_INPUT_BLOCK.get(), (x, y) -> ((EntityItemInputBlock) x).inventory);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ARLibRegistry.ENTITY_ITEM_OUTPUT_BLOCK.get(), (x, y) -> ((EntityItemOutputBlock) x).inventory);
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ARLibRegistry.ENTITY_FLUID_INPUT_BLOCK.get(), (x, y) -> ((EntityFluidInputBlock) x).simpleFluidContainer);
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ARLibRegistry.ENTITY_FLUID_OUTPUT_BLOCK.get(), (x, y) -> ((EntityFluidOutputBlock) x).simpleFluidContainer);
     }
 }

@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleScrollContainer;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketPlayerMainHand;
+import ARLib.utils.ClientUtils;
 import ARLib.utils.DimensionUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -28,12 +29,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -92,8 +91,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
     }
 
     private void handleScroll(InputEvent.MouseScrollingEvent event) {
-        Minecraft mc = Minecraft.getInstance();
-        Player player = mc.player;
+        Player player = ClientUtils.getSinglePlayer();
 
         if (player != null &&
                 player.getMainHandItem().is(this) &&

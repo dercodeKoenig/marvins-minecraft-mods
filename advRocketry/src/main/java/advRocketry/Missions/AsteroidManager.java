@@ -21,9 +21,9 @@ public class AsteroidManager {
     public static final String saveFileDiscoveredAsteroids = "adv_rocketry_discovered_asteroids.json";
 
     // holds general asteroid definitions
-    private static HashMap<String, Asteroid> asteroids;
+    private static final HashMap<String, Asteroid> asteroids = new HashMap<>();
     // discovered asteroids will be saved here so they can be mined
-    private static HashMap<String, DiscoveredAsteroid> discoveredAsteroids;
+    private static final HashMap<String, DiscoveredAsteroid> discoveredAsteroids = new HashMap<>();
 
     public static Asteroid getAsteroid(DiscoveredAsteroid discoveredAsteroid) {
         if (discoveredAsteroid != null)
@@ -57,8 +57,10 @@ public class AsteroidManager {
     }
 
     public static void onServerStart() {
+        if (!asteroids.isEmpty()) throw new AssertionError();
+        if (!discoveredAsteroids.isEmpty()) throw new AssertionError();
+
         // load asteroid definitions
-        asteroids = new HashMap<>();
         Path savePath = Path.of(String.valueOf(Main.myConfigDir), saveFile);
         try {
             if (!Files.exists(Main.myConfigDir))
@@ -82,7 +84,6 @@ public class AsteroidManager {
         }
 
         // load discovered asteroids
-        discoveredAsteroids = new HashMap<>();
         savePath = Path.of(String.valueOf(Main.worldPath), saveFileDiscoveredAsteroids);
         try {
             if (Files.exists(savePath)) {
@@ -118,6 +119,10 @@ public class AsteroidManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        // allow gc to clean up
+        discoveredAsteroids.clear();
+        asteroids.clear();
     }
 
     public static DiscoveredAsteroid discoverNewAsteroid() {
@@ -177,15 +182,6 @@ public class AsteroidManager {
         public String asteroidId = "";
         public String key = "";
         long discoverTime = 0;
-
-        public DiscoveredAsteroid() {
-        }
-
-        public DiscoveredAsteroid(String key, String asteroidId) {
-            this.key = key;
-            this.asteroidId = asteroidId;
-            this.discoverTime = GlobalTime.getGlobalTime();
-        }
 
         public boolean isExpired() {
             return discoverTime + timeout < GlobalTime.getGlobalTime();

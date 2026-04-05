@@ -36,7 +36,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         INSTANCE_CLIENT.dimensions.put(RocketTravelDimension.dimId, new RocketTravelDimension(new DimensionProperties(), INSTANCE_CLIENT));
     }
 
-    public HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
+    public final HashMap<ResourceLocation, Dimension> dimensions = new HashMap<>();
 
     public boolean isClientSide;
 
@@ -156,6 +156,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         }
         System.out.println("[DimensionManager] saved all dimensions!");
 
+        // make sure to release everything to gc and clear for the next run
+        dimensions.clear();
     }
 
     private DimensionProperties createPropertiesFromString(String dimensionProperties){
@@ -251,7 +253,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     public void onServerStart() {
 
-        dimensions = new HashMap<>(); // clear from old sessions
+        if (!dimensions.isEmpty()) throw new AssertionError();
 
         boolean debug_forceDefaultGalaxy = true;
 

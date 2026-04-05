@@ -2,6 +2,10 @@ package advRocketry.Registry;
 
 import advRocketry.Items.*;
 import advRocketry.Main;
+import advRocketry.SpaceSuit.Boots;
+import advRocketry.SpaceSuit.ChestPlate;
+import advRocketry.SpaceSuit.Helmet;
+import advRocketry.SpaceSuit.Leggings;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
@@ -53,7 +57,7 @@ public class Items {
     public static final Supplier<Item> ITEM_SOLAR_PANEL = ITEMS.register("solar_panel", () -> new ItemSolarPanel());
     public static final Supplier<Item> ITEM_WIRELESS_TRANSCEIVER = registerBlockItem("wireless_transceiver", Blocks.WIRELESS_TRANSCEIVER);
     public static final Supplier<Item> ITEM_FLUID_RELEASE = ITEMS.register("fluid_release", () -> new ItemFluidRelease());
-    public static final Supplier<Item> ITEM_PRESSURE_TANK = registerBlockItem("pressure_tank",Blocks.PRESSURE_TANK);
+    public static final Supplier<Item> ITEM_PRESSURE_TANK = registerBlockItem("pressure_tank", Blocks.PRESSURE_TANK);
 
     public static final Supplier<Item> ITEM_SPACE_STATION_ASSEMBLER = registerBlockItem("space_station_assembler", Blocks.SPACE_STATION_ASSEMBLER);
     public static final Supplier<Item> ITEM_ORIENTATION_CONTROLLER = registerBlockItem("orientation_controller", Blocks.ORIENTATION_CONTROLLER);
@@ -78,6 +82,11 @@ public class Items {
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);
     public static final Supplier<Item> ITEM_DRY_ICE = registerBlockItem("dry_ice", Blocks.DRY_ICE);
+
+    public static final Supplier<Item> ITEM_SPACE_SUIT_HELMET = ITEMS.register("space_helmet", () -> new Helmet());
+    public static final Supplier<Item> ITEM_SPACE_SUIT_CHESTPLATE = ITEMS.register("space_chestplate", () -> new ChestPlate());
+    public static final Supplier<Item> ITEM_SPACE_SUIT_LEGGINGS = ITEMS.register("space_leggings", () -> new Leggings());
+    public static final Supplier<Item> ITEM_SPACE_SUIT_BOOTS = ITEMS.register("space_boots", () -> new Boots());
 
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {

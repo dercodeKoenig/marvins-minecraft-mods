@@ -30,14 +30,14 @@ public abstract class BiomeMixin {
             double pressure = dimension.getAtmosphereDensity();
             if(LifeSupportSystem.isTemperatureRegulated(serverLevel,water))
                 temp = 300;
-            if(LifeSupportSystem.isAirSupplyRegulated(serverLevel,water))
+            if(LifeSupportSystem.isPressurized(serverLevel,water))
                 pressure = Math.max(pressure, 1);
 
             if(dimension instanceof SpaceStationDimension){
                 // special case space stations:
                 // i want it to freeze when not regulated and not evaporate
                 // (maybe dimension event catches the block first and evaporates it, so there is a chance that evaporate or freeze can happen
-                if(!LifeSupportSystem.isAirSupplyRegulated(serverLevel,water) &&
+                if(!LifeSupportSystem.isPressurized(serverLevel,water) &&
                         LifeSupportSystem.isTemperatureRegulated(serverLevel,water))
                 {
                     ci.setReturnValue(true);
