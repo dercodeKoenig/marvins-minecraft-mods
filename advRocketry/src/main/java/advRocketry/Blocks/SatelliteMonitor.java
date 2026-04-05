@@ -27,7 +27,10 @@ public class SatelliteMonitor extends Block implements EntityBlock {
     public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
 
     public SatelliteMonitor() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
                 .setValue(SatelliteMonitor.STATE, SatelliteMonitor.State.idle)

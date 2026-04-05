@@ -28,7 +28,11 @@ import static advRocketry.Registry.BlockEntities.ENTITY_ROCKET_ASSEMBLER;
 public class RocketAssembler extends Block implements EntityBlock {
 
     public RocketAssembler() {
-        super(Properties.of().destroyTime(0.5f).sound(SoundType.ANVIL));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+            .sound(SoundType.ANVIL)
+        );
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 

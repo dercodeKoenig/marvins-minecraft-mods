@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "QIQ",
+    "   "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "Q": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:seat",
+    "count": 1
+  }
+}

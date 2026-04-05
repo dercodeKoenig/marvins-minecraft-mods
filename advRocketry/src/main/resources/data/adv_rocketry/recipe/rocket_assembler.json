@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IXI",
+    "QRQ",
+    "BNB"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "X": {
+      "item": "adv_rocketry:lora_module"
+    },
+    "R": {
+      "item": "arlib:block_structure_block"
+    },
+    "B": {
+      "item": "adv_rocketry:battery"
+    },
+    "N": {
+      "item": "minecraft:comparator"
+    },
+    "Q": {
+      "item": "adv_rocketry:linker"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:rocket_assembler",
+    "count": 1
+  }
+}

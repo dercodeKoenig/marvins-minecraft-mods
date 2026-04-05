@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "QXQ",
+    "BRB",
+    "NIN"
+  ],
+  "key": {
+    "B": {
+      "item": "adv_rocketry:linker"
+    },
+    "N": {
+      "item": "minecraft:comparator"
+    },
+    "X": {
+      "item": "adv_rocketry:asteroid_id_chip"
+    },
+    "R": {
+      "item": "arlib:block_structure_block"
+    },
+    "Q": {
+      "item": "minecraft:tinted_glass"
+    },
+    "I": {
+      "item": "adv_rocketry:battery"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:launch_station_asteroid_missions",
+    "count": 1
+  }
+}

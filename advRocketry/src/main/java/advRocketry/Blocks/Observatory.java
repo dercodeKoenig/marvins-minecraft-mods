@@ -23,7 +23,10 @@ public class Observatory extends BlockMultiblockMaster {
     public static EnumProperty<TaskState> TASK_STATE = EnumProperty.create("task_state", TaskState.class);
 
     public Observatory() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
         registerDefaultState(defaultBlockState().setValue(TASK_STATE, TaskState.idle));
     }
 

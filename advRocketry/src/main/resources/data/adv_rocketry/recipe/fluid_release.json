@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "arlib:block_fluid_output_block" },
+    { "item": "adv_rocketry:pressure_tank" },
+    { "item": "minecraft:dispenser" }
+  ],
+  "result": {
+    "id": "adv_rocketry:fluid_release",
+    "count": 1
+  }
+}

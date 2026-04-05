@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DSD",
+    "RMR",
+    "IOI"
+  ],
+  "key": {
+    "M": {
+      "item": "arlib:block_structure_block"
+    },
+    "S": {
+      "item": "adv_rocketry:battery"
+    },
+    "D": {
+      "item": "minecraft:dispenser"
+    },
+    "I": {
+      "item": "minecraft:comparator"
+    },
+    "O": {
+      "item": "arlib:block_motor_block"
+    },
+    "R": {
+      "item": "adv_rocketry:pressure_tank"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:oxygen_vent",
+    "count": 1
+  }
+}

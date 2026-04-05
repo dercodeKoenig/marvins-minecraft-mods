@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:white_concrete_powder" },
+    { "item": "minecraft:black_dye" },
+    { "item": "minecraft:yellow_dye" }
+  ],
+  "result": {
+    "id": "adv_rocketry:launchpad",
+    "count": 1
+  }
+}

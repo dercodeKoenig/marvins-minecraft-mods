@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "RMR",
+    " S "
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "Q": {
+      "item": "minecraft:gold_ingot"
+    },
+    "R": {
+      "item": "minecraft:green_dye"
+    },
+    "S": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:planet_id_chip",
+    "count": 1
+  }
+}

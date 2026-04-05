@@ -16,7 +16,10 @@ import static advRocketry.Registry.BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER;
 public class SpaceStationAssembler extends RocketAssembler implements EntityBlock {
 
     public SpaceStationAssembler() {
-        super();
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
     @Override

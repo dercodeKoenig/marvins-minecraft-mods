@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IRI",
+    "ITI",
+    "IRI"
+  ],
+  "key": {
+    "T": {
+      "item": "adv_rocketry:pressure_tank"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:quartz"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:fuel_tank",
+    "count": 1
+  }
+}

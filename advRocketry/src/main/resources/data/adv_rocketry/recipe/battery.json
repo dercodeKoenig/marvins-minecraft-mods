@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "RMR",
+    "RMR"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "Q": {
+      "item": "minecraft:gold_ingot"
+    },
+    "R": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:battery",
+    "count": 4
+  }
+}

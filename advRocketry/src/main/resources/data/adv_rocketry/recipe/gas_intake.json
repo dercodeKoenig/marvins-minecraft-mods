@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IQI",
+    "QRQ",
+    "IQI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "R": {
+      "item": "arlib:block_structure_block"
+    },
+    "Q": {
+      "item": "minecraft:hopper"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:gas_intake",
+    "count": 1
+  }
+}

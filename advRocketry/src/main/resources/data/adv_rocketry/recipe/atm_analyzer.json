@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "YDY",
+    "XHX"
+  ],
+  "key": {
+    "I": {
+      "item": "adv_rocketry:satellite_optical_telescope"
+    },
+    "H": {
+      "item": "minecraft:quartz"
+    },
+    "D": {
+      "item": "arlib:block_structure_block"
+    },
+    "X": {
+      "item": "minecraft:comparator"
+    },
+    "Y": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:atm_analyzer",
+    "count": 1
+  }
+}

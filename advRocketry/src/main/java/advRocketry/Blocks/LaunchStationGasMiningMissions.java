@@ -9,7 +9,10 @@ import org.jetbrains.annotations.Nullable;
 public class LaunchStationGasMiningMissions extends LaunchStation {
 
     public LaunchStationGasMiningMissions() {
-        super();
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
     @Override

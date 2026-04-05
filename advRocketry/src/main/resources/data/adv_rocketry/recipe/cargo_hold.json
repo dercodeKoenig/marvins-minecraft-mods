@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "QBQ",
+    "BMB",
+    "QBQ"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "B": {
+      "item": "minecraft:barrel"
+    },
+    "Q": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:cargo_hold",
+    "count": 4
+  }
+}

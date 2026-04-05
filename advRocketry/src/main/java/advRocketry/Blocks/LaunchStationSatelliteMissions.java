@@ -26,7 +26,10 @@ import static advRocketry.Registry.BlockEntities.ENTITY_LAUNCH_STATION;
 public class LaunchStationSatelliteMissions extends LaunchStation {
 
     public LaunchStationSatelliteMissions() {
-        super();
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
     @Override

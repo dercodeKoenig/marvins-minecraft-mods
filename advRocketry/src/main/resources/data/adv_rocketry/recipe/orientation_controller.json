@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SQS",
+    "RMR",
+    "IOI"
+  ],
+  "key": {
+    "M": {
+      "item": "arlib:block_structure_block"
+    },
+    "S": {
+      "item": "adv_rocketry:satellite_optical_telescope"
+    },
+    "I": {
+      "item": "minecraft:comparator"
+    },
+    "R": {
+      "item": "minecraft:lever"
+    },
+    "Q": {
+      "item": "minecraft:compass"
+    },
+    "O": {
+      "item": "minecraft:observer"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:orientation_controller",
+    "count": 1
+  }
+}

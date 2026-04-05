@@ -27,7 +27,12 @@ public class LaunchStation extends Block implements EntityBlock {
     public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
 
     public LaunchStation() {
-        super(Properties.of().destroyTime(0.5f).isRedstoneConductor((x,y,z) -> false));
+        
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+            .isRedstoneConductor((x,y,z) -> false)
+        );
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
                 .setValue(LaunchStation.STATE, LaunchStation.State.idle)
