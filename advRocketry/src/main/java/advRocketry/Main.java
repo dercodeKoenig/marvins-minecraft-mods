@@ -12,16 +12,21 @@ import advRocketry.Render.Particles.RocketParticleProvider;
 import advRocketry.Registry.*;
 import advRocketry.Render.*;
 import advRocketry.Rocket.RendererRocket;
+import advRocketry.SpaceSuit.BackpackLayer;
 import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -79,6 +84,7 @@ public class Main {
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerParticles);
         modEventBus.addListener(this::registerClientExtensions);
+        modEventBus.addListener(this::addArmorLayers);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::registerTickets);
         NeoForge.EVENT_BUS.addListener(this::registerCommands); // uses the other bus, but for me it belongs to mod loading and not game events
@@ -202,6 +208,16 @@ public class Main {
 
     void registerClientExtensions(RegisterClientExtensionsEvent event) {
         Fluids.registerFluidTypes(event);
+    }
+
+    void addArmorLayers(EntityRenderersEvent.AddLayers event) {
+        // Add to all player skins (default and slim)
+        for (PlayerSkin.Model skinType : event.getSkins()) {
+            LivingEntityRenderer<Player, PlayerModel<Player>> renderer = event.getSkin(skinType);
+            if (renderer != null) {
+                renderer.addLayer(new BackpackLayer<>(renderer));
+            }
+        }
     }
 
     void registerTickets(RegisterTicketControllersEvent event) {
