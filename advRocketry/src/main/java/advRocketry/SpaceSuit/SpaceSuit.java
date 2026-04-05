@@ -47,6 +47,19 @@ public abstract class SpaceSuit extends ArmorItem {
         ItemUtils.setTag(stack, tag);
     }
 
+    public static CompoundTag loadAdditional(ItemStack stack, HolderLookup.Provider provider) {
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        if(tag.contains("additional"))
+            return tag.getCompound("additional");
+        return new CompoundTag();
+    }
+
+    public static void saveAdditional(CompoundTag data, ItemStack stack, HolderLookup.Provider provider) {
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+        tag.put("additional", data);
+        ItemUtils.setTag(stack, tag);
+    }
+
     abstract int getInventorySlots();
     abstract boolean isItemValid(ItemStack stack, int slot);
 
