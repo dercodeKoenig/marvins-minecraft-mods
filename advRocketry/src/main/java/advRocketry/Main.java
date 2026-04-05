@@ -8,9 +8,9 @@ import advRocketry.BlockEntityRenderers.RenderPressureTank;
 import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
-import advRocketry.Render.Particles.RocketParticleProvider;
 import advRocketry.Registry.*;
 import advRocketry.Render.*;
+import advRocketry.Render.Particles.RocketParticleProvider;
 import advRocketry.Rocket.RendererRocket;
 import advRocketry.SpaceSuit.BackpackLayer;
 import advRocketry.Worldgen.BiomeConfig;
@@ -33,11 +33,14 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
@@ -77,17 +80,19 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(WorldEvents::onMobSpawn);
 
         // mod loading
-        modEventBus.addListener(this::registerShaders);
-        modEventBus.addListener(this::addCreative);
-        modEventBus.addListener(this::onClientSetup);
-        modEventBus.addListener(this::registerEntityRenderers);
-        modEventBus.addListener(this::registerCapabilities);
-        modEventBus.addListener(this::registerParticles);
-        modEventBus.addListener(this::registerClientExtensions);
-        modEventBus.addListener(this::addArmorLayers);
-        modEventBus.addListener(this::loadComplete);
-        modEventBus.addListener(this::registerTickets);
-        NeoForge.EVENT_BUS.addListener(this::registerCommands); // uses the other bus, but for me it belongs to mod loading and not game events
+        if (FMLLoader.getDist().isClient()) {
+            modEventBus.addListener(ClientSetup::registerShaders);
+            modEventBus.addListener(ClientSetup::onClientSetup);
+            modEventBus.addListener(ClientSetup::registerEntityRenderers);
+            modEventBus.addListener(ClientSetup::registerParticles);
+            modEventBus.addListener(ClientSetup::registerClientExtensions);
+            modEventBus.addListener(ClientSetup::addArmorLayers);
+        }
+        modEventBus.addListener(Main:: addCreative);
+        modEventBus.addListener(Main::registerCapabilities);
+        modEventBus.addListener(Main::loadComplete);
+        modEventBus.addListener(Main::registerTickets);
+        NeoForge.EVENT_BUS.addListener(Main::registerCommands); // uses the other bus, but for me it belongs to mod loading and not game events
 
         Blocks.BLOCKS.register(modEventBus);
         Items.ITEMS.register(modEventBus);
@@ -124,7 +129,7 @@ public class Main {
 
     /// mod load events /////////////////////////////////////
 
-    void registerCapabilities(RegisterCapabilitiesEvent e) {
+    public static void registerCapabilities(RegisterCapabilitiesEvent e) {
         //e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BlockEntities.ENTITY_GUIDANCE_COMPUTER.get(), (x, y) -> x.itemStackHandler);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_ASSEMBLER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER.get(), (x, y) -> x.battery);
@@ -143,88 +148,11 @@ public class Main {
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_PRESSURE_TANK.get(), (x, y) -> x.tank);
     }
 
-    void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(GeneralRegistry.ENTITY_ROCKET.get(), RendererRocket::new);
-        event.registerBlockEntityRenderer(BlockEntities.ENTITY_ROCKET_ASSEMBLER.get(), RenderRocketAssembler::new);
-        event.registerBlockEntityRenderer(BlockEntities.ENTITY_SPACE_STATION_ASSEMBLER.get(), RenderRocketAssembler::new);
-        event.registerBlockEntityRenderer(BlockEntities.ENTITY_OBSERVATORY.get(), RenderObservatory::new);
-        event.registerBlockEntityRenderer(BlockEntities.ENTITY_PRESSURE_TANK.get(), RenderPressureTank::new);
-    }
-
-    void registerShaders(RegisterShadersEvent event) {
-        try {
-            shaderUtils.warpTravelShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "warp_travel_shader"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.warpTravelShader, x -> {});
-
-            shaderUtils.localAtmosphereShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "atmosphere_shader"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.localAtmosphereShader, x -> {});
-
-            shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
-            event.registerShader(shaderUtils.planetShader, x -> {});
-
-            shaderUtils.blitPostProcessingShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_post_processing"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitPostProcessingShader, x -> {});
-
-            shaderUtils.blitAddShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitAddShader, x -> {});
-
-            shaderUtils.blitExtractBright = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_extract_bright"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitExtractBright, x -> {});
-
-            shaderUtils.blitBlur = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_blur"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitBlur, x -> {});
-
-            shaderUtils.starBackgroundShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "star_background_shader"), shaderUtils.STAR_BACKGROUND);
-            event.registerShader(shaderUtils.starBackgroundShader, x -> {});
-
-            shaderUtils.ringSystemShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "ring_system_shader"), shaderUtils.POSITION_NORMAL);
-            event.registerShader(shaderUtils.ringSystemShader, x -> {});
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(Fluids.ROCKET_FUEL.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.OXYGEN.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.HYDROGEN.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.NITROGEN.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.METHANE.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.CO2.get(), RenderType.translucent());
-
-        ItemBlockRenderTypes.setRenderLayer(Fluids.ROCKET_FUEL_FLOWING.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.OXYGEN_FLOWING.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.HYDROGEN_FLOWING.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.NITROGEN_FLOWING.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.METHANE_FLOWING.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(Fluids.CO2_FLOWING.get(), RenderType.translucent());
-    }
-
-    void registerParticles(RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(GeneralRegistry.SOFT_PARTICLE.get(), RocketParticleProvider.SoftParticleProvider::new);
-        event.registerSpriteSet(GeneralRegistry.DUST_PARTICLE.get(), RocketParticleProvider.DustParticleProvider::new);
-    }
-
-    void registerClientExtensions(RegisterClientExtensionsEvent event) {
-        Fluids.registerFluidTypes(event);
-    }
-
-    void addArmorLayers(EntityRenderersEvent.AddLayers event) {
-        // Add to all player skins (default and slim)
-        for (PlayerSkin.Model skinType : event.getSkins()) {
-            LivingEntityRenderer<Player, PlayerModel<Player>> renderer = event.getSkin(skinType);
-            if (renderer != null) {
-                renderer.addLayer(new BackpackLayer<>(renderer));
-            }
-        }
-    }
-
-    void registerTickets(RegisterTicketControllersEvent event) {
+    public static void registerTickets(RegisterTicketControllersEvent event) {
         event.register(ForcedChunkManager.ticketController);
     }
 
-    void loadComplete(FMLLoadCompleteEvent e) {
+    public static void loadComplete(FMLLoadCompleteEvent e) {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
     }
@@ -236,7 +164,7 @@ public class Main {
         });
     }
 
-    void registerCommands(RegisterCommandsEvent event) {
+    public static void registerCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_reset_galaxy")
                         .requires(source -> source.hasPermission(2))
@@ -260,7 +188,7 @@ public class Main {
          */
     }
 
-    void addCreative(BuildCreativeModeTabContentsEvent e) {
+    public static void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(GeneralRegistry.CUSTOM_CREATIVE_TAB.get())) {
             e.accept(Blocks.LAUNCHPAD.get());
             e.accept(Blocks.STRUCTURE_TOWER.get());

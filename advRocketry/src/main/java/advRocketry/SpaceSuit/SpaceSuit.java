@@ -47,6 +47,9 @@ public abstract class SpaceSuit extends ArmorItem {
         ItemUtils.setTag(stack, tag);
     }
 
+    // make it so we can cache states like number of oxygen tanks and if we have a jetpack for rendering
+    // without parse nbt all the time
+    // and for the oxygen/hydrogen levels
     public static CompoundTag loadAdditional(ItemStack stack, HolderLookup.Provider provider) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         if(tag.contains("additional"))
