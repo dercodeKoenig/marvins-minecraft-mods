@@ -1,7 +1,10 @@
 package advRocketry.BlockEntities;
 
+import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.SimpleFluidContainer;
 import BetterPipes.Tank.EntityTank;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -25,6 +28,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import static advRocketry.Registry.BlockEntities.ENTITY_PRESSURE_TANK;
@@ -35,6 +39,10 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     public FluidTank tank;
     public TextureAtlasSprite spriteStill;
     public int color;
+
+    public SimpleFluidContainer simpleFluidContainer;
+    public ItemStackHandler inventory;
+    public GuiHandlerBlockEntity guiHandler;
 
     // for when in rocket
     public int renderMode = 0;
@@ -68,6 +76,18 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
                 return totalFilled;
             }
         };
+        inventory = new ItemStackHandler(2) {
+            @Override
+            public void onContentsChanged(int slot) {
+                setChanged();
+            }
+        };
+        simpleFluidContainer = new SimpleFluidContainer(tank, inventory);
+
+        guiHandler = new GuiHandlerBlockEntity(this);
+        guiHandler.modules.addAll(simpleFluidContainer.makeGuiModules(0, 10, 10, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 1000, 0, 1, guiHandler));
+        guiHandler.modules.addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 2000, 0, 1, guiHandler));
     }
 
     public EntityPressureTank(BlockPos p_155229_, BlockState p_155230_) {
@@ -79,7 +99,7 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     }
 
     public int forwardFillToAbove(FluidStack resource, IFluidHandler.FluidAction action) {
-        if(level == null) return 0; // can be null when in rocket
+        if (level == null) return 0; // can be null when in rocket
         BlockEntity entityAbove = level.getBlockEntity(getBlockPos().above());
         if (entityAbove instanceof EntityPressureTank tankAbove) {
             return tankAbove.tank.fill(resource, action);
@@ -97,6 +117,8 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
 
     public void tick() {
         if (!level.isClientSide) {
+            guiHandler.serverTick();
+            simpleFluidContainer.performPossibleFluidTransfer();
 
             // drain into tank below
             if (tank.getFluidAmount() > 0) {
@@ -123,8 +145,15 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
             PacketDistributor.sendToPlayer(target, PacketBlockEntity.getBlockEntityPacket(this, info));
     }
 
+    public void openGui() {
+        if (level.isClientSide) {
+            guiHandler.openGui(176, 167, true);
+        }
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
+        guiHandler.readServer(compoundTag);
         if (compoundTag.contains("onLoad")) {
             syncTank(serverPlayer);
         }
@@ -132,6 +161,7 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
 
     @Override
     public void readClient(CompoundTag compoundTag) {
+        guiHandler.readClient(compoundTag);
         loadAdditional(compoundTag, level.registryAccess());
         updateSprites(tank.getFluid().getFluid());
     }
@@ -139,9 +169,8 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains("tank"))
-            tank.readFromNBT(registries, tag.getCompound("tank"));
-        if(FMLEnvironment.dist.isClient())
+        simpleFluidContainer.loadAdditional(tag, registries);
+        if (FMLEnvironment.dist.isClient())
             // this is used for when tank is part of rocket and loads on client side
             updateSprites(tank.getFluid().getFluid());
     }
@@ -149,9 +178,7 @@ public class EntityPressureTank extends BlockEntity implements INetworkTagReceiv
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        CompoundTag tankTag = new CompoundTag();
-        tank.writeToNBT(registries, tankTag);
-        tag.put("tank", tankTag);
+        simpleFluidContainer.saveAdditional(tag, registries);
     }
 
     public void updateSprites(Fluid f) {

@@ -25,7 +25,8 @@ import java.util.List;
 import static net.minecraft.world.level.block.Block.popResource;
 
 // a simple class to help with the movement of fluid between tank and fluid handler items like buckets
-// performs the fill / drain
+// performs the fill / drain, has helper to pop inventory and to load and save
+// uses hard coded inventory group ids / save names
 public class SimpleFluidContainer implements IItemHandler, IFluidHandler {
 
     public FluidTank myTank;
@@ -67,17 +68,18 @@ public class SimpleFluidContainer implements IItemHandler, IFluidHandler {
 
 
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        myTank.readFromNBT(registries, tag.getCompound("tank"));
-        inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+        if(tag.contains("simple_fluid_container_tank"))
+            myTank.readFromNBT(registries, tag.getCompound("simple_fluid_container_tank"));
+        if(tag.contains("simple_fluid_container_inventory"))
+            inventory.deserializeNBT(registries, tag.getCompound("simple_fluid_container_inventory"));
     }
 
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         CompoundTag tankNBT = new CompoundTag();
         myTank.writeToNBT(registries, tankNBT);
-        tag.put("tank", tankNBT);
-
+        tag.put("simple_fluid_container_tank", tankNBT);
         CompoundTag inventoryTag = inventory.serializeNBT(registries);
-        tag.put("inventory", inventoryTag);
+        tag.put("simple_fluid_container_inventory", inventoryTag);
     }
 
 

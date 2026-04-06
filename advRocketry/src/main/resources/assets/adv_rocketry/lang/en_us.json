@@ -14,6 +14,8 @@
   "item.adv_rocketry.asteroid_id_chip": "Asteroid ID chip",
   "item.adv_rocketry.atm_analyzer": "Atmosphere Analyzer",
 
+  "item.adv_rocketry.portable_pressure_tank": "Portable Pressure Tank",
+
   "block.adv_rocketry.data_storage_block": "Data Hatch",
   "block.adv_rocketry.pressure_tank": "High Pressure Tank",
   "block.adv_rocketry.fluid_release": "Fluid Release",
@@ -60,5 +62,6 @@
   "fluid_type.adv_rocketry.methane_type": "Methane",
   "item.adv_rocketry.co2_bucket": "CO2",
   "fluid_type.adv_rocketry.co2_type": "CO2",
-  "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel"
+  "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
+  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel"
 }

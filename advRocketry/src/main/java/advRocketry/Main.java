@@ -3,52 +3,32 @@ package advRocketry;
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
-import advRocketry.BlockEntityRenderers.RenderObservatory;
-import advRocketry.BlockEntityRenderers.RenderPressureTank;
-import advRocketry.BlockEntityRenderers.RenderRocketAssembler;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Registry.*;
 import advRocketry.Render.*;
-import advRocketry.Render.Particles.RocketParticleProvider;
-import advRocketry.Rocket.RendererRocket;
-import advRocketry.SpaceSuit.BackpackLayer;
 import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
-import net.neoforged.neoforge.client.event.RegisterShadersEvent;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
 @Mod(Main.MODID)
@@ -88,7 +68,7 @@ public class Main {
             modEventBus.addListener(ClientSetup::registerClientExtensions);
             modEventBus.addListener(ClientSetup::addArmorLayers);
         }
-        modEventBus.addListener(Main:: addCreative);
+        modEventBus.addListener(Main::addCreative);
         modEventBus.addListener(Main::registerCapabilities);
         modEventBus.addListener(Main::loadComplete);
         modEventBus.addListener(Main::registerTickets);
@@ -104,6 +84,7 @@ public class Main {
         Fluids.FLUID_TYPES.register(modEventBus);
         GeneralRegistry.ATTACHMENT_TYPES.register(modEventBus);
         GeneralRegistry.ARMOR_MATERIALS.register(modEventBus);
+        GeneralRegistry.COMPONENTS.register(modEventBus);
 
         // register network packets
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
@@ -146,6 +127,13 @@ public class Main {
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SATELLITE_MONITOR.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FLUID_RELEASE.get(), (x, y) -> y == x.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING) ? null : x.tank);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_PRESSURE_TANK.get(), (x, y) -> x.tank);
+
+        e.registerItem(
+                Capabilities.FluidHandler.ITEM,
+                (stack, context) ->
+                        new FluidHandlerItemStack(GeneralRegistry.FLUID_CONTAINER_DATA, stack, 4000),
+                Items.ITEM_PORTABLE_PRESSURE_TANK.get()
+        );
     }
 
     public static void registerTickets(RegisterTicketControllersEvent event) {
@@ -155,13 +143,6 @@ public class Main {
     public static void loadComplete(FMLLoadCompleteEvent e) {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
-    }
-
-    void debugCommand(){
-        // whatever debug i currently need to execute on demand
-        RenderSystem.recordRenderCall(() -> {
-            SkyRenderer.debugCommandRender();
-        });
     }
 
     public static void registerCommands(RegisterCommandsEvent event) {
@@ -259,8 +240,16 @@ public class Main {
             e.accept(Items.ITEM_SPACE_SUIT_CHESTPLATE.get());
             e.accept(Items.ITEM_SPACE_SUIT_LEGGINGS.get());
             e.accept(Items.ITEM_SPACE_SUIT_BOOTS.get());
+            e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK.get());
 
 
         }
+    }
+
+    void debugCommand() {
+        // whatever debug i currently need to execute on demand
+        RenderSystem.recordRenderCall(() -> {
+            SkyRenderer.debugCommandRender();
+        });
     }
 }

@@ -255,7 +255,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
         if (!dimensions.isEmpty()) throw new AssertionError();
 
-        boolean debug_forceDefaultGalaxy = true;
+        boolean debug_forceDefaultGalaxy = false;
 
         Path worldDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
         Path defaultDir = Path.of(String.valueOf(Main.myConfigDir), DimensionManager.SAVE_DIR);

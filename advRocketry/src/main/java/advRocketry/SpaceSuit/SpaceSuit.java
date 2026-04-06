@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.HashMap;
@@ -44,23 +45,20 @@ public abstract class SpaceSuit extends ArmorItem {
     public static void saveInventory(ItemStackHandler inventory, ItemStack stack, HolderLookup.Provider provider) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         tag.put("inventory", inventory.serializeNBT(provider));
+        addCachedData(tag, inventory, provider);
         ItemUtils.setTag(stack, tag);
     }
 
-    // make it so we can cache states like number of oxygen tanks and if we have a jetpack for rendering
-    // without parse nbt all the time
-    // and for the oxygen/hydrogen levels
-    public static CompoundTag loadAdditional(ItemStack stack, HolderLookup.Provider provider) {
+    public static CompoundTag getCachedData(ItemStack stack, HolderLookup.Provider provider) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
-        if(tag.contains("additional"))
-            return tag.getCompound("additional");
+        if(tag.contains("C"))
+            return tag.getCompound("C");
         return new CompoundTag();
     }
 
-    public static void saveAdditional(CompoundTag data, ItemStack stack, HolderLookup.Provider provider) {
-        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
-        tag.put("additional", data);
-        ItemUtils.setTag(stack, tag);
+    public static void addCachedData(CompoundTag tag, IItemHandler inventory, HolderLookup.Provider provider) {
+        CompoundTag cachedData = new CompoundTag();
+
     }
 
     abstract int getInventorySlots();

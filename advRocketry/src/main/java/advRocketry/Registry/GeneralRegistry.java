@@ -4,6 +4,7 @@ import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.SpaceSuit.SpaceSuit;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -52,6 +54,16 @@ public class GeneralRegistry {
                     .serialize(CompoundTag.CODEC)
                     .build()
     );
+
+    public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.create(BuiltInRegistries.DATA_COMPONENT_TYPE, Main.MODID);
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> FLUID_CONTAINER_DATA =
+            COMPONENTS.register("fluid_container_data", () ->
+                    DataComponentType.<SimpleFluidContent>builder()
+                            .persistent(SimpleFluidContent.CODEC)
+                            .networkSynchronized(SimpleFluidContent.STREAM_CODEC)
+                            .build()
+            );
 
     public static final DeferredRegister<ArmorMaterial>ARMOR_MATERIALS = DeferredRegister.create(BuiltInRegistries.ARMOR_MATERIAL, Main.MODID);
 
