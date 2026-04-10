@@ -211,7 +211,7 @@ public class DefaultGalaxy {
         mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
         mustafar.fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
-        mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(3f); // make lava glow
+        mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(0.2f); // make lava glow
         galaxy.add(mustafar);
 
 
