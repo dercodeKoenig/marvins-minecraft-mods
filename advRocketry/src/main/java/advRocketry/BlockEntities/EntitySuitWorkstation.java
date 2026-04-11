@@ -97,13 +97,13 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
     }
 
     void saveSuit() {
-        SpaceSuit.saveInventory(chestInventory, inventory.getStackInSlot(HELMET_SLOT), level.registryAccess());
+        SpaceSuit.saveInventory(chestInventory, inventory.getStackInSlot(CHEST_SLOT), level.registryAccess());
         loadSuit();
         setChanged();
     }
 
     void loadSuit() {
-        chestInventory = SpaceSuit.loadInventory(inventory.getStackInSlot(HELMET_SLOT), level.registryAccess());
+        chestInventory = SpaceSuit.loadInventory(inventory.getStackInSlot(CHEST_SLOT), level.registryAccess());
     }
 
     public void popInventory() {

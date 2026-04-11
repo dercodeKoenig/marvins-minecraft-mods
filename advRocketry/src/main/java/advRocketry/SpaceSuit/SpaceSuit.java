@@ -36,7 +36,11 @@ public abstract class SpaceSuit extends ArmorItem {
     public static ItemStackHandler loadInventory(ItemStack stack, HolderLookup.Provider provider) {
         if(stack.isEmpty()) return null;
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
-        ItemStackHandler inventory = new ItemStackHandler(((SpaceSuit)stack.getItem()).getInventorySlots());
+        ItemStackHandler inventory = new ItemStackHandler(((SpaceSuit)stack.getItem()).getInventorySlots()){
+            public int getSlotLimit(int slot) {
+                return 1;
+            }
+        };
         if (tag.contains("inventory")) {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
