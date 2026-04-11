@@ -8,12 +8,12 @@ public class Boots extends SpaceSuit{
     }
 
     @Override
-    int getInventorySlots() {
+    public int getInventorySlots() {
         return 0;
     }
 
     @Override
-    boolean isItemValid(ItemStack stack, int slot) {
+    public boolean isItemValid(ItemStack stack, int slot) {
         return false;
     }
 }

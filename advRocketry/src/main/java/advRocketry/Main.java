@@ -203,6 +203,7 @@ public class Main {
             e.accept(Blocks.WIRELESS_TRANSCEIVER.get());
             e.accept(Blocks.FLUID_RELEASE.get());
             e.accept(Blocks.PRESSURE_TANK.get());
+            e.accept(Blocks.SUIT_WORKSTATION.get());
 
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());

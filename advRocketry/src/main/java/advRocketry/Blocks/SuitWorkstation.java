@@ -1,0 +1,50 @@
+package advRocketry.Blocks;
+
+import advRocketry.BlockEntities.EntitySuitWorkstation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
+
+import static advRocketry.Registry.BlockEntities.ENTITY_SUIT_WORKSTATION;
+
+public class SuitWorkstation extends Block implements EntityBlock {
+
+    public SuitWorkstation() {
+        super(Properties.of().destroyTime(0.5f).sound(SoundType.ANVIL));
+    }
+
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return ENTITY_SUIT_WORKSTATION.get().create(blockPos, blockState);
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof EntitySuitWorkstation workstation)
+            workstation.openGui();
+        return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (level.getBlockEntity(pos) instanceof EntitySuitWorkstation workstation)
+            workstation.popInventory();
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return EntitySuitWorkstation::tick;
+    }
+}

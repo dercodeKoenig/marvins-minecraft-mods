@@ -8,12 +8,12 @@ public class ChestPlate extends SpaceSuit{
     }
 
     @Override
-    int getInventorySlots() {
-        return 0;
+    public int getInventorySlots() {
+        return 2;
     }
 
     @Override
-    boolean isItemValid(ItemStack stack, int slot) {
+    public boolean isItemValid(ItemStack stack, int slot) {
         return false;
     }
 }

@@ -33,9 +33,10 @@ public abstract class SpaceSuit extends ArmorItem {
         super(GeneralRegistry.SPACE_SUIT_MATERIAL, type, properties);
     }
 
-    public static ItemStackHandler loadInventory(ItemStack stack, int slots, HolderLookup.Provider provider) {
+    public static ItemStackHandler loadInventory(ItemStack stack, HolderLookup.Provider provider) {
+        if(stack.isEmpty()) return null;
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
-        ItemStackHandler inventory = new ItemStackHandler(slots);
+        ItemStackHandler inventory = new ItemStackHandler(((SpaceSuit)stack.getItem()).getInventorySlots());
         if (tag.contains("inventory")) {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
@@ -43,6 +44,8 @@ public abstract class SpaceSuit extends ArmorItem {
     }
 
     public static void saveInventory(ItemStackHandler inventory, ItemStack stack, HolderLookup.Provider provider) {
+        if (inventory == null)
+            inventory = new ItemStackHandler(((SpaceSuit) stack.getItem()).getInventorySlots());
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         tag.put("inventory", inventory.serializeNBT(provider));
         addCachedData(tag, inventory, provider);
@@ -51,17 +54,18 @@ public abstract class SpaceSuit extends ArmorItem {
 
     public static CompoundTag getCachedData(ItemStack stack, HolderLookup.Provider provider) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
-        if(tag.contains("C"))
+        if (tag.contains("C"))
             return tag.getCompound("C");
         return new CompoundTag();
     }
 
-    public static void addCachedData(CompoundTag tag, IItemHandler inventory, HolderLookup.Provider provider) {
+    private static void addCachedData(CompoundTag tag, IItemHandler inventory, HolderLookup.Provider provider) {
         CompoundTag cachedData = new CompoundTag();
 
     }
 
-    abstract int getInventorySlots();
-    abstract boolean isItemValid(ItemStack stack, int slot);
+    public abstract int getInventorySlots();
+
+    public abstract boolean isItemValid(ItemStack stack, int slot);
 
 }
