@@ -83,7 +83,7 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
             }
         };
         for (int x = 0; x < chestPlanetHandler.getSlots(); x++) {
-            guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, chestPlanetHandler, x, 0, 1, guiHandler, 50, 40));
+            guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, chestPlanetHandler, x, 0, 1, guiHandler, 50+20*x, 40));
         }
 
         // player inventory
