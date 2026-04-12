@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "arlib:block/machinegeneric2",
+    "up": "adv_rocketry:block/suit_workstation",
+    "north": "arlib:block/machinegeneric2",
+    "south": "arlib:block/machinegeneric2",
+    "west": "arlib:block/machinegeneric2",
+    "east": "arlib:block/machinegeneric2",
+    "particle": "arlib:block/machinegeneric2"
+  }
+}

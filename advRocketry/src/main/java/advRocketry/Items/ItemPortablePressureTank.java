@@ -21,15 +21,20 @@ import java.util.Set;
 
 public class ItemPortablePressureTank extends Item {
 
-    public ItemPortablePressureTank() {
+    public int capacity;
+
+    public ItemPortablePressureTank(int capacity) {
         super(new Properties().stacksTo(16));
+        this.capacity = capacity;
     }
 
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         IFluidHandlerItem fluidHandler = stack.getCapability(Capabilities.FluidHandler.ITEM);
         if (fluidHandler != null) {
             tooltipComponents.add(Component.literal(
-                    fluidHandler.getFluidInTank(0).getFluid().toString()
+                    fluidHandler.getFluidInTank(0).getFluid().toString()+
+                            ":" +
+                            fluidHandler.getFluidInTank(0).getAmount()
             ));
         }
     }

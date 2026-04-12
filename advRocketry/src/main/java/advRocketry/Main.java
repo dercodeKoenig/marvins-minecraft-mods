@@ -5,6 +5,7 @@ import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
+import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Registry.*;
 import advRocketry.Render.*;
 import advRocketry.Worldgen.BiomeConfig;
@@ -13,6 +14,7 @@ import advRocketry.Worldgen.presets.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -128,11 +130,18 @@ public class Main {
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FLUID_RELEASE.get(), (x, y) -> y == x.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING) ? null : x.tank);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_PRESSURE_TANK.get(), (x, y) -> x.tank);
 
+
+        ItemPortablePressureTank portablePressuretankAluminum = Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get();
         e.registerItem(
                 Capabilities.FluidHandler.ITEM,
                 (stack, context) ->
-                        new FluidHandlerItemStack(GeneralRegistry.FLUID_CONTAINER_DATA, stack, 4000),
-                Items.ITEM_PORTABLE_PRESSURE_TANK.get()
+                        new FluidHandlerItemStack(
+                                GeneralRegistry.FLUID_CONTAINER_DATA,
+                                stack,
+                                portablePressuretankAluminum.capacity
+                        ),
+                portablePressuretankAluminum
+
         );
     }
 
@@ -241,7 +250,7 @@ public class Main {
             e.accept(Items.ITEM_SPACE_SUIT_CHESTPLATE.get());
             e.accept(Items.ITEM_SPACE_SUIT_LEGGINGS.get());
             e.accept(Items.ITEM_SPACE_SUIT_BOOTS.get());
-            e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK.get());
+            e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get());
 
 
         }

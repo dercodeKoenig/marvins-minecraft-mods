@@ -13,9 +13,9 @@
   "item.adv_rocketry.satellite": "Satellite",
   "item.adv_rocketry.asteroid_id_chip": "Asteroid ID chip",
   "item.adv_rocketry.atm_analyzer": "Atmosphere Analyzer",
+  "item.adv_rocketry.portable_pressure_tank_aluminum": "Aluminum Portable Pressure Tank",
 
-  "item.adv_rocketry.portable_pressure_tank": "Portable Pressure Tank",
-
+  "block.adv_rocketry.suit_workstation": "Space Suit Workstation",
   "block.adv_rocketry.data_storage_block": "Data Hatch",
   "block.adv_rocketry.pressure_tank": "High Pressure Tank",
   "block.adv_rocketry.fluid_release": "Fluid Release",

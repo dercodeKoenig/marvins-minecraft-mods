@@ -1,6 +1,8 @@
 package advRocketry.SpaceSuit;
 
+import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Main;
+import advRocketry.Registry.Fluids;
 import advRocketry.Registry.GeneralRegistry;
 import advRocketry.Utils.ItemUtils;
 import net.minecraft.core.Holder;
@@ -10,6 +12,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -65,7 +70,23 @@ public abstract class SpaceSuit extends ArmorItem {
 
     private static void addCachedData(CompoundTag tag, IItemHandler inventory, HolderLookup.Provider provider) {
         CompoundTag cachedData = new CompoundTag();
-
+        int pressureTanks = 0;
+        int oxygen = 0;
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            ItemStack stack = inventory.getStackInSlot(i);
+            // portable pressure tanks are for oxygen
+            if(stack.getItem() instanceof ItemPortablePressureTank){
+                pressureTanks++;
+                IFluidHandler fluidHandler = stack.getCapability(Capabilities.FluidHandler.ITEM);
+                FluidStack fluidInTank = fluidHandler.getFluidInTank(0);
+                if(fluidInTank.getFluid().equals(Fluids.OXYGEN.get())) {
+                    oxygen += fluidInTank.getAmount();
+                }
+            }
+        }
+        cachedData.putInt("pressureTanks", pressureTanks);
+        cachedData.putInt("oxygen", oxygen);
+        tag.put("C", cachedData);
     }
 
     public abstract int getInventorySlots();

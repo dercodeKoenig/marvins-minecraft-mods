@@ -85,7 +85,7 @@ public class Items {
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_CHESTPLATE = ITEMS.register("space_chestplate", () -> new ChestPlate());
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_LEGGINGS = ITEMS.register("space_leggings", () -> new Leggings());
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_BOOTS = ITEMS.register("space_boots", () -> new Boots());
-    public static final Supplier<Item> ITEM_PORTABLE_PRESSURE_TANK = ITEMS.register("portable_pressure_tank", () -> new ItemPortablePressureTank());
+    public static final Supplier<ItemPortablePressureTank> ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM = ITEMS.register("portable_pressure_tank_aluminum", () -> new ItemPortablePressureTank(4000));
 
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {
