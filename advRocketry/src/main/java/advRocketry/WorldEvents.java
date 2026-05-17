@@ -151,7 +151,7 @@ public class WorldEvents {
         Dimension d = DimensionManager.getDimensionManager(l.isClientSide).get(l.dimension().location());
         if (d != null)
             g = d.getGravitationalMultiplier();
-        event.setDamageMultiplier(event.getDamageMultiplier() * g);
+        event.setDamageMultiplier((float) (event.getDamageMultiplier() * Math.pow(g, 1.5)));
     }
 
     public static void onMobSpawn(FinalizeSpawnEvent event) {
