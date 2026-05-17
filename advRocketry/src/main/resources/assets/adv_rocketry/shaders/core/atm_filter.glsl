@@ -23,12 +23,12 @@ vec3 getAtmFilter(
 
     // 2. Calculate what colors the atmosphere is absorbing (inverting the sunrise color)
     // If the sunrise is red, the atmosphere is absorbing green and blue.
-    vec3 absorptionCoefficients = vec3(1.0) - clamp(sunRiseTintNormalized, 0.0, 1.0);
+    // 1.x makes some base extinction so even the less-extincted color will be a little extinct
+    vec3 absorptionCoefficients = vec3(1.5) - clamp(sunRiseTintNormalized, 0.0, 1.0);
 
     // 3. Apply Beer's Law for atmospheric transmittance.
     // You can increase the 'extinctionIntensity' to make the effect stronger
-    float extinctionIntensity = 3.0;
-    // TODO: add base extinction based on atm density so even red will be slightly less bright
+    float extinctionIntensity = 1.5;
     vec3 atmFilter = exp(-extinctionIntensity * atmThickness * absorptionCoefficients);
 
     return vec3(atmFilter);
