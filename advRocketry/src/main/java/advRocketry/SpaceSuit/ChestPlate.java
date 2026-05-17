@@ -6,6 +6,7 @@ import advRocketry.Config;
 import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Main;
 import advRocketry.Registry.Fluids;
+import advRocketry.Utils.ClientUtils;
 import advRocketry.Utils.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
@@ -147,6 +148,13 @@ public class ChestPlate extends SpaceSuit {
         }
         public static void sendActivate(boolean activate){
             PacketDistributor.sendToServer(new SimpleNetworkPacket(id,activate ? "1" : "0"));
+
+            // for smooth movement, client should pre-set the nbt value locally
+            // from what i read, player has authority over position so this should work
+            ItemStack stack = ClientUtils.getSinglePlayer().getItemBySlot(EquipmentSlot.CHEST);
+            if(stack.getItem() instanceof ChestPlate chestPlate){
+                chestPlate.setJetpackActive(stack, activate);
+            }
         }
     }
 }

@@ -51,7 +51,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
 
     public static void sharedJetpackTick(Player player){
         player.addDeltaMovement(new Vec3(0,player.getGravity() + 0.04,0));
-        player.fallDistance = 2;
+        player.resetFallDistance();
 
         // Get the direction the player is looking (a normalized vector where x, y, z are between -1.0 and 1.0)
         Vec3 lookDirection = player.getLookAngle();
