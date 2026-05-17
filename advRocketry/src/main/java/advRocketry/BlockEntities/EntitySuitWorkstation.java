@@ -71,11 +71,22 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
         int id = 0;
 
         // inventory slots
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, HELMET_SLOT, 0, 1, guiHandler, 20, 10));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, CHEST_SLOT, 0, 1, guiHandler, 20, 30));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, JETPACK_SLOT, 0, 1, guiHandler, 20, 50));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, LEGS_SLOT, 0, 1, guiHandler, 20, 70));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, BOOTS_SLOT, 0, 1, guiHandler, 20, 90));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, HELMET_SLOT, 0, 1, guiHandler, 25, 10));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, CHEST_SLOT, 0, 1, guiHandler, 25, 30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, JETPACK_SLOT, 0, 1, guiHandler, 25, 50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, LEGS_SLOT, 0, 1, guiHandler, 25, 70));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, BOOTS_SLOT, 0, 1, guiHandler, 25, 90));
+
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_HELMET.get(), 1), 0.9f, guiHandler, 5,10));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_CHESTPLATE.get(), 1), 0.9f, guiHandler, 5,30));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_JETPACK.get(), 1), 0.9f, guiHandler, 5,50));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_LEGGINGS.get(), 1), 0.9f, guiHandler, 5,70));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_BOOTS.get(), 1), 0.9f, guiHandler, 5,90));
+
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_JETPACK.get(), 1), 0.9f, guiHandler, 90,31));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get(), 1), 0.9f, guiHandler, 105,31));
+
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get(), 2), 0.9f, guiHandler, 90,51));
 
         ProxyItemHandler chestPlateHandler = new ProxyItemHandler(Items.ITEM_SPACE_SUIT_CHESTPLATE.get().getInventorySlots()) {
             @Override
