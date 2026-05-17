@@ -30,11 +30,13 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
     public static int CHEST_SLOT = 1;
     public static int LEGS_SLOT = 2;
     public static int BOOTS_SLOT = 3;
+    public static int JETPACK_SLOT = 4;
 
     public GuiHandlerBlockEntity guiHandler = new GuiHandlerBlockEntity(this);
     public ItemStackHandler chestInventory;
+    public ItemStackHandler jetpackInventory;
 
-    public ItemStackHandler inventory = new ItemStackHandler(4) {
+    public ItemStackHandler inventory = new ItemStackHandler(5) {
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
@@ -46,6 +48,8 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
                 return stack.getItem() instanceof Leggings;
             if (slot == BOOTS_SLOT)
                 return stack.getItem() instanceof Boots;
+            if (slot == JETPACK_SLOT)
+                return stack.getItem() instanceof Jetpack;
             return false;
         }
 
@@ -67,12 +71,13 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
         int id = 0;
 
         // inventory slots
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, HELMET_SLOT, 0, 1, guiHandler, 20, 20));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, CHEST_SLOT, 0, 1, guiHandler, 20, 40));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, LEGS_SLOT, 0, 1, guiHandler, 20, 60));
-        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, BOOTS_SLOT, 0, 1, guiHandler, 20, 80));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, HELMET_SLOT, 0, 1, guiHandler, 20, 10));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, CHEST_SLOT, 0, 1, guiHandler, 20, 30));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, JETPACK_SLOT, 0, 1, guiHandler, 20, 50));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, LEGS_SLOT, 0, 1, guiHandler, 20, 70));
+        guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, BOOTS_SLOT, 0, 1, guiHandler, 20, 90));
 
-        ProxyItemHandler chestPlanetHandler = new ProxyItemHandler(Items.ITEM_SPACE_SUIT_CHESTPLATE.get().getInventorySlots()) {
+        ProxyItemHandler chestPlateHandler = new ProxyItemHandler(Items.ITEM_SPACE_SUIT_CHESTPLATE.get().getInventorySlots()) {
             @Override
             public IItemHandler getItemHandler() {
                 return chestInventory;
@@ -82,8 +87,22 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
                 saveSuit();
             }
         };
-        for (int x = 0; x < chestPlanetHandler.getSlots(); x++) {
-            guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, chestPlanetHandler, x, 0, 1, guiHandler, 50+20*x, 40));
+        for (int x = 0; x < chestPlateHandler.getSlots(); x++) {
+            guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, chestPlateHandler, x, 0, 1, guiHandler, 50+20*x, 30));
+        }
+
+        ProxyItemHandler jetpackHandler = new ProxyItemHandler(Items.ITEM_JETPACK.get().getInventorySlots()) {
+            @Override
+            public IItemHandler getItemHandler() {
+                return jetpackInventory;
+            }
+            @Override
+            public void onContentsMaybeChanged() {
+                saveSuit();
+            }
+        };
+        for (int x = 0; x < jetpackHandler.getSlots(); x++) {
+            guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, jetpackHandler, x, 0, 1, guiHandler, 50+20*x, 50));
         }
 
         // player inventory
@@ -97,13 +116,15 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
     }
 
     void saveSuit() {
-        SpaceSuit.saveInventory(chestInventory, inventory.getStackInSlot(CHEST_SLOT), level.registryAccess());
+        ISpaceSuitInventory.saveInventory(chestInventory, inventory.getStackInSlot(CHEST_SLOT), level.registryAccess());
+        ISpaceSuitInventory.saveInventory(jetpackInventory, inventory.getStackInSlot(JETPACK_SLOT), level.registryAccess());
         loadSuit();
         setChanged();
     }
 
     void loadSuit() {
-        chestInventory = SpaceSuit.loadInventory(inventory.getStackInSlot(CHEST_SLOT), level.registryAccess());
+        chestInventory = ISpaceSuitInventory.loadInventory(inventory.getStackInSlot(CHEST_SLOT), level.registryAccess());
+        jetpackInventory = ISpaceSuitInventory.loadInventory(inventory.getStackInSlot(JETPACK_SLOT), level.registryAccess());
     }
 
     public void popInventory() {

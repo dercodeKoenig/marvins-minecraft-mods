@@ -42,11 +42,11 @@ public class BackpackLayer<T extends LivingEntity, M extends PlayerModel<T>> ext
         ItemStack chestStack = entity.getItemBySlot(EquipmentSlot.CHEST);
 
         // Check if the player is wearing your specific armor
-        if (chestStack.getItem() == Items.ITEM_SPACE_SUIT_CHESTPLATE.get()) {
+        if (chestStack.getItem() instanceof ChestPlate chestPlate) {
             poseStack.pushPose();
-            CompoundTag cachedData = SpaceSuit.getCachedData(chestStack, entity.registryAccess());
+            CompoundTag cachedData = chestPlate.getCachedData(chestStack, entity.registryAccess());
             int pressureTanks = cachedData.contains("pressureTanks") ? cachedData.getInt("pressureTanks") : 0;
-            boolean jetpack = false;
+            boolean jetpack = cachedData.contains("jetpack") ? cachedData.getBoolean("jetpack") : false;
 
             VertexConsumer v = buffer.getBuffer(Static.ENTITY_SOLID_TRIANGLES.apply(texture));
 
@@ -74,7 +74,7 @@ public class BackpackLayer<T extends LivingEntity, M extends PlayerModel<T>> ext
                 model.renderPart("oxygenTank", poseStack, v, packedLight, OverlayTexture.NO_OVERLAY, 0xffffffff);
                 poseStack.popPose();
             }
-            if(jetpack) {
+            if (jetpack) {
                 // render the 2 jetpack engines
                 model.renderPart("connections", poseStack, v, packedLight, OverlayTexture.NO_OVERLAY, 0xffffffff);
                 poseStack.pushPose();

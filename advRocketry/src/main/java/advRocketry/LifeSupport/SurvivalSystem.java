@@ -3,6 +3,7 @@ package advRocketry.LifeSupport;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Registry.Fluids;
+import advRocketry.SpaceSuit.ISpaceSuitInventory;
 import advRocketry.SpaceSuit.SpaceSuit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -54,14 +55,14 @@ public class SurvivalSystem {
                     // o2 requires a pressure tank with o2
                     if (problems.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2)) {
                         ItemStack chestPlate = player.getItemBySlot(EquipmentSlot.CHEST);
-                        CompoundTag cached = SpaceSuit.getCachedData(chestPlate, player.registryAccess());
+                        CompoundTag cached = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedData(chestPlate, player.registryAccess());
                         int oxygenAvailable = cached.getInt("oxygen");
                         int oxygenRequired = 20;
                         if (oxygenAvailable >= oxygenRequired) {
                             problems.remove(Dimension.SurvivalProblem.TOO_LITTLE_O2);
                             // remove oxyhen from tanks and save back to the space suit
                             int toDrain = oxygenRequired;
-                            ItemStackHandler inventory = SpaceSuit.loadInventory(chestPlate, player.registryAccess());
+                            ItemStackHandler inventory = ISpaceSuitInventory.loadInventory(chestPlate, player.registryAccess());
                             for (int i = 0; i < inventory.getSlots(); i++) {
                                 ItemStack stack = inventory.getStackInSlot(i);
                                 if (stack.getItem() instanceof ItemPortablePressureTank) {
@@ -71,13 +72,10 @@ public class SurvivalSystem {
                                     }
                                 }
                             }
-                            SpaceSuit.saveInventory(inventory, chestPlate, player.registryAccess());
+                            ISpaceSuitInventory.saveInventory(inventory, chestPlate, player.registryAccess());
                         }
                     }
                 }
-
-                // check if it has armor
-                // check and consume oxygen...
             }
         });
     }

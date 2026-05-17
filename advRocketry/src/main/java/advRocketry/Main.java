@@ -224,6 +224,7 @@ public class Main {
             e.accept(Items.ITEM_ASTEROID_ID_CHIP.get());
             e.accept(Items.ITEM_DATA_STORAGE.get());
             e.accept(Items.ITEM_ATM_ANALYZER.get());
+            e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get());
 
             e.accept(Blocks.SATELLITE_ASSEMBLER.get());
             e.accept(Blocks.SATELLITE_MONITOR.get());
@@ -250,8 +251,7 @@ public class Main {
             e.accept(Items.ITEM_SPACE_SUIT_CHESTPLATE.get());
             e.accept(Items.ITEM_SPACE_SUIT_LEGGINGS.get());
             e.accept(Items.ITEM_SPACE_SUIT_BOOTS.get());
-            e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get());
-
+            e.accept(Items.ITEM_JETPACK.get());
 
         }
     }
