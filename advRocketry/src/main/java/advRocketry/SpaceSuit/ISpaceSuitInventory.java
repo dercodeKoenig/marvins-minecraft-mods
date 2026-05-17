@@ -28,8 +28,6 @@ public interface ISpaceSuitInventory {
 
     boolean isItemValid(ItemStack stack, int slot);
 
-
-
     static ItemStackHandler loadInventory(ItemStack stack, HolderLookup.Provider provider) {
         if(stack.isEmpty()) return null;
         ISpaceSuitInventory iSpaceSuitInventory = ((ISpaceSuitInventory)stack.getItem());

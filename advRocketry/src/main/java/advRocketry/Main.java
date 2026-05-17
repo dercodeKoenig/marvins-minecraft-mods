@@ -1,5 +1,6 @@
 package advRocketry;
 
+import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
@@ -8,6 +9,8 @@ import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Registry.*;
 import advRocketry.Render.*;
+import advRocketry.SpaceSuit.ChestPlate;
+import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
@@ -92,6 +95,7 @@ public class Main {
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
         SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionListSync, new DimensionManager.SyncDimensionList());
         SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(ChestPlate.ActivateJetpack.id, new ChestPlate.ActivateJetpack());
 
         // setup config directory
         Path configDir = FMLPaths.CONFIGDIR.get();
@@ -252,6 +256,9 @@ public class Main {
             e.accept(Items.ITEM_SPACE_SUIT_LEGGINGS.get());
             e.accept(Items.ITEM_SPACE_SUIT_BOOTS.get());
             e.accept(Items.ITEM_JETPACK.get());
+            e.accept(Items.ITEM_NIGHTVISION_UPGRADE.get());
+            e.accept(Items.ITEM_LEGS_UPGRADE.get());
+            e.accept(Items.ITEM_GRAVITYBOOTS_UPGRADE.get());
 
         }
     }

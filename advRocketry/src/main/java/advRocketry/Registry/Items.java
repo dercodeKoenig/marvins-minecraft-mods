@@ -87,6 +87,10 @@ public class Items {
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_LEGGINGS = ITEMS.register("space_leggings", () -> new Leggings());
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_BOOTS = ITEMS.register("space_boots", () -> new Boots());
     public static final Supplier<Jetpack> ITEM_JETPACK = ITEMS.register("jetpack", () -> new Jetpack());
+    public static final Supplier<Item> ITEM_NIGHTVISION_UPGRADE = ITEMS.register("nightvision_upgrade", () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final Supplier<Item> ITEM_LEGS_UPGRADE = ITEMS.register("legs_upgrade", () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final Supplier<Item> ITEM_GRAVITYBOOTS_UPGRADE = ITEMS.register("gravityboots_upgrade", () -> new Item(new Item.Properties().stacksTo(1)));
+
 
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b) {

@@ -3,6 +3,7 @@ package advRocketry.Utils;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -30,6 +31,10 @@ public class ClientUtils {
         return INSTANCE.clientOnly.getSinglePlayer();
     }
 
+    public static Options getOptions() {
+        return INSTANCE.clientOnly.getOptions();
+    }
+
     public static Level getPlayerLevel() {
         return INSTANCE.clientOnly.getSinglePlayerLevel();
     }
@@ -45,6 +50,10 @@ public class ClientUtils {
 
         public Level getSinglePlayerLevel() {
             return Minecraft.getInstance().level;
+        }
+
+        public Options getOptions() {
+            return Minecraft.getInstance().options;
         }
     }
 }

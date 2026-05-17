@@ -1,22 +1,31 @@
 package advRocketry.SpaceSuit;
 
+import ARLib.network.INetworkTagReceiver;
+import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Items.ItemPortablePressureTank;
+import advRocketry.Main;
 import advRocketry.Registry.Fluids;
 import advRocketry.Utils.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
 public class ChestPlate extends SpaceSuit {
+
+    public static final int jetpack_slot = 0;
+
     public ChestPlate() {
         super(Type.CHESTPLATE, new Properties().stacksTo(1));
     }
@@ -58,7 +67,7 @@ public class ChestPlate extends SpaceSuit {
                 return true;
             }
         }
-        if(slot == 0 && stack.getItem() instanceof Jetpack){
+        if(slot == jetpack_slot && stack.getItem() instanceof Jetpack){
             return true;
         }
         return false;
@@ -95,5 +104,38 @@ public class ChestPlate extends SpaceSuit {
         cachedData.putBoolean("jetpack", jetpack);
 
         tag.put(CACHED_DATA_KEY, cachedData);
+    }
+
+    public boolean hasJetpack(ItemStack chestPlate, HolderLookup.Provider provider){
+       CompoundTag cachedData = getCachedData(chestPlate,provider);
+       if(cachedData.contains("jetpack") && cachedData.getBoolean("jetpack"))
+           return true;
+       return false;
+    }
+
+    public boolean isJetpackActive(ItemStack chestPlate){
+        CompoundTag stackTag = ItemUtils.getStacktagOrEmpty(chestPlate);
+        if(stackTag.contains("jetpack_active") && stackTag.getBoolean("jetpack_active"))
+            return true;
+        return false;
+    }
+
+    public void setJetpackActive(ItemStack chestPlate, boolean active){
+        CompoundTag stackTag = ItemUtils.getStacktagOrEmpty(chestPlate);
+        stackTag.putBoolean("jetpack_active", active);
+        ItemUtils.setTag(chestPlate, stackTag);
+    }
+
+    public static class ActivateJetpack implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
+        public static final String id = Main.MODID+"ActivateJetpack";
+        public void readServer(String data, ServerPlayer player) {
+           ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
+           if(stack.getItem() instanceof ChestPlate chestPlate){
+               chestPlate.setJetpackActive(stack, data.equals("1"));
+           }
+        }
+        public static void sendActivate(boolean activate){
+            PacketDistributor.sendToServer(new SimpleNetworkPacket(id,activate ? "1" : "0"));
+        }
     }
 }

@@ -10,6 +10,7 @@ import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Satellites.SatelliteManager;
+import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
 import net.minecraft.client.GraphicsStatus;
@@ -70,6 +71,7 @@ public class WorldEvents {
         LifeSupportSystem.serverTick();
         SatelliteManager.serverTick();
         MissionManager.serverTick();
+        SpaceSuit.serverTick();
         //System.out.println((double)(System.nanoTime() - t0) / 1000 / 1000);
     }
 
@@ -86,6 +88,8 @@ public class WorldEvents {
         }
 
         RocketParticleEngine.tick();
+
+        SpaceSuit.clientTick();
     }
 
     public static void onServerStarted(ServerStartedEvent event) {
