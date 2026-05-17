@@ -11,7 +11,7 @@ public interface ISpaceSuitInventory {
 
     String CACHED_DATA_KEY = "C";
 
-    default CompoundTag getCachedData(ItemStack stack, HolderLookup.Provider provider) {
+    default CompoundTag getCachedData(ItemStack stack) {
         CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         if (tag.contains(CACHED_DATA_KEY))
             return tag.getCompound(CACHED_DATA_KEY);

@@ -26,6 +26,9 @@ public class Config {
     public double station_SpaceTravel_Rotation_Rate = 0.01;
     public double station_Max_Orbit_R_Factor = 10;
 
+    public int jetpack_hydrogen_per_tick = 10;
+    public int jetpack_oxygen_per_tick = 5;
+
     // true scale is way too small, for example moon would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering
     public double planet_Render_Scale_Multiplier = 8;

@@ -2,6 +2,7 @@ package advRocketry.SpaceSuit;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.SimpleNetworkPacket;
+import advRocketry.Config;
 import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Main;
 import advRocketry.Registry.Fluids;
@@ -32,7 +33,7 @@ public class ChestPlate extends SpaceSuit {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        CompoundTag tag = ((ISpaceSuitInventory) stack.getItem()).getCachedData(stack, context.registries());
+        CompoundTag tag = ((ISpaceSuitInventory) stack.getItem()).getCachedData(stack);
         if (tag.contains("pressureTanks")) {
             int pressureTanks = tag.getInt("pressureTanks");
             tooltipComponents.add(
@@ -93,7 +94,7 @@ public class ChestPlate extends SpaceSuit {
             }
             if (stack.getItem() instanceof Jetpack jetpackItem) {
                 jetpack = true;
-                CompoundTag jetpackData = jetpackItem.getCachedData(stack, provider);
+                CompoundTag jetpackData = jetpackItem.getCachedData(stack);
                 if (jetpackData.contains("hydrogen"))
                     hydrogen = jetpackData.getInt("hydrogen");
             }
@@ -106,8 +107,8 @@ public class ChestPlate extends SpaceSuit {
         tag.put(CACHED_DATA_KEY, cachedData);
     }
 
-    public boolean hasJetpack(ItemStack chestPlate, HolderLookup.Provider provider){
-       CompoundTag cachedData = getCachedData(chestPlate,provider);
+    public boolean hasJetpack(ItemStack chestPlate){
+       CompoundTag cachedData = getCachedData(chestPlate);
        if(cachedData.contains("jetpack") && cachedData.getBoolean("jetpack"))
            return true;
        return false;
@@ -122,6 +123,16 @@ public class ChestPlate extends SpaceSuit {
 
     public void setJetpackActive(ItemStack chestPlate, boolean active){
         CompoundTag stackTag = ItemUtils.getStacktagOrEmpty(chestPlate);
+        if(active){
+            CompoundTag cachedData = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedData(chestPlate);
+            int hydrogen_required = Config.INSTANCE.jetpack_hydrogen_per_tick;
+            int oxygen_required = Config.INSTANCE.jetpack_oxygen_per_tick;
+            int hydrogen_available = cachedData.contains("hydrogen") ? cachedData.getInt("hydrogen") : 0;
+            int oxygen_available = cachedData.contains("oxygen") ? cachedData.getInt("oxygen") : 0;
+            if (hydrogen_available < hydrogen_required || oxygen_available < oxygen_required) {
+                active = false;
+            }
+        }
         stackTag.putBoolean("jetpack_active", active);
         ItemUtils.setTag(chestPlate, stackTag);
     }

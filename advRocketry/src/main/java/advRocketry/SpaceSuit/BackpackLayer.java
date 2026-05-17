@@ -44,7 +44,7 @@ public class BackpackLayer<T extends LivingEntity, M extends PlayerModel<T>> ext
         // Check if the player is wearing your specific armor
         if (chestStack.getItem() instanceof ChestPlate chestPlate) {
             poseStack.pushPose();
-            CompoundTag cachedData = chestPlate.getCachedData(chestStack, entity.registryAccess());
+            CompoundTag cachedData = chestPlate.getCachedData(chestStack);
             int pressureTanks = cachedData.contains("pressureTanks") ? cachedData.getInt("pressureTanks") : 0;
             boolean jetpack = cachedData.contains("jetpack") ? cachedData.getBoolean("jetpack") : false;
 

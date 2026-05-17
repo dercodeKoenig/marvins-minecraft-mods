@@ -55,7 +55,7 @@ public class SurvivalSystem {
                     // o2 requires a pressure tank with o2
                     if (problems.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2)) {
                         ItemStack chestPlate = player.getItemBySlot(EquipmentSlot.CHEST);
-                        CompoundTag cached = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedData(chestPlate, player.registryAccess());
+                        CompoundTag cached = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedData(chestPlate);
                         int oxygenAvailable = cached.getInt("oxygen");
                         int oxygenRequired = 20;
                         if (oxygenAvailable >= oxygenRequired) {

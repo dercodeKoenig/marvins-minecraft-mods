@@ -1,5 +1,6 @@
 package advRocketry.SpaceSuit;
 
+import advRocketry.Config;
 import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Main;
 import advRocketry.Registry.Fluids;
@@ -48,6 +49,26 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
         super(GeneralRegistry.SPACE_SUIT_MATERIAL, type, properties);
     }
 
+    public static void sharedJetpackTick(Player player){
+        player.addDeltaMovement(new Vec3(0,player.getGravity() + 0.04,0));
+        player.fallDistance = 2;
+
+        // Get the direction the player is looking (a normalized vector where x, y, z are between -1.0 and 1.0)
+        Vec3 lookDirection = player.getLookAngle();
+        double forwardSpeed = 0.15; // Adjust this to change how fast they fly horizontally
+        // Check if they are actually pressing W (zza > 0) or S (zza < 0)
+        if (player.zza != 0) {
+            // If pressing S, move backwards instead of forwards
+            double directionMultiplier = player.zza > 0 ? 1.0 : -0.5;
+            // Add horizontal momentum based on look direction
+            player.addDeltaMovement(new Vec3(
+                    lookDirection.x * forwardSpeed * directionMultiplier,
+                    0, // Handled separately or slightly modified by look pitch
+                    lookDirection.z * forwardSpeed * directionMultiplier
+            ));
+        }
+    }
+
     public static void serverTick() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         HolderLookup.Provider provider = server.registryAccess();
@@ -63,14 +84,13 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                         continue;
                     }
 
-                    CompoundTag cachedData = chestPlateItem.getCachedData(chestPlateStack, provider);
-                    int hydrogen_required = 10;
-                    int oxygen_required = 5;
+                    CompoundTag cachedData = chestPlateItem.getCachedData(chestPlateStack);
+                    int hydrogen_required = Config.INSTANCE.jetpack_hydrogen_per_tick;
+                    int oxygen_required = Config.INSTANCE.jetpack_oxygen_per_tick;
                     int hydrogen_available = cachedData.contains("hydrogen") ? cachedData.getInt("hydrogen") : 0;
                     int oxygen_available = cachedData.contains("oxygen") ? cachedData.getInt("oxygen") : 0;
 
                     if (hydrogen_available >= hydrogen_required && oxygen_available >= oxygen_required) {
-                        player.addDeltaMovement(new Vec3(0, player.getGravity() + 0.04, 0));
 
                         // drain oxygen
                         int toDrain = oxygen_required;
@@ -102,6 +122,8 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                         // save main inventory after jetpack is saved
                         ISpaceSuitInventory.saveInventory(jetpackInventory, jetpackStack, player.registryAccess());
                         ISpaceSuitInventory.saveInventory(inventory, chestPlateStack, player.registryAccess());
+
+                        sharedJetpackTick(player);
                     }else{
                         // out of fuel
                         chestPlateItem.setJetpackActive(chestPlateStack, false);
@@ -114,10 +136,9 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
     public static void clientTick() {
         Player player = ClientUtils.getSinglePlayer();
         ItemStack chestPlateStack = player.getItemBySlot(EquipmentSlot.CHEST);
-        HolderLookup.Provider provider = player.registryAccess();
         if (chestPlateStack.getItem() instanceof ChestPlate chestPlate) {
             if (ClientUtils.getOptions().keyJump.isDown()) {
-                if (!chestPlate.isJetpackActive(chestPlateStack) && chestPlate.hasJetpack(chestPlateStack, provider)) {
+                if (!chestPlate.isJetpackActive(chestPlateStack) && chestPlate.hasJetpack(chestPlateStack)) {
                     ChestPlate.ActivateJetpack.sendActivate(true);
                 }
             } else {
@@ -126,9 +147,8 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                 }
             }
 
-
             if(chestPlate.isJetpackActive(chestPlateStack)){
-                player.addDeltaMovement(new Vec3(0,player.getGravity() + 0.04,0));
+                sharedJetpackTick(player);
             }
         }
     }
