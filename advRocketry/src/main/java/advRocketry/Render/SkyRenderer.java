@@ -190,13 +190,13 @@ public class SkyRenderer {
         } else {
             shader.getUniform("isLocalPlanet").set(0);
         }
-        
+
         shader.apply();
         vertexBufferPlanet.bind();
         vertexBufferPlanet.draw();
         shader.clear();
 
-        if(targetAtmDensity > 0)
+        if(targetAtmDensity > 0 && !isMyDimension)
             renderPlanetAtmosphere(
                     planetDimension,
                     proj,
