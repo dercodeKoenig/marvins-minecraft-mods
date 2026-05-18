@@ -17,6 +17,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
@@ -143,9 +144,25 @@ public class SkyRenderer {
             shader.getUniform("isLocalPlanet").set(0);
         }
 
-        shader.apply();
+
+
         vertexBufferPlanet.bind();
+
+        // render initial planet
+        shader.getUniform("outerAtmPass").set(0);
+        shader.apply();
         vertexBufferPlanet.draw();
+
+        // render atm hull
+        TRANSLUCENT_TRANSPARENCY.setupRenderState();
+        GlStateManager._depthMask(false); // atm should not depth write or ring systems will look strange
+        shader.getUniform("outerAtmPass").set(1);
+        shader.getUniform("ModelMat").set(new Matrix4f(planetMatrix).scale(1.08f));
+        shader.apply();
+        vertexBufferPlanet.draw();
+        TRANSLUCENT_TRANSPARENCY.clearRenderState();
+        GlStateManager._depthMask(true);
+
         shader.clear();
     }
 
