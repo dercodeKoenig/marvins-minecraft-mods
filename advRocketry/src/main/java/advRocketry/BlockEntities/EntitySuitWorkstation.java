@@ -3,13 +3,9 @@ package advRocketry.BlockEntities;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
-import advRocketry.Items.ItemSatellite;
-import advRocketry.Items.ItemSatelliteIdChip;
 import advRocketry.Registry.Items;
 import advRocketry.SpaceSuit.*;
-import advRocketry.Utils.ItemUtils;
 import advRocketry.Utils.ProxyItemHandler;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -88,12 +84,13 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_BOOTS.get(), 1), 0.9f, guiHandler, 5,90));
 
         // inventory helper itemstack render
-        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_NIGHTVISION_UPGRADE.get(), 1), 0.9f, guiHandler, 90,11));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_NIGHT_VISION_UPGRADE.get(), 1), 0.9f, guiHandler, 90,11));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_FLIGHT_SPEED_UPGRADE.get(), 2), 0.9f, guiHandler, 105,11));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_JETPACK.get(), 1), 0.9f, guiHandler, 90,31));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get(), 2), 0.9f, guiHandler, 105,31));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get(), 2), 0.9f, guiHandler, 90,51));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_LEGS_UPGRADE.get(), 1), 0.9f, guiHandler, 90,71));
-        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_GRAVITYBOOTS_UPGRADE.get(), 1), 0.9f, guiHandler, 90,91));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_GRAVITY_BOOTS_UPGRADE.get(), 1), 0.9f, guiHandler, 90,91));
 
         ProxyItemHandler helmetHandler = new ProxyItemHandler(Items.ITEM_SPACE_SUIT_HELMET.get().getInventorySlots()) {
             @Override

@@ -46,13 +46,13 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
         super(GeneralRegistry.SPACE_SUIT_MATERIAL, type, properties);
     }
 
-    public static void sharedJetpackTick(Player player) {
+    public static void sharedJetpackTick(Player player, int flightSpeedUpgrades) {
         player.addDeltaMovement(new Vec3(0, player.getGravity() + 0.04, 0));
         player.resetFallDistance();
 
         // Get the direction the player is looking (a normalized vector where x, y, z are between -1.0 and 1.0)
         Vec3 lookDirection = player.getLookAngle();
-        double forwardSpeed = 0.15; // Adjust this to change how fast they fly horizontally
+        double forwardSpeed = 0.1 * flightSpeedUpgrades; // Adjust this to change how fast they fly horizontally
         // Check if they are actually pressing W (zza > 0) or S (zza < 0)
         if (player.zza != 0) {
             // If pressing S, move backwards instead of forwards
@@ -75,6 +75,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
             ItemStack legsStack = player.getItemBySlot(EquipmentSlot.LEGS);
             //ItemStack bootsStack = player.getItemBySlot(EquipmentSlot.FEET);
 
+            int flightSpeedUpgrades = 0;
             if (helmetStack.getItem() instanceof Helmet helmetItem && GlobalTime.getGlobalTime() % 20 == 0) {
                 CompoundTag data = helmetItem.getCachedDataUnsafe(helmetStack);
                 if (data.contains("nightVisionUpgrade") && data.getBoolean("nightVisionUpgrade")) {
@@ -87,6 +88,9 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                 CompoundTag data = leggingsItem.getCachedDataUnsafe(legsStack);
                 if (data.contains("legsUpgrade") && data.getBoolean("legsUpgrade")) {
                     player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 0, false, false, true));
+                }
+                if (data.contains("flightSpeedUpgrades")) {
+                    flightSpeedUpgrades = data.getInt("flightSpeedUpgrades");
                 }
             }
 
@@ -139,7 +143,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                     ISpaceSuitInventory.saveInventory(jetpackInventory, jetpackStack, player.registryAccess());
                     ISpaceSuitInventory.saveInventory(inventory, chestPlateStack, player.registryAccess());
 
-                    sharedJetpackTick(player);
+                    sharedJetpackTick(player, flightSpeedUpgrades);
                 } else {
                     // out of fuel
                     chestPlateItem.setJetpackActive(chestPlateStack, false);
@@ -151,6 +155,15 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
     public static void clientTick() {
         Player player = ClientUtils.getSinglePlayer();
         ItemStack chestPlateStack = player.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack helmetStack = player.getItemBySlot(EquipmentSlot.HEAD);
+
+        int flightSpeedUpgrades = 0;
+        if (helmetStack.getItem() instanceof Helmet helmetItem && GlobalTime.getGlobalTime() % 20 == 0) {
+            CompoundTag data = helmetItem.getCachedDataUnsafe(helmetStack);
+            if (data.contains("flightSpeedUpgrades")) {
+                flightSpeedUpgrades = data.getInt("flightSpeedUpgrades");
+            }
+        }
         if (chestPlateStack.getItem() instanceof ChestPlate chestPlate) {
             if (ClientUtils.getOptions().keyJump.isDown()) {
                 if (!chestPlate.isJetpackActive(chestPlateStack) && chestPlate.hasJetpack(chestPlateStack)) {
@@ -163,7 +176,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
             }
 
             if (chestPlate.isJetpackActive(chestPlateStack)) {
-                sharedJetpackTick(player);
+                sharedJetpackTick(player, flightSpeedUpgrades);
             }
         }
     }

@@ -1,6 +1,5 @@
 package advRocketry;
 
-import AOSWorkshopExpansion.Conveyor.ConveyorConfig;
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityObservatory;
@@ -10,14 +9,12 @@ import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Registry.*;
 import advRocketry.Render.*;
 import advRocketry.SpaceSuit.ChestPlate;
-import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -256,9 +253,10 @@ public class Main {
             e.accept(Items.ITEM_SPACE_SUIT_LEGGINGS.get());
             e.accept(Items.ITEM_SPACE_SUIT_BOOTS.get());
             e.accept(Items.ITEM_JETPACK.get());
-            e.accept(Items.ITEM_NIGHTVISION_UPGRADE.get());
+            e.accept(Items.ITEM_NIGHT_VISION_UPGRADE.get());
             e.accept(Items.ITEM_LEGS_UPGRADE.get());
-            e.accept(Items.ITEM_GRAVITYBOOTS_UPGRADE.get());
+            e.accept(Items.ITEM_GRAVITY_BOOTS_UPGRADE.get());
+            e.accept(Items.ITEM_FLIGHT_SPEED_UPGRADE.get());
 
         }
     }

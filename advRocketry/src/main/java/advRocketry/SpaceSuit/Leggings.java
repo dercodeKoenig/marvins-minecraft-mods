@@ -13,8 +13,6 @@ import java.util.List;
 
 public class Leggings extends SpaceSuit{
 
-    public static final int legs_upgrade_slot = 0;
-
     public Leggings() {
         super(Type.LEGGINGS, new Properties().stacksTo(1));
     }
@@ -36,7 +34,7 @@ public class Leggings extends SpaceSuit{
 
     @Override
     public boolean isItemValid(ItemStack stack, int slot) {
-        if(slot == legs_upgrade_slot && stack.getItem().equals(Items.ITEM_LEGS_UPGRADE.get())){
+        if(stack.getItem().equals(Items.ITEM_LEGS_UPGRADE.get())){
             return true;
         }
         return false;

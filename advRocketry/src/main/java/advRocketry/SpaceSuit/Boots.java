@@ -13,8 +13,6 @@ import java.util.List;
 
 public class Boots extends SpaceSuit{
 
-    public static final int gravity_boots_slot = 0;
-
     public Boots() {
         super(Type.BOOTS, new Properties().stacksTo(1));
     }
@@ -36,7 +34,7 @@ public class Boots extends SpaceSuit{
 
     @Override
     public boolean isItemValid(ItemStack stack, int slot) {
-        if(slot == gravity_boots_slot && stack.getItem().equals(Items.ITEM_GRAVITYBOOTS_UPGRADE.get())){
+        if(stack.getItem().equals(Items.ITEM_GRAVITY_BOOTS_UPGRADE.get())){
             return true;
         }
         return false;
@@ -48,7 +46,7 @@ public class Boots extends SpaceSuit{
         boolean gravityBootsUpgrade = false;
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
-            if (stack.getItem().equals(Items.ITEM_GRAVITYBOOTS_UPGRADE.get())) {
+            if (stack.getItem().equals(Items.ITEM_GRAVITY_BOOTS_UPGRADE.get())) {
                 gravityBootsUpgrade = true;
             }
         }
