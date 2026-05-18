@@ -16,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -32,6 +33,7 @@ import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory {
     public static final List<ArmorMaterial.Layer> spaceSuitLayers = List.of(
@@ -182,92 +184,102 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
 
             if (chestPlate.isJetpackActive(chestPlateStack)) {
                 sharedJetpackTick(player, flightSpeedUpgrades);
-
-                // TODO: the following would only work for the current player,
-                //       this has to be moved somewhere else so it also renders particles for other players jetpacks
-                ClientLevel level = (ClientLevel) player.level();
-                var random = player.getRandom();
-
-                // 1. Get the player's body rotation in radians
-                double rad = Math.toRadians(player.yBodyRot);
-
-                // 2. Configuration values
-                double sideOffset = 0.25;
-                double backOffset = 0.3;
-                double yOffset = 0.3;
-
-                // 3. Calculate rotational offsets
-                double backX = Math.sin(rad) * backOffset;
-                double backZ = -Math.cos(rad) * backOffset;
-
-                double leftX = Math.cos(rad) * sideOffset;
-                double leftZ = Math.sin(rad) * sideOffset;
-
-                // 4. Determine absolute base positions
-                double baseX = player.getX() + backX;
-                double baseY = player.getY() + yOffset;
-                double baseZ = player.getZ() + backZ;
-
-                double leftStartX = baseX + leftX;
-                double leftStartZ = baseZ + leftZ;
-
-                double rightStartX = baseX - leftX;
-                double rightStartZ = baseZ - leftZ;
-
-                // --- LEFT THRUSTER ---
-                // Smoke
-                new RocketParticle(
-                        level,
-                        leftStartX + (random.nextDouble() - 0.5) * 0.1,
-                        baseY + (random.nextDouble() - 0.5) * 0.1,
-                        leftStartZ + (random.nextDouble() - 0.5) * 0.1,
-                        (random.nextDouble() - 0.5) * 0.05,
-                        -0.3 - (random.nextDouble() * 0.15),
-                        (random.nextDouble() - 0.5) * 0.05,
-                        new Vector3f(0.5f, 0.5f, 0.5f).mul(1.2f),
-                        0.6f,
-                        0.3f,
-                        100,
-                        false
-                );
-                // Fire (Core Flame)
-                level.addParticle(
-                        ParticleTypes.FLAME,
-                        leftStartX + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
-                        baseY,                                           // Spawn exactly at nozzle height
-                        leftStartZ + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
-                        (random.nextDouble() - 0.5) * 0.02,              // Very little sideways drift
-                        -0.4 - (random.nextDouble() * 0.1),              // Shoots down slightly faster than smoke
-                        (random.nextDouble() - 0.5) * 0.02               // Very little sideways drift
-                );
-
-                // --- RIGHT THRUSTER ---
-                // Smoke
-                new RocketParticle(
-                        level,
-                        rightStartX + (random.nextDouble() - 0.5) * 0.1,
-                        baseY + (random.nextDouble() - 0.5) * 0.1,
-                        rightStartZ + (random.nextDouble() - 0.5) * 0.1,
-                        (random.nextDouble() - 0.5) * 0.05,
-                        -0.3 - (random.nextDouble() * 0.15),
-                        (random.nextDouble() - 0.5) * 0.05,
-                        new Vector3f(0.5f, 0.5f, 0.5f).mul(1.2f),
-                        0.6f,
-                        0.3f,
-                        100,
-                        false
-                );
-                // Fire (Core Flame)
-                level.addParticle(
-                        ParticleTypes.FLAME,
-                        rightStartX + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
-                        baseY,                                            // Spawn exactly at nozzle height
-                        rightStartZ + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
-                        (random.nextDouble() - 0.5) * 0.02,               // Very little sideways drift
-                        -0.4 - (random.nextDouble() * 0.1),               // Shoots down slightly faster than smoke
-                        (random.nextDouble() - 0.5) * 0.02                // Very little sideways drift
-                );
             }
+        }
+        tickJetpackParticles();
+    }
+
+    public static void tickJetpackParticles() {
+        ClientLevel level = (ClientLevel) ClientUtils.getPlayerLevel();
+        for (Player player : level.players()) {
+            ItemStack chestPlateStack = player.getItemBySlot(EquipmentSlot.CHEST);
+            if (!(chestPlateStack.getItem() instanceof ChestPlate chestPlate))
+                continue;
+            if (!chestPlate.isJetpackActive(chestPlateStack))
+                continue;
+
+
+            RandomSource random = player.getRandom();
+
+            // 1. Get the player's body rotation in radians
+            double rad = Math.toRadians(player.yBodyRot);
+
+            // 2. Configuration values
+            double sideOffset = 0.25;
+            double backOffset = 0.3;
+            double yOffset = 0.3;
+
+            // 3. Calculate rotational offsets
+            double backX = Math.sin(rad) * backOffset;
+            double backZ = -Math.cos(rad) * backOffset;
+
+            double leftX = Math.cos(rad) * sideOffset;
+            double leftZ = Math.sin(rad) * sideOffset;
+
+            // 4. Determine absolute base positions
+            double baseX = player.getX() + backX;
+            double baseY = player.getY() + yOffset;
+            double baseZ = player.getZ() + backZ;
+
+            double leftStartX = baseX + leftX;
+            double leftStartZ = baseZ + leftZ;
+
+            double rightStartX = baseX - leftX;
+            double rightStartZ = baseZ - leftZ;
+
+            // --- LEFT THRUSTER ---
+            // Smoke
+            new RocketParticle(
+                    level,
+                    leftStartX + (random.nextDouble() - 0.5) * 0.1,
+                    baseY + (random.nextDouble() - 0.5) * 0.1,
+                    leftStartZ + (random.nextDouble() - 0.5) * 0.1,
+                    (random.nextDouble() - 0.5) * 0.05,
+                    -0.3 - (random.nextDouble() * 0.15),
+                    (random.nextDouble() - 0.5) * 0.05,
+                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1.2f),
+                    0.6f,
+                    0.3f,
+                    100,
+                    false
+            );
+            // Fire (Core Flame)
+            level.addParticle(
+                    ParticleTypes.FLAME,
+                    leftStartX + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
+                    baseY,                                           // Spawn exactly at nozzle height
+                    leftStartZ + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
+                    (random.nextDouble() - 0.5) * 0.02,              // Very little sideways drift
+                    -0.4 - (random.nextDouble() * 0.1),              // Shoots down slightly faster than smoke
+                    (random.nextDouble() - 0.5) * 0.02               // Very little sideways drift
+            );
+
+            // --- RIGHT THRUSTER ---
+            // Smoke
+            new RocketParticle(
+                    level,
+                    rightStartX + (random.nextDouble() - 0.5) * 0.1,
+                    baseY + (random.nextDouble() - 0.5) * 0.1,
+                    rightStartZ + (random.nextDouble() - 0.5) * 0.1,
+                    (random.nextDouble() - 0.5) * 0.05,
+                    -0.3 - (random.nextDouble() * 0.15),
+                    (random.nextDouble() - 0.5) * 0.05,
+                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1.2f),
+                    0.6f,
+                    0.3f,
+                    100,
+                    false
+            );
+            // Fire (Core Flame)
+            level.addParticle(
+                    ParticleTypes.FLAME,
+                    rightStartX + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
+                    baseY,                                            // Spawn exactly at nozzle height
+                    rightStartZ + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
+                    (random.nextDouble() - 0.5) * 0.02,               // Very little sideways drift
+                    -0.4 - (random.nextDouble() * 0.1),               // Shoots down slightly faster than smoke
+                    (random.nextDouble() - 0.5) * 0.02                // Very little sideways drift
+            );
         }
     }
 
