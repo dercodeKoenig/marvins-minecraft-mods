@@ -44,7 +44,7 @@ void main() {
     if (r < horizonRadius) {
         // FRONT FACE: Keep the center of the planet highly transparent using a steep pow() curve.
         // This ensures thick atmospheric fog doesn't wash out terrain or cloud details on the ground.
-        atmosphereAlpha = pow(r / horizonRadius, 4.0);
+        atmosphereAlpha = pow(r / horizonRadius, 6.0);
     } else {
         // OUTER HALO: Calculate a soft polynomial fade-out for the air bleeding into open space.
         // Polynomial shapes survive Reinhard HDR filters much better than raw exponential decay.
