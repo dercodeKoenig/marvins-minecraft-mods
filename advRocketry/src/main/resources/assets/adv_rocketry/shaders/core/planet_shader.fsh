@@ -113,7 +113,7 @@ if(outerAtmPass == 1){
         // --- LAYER A: ENHANCED DAY/TWILIGHT SIDE ---
         // Wrap the diffuse term slightly (* 0.8 + 0.2) to let the atmosphere hold its color softly
         // over the curvature of the terminator line.
-        float atmLightFactor = max(0.0, NdotL * 0.8 + 0.2);
+        float atmLightFactor = max(0.0, NdotL * 0.7 + 0.3);
         float baseDiffuse = pow(atmLightFactor, 1.5);
 
         // Use a smooth step to cleanly delete the daylight diffuse color on the dark hemisphere.
