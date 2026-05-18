@@ -1,6 +1,7 @@
 package advRocketry.SpaceSuit;
 
 import advRocketry.Config;
+import advRocketry.GlobalTime;
 import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Main;
 import advRocketry.Registry.Fluids;
@@ -74,17 +75,18 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
             ItemStack legsStack = player.getItemBySlot(EquipmentSlot.LEGS);
             //ItemStack bootsStack = player.getItemBySlot(EquipmentSlot.FEET);
 
-            if (helmetStack.getItem() instanceof Helmet helmetItem) {
+            if (helmetStack.getItem() instanceof Helmet helmetItem && GlobalTime.getGlobalTime() % 20 == 0) {
                 CompoundTag data = helmetItem.getCachedDataUnsafe(helmetStack);
                 if (data.contains("nightVisionUpgrade") && data.getBoolean("nightVisionUpgrade")) {
-                    player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 20, 0, false, false, true));
+                    // higher timer to prevent the "about to end" effect
+                    player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 400, 0, false, false, true));
                 }
             }
 
-            if (legsStack.getItem() instanceof Leggings leggingsItem) {
+            if (legsStack.getItem() instanceof Leggings leggingsItem && GlobalTime.getGlobalTime() % 20 == 0) {
                 CompoundTag data = leggingsItem.getCachedDataUnsafe(legsStack);
                 if (data.contains("legsUpgrade") && data.getBoolean("legsUpgrade")) {
-                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 20, 0, false, false, true));
+                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 0, false, false, true));
                 }
             }
 

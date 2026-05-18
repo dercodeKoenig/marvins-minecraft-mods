@@ -80,16 +80,20 @@ public class EntitySuitWorkstation extends BlockEntity implements INetworkTagRec
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, LEGS_SLOT, 0, 1, guiHandler, 25, 70));
         guiHandler.modules.add(new guiModuleItemHandlerSlot(id++, inventory, BOOTS_SLOT, 0, 1, guiHandler, 25, 90));
 
+        // armor itemstack render
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_HELMET.get(), 1), 0.9f, guiHandler, 5,10));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_CHESTPLATE.get(), 1), 0.9f, guiHandler, 5,30));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_JETPACK.get(), 1), 0.9f, guiHandler, 5,50));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_LEGGINGS.get(), 1), 0.9f, guiHandler, 5,70));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_SPACE_SUIT_BOOTS.get(), 1), 0.9f, guiHandler, 5,90));
 
+        // inventory helper itemstack render
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_NIGHTVISION_UPGRADE.get(), 1), 0.9f, guiHandler, 90,11));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_JETPACK.get(), 1), 0.9f, guiHandler, 90,31));
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get(), 2), 0.9f, guiHandler, 105,31));
-
         guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get(), 2), 0.9f, guiHandler, 90,51));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_LEGS_UPGRADE.get(), 1), 0.9f, guiHandler, 90,71));
+        guiHandler.modules.add(new guiModuleItemStackRender(id++, new ItemStack(Items.ITEM_GRAVITYBOOTS_UPGRADE.get(), 1), 0.9f, guiHandler, 90,91));
 
         ProxyItemHandler helmetHandler = new ProxyItemHandler(Items.ITEM_SPACE_SUIT_HELMET.get().getInventorySlots()) {
             @Override

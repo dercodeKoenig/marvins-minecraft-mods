@@ -166,7 +166,8 @@ public class WorldEvents {
             if (bootsStack.getItem() instanceof Boots bootsItem) {
                 CompoundTag data = bootsItem.getCachedDataUnsafe(bootsStack);
                 if (data.contains("gravityBootsUpgrade") && data.getBoolean("gravityBootsUpgrade")) {
-                    event.setDamageMultiplier((float) (event.getDamageMultiplier() * 0.3));
+                    event.setDamageMultiplier((float) (event.getDamageMultiplier() * 0.1));
+                    //System.out.println("reduce fall damage");
                 }
             }
         }
