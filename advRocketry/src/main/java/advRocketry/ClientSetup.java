@@ -79,6 +79,9 @@ public class ClientSetup {
             shaderUtils.planetShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
             event.registerShader(shaderUtils.planetShader, x -> {});
 
+            shaderUtils.planetAtmShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "planet_atm_shader"), shaderUtils.POSITION_TEXTURE_NORMAL);
+            event.registerShader(shaderUtils.planetAtmShader, x -> {});
+
             shaderUtils.blitPostProcessingShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_post_processing"), shaderUtils.POSITION);
             event.registerShader(shaderUtils.blitPostProcessingShader, x -> {});
 

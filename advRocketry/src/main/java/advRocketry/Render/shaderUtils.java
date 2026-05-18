@@ -43,6 +43,11 @@ public class shaderUtils {
         return planetShader;
     }
 
+    public static ShaderInstance planetAtmShader;
+    public static ShaderInstance getPlanetAtmShader() {
+        return planetAtmShader;
+    }
+
     public static ShaderInstance blitPostProcessingShader;
     public static ShaderInstance getBlitPostProcessingShader() {
         return blitPostProcessingShader;

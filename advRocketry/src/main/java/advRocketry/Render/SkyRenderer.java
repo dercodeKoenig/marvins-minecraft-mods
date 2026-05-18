@@ -65,6 +65,53 @@ public class SkyRenderer {
         startTime = System.currentTimeMillis();
     }
 
+    public static void renderPlanetAtmosphere(
+            PlanetDimension planetDimension,
+            Matrix4f proj,
+            Matrix4f viewMatrix,
+            Matrix4f worldMatrix,
+            Matrix4f planetMatrix,
+            Vector3f eyePos,
+            float partialtick
+    ){
+        RenderSystem.setShader(shaderUtils::getPlanetAtmShader);
+        ShaderInstance shader = RenderSystem.getShader();
+
+        shader.getUniform("ProjMat").set(proj);
+        shader.getUniform("ViewMat").set(viewMatrix);
+        shader.getUniform("WorldMat").set(worldMatrix);
+        shader.getUniform("ModelMat").set(new Matrix4f(planetMatrix).scale(1.08f));
+
+        shader.getUniform("TargetAtmDensity").set(planetDimension.getAtmosphereDensity());
+        Vector3f TargetSkyColor = RenderUtils.gamma_reverse(planetDimension.getSkyColor());
+        shader.getUniform("TargetSkyColor").set(TargetSkyColor);
+
+        shader.getUniform("playerEye").set(eyePos);
+
+        int totalLights = 0;
+        Vec3 myPosition = planetDimension.getPosition(partialtick);
+        for (ResourceLocation lightSourceId : planetDimension.getCurrentMainStars()) {
+            Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
+            if (star == null) continue;
+            Vec3 StarPos = star.getPosition(partialtick);
+            Vec3 LightVector = myPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
+            shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+            Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
+            shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
+            totalLights += 1;
+        }
+        shader.getUniform("LightCount").set(totalLights);
+
+        TRANSLUCENT_TRANSPARENCY.setupRenderState();
+        GlStateManager._depthMask(false); // atm should not depth write or ring systems will look strange
+        shader.apply();
+        vertexBufferPlanet.bind();
+        vertexBufferPlanet.draw();
+        shader.clear();
+        TRANSLUCENT_TRANSPARENCY.clearRenderState();
+        GlStateManager._depthMask(true);
+    }
+
     public static void renderPlanet(
             PlanetDimension planetDimension,
             Matrix4f proj,
@@ -95,7 +142,8 @@ public class SkyRenderer {
         Vector3f LocalSunriseColor = RenderUtils.gamma_reverse(mySunriseColor);
         shader.getUniform("LocalSunriseColor").set(LocalSunriseColor);
 
-        shader.getUniform("TargetAtmDensity").set(planetDimension.getAtmosphereDensity());
+        float targetAtmDensity = planetDimension.getAtmosphereDensity();
+        shader.getUniform("TargetAtmDensity").set(targetAtmDensity);
         Vector3f TargetSunriseColor = RenderUtils.gamma_reverse(planetDimension.getSunRiseColor());
         shader.getUniform("TargetSunriseColor").set(TargetSunriseColor);
         Vector3f TargetSkyColor = RenderUtils.gamma_reverse(planetDimension.getSkyColor());
@@ -137,33 +185,27 @@ public class SkyRenderer {
         }
         shader.getUniform("LightCount").set(totalLights);
 
-
         if (isMyDimension) {
             shader.getUniform("isLocalPlanet").set(1);
         } else {
             shader.getUniform("isLocalPlanet").set(0);
         }
-
-
-
+        
+        shader.apply();
         vertexBufferPlanet.bind();
-
-        // render initial planet
-        shader.getUniform("outerAtmPass").set(0);
-        shader.apply();
         vertexBufferPlanet.draw();
-
-        // render atm hull
-        TRANSLUCENT_TRANSPARENCY.setupRenderState();
-        GlStateManager._depthMask(false); // atm should not depth write or ring systems will look strange
-        shader.getUniform("outerAtmPass").set(1);
-        shader.getUniform("ModelMat").set(new Matrix4f(planetMatrix).scale(1.08f));
-        shader.apply();
-        vertexBufferPlanet.draw();
-        TRANSLUCENT_TRANSPARENCY.clearRenderState();
-        GlStateManager._depthMask(true);
-
         shader.clear();
+
+        if(targetAtmDensity > 0)
+            renderPlanetAtmosphere(
+                    planetDimension,
+                    proj,
+                    viewMatrix,
+                    worldMatrix,
+                    planetMatrix,
+                    eyePos,
+                    partialtick
+            );
     }
 
     public static void renderRingSystem(
