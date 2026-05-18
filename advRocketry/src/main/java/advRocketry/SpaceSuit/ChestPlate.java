@@ -1,6 +1,5 @@
 package advRocketry.SpaceSuit;
 
-import ARLib.network.INetworkTagReceiver;
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.Config;
 import advRocketry.Items.ItemPortablePressureTank;
@@ -34,7 +33,7 @@ public class ChestPlate extends SpaceSuit {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        CompoundTag tag = ((ISpaceSuitInventory) stack.getItem()).getCachedData(stack);
+        CompoundTag tag = ((ISpaceSuitInventory) stack.getItem()).getCachedDataUnsafe(stack);
         if (tag.contains("pressureTanks")) {
             int pressureTanks = tag.getInt("pressureTanks");
             tooltipComponents.add(
@@ -95,7 +94,7 @@ public class ChestPlate extends SpaceSuit {
             }
             if (stack.getItem() instanceof Jetpack jetpackItem) {
                 jetpack = true;
-                CompoundTag jetpackData = jetpackItem.getCachedData(stack);
+                CompoundTag jetpackData = jetpackItem.getCachedDataUnsafe(stack);
                 if (jetpackData.contains("hydrogen"))
                     hydrogen = jetpackData.getInt("hydrogen");
             }
@@ -109,7 +108,7 @@ public class ChestPlate extends SpaceSuit {
     }
 
     public boolean hasJetpack(ItemStack chestPlate){
-       CompoundTag cachedData = getCachedData(chestPlate);
+       CompoundTag cachedData = getCachedDataUnsafe(chestPlate);
        if(cachedData.contains("jetpack") && cachedData.getBoolean("jetpack"))
            return true;
        return false;
@@ -125,7 +124,7 @@ public class ChestPlate extends SpaceSuit {
     public void setJetpackActive(ItemStack chestPlate, boolean active){
         CompoundTag stackTag = ItemUtils.getStacktagOrEmpty(chestPlate);
         if(active){
-            CompoundTag cachedData = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedData(chestPlate);
+            CompoundTag cachedData = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedDataUnsafe(chestPlate);
             int hydrogen_required = Config.INSTANCE.jetpack_hydrogen_per_tick;
             int oxygen_required = Config.INSTANCE.jetpack_oxygen_per_tick;
             int hydrogen_available = cachedData.contains("hydrogen") ? cachedData.getInt("hydrogen") : 0;

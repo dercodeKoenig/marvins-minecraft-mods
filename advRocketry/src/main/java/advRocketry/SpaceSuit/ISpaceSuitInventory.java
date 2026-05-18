@@ -11,8 +11,9 @@ public interface ISpaceSuitInventory {
 
     String CACHED_DATA_KEY = "C";
 
-    default CompoundTag getCachedData(ItemStack stack) {
-        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
+    default CompoundTag getCachedDataUnsafe(ItemStack stack) {
+        // read only from this tag! (cached values shouldn't be changed anyway, they are computed from inventory)
+        CompoundTag tag = ItemUtils.getStacktagOrEmptyUnsafe(stack);
         if (tag.contains(CACHED_DATA_KEY))
             return tag.getCompound(CACHED_DATA_KEY);
         return new CompoundTag();

@@ -10,6 +10,8 @@ import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Satellites.SatelliteManager;
+import advRocketry.SpaceSuit.Boots;
+import advRocketry.SpaceSuit.Helmet;
 import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
@@ -21,7 +23,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.material.Fluids;
@@ -152,6 +159,17 @@ public class WorldEvents {
         if (d != null)
             g = d.getGravitationalMultiplier();
         event.setDamageMultiplier((float) (event.getDamageMultiplier() * Math.pow(g, 1.5)));
+
+        // boots upgrade reduces fall damage
+        if(event.getEntity() instanceof Player player){
+            ItemStack bootsStack = player.getItemBySlot(EquipmentSlot.FEET);
+            if (bootsStack.getItem() instanceof Boots bootsItem) {
+                CompoundTag data = bootsItem.getCachedDataUnsafe(bootsStack);
+                if (data.contains("gravityBootsUpgrade") && data.getBoolean("gravityBootsUpgrade")) {
+                    event.setDamageMultiplier((float) (event.getDamageMultiplier() * 0.3));
+                }
+            }
+        }
     }
 
     public static void onMobSpawn(FinalizeSpawnEvent event) {

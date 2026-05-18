@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
@@ -55,7 +54,7 @@ public class SurvivalSystem {
                     // o2 requires a pressure tank with o2
                     if (problems.contains(Dimension.SurvivalProblem.TOO_LITTLE_O2)) {
                         ItemStack chestPlate = player.getItemBySlot(EquipmentSlot.CHEST);
-                        CompoundTag cached = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedData(chestPlate);
+                        CompoundTag cached = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedDataUnsafe(chestPlate);
                         int oxygenAvailable = cached.getInt("oxygen");
                         int oxygenRequired = 20;
                         if (oxygenAvailable >= oxygenRequired) {

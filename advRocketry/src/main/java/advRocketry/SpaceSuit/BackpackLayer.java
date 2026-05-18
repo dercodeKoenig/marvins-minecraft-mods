@@ -4,12 +4,10 @@ import ARLib.obj.ModelFormatException;
 import ARLib.obj.Static;
 import ARLib.obj.WavefrontObject;
 import advRocketry.Main;
-import advRocketry.Registry.Items;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -44,7 +42,7 @@ public class BackpackLayer<T extends LivingEntity, M extends PlayerModel<T>> ext
         // Check if the player is wearing your specific armor
         if (chestStack.getItem() instanceof ChestPlate chestPlate) {
             poseStack.pushPose();
-            CompoundTag cachedData = chestPlate.getCachedData(chestStack);
+            CompoundTag cachedData = chestPlate.getCachedDataUnsafe(chestStack);
             int pressureTanks = cachedData.contains("pressureTanks") ? cachedData.getInt("pressureTanks") : 0;
             boolean jetpack = cachedData.contains("jetpack") ? cachedData.getBoolean("jetpack") : false;
 
