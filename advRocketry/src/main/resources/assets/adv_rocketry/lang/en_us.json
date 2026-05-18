@@ -14,6 +14,17 @@
   "item.adv_rocketry.asteroid_id_chip": "Asteroid ID chip",
   "item.adv_rocketry.atm_analyzer": "Atmosphere Analyzer",
   "item.adv_rocketry.portable_pressure_tank_aluminum": "Aluminum Portable Pressure Tank",
+  "item.adv_rocketry.portable_pressure_tank_steel": "Steel Portable Pressure Tank",
+
+  "item.adv_rocketry.flight_speed_upgrade": "Flight Speed Upgrade",
+  "item.adv_rocketry.gravity_boots_upgrade": "Gravity Boots Upgrade",
+  "item.adv_rocketry.legs_upgrade": "Mechanic Legs Upgrade",
+  "item.adv_rocketry.night_vision_upgrade": "Night Vision Upgrade",
+  "item.adv_rocketry.jetpack": "Jetpack",
+  "item.adv_rocketry.space_helmet": "Space Helmet",
+  "item.adv_rocketry.space_chestplate": "Space Chestplanet",
+  "item.adv_rocketry.space_leggings": "Space Leggings",
+  "item.adv_rocketry.space_boots": "Space Boots",
 
   "block.adv_rocketry.suit_workstation": "Space Suit Workstation",
   "block.adv_rocketry.data_storage_block": "Data Hatch",

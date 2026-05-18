@@ -144,6 +144,19 @@ public class Main {
                 portablePressuretankAluminum
 
         );
+
+        ItemPortablePressureTank portablePressuretankSteel = Items.ITEM_PORTABLE_PRESSURE_TANK_STEEL.get();
+        e.registerItem(
+                Capabilities.FluidHandler.ITEM,
+                (stack, context) ->
+                        new FluidHandlerItemStack(
+                                GeneralRegistry.FLUID_CONTAINER_DATA,
+                                stack,
+                                portablePressuretankSteel.capacity
+                        ),
+                portablePressuretankSteel
+
+        );
     }
 
     public static void registerTickets(RegisterTicketControllersEvent event) {
@@ -226,6 +239,7 @@ public class Main {
             e.accept(Items.ITEM_DATA_STORAGE.get());
             e.accept(Items.ITEM_ATM_ANALYZER.get());
             e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM.get());
+            e.accept(Items.ITEM_PORTABLE_PRESSURE_TANK_STEEL.get());
 
             e.accept(Blocks.SATELLITE_ASSEMBLER.get());
             e.accept(Blocks.SATELLITE_MONITOR.get());

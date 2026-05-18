@@ -24,6 +24,7 @@ public class Items {
     public static final Supplier<Item> ITEM_ASTEROID_ID_CHIP = ITEMS.register("asteroid_id_chip", () -> new ItemAsteroidIdChip());
     public static final Supplier<Item> ITEM_ATM_ANALYZER = ITEMS.register("atm_analyzer", () -> new ItemAtmAnalyzer());
     public static final Supplier<ItemPortablePressureTank> ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM = ITEMS.register("portable_pressure_tank_aluminum", () -> new ItemPortablePressureTank(4000));
+    public static final Supplier<ItemPortablePressureTank> ITEM_PORTABLE_PRESSURE_TANK_STEEL = ITEMS.register("portable_pressure_tank_steel", () -> new ItemPortablePressureTank(8000));
 
     public static final Supplier<Item> ITEM_OXYGEN_BUCKET = ITEMS.register("oxygen_bucket", () -> new BucketItem(Fluids.OXYGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
     public static final Supplier<Item> ITEM_HYDROGEN_BUCKET = ITEMS.register("hydrogen_bucket", () -> new BucketItem(Fluids.HYDROGEN.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
