@@ -183,6 +183,8 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
             if (chestPlate.isJetpackActive(chestPlateStack)) {
                 sharedJetpackTick(player, flightSpeedUpgrades);
 
+                // TODO: the following would only work for the current player,
+                //       this has to be moved somewhere else so it also renders particles for other players jetpacks
                 ClientLevel level = (ClientLevel) player.level();
                 var random = player.getRandom();
 
