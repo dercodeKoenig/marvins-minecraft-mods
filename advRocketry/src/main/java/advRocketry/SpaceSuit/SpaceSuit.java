@@ -76,21 +76,21 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
             //ItemStack bootsStack = player.getItemBySlot(EquipmentSlot.FEET);
 
             int flightSpeedUpgrades = 0;
-            if (helmetStack.getItem() instanceof Helmet helmetItem && GlobalTime.getGlobalTime() % 20 == 0) {
+            if (helmetStack.getItem() instanceof Helmet helmetItem) {
                 CompoundTag data = helmetItem.getCachedDataUnsafe(helmetStack);
-                if (data.contains("nightVisionUpgrade") && data.getBoolean("nightVisionUpgrade")) {
+                if (data.contains("nightVisionUpgrade") && data.getBoolean("nightVisionUpgrade") && GlobalTime.getGlobalTime() % 20 == 0) {
                     // higher timer to prevent the "about to end" effect
                     player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 400, 0, false, false, true));
                 }
-            }
-
-            if (legsStack.getItem() instanceof Leggings leggingsItem && GlobalTime.getGlobalTime() % 20 == 0) {
-                CompoundTag data = leggingsItem.getCachedDataUnsafe(legsStack);
-                if (data.contains("legsUpgrade") && data.getBoolean("legsUpgrade")) {
-                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 0, false, false, true));
-                }
                 if (data.contains("flightSpeedUpgrades")) {
                     flightSpeedUpgrades = data.getInt("flightSpeedUpgrades");
+                }
+            }
+
+            if (legsStack.getItem() instanceof Leggings leggingsItem) {
+                CompoundTag data = leggingsItem.getCachedDataUnsafe(legsStack);
+                if (data.contains("legsUpgrade") && data.getBoolean("legsUpgrade") && GlobalTime.getGlobalTime() % 20 == 0) {
+                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 0, false, false, true));
                 }
             }
 
@@ -158,7 +158,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
         ItemStack helmetStack = player.getItemBySlot(EquipmentSlot.HEAD);
 
         int flightSpeedUpgrades = 0;
-        if (helmetStack.getItem() instanceof Helmet helmetItem && GlobalTime.getGlobalTime() % 20 == 0) {
+        if (helmetStack.getItem() instanceof Helmet helmetItem) {
             CompoundTag data = helmetItem.getCachedDataUnsafe(helmetStack);
             if (data.contains("flightSpeedUpgrades")) {
                 flightSpeedUpgrades = data.getInt("flightSpeedUpgrades");

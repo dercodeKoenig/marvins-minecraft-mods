@@ -58,7 +58,7 @@ public class Helmet extends SpaceSuit {
             if (stack.getItem().equals(Items.ITEM_NIGHT_VISION_UPGRADE.get())) {
                 nightVisionUpgrade = true;
             }
-            if (stack.getItem().equals(Items.ITEM_FLIGHT_SPEED_UPGRADE)) {
+            if (stack.getItem().equals(Items.ITEM_FLIGHT_SPEED_UPGRADE.get())) {
                 flightSpeedUpgrades++;
             }
         }
