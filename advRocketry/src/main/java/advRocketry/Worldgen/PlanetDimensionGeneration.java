@@ -1,5 +1,6 @@
 package advRocketry.Worldgen;
 
+import biomesoplenty.worldgen.BOPSurfaceRuleData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
@@ -13,8 +14,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.*;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import java.util.LinkedList;
 import java.util.OptionalLong;
 
 public class PlanetDimensionGeneration {
@@ -44,15 +49,15 @@ public class PlanetDimensionGeneration {
         RegistryAccess registryAccess = server.registryAccess();
 
         NoiseGeneratorSettings overworldSettings = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.OVERWORLD);
-        NoiseGeneratorSettings netherSetting = registryAccess.registryOrThrow(Registries.NOISE_SETTINGS).get(NoiseGeneratorSettings.NETHER);
 
+        // add custom rules
+        SurfaceRules.RuleSource surfaceRules = SurfaceRules.sequence(CustomSurfaceRules.customBiomeRule);
+        // maybe add bop rules
+        if(ModList.get().isLoaded("biomesoplenty"))
+            surfaceRules = SurfaceRules.sequence(surfaceRules, BOPSurfaceRuleData.overworld());
+        // add default ruleslast because it defaults to grass or smth at end
+        surfaceRules = SurfaceRules.sequence(surfaceRules, overworldSettings.surfaceRule());
 
-
-        SurfaceRules.RuleSource surfaceRules = SurfaceRules.sequence(
-                CustomSurfaceRules.customBiomeRule,
-                overworldSettings.surfaceRule()
-                //netherSetting.surfaceRule()
-        );
 
         ChunkGenerator generator = new CustomChunkGenerator(
                 MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeConfig.createBiomeConfig())),
