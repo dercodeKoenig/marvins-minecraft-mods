@@ -1,88 +1,102 @@
 package advRocketry.Worldgen.presets;
 
 import advRocketry.Worldgen.BiomeConfig;
+import java.util.List;
 
 public class VOLCANIC {
     public static String name = "volcanic.json";
 
     public static BiomeConfig create() {
 
-        // Base Biomes: A mix of scorched wastes, dead forests, and jagged volcanic rock.
+        // --- BASE BIOMES ---
+        // Completely dominated by volcanic plains and volcanoes to ensure the planet feels hostile immediately.
         String[][] biomesByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
-                {
-                        // FROZEN: Grey, jagged, and desolate scree slopes and peaks
-                        "minecraft:jagged_peaks", "biomesoplenty:crag", "minecraft:stony_peaks", "biomesoplenty:cold_desert", "minecraft:windswept_gravelly_hills"
-                },
-                {
-                        // LOW (Cool): Forests choked out by ash, dead vegetation, and cracked earth
-                        "biomesoplenty:ominous_woods", "biomesoplenty:dead_forest", "biomesoplenty:wasteland_steppe", "biomesoplenty:dryland", "biomesoplenty:old_growth_dead_forest"
-                },
-                {
-                        // MID (Temperate): Murky sulfur bogs transitioning into harsh rocky wastes
-                        "biomesoplenty:bog", "biomesoplenty:crag", "biomesoplenty:wasteland", "biomesoplenty:volcanic_plains", "biomesoplenty:dead_forest"
-                },
-                {
-                        // WARM: Geothermal springs and deeply carved, baked red canyons
-                        "biomesoplenty:hot_springs", "biomesoplenty:rocky_shrubland", "minecraft:badlands", "biomesoplenty:volcanic_plains", "minecraft:eroded_badlands"
-                },
-                {
-                        // HOT: The epicenter. Boiling pools, volcanoes, and deeply scorched earth
-                        "biomesoplenty:volcano", "biomesoplenty:hot_springs", "biomesoplenty:volcano", "biomesoplenty:volcanic_plains", "biomesoplenty:wasteland"
-                }
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" }
         };
 
-        // Peak Biomes: Obsidian-like peaks, volcanoes, and crags
+        // --- PEAKS ---
+        // Pure fiery spikes. We use basalt deltas in the wettest regions to simulate cooled magma spires.
         String[][] peaksByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
-                {
-                        "minecraft:stony_peaks", "minecraft:stony_peaks", "minecraft:basalt_deltas", "biomesoplenty:hot_springs", "biomesoplenty:hot_springs"
-                }, // FROZEN
-                {
-                        "biomesoplenty:crag", "minecraft:basalt_deltas", "biomesoplenty:hot_springs", null, "biomesoplenty:volcano"
-                }, // LOW
-                {
-                        "minecraft:basalt_deltas", "biomesoplenty:hot_springs", null, "biomesoplenty:volcano", "biomesoplenty:crag"
-                }, // MID
-                {
-                        "minecraft:basalt_deltas", "biomesoplenty:hot_springs", null, "biomesoplenty:volcano", "biomesoplenty:volcano"
-                }, // WARM
-                {
-                        "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano"
-                }  // HOT
+                { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
+                { "minecraft:basalt_deltas", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" }
         };
 
-        // Use Basalt Deltas for "Rivers" to create paths of ash and jagged stone
-        String[] riversByTemperature = new String[]
-                {   // FROZEN , LOW , MID , WARM , HOT
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
-                };
+        // --- AQUATIC & EDGES ---
+        // Oceans, deep oceans, beaches, and rivers are entirely replaced by Basalt Deltas.
+        // This gives the impression of massive, dried-out lava basins and jagged shores.
+        String[] riversByTemperature = { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas" };
+        String[] beachesByTemperature = { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas" };
+        String[] oceansByTemperature = { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas" };
+        String[] deepOceansByTemperature = { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas" };
 
-        // Shorelines are either stone, gravel, or purely volcanic
-        String[] beachesByTemperature = new String[]
-                {   // FROZEN , LOW , MID , WARM , HOT
-                        "minecraft:stony_shore", "biomesoplenty:gravel_beach", "minecraft:basalt_deltas", null, null
-                };
-
-        // Oceans: Exclusively Basalt Deltas to ensure the "floor" of the world looks like a jagged lava bed
-        String[] oceansByTemperature = new String[]
-                {   // FROZEN , LOW , MID , WARM , HOT
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
-                };
-
-        String[] deepOceansByTemperature = new String[]
-                {   // FROZEN , LOW , MID , WARM , HOT
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
-                };
-
-
-        return BiomeConfigCreator.create(
-                biomesByTemperatureAndHumidity,
-                peaksByTemperatureAndHumidity,
-                riversByTemperature,
-                beachesByTemperature,
-                oceansByTemperature,
-                deepOceansByTemperature
+        BiomeConfig config = BiomeConfigCreator.create(
+                biomesByTemperatureAndHumidity, peaksByTemperatureAndHumidity,
+                riversByTemperature, beachesByTemperature, oceansByTemperature, deepOceansByTemperature
         );
+
+
+        // ==========================================
+        // --- TOPOGRAPHICAL OVERRIDES ---
+        // ==========================================
+
+        // 1. The Ash Steppes (Flatlands)
+        // High erosion means flatter, smoothed-out terrain. Placed in hot, dry regions.
+        BiomeConfig.BiomeDefinition steppesOverride = new BiomeConfig.BiomeDefinition();
+        steppesOverride.biome1 = "biomesoplenty:wasteland_steppe";
+        steppesOverride.biome2 = "biomesoplenty:wasteland";
+        steppesOverride.river1 = "minecraft:basalt_deltas";
+        steppesOverride.peak1 = "biomesoplenty:volcano";
+        steppesOverride.peak2 = "biomesoplenty:volcano";
+
+        steppesOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
+        steppesOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.DRY, BiomeConfig.Humidity.VERY_DRY));
+        steppesOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
+        steppesOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.HIGH, BiomeConfig.Erosion.VERY_HIGH));
+        config.biomes.add(steppesOverride);
+
+
+        // 2. The Jagged Crags (Mountains)
+        // Low erosion means highly mountainous, jagged terrain.
+        BiomeConfig.BiomeDefinition cragsOverride = new BiomeConfig.BiomeDefinition();
+        cragsOverride.biome1 = "biomesoplenty:crag";
+        cragsOverride.biome2 = "biomesoplenty:dead_forest";
+        cragsOverride.river1 = "minecraft:basalt_deltas";
+        cragsOverride.peak1 = "biomesoplenty:volcano";
+        cragsOverride.peak2 = "biomesoplenty:volcano";
+
+        // Shares the same climate as the Steppes, but separated entirely by the erosion parameter.
+        cragsOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.MID, BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
+        cragsOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.DRY, BiomeConfig.Humidity.VERY_DRY));
+        cragsOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
+        cragsOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_LOW, BiomeConfig.Erosion.LOW));
+        config.biomes.add(cragsOverride);
+
+
+        // 3. The Charred Forests (Versatile)
+        // Can appear on both flatlands or mountains (all erosions).
+        // Protected from overwriting Steppes/Crags by requiring wetter, cooler climates.
+        BiomeConfig.BiomeDefinition deadForestOverride = new BiomeConfig.BiomeDefinition();
+        deadForestOverride.biome1 = "biomesoplenty:dead_forest";
+        deadForestOverride.biome2 = "biomesoplenty:old_growth_dead_forest";
+        deadForestOverride.river1 = "minecraft:basalt_deltas";
+        deadForestOverride.peak1 = "biomesoplenty:volcano";
+        deadForestOverride.peak2 = "biomesoplenty:volcano";
+
+        deadForestOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.LOW, BiomeConfig.Temperature.MID));
+        deadForestOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.VERY_WET, BiomeConfig.Humidity.WET));
+        deadForestOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
+        deadForestOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.values())); // Any erosion
+        config.biomes.add(deadForestOverride);
+
+        return config;
     }
 }
