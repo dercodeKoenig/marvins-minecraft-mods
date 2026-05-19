@@ -60,12 +60,11 @@ public class DefaultGalaxy {
         moon.gravitationalMultiplier = 0.3f;
         moon.targetDayLength = 12000;
         moon.canVisit = true;
-        moon.currentTemp = 300;
+        moon.currentTemp = 260;
         moon.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_moon.png");
         moon.skyColor = SKY_COLOR_OVERWORLD();
         moon.hasRingSystem = true;
         moon.biomePreset = MOON.name;
-        moon.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.3f, 0, 0));
         galaxy.add(moon);
 
 
@@ -134,7 +133,9 @@ public class DefaultGalaxy {
         europa.orbitalBaseOffsetDegrees = 90;
         europa.earthRadiusMultiplier = 0.5f;
         europa.gravitationalMultiplier = 0.3f;
-        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.3f,0));
+        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.5f,0));
+        europa.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0,0.5f,0));
+        europa.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0,0,0.05f,0));
         europa.canVisit = true;
         europa.biomePreset = MOON.name;
         galaxy.add(europa);
@@ -180,7 +181,7 @@ public class DefaultGalaxy {
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         priate.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);
-        priate.radiationIntensity = 3f;
+        priate.radiationIntensity = 4f;
         priate.emissiveTextureTintColor = new Vector3f(1,1,1).mul(20f);
         priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
@@ -193,7 +194,7 @@ public class DefaultGalaxy {
         mustafar.parentDimensionId = priate.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 300;
-        mustafar.baseEnergyGain = 0.2f;
+        mustafar.baseEnergyGain = 0.11f;
         mustafar.orbitalDistanceToParent = 2f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
@@ -204,7 +205,7 @@ public class DefaultGalaxy {
         mustafar.canVisit = true;
         mustafar.biomePreset = VOLCANIC.name;
         mustafar.customSeaFluid = ResourceLocation.parse("minecraft:lava");
-        mustafar.customSeaFluidLevel = 56;
+        mustafar.customSeaFluidLevel = 52;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
         mustafar.cloudValueOverwrite = 0.7f;
         mustafar.skyDarken = 0.7f;
