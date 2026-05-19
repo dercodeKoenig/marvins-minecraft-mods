@@ -55,6 +55,7 @@ public class Main {
         NeoForge.EVENT_BUS.addListener(WorldEvents::onServerTick);
         NeoForge.EVENT_BUS.addListener(WorldEvents::onServerStarted);
         NeoForge.EVENT_BUS.addListener(WorldEvents::onServerStop);
+        NeoForge.EVENT_BUS.addListener(WorldEvents::onClientLogout);
         NeoForge.EVENT_BUS.addListener(PlanetEvents::onChunkLoad);
         NeoForge.EVENT_BUS.addListener(ItemLinker::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(WorldEvents::onLivingFallEvent);

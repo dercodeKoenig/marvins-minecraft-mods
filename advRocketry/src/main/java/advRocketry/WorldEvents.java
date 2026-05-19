@@ -8,13 +8,15 @@ import advRocketry.Missions.MissionManager;
 import advRocketry.Render.Particles.RocketParticleEngine;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
+import advRocketry.Render.starmap.SpaceMapPlanetRenderCache;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Satellites.SatelliteManager;
 import advRocketry.SpaceSuit.Boots;
-import advRocketry.SpaceSuit.Helmet;
 import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
+import advRocketry.Worldgen.BiomeConfig;
+import advRocketry.Worldgen.presets.*;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -23,8 +25,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
@@ -35,11 +35,11 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.CalculateDetachedCameraDistanceEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
-import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -118,6 +118,12 @@ public class WorldEvents {
         DimensionManager.INSTANCE_SERVER.onServerStop();
         GlobalTime.save();
         LifeSupportSystem.onServerStop();
+    }
+
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        DimensionManager.INSTANCE_CLIENT.dimensions.clear();
+        PlanetRenderCache.INSTANCE.planetsToRenderInSky.clear();
+        SpaceMapPlanetRenderCache.INSTANCE.planetsToRenderInSky.clear();
     }
 
     public static void onRenderStage(RenderLevelStageEvent event) {

@@ -260,7 +260,7 @@ public class DefaultGalaxy {
         tatooine.parentDimensionId = tatoo1.dimensionId;
         tatooine.dayTimeReference = tatoo1.dimensionId;
         tatooine.currentTemp = 300;
-        tatooine.orbitalDistanceToParent = 1.5f;
+        tatooine.orbitalDistanceToParent = 1.3f;
         tatooine.orbitalBaseOffsetDegrees = 90;
         tatooine.earthRadiusMultiplier = 0.95f;
         tatooine.gravitationalMultiplier = 0.9f;
