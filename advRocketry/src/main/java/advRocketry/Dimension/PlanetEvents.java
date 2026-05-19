@@ -145,7 +145,7 @@ public class PlanetEvents {
         // to prevent taking all co2 from the atmosphere and causing a freeze
         PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
         double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
-        if (oceanFractionWater > 0.1 && planet.getGasProperty(GasRegistry.water).liquid > 0 && co2.in_atm > 0.0001001) {
+        if (oceanFractionWater > 0.3 && planet.getGasProperty(GasRegistry.water).liquid > 0 && co2.in_atm > 0.0001001) {
             double sweetSpotForAlgae = 273.15 + 30;
             double maxTemperatureDeviationForAlgae = 15;
             double photosynthesisValue = 1 - Math.abs(sweetSpotForAlgae - planet.getCurrentTemp()) / maxTemperatureDeviationForAlgae;
