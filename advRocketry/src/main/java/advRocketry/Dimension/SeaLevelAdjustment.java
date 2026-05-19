@@ -77,7 +77,7 @@ public class SeaLevelAdjustment {
 
             // remove fluid above its sea level
             if (seaLevelTarget < seaLevelExisting) {
-                for (int scanY = seaLevelExisting; scanY > seaLevelTarget; scanY--) {
+                for (int scanY = seaLevelExisting; scanY > Math.max(seaLevelTarget, level.getMinBuildHeight()); scanY--) {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
 
@@ -136,7 +136,6 @@ public class SeaLevelAdjustment {
                         if (fluidBlock instanceof CompositionFluidLiquidBlock) {
                             state = state.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
                         }
-
 
                         level.setBlock(scanPos, state, placementFlags);
                         planet.setRaining(5);

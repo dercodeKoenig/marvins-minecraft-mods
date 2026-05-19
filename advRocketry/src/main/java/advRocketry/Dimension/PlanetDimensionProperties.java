@@ -86,7 +86,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
         public double getSeaLevel() {
             double surfaceValue = liquid + frozen_surface;
             if (surfaceValue == 0)
-                return 0;
+                return -99999999;
 
 
             // 62 around 0.5, grows slower when high water composition and drops quickly on low comosition
