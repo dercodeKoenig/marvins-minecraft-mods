@@ -181,7 +181,7 @@ public class DefaultGalaxy {
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         priate.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);
-        priate.radiationIntensity = 4f;
+        priate.radiationIntensity = 5f;
         priate.emissiveTextureTintColor = new Vector3f(1,1,1).mul(20f);
         priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
