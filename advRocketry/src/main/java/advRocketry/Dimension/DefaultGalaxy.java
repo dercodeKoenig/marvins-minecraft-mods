@@ -173,6 +173,10 @@ public class DefaultGalaxy {
         galaxy.add(titan);
 
 
+
+
+
+
         PlanetDimensionProperties priate = new PlanetDimensionProperties();
         priate.name = "Priate";
         priate.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "priate");
@@ -214,6 +218,61 @@ public class DefaultGalaxy {
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
         mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(0.2f); // make lava glow
         galaxy.add(mustafar);
+
+
+
+
+
+
+        PlanetDimensionProperties tatoo1 = new PlanetDimensionProperties();
+        tatoo1.name = "Tatoo I";
+        tatoo1.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "tatoo1");
+        tatoo1.gravitationalMultiplier = 100;
+        tatoo1.earthRadiusMultiplier = 100;
+        tatoo1.rotationAxis = new Vec3(0, 1, 0).normalize();
+        tatoo1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
+        tatoo1.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);
+        tatoo1.radiationIntensity = 2f;
+        tatoo1.emissiveTextureTintColor = new Vector3f(1,1,1).mul(20f);
+        tatoo1.position = new Vec3(-600000, -10000, -10000);
+        galaxy.add(tatoo1);
+
+        PlanetDimensionProperties tatoo2 = new PlanetDimensionProperties();
+        tatoo2.name = "Tatoo II";
+        tatoo2.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "tatoo2");
+        tatoo2.gravitationalMultiplier = 80;
+        tatoo2.earthRadiusMultiplier = 80;
+        tatoo2.rotationAxis = new Vec3(0, 1, 0).normalize();
+        tatoo2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
+        tatoo2.emissiveLightColor = new Vector3f(1f, 0.8f, 0.2f);
+        tatoo2.radiationIntensity = 0.4f;
+        tatoo2.emissiveTextureTintColor = new Vector3f(1.0f,0.3f,0.1f).mul(15f);
+        tatoo2.parentDimensionId = tatoo1.dimensionId;
+        tatoo2.orbitalDistanceToParent = 0.3f;
+        tatoo2.orbitAxis = new Vec3(1,0.5,-1).normalize();
+        galaxy.add(tatoo2);
+
+
+        PlanetDimensionProperties tatooine = new PlanetDimensionProperties();
+        tatooine.name = "Tatooine";
+        tatooine.description = "";
+        tatooine.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "tatooine");
+        tatooine.parentDimensionId = tatoo1.dimensionId;
+        tatooine.dayTimeReference = tatoo1.dimensionId;
+        tatooine.currentTemp = 300;
+        tatooine.orbitalDistanceToParent = 1.5f;
+        tatooine.orbitalBaseOffsetDegrees = 90;
+        tatooine.earthRadiusMultiplier = 0.95f;
+        tatooine.gravitationalMultiplier = 0.9f;
+        tatooine.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.8,0,0f,0));
+        tatooine.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.01,0,0f,0));
+        tatooine.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
+        tatooine.canVisit = true;
+        tatooine.biomePreset = DESERT_WASTELAND.name;
+        tatooine.customSeaFluidLevel = 30;
+        tatooine.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_4k_makemake_fictional.png");;
+        tatooine.skyColor = SKY_COLOR_OVERWORLD();
+        galaxy.add(tatooine);
 
 
         List<String> dimensionProperties = new ArrayList<>();
