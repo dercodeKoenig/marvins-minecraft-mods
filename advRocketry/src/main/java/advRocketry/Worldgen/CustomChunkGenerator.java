@@ -9,6 +9,7 @@ import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 
 public class CustomChunkGenerator extends NoiseBasedChunkGenerator {
+    // normal minecraft uses the settings of the overworld so this allows for custom structure on/off per planet
     boolean shouldMakeStructures;
 
     public CustomChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings, boolean createStructures) {
