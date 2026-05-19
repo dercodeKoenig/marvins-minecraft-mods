@@ -619,16 +619,9 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         //properties().isKnown = true;
-
-        if (getName().equals("Mustafar")) {
-
-        }
-        if (getName().equals("Earth")) {
-
-        }
-        if (getName().equals("Sun")) {
-
-        }
+        //if (getName().equals("Moon")) {
+        //
+        //}
     }
 
 
@@ -691,7 +684,7 @@ public class PlanetDimension extends Dimension {
         // --- UNIVERSAL GAME CONSTANTS ---
         // This is the Stefan-Boltzmann constant scaled for the game's energy units.
         // It determines how aggressively planets try to radiate heat away.
-        final double EMISSION_CONSTANT = 0.00000000024;
+        final double EMISSION_CONSTANT = 0.00000000032;
 
         // 1. CALCULATE INCOMING ENERGY (Ein)
         double solarFlux = 0.0;
@@ -741,7 +734,7 @@ public class PlanetDimension extends Dimension {
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
         thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
-        //thermalMass = 0.1; // TODO: remove after testing
+        //thermalMass = 0.2; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
