@@ -173,15 +173,18 @@ public class SkyRenderer {
 
         int totalLights = 0;
         Vec3 myPosition = planetDimension.getPosition(partialtick);
-        for (ResourceLocation lightSourceId : planetDimension.getCurrentMainStars()) {
-            Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
-            if (star == null) continue;
-            Vec3 StarPos = star.getPosition(partialtick);
-            Vec3 LightVector = myPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
-            shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
-            Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
-            shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
-            totalLights += 1;
+        if(!planetDimension.isStar()) {
+            // stars do not reflect light, this would break visuals in double star systems
+            for (ResourceLocation lightSourceId : planetDimension.getCurrentMainStars()) {
+                Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
+                if (star == null) continue;
+                Vec3 StarPos = star.getPosition(partialtick);
+                Vec3 LightVector = myPosition.subtract(StarPos).scale(-1); //shader uses planet to star for dot product
+                shader.getUniform("LightVectors[" + totalLights + "]").set((float) LightVector.x, (float) LightVector.y, (float) LightVector.z);
+                Vector3f lightColor = RenderUtils.gamma_reverse(star.getEmissiveColor());
+                shader.getUniform("LightColors[" + totalLights + "]").set(lightColor.x, lightColor.y, lightColor.z, star.getRadiationIntensity());
+                totalLights += 1;
+            }
         }
         shader.getUniform("LightCount").set(totalLights);
 
