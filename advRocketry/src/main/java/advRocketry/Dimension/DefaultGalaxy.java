@@ -77,7 +77,7 @@ public class DefaultGalaxy {
         venus.orbitalDistanceToParent = 0.7f;
         venus.cloudColor = new Vector3f(194, 155, 64).mul(1f / 255);
         venus.canVisit = true;
-        venus.biomePreset = DESERT_WASTELAND.name;
+        venus.biomePreset = VENUS.name;
         venus.currentTemp = 500;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
