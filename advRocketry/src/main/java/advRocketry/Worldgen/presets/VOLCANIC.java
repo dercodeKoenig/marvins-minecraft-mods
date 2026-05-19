@@ -12,11 +12,11 @@ public class VOLCANIC {
         // Completely dominated by volcanic plains and volcanoes to ensure the planet feels hostile immediately.
         String[][] biomesByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains" },
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" }
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "biomesoplenty:volcano" },
+                { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano" },
+                { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains" },
+                { "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano" }
         };
 
         // --- PEAKS ---
@@ -47,6 +47,8 @@ public class VOLCANIC {
         // ==========================================
         // --- TOPOGRAPHICAL OVERRIDES ---
         // ==========================================
+
+        // add some alternative biomes far away from the lava oceans
 
         // 1. The Ash Steppes (Flatlands)
         // High erosion means flatter, smoothed-out terrain. Placed in hot, dry regions.
