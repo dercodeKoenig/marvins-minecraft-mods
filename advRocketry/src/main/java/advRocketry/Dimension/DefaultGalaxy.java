@@ -267,9 +267,9 @@ public class DefaultGalaxy {
         tatooine.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.8,0,0f,0));
         tatooine.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.01,0,0f,0));
         tatooine.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
+        tatooine.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0,0.1f,0));
         tatooine.canVisit = true;
         tatooine.biomePreset = DESERT_WASTELAND.name;
-        tatooine.customSeaFluidLevel = 30;
         tatooine.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_4k_makemake_fictional.png");;
         tatooine.skyColor = SKY_COLOR_OVERWORLD();
         galaxy.add(tatooine);
