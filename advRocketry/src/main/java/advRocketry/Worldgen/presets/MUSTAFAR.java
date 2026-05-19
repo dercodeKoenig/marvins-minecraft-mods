@@ -3,8 +3,8 @@ package advRocketry.Worldgen.presets;
 import advRocketry.Worldgen.BiomeConfig;
 import java.util.List;
 
-public class VOLCANIC {
-    public static String name = "volcanic.json";
+public class MUSTAFAR {
+    public static String name = "mustafar.json";
 
     public static BiomeConfig create() {
 

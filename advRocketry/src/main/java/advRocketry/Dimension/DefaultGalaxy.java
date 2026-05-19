@@ -207,7 +207,7 @@ public class DefaultGalaxy {
         mustafar.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.02,0,0f,0));
         mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
         mustafar.canVisit = true;
-        mustafar.biomePreset = VOLCANIC.name;
+        mustafar.biomePreset = MUSTAFAR.name;
         mustafar.customSeaFluid = ResourceLocation.parse("minecraft:lava");
         mustafar.customSeaFluidLevel = 52;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;

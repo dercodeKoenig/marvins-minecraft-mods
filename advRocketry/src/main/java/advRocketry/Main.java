@@ -107,8 +107,8 @@ public class Main {
         BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
         BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
         BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
-        BiomeConfig.makePresetIfNotExist(VOLCANIC.name, VOLCANIC.create());
-
+        BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
+        BiomeConfig.makePresetIfNotExist(VENUS.name, VENUS.create());
     }
 
     /// mod load events /////////////////////////////////////
