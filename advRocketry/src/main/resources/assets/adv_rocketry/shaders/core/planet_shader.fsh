@@ -164,7 +164,7 @@ void main() {
         totalReflectedLight += reflected;
     }
 
-    if(totalBrightness < 1){
+    if(totalBrightness < 1 && totalBrightness > 0.0001){
         // restore some brightness to keep planets visible, or saturn would have only 1% of earth light
         totalReflectedLight *= 1 / pow(totalBrightness, 0.5);
     }
