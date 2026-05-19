@@ -7,43 +7,48 @@ public class VOLCANIC {
 
     public static BiomeConfig create() {
 
-        // Base Biomes: A mix of scorched wastes and jagged volcanic rock.
+        // Base Biomes: A mix of scorched wastes, dead forests, and jagged volcanic rock.
         String[][] biomesByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
                 {
-                        "minecraft:basalt_deltas", "minecraft:nether_wastes", "minecraft:stony_peaks", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
-                }, // FROZEN (Relative term - still extremely hot)
+                        // FROZEN: Grey, jagged, and desolate scree slopes and peaks
+                        "minecraft:jagged_peaks", "biomesoplenty:crag", "minecraft:stony_peaks", "biomesoplenty:cold_desert", "minecraft:windswept_gravelly_hills"
+                },
                 {
-                        "minecraft:basalt_deltas", "minecraft:nether_wastes", "minecraft:nether_wastes", "minecraft:basalt_deltas", "minecraft:crimson_forest"
-                }, // LOW
+                        // LOW (Cool): Forests choked out by ash, dead vegetation, and cracked earth
+                        "biomesoplenty:ominous_woods", "biomesoplenty:dead_forest", "biomesoplenty:wasteland_steppe", "biomesoplenty:dryland", "biomesoplenty:old_growth_dead_forest"
+                },
                 {
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:nether_wastes", "minecraft:nether_wastes", "minecraft:crimson_forest"
-                }, // MID
+                        // MID (Temperate): Murky sulfur bogs transitioning into harsh rocky wastes
+                        "biomesoplenty:bog", "biomesoplenty:crag", "biomesoplenty:wasteland", "biomesoplenty:volcanic_plains", "biomesoplenty:dead_forest"
+                },
                 {
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:nether_wastes", "minecraft:nether_wastes"
-                }, // WARM
+                        // WARM: Geothermal springs and deeply carved, baked red canyons
+                        "biomesoplenty:hot_springs", "biomesoplenty:rocky_shrubland", "minecraft:badlands", "biomesoplenty:volcanic_plains", "minecraft:eroded_badlands"
+                },
                 {
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
-                }  // HOT (Pure volcanic jaggedness)
+                        // HOT: The epicenter. Boiling pools, volcanoes, and deeply scorched earth
+                        "biomesoplenty:volcano", "biomesoplenty:hot_springs", "biomesoplenty:volcano", "biomesoplenty:volcanic_plains", "biomesoplenty:wasteland"
+                }
         };
 
-        // Peak Biomes: Obsidian-like peaks and glowing fungal "forests"
+        // Peak Biomes: Obsidian-like peaks, volcanoes, and crags
         String[][] peaksByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
                 {
-                        "minecraft:stony_peaks", "minecraft:stony_peaks", "minecraft:basalt_deltas", null, null
+                        "minecraft:stony_peaks", "minecraft:stony_peaks", "minecraft:basalt_deltas", "biomesoplenty:hot_springs", "biomesoplenty:hot_springs"
                 }, // FROZEN
                 {
-                        "minecraft:crimson_forest", "minecraft:basalt_deltas", null, null, null
+                        "biomesoplenty:crag", "minecraft:basalt_deltas", "biomesoplenty:hot_springs", null, "biomesoplenty:volcano"
                 }, // LOW
                 {
-                        "minecraft:basalt_deltas", null, null, null, "minecraft:crimson_forest"
+                        "minecraft:basalt_deltas", "biomesoplenty:hot_springs", null, "biomesoplenty:volcano", "biomesoplenty:crag"
                 }, // MID
                 {
-                        "minecraft:basalt_deltas", null, null, null, null
+                        "minecraft:basalt_deltas", "biomesoplenty:hot_springs", null, "biomesoplenty:volcano", "biomesoplenty:volcano"
                 }, // WARM
                 {
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", null, null, null
+                        "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano"
                 }  // HOT
         };
 
@@ -53,16 +58,16 @@ public class VOLCANIC {
                         "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
                 };
 
-        // Shorelines are either stone or purely volcanic
+        // Shorelines are either stone, gravel, or purely volcanic
         String[] beachesByTemperature = new String[]
                 {   // FROZEN , LOW , MID , WARM , HOT
-                        "minecraft:stony_shore", "minecraft:stony_shore", "minecraft:basalt_deltas", null, null
+                        "minecraft:stony_shore", "biomesoplenty:gravel_beach", "minecraft:basalt_deltas", null, null
                 };
 
-        // Oceans: Using Basalt Deltas and Nether Wastes to ensure the "floor" of the world looks like a lava bed
+        // Oceans: Exclusively Basalt Deltas to ensure the "floor" of the world looks like a jagged lava bed
         String[] oceansByTemperature = new String[]
                 {   // FROZEN , LOW , MID , WARM , HOT
-                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:nether_wastes", "minecraft:nether_wastes", "minecraft:basalt_deltas"
+                        "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas", "minecraft:basalt_deltas"
                 };
 
         String[] deepOceansByTemperature = new String[]
