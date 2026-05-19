@@ -35,6 +35,15 @@ public class CustomSurfaceRules {
                             SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState())),
                             SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState()))
                     )
+            ),
+
+
+            SurfaceRules.ifTrue(
+                    SurfaceRules.isBiome(ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("biomesoplenty", "erupting_inferno"))),
+                    SurfaceRules.sequence(
+                            SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState())),
+                            SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState()))
+                    )
             )
 
 
