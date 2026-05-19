@@ -403,7 +403,7 @@ public class PlanetDimension extends Dimension {
         }
 
         double relativeSeaLevel = maxSeaLevel / PlanetDimensionProperties.GasProperty.maxSeaLevel;
-        // usually it should already be between 0 and 1 but just to be sure...
+        // sea level can be negative because stupid minecraft now has negative height...
         relativeSeaLevel = Math.clamp(relativeSeaLevel, 0, 1);
 
         // adjust for custom fluid
