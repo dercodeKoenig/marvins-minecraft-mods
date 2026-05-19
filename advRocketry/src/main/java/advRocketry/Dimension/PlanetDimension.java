@@ -70,8 +70,6 @@ public class PlanetDimension extends Dimension {
 
     public void updateDimensionProperties(DimensionProperties properties) {
         super.updateDimensionProperties(properties);
-
-
         // VERY important, because your position is usually 0 0 0 at start when you orbit another planet
         // now, it can take 2 ticks until all planets have received their position but in tick 0 any planet might query the position of a star.
         // for example temperature wants distance to star, but when all planets are at 0 0 0 first tick, this is 0 and /0 = nan
