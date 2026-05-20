@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -41,6 +42,11 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public boolean generateStructures = false;
     public String biomePreset = null;
     public boolean generateVolcanos = false;
+
+    // when terraforming picks a new preset, it iterates every climate point and when original preset has a frozen biome at this point,
+    // it should be injected into the new preset so you can pin biomes to never terraform.
+    // For example maybe you want to keep hot springs biome from original preset no matter what generates next.
+    public ArrayList<ResourceLocation> frozenBiomes = new ArrayList<>();
 
     // mostly render related configs
     public boolean hasCustomSky = true;
@@ -90,7 +96,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
 
 
             // 62 around 0.5, grows slower when high water composition and drops quickly on low comosition
-            double seaLevel =  Math.sqrt(surfaceValue) * 87.7;
+            double seaLevel = Math.sqrt(surfaceValue) * 87.7;
             seaLevel = Math.min(maxSeaLevel, seaLevel);
             return seaLevel;
         }
