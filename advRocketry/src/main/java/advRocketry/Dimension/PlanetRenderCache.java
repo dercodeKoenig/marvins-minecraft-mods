@@ -72,7 +72,7 @@ public class PlanetRenderCache {
         // 4. Build the visible list
         visiblePlanets.clear();
         double minApparentSize = 0.001;
-        double cullThreshold = minApparentSize / 20.0;
+        double cullThreshold = minApparentSize / 5.0;
 
         for (PlanetDimension dim : allSortedPlanets) {
             double dist = dim.getPosition(0).distanceTo(myDimensionPosition) * CelestialUtils.ASTRONOMICAL_UNIT;
