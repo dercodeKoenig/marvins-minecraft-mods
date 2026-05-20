@@ -649,7 +649,7 @@ public class SkyRenderer {
 
             double distance = relativePos.length();
             double apparentSizeRatio = geometryScale / distance;
-            if (apparentSizeRatio < minApparentSize) {
+            if (apparentSizeRatio < minApparentSize && otherDimension.isStar()) {
                 // 1. Inflate the star so it hits the minimum pixel size
                 double scaleCorrection = minApparentSize / apparentSizeRatio;
                 geometryScale *= scaleCorrection;
@@ -660,10 +660,6 @@ public class SkyRenderer {
 
                 // clamp brightness so it doesn't drop completely to 0 and disappear
                 brightness = Math.max(brightness, 0.01f);
-            }
-            if (apparentSizeRatio < minApparentSize / 5) {
-                // skip the render entirely
-                continue;
             }
 
             planetMatrix.scale((float) geometryScale);
