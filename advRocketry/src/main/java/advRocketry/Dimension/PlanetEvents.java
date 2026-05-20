@@ -5,6 +5,8 @@ import advRocketry.Config;
 import advRocketry.Registry.GasRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -54,6 +56,9 @@ public class PlanetEvents {
 
             // spawn possible dry ice blocks
             DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);
+
+
+            TerraformingSystem.maybeUpdateBlocksForNewBiome(level, blockX, blockZ);
         }
     }
 
@@ -77,6 +82,10 @@ public class PlanetEvents {
                         for (int cz = 0; cz < 16; cz++) {
                             int x = event.getChunk().getPos().getBlockX(cx);
                             int z = event.getChunk().getPos().getBlockZ(cz);
+
+                            BlockPos surfacePos = new BlockPos(x, serverLevel.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) ,z);
+                            ResourceLocation currentBiomeId = serverLevel.registryAccess().registryOrThrow(Registries.BIOME).getKey(serverLevel.getBiome(surfacePos).value());
+                            TerraformingSystem.storeGeneratedBiome(currentBiomeId, event.getChunk(),x, z);
 
                             // adjust sea levels
                             if (((PlanetDimensionProperties) planet.properties).customSeaFluid == null) {
