@@ -69,7 +69,16 @@ public class PlanetDimension extends Dimension {
     }
 
     public void updateDimensionProperties(DimensionProperties properties) {
+
+        // the daytime can very easily go out of sync, but on client it is only used to rotate the planet correctly
+        // it does not matter what the time is on the client, but sync can cause the rotation to jump and it looks bad
+        // so ignore the time on sync, just keep original daytime
+        if (dimensionManager.isClientSide) {
+            ((PlanetDimensionProperties) properties).dayTime = properties().dayTime;
+        }
+
         super.updateDimensionProperties(properties);
+
         // VERY important, because your position is usually 0 0 0 at start when you orbit another planet
         // now, it can take 2 ticks until all planets have received their position but in tick 0 any planet might query the position of a star.
         // for example temperature wants distance to star, but when all planets are at 0 0 0 first tick, this is 0 and /0 = nan
@@ -211,7 +220,9 @@ public class PlanetDimension extends Dimension {
         return new Vector3f(properties().skyColor);
     }
 
-    public float getSkyDarken(){ return properties().skyDarken;}
+    public float getSkyDarken() {
+        return properties().skyDarken;
+    }
 
     public Vector3f getSunRiseColor() {
         return new Vector3f(properties().sunRiseColor);
@@ -270,7 +281,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public Vector3f computeTerrainCloudColor(float partialTick) {
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, 0.8f,null);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.4f, 0.8f, null);
         brightness = Math.clamp(brightness, 0.2, 1);
         return computeRawCloudColor().mul((float) brightness);
     }
@@ -313,6 +324,7 @@ public class PlanetDimension extends Dimension {
     public Vector3f getReflectiveTextureTintColor() {
         return new Vector3f(properties().reflectiveTextureTintColor);
     }
+
     public Vector3f getEmissiveTextureTintColor() {
         return new Vector3f(properties().emissiveTextureTintColor);
     }
@@ -325,7 +337,9 @@ public class PlanetDimension extends Dimension {
         return getRadiationIntensity() > 0;
     }
 
-    public ResourceLocation getTexture() {return properties().texture;}
+    public ResourceLocation getTexture() {
+        return properties().texture;
+    }
 
     public Vec3 getRotationAxis() {
         return properties().rotationAxis;
