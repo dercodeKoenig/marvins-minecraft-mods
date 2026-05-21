@@ -171,7 +171,7 @@ void main() {
     vec3 emitted = baseSurfaceColor * TargetEmissiveTextureColor * (1 - cloudValue);
 
     // some ambient air glow
-    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.03;
+    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.04;
     vec3 surfaceGlow = (1.0 - cloudValue) * airGlow1 * baseSurfaceColor;
     vec3 cloudGlow = cloudValue * airGlow1 * TargetCloudColor;
     vec3 airglow = surfaceGlow + cloudGlow;
