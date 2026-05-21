@@ -16,6 +16,8 @@ in vec3 localUpUniverseSpace;
 
 out vec4 fragColor;
 
+// TODO: maybe use same brightness rescale like in the planet / ring shader?
+
 void main() {
 
     vec3 U = normalize(localUpUniverseSpace);
