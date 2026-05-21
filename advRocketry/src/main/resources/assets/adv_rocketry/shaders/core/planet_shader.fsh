@@ -94,7 +94,7 @@ void main() {
     cloudValue = clamp(cloudValue, 0, 1);
     cloudValue = pow(smoothStep(cloudValue), 2);
 
-    // for atmosphere
+    // for atmosphere fog
     // how much of the edge (horizon) we see
     float viewAngle = 1.0 - abs(dot(N, V));
     // rim intensity (thicker with higher TargetAtmDensity)
@@ -103,7 +103,6 @@ void main() {
     float rim = pow(viewAngle, 3);
     // the atm glow around the planet to be scaled with starlight and added to the final color
     vec3 atmGlow = 2 * rim * TargetSkyColor * normalizedTargetAtmDensity;
-
 
     // distant planets like saturn have maybe 1% of earth sunlight
     // eyes would adapt slightly but i do not control the entire render pipeline
@@ -123,7 +122,7 @@ void main() {
         float NdotL = dot(N, L);
 
         // the atm adds extra light after the normal falloff and uses the sky color/rim mix
-        float atmLightFactor = max(0, NdotL * 0.8 + 0.2);
+        float atmLightFactor = max(0, NdotL * 0.85 + 0.15);
         atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
 
         // the reflected light without atmosphere consideration, just surface and n°l
@@ -153,7 +152,6 @@ void main() {
 
         // atmosphere glow
         vec3 atmLight = atmGlow * atmLightFactor;
-
         // add atmosphere glow to the surface mix
         vec3 finalLight = surfaceCloudMix + atmLight;
 
@@ -173,7 +171,7 @@ void main() {
     vec3 emitted = baseSurfaceColor * TargetEmissiveTextureColor * (1 - cloudValue);
 
     // some ambient air glow
-    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.02;
+    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.03;
     vec3 surfaceGlow = (1.0 - cloudValue) * airGlow1 * baseSurfaceColor;
     vec3 cloudGlow = cloudValue * airGlow1 * TargetCloudColor;
     vec3 airglow = surfaceGlow + cloudGlow;

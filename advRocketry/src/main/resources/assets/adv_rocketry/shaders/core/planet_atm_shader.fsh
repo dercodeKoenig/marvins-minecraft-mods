@@ -44,12 +44,12 @@ void main() {
     if (r < horizonRadius) {
         // FRONT FACE: Keep the center of the planet highly transparent using a steep pow() curve.
         // This ensures thick atmospheric fog doesn't wash out terrain or cloud details on the ground.
-        atmosphereAlpha = pow(r / horizonRadius, 6.0);
+        atmosphereAlpha = pow(r / horizonRadius, 16.0);
     } else {
         // OUTER HALO: Calculate a soft polynomial fade-out for the air bleeding into open space.
         // Polynomial shapes survive Reinhard HDR filters much better than raw exponential decay.
         float haloT = (1.0 - r) / (1.0 - horizonRadius);
-        atmosphereAlpha = pow(max(0.0, haloT), 2.5);
+        atmosphereAlpha = pow(max(0.0, haloT), 4);
     }
 
     vec3 targetColor = vec3(0.0);
@@ -66,19 +66,15 @@ void main() {
         // --- LAYER A: ENHANCED DAY/TWILIGHT SIDE ---
         // Wrap the diffuse term slightly (* 0.8 + 0.2) to let the atmosphere hold its color softly
         // over the curvature of the terminator line.
-        float atmLightFactor = max(0.0, NdotL * 0.7 + 0.3);
-        float baseDiffuse = pow(atmLightFactor, 1.5);
-
-        // Use a smooth step to cleanly delete the daylight diffuse color on the dark hemisphere.
-        // Extending the lower bound to -0.4 allows sunset/twilight hues to bleed slightly past the ground horizon.
-        float dayNightMask = smoothstep(-0.4, 0.2, NdotL);
-        vec3 dayLight = LightColors[i].rgb * brightness * TargetSkyColor * baseDiffuse * dayNightMask * 1.5;
+        float atmLightFactor = max(0.0, NdotL * 0.8 + 0.2);
+        float baseDiffuse = pow(atmLightFactor, 2);
+        vec3 dayLight = LightColors[i].rgb * brightness * TargetSkyColor * baseDiffuse * 1.5;
 
         // --- LAYER B: TWILIGHT BACKLIT RIM (Forward Scattering) ---
         // By wrapping the view-light vector alignment (VdotL * 0.5 + 0.5), we smooth out the extreme
         // mathematical peak of forward scattering. This keeps its values small enough to prevent
         // the Reinhard tonemapper from crushing the gradient into a flat neon line.
-        float forwardScattering = pow(max(0.0, VdotL * 0.5 + 0.5), 16.0) * 0.05;
+        float forwardScattering = pow(max(0.0, VdotL * 0.5 + 0.5), 16.0) * 0.5;
 
         // --- LAYER C: THE INTERNAL COREMASK ---
         // To prevent the background scattering from rendering uniformly over the center of the night side,
@@ -98,7 +94,7 @@ void main() {
 
     // --- 4. RENDER OUTPUT ---
     // Scale the geometric profile alpha by the target atmospheric density factor.
-    float finalAlpha = atmosphereAlpha * normalizedTargetAtmDensity;
+    float finalAlpha = atmosphereAlpha * normalizedTargetAtmDensity * 0.7;
 
     fragColor = vec4(targetColor, finalAlpha);
 }
