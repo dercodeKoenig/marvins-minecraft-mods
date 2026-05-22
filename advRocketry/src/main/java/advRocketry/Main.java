@@ -14,7 +14,10 @@ import advRocketry.Worldgen.BiomeConfig;
 import advRocketry.Worldgen.presets.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -182,15 +185,24 @@ public class Main {
                         })
         );
 
-        /*
+
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_debug")
                         .executes((context) -> {
-                            debugCommand();
+                            for (int x = -30; x < 30; x++) {
+                                for (int z = -30; z < 30; z++) {
+                                    BlockPos origin = context.getSource().getPlayer().blockPosition();
+                                    BlockPos newPos = origin.relative(Direction.NORTH, z).relative(Direction.EAST, x);
+                                    TerraformingSystem.changeBiome(
+                                            context.getSource().getLevel(),
+                                            newPos.getX(), newPos.getZ(),
+                                            ResourceLocation.parse("minecraft:desert")
+                                    );
+                                }
+                            }
                             return 1;
                         })
         );
-         */
     }
 
     public static void addCreative(BuildCreativeModeTabContentsEvent e) {
@@ -253,6 +265,8 @@ public class Main {
             e.accept(Items.ITEM_SATELLITE_MASS_SCANNER.get());
             e.accept(Items.ITEM_SATELLITE_COMPOSITION_SCANNER.get());
             e.accept(Items.ITEM_SATELLITE_ID_CHIP.get());
+            e.accept(Items.ITEM_SATELLITE_BIOME_CHANGER.get());
+            e.accept(Items.ITEM_SATELLITE_BIOME_CHANGER_REMOTE.get());
             e.accept(Items.ITEM_LORA_MODULE.get());
             e.accept(Items.ITEM_RADIATION_SHIELD.get());
             e.accept(Items.ITEM_BATTERY.get());
@@ -274,12 +288,5 @@ public class Main {
             e.accept(Items.ITEM_FLIGHT_SPEED_UPGRADE.get());
 
         }
-    }
-
-    void debugCommand() {
-        // whatever debug i currently need to execute on demand
-        RenderSystem.recordRenderCall(() -> {
-            SkyRenderer.debugCommandRender();
-        });
     }
 }

@@ -39,7 +39,7 @@ public class RocketMission {
         rocketTag = new CompoundTag();
         rocket.addAdditionalSaveData(rocketTag);
         rocket.discard();
-        MissionManager.missions.put(this.missionID, this);
+        MissionManager.addMission(this.missionID, this);
         System.out.println("started mission " + MissionRegistry.missionsI.get(getClass()) + ":" + missionID);
     }
 

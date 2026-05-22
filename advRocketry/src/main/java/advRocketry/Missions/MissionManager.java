@@ -18,7 +18,16 @@ import java.util.UUID;
 public class MissionManager {
     public static String saveFile = Main.MODID + "_missions.json";
 
-    public static HashMap<UUID, RocketMission> missions = new HashMap<>();
+    private static HashMap<UUID, RocketMission> missions = new HashMap<>();
+
+    public static void addMission(UUID id, RocketMission mission) {
+        missions.put(id, mission);
+        saveMissions();
+    }
+
+    public static RocketMission getMission(UUID id) {
+        return missions.get(id);
+    }
 
     public static void serverTick() {
         // this loop might not be most efficient but let's be real, will you have 50+ missions running at once?
@@ -28,13 +37,14 @@ public class MissionManager {
                 // mission is complete!
                 missions.get(missionId).completeMission();
                 missions.remove(missionId);
+                saveMissions();
             }
         }
     }
 
 
     public static void onServerStart() {
-        if(!missions.isEmpty()) throw new AssertionError();
+        if (!missions.isEmpty()) throw new AssertionError();
         try {
             String save = Files.readString(Path.of(Main.worldPath.toString(), saveFile));
             CompoundTag tag = TagParser.parseTag(save);
@@ -52,7 +62,7 @@ public class MissionManager {
         }
     }
 
-    public static void onServerStop() {
+    public static void saveMissions() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         CompoundTag tag = new CompoundTag();
         for (UUID key : missions.keySet()) {
@@ -64,6 +74,10 @@ public class MissionManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void onServerStop() {
+        saveMissions();
         missions.clear();
     }
 }

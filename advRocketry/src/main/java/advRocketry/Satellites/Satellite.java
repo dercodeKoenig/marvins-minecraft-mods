@@ -137,6 +137,7 @@ public class Satellite {
             if (p < Config.INSTANCE.satellite_Radiation_Damage_Prob_Per_Second) {
                 // satellite takes radiation damage and dies
                 SatelliteManager.removeSatellite(uuid);
+                SatelliteManager.saveSatellites();
                 for (Player player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
                     player.sendSystemMessage(Component.literal("A satellite (" + getName() + ") was lost to radiation damage in orbit around " + parentDimensionId + "."));
                     player.sendSystemMessage(Component.literal("A radiation shield would have helped"));

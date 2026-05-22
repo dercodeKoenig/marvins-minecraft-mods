@@ -100,6 +100,16 @@ public class WorldEvents {
     }
 
     public static void onServerStarted(ServerStartedEvent event) {
+
+        // write biome presets (TODO: this is done in main(), remove after testing)
+        BiomeConfig.makePresetIfNotExist(HOT.name, HOT.create());
+        BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
+        BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
+        BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
+        BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
+        BiomeConfig.makePresetIfNotExist(VENUS.name, VENUS.create());
+
+
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + Main.worldPath);
         GlobalTime.load(); // important to load the time first!
@@ -122,8 +132,8 @@ public class WorldEvents {
 
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         DimensionManager.INSTANCE_CLIENT.dimensions.clear();
-        PlanetRenderCache.INSTANCE.planetsToRenderInSky.clear();
-        SpaceMapPlanetRenderCache.INSTANCE.planetsToRenderInSky.clear();
+        PlanetRenderCache.INSTANCE.clearCache();
+        SpaceMapPlanetRenderCache.INSTANCE.clearCache();
     }
 
     public static void onRenderStage(RenderLevelStageEvent event) {

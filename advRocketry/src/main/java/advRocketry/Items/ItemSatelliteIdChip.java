@@ -17,7 +17,7 @@ public class ItemSatelliteIdChip extends Item {
     }
 
     public static void setTarget(ItemStack stack, UUID target) {
-        CompoundTag tag = new CompoundTag();
+        CompoundTag tag = ItemUtils.getStacktagOrEmpty(stack);
         tag.putUUID("uuid", target);
         ItemUtils.setTag(stack, tag);
     }

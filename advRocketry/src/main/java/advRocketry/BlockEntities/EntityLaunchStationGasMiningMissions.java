@@ -122,7 +122,7 @@ public class EntityLaunchStationGasMiningMissions extends EntityLaunchStation {
                     lastLaunchedRocketUUID = null;
                 }
             } else if (lastLaunchedMissionUUID != null) {
-                if (MissionManager.missions.get(lastLaunchedMissionUUID) instanceof RocketMission runningMission) {
+                if (MissionManager.getMission(lastLaunchedMissionUUID) instanceof RocketMission runningMission) {
                     int eta = (int) (runningMission.completeTime - GlobalTime.getGlobalTime()) / 20;
                     statusText.setTextAndSync("Mission in progress, eta: " + eta + "s");
                 } else {

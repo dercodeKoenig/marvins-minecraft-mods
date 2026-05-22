@@ -5,20 +5,17 @@ import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundChunksBiomesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.spongepowered.include.com.google.common.base.Objects;
 
@@ -55,7 +52,8 @@ public class TerraformingSystem {
         return topBlocks.getOrDefault(biomeId, Blocks.GRASS_BLOCK);
     }
 
-    public static void changeBiome(ServerLevel level, BlockPos pos, ResourceLocation biomeId) {
+    public static void changeBiome(ServerLevel level, int blockX, int blockZ, ResourceLocation biomeId) {
+        BlockPos pos = new BlockPos(blockX,0,blockZ);
         LevelChunk chunk = (LevelChunk) level.getChunk(pos);
         Holder<Biome> target = ServerLifecycleHooks.getCurrentServer().registryAccess().registryOrThrow(Registries.BIOME).getHolder(biomeId).get();
 
@@ -84,7 +82,7 @@ public class TerraformingSystem {
     public static void maybeUpdateBlocksForNewBiome(ServerLevel level, int x, int z) {
         // biomes are 3d now but we sample the one at the surface for all the math
         BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z), z);
-        ResourceLocation currentBiomeId = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(level.getBiome(pos).value());
+        ResourceLocation currentBiomeId = getCurrentSurfaceBiome(level, x, z);
         ResourceLocation generatedBiomeId = getGeneratedBiome(level.getChunkAt(pos), pos.getX(), pos.getZ());
         if (!Objects.equal(currentBiomeId, generatedBiomeId)) {
             Block toReplace = getTopBlock(generatedBiomeId);
@@ -117,6 +115,11 @@ public class TerraformingSystem {
             // replace the blocks and save new generated biome id
             storeGeneratedBiome(currentBiomeId, level.getChunkAt(pos), pos.getX(), pos.getZ());
         }
+    }
+
+    public static ResourceLocation getCurrentSurfaceBiome(ServerLevel level, int blockX, int blockZ) {
+        BlockPos pos = new BlockPos(blockX, level.getHeight(Heightmap.Types.OCEAN_FLOOR, blockX, blockZ), blockZ);
+        return level.registryAccess().registryOrThrow(Registries.BIOME).getKey(level.getBiome(pos).value());
     }
 
 

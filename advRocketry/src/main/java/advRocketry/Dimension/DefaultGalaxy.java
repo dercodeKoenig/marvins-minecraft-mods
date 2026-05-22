@@ -57,7 +57,7 @@ public class DefaultGalaxy {
         moon.orbitalDistanceToParent = 0.00257f;
         moon.orbitAxis = new Vec3(0.1, 1, 0.1);
         moon.earthRadiusMultiplier = 0.272f;
-        moon.gravitationalMultiplier = 0.3f;
+        moon.gravitationalMultiplier = 0.1f;
         moon.targetDayLength = 12000;
         moon.canVisit = true;
         moon.currentTemp = 260;

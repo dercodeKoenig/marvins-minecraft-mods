@@ -77,7 +77,9 @@ public class Items {
     public static final Supplier<Item> ITEM_SATELLITE_OPTICAL_TELESCOPE = ITEMS.register("satellite_optical_telescope", () -> new ItemSatelliteOpticalTelescope());
     public static final Supplier<Item> ITEM_SATELLITE_COMPOSITION_SCANNER = ITEMS.register("satellite_composition_scanner", () -> new ItemSatelliteCompositionScanner());
     public static final Supplier<Item> ITEM_SATELLITE_MASS_SCANNER = ITEMS.register("satellite_mass_scanner", () -> new ItemSatelliteMassScanner());
+    public static final Supplier<Item> ITEM_SATELLITE_BIOME_CHANGER = ITEMS.register("satellite_biome_changer", () -> new ItemSatelliteBiomeChanger());
     public static final Supplier<Item> ITEM_SATELLITE_ID_CHIP = ITEMS.register("satellite_id_chip", () -> new ItemSatelliteIdChip());
+    public static final Supplier<Item> ITEM_SATELLITE_BIOME_CHANGER_REMOTE = ITEMS.register("biome_changer_remote", () -> new ItemBiomeChangerRemote());
 
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);

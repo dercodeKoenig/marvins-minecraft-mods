@@ -43,6 +43,8 @@ public class SatelliteDeploymentMission extends RocketMission {
                     }
                 }
             }
+            // trigger instant save so even when game crashes, the satellite will not be lost
+            SatelliteManager.saveSatellites();
         }
     }
 

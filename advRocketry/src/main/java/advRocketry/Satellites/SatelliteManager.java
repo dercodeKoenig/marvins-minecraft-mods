@@ -80,7 +80,7 @@ public class SatelliteManager {
         }
     }
 
-    public static void onServerStop() {
+    public static void saveSatellites(){
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         CompoundTag tag = new CompoundTag();
         for (UUID key : satellites.keySet()) {
@@ -92,6 +92,10 @@ public class SatelliteManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void onServerStop() {
+        saveSatellites();
         satellites.clear();
     }
 }

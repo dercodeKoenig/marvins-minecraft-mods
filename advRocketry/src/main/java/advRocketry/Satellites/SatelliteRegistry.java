@@ -20,6 +20,7 @@ public class SatelliteRegistry {
         registerSatellite(SatelliteOpticalTelescope.class, "SatelliteOpticalTelescope");
         registerSatellite(SatelliteCompositionScanner.class, "SatelliteCompositionScanner");
         registerSatellite(SatelliteMassScanner.class, "SatelliteMassScanner");
+        registerSatellite(SatelliteBiomeChanger.class, "SatelliteBiomeChanger");
     }
 
     public static void registerSatellite(Class<? extends Satellite> satelliteClass, String id) {

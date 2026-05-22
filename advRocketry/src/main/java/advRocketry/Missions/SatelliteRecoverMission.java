@@ -43,6 +43,8 @@ public class SatelliteRecoverMission extends RocketMission {
                 }
             }
         }
+
+        SatelliteManager.saveSatellites();
     }
 
     public CompoundTag serialize(HolderLookup.Provider registries) {
