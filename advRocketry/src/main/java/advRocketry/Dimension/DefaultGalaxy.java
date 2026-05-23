@@ -57,7 +57,7 @@ public class DefaultGalaxy {
         moon.orbitalDistanceToParent = 0.00257f;
         moon.orbitAxis = new Vec3(0.1, 1, 0.1);
         moon.earthRadiusMultiplier = 0.272f;
-        moon.gravitationalMultiplier = 0.1f;
+        moon.gravitationalMultiplier = 0.2f;
         moon.targetDayLength = 12000;
         moon.canVisit = true;
         moon.currentTemp = 260;
@@ -90,7 +90,7 @@ public class DefaultGalaxy {
         kalos.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "kalos");
         kalos.parentDimensionId = sun.dimensionId;
         kalos.dayTimeReference = sun.dimensionId;
-        kalos.currentTemp = 100;
+        kalos.currentTemp = 300;
         kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");;
         kalos.orbitalDistanceToParent = 2f;
         kalos.orbitalBaseOffsetDegrees = 0;
@@ -101,11 +101,9 @@ public class DefaultGalaxy {
         kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
         kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
         kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.4,0f,0));
-        kalos.customSeaFluid=ResourceLocation.parse("minecraft:lava");
-        kalos.customSeaFluidLevel = 53;
         kalos.skyColor = SKY_COLOR_OVERWORLD();
         kalos.canVisit = true;
-        kalos.biomePreset = HOT.name;
+        kalos.biomePreset = WARM_DRY.name;
         galaxy.add(kalos);
 
 

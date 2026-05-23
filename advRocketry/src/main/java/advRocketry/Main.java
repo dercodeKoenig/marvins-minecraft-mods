@@ -12,7 +12,6 @@ import advRocketry.SpaceSuit.ChestPlate;
 import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -107,8 +106,8 @@ public class Main {
         }
 
         // write biome presets
-        BiomeConfig.makePresetIfNotExist(HOT.name, HOT.create());
-        BiomeConfig.makePresetIfNotExist(HOT_DRY.name, HOT_DRY.create());
+        BiomeConfig.makePresetIfNotExist(WARM.name, WARM.create());
+        BiomeConfig.makePresetIfNotExist(WARM_DRY.name, WARM_DRY.create());
         BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
         BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
         BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
