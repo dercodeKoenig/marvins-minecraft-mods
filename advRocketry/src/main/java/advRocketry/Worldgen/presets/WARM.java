@@ -111,7 +111,7 @@ public class WARM {
         bloomingFlats.humidityList.addAll(List.of(BiomeConfig.Humidity.WET));       // Shrunk from WET, MID
         bloomingFlats.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.NEAR_INLAND)); // Shrunk from NEAR, MID
         bloomingFlats.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_HIGH));
-        config.biomes.add(bloomingFlats);config.biomes.add(bloomingFlats);
+        config.biomes.add(bloomingFlats);
 
         return config;
     }
