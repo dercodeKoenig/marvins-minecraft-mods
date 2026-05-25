@@ -71,7 +71,6 @@ public class WorldEvents {
     }
 
     public static void onServerTick(ServerTickEvent.Post event) {
-        long t0 = System.nanoTime();
         DimensionManager.INSTANCE_SERVER.tick();
         GlobalTime.tickServer();
         ForcedChunkManager.tick();
@@ -79,7 +78,6 @@ public class WorldEvents {
         SatelliteManager.serverTick();
         MissionManager.serverTick();
         SpaceSuit.serverTick();
-        //System.out.println((double)(System.nanoTime() - t0) / 1000 / 1000);
     }
 
     public static void onClientTick(ClientTickEvent.Post event) {
@@ -102,12 +100,14 @@ public class WorldEvents {
     public static void onServerStarted(ServerStartedEvent event) {
 
         // write biome presets (TODO: this is done in main(), remove after testing)
+        /*
         BiomeConfig.makePresetIfNotExist(WARM.name, WARM.create());
         BiomeConfig.makePresetIfNotExist(WARM_DRY.name, WARM_DRY.create());
         BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
         BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
         BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
         BiomeConfig.makePresetIfNotExist(VENUS.name, VENUS.create());
+         */
 
 
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);

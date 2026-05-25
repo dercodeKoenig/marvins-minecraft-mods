@@ -169,6 +169,7 @@ public class Main {
     public static void loadComplete(FMLLoadCompleteEvent e) {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
+        TerraformingSystem.setup();
     }
 
     public static void registerCommands(RegisterCommandsEvent event) {
