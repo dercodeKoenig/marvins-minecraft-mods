@@ -142,10 +142,10 @@ public class TerraformingSystem {
 
         addDecoration(rl("minecraft:windswept_hills"), 0.002, Blocks.OAK_SAPLING);
 
-        addDecoration(rl("minecraft:windswept_savanna"), 0.01, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:windswept_savanna"), 0.002, Blocks.ACACIA_SAPLING);
 
-        addDecoration(rl("minecraft:wooded_badlands"), 0.002, Blocks.ACACIA_SAPLING);
-        
+        addDecoration(rl("minecraft:wooded_badlands"), 0.01, Blocks.OAK_SAPLING);
+
     }
 
     public static void addDecoration(ResourceLocation biome, double p, Block block) {
