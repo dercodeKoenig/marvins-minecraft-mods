@@ -189,17 +189,7 @@ public class Main {
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_debug")
                         .executes((context) -> {
-                            for (int x = -30; x < 30; x++) {
-                                for (int z = -30; z < 30; z++) {
-                                    BlockPos origin = context.getSource().getPlayer().blockPosition();
-                                    BlockPos newPos = origin.relative(Direction.NORTH, z).relative(Direction.EAST, x);
-                                    TerraformingSystem.changeBiome(
-                                            context.getSource().getLevel(),
-                                            newPos.getX(), newPos.getZ(),
-                                            ResourceLocation.parse("minecraft:desert")
-                                    );
-                                }
-                            }
+                            TerraformingSystem.setup();
                             return 1;
                         })
         );
