@@ -24,11 +24,11 @@ public class SatelliteBiomeChanger extends Satellite {
     }
 
     public double energyPerAction() {
-        return 1000;
+        return 500;
     }
 
     public int minActionTicks() {
-        return 5;
+        return 10;
     }
 
     public boolean submitWork(ResourceLocation levelId, int blockX, int blockZ, ResourceLocation targetBiome) {
@@ -58,14 +58,17 @@ public class SatelliteBiomeChanger extends Satellite {
         super.tick();
         if (!workData.isEmpty()) {
             if (getEnergyStored() > energyPerAction() && lastActionTime + minActionTicks() < GlobalTime.getGlobalTime()) {
-                Work w = workData.removeFirst();
-                ServerLevel target = DimensionManager.getServerLevel(w.levelId);
-                ResourceLocation currentBiome = TerraformingSystem.getCurrentSurfaceBiome(target, w.blockX, w.blockZ);
-                if (!Objects.equal(currentBiome, w.biomeId) && w.levelId.equals(parentDimensionId)) {
-                    extractEnergy(energyPerAction());
-                    lastActionTime = GlobalTime.getGlobalTime();
-                    TerraformingSystem.changeBiome(target, w.blockX, w.blockZ, w.biomeId);
-                    System.out.println("satellite change biome at " + w.blockX + ":" + w.blockZ);
+                while (!workData.isEmpty()) {
+                    Work w = workData.removeFirst();
+                    ServerLevel target = DimensionManager.getServerLevel(w.levelId);
+                    ResourceLocation currentBiome = TerraformingSystem.getCurrentSurfaceBiome(target, w.blockX, w.blockZ);
+                    if (!Objects.equal(currentBiome, w.biomeId) && w.levelId.equals(parentDimensionId)) {
+                        extractEnergy(energyPerAction());
+                        lastActionTime = GlobalTime.getGlobalTime();
+                        TerraformingSystem.changeBiome(target, w.blockX, w.blockZ, w.biomeId);
+                        System.out.println("satellite change biome at " + w.blockX + ":" + w.blockZ);
+                        break;
+                    }
                 }
             }
         }
