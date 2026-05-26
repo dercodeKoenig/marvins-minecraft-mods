@@ -95,7 +95,7 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
     public void makeGui(ItemStack stack) {
         List<GuiModuleBase> modules = new ArrayList<>();
         List<ResourceLocation> biomes = getScannedBiomes(stack);
-        guiModuleButton scanButton = new guiModuleButton(-1, "scan biome", guiHandler, 50, 10, 100, 15, BTN_BLACK, BTN_W, BTN_H) {
+        guiModuleButton scanButton = new guiModuleButton(-1, "scan biome", guiHandler, 10, 10, 80, 15, BTN_BLACK, BTN_W, BTN_H) {
             @Override
             public void onButtonClicked() {
                 CompoundTag info = new CompoundTag();
@@ -107,6 +107,19 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
             }
         };
         scanButton.color = 0xffffffff;
+
+        guiModuleButton actionButton = new guiModuleButton(-2, "terraform area", guiHandler, 100, 10, 90, 15, BTN_BLACK, BTN_W, BTN_H) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag info = new CompoundTag();
+                info.put("run", new CompoundTag());
+                PacketDistributor.sendToServer(new PacketPlayerMainHand(info));
+                if (guiHandler.getScreen() instanceof Screen screen)
+                    screen.onClose();
+                ClientUtils.getSinglePlayer().swing(InteractionHand.MAIN_HAND);
+            }
+        };
+        actionButton.color = 0xffffffff;
 
         int id = 0;
         for (ResourceLocation biomeId : biomes) {
@@ -123,50 +136,46 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
             };
             button.color = 0xffffffff;
             modules.add(button);
-            id+=1;
+            id += 1;
         }
         guiModuleScrollContainer container = new guiModuleScrollContainer(modules, 0xffa0a0a0, guiHandler, 10, 30, 180, 160);
         guiHandler.getModules().clear();
         guiHandler.getModules().add(container);
         guiHandler.getModules().add(scanButton);
+        guiHandler.getModules().add(actionButton);
     }
 
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
-        // scanning biomes is done on the remote and not with the satellite because the satellite will orbit another planet (moon) while you scan earth biomes to place them on moon
         ItemStack stack = player.getItemInHand(usedHand);
         if (usedHand != InteractionHand.MAIN_HAND)
             return InteractionResultHolder.pass(stack);
-        if (level instanceof ServerLevel serverLevel) {
-            if (player.isShiftKeyDown()) {
-                Satellite sat = SatelliteManager.getSatellite(getTarget(stack));
-                if (sat instanceof SatelliteBiomeChanger biomeChanger) {
-                    int r = 32;
-                    ResourceLocation targetBiome = getSelected(stack);
-                    List<Pair<Integer, Integer>> positions = new LinkedList<>();
-                    for (int x = -r; x <= r; x++) {
-                        for (int z = -r; z <= r; z++) {
-                            if (Math.sqrt(x * x + z * z) <= r) {
-                                positions.add(Pair.of(x, z));
-                            }
-                        }
-                    }
-                    Collections.shuffle(positions);
-                    for (Pair<Integer,Integer> position : positions) {
-                        int x = position.getFirst();
-                        int z = position.getSecond();
-                        biomeChanger.submitWork(serverLevel.dimension().location(), player.getBlockX() + x, player.getBlockZ() + z, targetBiome);
-                    }
-                    player.sendSystemMessage(Component.literal("request for biome change sent to satellite"));
-                }
-            }
-        }
         if (level.isClientSide) {
-            if (!player.isShiftKeyDown()) {
-                makeGui(stack);
-                guiHandler.openGui(200, 200, true);
-            }
+            makeGui(stack);
+            guiHandler.openGui(200, 200, true);
         }
         return InteractionResultHolder.consume(stack);
+    }
+
+    public void execute(ItemStack remote, ServerLevel level, int blockX, int blockZ) {
+        Satellite sat = SatelliteManager.getSatellite(getTarget(remote));
+        if (sat instanceof SatelliteBiomeChanger biomeChanger) {
+            int r = 32;
+            ResourceLocation targetBiome = getSelected(remote);
+            List<Pair<Integer, Integer>> positions = new LinkedList<>();
+            for (int x = -r; x <= r; x++) {
+                for (int z = -r; z <= r; z++) {
+                    if (Math.sqrt(x * x + z * z) <= r) {
+                        positions.add(Pair.of(x, z));
+                    }
+                }
+            }
+            Collections.shuffle(positions);
+            for (Pair<Integer, Integer> position : positions) {
+                int x = position.getFirst();
+                int z = position.getSecond();
+                biomeChanger.submitWork(level.dimension().location(), blockX + x, blockZ + z, targetBiome);
+            }
+        }
     }
 
     @Override
@@ -176,9 +185,13 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
             setSelected(serverPlayer.getItemInHand(InteractionHand.MAIN_HAND), ResourceLocation.parse(id));
             serverPlayer.sendSystemMessage(Component.literal("selected " + id));
         }
+        if (compoundTag.contains("run")) {
+            execute(serverPlayer.getMainHandItem(), serverPlayer.serverLevel(), serverPlayer.getBlockX(), serverPlayer.getBlockZ());
+            serverPlayer.sendSystemMessage(Component.literal("request for biome change sent to satellite"));
+        }
         if (compoundTag.contains("scan")) {
             ResourceLocation biome = TerraformingSystem.getCurrentSurfaceBiome(serverPlayer.serverLevel(), serverPlayer.getBlockX(), serverPlayer.getBlockZ());
-            ItemStack stack = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+            ItemStack stack = serverPlayer.getMainHandItem();
             List<ResourceLocation> scannedBiomes = getScannedBiomes(stack);
             if (!scannedBiomes.contains(biome)) {
                 scannedBiomes.add(biome);
