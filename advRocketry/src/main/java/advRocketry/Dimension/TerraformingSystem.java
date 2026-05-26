@@ -2,6 +2,7 @@ package advRocketry.Dimension;
 
 import advRocketry.Main;
 import advRocketry.Utils.ChunkUtils;
+import advRocketry.Utils.NoiseUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
@@ -62,9 +63,10 @@ public class TerraformingSystem {
         addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.RED_TULIP);
         addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.PINK_TULIP);
 
-        addDecoration(rl("minecraft:forest"), 0.05, Blocks.OAK_SAPLING);
-        addDecoration(rl("minecraft:forest"), 0.02, Blocks.BIRCH_SAPLING);
-        addPatch(rl("minecraft:forest"), Blocks.COARSE_DIRT, 0.04,5,40);
+        addDecoration(rl("minecraft:forest"), 0.03, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:forest"), 0.01, Blocks.BIRCH_SAPLING);
+        addPatch(rl("minecraft:forest"), Blocks.COARSE_DIRT, 0.4,0.05);
+        addPatch(rl("minecraft:forest"), Blocks.GRAVEL, 0.25, 0.1);
 
         topBlocks.put(rl("minecraft:grove"), Blocks.STONE);
 
@@ -157,9 +159,9 @@ public class TerraformingSystem {
         decorations.get(biome).put(block, p);
     }
 
-    public static void addPatch(ResourceLocation biome, Block block, double p, int min, int max) {
+    public static void addPatch(ResourceLocation biome, Block block, double p, double scale) {
         patches.putIfAbsent(biome, new HashMap<>());
-        patches.get(biome).put(block, new patchData(min, max, p));
+        patches.get(biome).put(block, new patchData(p,scale));
     }
 
     public static Map<Block, Double> getDecoration(ResourceLocation biome) {
@@ -212,92 +214,35 @@ public class TerraformingSystem {
         });
     }
 
-    public static List<BlockPos> maybePatch(ResourceLocation biomeId, Level level, BlockPos surfacePos) {
+    // We replace maybePatch entirely with this O(1) mathematical lookup
+    public static Block getPatchedTopBlock(ResourceLocation biomeId, int x, int z, Block defaultTop) {
         Map<Block, patchData> possiblePatches = getPatches(biomeId);
-        List<BlockPos> patchedPositions = new ArrayList<>();
+        if (possiblePatches.isEmpty()) {
+            return defaultTop;
+        }
 
-        for (Block block : possiblePatches.keySet()) {
-            patchData d = possiblePatches.get(block);
+        for (Map.Entry<Block, patchData> entry : possiblePatches.entrySet()) {
+            Block block = entry.getKey();
+            patchData d = entry.getValue();
 
-            if (Math.random() < d.p) {
-                // How many blocks we want to place in total
-                int randomAmount = (int)(Math.random() * (d.max - d.min + 1)) + d.min;
+            // Create a unique offset for this block so Gravel and Coarse Dirt don't overlap perfectly
+            // We just use the block's hash code as an arbitrary large number.
+            long blockOffset = block.hashCode();
 
-                // List of blocks we can currently expand outward from
-                List<BlockPos> activeEdge = new ArrayList<>();
+            // Generate the noise using this block's specific scale and offset
+            double noiseValue = NoiseUtils.getNormalized2D(
+                    (x + blockOffset) * d.scale,
+                    (z + blockOffset) * d.scale
+            );
 
-                // Track 2D columns (X and Z) we've already checked so we don't overlap
-                Set<BlockPos> visitedColumns = new HashSet<>();
-                int patchedCount = 0;
-
-                // 1. Setup the starting block
-                Block startingBlock = level.getBlockState(surfacePos).getBlock();
-                if (isValidTopBlock(biomeId, startingBlock)) {
-                    level.setBlock(surfacePos, block.defaultBlockState(), 3); // 3 = block update
-                    patchedCount++;
-                    activeEdge.add(surfacePos);
-                }
-
-                // Mark starting column as visited (using Y=0 to represent the column)
-                visitedColumns.add(new BlockPos(surfacePos.getX(), 0, surfacePos.getZ()));
-
-                // Arrays to quickly get neighbors (North, South, East, West)
-                int[] dx = {1, -1, 0, 0};
-                int[] dz = {0, 0, 1, -1};
-
-                // 2. Expand until we hit our randomAmount or run out of valid blocks
-                while (patchedCount < randomAmount && !activeEdge.isEmpty()) {
-
-                    // Pick a RANDOM block from our active edge to expand from (creates organic blob shape)
-                    int randIndex = (int)(Math.random() * activeEdge.size());
-                    BlockPos current = activeEdge.get(randIndex);
-
-                    // Find which of the 4 directions we haven't visited yet
-                    List<Integer> unvisitedDirs = new ArrayList<>();
-                    for (int i = 0; i < 4; i++) {
-                        BlockPos neighborCol = new BlockPos(current.getX() + dx[i], 0, current.getZ() + dz[i]);
-                        if (!visitedColumns.contains(neighborCol)) {
-                            unvisitedDirs.add(i);
-                        }
-                    }
-
-                    // If this block is completely surrounded, remove it from the edge pool
-                    if (unvisitedDirs.isEmpty()) {
-                        activeEdge.remove(randIndex);
-                        continue;
-                    }
-
-                    // Pick a random unvisited direction
-                    int dirIndex = unvisitedDirs.get((int)(Math.random() * unvisitedDirs.size()));
-                    int nx = current.getX() + dx[dirIndex];
-                    int nz = current.getZ() + dz[dirIndex];
-
-                    // Mark this new column as visited
-                    visitedColumns.add(new BlockPos(nx, 0, nz));
-
-                    // 3. Scan top-down in the 5-block window (Y+2 down to Y-2)
-                    for (int yOffset = 2; yOffset >= -2; yOffset--) {
-                        BlockPos targetPos = new BlockPos(nx, current.getY() + yOffset, nz);
-                        Block targetBlock = level.getBlockState(targetPos).getBlock();
-
-                        if (isValidTopBlock(biomeId, targetBlock)) {
-                            // Found a valid block within the height limit! Patch it.
-                            level.setBlock(targetPos, block.defaultBlockState(), 3);
-                            patchedPositions.add(targetPos);
-
-                            // Add this new block to the edge pool so we can expand from it later
-                            activeEdge.add(targetPos);
-                            patchedCount++;
-
-                            break; // Break the vertical loop, move to next horizontal expansion
-                        }
-                    }
-                }
-
-                return patchedPositions; // We finished the patch for this biome / position, exit the function
+            // Since noiseValue is 0.0 to 1.0, we just check if it's in the top 'p' percent
+            // If p is 0.05 (5%), we check if noise is >= 0.95.
+            if (noiseValue >= (1.0 - d.p)) {
+                return block; // First patch to succeed wins the overlap!
             }
         }
-        return patchedPositions;
+
+        return defaultTop;
     }
 
     public static void maybeDecorate(ResourceLocation biomeId, Level level, BlockPos surfacePos) {
@@ -319,26 +264,16 @@ public class TerraformingSystem {
 
     public static void maybeUpdateBlocksForNewBiome(ServerLevel level, int x, int z) {
         // biomes are 3d now but we sample the one at the surface for all the math
-        BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z), z);
+        BlockPos pos = new BlockPos(x, 0, z);
         ResourceLocation currentBiomeId = getCurrentSurfaceBiome(level, x, z);
         ResourceLocation previousBiomeId = getGeneratedBiome(level.getChunkAt(pos), pos.getX(), pos.getZ());
         if (!Objects.equal(currentBiomeId, previousBiomeId)) {
-            Block toPlace = getTopBlock(currentBiomeId);
             System.out.println(pos + ": " + previousBiomeId + " - " + currentBiomeId);
             for (int y = level.getMaxBuildHeight(); y > level.getMinBuildHeight(); y--) {
                 BlockState current = level.getBlockState(pos.atY(y));
                 if (isValidTopBlock(previousBiomeId, current.getBlock())) {
+                    Block toPlace = getPatchedTopBlock(currentBiomeId,x,z,getTopBlock(currentBiomeId));
                     level.setBlock(pos.atY(y), toPlace.defaultBlockState(), 3);
-
-                    // maybe apply ground patch
-                    List<BlockPos> patched = maybePatch(currentBiomeId, level, pos.atY(y));
-                    // note:    this neighbor blocks might have already been decorated / changed
-                    //          but after ground patch there might be more possible decoration
-                    //          so all the patched blocks need to be re-decorated
-                    //          this might cause over-decoration on some positions but really i dont care
-                    for (BlockPos p : patched){
-                        maybeDecorate(currentBiomeId, level, p);
-                    }
 
                     // maye add decorations above this block
                     maybeDecorate(currentBiomeId, level, pos.atY(y));
@@ -410,13 +345,13 @@ public class TerraformingSystem {
         return ResourceLocation.parse(id);
     }
 
+    // Replace your old patchData with this:
     public static class patchData {
-        int min;
-        int max;
-        double p;
-        public patchData(int min, int max, double p) {
-            this.min = min;
-            this.max = max;
+        double scale; // Controls the SIZE of the blobs (Replaces min/max)
+        double p;     // Controls the CHANCE/COVERAGE amount
+
+        public patchData(double p, double scale) {
+            this.scale = scale;
             this.p = p;
         }
     }
