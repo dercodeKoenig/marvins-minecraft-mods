@@ -15,8 +15,6 @@ import advRocketry.SpaceSuit.Boots;
 import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
-import advRocketry.Worldgen.BiomeConfig;
-import advRocketry.Worldgen.presets.*;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -25,8 +23,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -38,8 +37,8 @@ import net.neoforged.neoforge.client.event.CalculateDetachedCameraDistanceEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -189,18 +188,18 @@ public class WorldEvents {
         }
     }
 
-    public static void onMobSpawn(FinalizeSpawnEvent event) {
+    public static void onMobSpawn(MobSpawnEvent.SpawnPlacementCheck event) {
         // prevent mobs to spawn where it is impossible
         if (event.getLevel().isClientSide()) return;
-        Mob mob = event.getEntity();
+        EntityType<?> type = event.getEntityType();
+        Class<? extends Entity> c = type.getBaseClass();
 
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(event.getLevel().getLevel().dimension().location());
         if (dim == null) return;
 
         Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
-        if (!SurvivalSystem.getSurvivalRule(mob)
-                .allowInMobSpawn(mob, event.getLevel().getLevel(), event.getX(), event.getY(), event.getZ(), problems)) {
-            event.setCanceled(true);
+        if (!SurvivalSystem.getSurvivalRule(c).allowInMobSpawn(c, event.getLevel().getLevel(), event.getPos().getX(), event.getPos().getY(), event.getPos().getZ(), problems)) {
+            event.setResult(MobSpawnEvent.SpawnPlacementCheck.Result.FAIL);
         }
     }
 

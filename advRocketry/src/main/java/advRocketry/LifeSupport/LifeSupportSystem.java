@@ -93,7 +93,7 @@ public class LifeSupportSystem {
     // perform survival tick, should be called in server tick every second
     // maybe consume oxygen from equipment here
     public static void trySurvive(LivingEntity e, Level level, BlockPos pos, Set<Dimension.SurvivalProblem> survivalProblems) {
-        SurvivalSystem.getSurvivalRule(e).trySurvive(e, level, pos, survivalProblems);
+        SurvivalSystem.getSurvivalRule(e.getClass()).trySurvive(e, level, pos, survivalProblems);
     }
 
     public static void mitigateProblems(Level level, BlockPos pos, Set<Dimension.SurvivalProblem> survivalProblems) {

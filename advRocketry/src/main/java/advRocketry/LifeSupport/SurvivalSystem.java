@@ -8,6 +8,7 @@ import advRocketry.SpaceSuit.SpaceSuit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -79,8 +80,7 @@ public class SurvivalSystem {
         });
     }
 
-    public static ICanSurvive getSurvivalRule(LivingEntity e) {
-        Class<? extends LivingEntity> entityClass = e.getClass();
+    public static ICanSurvive getSurvivalRule(Class<? extends Entity> entityClass) {
 
         // 1. Check if we already know the rule for this specific class
         ICanSurvive rule = survivalData.get(entityClass);
@@ -105,9 +105,9 @@ public class SurvivalSystem {
     }
 
     public interface ICanSurvive {
-        void trySurvive(LivingEntity e, Level level, BlockPos pos, Set<Dimension.SurvivalProblem> problems);
+        void trySurvive(Entity e, Level level, BlockPos pos, Set<Dimension.SurvivalProblem> problems);
 
-        default boolean allowInMobSpawn(Mob e, ServerLevel level, double x, double y, double z, Set<Dimension.SurvivalProblem> problems) {
+        default boolean allowInMobSpawn(Class<? extends Entity> entityClass, ServerLevel level, int x, int y, int z, Set<Dimension.SurvivalProblem> problems) {
             return problems.isEmpty();
         }
     }
