@@ -677,7 +677,11 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                     for (Player player : level.players()) {
                                         if (player.position().distanceTo(getBlockPos().getCenter()) < 32) {
                                             String n = nextToDiscover.isStar() ? "star" : "planet";
-                                            player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new " + n + ": " + nextToDiscover.getName()));
+                                            String parentNameString = "";
+                                            if (DimensionManager.INSTANCE_SERVER.get(nextToDiscover.getParentDimensionId()) instanceof PlanetDimension parentPlanet) {
+                                                parentNameString = " in orbit around " + parentPlanet.getName();
+                                            }
+                                            player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new " + n + parentNameString + ": " + nextToDiscover.getName()));
                                         }
                                     }
                                 }
