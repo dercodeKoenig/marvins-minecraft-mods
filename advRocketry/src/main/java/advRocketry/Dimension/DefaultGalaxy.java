@@ -177,7 +177,7 @@ public class DefaultGalaxy {
         PlanetDimensionProperties priate = new PlanetDimensionProperties();
         priate.name = "Priate";
         priate.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "priate");
-        priate.gravitationalMultiplier = 250;
+        priate.gravitationalMultiplier = 150;
         priate.earthRadiusMultiplier = 300;
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
@@ -210,7 +210,7 @@ public class DefaultGalaxy {
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 300;
         mustafar.baseEnergyGain = 0.11f;
-        mustafar.orbitalDistanceToParent = 0.05f;
+        mustafar.orbitalDistanceToParent = 0.02f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
