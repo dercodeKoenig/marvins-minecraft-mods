@@ -131,7 +131,7 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
 
             if (navigationItem.getItem() instanceof ItemSatelliteIdChip) {
                 UUID satId = ItemSatelliteIdChip.getTarget(navigationItem);
-                if(SatelliteManager.getSatellite(satId) == null)
+                if (SatelliteManager.getSatellite(satId) == null)
                     return false; // sat does not exist
                 ProgramMissionStartBase programMissionStartBase = new ProgramSatelliteRecovery(linkedRocket, satId, duration, level.dimension().location(), landPos, lastLaunchedMissionUUID);
                 linkedRocket.setProgramAndSync(programMissionStartBase);
@@ -147,6 +147,8 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                     lastLaunchedRocketUUID = linkedRocket.getUUID();
                     return true;
                 }
+            } else {
+                cycleNavigationItem();
             }
         }
         return false;
@@ -179,9 +181,9 @@ public class EntityLaunchStationSatelliteMissions extends EntityLaunchStation {
                 int seconds = (int) (time / 20);
                 if (distance > maxRangeForMission) {
                     statusText.setTextAndSync("target out of range");
-                } else if(distance >= 0){
+                } else if (distance >= 0) {
                     statusText.setTextAndSync("ETA: " + seconds + "s");
-                }else{
+                } else {
                     statusText.setTextAndSync("");
                 }
             }
