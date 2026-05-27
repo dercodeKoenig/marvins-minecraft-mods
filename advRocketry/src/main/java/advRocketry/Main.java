@@ -112,6 +112,7 @@ public class Main {
         BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
         BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
         BiomeConfig.makePresetIfNotExist(VENUS.name, VENUS.create());
+        BiomeConfig.makePresetIfNotExist(OVERWORLD.name, OVERWORLD.create());
     }
 
     /// mod load events /////////////////////////////////////
