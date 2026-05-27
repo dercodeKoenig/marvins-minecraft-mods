@@ -24,11 +24,11 @@ public class SatelliteBiomeChanger extends Satellite {
     }
 
     public double energyPerAction() {
-        return 500;
+        return 300;
     }
 
     public int minActionTicks() {
-        return 10;
+        return 5;
     }
 
     public boolean submitWork(ResourceLocation levelId, int blockX, int blockZ, ResourceLocation targetBiome) {
