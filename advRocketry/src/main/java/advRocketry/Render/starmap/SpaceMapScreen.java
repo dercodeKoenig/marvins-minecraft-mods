@@ -240,12 +240,14 @@ public class SpaceMapScreen extends Screen {
                 description += "\n";
             }
 
+            /*
             if (planet.getAtmosphereDensity() < 0.1) {
                 if (planet.getGasProperty(GasRegistry.co2).frozen_surface > 0 ||
                         planet.getOceanFraction(null) > 0.1
                 )
                     description += "Railgun usage possible to extract fluids or ice.\n\n";
             }
+             */
         }
 
         return description;
