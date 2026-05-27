@@ -154,22 +154,23 @@ public class TerraformingSystem {
         addDecoration(rl("minecraft:eroded_badlands"), 0.01, Blocks.DEAD_BUSH);
         addPatch(rl("minecraft:eroded_badlands"), Blocks.RED_SAND, 0.2, 0.05);
 
-        topBlocks.put(rl("minecraft:wooded_badlands"), Blocks.TERRACOTTA);
-        addDecoration(rl("minecraft:wooded_badlands"), 0.02, Blocks.OAK_SAPLING);
-        addBaseGrass(rl("minecraft:wooded_badlands"), 0.02, 0.01);
-        addPatch(rl("minecraft:wooded_badlands"), Blocks.RED_SAND, 0.4, 0.06);
-        addPatch(rl("minecraft:wooded_badlands"), Blocks.COARSE_DIRT, 0.2, 0.05);
+        // Wooded Badlands defaults to grass now
+        addDecoration(rl("minecraft:wooded_badlands"), 0.05, Blocks.OAK_SAPLING);
+        addBaseGrass(rl("minecraft:wooded_badlands"), 0.05, 0.01);
+        addPatch(rl("minecraft:wooded_badlands"), Blocks.COARSE_DIRT, 0.4, 0.06);
+        addPatch(rl("minecraft:wooded_badlands"), Blocks.TERRACOTTA, 0.2, 0.05);
 
         // --- Snow & Ice ---
         topBlocks.put(rl("minecraft:snowy_plains"), Blocks.SNOW_BLOCK);
-        addDecoration(rl("minecraft:snowy_plains"), 0.005, Blocks.SPRUCE_SAPLING);
         addDecoration(rl("minecraft:snowy_plains"), 0.2, Blocks.SNOW); // Snow layers
         addPatch(rl("minecraft:snowy_plains"), Blocks.POWDER_SNOW, 0.1, 0.05); // Traps!
+        addPatch(rl("minecraft:snowy_plains"), Blocks.DIRT, 0.05, 0.05);
+        addDecoration(rl("minecraft:snowy_plains"), 0.1, Blocks.SPRUCE_SAPLING);
 
         topBlocks.put(rl("minecraft:snowy_taiga"), Blocks.SNOW_BLOCK);
-        addDecoration(rl("minecraft:snowy_taiga"), 0.05, Blocks.SPRUCE_SAPLING);
         addDecoration(rl("minecraft:snowy_taiga"), 0.3, Blocks.SNOW);
-        addPatch(rl("minecraft:snowy_taiga"), Blocks.DIRT, 0.1, 0.05); // Exposed dirt
+        addPatch(rl("minecraft:snowy_taiga"), Blocks.DIRT, 0.25, 0.05); // Exposed dirt
+        addDecoration(rl("minecraft:snowy_taiga"), 0.3, Blocks.SPRUCE_SAPLING);
 
         topBlocks.put(rl("minecraft:snowy_slopes"), Blocks.SNOW_BLOCK);
         addDecoration(rl("minecraft:snowy_slopes"), 0.5, Blocks.SNOW);
@@ -182,8 +183,8 @@ public class TerraformingSystem {
 
         // --- Mountains & Hills ---
         topBlocks.put(rl("minecraft:grove"), Blocks.SNOW_BLOCK);
-        addDecoration(rl("minecraft:grove"), 0.05, Blocks.SPRUCE_SAPLING);
         addPatch(rl("minecraft:grove"), Blocks.DIRT, 0.2, 0.05);
+        addDecoration(rl("minecraft:grove"), 0.25, Blocks.SPRUCE_SAPLING);
 
         topBlocks.put(rl("minecraft:jagged_peaks"), Blocks.STONE);
         addDecoration(rl("minecraft:jagged_peaks"), 0.2, Blocks.SNOW);
@@ -199,14 +200,14 @@ public class TerraformingSystem {
         addDecoration(rl("minecraft:frozen_peaks"), 0.2, Blocks.SNOW);
 
         topBlocks.put(rl("minecraft:windswept_hills"), Blocks.STONE);
-        addDecoration(rl("minecraft:windswept_hills"), 0.01, Blocks.OAK_SAPLING);
-        addDecoration(rl("minecraft:windswept_hills"), 0.01, Blocks.SPRUCE_SAPLING);
         addPatch(rl("minecraft:windswept_hills"), Blocks.GRASS_BLOCK, 0.4, 0.05);
+        addDecoration(rl("minecraft:windswept_hills"), 0.05, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:windswept_hills"), 0.05, Blocks.SPRUCE_SAPLING);
 
         topBlocks.put(rl("minecraft:windswept_forest"), Blocks.STONE);
-        addDecoration(rl("minecraft:windswept_forest"), 0.03, Blocks.OAK_SAPLING);
-        addDecoration(rl("minecraft:windswept_forest"), 0.03, Blocks.SPRUCE_SAPLING);
         addPatch(rl("minecraft:windswept_forest"), Blocks.GRASS_BLOCK, 0.6, 0.05);
+        addDecoration(rl("minecraft:windswept_forest"), 0.1, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:windswept_forest"), 0.1, Blocks.SPRUCE_SAPLING);
 
         topBlocks.put(rl("minecraft:windswept_gravelly_hills"), Blocks.GRAVEL);
         addPatch(rl("minecraft:windswept_gravelly_hills"), Blocks.GRASS_BLOCK, 0.2, 0.05);
