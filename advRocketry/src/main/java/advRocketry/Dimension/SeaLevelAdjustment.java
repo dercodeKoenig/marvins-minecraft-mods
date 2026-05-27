@@ -43,7 +43,8 @@ public class SeaLevelAdjustment {
         CompoundTag chunkEntry = ChunkUtils.getEntryOrNew(chunk, tagKey);
         int[] seaLevels = getOrInitSeaLevelArray(chunkEntry, GasRegistry.water);
 
-        int originalSeaLevel = level.getChunkSource().getGenerator().getSeaLevel();
+        // the world generator sea level actually is the block above the water block level so -1 to get true level
+        int originalSeaLevel = level.getChunkSource().getGenerator().getSeaLevel() - 1;
         seaLevels[getLocalIndex(blockX, blockZ)] = originalSeaLevel;
 
         chunkEntry.putIntArray(GasRegistry.water, seaLevels);
