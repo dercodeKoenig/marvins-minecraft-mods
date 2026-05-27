@@ -188,15 +188,29 @@ public class DefaultGalaxy {
         galaxy.add(priate);
 
 
+        PlanetDimensionProperties jestefad = new PlanetDimensionProperties();
+        jestefad.name = "Jestefad";
+        jestefad.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jestefad");
+        jestefad.parentDimensionId = priate.dimensionId;
+        jestefad.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_gaseous3.png");
+        jestefad.orbitalDistanceToParent = 2f;
+        jestefad.earthRadiusMultiplier = 10f;
+        jestefad.gravitationalMultiplier = 10f;
+        jestefad.canGasMine = true;
+        jestefad.skyColor = new Vector3f(0.5f,0.5f,0.5f);
+        jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2,0, 0, 0));
+        jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
+        galaxy.add(jestefad);
+
         PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
         mustafar.name = "Mustafar";
         mustafar.description = "The gravimetric duel between the gas giants Jestefad and Lefrani over Mustafar heated the planet's core, transforming the world into an imbalanced volcanic hellscape.";
         mustafar.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "mustafar");
-        mustafar.parentDimensionId = priate.dimensionId;
+        mustafar.parentDimensionId = jestefad.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 300;
         mustafar.baseEnergyGain = 0.11f;
-        mustafar.orbitalDistanceToParent = 2f;
+        mustafar.orbitalDistanceToParent = 0.05f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
@@ -216,28 +230,14 @@ public class DefaultGalaxy {
         mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(0.2f); // make lava glow
         galaxy.add(mustafar);
 
-        PlanetDimensionProperties jestefad = new PlanetDimensionProperties();
-        jestefad.name = "Jestefad";
-        jestefad.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jestefad");
-        jestefad.parentDimensionId = priate.dimensionId;
-        jestefad.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_gaseous3.png");
-        jestefad.orbitalDistanceToParent = 1.4f;
-        jestefad.earthRadiusMultiplier = 20f;
-        jestefad.gravitationalMultiplier = 20f;
-        jestefad.canGasMine = true;
-        jestefad.skyColor = new Vector3f(0.5f,0.5f,0.5f);
-        jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2,0, 0, 0));
-        jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
-        galaxy.add(jestefad);
-
         PlanetDimensionProperties lefrani = new PlanetDimensionProperties();
         lefrani.name = "Lefrani";
         lefrani.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "lefrani");
         lefrani.parentDimensionId = priate.dimensionId;
         lefrani.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_2k_neptune.png");
         lefrani.orbitalDistanceToParent = 3f;
-        lefrani.earthRadiusMultiplier = 40f;
-        lefrani.gravitationalMultiplier = 40f;
+        lefrani.earthRadiusMultiplier = 20f;
+        lefrani.gravitationalMultiplier = 20f;
         lefrani.canGasMine = true;
         lefrani.skyColor = new Vector3f(0.2f,0.3f,0.5f);
         lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10,0, 0, 0));
