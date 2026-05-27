@@ -15,6 +15,8 @@ import advRocketry.SpaceSuit.Boots;
 import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
+import advRocketry.Worldgen.BiomeConfig;
+import advRocketry.Worldgen.presets.*;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -98,18 +100,6 @@ public class WorldEvents {
     }
 
     public static void onServerStarted(ServerStartedEvent event) {
-
-        // write biome presets (TODO: this is done in main(), remove after testing)
-        /*
-        BiomeConfig.makePresetIfNotExist(WARM.name, WARM.create());
-        BiomeConfig.makePresetIfNotExist(WARM_DRY.name, WARM_DRY.create());
-        BiomeConfig.makePresetIfNotExist(MOON.name, MOON.create());
-        BiomeConfig.makePresetIfNotExist(DESERT_WASTELAND.name, DESERT_WASTELAND.create());
-        BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
-        BiomeConfig.makePresetIfNotExist(VENUS.name, VENUS.create());
-         */
-
-
         Main.worldPath = event.getServer().getWorldPath(LevelResource.ROOT);
         System.out.println("set world path: " + Main.worldPath);
         GlobalTime.load(); // important to load the time first!
