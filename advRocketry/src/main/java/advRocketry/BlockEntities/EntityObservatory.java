@@ -188,9 +188,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 info.put(DataTypes.distance, maxData);
                                 ItemGalaxyDatabase.setPlanetInfo(stack, planetDimension, info);
                             }
-                            if(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStationDimension){
+                            if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof SpaceStationDimension spaceStationDimension) {
                                 // when on space station, always make the currently orbited planet known
-                                if(spaceStationDimension.isInOrbit() && Objects.equals(spaceStationDimension.getParentDimensionId(), dim.getDimensionId())){
+                                if (spaceStationDimension.isInOrbit() && Objects.equals(spaceStationDimension.getParentDimensionId(), dim.getDimensionId())) {
                                     // we orbit around this planet, it is distance-known
                                     ItemGalaxyDatabase.PlanetInfo info = ItemGalaxyDatabase.getPlanetInfo(stack, planetDimension);
                                     if (info == null)
@@ -235,9 +235,9 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                         public void init() {
                                             super.init();
                                             ResourceLocation id = level.dimension().location();
-                                            if(DimensionManager.INSTANCE_CLIENT.get(id) instanceof SpaceStationDimension spaceStationDimension){
+                                            if (DimensionManager.INSTANCE_CLIENT.get(id) instanceof SpaceStationDimension spaceStationDimension) {
                                                 super.focusPlanet(spaceStationDimension.getParentDimensionId());
-                                            }else {
+                                            } else {
                                                 super.focusPlanet(id);
                                             }
                                         }
@@ -420,42 +420,49 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
     }
 
     public PlanetDimension getNextPlanetToDiscover(ItemStack storageDisk) {
-        List<ResourceLocation> randomDimIds = new ArrayList<>(DimensionManager.INSTANCE_SERVER.dimensions.keySet());
-        Collections.shuffle(randomDimIds);
-        for (ResourceLocation dimId : randomDimIds) {
-            Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
-            // only consider planet dimensions
-            if (dim instanceof PlanetDimension planetDimension) {
-                // only consider planets not known by default
-                if (!planetDimension.isKnown()) {
-                    // only consider planets that are not already known in the supplied storage disk
-                    if (!ItemGalaxyDatabase.isDimensionKnown(storageDisk, planetDimension)) {
-                        // if the dimension has a parent dimension that is unknown, the parent has to be discovered first!
-                        if (planetDimension.getParentDimensionId() != null) {
-                            // has a parent
-                            Dimension parent = DimensionManager.INSTANCE_SERVER.get(planetDimension.getParentDimensionId());
-                            if (parent instanceof PlanetDimension parentPlanet) {
-                                // parent is a planet
-                                if (!parentPlanet.isKnown()) {
-                                    // parent is not known by default
-                                    if (!ItemGalaxyDatabase.isDimensionKnown(storageDisk, parentPlanet)) {
-                                        // parent is also not known on disk
-                                        // we can not discover the planet until parent is known
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
-                        // TODO: artifact check, is artifact required and supplied in input hatch?
-                        // TODO: sort discovered planets by distance?
+        List<PlanetDimension> discoverablePlanets = new ArrayList<>();
 
-                        // discover this planet!
-                        return planetDimension;
-                    }
+        // 1. Collect all valid, undiscovered planet dimensions
+        for (ResourceLocation dimId : DimensionManager.INSTANCE_SERVER.dimensions.keySet()) {
+            Dimension dim = DimensionManager.INSTANCE_SERVER.get(dimId);
+
+            if (dim instanceof PlanetDimension planetDimension) {
+                // Only consider planets not already on the disk
+                if (!ItemGalaxyDatabase.isDimensionKnown(storageDisk, planetDimension)) {
+                    discoverablePlanets.add(planetDimension);
                 }
             }
         }
+
+        // If there's nothing left to find, we're done
+        if (discoverablePlanets.isEmpty()) {
+            return null;
+        }
+
+        // 2. Sort planets by visibility in descending order (highest visibility first)
+        discoverablePlanets.sort((p1, p2) -> Double.compare(calculateVisibility(p2), calculateVisibility(p1)));
+
+        // TODO: artifact check, is artifact required and supplied in input hatch?
+
+        // 3. Return the most visible planet
+        //    check visibility again, for example in nether we might not be able to see into the galaxy when the current dim is not in dimension manager
+        PlanetDimension toDiscover = discoverablePlanets.get(0);
+        if(calculateVisibility(toDiscover) > 0)
+            return toDiscover;
         return null;
+    }
+
+    private double calculateVisibility(PlanetDimension planet) {
+
+        Dimension myDim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
+        if (myDim == null)
+            return -1;
+
+        double size = planet.getEarthRadiusMultiplier();
+        double distance = planet.getPosition(0).distanceTo(myDim.getPosition(0));
+        double radiation = planet.getRadiationIntensity();
+
+        return (size / (distance + 0.0001)) * (1.0 + radiation * 50);
     }
 
     public void tick() {
@@ -669,8 +676,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                     // send a message to nearby players
                                     for (Player player : level.players()) {
                                         if (player.position().distanceTo(getBlockPos().getCenter()) < 32) {
-                                            String n =  nextToDiscover.isStar() ? "star" : "planet";
-                                            player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new "+n+": " + nextToDiscover.getName()));
+                                            String n = nextToDiscover.isStar() ? "star" : "planet";
+                                            player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new " + n + ": " + nextToDiscover.getName()));
                                         }
                                     }
                                 }
