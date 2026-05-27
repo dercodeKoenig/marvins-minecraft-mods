@@ -177,8 +177,8 @@ public class DefaultGalaxy {
         PlanetDimensionProperties priate = new PlanetDimensionProperties();
         priate.name = "Priate";
         priate.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "priate");
-        priate.gravitationalMultiplier = 100;
-        priate.earthRadiusMultiplier = 100;
+        priate.gravitationalMultiplier = 250;
+        priate.earthRadiusMultiplier = 300;
         priate.rotationAxis = new Vec3(0, 1, 0).normalize();
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         priate.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);

@@ -631,8 +631,6 @@ public class PlanetDimension extends Dimension {
                 trackDayTimeNormal();
             }
         }
-        // TODO: remove after testing
-        //properties().isKnown = true;
     }
 
 
