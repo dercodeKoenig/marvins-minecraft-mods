@@ -100,10 +100,10 @@ public class DefaultGalaxy {
         kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
         kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
         kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.4,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.48,0f,0));
         kalos.skyColor = SKY_COLOR_OVERWORLD();
         kalos.canVisit = true;
-        kalos.biomePreset = WARM_DRY.name;
+        kalos.biomePreset = OVERWORLD.name;
         galaxy.add(kalos);
 
 
@@ -216,6 +216,32 @@ public class DefaultGalaxy {
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
         mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(0.2f); // make lava glow
         galaxy.add(mustafar);
+
+        PlanetDimensionProperties jestefad = new PlanetDimensionProperties();
+        jestefad.name = "Jestefad";
+        jestefad.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jestefad");
+        jestefad.parentDimensionId = priate.dimensionId;
+        jestefad.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_gaseous3.png");
+        jestefad.orbitalDistanceToParent = 1f;
+        jestefad.earthRadiusMultiplier = 5f;
+        jestefad.gravitationalMultiplier = 5f;
+        jestefad.canGasMine = true;
+        jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2,0, 0, 0));
+        jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
+        galaxy.add(jestefad);
+
+        PlanetDimensionProperties lefrani = new PlanetDimensionProperties();
+        lefrani.name = "Lefrani";
+        lefrani.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "lefrani");
+        lefrani.parentDimensionId = priate.dimensionId;
+        lefrani.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_2k_neptune.png");
+        lefrani.orbitalDistanceToParent = 4f;
+        lefrani.earthRadiusMultiplier = 6f;
+        lefrani.gravitationalMultiplier = 6f;
+        lefrani.canGasMine = true;
+        lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10,0, 0, 0));
+        lefrani.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
+        galaxy.add(lefrani);
 
 
 
