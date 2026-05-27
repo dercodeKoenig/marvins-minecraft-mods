@@ -34,21 +34,18 @@ public class WaterCompositionTracker {
             return;
 
         if (isWaterSource(newState)) {
-            if(!oldState.getBlock().equals(Blocks.WATER) && oldState.getFluidState().is(Fluids.WATER))
+            if (!oldState.getBlock().equals(Blocks.WATER) && oldState.getFluidState().is(Fluids.WATER))
                 // old state was no water but had a water fluid state (kelp for example)
                 // this should not contribute to composition
                 return;
             if (!shouldIgnoreCompositionChangeEvent()) {
                 API.addLiquidInBuckets(level.dimension().location(), GasRegistry.water, 1);
             }
-        }
-        else if (isIce(newState)) {
+        } else if (isIce(newState)) {
             API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, 1);
-        }
-
-        else if (!isH2O) {
+        } else if (!isH2O) {
             if (isIce(oldState)) {
-                if(!shouldIgnoreCompositionChangeEvent()) {
+                if (!shouldIgnoreCompositionChangeEvent()) {
                     API.addSurfaceIceInBlocks(level.dimension().location(), GasRegistry.water, -1);
                 }
             }
@@ -75,14 +72,15 @@ public class WaterCompositionTracker {
     }
 
     private static boolean shouldIgnoreCompositionChangeEvent() {
-
         // finds out where the setblock call came from and maybe we ignore it
         return WALKER.walk(frames -> frames.anyMatch(frame ->
                 frame.getDeclaringClass().equals(FlowingFluid.class) || // water spreading and source creation is skipped
-                        frame.getDeclaringClass().equals(SeaLevelAdjustment.class)|| // sea level adjustment is skipped
+                        frame.getDeclaringClass().equals(SeaLevelAdjustment.class) || // sea level adjustment is skipped
                         frame.getDeclaringClass().equals(IceBlock.class) ||  // melt will evaporate from mixin when above sea level, ignore
-                        frame.getDeclaringClass().equals(DimensionEvents.class)|| // this has a method to boil water when too hot, a reflection of change - ignore
-                        frame.getDeclaringClass().equals(EntityFluidRelease.class) // place fluids for visuals only during working, should not add / remove to composition (if the player picks up the water fluid and gains water, it will be removed from composition so it is no gain)
+                        frame.getDeclaringClass().equals(DimensionEvents.class) || // this has a method to boil water when too hot, a reflection of change - ignore
+                        frame.getDeclaringClass().equals(EntityFluidRelease.class) || // place fluids for visuals only during working, should not add / remove to composition (if the player picks up the water fluid and gains water, it will be removed from composition so it is no gain)
+                        frame.getDeclaringClass().equals(TerraformingSystem.class) // maybe it places water in swamp, this should not contribute to adding water to planet
+
         ));
     }
 
