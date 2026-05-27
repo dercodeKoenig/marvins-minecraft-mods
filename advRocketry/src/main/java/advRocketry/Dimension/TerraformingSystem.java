@@ -36,6 +36,10 @@ public class TerraformingSystem {
     public static HashMap<ResourceLocation, Map<Block, patchData>> patches = new HashMap<>();
 
     public static void setup() {
+        topBlocks.clear();
+        decorations.clear();
+        patches.clear();
+
         // --- Mod Specific ---
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon"), advRocketry.Registry.Blocks.MOON_TURF.get());
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon_dark"), advRocketry.Registry.Blocks.MOON_TURF_DARK.get());
@@ -154,8 +158,7 @@ public class TerraformingSystem {
         addDecoration(rl("minecraft:eroded_badlands"), 0.01, Blocks.DEAD_BUSH);
         addPatch(rl("minecraft:eroded_badlands"), Blocks.RED_SAND, 0.2, 0.05);
 
-        // Wooded Badlands defaults to grass now
-        addDecoration(rl("minecraft:wooded_badlands"), 0.05, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:wooded_badlands"), 0.03, Blocks.OAK_SAPLING);
         addBaseGrass(rl("minecraft:wooded_badlands"), 0.05, 0.01);
         addPatch(rl("minecraft:wooded_badlands"), Blocks.COARSE_DIRT, 0.4, 0.06);
         addPatch(rl("minecraft:wooded_badlands"), Blocks.TERRACOTTA, 0.2, 0.05);
