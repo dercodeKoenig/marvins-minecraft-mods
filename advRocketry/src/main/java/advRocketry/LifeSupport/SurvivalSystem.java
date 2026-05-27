@@ -8,14 +8,12 @@ import advRocketry.SpaceSuit.SpaceSuit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -24,12 +22,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class SurvivalSystem {
-    public static final HashMap<Class<?>, ICanSurvive> survivalData = new HashMap<>();
+    public static final HashMap<EntityType<?>, ICanSurvive> survivalData = new HashMap<>();
     private static final ICanSurvive NO_OP_RULE = (e, level, pos, problems) -> {
     };
 
     static {
-        survivalData.put(Player.class, (e, level, pos, problems) -> {
+        survivalData.put(EntityType.PLAYER, (e, level, pos, problems) -> {
             if (e instanceof Player player) {
                 if (player.isCreative() || player.isSpectator()) {
                     problems.clear();
@@ -80,34 +78,18 @@ public class SurvivalSystem {
         });
     }
 
-    public static ICanSurvive getSurvivalRule(Class<? extends Entity> entityClass) {
-
-        // 1. Check if we already know the rule for this specific class
-        ICanSurvive rule = survivalData.get(entityClass);
+    public static ICanSurvive getSurvivalRule(EntityType<?> type) {
+        ICanSurvive rule = survivalData.get(type);
         if (rule != null) return rule;
-
-        // 2. If not, find a matching rule from parent class
-        for (Map.Entry<Class<?>, ICanSurvive> entry : survivalData.entrySet()) {
-            if (entry.getKey().isAssignableFrom(entityClass)) {
-                rule = entry.getValue();
-
-                // 3. CACHE IT!
-                // Next time a 'ServerPlayer' or 'Zombie' checks, it hits step 1.
-                survivalData.put(entityClass, rule);
-                System.out.println("cache rule for " + entityClass.getName() + " - " + rule.toString());
-                return rule;
-            }
-        }
-
-        survivalData.put(entityClass, NO_OP_RULE); // Cache the "nothing found" result
-        System.out.println("cache no_op rule for " + entityClass.getName());
+        survivalData.put(type, NO_OP_RULE); // Cache the "nothing found" result
+        System.out.println("cache no_op rule for " + type);
         return NO_OP_RULE;
     }
 
     public interface ICanSurvive {
         void trySurvive(Entity e, Level level, BlockPos pos, Set<Dimension.SurvivalProblem> problems);
 
-        default boolean allowInMobSpawn(Class<? extends Entity> entityClass, ServerLevel level, int x, int y, int z, Set<Dimension.SurvivalProblem> problems) {
+        default boolean allowInMobSpawn(EntityType<?> type, ServerLevel level, int x, int y, int z, Set<Dimension.SurvivalProblem> problems) {
             return problems.isEmpty();
         }
     }

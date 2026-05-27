@@ -4,6 +4,7 @@ import advRocketry.Main;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.NoiseUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.registries.Registries;
@@ -65,7 +66,7 @@ public class TerraformingSystem {
 
         addDecoration(rl("minecraft:forest"), 0.03, Blocks.OAK_SAPLING);
         addDecoration(rl("minecraft:forest"), 0.01, Blocks.BIRCH_SAPLING);
-        addPatch(rl("minecraft:forest"), Blocks.COARSE_DIRT, 0.4,0.05);
+        addPatch(rl("minecraft:forest"), Blocks.COARSE_DIRT, 0.4, 0.05);
         addPatch(rl("minecraft:forest"), Blocks.GRAVEL, 0.25, 0.1);
 
         topBlocks.put(rl("minecraft:grove"), Blocks.STONE);
@@ -161,7 +162,7 @@ public class TerraformingSystem {
 
     public static void addPatch(ResourceLocation biome, Block block, double p, double scale) {
         patches.putIfAbsent(biome, new HashMap<>());
-        patches.get(biome).put(block, new patchData(p,scale));
+        patches.get(biome).put(block, new patchData(p, scale));
     }
 
     public static Map<Block, Double> getDecoration(ResourceLocation biome) {
@@ -180,9 +181,9 @@ public class TerraformingSystem {
         Set<Block> validBlocks = new HashSet<>();
         validBlocks.add(getTopBlock(currentBiomeId));
         validBlocks.addAll(getPatches(currentBiomeId).keySet());
-        if(validBlocks.contains(Blocks.GRASS_BLOCK))
+        if (validBlocks.contains(Blocks.GRASS_BLOCK))
             validBlocks.add(Blocks.DIRT);
-        if(validBlocks.contains(Blocks.DIRT))
+        if (validBlocks.contains(Blocks.DIRT))
             validBlocks.add(Blocks.GRASS_BLOCK);
         return validBlocks.contains(block);
     }
@@ -267,12 +268,27 @@ public class TerraformingSystem {
         BlockPos pos = new BlockPos(x, 0, z);
         ResourceLocation currentBiomeId = getCurrentSurfaceBiome(level, x, z);
         ResourceLocation previousBiomeId = getGeneratedBiome(level.getChunkAt(pos), pos.getX(), pos.getZ());
+
+        // the blocks not always perfectly align with biome borders so aso consider top blocks from next biomes for replacement
+        Set<ResourceLocation> nearbyBiomes = new HashSet<>();
+        nearbyBiomes.add(previousBiomeId);
+        for (Direction i : new Direction[]{Direction.WEST, Direction.EAST, Direction.SOUTH, Direction.NORTH}) {
+            BlockPos neighbor = pos.relative(i, 8);
+            nearbyBiomes.add(getGeneratedBiome(level.getChunkAt(neighbor), neighbor.getX(), neighbor.getZ()));
+        }
+
         if (!Objects.equal(currentBiomeId, previousBiomeId)) {
             System.out.println(pos + ": " + previousBiomeId + " - " + currentBiomeId);
             for (int y = level.getMaxBuildHeight(); y > level.getMinBuildHeight(); y--) {
                 BlockState current = level.getBlockState(pos.atY(y));
-                if (isValidTopBlock(previousBiomeId, current.getBlock())) {
-                    Block toPlace = getPatchedTopBlock(currentBiomeId,x,z,getTopBlock(currentBiomeId));
+                boolean isValidTopBlock = false;
+                for (ResourceLocation biomeId : nearbyBiomes) {
+                    if (isValidTopBlock(biomeId, current.getBlock())) {
+                        isValidTopBlock = true;
+                    }
+                }
+                if (isValidTopBlock) {
+                    Block toPlace = getPatchedTopBlock(currentBiomeId, x, z, getTopBlock(currentBiomeId));
                     level.setBlock(pos.atY(y), toPlace.defaultBlockState(), 3);
 
                     // maye add decorations above this block

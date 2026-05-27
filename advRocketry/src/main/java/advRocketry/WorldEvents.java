@@ -22,6 +22,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -192,13 +193,12 @@ public class WorldEvents {
         // prevent mobs to spawn where it is impossible
         if (event.getLevel().isClientSide()) return;
         EntityType<?> type = event.getEntityType();
-        Class<? extends Entity> c = type.getBaseClass();
 
         Dimension dim = DimensionManager.INSTANCE_SERVER.get(event.getLevel().getLevel().dimension().location());
         if (dim == null) return;
 
         Set<Dimension.SurvivalProblem> problems = dim.getSurvivalProblems();
-        if (!SurvivalSystem.getSurvivalRule(c).allowInMobSpawn(c, event.getLevel().getLevel(), event.getPos().getX(), event.getPos().getY(), event.getPos().getZ(), problems)) {
+        if (!SurvivalSystem.getSurvivalRule(type).allowInMobSpawn(type, event.getLevel().getLevel(), event.getPos().getX(), event.getPos().getY(), event.getPos().getZ(), problems)) {
             event.setResult(MobSpawnEvent.SpawnPlacementCheck.Result.FAIL);
         }
     }
