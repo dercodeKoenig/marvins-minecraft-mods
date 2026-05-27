@@ -37,16 +37,20 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
 
     // world gen related configs
+    // when selecting a modded dimension, all this is ignored
     public ResourceLocation customSeaFluid = null;
     public int customSeaFluidLevel = 0;
     public boolean generateStructures = false;
     public String biomePreset = null;
-    public boolean generateVolcanos = false;
 
+    // TODO (maybe)
+    //public boolean generateVolcanos = false;
+
+    // TODO (maybe)
     // when terraforming picks a new preset, it iterates every climate point and when original preset has a frozen biome at this point,
     // it should be injected into the new preset so you can pin biomes to never terraform.
     // For example maybe you want to keep hot springs biome from original preset no matter what generates next.
-    public ArrayList<ResourceLocation> frozenBiomes = new ArrayList<>();
+    // public ArrayList<ResourceLocation> frozenBiomes = new ArrayList<>();
 
     // mostly render related configs
     public boolean hasCustomSky = true;
