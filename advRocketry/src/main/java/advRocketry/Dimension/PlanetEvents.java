@@ -75,23 +75,25 @@ public class PlanetEvents {
             boolean shouldFreezeWater = planetTemp < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel) - 1;
 
             if (event.isNewChunk()) {
-                // tell the server to run this task after the chunk generation stuff is all completed to avoid deadlocks (i guess)
-                serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount(), () -> {
-                    long t0 = System.nanoTime();
-                    for (int cx = 0; cx < 16; cx++) {
-                        for (int cz = 0; cz < 16; cz++) {
-                            int x = event.getChunk().getPos().getBlockX(cx);
-                            int z = event.getChunk().getPos().getBlockZ(cz);
+                long t0 = System.nanoTime();
+                for (int cx = 0; cx < 16; cx++) {
+                    for (int cz = 0; cz < 16; cz++) {
+                        int x = event.getChunk().getPos().getBlockX(cx);
+                        int z = event.getChunk().getPos().getBlockZ(cz);
 
-                            BlockPos surfacePos = new BlockPos(x, serverLevel.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) ,z);
+                        // adjust sea levels
+                        if (((PlanetDimensionProperties) planet.properties).customSeaFluid == null) {
+                            // it generated water, save initial water level so that it doesn't rain by default and fill caves
+                            SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), x, z);
+                        }
+
+                        // tell the server to run this task after the chunk generation stuff is all completed to avoid deadlocks (i guess)
+                        serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount(), () -> {
+
+                            BlockPos surfacePos = new BlockPos(x, serverLevel.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z), z);
                             ResourceLocation currentBiomeId = serverLevel.registryAccess().registryOrThrow(Registries.BIOME).getKey(serverLevel.getBiome(surfacePos).value());
-                            TerraformingSystem.storeGeneratedBiome(currentBiomeId, event.getChunk(),x, z);
+                            TerraformingSystem.storeGeneratedBiome(currentBiomeId, event.getChunk(), x, z);
 
-                            // adjust sea levels
-                            if (((PlanetDimensionProperties) planet.properties).customSeaFluid == null) {
-                                // it generated water, save initial water level so that it doesn't rain by default and fill caves
-                                SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, event.getChunk(), x, z);
-                            }
                             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                                 while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, x, z, 2 | 16)) {
                                     continue; // nothing to do, all the action happens above
@@ -113,10 +115,10 @@ public class PlanetEvents {
                                     serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 2 | 16);
                                 }
                             }
-                        }
+                        }));
                     }
                     //System.out.println("block replacement on chunk load: " + (double) (System.nanoTime() - t0) / 1000 / 1000);
-                }));
+                }
             }
         }
     }
