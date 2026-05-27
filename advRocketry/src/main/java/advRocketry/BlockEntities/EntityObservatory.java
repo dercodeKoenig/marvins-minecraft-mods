@@ -234,11 +234,15 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                         @Override
                                         public void init() {
                                             super.init();
-                                            ResourceLocation id = level.dimension().location();
-                                            if (DimensionManager.INSTANCE_CLIENT.get(id) instanceof SpaceStationDimension spaceStationDimension) {
-                                                super.focusPlanet(spaceStationDimension.getParentDimensionId());
+                                            if (task == Task.ANALYZE_PLANET && DimensionManager.INSTANCE_CLIENT.get(taskTarget) instanceof Dimension dim) {
+                                                super.focusPlanet(taskTarget);
                                             } else {
-                                                super.focusPlanet(id);
+                                                ResourceLocation id = level.dimension().location();
+                                                if (DimensionManager.INSTANCE_CLIENT.get(id) instanceof SpaceStationDimension spaceStationDimension) {
+                                                    super.focusPlanet(spaceStationDimension.getParentDimensionId());
+                                                } else {
+                                                    super.focusPlanet(id);
+                                                }
                                             }
                                         }
 
