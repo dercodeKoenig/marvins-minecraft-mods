@@ -20,7 +20,6 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 public class RocketTravelDimension extends Dimension {
@@ -29,6 +28,7 @@ public class RocketTravelDimension extends Dimension {
 
     public RocketTravelDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
+        this.properties.type = DimensionProperties.DimensionType.ROCKET_TRAVEL;
         this.properties.name = "space travel dimension";
         this.properties.dimensionId = dimId;
     }

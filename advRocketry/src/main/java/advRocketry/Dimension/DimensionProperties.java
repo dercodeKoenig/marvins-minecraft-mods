@@ -1,9 +1,6 @@
 package advRocketry.Dimension;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 
 public class DimensionProperties {
@@ -15,6 +12,7 @@ public class DimensionProperties {
     public enum DimensionType {
         PLANET,
         SPACE_STATION,
-        DUMMY
+        DUMMY,
+        ROCKET_TRAVEL
     }
 }
