@@ -36,123 +36,192 @@ public class TerraformingSystem {
     public static HashMap<ResourceLocation, Map<Block, patchData>> patches = new HashMap<>();
 
     public static void setup() {
+        // --- Mod Specific ---
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon"), advRocketry.Registry.Blocks.MOON_TURF.get());
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon_dark"), advRocketry.Registry.Blocks.MOON_TURF_DARK.get());
 
-        topBlocks.put(rl("minecraft:badlands"), Blocks.TERRACOTTA);
-
-        addDecoration(rl("minecraft:bamboo_jungle"), 0.05, Blocks.BAMBOO_SAPLING);
-
-        topBlocks.put(rl("minecraft:beach"), Blocks.SAND);
-
-        addDecoration(rl("minecraft:birch_forest"), 0.05, Blocks.BIRCH_SAPLING);
-
-        addDecoration(rl("minecraft:cherry_grove"), 0.05, Blocks.CHERRY_SAPLING);
-
-        addDecoration(rl("minecraft:dark_forest"), 0.05, Blocks.DARK_OAK_SAPLING);
-
-        topBlocks.put(rl("minecraft:desert"), Blocks.SAND);
-        addDecoration(rl("minecraft:desert"), 0.01, Blocks.CACTUS);
-        addDecoration(rl("minecraft:desert"), 0.05, Blocks.DEAD_BUSH);
-
-        topBlocks.put(rl("minecraft:eroded_badlands"), Blocks.TERRACOTTA);
-
-        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.CORNFLOWER);
-        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.SUNFLOWER);
-        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.WHITE_TULIP);
-        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.ORANGE_TULIP);
-        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.RED_TULIP);
-        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.PINK_TULIP);
-
+        // --- Forests & Woods ---
         addDecoration(rl("minecraft:forest"), 0.03, Blocks.OAK_SAPLING);
         addDecoration(rl("minecraft:forest"), 0.01, Blocks.BIRCH_SAPLING);
-        addPatch(rl("minecraft:forest"), Blocks.COARSE_DIRT, 0.4, 0.05);
-        addPatch(rl("minecraft:forest"), Blocks.GRAVEL, 0.25, 0.1);
+        addBaseGrass(rl("minecraft:forest"), 0.1, 0.02);
+        addBaseFlowers(rl("minecraft:forest"), 0.02);
+        addPatch(rl("minecraft:forest"), Blocks.COARSE_DIRT, 0.2, 0.05);
 
-        topBlocks.put(rl("minecraft:grove"), Blocks.STONE);
+        addDecoration(rl("minecraft:birch_forest"), 0.05, Blocks.BIRCH_SAPLING);
+        addBaseGrass(rl("minecraft:birch_forest"), 0.1, 0.02);
+        addBaseFlowers(rl("minecraft:birch_forest"), 0.02);
+        addDecoration(rl("minecraft:old_growth_birch_forest"), 0.05, Blocks.BIRCH_SAPLING);
+        addBaseGrass(rl("minecraft:old_growth_birch_forest"), 0.1, 0.02);
+        addBaseFlowers(rl("minecraft:old_growth_birch_forest"), 0.02);
 
-        topBlocks.put(rl("minecraft:ice_spikes"), Blocks.SNOW_BLOCK);
+        addDecoration(rl("minecraft:flower_forest"), 0.02, Blocks.OAK_SAPLING);
+        addBaseGrass(rl("minecraft:flower_forest"), 0.1, 0.05);
+        addBaseFlowers(rl("minecraft:flower_forest"), 0.1);
+        addTulips(rl("minecraft:flower_forest"), 0.05);
+        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.CORNFLOWER);
+        addDecoration(rl("minecraft:flower_forest"), 0.05, Blocks.LILY_OF_THE_VALLEY);
 
-        topBlocks.put(rl("minecraft:jagged_peaks"), Blocks.STONE);
-        addDecoration(rl("minecraft:jagged_peaks"), 0.1, Blocks.SNOW);
+        addDecoration(rl("minecraft:dark_forest"), 0.08, Blocks.DARK_OAK_SAPLING);
+        addDecoration(rl("minecraft:dark_forest"), 0.02, Blocks.BROWN_MUSHROOM);
+        addDecoration(rl("minecraft:dark_forest"), 0.02, Blocks.RED_MUSHROOM);
+        addBaseGrass(rl("minecraft:dark_forest"), 0.05, 0.01);
+        addPatch(rl("minecraft:dark_forest"), Blocks.COARSE_DIRT, 0.3, 0.08);
 
-        addDecoration(rl("minecraft:jungle"), 0.05, Blocks.JUNGLE_SAPLING);
-        addDecoration(rl("minecraft:jungle"), 0.005, Blocks.BAMBOO_SAPLING);
+        addDecoration(rl("minecraft:cherry_grove"), 0.05, Blocks.CHERRY_SAPLING);
+        addDecoration(rl("minecraft:cherry_grove"), 0.15, Blocks.PINK_PETALS);
+        addBaseGrass(rl("minecraft:cherry_grove"), 0.05, 0.01);
 
-        topBlocks.put(rl("minecraft:mangrove_swamp"), Blocks.MUD);
-        addDecoration(rl("minecraft:mangrove_swamp"), 0.005, Blocks.MANGROVE_PROPAGULE);
+        // --- Taigas ---
+        addDecoration(rl("minecraft:taiga"), 0.08, Blocks.SPRUCE_SAPLING);
+        addBaseGrass(rl("minecraft:taiga"), 0.05, 0.02);
+        addPatch(rl("minecraft:taiga"), Blocks.PODZOL, 0.2, 0.05);
+
+        addDecoration(rl("minecraft:old_growth_pine_taiga"), 0.08, Blocks.SPRUCE_SAPLING);
+        addPatch(rl("minecraft:old_growth_pine_taiga"), Blocks.PODZOL, 0.6, 0.08);
+        addPatch(rl("minecraft:old_growth_pine_taiga"), Blocks.COARSE_DIRT, 0.2, 0.05);
+
+        addDecoration(rl("minecraft:old_growth_spruce_taiga"), 0.08, Blocks.SPRUCE_SAPLING);
+        addPatch(rl("minecraft:old_growth_spruce_taiga"), Blocks.PODZOL, 0.6, 0.08);
+        addPatch(rl("minecraft:old_growth_spruce_taiga"), Blocks.COARSE_DIRT, 0.2, 0.05);
+
+        // --- Plains & Meadows ---
+        addDecoration(rl("minecraft:plains"), 0.01, Blocks.OAK_SAPLING);
+        addBaseGrass(rl("minecraft:plains"), 0.2, 0.05);
+        addBaseFlowers(rl("minecraft:plains"), 0.02);
+        addTulips(rl("minecraft:plains"), 0.01);
+
+        addDecoration(rl("minecraft:sunflower_plains"), 0.1, Blocks.SUNFLOWER);
+        addBaseGrass(rl("minecraft:sunflower_plains"), 0.2, 0.05);
 
         addDecoration(rl("minecraft:meadow"), 0.005, Blocks.OAK_SAPLING);
         addDecoration(rl("minecraft:meadow"), 0.005, Blocks.BIRCH_SAPLING);
-        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.TORCHFLOWER);
-        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.WHITE_TULIP);
-        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.ORANGE_TULIP);
-        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.RED_TULIP);
-        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.PINK_TULIP);
+        addBaseGrass(rl("minecraft:meadow"), 0.1, 0.05);
+        addTulips(rl("minecraft:meadow"), 0.05);
+        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.CORNFLOWER);
         addDecoration(rl("minecraft:meadow"), 0.05, Blocks.LILY_OF_THE_VALLEY);
-        addDecoration(rl("minecraft:meadow"), 0.05, Blocks.SHORT_GRASS);
 
-        topBlocks.put(rl("minecraft:mushroom_field"), Blocks.MYCELIUM);
-        addDecoration(rl("minecraft:mushroom_field"), 0.03, Blocks.RED_MUSHROOM);
-        addDecoration(rl("minecraft:mushroom_field"), 0.05, Blocks.BROWN_MUSHROOM);
+        // --- Jungles ---
+        addDecoration(rl("minecraft:jungle"), 0.08, Blocks.JUNGLE_SAPLING);
+        addDecoration(rl("minecraft:jungle"), 0.01, Blocks.BAMBOO_SAPLING);
+        addDecoration(rl("minecraft:jungle"), 0.02, Blocks.MELON);
+        addBaseGrass(rl("minecraft:jungle"), 0.1, 0.05);
+        addPatch(rl("minecraft:jungle"), Blocks.PODZOL, 0.2, 0.05);
 
-        addDecoration(rl("minecraft:old_growth_birch_forest"), 0.05, Blocks.BIRCH_SAPLING);
-        addDecoration(rl("minecraft:old_growth_pine_taiga"), 0.05, Blocks.SPRUCE_SAPLING);
-        addDecoration(rl("minecraft:old_growth_spruce_taiga"), 0.05, Blocks.SPRUCE_SAPLING);
+        addDecoration(rl("minecraft:sparse_jungle"), 0.04, Blocks.JUNGLE_SAPLING);
+        addDecoration(rl("minecraft:sparse_jungle"), 0.01, Blocks.MELON);
+        addBaseGrass(rl("minecraft:sparse_jungle"), 0.1, 0.02);
 
-        addDecoration(rl("minecraft:plains"), 0.01, Blocks.OAK_SAPLING);
-        addDecoration(rl("minecraft:plains"), 0.02, Blocks.WHITE_TULIP);
-        addDecoration(rl("minecraft:plains"), 0.02, Blocks.ORANGE_TULIP);
-        addDecoration(rl("minecraft:plains"), 0.02, Blocks.RED_TULIP);
-        addDecoration(rl("minecraft:plains"), 0.02, Blocks.PINK_TULIP);
-        addDecoration(rl("minecraft:plains"), 0.02, Blocks.SHORT_GRASS);
+        addDecoration(rl("minecraft:bamboo_jungle"), 0.1, Blocks.BAMBOO_SAPLING);
+        addPatch(rl("minecraft:bamboo_jungle"), Blocks.PODZOL, 0.4, 0.06);
 
-        addDecoration(rl("minecraft:savanna"), 0.02, Blocks.ACACIA_SAPLING);
-        addDecoration(rl("minecraft:savanna"), 0.02, Blocks.SHORT_GRASS);
-        addDecoration(rl("minecraft:savanna"), 0.01, Blocks.TALL_GRASS);
-
-        addDecoration(rl("minecraft:savanna_plateau"), 0.02, Blocks.ACACIA_SAPLING);
-        addDecoration(rl("minecraft:savanna_plateau"), 0.02, Blocks.SHORT_GRASS);
-        addDecoration(rl("minecraft:savanna_plateau"), 0.01, Blocks.TALL_GRASS);
-
-        topBlocks.put(rl("minecraft:snowy_beach"), Blocks.SAND);
-
-        addDecoration(rl("minecraft:snowy_plains"), 0.005, Blocks.SPRUCE_SAPLING);
-        addDecoration(rl("minecraft:snowy_plains"), 0.01, Blocks.TALL_GRASS);
-        addDecoration(rl("minecraft:snowy_plains"), 0.5, Blocks.SNOW);
-
-        topBlocks.put(rl("minecraft:snowy_slopes"), Blocks.SNOW_BLOCK);
-        addDecoration(rl("minecraft:snowy_slopes"), 0.5, Blocks.SNOW);
-
-        addDecoration(rl("minecraft:snowy_taiga"), 0.05, Blocks.SPRUCE_SAPLING);
-        addDecoration(rl("minecraft:snowy_taiga"), 0.01, Blocks.TALL_GRASS);
-        addDecoration(rl("minecraft:snowy_taiga"), 0.5, Blocks.SNOW);
-
-        addDecoration(rl("minecraft:sparse_jungle"), 0.05, Blocks.JUNGLE_SAPLING);
-
-        topBlocks.put(rl("minecraft:stony_peaks"), Blocks.STONE);
-
-        topBlocks.put(rl("minecraft:stony_shore"), Blocks.STONE);
-
-        addDecoration(rl("minecraft:sunflower_plains"), 0.1, Blocks.SUNFLOWER);
-
+        // --- Swamps (Using Water Patches!) ---
+        topBlocks.put(rl("minecraft:swamp"), Blocks.MUD);
         addDecoration(rl("minecraft:swamp"), 0.03, Blocks.OAK_SAPLING);
         addDecoration(rl("minecraft:swamp"), 0.05, Blocks.BROWN_MUSHROOM);
         addDecoration(rl("minecraft:swamp"), 0.02, Blocks.BLUE_ORCHID);
+        addBaseGrass(rl("minecraft:swamp"), 0.05, 0.05);
+        addPatch(rl("minecraft:swamp"), Blocks.WATER, 0.25, 0.06); // Puddles/Shallow lakes
+        addPatch(rl("minecraft:swamp"), Blocks.DIRT, 0.3, 0.1);
 
-        addDecoration(rl("minecraft:taiga"), 0.08, Blocks.SPRUCE_SAPLING);
-        addDecoration(rl("minecraft:taiga"), 0.02, Blocks.TALL_GRASS);
+        topBlocks.put(rl("minecraft:mangrove_swamp"), Blocks.MUD);
+        addDecoration(rl("minecraft:mangrove_swamp"), 0.08, Blocks.MANGROVE_PROPAGULE);
+        addPatch(rl("minecraft:mangrove_swamp"), Blocks.WATER, 0.35, 0.08); // More watery
+        addPatch(rl("minecraft:mangrove_swamp"), Blocks.DIRT, 0.2, 0.1);
 
-        addDecoration(rl("minecraft:windswept_forest"), 0.02, Blocks.OAK_SAPLING);
+        // --- Savannas ---
+        addDecoration(rl("minecraft:savanna"), 0.02, Blocks.ACACIA_SAPLING);
+        addBaseGrass(rl("minecraft:savanna"), 0.1, 0.1); // High tall grass
+        addPatch(rl("minecraft:savanna"), Blocks.COARSE_DIRT, 0.15, 0.05);
+
+        addDecoration(rl("minecraft:savanna_plateau"), 0.02, Blocks.ACACIA_SAPLING);
+        addBaseGrass(rl("minecraft:savanna_plateau"), 0.1, 0.1);
+
+        addDecoration(rl("minecraft:windswept_savanna"), 0.01, Blocks.ACACIA_SAPLING);
+        addBaseGrass(rl("minecraft:windswept_savanna"), 0.05, 0.05);
+
+        // --- Deserts & Badlands ---
+        topBlocks.put(rl("minecraft:desert"), Blocks.SAND);
+        addDecoration(rl("minecraft:desert"), 0.01, Blocks.CACTUS);
+        addDecoration(rl("minecraft:desert"), 0.03, Blocks.DEAD_BUSH);
+        addPatch(rl("minecraft:desert"), Blocks.SANDSTONE, 0.05, 0.05);
+
+        topBlocks.put(rl("minecraft:badlands"), Blocks.TERRACOTTA);
+        addDecoration(rl("minecraft:badlands"), 0.02, Blocks.DEAD_BUSH);
+        addDecoration(rl("minecraft:badlands"), 0.01, Blocks.CACTUS);
+        addPatch(rl("minecraft:badlands"), Blocks.RED_SAND, 0.3, 0.05); // Sand layers
+
+        topBlocks.put(rl("minecraft:eroded_badlands"), Blocks.TERRACOTTA);
+        addDecoration(rl("minecraft:eroded_badlands"), 0.01, Blocks.DEAD_BUSH);
+        addPatch(rl("minecraft:eroded_badlands"), Blocks.RED_SAND, 0.2, 0.05);
+
+        topBlocks.put(rl("minecraft:wooded_badlands"), Blocks.TERRACOTTA);
+        addDecoration(rl("minecraft:wooded_badlands"), 0.02, Blocks.OAK_SAPLING);
+        addBaseGrass(rl("minecraft:wooded_badlands"), 0.02, 0.01);
+        addPatch(rl("minecraft:wooded_badlands"), Blocks.RED_SAND, 0.4, 0.06);
+        addPatch(rl("minecraft:wooded_badlands"), Blocks.COARSE_DIRT, 0.2, 0.05);
+
+        // --- Snow & Ice ---
+        topBlocks.put(rl("minecraft:snowy_plains"), Blocks.SNOW_BLOCK);
+        addDecoration(rl("minecraft:snowy_plains"), 0.005, Blocks.SPRUCE_SAPLING);
+        addDecoration(rl("minecraft:snowy_plains"), 0.2, Blocks.SNOW); // Snow layers
+        addPatch(rl("minecraft:snowy_plains"), Blocks.POWDER_SNOW, 0.1, 0.05); // Traps!
+
+        topBlocks.put(rl("minecraft:snowy_taiga"), Blocks.SNOW_BLOCK);
+        addDecoration(rl("minecraft:snowy_taiga"), 0.05, Blocks.SPRUCE_SAPLING);
+        addDecoration(rl("minecraft:snowy_taiga"), 0.3, Blocks.SNOW);
+        addPatch(rl("minecraft:snowy_taiga"), Blocks.DIRT, 0.1, 0.05); // Exposed dirt
+
+        topBlocks.put(rl("minecraft:snowy_slopes"), Blocks.SNOW_BLOCK);
+        addDecoration(rl("minecraft:snowy_slopes"), 0.5, Blocks.SNOW);
+        addPatch(rl("minecraft:snowy_slopes"), Blocks.POWDER_SNOW, 0.2, 0.08);
+        addPatch(rl("minecraft:snowy_slopes"), Blocks.STONE, 0.1, 0.1);
+
+        topBlocks.put(rl("minecraft:ice_spikes"), Blocks.SNOW_BLOCK);
+        addPatch(rl("minecraft:ice_spikes"), Blocks.PACKED_ICE, 0.3, 0.05); // Ice lakes
+        addPatch(rl("minecraft:ice_spikes"), Blocks.BLUE_ICE, 0.05, 0.02);
+
+        // --- Mountains & Hills ---
+        topBlocks.put(rl("minecraft:grove"), Blocks.SNOW_BLOCK);
+        addDecoration(rl("minecraft:grove"), 0.05, Blocks.SPRUCE_SAPLING);
+        addPatch(rl("minecraft:grove"), Blocks.DIRT, 0.2, 0.05);
+
+        topBlocks.put(rl("minecraft:jagged_peaks"), Blocks.STONE);
+        addDecoration(rl("minecraft:jagged_peaks"), 0.2, Blocks.SNOW);
+        addPatch(rl("minecraft:jagged_peaks"), Blocks.SNOW_BLOCK, 0.4, 0.08);
+
+        topBlocks.put(rl("minecraft:stony_peaks"), Blocks.STONE);
+        addPatch(rl("minecraft:stony_peaks"), Blocks.CALCITE, 0.1, 0.05);
+        addPatch(rl("minecraft:stony_peaks"), Blocks.GRAVEL, 0.2, 0.05);
+
+        topBlocks.put(rl("minecraft:frozen_peaks"), Blocks.STONE);
+        addPatch(rl("minecraft:frozen_peaks"), Blocks.SNOW_BLOCK, 0.5, 0.08);
+        addPatch(rl("minecraft:frozen_peaks"), Blocks.PACKED_ICE, 0.3, 0.05);
+        addDecoration(rl("minecraft:frozen_peaks"), 0.2, Blocks.SNOW);
+
+        topBlocks.put(rl("minecraft:windswept_hills"), Blocks.STONE);
+        addDecoration(rl("minecraft:windswept_hills"), 0.01, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:windswept_hills"), 0.01, Blocks.SPRUCE_SAPLING);
+        addPatch(rl("minecraft:windswept_hills"), Blocks.GRASS_BLOCK, 0.4, 0.05);
+
+        topBlocks.put(rl("minecraft:windswept_forest"), Blocks.STONE);
+        addDecoration(rl("minecraft:windswept_forest"), 0.03, Blocks.OAK_SAPLING);
+        addDecoration(rl("minecraft:windswept_forest"), 0.03, Blocks.SPRUCE_SAPLING);
+        addPatch(rl("minecraft:windswept_forest"), Blocks.GRASS_BLOCK, 0.6, 0.05);
 
         topBlocks.put(rl("minecraft:windswept_gravelly_hills"), Blocks.GRAVEL);
+        addPatch(rl("minecraft:windswept_gravelly_hills"), Blocks.GRASS_BLOCK, 0.2, 0.05);
 
-        addDecoration(rl("minecraft:windswept_hills"), 0.002, Blocks.OAK_SAPLING);
+        // --- Shores & Oceans ---
+        topBlocks.put(rl("minecraft:beach"), Blocks.SAND);
+        topBlocks.put(rl("minecraft:snowy_beach"), Blocks.SAND);
+        addDecoration(rl("minecraft:snowy_beach"), 0.2, Blocks.SNOW);
+        topBlocks.put(rl("minecraft:stony_shore"), Blocks.STONE);
+        addPatch(rl("minecraft:stony_shore"), Blocks.GRAVEL, 0.3, 0.08);
 
-        addDecoration(rl("minecraft:windswept_savanna"), 0.002, Blocks.ACACIA_SAPLING);
-
-        addDecoration(rl("minecraft:wooded_badlands"), 0.01, Blocks.OAK_SAPLING);
-
+        // --- Unique ---
+        topBlocks.put(rl("minecraft:mushroom_fields"), Blocks.MYCELIUM);
+        addDecoration(rl("minecraft:mushroom_fields"), 0.03, Blocks.RED_MUSHROOM);
+        addDecoration(rl("minecraft:mushroom_fields"), 0.05, Blocks.BROWN_MUSHROOM);
     }
 
     public static void addDecoration(ResourceLocation biome, double p, Block block) {
@@ -175,6 +244,23 @@ public class TerraformingSystem {
 
     public static Map<Block, patchData> getPatches(ResourceLocation biome) {
         return patches.getOrDefault(biome, new HashMap<>());
+    }
+
+    public static void addBaseGrass(ResourceLocation biome, double shortGrassProb, double tallGrassProb) {
+        if (shortGrassProb > 0) addDecoration(biome, shortGrassProb, Blocks.SHORT_GRASS);
+        if (tallGrassProb > 0) addDecoration(biome, tallGrassProb, Blocks.TALL_GRASS);
+    }
+
+    public static void addBaseFlowers(ResourceLocation biome, double prob) {
+        addDecoration(biome, prob, Blocks.DANDELION);
+        addDecoration(biome, prob, Blocks.POPPY);
+    }
+
+    public static void addTulips(ResourceLocation biome, double prob) {
+        addDecoration(biome, prob, Blocks.WHITE_TULIP);
+        addDecoration(biome, prob, Blocks.ORANGE_TULIP);
+        addDecoration(biome, prob, Blocks.RED_TULIP);
+        addDecoration(biome, prob, Blocks.PINK_TULIP);
     }
 
     public static boolean isValidTopBlock(ResourceLocation currentBiomeId, Block block) {
@@ -273,12 +359,11 @@ public class TerraformingSystem {
         Set<ResourceLocation> nearbyBiomes = new HashSet<>();
         nearbyBiomes.add(previousBiomeId);
         for (Direction i : new Direction[]{Direction.WEST, Direction.EAST, Direction.SOUTH, Direction.NORTH}) {
-            BlockPos neighbor = pos.relative(i, 8);
+            BlockPos neighbor = pos.relative(i, 4);
             nearbyBiomes.add(getGeneratedBiome(level.getChunkAt(neighbor), neighbor.getX(), neighbor.getZ()));
         }
 
         if (!Objects.equal(currentBiomeId, previousBiomeId)) {
-            System.out.println(pos + ": " + previousBiomeId + " - " + currentBiomeId);
             for (int y = level.getMaxBuildHeight(); y > level.getMinBuildHeight(); y--) {
                 BlockState current = level.getBlockState(pos.atY(y));
                 boolean isValidTopBlock = false;
