@@ -633,9 +633,6 @@ public class PlanetDimension extends Dimension {
         }
         // TODO: remove after testing
         //properties().isKnown = true;
-        //if (getName().equals("Moon")) {
-        //
-        //}
     }
 
 

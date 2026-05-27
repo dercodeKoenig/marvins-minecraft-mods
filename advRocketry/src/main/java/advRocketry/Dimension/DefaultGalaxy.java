@@ -85,27 +85,6 @@ public class DefaultGalaxy {
         venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0,0, 0));
         galaxy.add(venus);
 
-        PlanetDimensionProperties kalos = new PlanetDimensionProperties();
-        kalos.name = "Kalos";
-        kalos.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "kalos");
-        kalos.parentDimensionId = sun.dimensionId;
-        kalos.dayTimeReference = sun.dimensionId;
-        kalos.currentTemp = 300;
-        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");;
-        kalos.orbitalDistanceToParent = 2f;
-        kalos.orbitalBaseOffsetDegrees = 0;
-        kalos.earthRadiusMultiplier = 0.8f;
-        kalos.gravitationalMultiplier = 0.7f;
-        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.48,0f,0));
-        kalos.skyColor = SKY_COLOR_OVERWORLD();
-        kalos.canVisit = true;
-        kalos.biomePreset = OVERWORLD.name;
-        galaxy.add(kalos);
-
 
         PlanetDimensionProperties jupiter = new PlanetDimensionProperties();
         jupiter.name = "Jupiter";
@@ -170,8 +149,28 @@ public class DefaultGalaxy {
         titan.biomePreset = MOON.name;
         galaxy.add(titan);
 
-
-
+/*
+        PlanetDimensionProperties kalos = new PlanetDimensionProperties();
+        kalos.name = "Kalos";
+        kalos.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "kalos");
+        kalos.parentDimensionId = sun.dimensionId;
+        kalos.dayTimeReference = sun.dimensionId;
+        kalos.currentTemp = 300;
+        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");;
+        kalos.orbitalDistanceToParent = 2f;
+        kalos.orbitalBaseOffsetDegrees = 0;
+        kalos.earthRadiusMultiplier = 0.8f;
+        kalos.gravitationalMultiplier = 0.7f;
+        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.48,0f,0));
+        kalos.skyColor = SKY_COLOR_OVERWORLD();
+        kalos.canVisit = true;
+        kalos.biomePreset = OVERWORLD.name;
+        galaxy.add(kalos);
+ */
 
 
 
@@ -222,10 +221,11 @@ public class DefaultGalaxy {
         jestefad.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jestefad");
         jestefad.parentDimensionId = priate.dimensionId;
         jestefad.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_gaseous3.png");
-        jestefad.orbitalDistanceToParent = 1f;
-        jestefad.earthRadiusMultiplier = 5f;
-        jestefad.gravitationalMultiplier = 5f;
+        jestefad.orbitalDistanceToParent = 1.4f;
+        jestefad.earthRadiusMultiplier = 20f;
+        jestefad.gravitationalMultiplier = 20f;
         jestefad.canGasMine = true;
+        jestefad.skyColor = new Vector3f(0.5f,0.5f,0.5f);
         jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2,0, 0, 0));
         jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
         galaxy.add(jestefad);
@@ -235,10 +235,11 @@ public class DefaultGalaxy {
         lefrani.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "lefrani");
         lefrani.parentDimensionId = priate.dimensionId;
         lefrani.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_2k_neptune.png");
-        lefrani.orbitalDistanceToParent = 4f;
-        lefrani.earthRadiusMultiplier = 6f;
-        lefrani.gravitationalMultiplier = 6f;
+        lefrani.orbitalDistanceToParent = 3f;
+        lefrani.earthRadiusMultiplier = 40f;
+        lefrani.gravitationalMultiplier = 40f;
         lefrani.canGasMine = true;
+        lefrani.skyColor = new Vector3f(0.2f,0.3f,0.5f);
         lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10,0, 0, 0));
         lefrani.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
         galaxy.add(lefrani);
