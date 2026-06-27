@@ -46,7 +46,7 @@ void main() {
     if (r < horizonRadius) {
         // FRONT FACE: Keep the center of the planet highly transparent using a steep pow() curve.
         // This ensures thick atmospheric fog doesn't wash out terrain or cloud details on the ground.
-        atmosphereAlpha = pow(r / horizonRadius, 16.0);
+        atmosphereAlpha = pow(r / horizonRadius, 8.0);
     } else {
         // OUTER HALO: Calculate a soft polynomial fade-out for the air bleeding into open space.
         // Polynomial shapes survive Reinhard HDR filters much better than raw exponential decay.
@@ -66,11 +66,12 @@ void main() {
         float VdotL = dot(V, L);
 
         // --- LAYER A: ENHANCED DAY/TWILIGHT SIDE ---
-        // Wrap the diffuse term slightly (* 0.8 + 0.2) to let the atmosphere hold its color softly
+        // Wrap the diffuse term slightly to let the atmosphere hold its color softly
         // over the curvature of the terminator line.
-        float atmLightFactor = max(0.0, NdotL * 0.8 + 0.2);
-        float baseDiffuse = pow(atmLightFactor, 2);
-        vec3 dayLight = LightColors[i].rgb * brightness * TargetSkyColor * baseDiffuse * 1.5;
+        float warp = mix(1, 0.9, normalizedTargetAtmDensity);
+        float diffuseLightFactor = max(0, NdotL * warp + (1-warp));
+        diffuseLightFactor = pow(diffuseLightFactor, 1.8);
+        vec3 dayLight = LightColors[i].rgb * brightness * TargetSkyColor * diffuseLightFactor * 1.5;
 
         // --- LAYER B: TWILIGHT BACKLIT RIM (Forward Scattering) ---
         // By wrapping the view-light vector alignment (VdotL * 0.5 + 0.5), we smooth out the extreme

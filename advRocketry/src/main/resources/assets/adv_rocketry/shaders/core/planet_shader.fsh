@@ -94,16 +94,6 @@ void main() {
     cloudValue = clamp(cloudValue, 0, 1);
     cloudValue = pow(smoothStep(cloudValue), 2);
 
-    // for atmosphere fog
-    // how much of the edge (horizon) we see
-    float viewAngle = 1.0 - abs(dot(N, V));
-    // rim intensity (thicker with higher TargetAtmDensity)
-    // the thing that glows on the side
-    // the more at the side the more atmosphere we will see
-    float rim = pow(viewAngle, 3);
-    // the atm glow around the planet to be scaled with starlight and added to the final color
-    vec3 atmGlow = 2 * rim * TargetSkyColor * normalizedTargetAtmDensity;
-
     // distant planets like saturn have maybe 1% of earth sunlight
     // eyes would adapt slightly but i do not control the entire render pipeline
     // so i will accumulate the entire star brightness and modify the output brightness with it
@@ -122,42 +112,27 @@ void main() {
         float NdotL = dot(N, L);
 
         // the atm adds extra light after the normal falloff and uses the sky color/rim mix
-        float atmLightFactor = max(0, NdotL * 0.85 + 0.15);
-        atmLightFactor = pow(atmLightFactor, 2); // with gamma correct the transition from black to less black is too aggressive
+        float warp = mix(1, 0.9, normalizedTargetAtmDensity);
+        float diffuseLightFactor = max(0, NdotL * warp + (1-warp));
+        diffuseLightFactor = pow(diffuseLightFactor, 1.8);
 
-        // the reflected light without atmosphere consideration, just surface and n°l
-        float surfaceLightFactor = max(0, NdotL);
-        surfaceLightFactor = pow(surfaceLightFactor, 2);
+        vec3 surfaceLight = baseSurfaceColor * TargetTextureTintColor * diffuseLightFactor;
 
-        // mix surface light
-        // when no atmosphere use ndotl,
-        // when atmosphere, extend the ndotl because atm scatters light past the 0 line
-        float NdotLmix = mix(surfaceLightFactor, atmLightFactor, normalizedTargetAtmDensity);
-        vec3 surfaceLight = baseSurfaceColor * TargetTextureTintColor * NdotLmix;
-
-        // clouds color are higher up and use the extended dot
         // the following logic aims to keep clouds nice and bright for the day side
         // but have a smooth falloff and sunset tint toward the dark side
-        float cloudLightFactor = atmLightFactor;  // re-use this for clouds too
-        float cloudHorizonFactor = pow(max(0, 1 - cloudLightFactor), 20); // how much clouds are at horizon for sunrise tint
-        vec3 cloudLight = TargetCloudColor * (1+extraCloud) * cloudLightFactor *
+        float cloudHorizonFactor = pow(max(0, 1 - diffuseLightFactor), 20); // how much clouds are at horizon for sunrise tint
+        vec3 cloudLight = TargetCloudColor * (1+extraCloud) * diffuseLightFactor *
                             (
                             (1-cloudHorizonFactor) + // normal cloud light if not at horizon
                             cloudHorizonFactor * scaledSunsetTint // tinted clouds at horizon
                             );
 
-        // blend surface light and atm light and clouds
+        // blend surface light and clouds
         // clouds cover surface, so when we add clouds, we need to remove surface color
         vec3 surfaceCloudMix = surfaceLight * (1-cloudValue) + cloudLight * cloudValue;
 
-        // atmosphere glow
-        vec3 atmLight = atmGlow * atmLightFactor;
-        // add atmosphere glow to the surface mix
-        vec3 finalLight = surfaceCloudMix + atmLight;
-
         // final reflected light computed using this star
-        vec3 reflected =
-        finalLight * LightColors[i].rgb * brightness;
+        vec3 reflected = surfaceCloudMix * LightColors[i].rgb * brightness;
 
         totalReflectedLight += reflected;
     }
@@ -171,7 +146,8 @@ void main() {
     vec3 emitted = baseSurfaceColor * TargetEmissiveTextureColor * (1 - cloudValue);
 
     // some ambient air glow
-    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.04;
+    float viewAngle = 1.0 - abs(dot(N, V));
+    vec3 airGlow1 = TargetSkyColor * normalizedTargetAtmDensity * (viewAngle * 0.8 + 0.2) * 0.03;
     vec3 surfaceGlow = (1.0 - cloudValue) * airGlow1 * baseSurfaceColor;
     vec3 cloudGlow = cloudValue * airGlow1 * TargetCloudColor;
     vec3 airglow = surfaceGlow + cloudGlow;
