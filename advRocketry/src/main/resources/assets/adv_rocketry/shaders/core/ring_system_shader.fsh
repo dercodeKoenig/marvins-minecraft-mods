@@ -101,6 +101,7 @@ void main() {
 
     float alphaMultiplier = 1;
     // TODO: tint color?, specular color?
+            // TODO: on local planet, fade out ring when vdotn = 0 to avoid rendering problems when its too thin
 
     vec4 baseColor = texture(Sampler0, texcoord);
     vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
