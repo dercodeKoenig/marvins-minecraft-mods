@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "RMR",
+    "RSR"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "Q": {
+      "item": "minecraft:tinted_glass"
+    },
+    "R": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:radiation_shield",
+    "count": 1
+  }
+}

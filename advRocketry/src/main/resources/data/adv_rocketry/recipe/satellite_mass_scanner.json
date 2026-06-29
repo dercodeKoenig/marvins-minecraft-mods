@@ -1,0 +1,33 @@
+
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "YDZ",
+    "XHX"
+  ],
+  "key": {
+    "I": {
+      "item": "adv_rocketry:satellite_optical_telescope"
+    },
+    "H": {
+      "item": "minecraft:quartz"
+    },
+    "D": {
+      "item": "adv_rocketry:item_data_storage"
+    },
+    "X": {
+      "item": "minecraft:comparator"
+    },
+    "Y": {
+      "item": "minecraft:gold_ingot"
+    },
+    "Z": {
+      "item": "minecraft:emerald"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:satellite_mass_scanner",
+    "count": 1
+  }
+}

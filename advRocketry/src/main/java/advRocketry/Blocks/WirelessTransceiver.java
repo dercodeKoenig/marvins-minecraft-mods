@@ -37,7 +37,11 @@ public class WirelessTransceiver extends Block implements EntityBlock {
     public static EnumProperty<State> STATE = EnumProperty.create("state", State.class);
 
     public WirelessTransceiver() {
-        super(Properties.of().noOcclusion().strength(0.2f));
+        super(Properties.of()
+            .strength(0.2f)
+            .requiresCorrectToolForDrops()
+            .noOcclusion()
+        );
         registerDefaultState(
                 getStateDefinition().any()
                         .setValue(BlockStateProperties.FACING, Direction.NORTH)

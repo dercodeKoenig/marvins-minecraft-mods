@@ -26,7 +26,10 @@ public class LaunchPad extends Block {
     public static BooleanProperty south = BlockStateProperties.SOUTH;
 
     public LaunchPad() {
-        super(Properties.of());
+        super(Properties.of()
+            .destroyTime(1.0f)
+            .requiresCorrectToolForDrops()
+        );
         BlockState state = getStateDefinition().any();
         state = state.setValue(east, false);
         state = state.setValue(north, false);

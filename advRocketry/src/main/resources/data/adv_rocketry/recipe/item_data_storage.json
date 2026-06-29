@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    " M ",
+    " S "
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "Q": {
+      "item": "minecraft:gold_ingot"
+    },
+    "S": {
+      "item": "minecraft:emerald"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:item_data_storage",
+    "count": 1
+  }
+}

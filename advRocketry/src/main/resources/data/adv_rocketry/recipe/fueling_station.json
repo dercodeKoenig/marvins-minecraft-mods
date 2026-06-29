@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "QXQ",
+    "BRB",
+    "INI"
+  ],
+  "key": {
+    "B": {
+      "item": "adv_rocketry:pressure_tank"
+    },
+    "Q": {
+      "item": "minecraft:iron_ingot"
+    },
+    "X": {
+      "item": "minecraft:dispenser"
+    },
+    "R": {
+      "item": "arlib:block_structure_block"
+    },
+    "N": {
+      "item": "minecraft:comparator"
+    },
+    "I": {
+      "item": "adv_rocketry:battery"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:fueling_station",
+    "count": 1
+  }
+}

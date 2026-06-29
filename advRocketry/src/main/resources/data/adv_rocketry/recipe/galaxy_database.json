@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "adv_rocketry:item_data_storage" },
+    { "item": "minecraft:red_dye" }
+  ],
+  "result": {
+    "id": "adv_rocketry:galaxy_database",
+    "count": 1
+  }
+}

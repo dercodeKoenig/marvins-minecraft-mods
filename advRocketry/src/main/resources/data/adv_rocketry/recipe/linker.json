@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "SMS",
+    "SSS"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "Q": {
+      "item": "minecraft:gold_ingot"
+    },
+    "S": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:linker",
+    "count": 1
+  }
+}

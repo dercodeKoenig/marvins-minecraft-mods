@@ -5,7 +5,10 @@ import net.minecraft.world.level.block.Block;
 
 public class GasIntake extends Block implements ICustomWeightBlock {
     public GasIntake() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
     @Override

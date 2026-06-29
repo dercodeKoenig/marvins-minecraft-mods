@@ -18,7 +18,10 @@ import static advRocketry.Registry.BlockEntities.ENTITY_CARGO_HOLD;
 
 public class CargoHold extends Block implements EntityBlock {
     public CargoHold() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
 

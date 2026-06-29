@@ -23,7 +23,10 @@ public class RocketFluidLoader extends Block implements EntityBlock {
     public static BooleanProperty IS_DRAIN = BooleanProperty.create("is_drain");
 
     public RocketFluidLoader() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
         BlockState state = getStateDefinition().any().setValue(IS_DRAIN, false);
         registerDefaultState(state);
     }

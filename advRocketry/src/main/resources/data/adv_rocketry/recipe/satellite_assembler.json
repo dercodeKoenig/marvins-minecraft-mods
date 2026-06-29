@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IXI",
+    "QRQ",
+    "BNB"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "X": {
+      "item": "adv_rocketry:satellite"
+    },
+    "R": {
+      "item": "arlib:block_structure_block"
+    },
+    "B": {
+      "item": "adv_rocketry:battery"
+    },
+    "N": {
+      "item": "minecraft:comparator"
+    },
+    "Q": {
+      "item": "adv_rocketry:structure_tower"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:satellite_assembler",
+    "count": 1
+  }
+}

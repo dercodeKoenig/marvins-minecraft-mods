@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "RMR",
+    "IOI"
+  ],
+  "key": {
+    "M": {
+      "item": "arlib:block_structure_block"
+    },
+    "S": {
+      "item": "adv_rocketry:item_data_storage"
+    },
+    "I": {
+      "item": "minecraft:comparator"
+    },
+    "O": {
+      "item": "adv_rocketry:galaxy_database"
+    },
+    "R": {
+      "item": "adv_rocketry:battery"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:astrobody_data_processor",
+    "count": 1
+  }
+}

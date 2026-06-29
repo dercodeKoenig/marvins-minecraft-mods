@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "YDY",
+    "XHX"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:tinted_glass"
+    },
+    "H": {
+      "item": "minecraft:quartz"
+    },
+    "D": {
+      "item": "arlib:block_structure_block"
+    },
+    "X": {
+      "item": "minecraft:comparator"
+    },
+    "Y": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:solar_panel",
+    "count": 3
+  }
+}

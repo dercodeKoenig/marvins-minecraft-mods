@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IQI",
+    "RMR",
+    "IQI"
+  ],
+  "key": {
+    "M": {
+      "item": "arlib:block_structure_block"
+    },
+    "I": {
+      "item": "adv_rocketry:planet_id_chip"
+    },
+    "R": {
+      "item": "minecraft:comparator"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:guidance_computer",
+    "count": 1
+  }
+}

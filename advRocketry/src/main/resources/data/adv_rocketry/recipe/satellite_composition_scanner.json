@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  Q",
+    "SP ",
+    "RS "
+  ],
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "S": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "adv_rocketry:atm_analyzer"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:satellite_composition_scanner",
+    "count": 1
+  }
+}

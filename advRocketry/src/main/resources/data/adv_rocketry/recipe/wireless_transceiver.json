@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "adv_rocketry:data_storage_block" },
+    { "item": "adv_rocketry:linker" },
+    { "item": "adv_rocketry:lora_module" }
+  ],
+  "result": {
+    "id": "adv_rocketry:wireless_transceiver",
+    "count": 1
+  }
+}

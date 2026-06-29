@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "L L",
+    "RMR",
+    "L L"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone_block"
+    },
+    "R": {
+      "item": "minecraft:iron_ingot"
+    },
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:satellite",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "SMS",
+    " S "
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "minecraft:tinted_glass"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:satellite_optical_telescope",
+    "count": 1
+  }
+}

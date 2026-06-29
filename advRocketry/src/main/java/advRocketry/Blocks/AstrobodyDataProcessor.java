@@ -13,7 +13,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class AstrobodyDataProcessor extends BlockMultiblockMaster {
     public AstrobodyDataProcessor() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
     @Override

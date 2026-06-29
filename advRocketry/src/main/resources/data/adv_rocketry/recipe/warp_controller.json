@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SQS",
+    "RMR",
+    "IOI"
+  ],
+  "key": {
+    "M": {
+      "item": "arlib:block_structure_block"
+    },
+    "S": {
+      "item": "adv_rocketry:satellite_optical_telescope"
+    },
+    "I": {
+      "item": "minecraft:comparator"
+    },
+    "Q": {
+      "item": "adv_rocketry:galaxy_database"
+    },
+    "R": {
+      "item": "minecraft:lever"
+    },
+    "O": {
+      "item": "minecraft:quartz"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:warp_controller",
+    "count": 1
+  }
+}

@@ -22,7 +22,10 @@ import static advRocketry.Registry.BlockEntities.ENTITY_STATION_CONTROLLER;
 
 public class StationController extends Block implements EntityBlock {
     public StationController() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 

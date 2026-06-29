@@ -33,7 +33,13 @@ public class PressureTank extends Block implements EntityBlock {
     public static BooleanProperty connectedAbove = BooleanProperty.create("connected_up");
 
     public PressureTank() {
-        super(Properties.of().noOcclusion().destroyTime(0.3f).sound(SoundType.GLASS));
+        
+        super(Properties.of()
+            .destroyTime(0.3f)
+            .requiresCorrectToolForDrops()
+            .sound(SoundType.GLASS)
+            .noOcclusion()
+        );
         registerDefaultState(
                 defaultBlockState()
                         .setValue(connectedAbove, false)

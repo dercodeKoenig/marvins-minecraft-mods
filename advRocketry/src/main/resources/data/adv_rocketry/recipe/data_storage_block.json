@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IDI",
+    "IHI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "D": {
+      "item": "adv_rocketry:item_data_storage"
+    }
+  },
+  "result": {
+    "id": "adv_rocketry:data_storage_block",
+    "count": 1
+  }
+}

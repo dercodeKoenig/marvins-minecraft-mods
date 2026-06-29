@@ -18,7 +18,10 @@ import static advRocketry.Registry.BlockEntities.ENTITY_FUELING_STATION;
 
 public class FuelingStation extends Block implements EntityBlock {
     public FuelingStation() {
-        super(Properties.of().destroyTime(0.5f));
+        super(Properties.of()
+            .destroyTime(2.0f)
+            .requiresCorrectToolForDrops()
+        );
     }
 
     @Override
