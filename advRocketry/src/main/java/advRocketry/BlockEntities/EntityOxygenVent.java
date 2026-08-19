@@ -10,7 +10,8 @@ import advRocketry.GlobalTime;
 import advRocketry.LifeSupport.LifeSupportSupplier;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
-import advRocketry.Render.Particles.RocketParticle;import net.minecraft.client.multiplayer.ClientLevel;
+import advRocketry.Render.Particles.RocketParticle;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -42,6 +43,10 @@ import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
  * and consumes oxygen. If the tank is filled with nitrogen, it acts as a {@link LifeSupportSystem.LifeSupportType#PRESSURE_SUPPLIER}
  * and consumes nitrogen. While it has a redstone signal and enough of the matching fluid the life support system stays active;
  * once the redstone signal or the fluid runs out, the supplier goes inactive.
+ * <p>
+ * A neighboring active {@link EntityCo2Scrubber} cuts the vent's gas consumption by a configurable
+ * amount (95% oxygen / 98% nitrogen by default); when the discounted rate drops below 1 mb/tick the
+ * remainder is applied as a random chance to consume 1 mb so the average still matches the rate.
  */
 public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver {
 
@@ -66,6 +71,8 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
 
     /** client side: how long to keep spawning smoke particles after the last packet */
     int clientParticleTimeout = 0;
+    /** client side: how many smoke particles to still spawn from the last packet (the intensity) */
+    int clientParticleCount = 0;
     /** server side: throttle particle packets to watching clients */
     long lastParticleSent = 0;
 
@@ -151,9 +158,11 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
-        // the server told us the vent is (or was) active, keep spawning smoke particles for a bit
+        // the server told us the vent is (or was) active, keep spawning smoke particles for a bit.
+        // the carried int is the particle intensity (1 = scrubber-discounted, 4 = full billow)
         if (compoundTag.contains("vent_particles")) {
             clientParticleTimeout = 20;
+            clientParticleCount = compoundTag.getInt("vent_particles");
         }
     }
 
@@ -200,8 +209,9 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
         if (level.isClientSide) {
             if (clientParticleTimeout > 0) {
                 clientParticleTimeout--;
-                if (GlobalTime.getGlobalTime() % 3 == 0) {
+                if (GlobalTime.getGlobalTime() % 3 == 0 && clientParticleCount > 0) {
                     spawnSmokeParticle();
+                    clientParticleCount--;
                 }
             }
             return;
@@ -212,6 +222,8 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
 
         // a redstone signal is required for the vent to run
         hasRedstone = level.hasNeighborSignal(getBlockPos());
+        // whether a neighboring co2 scrubber is currently active (discounts gas usage + quiets the smoke)
+        boolean scrubberActive = hasNeighborActiveScrubber();
 
         FluidStack fluid = tank.getFluid();
         Fluid oxygen = GasRegistry.gases.get(GasRegistry.oxygen).fluid;
@@ -228,7 +240,7 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
             if (isOxygen || isNitrogen) {
                 int base = isOxygen ? Config.INSTANCE.oxygen_vent_Oxygen_per_tick : Config.INSTANCE.oxygen_vent_Nitrogen_per_tick;
                 // a neighboring active co2 scrubber cuts the gas usage of whichever gas is being distributed
-                boolean scrubberActive = hasNeighborActiveScrubber();
+                // (scrubberActive was computed once above so it can also drive the smoke intensity)
 
                 // work out how much fluid has to actually disappear this tick for the discounted / full rate.
                 // the amount we require in the tank is exactly the amount we drain, so a player can not keep the
@@ -271,30 +283,49 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
         }
         // no redstone: both suppliers go inactive
 
-        // while active, spawn tiny smoke particles to watching clients (like the fluid release does)
+        // while active, spawn tiny smoke particles to watching clients (like the fluid release does).
+        // the int carried in the packet is the particle intensity: a scrubber-discounted vent billows
+        // far less smoke than one running at full gas consumption
         if (activeThisTick && GlobalTime.getGlobalTime() > lastParticleSent + 18) {
             CompoundTag info = new CompoundTag();
-            info.putInt("vent_particles", 0);
+            info.putInt("vent_particles", scrubberActive ? 1 : 4);
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
             lastParticleSent = GlobalTime.getGlobalTime();
         }
     }
 
-    /** spawns tiny smoke particles on the client, similar to the fluid release */
+    /** spawns a single tiny smoke particle on the client, similar to the fluid release.
+     *  the gas vents out of a randomly chosen free (non-blocked) horizontal side and drifts slowly. */
     void spawnSmokeParticle() {
-        Vec3 worldPos = getBlockPos().getCenter().add(0, 0.5, 0);
+        Vec3 center = getBlockPos().getCenter().add(0, 0, 0);
+        Direction[] sides = { Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST };
+
+        Vec3 pos = center;
+        Vec3 vel = Vec3.ZERO;
+        // pick a random side that is actually free (air) so the smoke can escape
+        for (int i = 0; i < sides.length; i++) {
+            Direction side = sides[level.random.nextInt(sides.length)];
+            BlockPos adj = getBlockPos().relative(side);
+            if (!level.getBlockState(adj).isCollisionShapeFullBlock(level, adj)) {
+                pos = center.add(side.getStepX() * 0.48, 0, side.getStepZ() * 0.48);
+                // slow outward drift, barely rising
+                vel = new Vec3(side.getStepX() * 0.015, (Math.random() - 0.2) * 0.015, side.getStepZ() * 0.015);
+                break;
+            }
+        }
+
         new RocketParticle(
                 (ClientLevel) level,
-                worldPos.x + (Math.random() - 0.5) * 0.2,
-                worldPos.y,
-                worldPos.z + (Math.random() - 0.5) * 0.2,
-                (Math.random() - 0.5) * 0.04,
-                Math.random() * 0.06 + 0.02,
-                (Math.random() - 0.5) * 0.04,
+                pos.x + (Math.random() - 0.5) * 0.05,
+                pos.y,
+                pos.z + (Math.random() - 0.5) * 0.05,
+                vel.x,
+                vel.y,
+                vel.z,
                 new Vector3f(0.6f, 0.6f, 0.6f),
                 0.35f,
                 0.1f,
-                60,
+                80,
                 false
         );
     }

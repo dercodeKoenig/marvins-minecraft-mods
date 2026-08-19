@@ -24,9 +24,10 @@ import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
 import static advRocketry.Registry.BlockEntities.ENTITY_CO2_SCRUBBER;
 
 /**
- * A co2 scrubber that reduces the oxygen consumption of a neighboring oxygen vent by 90%
- * while it is running. It consumes energy each tick it stays active and only switches on
- * when a neighboring oxygen vent is actively distributing oxygen.
+ * A co2 scrubber that reduces the gas consumption of a neighboring oxygen vent while it is running.
+ * The discount is 95% for oxygen and 98% for nitrogen by default (both configurable).
+ * It consumes energy each tick it stays active and only switches on when a neighboring oxygen vent
+ * is actively distributing a gas (oxygen or nitrogen) to the life support system.
  * <p>
  * It does not handle fluids itself: it is powered through its {@link BlockEntityBattery} which
  * can be filled by neighboring energy providers. The active state is reflected in the block's
@@ -54,7 +55,7 @@ public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceive
     /**
      * global-tick time the scrubber last stopped running; used only for the local flicker cooldown (not persisted)
      */
-    public long lastWentOffline = 0;
+    public long last_went_out_of_power = 0;
 
     public EntityCo2Scrubber(BlockPos pos, BlockState blockState) {
         super(ENTITY_CO2_SCRUBBER.get(), pos, blockState);
@@ -148,12 +149,14 @@ public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceive
         // the offline flicker cooldown has elapsed and there is enough energy to pay this tick
         boolean shouldRun = isEnabled
                 && hasNeighborActiveVent()
-                && now > lastWentOffline + OFFLINE_COOLDOWN_TICKS
+                && now > last_went_out_of_power + OFFLINE_COOLDOWN_TICKS
                 && battery.getEnergyStored() >= energyCost;
 
-        // leaving the running state bumps the cooldown so it does not flicker back on while starved of power
-        if (!shouldRun && isRunning) {
-            lastWentOffline = now;
+
+        // when running and it goes out of energy, force a cooldown until it goes active again
+        // so it does not flicker the block state while starved of power,
+        if (battery.getEnergyStored() < energyCost && isRunning) {
+            last_went_out_of_power = now;
         }
 
         if (shouldRun) {
