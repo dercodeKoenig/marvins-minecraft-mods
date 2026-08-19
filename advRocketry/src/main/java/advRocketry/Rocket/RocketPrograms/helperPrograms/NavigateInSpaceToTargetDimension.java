@@ -122,7 +122,8 @@ public class NavigateInSpaceToTargetDimension {
 
         // base speed
         double e = Config.INSTANCE.rocket_SpaceTravel_Min_Speed;
-        double offTargetMultiplier = Math.max(0, finalTargetDirection.dot(rocket.universeHeading) - 0.9) * 10;
+        double dotToNext = nextTargetDirection.dot(rocket.universeHeading);
+        double offTargetMultiplier = Math.pow(Math.max(0.0, dotToNext), 4);
 
         // the origin/target can move in space too, so i will add the origin/target dimension speed to the final target speed in case e is too small to catch up with planet movement
         // check if close to target
