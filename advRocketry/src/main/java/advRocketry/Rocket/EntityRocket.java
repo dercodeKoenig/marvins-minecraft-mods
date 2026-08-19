@@ -630,7 +630,12 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
             if (targetDimension != null && targetDimension.canVisit()) {
 
                 if (currentDimension != null) {
-                    double distance = targetDimension.getPosition(0).distanceTo(currentDimension.getPosition(0));
+                    Vec3 currentPos; // rocket dim getpos is only valid for client side
+                    if (currentDimension instanceof RocketTravelDimension)
+                        currentPos = universePosition;
+                    else
+                        currentPos = currentDimension.getPosition(0);
+                    double distance = targetDimension.getPosition(0).distanceTo(currentPos);
                     if (distance > 1.2) {
                         infoText.setTextAndSync("target out of range");
                         temporaryInfoTimeout = 20 * 15;
