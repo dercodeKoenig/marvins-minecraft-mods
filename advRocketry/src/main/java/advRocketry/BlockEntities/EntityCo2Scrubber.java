@@ -1,0 +1,167 @@
+package advRocketry.BlockEntities;
+
+import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.modules.guiModuleButton;
+import ARLib.gui.modules.guiModuleEnergy;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
+import ARLib.utils.BlockEntityBattery;
+import advRocketry.Config;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import static ARLib.gui.modules.guiModuleButton.BuiltinButtons.*;
+import static advRocketry.Registry.BlockEntities.ENTITY_CO2_SCRUBBER;
+
+/**
+ * A co2 scrubber that reduces the oxygen consumption of a neighboring oxygen vent by 90%
+ * while it is running. It consumes energy each tick it stays active and only switches on
+ * when a neighboring oxygen vent is actively distributing oxygen.
+ * <p>
+ * It does not handle fluids itself: it is powered through its {@link BlockEntityBattery} which
+ * can be filled by neighboring energy providers. The active state is reflected in the block's
+ * {@link BlockStateProperties#LIT} property (the {@code scrubber_on} model).
+ */
+public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceiver {
+
+    public BlockEntityBattery battery;
+    public GuiHandlerBlockEntity guiHandler;
+    public guiModuleButton toggleButton;
+
+    /** player toggled on/off through the gui button */
+    public boolean isEnabled = true;
+    /**
+     * whether the scrubber is currently running, i.e. it is enabled, a neighboring oxygen vent is
+     * actively supplying oxygen and it has enough energy to pay the running cost this tick.
+     * read by neighboring oxygen vents to apply the 90% oxygen consumption cut
+     */
+    public boolean isRunning = false;
+
+    public EntityCo2Scrubber(BlockPos pos, BlockState blockState) {
+        super(ENTITY_CO2_SCRUBBER.get(), pos, blockState);
+
+        battery = new BlockEntityBattery(this, 10000);
+
+        guiHandler = new GuiHandlerBlockEntity(this);
+        guiHandler.modules.add(new guiModuleEnergy(0, battery, guiHandler, 10, 10));
+
+        // the toggle button enables/disable the scrubber's auto-run behavior
+        toggleButton = new guiModuleButton(1, "text", guiHandler, 40, 12, 40, 15, BTN_GREEN, BTN_W, BTN_H) {
+            @Override
+            public void onButtonClicked() {
+                CompoundTag info = new CompoundTag();
+                info.put("toggleEnabled", new CompoundTag());
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityCo2Scrubber.this, info));
+            }
+        };
+        guiHandler.modules.add(toggleButton);
+
+        guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 100, 0, 1, guiHandler));
+        guiHandler.getModules().addAll(guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 80, 200, 0, 1, guiHandler));
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityCo2Scrubber) t).tick();
+    }
+
+    @Override
+    public void readServer(CompoundTag compoundTag, ServerPlayer serverPlayer) {
+        guiHandler.readServer(compoundTag);
+        if (compoundTag.contains("toggleEnabled")) {
+            isEnabled = !isEnabled;
+            setChanged();
+        }
+    }
+
+    @Override
+    public void readClient(CompoundTag compoundTag) {
+        guiHandler.readClient(compoundTag);
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("battery", battery.serializeNBT(registries));
+        tag.putBoolean("isEnabled", isEnabled);
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        if (tag.contains("battery")) {
+            battery.deserializeNBT(registries, tag.get("battery"));
+        }
+        isEnabled = tag.getBoolean("isEnabled");
+    }
+
+    public void openGui() {
+        if (level.isClientSide) {
+            guiHandler.openGui(176, 166, true);
+        }
+    }
+
+    /**
+     * @return true when at least one of the 6 neighboring blocks is an oxygen vent that is
+     *         currently distributing a gas (oxygen or nitrogen) to the life support system
+     */
+    boolean hasNeighborActiveVent() {
+        if (level == null || level.isClientSide) return false;
+        for (Direction d : Direction.values()) {
+            BlockEntity neighbor = level.getBlockEntity(getBlockPos().relative(d));
+            if (neighbor instanceof EntityOxygenVent vent && (vent.isOxygenActive || vent.isPressureActive)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void tick() {
+        if (level.isClientSide) {
+            return;
+        }
+
+        guiHandler.serverTick();
+
+        // the scrubber only runs while the player enabled it (button) and a neighboring oxygen vent is
+        // actively distributing a gas; while it is on the vent's gas usage is cut by 90%
+        boolean shouldRun = isEnabled && hasNeighborActiveVent();
+        if (shouldRun) {
+            int energyCost = Config.INSTANCE.co2_scrubber_energy_per_tick;
+            if (battery.getEnergyStored() >= energyCost) {
+                battery.extractEnergy(energyCost, false);
+                setChanged();
+                isRunning = true;
+            } else {
+                // not enough energy, the scrubber shuts back off until the next energy arrives
+                isRunning = false;
+            }
+        } else {
+            isRunning = false;
+        }
+
+        // reflect the running state in the blockstate (lit = scrubber_on texture)
+        BlockState state = getBlockState();
+        boolean currentlyLit = state.getValue(BlockStateProperties.LIT);
+        if (currentlyLit != isRunning) {
+            level.setBlock(getBlockPos(), state.setValue(BlockStateProperties.LIT, isRunning), 3);
+        }
+
+        // keep the toggle button appearance in sync with the enabled flag for watching clients
+        if (isEnabled) {
+            toggleButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+            toggleButton.setTextAndSync("ON");
+        } else {
+            toggleButton.setBackgroundAndSync(BTN_BLACK, BTN_W, BTN_H);
+            toggleButton.setTextAndSync("OFF");
+        }
+    }
+}

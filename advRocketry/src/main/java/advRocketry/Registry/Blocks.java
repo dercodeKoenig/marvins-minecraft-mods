@@ -43,6 +43,7 @@ public class Blocks {
     public static final Supplier<Block> SOLAR_PANEL = BLOCKS.register("solar_panel", () -> new SolarPanel());
     public static final Supplier<Block> DATA_STORAGE_BLOCK = BLOCKS.register("data_storage_block", () -> new DataStorageBlock());
     public static final Supplier<Block> OXYGEN_VENT = BLOCKS.register("oxygen_vent", () -> new OxygenVent());
+    public static final Supplier<Block> CO2_SCRUBBER = BLOCKS.register("co2_scrubber", () -> new Co2Scrubber());
     public static final Supplier<Block> OBSERVATORY = BLOCKS.register("observatory", () -> new Observatory());
     public static final Supplier<Block> ASTROBODY_DATA_PROCESSOR = BLOCKS.register("astrobody_data_processor", () -> new AstrobodyDataProcessor());
     public static final Supplier<Block> WIRELESS_TRANSCEIVER = BLOCKS.register("wireless_transceiver", () -> new WirelessTransceiver());

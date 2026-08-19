@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "lit=false": { "model": "adv_rocketry:block/scrubber" },
+        "lit=true": { "model": "adv_rocketry:block/scrubber_on" }
+    }
+}

@@ -29,6 +29,14 @@ public class Config {
     public int jetpack_hydrogen_per_tick = 10;
     public int jetpack_oxygen_per_tick = 5;
 
+    // how much oxygen / nitrogen the oxygen vent consumes per tick while it is running to keep the life support system active
+    // the vent only runs while it has a redstone signal and enough of the matching fluid
+    public int oxygen_vent_Oxygen_per_tick = 5;
+    public int oxygen_vent_Nitrogen_per_tick = 5;
+
+    // how much energy the co2 scrubber consumes per tick while it is running
+    public int co2_scrubber_energy_per_tick = 30;
+
     // true scale is way too small, for example moon would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering
     public double planet_Render_Scale_Multiplier = 8;

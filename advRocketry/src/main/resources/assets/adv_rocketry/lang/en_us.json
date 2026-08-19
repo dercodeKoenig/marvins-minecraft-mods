@@ -55,6 +55,7 @@
   "block.adv_rocketry.wireless_transceiver": "Wireless Transceiver",
   "block.adv_rocketry.solar_panel": "Solar Panel",
   "block.adv_rocketry.oxygen_vent": "Oxygen Vent",
+  "block.adv_rocketry.co2_scrubber": "CO2 Scrubber",
   "block.adv_rocketry.space_station_assembler": "Space Station Assembler",
   "block.adv_rocketry.station_controller": "Station Controller",
   "block.adv_rocketry.orientation_controller": "Orientation Controller",

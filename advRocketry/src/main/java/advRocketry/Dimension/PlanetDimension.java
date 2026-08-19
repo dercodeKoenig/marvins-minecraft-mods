@@ -187,7 +187,7 @@ public class PlanetDimension extends Dimension {
             problems.add(SurvivalProblem.TOO_MUCH_PRESSURE);
 
         double oxygen = getGasProperty(GasRegistry.oxygen).in_atm;
-        if (oxygen < 0.15 * pressure)
+        if (oxygen < 0.15 * pressure || pressure == 0)
             problems.add(SurvivalProblem.TOO_LITTLE_O2);
         if (oxygen > 0.7 * pressure)
             problems.add(SurvivalProblem.TOO_MUCH_O2);

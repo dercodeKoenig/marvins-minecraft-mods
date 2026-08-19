@@ -128,8 +128,9 @@ public class Main {
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_ROCKET_FLUID_LOADER.get(), (x, y) -> x.tank);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_ROCKET_FLUID_LOADER.get(), (x, y) -> x.battery);
 
-        //e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.);
-        //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registry.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.battery);
+
+        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_OXYGEN_VENT.get(), (x, y) -> x.tank);
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_CO2_SCRUBBER.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SOLAR_PANEL.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntities.ENTITY_SATELLITE_MONITOR.get(), (x, y) -> x.battery);
         e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntities.ENTITY_FLUID_RELEASE.get(), (x, y) -> y == x.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING) ? null : x.tank);
@@ -227,6 +228,7 @@ public class Main {
             e.accept(Blocks.OBSERVATORY.get());
             e.accept(Blocks.ASTROBODY_DATA_PROCESSOR.get());
             e.accept(Blocks.OXYGEN_VENT.get());
+            e.accept(Blocks.CO2_SCRUBBER.get());
             e.accept(Blocks.WIRELESS_TRANSCEIVER.get());
             e.accept(Blocks.FLUID_RELEASE.get());
             e.accept(Blocks.PRESSURE_TANK.get());
