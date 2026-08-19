@@ -34,6 +34,7 @@ public class LifeSupportSystem {
     private final HashMap<LifeSupportType, LifeSupportData> lifeSupportData = new HashMap<>();
 
     public LifeSupportSystem() {
+        lifeSupportData.put(LifeSupportType.PRESSURE_SUPPLIER, new LifeSupportData());
         lifeSupportData.put(LifeSupportType.OXYGEN_SUPPLIER, new LifeSupportData());
         lifeSupportData.put(LifeSupportType.TEMPERATURE_REGULATOR, new LifeSupportData());
     }
@@ -57,7 +58,7 @@ public class LifeSupportSystem {
     public static boolean isPressurized(Level level, BlockPos pos) {
         LifeSupportSystem instance = LifeSupportSystems.get(level.dimension().location());
         if (instance != null) {
-            return instance.lifeSupportData.get(LifeSupportType.OXYGEN_SUPPLIER).suppliedBlocks.contains(pos);
+            return instance.lifeSupportData.get(LifeSupportType.PRESSURE_SUPPLIER).suppliedBlocks.contains(pos);
         }
         return false;
     }
@@ -232,6 +233,7 @@ public class LifeSupportSystem {
     }
 
     public enum LifeSupportType {
+        PRESSURE_SUPPLIER,
         OXYGEN_SUPPLIER,
         TEMPERATURE_REGULATOR,
     }
