@@ -156,8 +156,9 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
         return InteractionResultHolder.consume(stack);
     }
 
-    public void execute(ItemStack remote, ServerLevel level, int blockX, int blockZ) {
+    public boolean execute(ItemStack remote, ServerLevel level, int blockX, int blockZ) {
         Satellite sat = SatelliteManager.getSatellite(getTarget(remote));
+        boolean result = false;
         if (sat instanceof SatelliteBiomeChanger biomeChanger) {
             int r = 32;
             ResourceLocation targetBiome = getSelected(remote);
@@ -173,9 +174,10 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
             for (Pair<Integer, Integer> position : positions) {
                 int x = position.getFirst();
                 int z = position.getSecond();
-                biomeChanger.submitWork(level.dimension().location(), blockX + x, blockZ + z, targetBiome);
+                result = biomeChanger.submitWork(level.dimension().location(), blockX + x, blockZ + z, targetBiome);
             }
         }
+        return result;
     }
 
     @Override
@@ -186,8 +188,10 @@ public class ItemBiomeChangerRemote extends ItemSatelliteIdChip implements INetw
             serverPlayer.sendSystemMessage(Component.literal("selected " + id));
         }
         if (compoundTag.contains("run")) {
-            execute(serverPlayer.getMainHandItem(), serverPlayer.serverLevel(), serverPlayer.getBlockX(), serverPlayer.getBlockZ());
-            serverPlayer.sendSystemMessage(Component.literal("request for biome change sent to satellite"));
+            if (execute(serverPlayer.getMainHandItem(), serverPlayer.serverLevel(), serverPlayer.getBlockX(), serverPlayer.getBlockZ()))
+                serverPlayer.sendSystemMessage(Component.literal("request for biome change sent to satellite"));
+            else
+                serverPlayer.sendSystemMessage(Component.literal("request failed. is your satellite in orbit?"));
         }
         if (compoundTag.contains("scan")) {
             ResourceLocation biome = TerraformingSystem.getCurrentSurfaceBiome(serverPlayer.serverLevel(), serverPlayer.getBlockX(), serverPlayer.getBlockZ());
