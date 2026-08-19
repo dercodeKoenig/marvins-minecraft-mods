@@ -174,7 +174,7 @@ public class LifeSupportSystem {
         for (LifeSupportType type : lifeSupportData.keySet()) {
             LifeSupportData data = lifeSupportData.get(type);
 
-            if (data.allRegisteredSuppliers.isEmpty()) return;
+            if (data.allRegisteredSuppliers.isEmpty()) continue;
 
             if (data.shouldScanNextTick) {
                 long t0 = System.nanoTime();
