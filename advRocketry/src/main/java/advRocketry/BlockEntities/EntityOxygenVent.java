@@ -227,7 +227,7 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
             boolean isNitrogen = fluid.getFluid().equals(nitrogen);
             if (isOxygen || isNitrogen) {
                 int base = isOxygen ? Config.INSTANCE.oxygen_vent_Oxygen_per_tick : Config.INSTANCE.oxygen_vent_Nitrogen_per_tick;
-                // a neighboring active co2 scrubber cuts the gas usage of whichever gas is being distributed by 90%
+                // a neighboring active co2 scrubber cuts the gas usage of whichever gas is being distributed
                 boolean scrubberActive = hasNeighborActiveScrubber();
 
                 // work out how much fluid has to actually disappear this tick for the discounted / full rate.
@@ -236,7 +236,9 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
                 int drain;
                 double chance;
                 if (scrubberActive) {
-                    double reduced = base * 0.1; // 90% reduction
+                    // apply the configurable discount per gas type (95% oxygen / 98% nitrogen by default)
+                    float reduction = isOxygen ? Config.INSTANCE.co2_scrubber_oxygen_reduction : Config.INSTANCE.co2_scrubber_nitrogen_reduction;
+                    double reduced = base * (1.0 - reduction);
                     if (reduced >= 1.0) {
                         drain = (int) Math.floor(reduced);
                         chance = 1.0;

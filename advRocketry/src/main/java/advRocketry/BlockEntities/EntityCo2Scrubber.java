@@ -8,6 +8,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import advRocketry.Config;
+import advRocketry.GlobalTime;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -33,18 +34,27 @@ import static advRocketry.Registry.BlockEntities.ENTITY_CO2_SCRUBBER;
  */
 public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceiver {
 
+    /**
+     * 5s (100 ticks) the scrubber must stay off after shutting down so it does not flicker on/off when low on power
+     */
+    private static final long OFFLINE_COOLDOWN_TICKS = 100;
     public BlockEntityBattery battery;
     public GuiHandlerBlockEntity guiHandler;
     public guiModuleButton toggleButton;
-
-    /** player toggled on/off through the gui button */
+    /**
+     * player toggled on/off through the gui button
+     */
     public boolean isEnabled = true;
     /**
      * whether the scrubber is currently running, i.e. it is enabled, a neighboring oxygen vent is
-     * actively supplying oxygen and it has enough energy to pay the running cost this tick.
-     * read by neighboring oxygen vents to apply the 90% oxygen consumption cut
+     * actively distributing a gas and it has enough energy to pay the running cost this tick.
+     * read by neighboring oxygen vents to apply the gas consumption cut
      */
     public boolean isRunning = false;
+    /**
+     * global-tick time the scrubber last stopped running; used only for the local flicker cooldown (not persisted)
+     */
+    public long lastWentOffline = 0;
 
     public EntityCo2Scrubber(BlockPos pos, BlockState blockState) {
         super(ENTITY_CO2_SCRUBBER.get(), pos, blockState);
@@ -111,7 +121,7 @@ public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceive
 
     /**
      * @return true when at least one of the 6 neighboring blocks is an oxygen vent that is
-     *         currently distributing a gas (oxygen or nitrogen) to the life support system
+     * currently distributing a gas (oxygen or nitrogen) to the life support system
      */
     boolean hasNeighborActiveVent() {
         if (level == null || level.isClientSide) return false;
@@ -131,22 +141,26 @@ public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceive
 
         guiHandler.serverTick();
 
-        // the scrubber only runs while the player enabled it (button) and a neighboring oxygen vent is
-        // actively distributing a gas; while it is on the vent's gas usage is cut by 90%
-        boolean shouldRun = isEnabled && hasNeighborActiveVent();
-        if (shouldRun) {
-            int energyCost = Config.INSTANCE.co2_scrubber_energy_per_tick;
-            if (battery.getEnergyStored() >= energyCost) {
-                battery.extractEnergy(energyCost, false);
-                setChanged();
-                isRunning = true;
-            } else {
-                // not enough energy, the scrubber shuts back off until the next energy arrives
-                isRunning = false;
-            }
-        } else {
-            isRunning = false;
+        long now = GlobalTime.getGlobalTime();
+        int energyCost = Config.INSTANCE.co2_scrubber_energy_per_tick;
+
+        // the scrubber runs only when all of these hold: enabled by the button, a neighbor is distributing a gas,
+        // the offline flicker cooldown has elapsed and there is enough energy to pay this tick
+        boolean shouldRun = isEnabled
+                && hasNeighborActiveVent()
+                && now > lastWentOffline + OFFLINE_COOLDOWN_TICKS
+                && battery.getEnergyStored() >= energyCost;
+
+        // leaving the running state bumps the cooldown so it does not flicker back on while starved of power
+        if (!shouldRun && isRunning) {
+            lastWentOffline = now;
         }
+
+        if (shouldRun) {
+            battery.extractEnergy(energyCost, false);
+            setChanged();
+        }
+        isRunning = shouldRun;
 
         // reflect the running state in the blockstate (lit = scrubber_on texture)
         BlockState state = getBlockState();
@@ -156,12 +170,14 @@ public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceive
         }
 
         // keep the toggle button appearance in sync with the enabled flag for watching clients
-        if (isEnabled) {
-            toggleButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
-            toggleButton.setTextAndSync("ON");
-        } else {
-            toggleButton.setBackgroundAndSync(BTN_BLACK, BTN_W, BTN_H);
-            toggleButton.setTextAndSync("OFF");
+        if (!guiHandler.playersTrackingGui.isEmpty()) {
+            if (isEnabled) {
+                toggleButton.setBackgroundAndSync(BTN_GREEN, BTN_W, BTN_H);
+                toggleButton.setTextAndSync("ON");
+            } else {
+                toggleButton.setBackgroundAndSync(BTN_BLACK, BTN_W, BTN_H);
+                toggleButton.setTextAndSync("OFF");
+            }
         }
     }
 }

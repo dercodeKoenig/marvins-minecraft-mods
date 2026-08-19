@@ -37,6 +37,11 @@ public class Config {
     // how much energy the co2 scrubber consumes per tick while it is running
     public int co2_scrubber_energy_per_tick = 30;
 
+    // fraction (0..1) of a neighboring oxygen vent's gas consumption that an active co2 scrubber removes.
+    // the scrubber applies these discounts to oxygen and nitrogen respectively (95% / 98% by default)
+    public float co2_scrubber_oxygen_reduction = 0.95f;
+    public float co2_scrubber_nitrogen_reduction = 0.98f;
+
     // true scale is way too small, for example moon would only cover 8px on a 1080p screen.
     // solution: artificially scale up planet size for rendering
     public double planet_Render_Scale_Multiplier = 8;
