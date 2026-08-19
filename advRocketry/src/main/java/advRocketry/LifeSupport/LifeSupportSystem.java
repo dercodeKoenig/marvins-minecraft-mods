@@ -177,7 +177,6 @@ public class LifeSupportSystem {
             if (data.allRegisteredSuppliers.isEmpty()) continue;
 
             if (data.shouldScanNextTick) {
-                long t0 = System.nanoTime();
                 boolean allCompleted = true;
                 for (int i = 0; i < SCAN_LIMIT_PER_TICK(); i++) {
                     allCompleted = true;
