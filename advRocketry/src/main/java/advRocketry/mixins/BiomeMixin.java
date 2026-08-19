@@ -35,8 +35,9 @@ public abstract class BiomeMixin {
 
             if(dimension instanceof SpaceStationDimension){
                 // special case space stations:
-                // i want it to freeze when not regulated and not evaporate
-                // (maybe dimension event catches the block first and evaporates it, so there is a chance that evaporate or freeze can happen
+                // i want it to freeze when not pressurized no matter the temp
+                // note: if temperature is regulated, the dimension events may evaporate ice into air
+                //       so in this case it is a bit random if water freezes / evaporates
                 if(!LifeSupportSystem.isPressurized(serverLevel,water))
                 {
                     ci.setReturnValue(true);
