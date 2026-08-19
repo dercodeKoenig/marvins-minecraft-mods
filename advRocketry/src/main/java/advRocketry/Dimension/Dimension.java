@@ -113,7 +113,7 @@ public abstract class Dimension {
         TOO_LOW_PRESSURE("pressure too low"),
         TOO_MUCH_CO2("too much co2");
 
-        public static final Set<SurvivalProblem> spaceProblems = new HashSet<>(List.of(TOO_LOW_PRESSURE, TOO_LITTLE_O2, TOO_COLD));
+        public static final Set<SurvivalProblem> spaceProblems = new HashSet<>(List.of(TOO_LOW_PRESSURE, TOO_LITTLE_O2));
 
         public final String reason;
 
