@@ -197,7 +197,7 @@ public class LifeSupportSystem {
                 if (allCompleted) {
                     data.shouldScanNextTick = false;
 
-                    System.out.println("active:" + data.activeSuppliers.size());
+                    // System.out.println("active:" + data.activeSuppliers.size());
 
                     HashSet<BlockPos> newOxygenSuppliedBlocks = new HashSet<>();
                     // add all blocks that are currently valid to the main set
@@ -208,10 +208,9 @@ public class LifeSupportSystem {
                         }
                     }
                     data.suppliedBlocks = newOxygenSuppliedBlocks;
-                    System.out.println("Scan complete: there are " + data.suppliedBlocks.size() + " blocks supplied with " + type);
+                    // System.out.println("Scan complete: there are " + data.suppliedBlocks.size() + " blocks supplied with " + type);
 
                 }
-                //System.out.println((double) (System.nanoTime() - t0) / 1000000);
             } else {
                 // sleep until a new scan is required
                 if (data.timeLastReset + SECONDS_BETWEEN_FULL_SCAN() * 20L < GlobalTime.getGlobalTime()) {
@@ -228,7 +227,7 @@ public class LifeSupportSystem {
 
                     data.timeLastReset = GlobalTime.getGlobalTime();
                     data.shouldScanNextTick = true;
-                    System.out.println("reset..." + GlobalTime.getGlobalTime());
+                    // System.out.println("reset..." + GlobalTime.getGlobalTime());
                 }
             }
         }
