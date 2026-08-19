@@ -141,7 +141,10 @@ public class LifeSupportSystem {
                         trySurvive(livingEntity, level, livingEntity.blockPosition(), remainingProblems);
 
                         if (!remainingProblems.isEmpty()) {
-                            livingEntity.hurt(new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)), 1);
+                            livingEntity.hurt(
+                                    new DamageSource(server.registryAccess().holderOrThrow(DamageTypes.GENERIC)),
+                                    2
+                            );
                             if (livingEntity instanceof Player player) {
                                 String msg = "Life Support Warning: \n";
                                 for (Dimension.SurvivalProblem p : remainingProblems) {
