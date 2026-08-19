@@ -13,10 +13,8 @@ import advRocketry.Worldgen.BiomeConfig;
 
 import advRocketry.Worldgen.presets.*;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -31,6 +29,7 @@ import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -91,12 +90,6 @@ public class Main {
         GeneralRegistry.ARMOR_MATERIALS.register(modEventBus);
         GeneralRegistry.COMPONENTS.register(modEventBus);
 
-        // register network packets
-        SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
-        SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionListSync, new DimensionManager.SyncDimensionList());
-        SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
-        SimpleNetworkPacket.registerReceiver(ChestPlate.ActivateJetpack.id, new ChestPlate.ActivateJetpack());
-
         // setup config directory
         Path configDir = FMLPaths.CONFIGDIR.get();
         myConfigDir = Path.of(String.valueOf(configDir), Main.MODID);
@@ -104,6 +97,13 @@ public class Main {
         if (!myConfigDirFile.exists()) {
             myConfigDirFile.mkdirs();
         }
+
+        // register network packets
+        SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionPropertiesSync, new DimensionManager.SyncDimensionProperties());
+        SimpleNetworkPacket.registerReceiver(DimensionManager.packetDimensionListSync, new DimensionManager.SyncDimensionList());
+        SimpleNetworkPacket.registerReceiver(GlobalTime.PACKET_ID_SYNCTIME, GlobalTime.INSTANCE);
+        SimpleNetworkPacket.registerReceiver(ChestPlate.ActivateJetpack.id, new ChestPlate.ActivateJetpack());
+        SimpleNetworkPacket.registerReceiver(Config.PACKET_ID_SYNC, Config.INSTANCE);
 
         // write biome presets
         BiomeConfig.makePresetIfNotExist(WARM.name, WARM.create());
@@ -187,11 +187,25 @@ public class Main {
                         })
         );
 
+        event.getDispatcher().register(
+                Commands.literal("adv_rocketry_reload_config")
+                        .requires(source -> source.hasPermission(2))
+                        .executes((context) -> {
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Reloading configs now..."));
+                            Config.INSTANCE = Config.loadConfig();
+                            ClientConfig.INSTANCE = ClientConfig.loadConfig();
+                            for (ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+                                Config.SyncConfig(p);
+                            }
+                            return 1;
+                        })
+        );
+
 
         event.getDispatcher().register(
                 Commands.literal("adv_rocketry_debug")
                         .executes((context) -> {
-                            TerraformingSystem.setup();
+                            //TerraformingSystem.setup();
                             return 1;
                         })
         );

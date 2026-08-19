@@ -8,7 +8,6 @@ import advRocketry.Registry.Fluids;
 import advRocketry.Registry.GeneralRegistry;
 import advRocketry.Render.Particles.RocketParticle;
 import advRocketry.Utils.ClientUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
@@ -33,7 +32,6 @@ import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory {
     public static final List<ArmorMaterial.Layer> spaceSuitLayers = List.of(

@@ -1,6 +1,6 @@
 package advRocketry.Render.Particles;
 
-import advRocketry.Config;
+import advRocketry.ClientConfig;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -58,7 +58,7 @@ public class RocketParticleEngine {
     }
 
     public static void tick() {
-        if(!Config.INSTANCE.use_Transparent_Particle_Engine)
+        if(!ClientConfig.INSTANCE.use_Transparent_Particle_Engine)
             return;
 
         for (ResourceLocation key : particles.keySet()) {
@@ -127,7 +127,7 @@ public class RocketParticleEngine {
     }
 
     public static void renderAll(Frustum frustum, Camera renderInfo, float partialTicks) {
-        if(!Config.INSTANCE.use_Transparent_Particle_Engine)
+        if(!ClientConfig.INSTANCE.use_Transparent_Particle_Engine)
             return;
 
         // setup render state

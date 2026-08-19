@@ -1,6 +1,6 @@
 package advRocketry.Render.Particles;
 
-import advRocketry.Config;
+import advRocketry.ClientConfig;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -39,7 +39,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
         this.alphaMultiplier = alphaMultiplier;
         this.size = size;
 
-        if (Config.INSTANCE.use_Transparent_Particle_Engine) {
+        if (ClientConfig.INSTANCE.use_Transparent_Particle_Engine) {
             ResourceLocation key = level.dimension().location();
             this.setSpriteFromAge(RocketParticleProvider.spriteSoft);
             RocketParticleEngine.addParticle(key, this);
@@ -63,7 +63,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
     @Override
     public void tick() {
         super.tick();
-        if(Config.INSTANCE.use_Transparent_Particle_Engine) {
+        if(ClientConfig.INSTANCE.use_Transparent_Particle_Engine) {
             // transparent particles
             this.alpha = (1.0F - ((float) this.age / (float) this.lifetime)) * alphaMultiplier;
         }

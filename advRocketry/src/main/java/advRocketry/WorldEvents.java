@@ -15,8 +15,6 @@ import advRocketry.SpaceSuit.Boots;
 import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
-import advRocketry.Worldgen.BiomeConfig;
-import advRocketry.Worldgen.presets.*;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
@@ -24,9 +22,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -59,6 +55,7 @@ public class WorldEvents {
                 DimensionManager.SyncDimensionProperties.syncDimensionPropertiesToPlayer(p, i);
             }
             DimensionManager.SyncDimensionList.syncDimensionListToPlayer(p);
+            Config.SyncConfig(p);
         }
     }
 

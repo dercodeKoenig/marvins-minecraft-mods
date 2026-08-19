@@ -1,7 +1,6 @@
 package advRocketry.Blocks;
 
 import advRocketry.API;
-import advRocketry.Config;
 import advRocketry.Dimension.*;
 import advRocketry.Registry.Blocks;
 import advRocketry.Registry.GasRegistry;

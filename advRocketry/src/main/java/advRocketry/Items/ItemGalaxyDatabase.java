@@ -1,10 +1,6 @@
 package advRocketry.Items;
 
-import advRocketry.Config;
 import advRocketry.Data.DataTypes;
-import advRocketry.Data.IDataStorage;
-import advRocketry.Dimension.Dimension;
-import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Utils.ItemUtils;
 import net.minecraft.ChatFormatting;

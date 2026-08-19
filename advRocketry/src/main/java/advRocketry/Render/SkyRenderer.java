@@ -4,6 +4,7 @@ import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
 import advRocketry.Config;
+import advRocketry.ClientConfig;
 import advRocketry.Dimension.*;
 import advRocketry.Main;
 import advRocketry.Rocket.EntityRocket;
@@ -17,7 +18,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
@@ -153,8 +153,8 @@ public class SkyRenderer {
         shader.getUniform("TargetCloudColor").set(TargetCloudColor);
         float TargetCloudValue = planetDimension.computeCloudValue();
         shader.getUniform("TargetCloudValue").set(TargetCloudValue);
-        shader.getUniform("CloudWarp").set(Config.INSTANCE.planet_Cloud_Noise_Warp ? 1 : 0);
-        shader.getUniform("CloudSampleSteps").set(Config.INSTANCE.planet_Cloud_Noise_Samples);
+        shader.getUniform("CloudWarp").set(ClientConfig.INSTANCE.planet_Cloud_Noise_Warp ? 1 : 0);
+        shader.getUniform("CloudSampleSteps").set(ClientConfig.INSTANCE.planet_Cloud_Noise_Samples);
 
         shader.getUniform("TargetTextureTintColor").set(planetDimension.getReflectiveTextureTintColor());
         shader.getUniform("TargetEmissiveTextureColor").set(planetDimension.getEmissiveTextureTintColor());

@@ -18,7 +18,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
