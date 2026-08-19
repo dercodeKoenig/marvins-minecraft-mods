@@ -1,0 +1,11 @@
+services:
+  agent:
+    build: .
+    container_name: agent
+    network_mode: "host"
+
+    volumes:
+      - ..:/project
+
+    stdin_open: true
+    tty: true
