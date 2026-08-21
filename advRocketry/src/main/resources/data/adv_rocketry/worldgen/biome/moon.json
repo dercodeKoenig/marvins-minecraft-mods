@@ -14,5 +14,26 @@
   "spawners": {},
   "spawn_costs": {},
   "carvers": {},
-  "features": [[], [], [], [], ["adv_rocketry:crater"], [], [], [], [], [], []]
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [
+      "adv_rocketry:crater"
+    ],
+    [],
+    [
+      "minecraft:ore_coal_upper",
+      "minecraft:ore_coal_lower",
+      "minecraft:ore_diamond",
+      "minecraft:ore_diamond_medium",
+      "minecraft:ore_diamond_large",
+      "minecraft:ore_diamond_buried"
+    ],
+    [],
+    [],
+    [],
+    []
+  ]
 }
