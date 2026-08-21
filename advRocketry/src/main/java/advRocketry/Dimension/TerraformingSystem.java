@@ -43,6 +43,8 @@ public class TerraformingSystem {
         // --- Mod Specific ---
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon"), advRocketry.Registry.Blocks.MOON_TURF.get());
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon_dark"), advRocketry.Registry.Blocks.MOON_TURF_DARK.get());
+        topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "ice_crystals"), Blocks.SNOW_BLOCK);
+
 
         // --- Forests & Woods ---
         addDecoration(rl("minecraft:forest"), 0.03, Blocks.OAK_SAPLING);
@@ -359,15 +361,15 @@ public class TerraformingSystem {
         ResourceLocation currentBiomeId = getCurrentSurfaceBiome(level, x, z);
         ResourceLocation previousBiomeId = getGeneratedBiome(level.getChunkAt(pos), pos.getX(), pos.getZ());
 
-        // the blocks not always perfectly align with biome borders so aso consider top blocks from next biomes for replacement
-        Set<ResourceLocation> nearbyBiomes = new HashSet<>();
-        nearbyBiomes.add(previousBiomeId);
-        for (Direction i : new Direction[]{Direction.WEST, Direction.EAST, Direction.SOUTH, Direction.NORTH}) {
-            BlockPos neighbor = pos.relative(i, 4);
-            nearbyBiomes.add(getGeneratedBiome(level.getChunkAt(neighbor), neighbor.getX(), neighbor.getZ()));
-        }
-
         if (!Objects.equal(currentBiomeId, previousBiomeId)) {
+            // the blocks not always perfectly align with biome borders so aso consider top blocks from next biomes for replacement
+            Set<ResourceLocation> nearbyBiomes = new HashSet<>();
+            nearbyBiomes.add(previousBiomeId);
+            for (Direction i : new Direction[]{Direction.WEST, Direction.EAST, Direction.SOUTH, Direction.NORTH}) {
+                BlockPos neighbor = pos.relative(i, 4);
+                nearbyBiomes.add(getGeneratedBiome(level.getChunkAt(neighbor), neighbor.getX(), neighbor.getZ()));
+            }
+
             for (int y = level.getMaxBuildHeight(); y > level.getMinBuildHeight(); y--) {
                 BlockState current = level.getBlockState(pos.atY(y));
                 boolean isValidTopBlock = false;

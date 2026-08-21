@@ -59,7 +59,7 @@ public class CustomSurfaceRules {
             SurfaceRules.ifTrue(
                     SurfaceRules.isBiome(ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(Main.MODID, "ice_crystals"))),
                     SurfaceRules.sequence(
-                            SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.SNOW.defaultBlockState())),
+                            SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.SNOW_BLOCK.defaultBlockState())),
                             SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.PACKED_ICE.defaultBlockState()))
                     )
             )
