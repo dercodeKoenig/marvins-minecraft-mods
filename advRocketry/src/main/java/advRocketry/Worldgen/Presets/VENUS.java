@@ -1,7 +1,6 @@
-package advRocketry.Worldgen.presets;
+package advRocketry.Worldgen.Presets;
 
 import advRocketry.Worldgen.BiomeConfig;
-import java.util.List;
 
 public class VENUS {
     public static String name = "venus.json";

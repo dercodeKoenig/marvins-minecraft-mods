@@ -11,7 +11,7 @@ import advRocketry.Render.*;
 import advRocketry.SpaceSuit.ChestPlate;
 import advRocketry.Worldgen.BiomeConfig;
 
-import advRocketry.Worldgen.presets.*;
+import advRocketry.Worldgen.Presets.*;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

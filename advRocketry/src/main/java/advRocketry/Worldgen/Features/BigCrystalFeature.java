@@ -1,4 +1,4 @@
-package advRocketry.Worldgen;
+package advRocketry.Worldgen.Features;
 
 import advRocketry.Registry.Blocks;
 import net.minecraft.core.BlockPos;

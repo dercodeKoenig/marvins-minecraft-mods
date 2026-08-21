@@ -1,8 +1,8 @@
 package advRocketry.Registry;
 
 import advRocketry.Main;
-import advRocketry.Worldgen.BigCrystalFeature;
-import advRocketry.Worldgen.CraterFeature;
+import advRocketry.Worldgen.Features.BigCrystalFeature;
+import advRocketry.Worldgen.Features.CraterFeature;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.neoforged.neoforge.registries.DeferredRegister;

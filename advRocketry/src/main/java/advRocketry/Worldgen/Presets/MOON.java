@@ -1,4 +1,4 @@
-package advRocketry.Worldgen.presets;
+package advRocketry.Worldgen.Presets;
 
 import advRocketry.Worldgen.BiomeConfig;
 

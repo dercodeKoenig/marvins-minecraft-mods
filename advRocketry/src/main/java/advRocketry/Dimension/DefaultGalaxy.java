@@ -2,7 +2,7 @@ package advRocketry.Dimension;
 
 import advRocketry.Main;
 import advRocketry.Registry.GasRegistry;
-import advRocketry.Worldgen.presets.*;
+import advRocketry.Worldgen.Presets.*;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;

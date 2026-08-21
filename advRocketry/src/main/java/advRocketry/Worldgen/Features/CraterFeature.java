@@ -1,4 +1,4 @@
-package advRocketry.Worldgen;
+package advRocketry.Worldgen.Features;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
