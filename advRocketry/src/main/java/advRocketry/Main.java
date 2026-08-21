@@ -2,6 +2,7 @@ package advRocketry;
 
 import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
+import advRocketry.BlockEntities.EntityLaserDrill;
 import advRocketry.BlockEntities.EntityObservatory;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
@@ -174,6 +175,7 @@ public class Main {
     public static void loadComplete(FMLLoadCompleteEvent e) {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
+        ARLib.holoProjector.itemHoloProjector.registerMultiblock("Laser Drill", EntityLaserDrill.structure, EntityLaserDrill.charMapping);
         TerraformingSystem.setup();
     }
 
@@ -244,6 +246,8 @@ public class Main {
             e.accept(Blocks.SOLAR_PANEL.get());
             e.accept(Blocks.OBSERVATORY.get());
             e.accept(Blocks.ASTROBODY_DATA_PROCESSOR.get());
+            e.accept(Blocks.LASERDRILL.get());
+            e.accept(Blocks.VACUUM_LASER.get());
             e.accept(Blocks.OXYGEN_VENT.get());
             e.accept(Blocks.CO2_SCRUBBER.get());
             e.accept(Blocks.WIRELESS_TRANSCEIVER.get());

@@ -63,6 +63,8 @@
   "block.adv_rocketry.moon_turf": "Moon Turf",
   "block.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
   "block.adv_rocketry.dry_ice": "Dry Ice",
+  "block.adv_rocketry.vacuum_laser": "Vacuum Laser",
+  "block.adv_rocketry.laserdrill": "Laser Drill",
 
   "item.adv_rocketry.oxygen_bucket": "Oxygen",
   "fluid_type.adv_rocketry.oxygen_type": "Oxygen",
@@ -87,5 +89,7 @@
   "item.adv_rocketry.crystal_yellow": "Yellow Crystal",
   "item.adv_rocketry.crystal_green": "Green Crystal",
   "item.adv_rocketry.crystal_blue": "Blue Crystal",
-  "item.adv_rocketry.crystal_purple": "Purple Crystal"
+  "item.adv_rocketry.crystal_purple": "Purple Crystal",
+  "item.adv_rocketry.vacuum_laser": "Vacuum Laser",
+  "item.adv_rocketry.laserdrill": "Laser Drill"
 }

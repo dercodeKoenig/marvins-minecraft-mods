@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,state=false": {
+      "model": "adv_rocketry:block/laserdrill"
+    },
+    "facing=east,state=false": {
+      "model": "adv_rocketry:block/laserdrill",
+      "y": 90
+    },
+    "facing=south,state=false": {
+      "model": "adv_rocketry:block/laserdrill",
+      "y": 180
+    },
+    "facing=west,state=false": {
+      "model": "adv_rocketry:block/laserdrill",
+      "y": 270
+    },
+    "facing=north,state=true": {
+      "model": "adv_rocketry:block/laserdrill"
+    },
+    "facing=east,state=true": {
+      "model": "adv_rocketry:block/laserdrill",
+      "y": 90
+    },
+    "facing=south,state=true": {
+      "model": "adv_rocketry:block/laserdrill",
+      "y": 180
+    },
+    "facing=west,state=true": {
+      "model": "adv_rocketry:block/laserdrill",
+      "y": 270
+    }
+  }
+}

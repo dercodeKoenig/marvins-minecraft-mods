@@ -97,6 +97,8 @@ public class Items {
     public static final Supplier<Item> ITEM_CRYSTAL_GREEN = registerBlockItem("crystal_green", Blocks.CRYSTAL_GREEN);
     public static final Supplier<Item> ITEM_CRYSTAL_BLUE = registerBlockItem("crystal_blue", Blocks.CRYSTAL_BLUE);
     public static final Supplier<Item> ITEM_CRYSTAL_PURPLE = registerBlockItem("crystal_purple", Blocks.CRYSTAL_PURPLE);
+    public static final Supplier<Item> ITEM_VACUUM_LASER = registerBlockItem("vacuum_laser", Blocks.VACUUM_LASER);
+    public static final Supplier<Item> ITEM_LASERDRILL = registerBlockItem("laserdrill", Blocks.LASERDRILL);
     public static final Supplier<Jetpack> ITEM_JETPACK = ITEMS.register("jetpack", () -> new Jetpack());
     public static final Supplier<Item> ITEM_NIGHT_VISION_UPGRADE = ITEMS.register("night_vision_upgrade", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final Supplier<Item> ITEM_LEGS_UPGRADE = ITEMS.register("legs_upgrade", () -> new Item(new Item.Properties().stacksTo(1)));

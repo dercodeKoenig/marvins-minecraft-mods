@@ -41,4 +41,6 @@ public class BlockEntities {
     public static final Supplier<BlockEntityType<EntityLaunchStationSatelliteMissions>> ENTITY_LAUNCH_STATION_SATELLITE_MISSIONS = BLOCK_ENTITIES.register("launch_station_satellite_missions", () -> BlockEntityType.Builder.of(EntityLaunchStationSatelliteMissions::new, Blocks.LAUNCH_STATION_SATELLITE_MISSIONS.get()).build(null));
     public static final Supplier<BlockEntityType<EntityLaunchStationAsteroidMissions>> ENTITY_LAUNCH_STATION_ASTEROID_MISSIONS = BLOCK_ENTITIES.register("launch_station_asteroid_missions", () -> BlockEntityType.Builder.of(EntityLaunchStationAsteroidMissions::new, Blocks.LAUNCH_STATION_ASTEROID_MISSIONS.get()).build(null));
     public static final Supplier<BlockEntityType<EntityLaunchStationGasMiningMissions>> ENTITY_LAUNCH_STATION_GAS_MINING_MISSIONS = BLOCK_ENTITIES.register("launch_station_gas_mining_missions", () -> BlockEntityType.Builder.of(EntityLaunchStationGasMiningMissions::new, Blocks.LAUNCH_STATION_GAS_MINING_MISSIONS.get()).build(null));
+
+    public static final Supplier<BlockEntityType<EntityLaserDrill>> ENTITY_LASERDRILL = BLOCK_ENTITIES.register("laserdrill", () -> BlockEntityType.Builder.of(EntityLaserDrill::new, Blocks.LASERDRILL.get()).build(null));
 }

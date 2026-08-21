@@ -27,34 +27,34 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
                             {null, null, null, null, null, null, null, null, null, null, null},
                             {null, null, null, null, null, null, null, null, null, null, null},
                             {null, null, null, null, null, null, null, null, null, null, null},
-                            {null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, null, null, null, null, null, null, null, null, null},
-                            {ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, null, null, null, null, null, null, null, null},
-                            {null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, null, null, null, null, null, null, null, null, null},
+                            {null, 'S', null, null, null, null, null, null, null, null, null},
+                            {'S', 'S', 'S', null, null, null, null, null, null, null, null},
+                            {null, 'S', null, null, null, null, null, null, null, null, null},
                             {null, null, null, null, null, null, null, null, null, null, null},
                             {null, null, null, null, null, null, null, null, null, null, null},
                             {null, null, null, null, null, null, null, null, null, null, null}
                     },
                     {
-                            {null, null, null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.GLASS, Blocks.GLASS, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, null, Blocks.GLASS, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null},
-                            {ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.GLASS, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, null, null, null, null, null, null},
-                            {ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, null, Blocks.GLASS, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.GLASS, Blocks.GLASS, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {null, null, null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null}
+                            {null, null, null, null, null, null, 'S', 'L', 'L', 'L', null},
+                            {null, null, null, null, 'S', 'G', 'G', 'L', 'L', 'L', 'P'},
+                            {null, null, null, null, 'S', 'S', 'S', 'L', 'L', 'L', 'P'},
+                            {'s', 'S', 's', null, 'G', null, 'S', 'L', 'L', 'L', null},
+                            {'S', 'S', 'S', 'G', 'S', null, null, null, null, null, null},
+                            {'s', 'S', 's', null, 'G', null, 'S', 'L', 'L', 'L', null},
+                            {null, null, null, null, 'S', 'S', 'S', 'L', 'L', 'L', 'P'},
+                            {null, null, null, null, 'S', 'G', 'G', 'L', 'L', 'L', 'P'},
+                            {null, null, null, null, null, null, 'S', 'L', 'L', 'L', null}
                     },
                     {
-                            {null, null, null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.GLASS, Blocks.GLASS, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {'O', 'c', 'O', null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, null, Blocks.GLASS, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null},
-                            {ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, Blocks.GLASS, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, null, null, null, null, null, null},
-                            {ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, ARLibRegistry.BLOCK_STRUCTURE, null, Blocks.GLASS, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.GLASS, Blocks.GLASS, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, 'P'},
-                            {null, null, null, null, null, null, ARLibRegistry.BLOCK_ADVANCED_STRUCTURE, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, Blocks.VACUUM_LASER, null}
+                            {null, null, null, null, null, null, 'S', 'L', 'L', 'L', null},
+                            {null, null, null, null, 'S', 'G', 'G', 'L', 'L', 'L', 'P'},
+                            {'O', 'c', 'O', null, 'S', 'S', 'S', 'L', 'L', 'L', 'P'},
+                            {'s', 's', 's', null, 'G', null, 'S', 'L', 'L', 'L', null},
+                            {'s', 's', 's', 'G', 'S', null, null, null, null, null, null},
+                            {'s', 's', 's', null, 'G', null, 'S', 'L', 'L', 'L', null},
+                            {null, null, null, null, 'S', 'S', 'S', 'L', 'L', 'L', 'P'},
+                            {null, null, null, null, 'S', 'G', 'G', 'L', 'L', 'L', 'P'},
+                            {null, null, null, null, null, null, 'S', 'L', 'L', 'L', null}
                     },
             };
 
@@ -63,6 +63,12 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
     static {
         charMapping.put('c', List.of(advRocketry.Registry.Blocks.LASERDRILL.get()));
         charMapping.put('O', List.of(ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get()));
+        charMapping.put('P', List.of(ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get()));
+        charMapping.put('L', List.of(advRocketry.Registry.Blocks.VACUUM_LASER.get()));
+        charMapping.put('S', List.of(ARLibRegistry.BLOCK_ADVANCED_STRUCTURE.get()));
+        charMapping.put('s', List.of(ARLibRegistry.BLOCK_STRUCTURE.get()));
+        charMapping.put('G', List.of(Blocks.GLASS));
+        
     }
 
 

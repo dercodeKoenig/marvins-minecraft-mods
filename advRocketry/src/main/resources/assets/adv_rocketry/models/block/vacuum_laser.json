@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "adv_rocketry:block/laser_chamber_up",
+    "up": "adv_rocketry:block/laser_chamber_up",
+    "north": "adv_rocketry:block/laser_chamber_side",
+    "south": "adv_rocketry:block/laser_chamber_side",
+    "west": "adv_rocketry:block/laser_chamber_side",
+    "east": "adv_rocketry:block/laser_chamber_side",
+    "particle": "adv_rocketry:block/laser_chamber_side"
+  }
+}

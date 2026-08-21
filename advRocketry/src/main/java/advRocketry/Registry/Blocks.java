@@ -51,6 +51,8 @@ public class Blocks {
     public static final Supplier<Block> FLUID_RELEASE = BLOCKS.register("fluid_release", () -> new FluidRelease());
     public static final Supplier<Block> PRESSURE_TANK = BLOCKS.register("pressure_tank", () -> new PressureTank());
     public static final Supplier<Block> SUIT_WORKSTATION = BLOCKS.register("suit_workstation", () -> new SuitWorkstation());
+    public static final Supplier<Block> VACUUM_LASER = BLOCKS.register("vacuum_laser", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f)));
+    public static final Supplier<Block> LASERDRILL = BLOCKS.register("laserdrill", () -> new LaserDrill());
 
     // basic blocks
     public static final Supplier<Block> MOON_TURF_DARK = BLOCKS.register("moon_turf_dark", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
