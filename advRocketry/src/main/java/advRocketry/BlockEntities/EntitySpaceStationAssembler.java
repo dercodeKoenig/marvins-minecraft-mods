@@ -271,7 +271,7 @@ public class EntitySpaceStationAssembler extends EntityRocketAssembler {
                     if (battery.getEnergyStored() >= Config.INSTANCE.rocket_Assembler_Energy_Per_Tick || !shouldConsumeEnergy) {
                         buildProgress--;
                         if (shouldConsumeEnergy)
-                            battery.extractEnergy(Config.INSTANCE.rocket_Assembler_Energy_Per_Tick, false);
+                            battery.extractInternal(Config.INSTANCE.rocket_Assembler_Energy_Per_Tick, false);
                         if (buildProgress == -1) {
                             buildStation(false);
                         }

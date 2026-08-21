@@ -194,7 +194,7 @@ public class EntityRocketFluidLoader extends EntityRocketInfrastructureBase impl
                             if (res != -1) {
                                 setOutputSignal(false);
                                 if (res == 1) // load success
-                                    battery.extractEnergy(Config.INSTANCE.fluid_Loader_Energy_Per_Tick, false);
+                                    battery.extractInternal(Config.INSTANCE.fluid_Loader_Energy_Per_Tick, false);
                             } else {
                                 // loading failed because rocket is full
                                 setOutputSignal(true);
@@ -208,7 +208,7 @@ public class EntityRocketFluidLoader extends EntityRocketInfrastructureBase impl
                             if (res != 0) {
                                 setOutputSignal(false);
                                 if (res == 1) // unload success
-                                    battery.extractEnergy(Config.INSTANCE.fluid_Loader_Energy_Per_Tick, false);
+                                    battery.extractInternal(Config.INSTANCE.fluid_Loader_Energy_Per_Tick, false);
                             } else {
                                 // rocket is empty
                                 setOutputSignal(true);

@@ -228,7 +228,7 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
                 if (canInsert > 0) {
                     dataStorage.insertData(dataCollector.extractOneDataUnit(false), false);
                     lastTimeDataReceived = GlobalTime.getGlobalTime();
-                    battery.extractEnergy(10, false);
+                    battery.extractInternal(10, false);
                 }
             }
 

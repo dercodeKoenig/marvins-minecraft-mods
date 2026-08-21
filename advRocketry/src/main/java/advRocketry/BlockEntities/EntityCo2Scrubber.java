@@ -160,7 +160,7 @@ public class EntityCo2Scrubber extends BlockEntity implements INetworkTagReceive
         }
 
         if (shouldRun) {
-            battery.extractEnergy(energyCost, false);
+            battery.extractInternal(energyCost, false);
             setChanged();
         }
         isRunning = shouldRun;

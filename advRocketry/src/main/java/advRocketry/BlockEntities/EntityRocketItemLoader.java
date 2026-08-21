@@ -201,7 +201,7 @@ public class EntityRocketItemLoader extends EntityRocketInfrastructureBase imple
                             if (res != -1) {
                                 setOutputSignal(false);
                                 if (res == 1) // load success
-                                    battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
+                                    battery.extractInternal(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
                                 // item loading failed because rocket is full
                                 setOutputSignal(true);
@@ -215,7 +215,7 @@ public class EntityRocketItemLoader extends EntityRocketInfrastructureBase imple
                             if (res != 0) {
                                 setOutputSignal(false);
                                 if (res == 1) // unload success
-                                    battery.extractEnergy(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
+                                    battery.extractInternal(Config.INSTANCE.item_Loader_Energy_Per_Tick, false);
                             } else {
                                 // rocket is empty
                                 setOutputSignal(true);

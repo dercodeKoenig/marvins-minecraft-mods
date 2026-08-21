@@ -157,7 +157,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                 partialRf += generationSpeed;
                 int toProduce = (int) partialRf;
                 partialRf -= toProduce;
-                battery.receiveEnergy(toProduce, false);
+                battery.receiveInternal(toProduce, false);
                 String text = battery.getEnergyStored() + " rf\n\n" +
                         (float) Math.round(generationSpeed * 1000) / 1000 + " rf / tick";
                 infoText.setTextAndSync(text);
@@ -183,7 +183,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                     }
                 }
                 int extracted = toTransfer - remainingToTransfer;
-                battery.extractEnergy(extracted, false);
+                battery.extractInternal(extracted, false);
 
             }else if(battery.getEnergyStored() < _25P - 5) {
                 // when mostly empty, drain from batteries into internal storage
@@ -199,7 +199,7 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                     }
                 }
                 int received = toTransfer - remainingToTransfer;
-                battery.receiveEnergy(received, false);
+                battery.receiveInternal(received, false);
             }
 
             // output to other energy handlers
@@ -218,11 +218,11 @@ public class EntitySolarPanel extends BlockEntity implements ARLib.network.INetw
                         // move some into the other panel
                         int toMove = diff / 2;
                         int received = neighbor.receiveEnergy(toMove,false);
-                        battery.extractEnergy(received, false);
+                        battery.extractInternal(received, false);
                     }
                 } else if (neighbor != null) {
                     int received = neighbor.receiveEnergy(battery.getEnergyStored(),false);
-                    battery.extractEnergy(received, false);
+                    battery.extractInternal(received, false);
                 }
             }
         }
