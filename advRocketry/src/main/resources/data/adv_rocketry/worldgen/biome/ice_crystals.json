@@ -1,0 +1,18 @@
+{
+    "temperature": 0.0,
+    "downfall": 0.5,
+    "has_precipitation": true,
+    "temperature_modifier": "none",
+    "creature_spawn_probability": 0,
+    "effects": {
+        "sky_color": 7972819,
+        "fog_color": 12637439,
+        "water_color": 4175103,
+        "water_fog_color": 329023,
+        "grass_color_modifier": "none"
+    },
+    "spawners": {},
+    "spawn_costs": {},
+    "carvers": {},
+    "features": [[], [], [], [], ["adv_rocketry:ice_crystal"], [], [], [], [], [], []]
+}

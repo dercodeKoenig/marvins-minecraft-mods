@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "adv_rocketry:block/crystal_yellow"
+  }
+}

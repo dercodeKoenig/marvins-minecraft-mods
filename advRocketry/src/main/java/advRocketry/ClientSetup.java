@@ -119,6 +119,14 @@ public class ClientSetup {
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.NITROGEN_FLOWING.get(), RenderType.translucent());
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.METHANE_FLOWING.get(), RenderType.translucent());
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.CO2_FLOWING.get(), RenderType.translucent());
+
+        // Crystal blocks use translucent render for colored glass effect
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_RED.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_ORANGE.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_YELLOW.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_GREEN.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_BLUE.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_PURPLE.get(), RenderType.translucent());
     }
 
     public static void registerParticles(RegisterParticleProvidersEvent event) {
@@ -139,4 +147,5 @@ public class ClientSetup {
             }
         }
     }
+
 }

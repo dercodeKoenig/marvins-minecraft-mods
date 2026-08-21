@@ -75,5 +75,17 @@
   "item.adv_rocketry.co2_bucket": "CO2",
   "fluid_type.adv_rocketry.co2_type": "CO2",
   "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
-  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel"
+  "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel",
+  "block.adv_rocketry.crystal_red": "Red Crystal",
+  "block.adv_rocketry.crystal_orange": "Orange Crystal",
+  "block.adv_rocketry.crystal_yellow": "Yellow Crystal",
+  "block.adv_rocketry.crystal_green": "Green Crystal",
+  "block.adv_rocketry.crystal_blue": "Blue Crystal",
+  "block.adv_rocketry.crystal_purple": "Purple Crystal",
+  "item.adv_rocketry.crystal_red": "Red Crystal",
+  "item.adv_rocketry.crystal_orange": "Orange Crystal",
+  "item.adv_rocketry.crystal_yellow": "Yellow Crystal",
+  "item.adv_rocketry.crystal_green": "Green Crystal",
+  "item.adv_rocketry.crystal_blue": "Blue Crystal",
+  "item.adv_rocketry.crystal_purple": "Purple Crystal"
 }

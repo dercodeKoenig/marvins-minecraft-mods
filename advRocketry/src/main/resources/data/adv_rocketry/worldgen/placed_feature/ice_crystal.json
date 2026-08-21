@@ -1,0 +1,9 @@
+{
+  "feature": "adv_rocketry:big_crystal",
+  "placement": [
+    {
+      "type": "minecraft:count",
+      "count": 1
+    }
+  ]
+}

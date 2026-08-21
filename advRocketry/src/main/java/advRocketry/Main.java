@@ -81,6 +81,7 @@ public class Main {
         Blocks.BLOCKS.register(modEventBus);
         Items.ITEMS.register(modEventBus);
         BlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        Features.FEATURES.register(modEventBus);
         GeneralRegistry.CREATIVE_TAB.register(modEventBus);
         GeneralRegistry.ENTITIES.register(modEventBus);
         GeneralRegistry.PARTICLES.register(modEventBus);
@@ -113,6 +114,7 @@ public class Main {
         BiomeConfig.makePresetIfNotExist(MUSTAFAR.name, MUSTAFAR.create());
         BiomeConfig.makePresetIfNotExist(VENUS.name, VENUS.create());
         BiomeConfig.makePresetIfNotExist(OVERWORLD.name, OVERWORLD.create());
+        BiomeConfig.makePresetIfNotExist(ICEWORLD.name, ICEWORLD.create());
     }
 
     /// mod load events /////////////////////////////////////
@@ -251,6 +253,13 @@ public class Main {
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
             e.accept(Blocks.DRY_ICE.get());
+
+            e.accept(Blocks.CRYSTAL_RED.get());
+            e.accept(Blocks.CRYSTAL_ORANGE.get());
+            e.accept(Blocks.CRYSTAL_YELLOW.get());
+            e.accept(Blocks.CRYSTAL_GREEN.get());
+            e.accept(Blocks.CRYSTAL_BLUE.get());
+            e.accept(Blocks.CRYSTAL_PURPLE.get());
 
             e.accept(Items.ITEM_LINKER.get());
             e.accept(Items.ITEM_GALAXY_DATABASE.get());

@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -94,5 +95,19 @@ public class Blocks {
             Fluids.ROCKET_FUEL.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
     ));
+
+    // ice crystal blocks — each is a separate block with its own colored texture
+    public static final Supplier<Block> CRYSTAL_RED = BLOCKS.register("crystal_red", () -> new Block(
+            BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
+    public static final Supplier<Block> CRYSTAL_ORANGE = BLOCKS.register("crystal_orange", () -> new Block(
+            BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
+    public static final Supplier<Block> CRYSTAL_YELLOW = BLOCKS.register("crystal_yellow", () -> new Block(
+            BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
+    public static final Supplier<Block> CRYSTAL_GREEN = BLOCKS.register("crystal_green", () -> new Block(
+            BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
+    public static final Supplier<Block> CRYSTAL_BLUE = BLOCKS.register("crystal_blue", () -> new Block(
+            BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
+    public static final Supplier<Block> CRYSTAL_PURPLE = BLOCKS.register("crystal_purple", () -> new Block(
+            BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
 
 }
