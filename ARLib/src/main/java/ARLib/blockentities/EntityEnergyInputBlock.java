@@ -61,9 +61,13 @@ public class EntityEnergyInputBlock extends BlockEntity implements INetworkTagRe
         guiHandler.signalOpenGui(player, 100, 74, true);
     }
 
-    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+    public void tick(){
         if (!level.isClientSide)
-            ((EntityEnergyInputBlock) t).guiHandler.serverTick();
+            guiHandler.serverTick();
+    }
+
+    public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {
+        ((EntityEnergyInputBlock) t).tick();
     }
 
 }

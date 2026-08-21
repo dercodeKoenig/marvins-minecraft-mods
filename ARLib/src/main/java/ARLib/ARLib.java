@@ -44,13 +44,14 @@ public class ARLib {
     public static void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab() == CUSTOM_CREATIVE_TAB.get()) {
             e.accept(BLOCK_ENERGY_INPUT_BLOCK.get());
-            //e.accept(BLOCK_ENERGY_OUTPUT_BLOCK.get());
+            e.accept(BLOCK_ENERGY_OUTPUT_BLOCK.get());
             e.accept(BLOCK_ITEM_INPUT_BLOCK.get());
             e.accept(BLOCK_ITEM_OUTPUT_BLOCK.get());
             e.accept(BLOCK_FLUID_INPUT_BLOCK.get());
             e.accept(BLOCK_FLUID_OUTPUT_BLOCK.get());
             e.accept(BLOCK_MOTOR.get());
             e.accept(BLOCK_STRUCTURE.get());
+            e.accept(BLOCK_ADVANCED_STRUCTURE.get());
             e.accept(BLOCK_COIL_COPPER.get());
             e.accept((ITEM_HOLOPROJECTOR.get()));
         }

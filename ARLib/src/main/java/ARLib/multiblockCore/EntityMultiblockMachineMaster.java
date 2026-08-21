@@ -109,8 +109,18 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
     public void consumeEnergy(int energyToConsume, List<EntityEnergyInputBlock> energyInTiles) {
         int consumed = 0;
         for (EntityEnergyInputBlock i : energyInTiles) {
-            consumed += i.energyStorage.extractEnergy(energyToConsume - consumed, false);
+            consumed += i.energyStorage.extractInternal(energyToConsume - consumed, false);
             if (consumed == energyToConsume) {
+                return;
+            }
+        }
+    }
+
+    public void produceEnergy(int energyToProduce, List<EntityEnergyInputBlock> energyTiles) {
+        int produced = 0;
+        for (EntityEnergyInputBlock i : energyTiles) {
+            produced += i.energyStorage.receiveInternal(energyToProduce - produced, false);
+            if (produced == energyToProduce) {
                 return;
             }
         }

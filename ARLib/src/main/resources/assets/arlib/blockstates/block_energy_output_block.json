@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "state=false": { "model": "arlib:block/block_energy_output_block" },
+        "state=true": { "model": "minecraft:block/air" }
+    }
+}

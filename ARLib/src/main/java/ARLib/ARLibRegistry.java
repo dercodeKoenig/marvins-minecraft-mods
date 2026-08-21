@@ -65,6 +65,8 @@ public class ARLibRegistry {
 
     public static final Supplier<Block> BLOCK_STRUCTURE = BLOCKS.register("block_structure_block", () -> new Block(BlockBehaviour.Properties.of().strength(2,2)));
 
+    public static final Supplier<Block> BLOCK_ADVANCED_STRUCTURE = BLOCKS.register("block_advanced_structure_block", () -> new Block(BlockBehaviour.Properties.of().strength(2,2)));
+
     public static final Supplier<Block> BLOCK_COIL_COPPER = BLOCKS.register("block_coilcopper", () -> new Block(BlockBehaviour.Properties.of().strength(2,2)));
 
 
@@ -98,6 +100,7 @@ public class ARLibRegistry {
         registerBlockItem("block_fluid_output_block", BLOCK_FLUID_OUTPUT_BLOCK);
         registerBlockItem("block_motor_block", BLOCK_MOTOR);
         registerBlockItem("block_structure_block", BLOCK_STRUCTURE);
+        registerBlockItem("block_advanced_structure_block", BLOCK_ADVANCED_STRUCTURE);
         registerBlockItem("block_coilcopper", BLOCK_COIL_COPPER);
 
         BLOCKS.register(modBus);

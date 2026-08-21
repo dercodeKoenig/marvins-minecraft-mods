@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "arlib:block/block_advanced_structure_block" }
+    }
+}

@@ -4,6 +4,9 @@
   "block.arlib.block_structure_block": "Machine Structure",
   "item.arlib.block_structure_block": "Machine Structure",
 
+  "block.arlib.block_advanced_structure_block": "Advanced Machine Structure",
+  "item.arlib.block_advanced_structure_block": "Advanced Machine Structure",
+
   "block.arlib.block_motor_block": "Small Motor",
   "item.arlib.block_motor_block": "Small Motor",
 
