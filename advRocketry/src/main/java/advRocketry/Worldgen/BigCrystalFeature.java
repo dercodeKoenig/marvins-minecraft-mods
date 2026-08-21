@@ -41,7 +41,7 @@ public class BigCrystalFeature extends Feature<NoneFeatureConfiguration> {
     private static final int MAX_LENGTH = 60;
     private static final int MAX_RADIUS = 6;
     private static final double ABOVE_MIN = 0.30;
-    private static final double ABOVE_MAX = 0.40;
+    private static final double ABOVE_MAX = 0.70;
     private static final double MAX_TILT_DEG = 80.0;
     // Density of crystals: ~1 per 32 chunks (i.e. about 2 per 8x8 region). Was 1/64 which
     // felt too sparse - a user report of "only find it in the ocean, not on land" made clear
