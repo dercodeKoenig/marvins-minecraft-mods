@@ -28,7 +28,7 @@ public class DefaultGalaxy {
         sun.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_adjusted.png");
         sun.emissiveLightColor = new Vector3f(1f, 1f, 0.8f).mul(1.2f);
         sun.radiationIntensity = 2;
-        sun.emissiveTextureTintColor = new Vector3f(1,1,1).mul(20f);
+        sun.emissiveTextureTintColor = new Vector3f(1, 1, 1).mul(20f);
         sun.isKnown = true;
         galaxy.add(sun);
 
@@ -44,9 +44,9 @@ public class DefaultGalaxy {
         overworld.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_earth_daymap.png");
         overworld.skyColor = SKY_COLOR_OVERWORLD();
         overworld.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3f, 0, 0, 0));
-        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0,0, 0));
-        overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.001f, 0, 0,0));
-        overworld.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.5, 0,0));
+        overworld.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.7f, 0, 0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.001f, 0, 0, 0));
+        overworld.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.5, 0, 0));
         galaxy.add(overworld);
 
         PlanetDimensionProperties moon = new PlanetDimensionProperties();
@@ -81,8 +81,8 @@ public class DefaultGalaxy {
         venus.currentTemp = 500;
         venus.skyColor = new Vector3f(139, 69, 19).mul(1f / 255);
         venus.fogColor = new Vector3f(200, 130, 0).mul(1f / 255);
-        venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(2, 0,0, 0));
-        venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0,0, 0));
+        venus.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(2, 0, 0, 0));
+        venus.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0, 0));
         galaxy.add(venus);
 
 
@@ -95,8 +95,8 @@ public class DefaultGalaxy {
         jupiter.earthRadiusMultiplier = 10f;
         jupiter.gravitationalMultiplier = 30f;
         jupiter.canGasMine = true;
-        jupiter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
-        jupiter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5f, 0,0, 0));
+        jupiter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0, 0));
+        jupiter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5f, 0, 0, 0));
         galaxy.add(jupiter);
 
         PlanetDimensionProperties europa = new PlanetDimensionProperties();
@@ -105,14 +105,15 @@ public class DefaultGalaxy {
         europa.parentDimensionId = jupiter.dimensionId;
         europa.dayTimeReference = sun.dimensionId;
         europa.currentTemp = 100;
-        europa.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_europa.png");;
+        europa.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_europa.png");
+        ;
         europa.orbitalDistanceToParent = 0.02f;
         europa.orbitalBaseOffsetDegrees = 90;
         europa.earthRadiusMultiplier = 0.5f;
         europa.gravitationalMultiplier = 0.3f;
-        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0,0,0.5f,0));
-        europa.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0,0.5f,0));
-        europa.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0,0,0.05f,0));
+        europa.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0, 0, 0.5f, 0));
+        europa.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0, 0.5f, 0));
+        europa.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0, 0, 0.05f, 0));
         europa.canVisit = true;
         europa.biomePreset = MOON.name;
         galaxy.add(europa);
@@ -126,8 +127,8 @@ public class DefaultGalaxy {
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 8f;
         saturn.canGasMine = true;
-        saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3,0, 0, 0));
-        saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f,0, 0, 0));
+        saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0, 0));
+        saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0, 0));
         saturn.hasRingSystem = true;
         galaxy.add(saturn);
 
@@ -138,13 +139,14 @@ public class DefaultGalaxy {
         titan.dayTimeReference = sun.dimensionId;
         titan.currentTemp = 100;
         titan.baseEnergyGain = 0.02f;
-        titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_titan.png");;
+        titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_titan.png");
+        ;
         titan.orbitalDistanceToParent = 0.01f;
         titan.orbitalBaseOffsetDegrees = 180;
         titan.earthRadiusMultiplier = 0.5f;
         titan.gravitationalMultiplier = 0.3f;
-        titan.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0,0.5f,0,0));
-        titan.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(1,0,0f,0));
+        titan.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0, 0.5f, 0, 0));
+        titan.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(1, 0, 0f, 0));
         titan.canVisit = true;
         titan.biomePreset = MOON.name;
         galaxy.add(titan);
@@ -156,22 +158,21 @@ public class DefaultGalaxy {
         kalos.parentDimensionId = sun.dimensionId;
         kalos.dayTimeReference = sun.dimensionId;
         kalos.currentTemp = 300;
-        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");;
+        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");
         kalos.orbitalDistanceToParent = 2f;
         kalos.orbitalBaseOffsetDegrees = 0;
         kalos.earthRadiusMultiplier = 0.8f;
         kalos.gravitationalMultiplier = 0.7f;
-        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0f,0));
-        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.48,0f,0));
+        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5, 0, 0f, 0));
+        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3, 0, 0f, 0));
+        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001, 0, 0f, 0));
+        kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003, 0, 0f, 0));
+        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.48, 0f, 0));
         kalos.skyColor = SKY_COLOR_OVERWORLD();
         kalos.canVisit = true;
-        kalos.biomePreset = OVERWORLD.name;
+        kalos.biomePreset = ICEWORLD.name;
         galaxy.add(kalos);
- */
-
+*/
 
 
         PlanetDimensionProperties priate = new PlanetDimensionProperties();
@@ -183,7 +184,7 @@ public class DefaultGalaxy {
         priate.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         priate.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);
         priate.radiationIntensity = 5f;
-        priate.emissiveTextureTintColor = new Vector3f(1,1,1).mul(20f);
+        priate.emissiveTextureTintColor = new Vector3f(1, 1, 1).mul(20f);
         priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
 
@@ -197,9 +198,9 @@ public class DefaultGalaxy {
         jestefad.earthRadiusMultiplier = 10f;
         jestefad.gravitationalMultiplier = 10f;
         jestefad.canGasMine = true;
-        jestefad.skyColor = new Vector3f(0.5f,0.5f,0.5f);
-        jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2,0, 0, 0));
-        jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
+        jestefad.skyColor = new Vector3f(0.5f, 0.5f, 0.5f);
+        jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2, 0, 0, 0));
+        jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5, 0, 0, 0));
         galaxy.add(jestefad);
 
         PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
@@ -214,20 +215,21 @@ public class DefaultGalaxy {
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
-        mustafar.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5,0,0f,0));
-        mustafar.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.02,0,0f,0));
-        mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0f,0));
+        mustafar.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5, 0, 0f, 0));
+        mustafar.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.02, 0, 0f, 0));
+        mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2, 0, 0f, 0));
         mustafar.canVisit = true;
         mustafar.biomePreset = MUSTAFAR.name;
         mustafar.customSeaFluid = ResourceLocation.parse("minecraft:lava");
         mustafar.customSeaFluidLevel = 52;
-        mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");;
+        mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");
+        ;
         mustafar.cloudValueOverwrite = 0.7f;
         mustafar.skyDarken = 0.7f;
         mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
         mustafar.fogColor = new Vector3f(0.7f, 0.33f, 0.25f);
         mustafar.cloudColor = new Vector3f(0.25f, 0.22f, 0.20f);
-        mustafar.emissiveTextureTintColor = new Vector3f(1,1,1).mul(0.05f); // make lava glow
+        mustafar.emissiveTextureTintColor = new Vector3f(1, 1, 1).mul(0.05f); // make lava glow
         galaxy.add(mustafar);
 
         PlanetDimensionProperties lefrani = new PlanetDimensionProperties();
@@ -239,14 +241,10 @@ public class DefaultGalaxy {
         lefrani.earthRadiusMultiplier = 20f;
         lefrani.gravitationalMultiplier = 20f;
         lefrani.canGasMine = true;
-        lefrani.skyColor = new Vector3f(0.2f,0.3f,0.5f);
-        lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10,0, 0, 0));
-        lefrani.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(5,0, 0, 0));
+        lefrani.skyColor = new Vector3f(0.2f, 0.3f, 0.5f);
+        lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10, 0, 0, 0));
+        lefrani.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(5, 0, 0, 0));
         galaxy.add(lefrani);
-
-
-
-
 
 
         PlanetDimensionProperties tatoo1 = new PlanetDimensionProperties();
@@ -258,7 +256,7 @@ public class DefaultGalaxy {
         tatoo1.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         tatoo1.emissiveLightColor = new Vector3f(1f, 0.9f, 0.8f);
         tatoo1.radiationIntensity = 2f;
-        tatoo1.emissiveTextureTintColor = new Vector3f(1,1,1).mul(20f);
+        tatoo1.emissiveTextureTintColor = new Vector3f(1, 1, 1).mul(20f);
         tatoo1.position = new Vec3(-600000, -10000, -10000);
         galaxy.add(tatoo1);
 
@@ -271,10 +269,10 @@ public class DefaultGalaxy {
         tatoo2.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
         tatoo2.emissiveLightColor = new Vector3f(1f, 0.8f, 0.2f);
         tatoo2.radiationIntensity = 0.4f;
-        tatoo2.emissiveTextureTintColor = new Vector3f(1.0f,0.3f,0.1f).mul(15f);
+        tatoo2.emissiveTextureTintColor = new Vector3f(1.0f, 0.3f, 0.1f).mul(15f);
         tatoo2.parentDimensionId = tatoo1.dimensionId;
         tatoo2.orbitalDistanceToParent = 0.3f;
-        tatoo2.orbitAxis = new Vec3(1,0.5,-1).normalize();
+        tatoo2.orbitAxis = new Vec3(1, 0.5, -1).normalize();
         galaxy.add(tatoo2);
 
 
@@ -289,13 +287,14 @@ public class DefaultGalaxy {
         tatooine.orbitalBaseOffsetDegrees = 90;
         tatooine.earthRadiusMultiplier = 0.95f;
         tatooine.gravitationalMultiplier = 0.9f;
-        tatooine.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.8,0,0,0));
-        tatooine.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003,0,0,0));
-        tatooine.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2,0,0,0));
-        tatooine.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0,0.05,0,0));
+        tatooine.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.8, 0, 0, 0));
+        tatooine.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003, 0, 0, 0));
+        tatooine.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2, 0, 0, 0));
+        tatooine.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.05, 0, 0));
         tatooine.canVisit = true;
         tatooine.biomePreset = DESERT_WASTELAND.name;
-        tatooine.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_4k_makemake_fictional.png");;
+        tatooine.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_4k_makemake_fictional.png");
+        ;
         tatooine.skyColor = SKY_COLOR_OVERWORLD();
         galaxy.add(tatooine);
 
