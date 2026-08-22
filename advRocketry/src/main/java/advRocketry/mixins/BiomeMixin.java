@@ -37,6 +37,11 @@ public abstract class BiomeMixin {
             return;
         }
 
+        if (!blockstate.getFluidState().isSource()) {
+            ci.setReturnValue(false);
+            return;
+        }
+
 
         if (level instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
             double temp = dimension.getCurrentTemp();
