@@ -23,7 +23,7 @@ public class GasRegistry {
         gases.put(nitrogen, new Gas(nitrogen, 63, 77, Fluids.NITROGEN.get(), Blocks.NITROGEN_BLOCK.get(),0));
         gases.put(methane, new Gas(methane, 91, 111, Fluids.METHANE.get(), Blocks.METHANE_BLOCK.get(),20000));
         gases.put(co2, new Gas(co2, 195, 195, Fluids.CO2.get(), Blocks.CO2_BLOCK.get(),1000));
-        gases.put(water, new Gas(water, 273, 373, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.block.Blocks.WATER, 5000));
+        gases.put(water, new Gas(water, 273, 373, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.block.Blocks.WATER, 1000));
     }
 
     public static double getInsulationBonus(String gas, double in_atm) {
