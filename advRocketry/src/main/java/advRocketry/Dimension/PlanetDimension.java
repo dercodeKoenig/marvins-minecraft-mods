@@ -420,7 +420,7 @@ public class PlanetDimension extends Dimension {
         // adjust for custom fluid
         double heightAboveCustomFluidLevel = maxSeaLevel - properties().customSeaFluidLevel;
         if (heightAboveCustomFluidLevel >= 0)
-            // if sea level is just slightly above custom fluid level, ocean fraction is signifiantly reduced
+            // if sea level is just slightly above custom fluid level (eg 0.2 blocks), ocean fraction is signifiantly reduced
             relativeSeaLevel *= Math.min(1, heightAboveCustomFluidLevel);
         else {
             // custom fluid is above sea level, no oceans
