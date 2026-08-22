@@ -64,10 +64,8 @@ public class CompositionFluidLiquidBlock extends LiquidBlock {
 
         // Only count SOURCE blocks (LEVEL == 0 in LiquidBlock, or check fluidState.isSource())
         if (state.getFluidState().isSource()) {
-            if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-                if (!Objects.equals(oldState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE)) {
-                    API.addLiquidInBuckets(level.dimension().location(),gasId,1);
-                }
+            if (!Objects.equals(oldState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_PLACE)) {
+                API.addLiquidInBuckets(level.dimension().location(), gasId, 1);
             }
         }
     }
@@ -81,10 +79,8 @@ public class CompositionFluidLiquidBlock extends LiquidBlock {
         // Only remove composition if the block being removed was a source block
         // Only air removal is valid, no replacement by placing blocks in
         if (state.getFluidState().isSource() && newState.isAir()) {
-            if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-                if (!Objects.equals(newState.getBlock(), state.getBlock()) && !state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
-                    API.addLiquidInBuckets(level.dimension().location(),gasId,-1);
-                }
+            if (!state.getValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
+                API.addLiquidInBuckets(level.dimension().location(), gasId, -1);
             }
         }
     }
