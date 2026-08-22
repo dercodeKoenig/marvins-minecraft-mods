@@ -100,8 +100,7 @@ void main() {
         discard;
 
     float alphaMultiplier = 1;
-    // TODO: tint color?, specular color?
-            // TODO: on local planet, fade out ring when vdotn = 0 to avoid rendering problems when its too thin
+    // TODO: tint color?
 
     vec4 baseColor = texture(Sampler0, texcoord);
     vec3 baseColorLinRGB = pow(baseColor.rgb, vec3(2.2));
@@ -112,6 +111,18 @@ void main() {
     vec3 N = gl_FrontFacing ? N0 : -N0;
 
     vec3 V = normalize(viewDir);
+
+    // Edge-on fade: the flat ring mesh collapses to ~0
+    // projected area when the ring normal is perpendicular to the view, and the
+    // rasterizer then draws a 1px "grid" of degenerate fragments along the quad
+    // edges. Fade alpha toward 0 there (physically a flat ring vanishes edge-on)
+    // so the slivers are invisible; the limb-brightening boost below is also
+    // damped to 0 at the exact edge. cosViewAngle: 1 = face-on, 0 = edge-on.
+    float cosViewAngle = abs(dot(N, V));
+    float ringVisibility = smoothstep(0.0, 0.05, cosViewAngle);
+    if (ringVisibility < 0.005) {
+        discard; // kill the exact-90deg grid + any depth fight with the planet
+    }
 
     vec3 U = normalize(localUpUniverseSpace);
 
@@ -166,7 +177,8 @@ void main() {
         // but rings are not a solid surface so allow for some backlight
         float diffuse = pow(max(0, NdotL * 0.5 + 0.5), 3);
         // when view from side the optical depth is larger, so i make it a bit more bright
-        diffuse *= 1 + 8 * pow((1 - abs(NdotV)), 4);
+        // tied to cosViewAngle and damped to 0 at the exact edge (matches the fade)
+        diffuse *= 1.0 + 8.0 * pow(1.0 - cosViewAngle, 4.0) * cosViewAngle;
         totalColor+= diffuse * C1 * baseColorLinRGB;
 
         // transmission
@@ -207,6 +219,6 @@ void main() {
 
     totalColor *= atmFilter;
 
-    fragColor = vec4(totalColor, alpha);
+    fragColor = vec4(totalColor, alpha * ringVisibility);
 
 }
