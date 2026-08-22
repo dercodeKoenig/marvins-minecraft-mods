@@ -207,10 +207,6 @@ public class WorldEvents {
                 // until the xz position had its sea level adjusted or there can be leftover sources when sea level goes down again
                 // ok, so very important, the event position is the fucking neighbor of the block in question
                 // and because this bullshit event doesnt provide a direction, i will check if any block around here is yet to be adjusted
-
-                // because when it makes a source and the chunk stops ticking while increasing sea level,
-                // and sea level goes down again, this source is not registered in the chunk tag,
-                // and this would cause it to not be considered "ocean" when the sea level is adjusted lower
                 for (Direction direction : List.of(Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH)) {
                     BlockPos positionPossiblyInQuestion = e.getPos().relative(direction);
                     ChunkAccess chunk = level.getChunk(positionPossiblyInQuestion);
