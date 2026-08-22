@@ -90,7 +90,7 @@ public class PlanetEvents {
                     BlockState state = serverLevel.getBlockState(pos);
 
                     // freeze water if possible, after the sea level is adjusted
-                    if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
+                    if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && state.getFluidState().isSource() && shouldFreezeWater) {
                         serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 3);
                     }
                 }
