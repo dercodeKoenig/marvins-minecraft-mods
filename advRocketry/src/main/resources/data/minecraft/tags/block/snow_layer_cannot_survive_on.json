@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "adv_rocketry:crystal_blue",
+    "adv_rocketry:crystal_green",
+    "adv_rocketry:crystal_orange",
+    "adv_rocketry:crystal_purple",
+    "adv_rocketry:crystal_red",
+    "adv_rocketry:crystal_yellow"
+  ]
+}
