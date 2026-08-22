@@ -91,7 +91,7 @@ public class DefaultGalaxy {
         jupiter.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "jupiter");
         jupiter.parentDimensionId = sun.dimensionId;
         jupiter.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_jupiter.png");
-        jupiter.orbitalDistanceToParent = 5f;
+        jupiter.orbitalDistanceToParent = 5.2f;
         jupiter.earthRadiusMultiplier = 10f;
         jupiter.gravitationalMultiplier = 30f;
         jupiter.canGasMine = true;
@@ -105,8 +105,8 @@ public class DefaultGalaxy {
         europa.parentDimensionId = jupiter.dimensionId;
         europa.dayTimeReference = sun.dimensionId;
         europa.currentTemp = 100;
+        europa.baseEnergyGain = 0.01f;
         europa.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_europa.png");
-        ;
         europa.orbitalDistanceToParent = 0.02f;
         europa.orbitalBaseOffsetDegrees = 90;
         europa.earthRadiusMultiplier = 0.5f;
@@ -123,7 +123,7 @@ public class DefaultGalaxy {
         saturn.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "saturn");
         saturn.parentDimensionId = sun.dimensionId;
         saturn.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_saturn.png");
-        saturn.orbitalDistanceToParent = 8f;
+        saturn.orbitalDistanceToParent = 9.5f;
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 8f;
         saturn.canGasMine = true;
@@ -138,9 +138,8 @@ public class DefaultGalaxy {
         titan.parentDimensionId = saturn.dimensionId;
         titan.dayTimeReference = sun.dimensionId;
         titan.currentTemp = 100;
-        titan.baseEnergyGain = 0.02f;
+        titan.baseEnergyGain = 0.001f;
         titan.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_titan.png");
-        ;
         titan.orbitalDistanceToParent = 0.01f;
         titan.orbitalBaseOffsetDegrees = 180;
         titan.earthRadiusMultiplier = 0.5f;
@@ -151,28 +150,6 @@ public class DefaultGalaxy {
         titan.biomePreset = MOON.name;
         galaxy.add(titan);
 
-/*
-        PlanetDimensionProperties kalos = new PlanetDimensionProperties();
-        kalos.name = "Kalos";
-        kalos.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "kalos");
-        kalos.parentDimensionId = sun.dimensionId;
-        kalos.dayTimeReference = sun.dimensionId;
-        kalos.currentTemp = 300;
-        kalos.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_alpine-1.png");
-        kalos.orbitalDistanceToParent = 2f;
-        kalos.orbitalBaseOffsetDegrees = 0;
-        kalos.earthRadiusMultiplier = 0.8f;
-        kalos.gravitationalMultiplier = 0.7f;
-        kalos.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5, 0, 0f, 0));
-        kalos.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3, 0, 0f, 0));
-        kalos.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.001, 0, 0f, 0));
-        kalos.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.003, 0, 0f, 0));
-        kalos.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0.48, 0f, 0));
-        kalos.skyColor = SKY_COLOR_OVERWORLD();
-        kalos.canVisit = true;
-        kalos.biomePreset = ICEWORLD.name;
-        galaxy.add(kalos);
-*/
 
 
         PlanetDimensionProperties priate = new PlanetDimensionProperties();
@@ -187,7 +164,6 @@ public class DefaultGalaxy {
         priate.emissiveTextureTintColor = new Vector3f(1, 1, 1).mul(20f);
         priate.position = new Vec3(500000, 1000, -90000);
         galaxy.add(priate);
-
 
         PlanetDimensionProperties jestefad = new PlanetDimensionProperties();
         jestefad.name = "Jestefad";
@@ -210,20 +186,20 @@ public class DefaultGalaxy {
         mustafar.parentDimensionId = jestefad.dimensionId;
         mustafar.dayTimeReference = priate.dimensionId;
         mustafar.currentTemp = 300;
-        mustafar.baseEnergyGain = 0.11f;
+        mustafar.baseEnergyGain = 0.2f;
         mustafar.orbitalDistanceToParent = 0.02f;
         mustafar.orbitalBaseOffsetDegrees = 0;
         mustafar.earthRadiusMultiplier = 0.9f;
         mustafar.gravitationalMultiplier = 0.9f;
         mustafar.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5, 0, 0f, 0));
         mustafar.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.02, 0, 0f, 0));
+        mustafar.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(0.0001, 0, 0f, 0));
         mustafar.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.2, 0, 0f, 0));
         mustafar.canVisit = true;
         mustafar.biomePreset = MUSTAFAR.name;
         mustafar.customSeaFluid = ResourceLocation.parse("minecraft:lava");
         mustafar.customSeaFluidLevel = 52;
         mustafar.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_volcanic-1.png");
-        ;
         mustafar.cloudValueOverwrite = 0.7f;
         mustafar.skyDarken = 0.7f;
         mustafar.skyColor = SKY_COLOR_OVERWORLD(); // maybe a bit darker? but thats what extinction can do
@@ -275,7 +251,6 @@ public class DefaultGalaxy {
         tatoo2.orbitAxis = new Vec3(1, 0.5, -1).normalize();
         galaxy.add(tatoo2);
 
-
         PlanetDimensionProperties tatooine = new PlanetDimensionProperties();
         tatooine.name = "Tatooine";
         tatooine.description = "";
@@ -294,10 +269,42 @@ public class DefaultGalaxy {
         tatooine.canVisit = true;
         tatooine.biomePreset = DESERT_WASTELAND.name;
         tatooine.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_4k_makemake_fictional.png");
-        ;
         tatooine.skyColor = SKY_COLOR_OVERWORLD();
         galaxy.add(tatooine);
 
+
+        PlanetDimensionProperties hoth_star = new PlanetDimensionProperties();
+        hoth_star.name = "Hoth Star";
+        hoth_star.dimensionId = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "hoth_star");
+        hoth_star.gravitationalMultiplier = 50;
+        hoth_star.earthRadiusMultiplier = 70;
+        hoth_star.rotationAxis = new Vec3(0, 1, 0).normalize();
+        hoth_star.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_8k_sun_grayscale.png");
+        hoth_star.emissiveLightColor = new Vector3f(1f, 0.7f, 0.5f);
+        hoth_star.radiationIntensity = 1f;
+        hoth_star.emissiveTextureTintColor = new Vector3f(1, 0.7f, 0.2f).mul(20f);
+        hoth_star.position = new Vec3(-300000, -30000, 100000);
+        galaxy.add(hoth_star);
+
+        PlanetDimensionProperties hoth = new PlanetDimensionProperties();
+        hoth.name = "Hoth";
+        hoth.dimensionId = ResourceLocation.fromNamespaceAndPath(Main.MODID, "hoth");
+        hoth.parentDimensionId = hoth_star.dimensionId;
+        hoth.dayTimeReference = hoth_star.dimensionId;
+        hoth.currentTemp = 300;
+        hoth.texture = ResourceLocation.fromNamespaceAndPath("adv_rocketry", "textures/planet/baked_4k_eris_fictional.png");
+        hoth.orbitalDistanceToParent = 0.9f;
+        hoth.orbitalBaseOffsetDegrees = 0;
+        hoth.earthRadiusMultiplier = 0.9f;
+        hoth.gravitationalMultiplier = 0.9f;
+        hoth.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.6, 0, 0f, 0));
+        hoth.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(0.3, 0, 0f, 0));
+        hoth.atmosphereComposition.put(GasRegistry.co2, new PlanetDimensionProperties.GasProperty(0.001, 0, 0f, 0));
+        hoth.atmosphereComposition.put(GasRegistry.water, new PlanetDimensionProperties.GasProperty(0, 0, 0.4f, 0));
+        hoth.skyColor = SKY_COLOR_OVERWORLD();
+        hoth.canVisit = true;
+        hoth.biomePreset = ICEWORLD.name;
+        galaxy.add(hoth);
 
         List<String> dimensionProperties = new ArrayList<>();
         for (DimensionProperties i : galaxy) {
