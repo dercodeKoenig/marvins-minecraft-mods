@@ -157,7 +157,7 @@ public class SpaceMapScreen extends Screen {
                 description += "Water level: " + String.format("%.2f", planet.getGasProperty(GasRegistry.water).getSeaLevel()) + "\n";
                 description += "Ocean Fraction: " + String.format("%.2f", planet.getOceanFraction(null)) + "\n";
                 description += "Clouds: " + String.format("%.2f", planet.computeCloudValue()) + "\n";
-                description += "Humidity: " + String.format("%.2f", planet.getHumidity(GasRegistry.water)) + "\n";
+                description += "Humidity: " + String.format("%.2f", planet.getSumHumidity()) + "\n";
                 GasRegistry.Gas water = GasRegistry.gases.get(GasRegistry.water);
                 description += "Liquid water possible: " + (planet.getCurrentTemp() < water.getBoilingTemp(planet.getAtmosphereDensity()) && planet.getCurrentTemp() > water.getFreezeTemp(planet.getAtmosphereDensity())) + "\n\n";
             }
@@ -193,7 +193,7 @@ public class SpaceMapScreen extends Screen {
             double atmCo2 = planet.getGasProperty(GasRegistry.co2).in_atm;
             double atmMethane = planet.getGasProperty(GasRegistry.methane).in_atm;
             double atmWater = planet.getGasProperty(GasRegistry.water).in_atm;
-            double humidity = planet.getHumidity(GasRegistry.water);
+            double humidity_water = planet.getHumidity(GasRegistry.water);
             double cloudValue = planet.computeCloudValue();
             double frozenGasCoverage = planet.getFrozenGasCoverage();
             double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
@@ -205,11 +205,12 @@ public class SpaceMapScreen extends Screen {
                 description += "Surface mostly covered in ice, significantly reducing energy gain.\n\n";
             }
 
-            if (oceanFractionWater < 0.2 && humidity > 0.5)
+            if (oceanFractionWater < 0.2 && humidity_water > 0.5)
                 description += "Extreme heat has forced most water into the atmosphere.\n\n";
 
-            if (humidity > 0.1)
+            if (humidity_water > 0.5)
                 description += "Humidity contributes to greenhouse effect\n\n";
+
             if (cloudValue > 0.1)
                 description += "Clouds reflect sunlight, reducing energy gain\n\n";
 
@@ -233,7 +234,7 @@ public class SpaceMapScreen extends Screen {
             if (atmMethane > 0.0001) {
                 description += "Methane in the atmosphere significantly increases greenhouse effect.\n\n";
             }
-            if (atmWater > 0.0001) {
+            if (atmWater > 0.01) {
                 description += "Steam is a strong greenhouse gas.\n";
                 if (planet.getCurrentTemp() < 350)
                     description += "Low atmosphere pressure turns water into steam at lower temperatures.\n";
