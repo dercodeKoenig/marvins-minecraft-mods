@@ -193,9 +193,9 @@ public class PlanetDimension extends Dimension {
         if (co2 > 0.03 * pressure)
             problems.add(SurvivalProblem.TOO_MUCH_CO2);
 
-        if (getCurrentTemp() < 273 - 30)
+        if (getCurrentTemp() < 273 - 50)
             problems.add(SurvivalProblem.TOO_COLD);
-        if (getCurrentTemp() > 273 + 40)
+        if (getCurrentTemp() > 273 + 50)
             problems.add(SurvivalProblem.TOO_HOT);
 
         return problems;
@@ -441,7 +441,15 @@ public class PlanetDimension extends Dimension {
         double baseCapacity = Math.exp(tempDifference / 100.0);
 
         // Cap it so we don't get infinite capacity at crazy high temperatures
-        return Math.min(baseCapacity, 1000.0);
+        return Math.min(baseCapacity, 1);
+    }
+
+    public double getSumHumidity() {
+        double sum = 0;
+        for (String gas : properties().atmosphereComposition.keySet()){
+            sum += getHumidity(gas);
+        }
+        return sum;
     }
 
     public double getHumidity(String gas) {
@@ -675,13 +683,14 @@ public class PlanetDimension extends Dimension {
     }
 
     public void tickTemperature() {
-        if (isStar()) {
-            properties().currentTemp = getRadiationIntensity() * 3000;
-            return;
-        }
 
         if (lastSyncedTemperature100 != (int) (properties().currentTemp * 100)) {
             setRequiresSync();
+        }
+
+        if (isStar()) {
+            properties().currentTemp = getRadiationIntensity() * 3000;
+            return;
         }
 
         // Current state
@@ -690,7 +699,7 @@ public class PlanetDimension extends Dimension {
         // --- UNIVERSAL GAME CONSTANTS ---
         // This is the Stefan-Boltzmann constant scaled for the game's energy units.
         // It determines how aggressively planets try to radiate heat away.
-        final double EMISSION_CONSTANT = 0.00000000032;
+        final double EMISSION_CONSTANT = 0.0000000004;
 
         // 1. CALCULATE INCOMING ENERGY (Ein)
         double solarFlux = 0.0;
@@ -708,11 +717,11 @@ public class PlanetDimension extends Dimension {
         // base albedo
         double albedo = 0.3;
         // ice reflects light
-        albedo += (getFrozenGasCoverage() * 0.6);
+        albedo += (getFrozenGasCoverage() * 0.5);
         // oceans are dark ( usually )
         albedo += -(oceanFraction * 0.1);
         // clouds reflect light
-        albedo += Math.clamp(computeCloudValue(), 0, 1) * 0.4;
+        albedo += Math.clamp(computeCloudValue(), 0, 1) * 0.5;
         // final value clip
         albedo = Math.max(0.05, Math.min(albedo, 0.9));
 
@@ -723,12 +732,12 @@ public class PlanetDimension extends Dimension {
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double insulation = 1.0;
         for (String id : List.of(GasRegistry.co2, GasRegistry.methane, GasRegistry.water)) {
-            double bonus = GasRegistry.getInsulationBonus(id, getGasProperty(id).in_atm);
+            double vapor_atm_estimate = getHumidity(id) / 300;
+            double total_atm = getGasProperty(id).in_atm + vapor_atm_estimate;
+            double bonus = GasRegistry.getInsulationBonus(id, total_atm);
             insulation += bonus;
         }
 
-        // Water Vapor Feedback
-        insulation += Math.min(getHumidity(GasRegistry.water), 50);
 
         // 3. CALCULATE OUTGOING ENERGY (Eout)
         // Stefan-Boltzmann Law: planets radiate heat proportional to T^4.
@@ -740,7 +749,7 @@ public class PlanetDimension extends Dimension {
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
         thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
-        //thermalMass = 0.2; // TODO: remove after testing
+        //thermalMass = 0.1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
