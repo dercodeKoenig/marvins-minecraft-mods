@@ -4,8 +4,10 @@ import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -61,9 +63,24 @@ public class PlanetEvents {
         }
     }
 
-    // called from server level mixin
-    // performs initial full terraforming on chunk load, deferred to first tick to prevent infinite chunk loading
-    public static void firstChunkTick(PlanetDimension planet, ServerLevel serverLevel, LevelChunk chunk) {
+    // performs initial full terraforming on chunk load
+    // runs for the 3x3 chunk region around any chunk thats created
+    public static void maybePerformInitialTerraforming(PlanetDimension planet, ServerLevel serverLevel, int chunkX, int chunkZ) {
+
+        // check if neighbor chunks are already loaded to prevent infinite chunk loading
+        for (int x = -1; x <= 1; x++)
+            for (int z = -1; z <= 1; z++)
+                if (!serverLevel.hasChunk(chunkX + x, chunkZ + z))
+                    return; // neighbor not loaded
+
+        ChunkAccess chunk = serverLevel.getChunk(chunkX, chunkZ);
+        String key = "had_initial_terraforming_tick";
+        CompoundTag info = ChunkUtils.getEntryOrNew(chunk, key);
+        if (info.contains("true")) return; // already handled
+        info.put("true", new CompoundTag());
+        ChunkUtils.setEntry(chunk, key, info);
+        //System.out.println("initial terraforming at " + chunkX + ":" + chunkZ+":"+serverLevel);
+
         double planetTemp = planet.getCurrentTemp();
         double atmLevel = planet.getAtmosphereDensity();
         boolean shouldFreezeWater = planetTemp < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel) - 1;
@@ -116,6 +133,17 @@ public class PlanetEvents {
                         TerraformingSystem.storeGeneratedBiome(TerraformingSystem.getCurrentSurfaceBiome(serverLevel, x, z), chunk, x, z);
                     }
                 }
+
+                // trigger neighbor to maybe run initial terraforming
+                // run as tick task to avoid deadlocks
+                MinecraftServer server = serverLevel.getServer();
+                server.tell(new TickTask(server.getTickCount() + 100, () -> {
+                    ChunkPos currentPos = chunk.getPos();
+                    for (int x = -1; x <= 1; x++)
+                        for (int z = -1; z <= 1; z++) {
+                            maybePerformInitialTerraforming(planet, serverLevel, currentPos.x + x, currentPos.z + z);
+                        }
+                }));
             }
         }
     }
