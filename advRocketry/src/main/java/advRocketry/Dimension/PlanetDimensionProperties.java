@@ -28,12 +28,12 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public int targetDayLength = 24000; // set negative or 0 for fixed time
     public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
     public float baseEnergyGain = 0; // the base energy gain, maybe by hot core or gravity force pulling on the planet
-
     public boolean canVisit = false;
     public boolean canGasMine = false;
     public boolean isKnown = false; // if false it has to be discovered and unlocked in observatory
     public int dataRequiredForUnlock = 2000; // how much data of any type is required to unlock it on the planet
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
+    public HashMap<String, Double> laserOres = DEFAULT_ORES(); // what a laser drill can mine here and the probability of it
 
     // world gen related configs
     // when selecting a modded dimension, all this is ignored
@@ -74,6 +74,19 @@ public class PlanetDimensionProperties extends DimensionProperties {
 
     public static Vector3f SKY_COLOR_OVERWORLD() {
         return new Vector3f(0.45f, 0.7f, 1f);
+    }
+
+    public static HashMap<String, Double> DEFAULT_ORES() {
+        HashMap<String, Double> map = new HashMap<>();
+        map.put("minecraft:gold_ore", 0.005);
+        map.put("minecraft:iron_ore", 0.02);
+        map.put("minecraft:coal_ore", 0.05);
+        map.put("minecraft:lapis_ore", 0.002);
+        map.put("minecraft:diamond_ore", 0.01);
+        map.put("minecraft:redstone_ore", 0.003);
+        map.put("minecraft:emerald_ore", 0.01);
+        map.put("minecraft:nether_quartz_ore", 0.001);
+        return map;
     }
 
     public static class GasProperty {
