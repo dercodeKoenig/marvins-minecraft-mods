@@ -93,7 +93,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
         public static double maxSeaLevel = 120;
         public double in_atm;
         public double frozen_surface;
-        public double frozen_deep_below_surface;
+        public double frozen_deep_below_surface; // TODO: maybe convert this to a general gas deposit for the laser miner to mine?
         public double liquid;
 
         public int worldGenSeaLevel;
