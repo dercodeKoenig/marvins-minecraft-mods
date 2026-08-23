@@ -44,6 +44,7 @@ public class TerraformingSystem {
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon"), advRocketry.Registry.Blocks.MOON_TURF.get());
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon_dark"), advRocketry.Registry.Blocks.MOON_TURF_DARK.get());
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "ice_crystals"), Blocks.SNOW_BLOCK);
+        topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "volcano"), Blocks.COBBLESTONE);
 
 
         // --- Forests & Woods ---

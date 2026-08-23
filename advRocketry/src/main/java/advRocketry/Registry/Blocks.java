@@ -112,4 +112,7 @@ public class Blocks {
     public static final Supplier<Block> CRYSTAL_PURPLE = BLOCKS.register("crystal_purple", () -> new Block(
             BlockBehaviour.Properties.of().strength(1.0f, 6.0f).noOcclusion().pushReaction(PushReaction.DESTROY)));
 
+    // volcano biome
+    public static final Supplier<Block> VOLCANIC_DEPOSIT = BLOCKS.register("volcanic_deposit", () -> new VolcanicDepositBlock());
+
 }

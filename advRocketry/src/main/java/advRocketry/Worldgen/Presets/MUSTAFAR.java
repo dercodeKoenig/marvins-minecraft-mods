@@ -16,7 +16,7 @@ public class MUSTAFAR {
                 { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno" },
                 { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano" },
                 { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains" },
-                { "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcano" }
+                { "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "adv_rocketry:volcano", "adv_rocketry:volcano" }
         };
 
         // --- PEAKS ---
@@ -26,8 +26,8 @@ public class MUSTAFAR {
                 { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
                 { "minecraft:basalt_deltas", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
                 { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" }
+                { "biomesoplenty:volcano", "biomesoplenty:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano" },
+                { "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano" }
         };
 
         // --- AQUATIC & EDGES ---
@@ -57,7 +57,7 @@ public class MUSTAFAR {
         steppesOverride.biome2 = "biomesoplenty:wasteland";
         steppesOverride.river1 = "minecraft:basalt_deltas";
         steppesOverride.peak1 = "biomesoplenty:volcano";
-        steppesOverride.peak2 = "biomesoplenty:volcano";
+        steppesOverride.peak2 = "adv_rocketry:volcano";
 
         steppesOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
         steppesOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.DRY, BiomeConfig.Humidity.VERY_DRY));
@@ -70,10 +70,10 @@ public class MUSTAFAR {
         // Low erosion means highly mountainous, jagged terrain.
         BiomeConfig.BiomeDefinition cragsOverride = new BiomeConfig.BiomeDefinition();
         cragsOverride.biome1 = "biomesoplenty:crag";
-        cragsOverride.biome2 = "biomesoplenty:dead_forest";
+        cragsOverride.biome2 = "biomesoplenty:volcanic_plains";
         cragsOverride.river1 = "minecraft:basalt_deltas";
         cragsOverride.peak1 = "biomesoplenty:volcano";
-        cragsOverride.peak2 = "biomesoplenty:volcano";
+        cragsOverride.peak2 = "adv_rocketry:volcano";
 
         // Shares the same climate as the Steppes, but separated entirely by the erosion parameter.
         cragsOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.MID, BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
@@ -91,7 +91,7 @@ public class MUSTAFAR {
         deadForestOverride.biome2 = "biomesoplenty:old_growth_dead_forest";
         deadForestOverride.river1 = "minecraft:basalt_deltas";
         deadForestOverride.peak1 = "biomesoplenty:volcano";
-        deadForestOverride.peak2 = "biomesoplenty:volcano";
+        deadForestOverride.peak2 = "adv_rocketry:volcano";
 
         deadForestOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.LOW, BiomeConfig.Temperature.MID));
         deadForestOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.VERY_WET, BiomeConfig.Humidity.WET));
