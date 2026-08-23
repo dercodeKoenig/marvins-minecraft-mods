@@ -43,9 +43,6 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public String biomePreset = null;
 
     // TODO (maybe)
-    //public boolean generateVolcanos = false;
-
-    // TODO (maybe)
     // when terraforming picks a new preset, it iterates every climate point and when original preset has a frozen biome at this point,
     // it should be injected into the new preset so you can pin biomes to never terraform.
     // For example maybe you want to keep hot springs biome from original preset no matter what generates next.
