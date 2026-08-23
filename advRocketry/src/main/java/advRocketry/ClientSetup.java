@@ -85,8 +85,8 @@ public class ClientSetup {
             shaderUtils.blitPostProcessingShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_post_processing"), shaderUtils.POSITION);
             event.registerShader(shaderUtils.blitPostProcessingShader, x -> {});
 
-            shaderUtils.blitAddShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_add"), shaderUtils.POSITION);
-            event.registerShader(shaderUtils.blitAddShader, x -> {});
+            shaderUtils.blitShader = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit"), shaderUtils.POSITION);
+            event.registerShader(shaderUtils.blitShader, x -> {});
 
             shaderUtils.blitExtractBright = new ShaderInstance(event.getResourceProvider(), ResourceLocation.fromNamespaceAndPath(Main.MODID, "blit_extract_bright"), shaderUtils.POSITION);
             event.registerShader(shaderUtils.blitExtractBright, x -> {});

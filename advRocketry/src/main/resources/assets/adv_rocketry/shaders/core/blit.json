@@ -1,0 +1,7 @@
+{
+    "vertex": "adv_rocketry:blit",
+    "fragment": "adv_rocketry:blit",
+    "samplers": [
+        { "name": "Frame" }
+    ]
+}

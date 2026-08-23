@@ -48,7 +48,5 @@ for (int i = 0; i < 5; i++) {
 noise = pow(max(0, noise), 5.0);
 noise *= 0.5 * intensity;
 
-// Optional: Tint it a warp color like blue/purple here instead of white
-// atm rendertarget extpects alpha to have the atmosphere density
-fragColor = vec4(noise * 0.2, noise * 0.5, noise * 1.5, 0.0);
+fragColor = vec4(noise * 0.2, noise * 0.5, noise * 1.5, noise*0.1);
 }

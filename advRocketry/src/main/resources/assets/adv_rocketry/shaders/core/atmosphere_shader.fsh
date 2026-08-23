@@ -30,9 +30,9 @@ void main() {
     float verticalDot = dot(U, V);
 
     // how much is the fragment at the horizon, used to scale sunrise color vertically
-    float horizonFactor = pow(1 - max(0,verticalDot), 8);
+    float horizonFactor = pow(1 - max(0,verticalDot), 6);
 
-    // how high relative to sky height is the player
+    // how high relative to sky height is the player (0 when near space, 1 on ground)
     float playerHeight = clamp((planetSkyHeight - playerHeight) / planetSkyHeight, 0, 1);
 
     // atm thickness for this fragment
@@ -64,29 +64,29 @@ void main() {
         float sunDot = dot(starDir, V);
 
         // a fancy curve based on the height of the star above the horizon (dot product to up vector)
-        // note that future gamma correction will make dark areas brighter, so i adjust the pow factor to compensate it
         // it is not about beeing physically correct, it just has to look good enough
-        float perStarBrightnessMultiplier = pow(max(0, (sunUp+0.3)/1.3), 2);
+        float perStarBrightnessMultiplier = max(0, (sunUp+0.2)/1.2);
         // apply intensity + distance modifier
         perStarBrightnessMultiplier *= starColor.a / (starDistance * starDistance);
         // if a fragment is closely aligned with the sun, make it more bright so that the area around the sun is brighter
         perStarBrightnessMultiplier *= 1 + pow(max(0,sunDot), 2) * AtmDensity;
 
         // glow stronger where the sun is
-        float sunriseGlowMultiplier = (sunDot + 1) / 2;// transform -1 - 1 to 0 - 1
-
-        // glowing sunrise color to be added to the base color
-        vec3 sunriseGlow =
-        SunRiseColorBase *
-        starColor.rgb *
-        sunriseGlowMultiplier * // glow more where the sun is aligned with the fragment
+        float sunriseGlowMultiplier =
+        (sunDot + 1) / 2 * // glow more where the sun is aligned with the fragment
         pow(sunAtHorizon, 10) * // glow more when sun is at horizon
         horizonFactor // glow more when the fragment is at horizon (you dont want glow high above you)
         ;
 
+        // glowing sunrise color to be added to the base color
+        vec3 sunriseGlow =
+        SunRiseColorBase *
+        starColor.rgb
+        ;
+
         // add
-        cumulativeSkyColor += SkyColorBase * perStarBrightnessMultiplier;
-        cumulativeSunriseGlow += sunriseGlow * perStarBrightnessMultiplier;
+        cumulativeSkyColor += SkyColorBase * (1-sunriseGlowMultiplier) * pow(perStarBrightnessMultiplier, 0.5);
+        cumulativeSunriseGlow += sunriseGlow * sunriseGlowMultiplier * pow(perStarBrightnessMultiplier, 2);
     }
 
     // Apply global extinction once after all lights are added
@@ -98,17 +98,14 @@ void main() {
     // Add Fog
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
-    float fogFactor = clamp((-verticalDot+0.2) * 4 - 0.5 * (1 - playerHeight), 0, 1);
+    float fogFactor = clamp((-verticalDot+0.15) * 4 - 0.5 * (1 - playerHeight), 0, 1);
     fogFactor = pow(smoothStep(fogFactor), 4);
-    // the fog should not be modified in any way because it has to match the terrain fog color
-    // simple blend will do
 
     // blend skycolor and fog color and add sunrise glow
     cumulativeSkyColor =
         cumulativeSkyColor * (1 - fogFactor)
         + FogColor * fogFactor
-        + cumulativeSunriseGlow;
+        + cumulativeSunriseGlow * (1 - fogFactor*0.9);
 
-    // encode atmThickness in alpha channel to be potentially used in future shaders
-    fragColor = vec4(cumulativeSkyColor, atmThickness);
+    fragColor = vec4(cumulativeSkyColor, max(fogFactor, atmThickness*0.1));
 }

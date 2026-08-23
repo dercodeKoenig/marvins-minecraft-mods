@@ -73,7 +73,7 @@ public class SkyRenderer {
             Matrix4f planetMatrix,
             Vector3f eyePos,
             float partialtick
-    ){
+    ) {
         RenderSystem.setShader(shaderUtils::getPlanetAtmShader);
         ShaderInstance shader = RenderSystem.getShader();
 
@@ -173,7 +173,7 @@ public class SkyRenderer {
 
         int totalLights = 0;
         Vec3 myPosition = planetDimension.getPosition(partialtick);
-        if(!planetDimension.isStar()) {
+        if (!planetDimension.isStar()) {
             // stars do not reflect light, this would break visuals in double star systems
             for (ResourceLocation lightSourceId : planetDimension.getCurrentMainStars()) {
                 Dimension star = DimensionManager.INSTANCE_CLIENT.get(lightSourceId);
@@ -199,7 +199,7 @@ public class SkyRenderer {
         vertexBufferPlanet.draw();
         shader.clear();
 
-        if(targetAtmDensity > 0 && !isMyDimension)
+        if (targetAtmDensity > 0 && !isMyDimension)
             renderPlanetAtmosphere(
                     planetDimension,
                     proj,
@@ -293,7 +293,7 @@ public class SkyRenderer {
         //INSTANCE.createStarBackgroundBuffer();
     }
 
-    public static void ensureMipmapTexture(ResourceLocation texture){
+    public static void ensureMipmapTexture(ResourceLocation texture) {
         // ensure it is using the mipmap texture
         TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
         if (!(texturemanager.getTexture(texture) instanceof MipmapSimpleTexture)) {
@@ -727,12 +727,22 @@ public class SkyRenderer {
         // add atmosphere and stars/planets together
         PlanetsStarsAndAtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        RenderSystem.setShader(shaderUtils::getBlitAddShader);
+        RenderSystem.setShader(shaderUtils::getBlitShader);
         shader = RenderSystem.getShader();
-        shader.setSampler("Frame1", PlanetsAndStarsTarget.getColorTextureId());
-        shader.setSampler("Frame2", AtmosphereTarget.getColorTextureId());
+
+        // render planets / stars background first
+        shader.setSampler("Frame", PlanetsAndStarsTarget.getColorTextureId());
         shader.apply();
         vertexBufferSquare.draw();
+
+        // render atmosphere on top
+        TRANSLUCENT_TRANSPARENCY.setupRenderState();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE,GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        shader.setSampler("Frame", AtmosphereTarget.getColorTextureId());
+        shader.apply();
+        vertexBufferSquare.draw();
+        TRANSLUCENT_TRANSPARENCY.clearRenderState();
+
         shader.clear();
 
         // blit extract bright regions
@@ -812,7 +822,12 @@ public class SkyRenderer {
 
         RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
 
-        // render atmosphere first
+        // render planets
+        PlanetsAndStarsTarget.bindWrite(true);
+        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
+        renderSpaceBodies(proj, view, worldMatrix, partialtick);
+
+        // render atmosphere at lower resolution
         AtmosphereTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
         if (myCurrentSpaceObject instanceof PlanetDimension)
@@ -822,13 +837,7 @@ public class SkyRenderer {
             // space station has now atm, but maybe warp travel effects
             renderWarpTravelBox(proj, view, worldMatrix, partialtick);
 
-        // now render the planets and stars
-        PlanetsAndStarsTarget.bindWrite(true);
-        RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);
-        renderSpaceBodies(proj, view, worldMatrix, partialtick);
-
-
-        // post processing
+        // post processing / blit to screen
         performPostProcessingAndBlitToScreen();
 
 

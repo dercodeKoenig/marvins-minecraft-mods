@@ -53,9 +53,9 @@ public class shaderUtils {
         return blitPostProcessingShader;
     }
 
-    public static ShaderInstance blitAddShader;
-    public static ShaderInstance getBlitAddShader() {
-        return blitAddShader;
+    public static ShaderInstance blitShader;
+    public static ShaderInstance getBlitShader() {
+        return blitShader;
     }
 
     public static ShaderInstance blitExtractBright;
