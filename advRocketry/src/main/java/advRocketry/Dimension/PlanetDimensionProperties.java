@@ -95,6 +95,8 @@ public class PlanetDimensionProperties extends DimensionProperties {
         public double frozen_surface;
         public double frozen_deep_below_surface; // TODO: maybe convert this to a general gas deposit for the laser miner to mine?
         public double liquid;
+        // TODO: maybe not freeze / melt the entire composition at once if we are slightly above / below threshold?
+        //      maybe make a smoooth transition around +-30K so at 5° below freeze, some but not all will freeze
 
         public int worldGenSeaLevel;
 
