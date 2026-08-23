@@ -72,12 +72,33 @@ abstract public class BlockPipe extends Block implements EntityBlock {
             BlockEntity tile = level.getBlockEntity(pos);
             if (tile instanceof EntityPipe pipe) {
                 if (player.isShiftKeyDown()) {
-                    pipe.toggleExtractionMode(hitResult.getDirection());
+                    if (pipe.pumpUpgradeSide == hitResult.getDirection()) {
+                        pipe.installAutoPumpUpgrade(null);
+                    } else {
+                        pipe.toggleExtractionMode(hitResult.getDirection());
+                    }
                 }
-                return InteractionResult.PASS;
+                else {
+                    if (pipe.hasAnyPumpUpgrades()) {
+                        boolean active = pipe.toggleAutoPump();
+                        player.displayClientMessage(net.minecraft.network.chat.Component.literal("Automatic Pump: " + (active ? "ACTIVE" : "INACTIVE")), true);
+                    }
+                }
+                return InteractionResult.SUCCESS;
             }
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof EntityPipe pipe && !pipe.isValidBlockState(newState)) {
+            if (pipe.pumpUpgradeSide != null) {
+                popResource(level, pos, new ItemStack(AUTO_PUMP_UPGRADE.get()));
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override
@@ -113,38 +134,40 @@ abstract public class BlockPipe extends Block implements EntityBlock {
         BlockEntity tile = level.getBlockEntity(pos);
         if (!(tile instanceof EntityPipe pipe)) return state;
 
+        // i am aware that this doesnt update the extension if you place a pump upgrade next to a tenk
+        // because its not a real blockstate change but its not a critical bug
         updateTankCons(pipe, neighborState, direction);
 
-        IFluidHandler fluidHandler = pipe.connections.get(direction).neighborFluidHandler();
-
-        if (fluidHandler != null) {
+        if (pipe.pumpUpgradeSide == direction) {
+            pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
+            state = state.setValue(connections.get(direction), ConnectionState.NONE);
+        } else if (pipe.connections.get(direction).neighborFluidHandler() != null) {
             ConnectionState current = state.getValue(connections.get(direction));
             if (current != ConnectionState.CONNECTED && current != ConnectionState.EXTRACTION)
                 state = state.setValue(connections.get(direction), ConnectionState.CONNECTED);
         } else {
-
             if (neighborState.isFaceSturdy(level, neighborPos, direction.getOpposite())) {
                 state = state.setValue(connections.get(direction), ConnectionState.STRUCTURE);
             } else {
                 state = state.setValue(connections.get(direction), ConnectionState.NONE);
             }
-
             pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
-
         }
+
 
         BlockEntity other = level.getBlockEntity(neighborPos);
         if (other instanceof EntityCrankShaftBase cs &&
                 cs.myType == ICrankShaftConnector.CrankShaftType.SMALL &&
                 cs.getMechanicalBlock(direction.getOpposite()) != null &&
-                cs.getBlockEntity().getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != direction.getAxis()
+                cs.getBlockEntity().getBlockState().getValue(BlockCrankShaftBase.ROTATION_AXIS) != direction.getAxis() &&
+                pipe.pumpUpgradeSide == null
         ) {
-            if (((EntityPipe) tile).crankShaftSide == null) {
-                ((EntityPipe) tile).crankShaftSide = direction;
+            if (pipe.crankShaftSide == null) {
+                pipe.crankShaftSide = direction;
             }
         } else {
-            if (((EntityPipe) tile).crankShaftSide == direction)
-                ((EntityPipe) tile).crankShaftSide = null;
+            if (pipe.crankShaftSide == direction)
+                pipe.crankShaftSide = null;
         }
 
         return state;

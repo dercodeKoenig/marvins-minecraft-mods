@@ -1,5 +1,6 @@
 package BetterPipes;
 
+import BetterPipes.PipeBase.ItemAutoPumpUpgrade;
 import BetterPipes.PipeBase.EntityPipe;
 import BetterPipes.Pipes.BlockIronPipe;
 import BetterPipes.Pipes.BlockWoodenPipe;
@@ -50,6 +51,11 @@ public class Registry {
     public static final Supplier<BlockEntityType<EntityTank>> ENTITY_TANK = BLOCK_ENTITIES.register(
             "entity_tank",
             () -> BlockEntityType.Builder.of(EntityTank::new, TANK.get()).build(null)
+    );
+
+    public static final Supplier<Item> AUTO_PUMP_UPGRADE = ITEMS.register(
+            "auto_pump_upgrade",
+            () -> new ItemAutoPumpUpgrade()
     );
 
     public static void register(IEventBus modBus) {

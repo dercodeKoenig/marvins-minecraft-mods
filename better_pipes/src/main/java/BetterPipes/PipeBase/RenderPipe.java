@@ -908,9 +908,6 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
 
         if (tile.tank.isEmpty()) return;
 
-        UVSet flowing = UVSet.flowing(tile.connections.get(Direction.UP)); // placeholder; overridden per-connection
-        UVSet still;
-
         float u0f = tile.renderData.spriteFLowing.getU0();
         float u1f = tile.renderData.spriteFLowing.getU1();
         float v0f = tile.renderData.spriteFLowing.getV0();
@@ -1335,73 +1332,27 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         LEQUAL_DEPTH_TEST.setupRenderState();
         LIGHTMAP.setupRenderState();
 
-        // ── Crankshaft pump (solids renders before transparent fluid) ────────────────────────────
-        if (tile.crankShaftSide != null && tile.hasAnyExtractionConnections) {
+        // ── Pump rendering (crankshaft-driven AND automatic) ────────────────
+        // The little pump cube + moving inner cube are identical between the two;
+        // they only differ by the rotation that drives the oscillation.
+        boolean hasCrankPump = tile.crankShaftSide != null && tile.hasAnyExtractionConnections;
+        boolean hasAutoPump = tile.pumpUpgradeSide != null;
+
+        if (hasCrankPump || hasAutoPump) {
             RenderSystem.setShader(GameRenderer::getRendertypeEntitySolidShader);
             ShaderInstance shader = RenderSystem.getShader();
             RenderSystem.setShaderTexture(0, pumpArmTexture);
 
-            // Build base matrix: translate to block center, then rotate to face crankshaft side
-            Matrix4f m1 = new Matrix4f(stack.last().pose()).translate(0.5f, 0.5f, 0.5f);
-            float yRot = switch (tile.crankShaftSide) {
-                case WEST  ->   0f;
-                case EAST  -> 180f;
-                case SOUTH ->  90f;
-                case NORTH -> 270f;
-                default    ->   0f; // UP / DOWN handled below
-            };
-            m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, yRot));
-
-            if (tile.crankShaftSide == Direction.DOWN) {
-                BlockState blockBelow = tile.getLevel().getBlockState(tile.getBlockPos().below());
-                if (blockBelow.getBlock() instanceof BlockCrankShaftBase crankShaftBase) {
-                    m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 90f));
-                    if (blockBelow.getValue(BlockCrankShaftBase.ROTATION_AXIS) == Direction.Axis.X)
-                        m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 90f));
-                }
+            double angle = tile.myMechanicalBlock.currentRotation / 180.0 * Math.PI+ tile.myMechanicalBlock.internalVelocity / TPS * partialTick;
+            if (hasCrankPump) {
+                if (tile.crankShaftSide == Direction.DOWN) angle -= Math.PI / 2.0;
+                renderPumpAssembly(tile, stack, tile.crankShaftSide, angle, shader, packedLight, true);
             }
 
-            // Compute crank oscillation
-            float crankR = 0.075f;
-            double armLength = 0.8;
-            float xRotMul = switch (tile.crankShaftSide) {
-                case SOUTH, WEST -> -1f;
-                default          ->  1f;
-            };
-            xRotMul *= (tile.crankShaftSide.getAxis() == Direction.Axis.Y) ? -1f : 1f;
+            if (hasAutoPump) {
+                renderPumpAssembly(tile, stack, tile.pumpUpgradeSide, angle, shader, packedLight, false);
+            }
 
-            double angle = tile.myMechanicalBlock.currentRotation / 180.0 * Math.PI
-                    + tile.myMechanicalBlock.internalVelocity / TPS * partialTick;
-            if (tile.crankShaftSide == Direction.DOWN) angle -= Math.PI / 2.0;
-
-            float txX = -1f + (float) Math.sin(angle) * crankR * xRotMul;
-            float txY = (float) Math.cos(angle) * crankR;
-            double armAngle = Math.asin(txY / armLength);
-
-            // Render connecting arm
-            Matrix4f m2 = new Matrix4f(m1)
-                    .translate(txX, txY, -0.00f)
-                    .rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -(float) (armAngle * 180.0 / Math.PI)))
-                    .rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 180f));
-            applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
-            tile.vertexBufferPumpArm.bind();
-            tile.vertexBufferPumpArm.draw();
-
-            // Render pump cube (moving, reduced scale)
-            float pumpX = -0.24f + (float) (txX + Math.cos(armAngle) * armLength) * 0.6f;
-            m2 = new Matrix4f(m1).translate(pumpX, 0f, 0f).scale(1f, 0.75f, 0.75f);
-            applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
-            tile.vertexBufferPumpCube.bind();
-            tile.vertexBufferPumpCube.draw();
-
-            // Render pump cube (static outer shell)
-            m2 = new Matrix4f(m1).translate(-0.3f, 0f, 0f);
-            applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
-            tile.vertexBufferPumpCube.bind();
-            tile.vertexBufferPumpCube.draw();
-
-            // Reset normal matrix uniform
-            shader.getUniform("NormalMat").set(new Matrix3f());
             shader.clear();
         }
 
@@ -1462,5 +1413,88 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
         target.bind();
         target.upload(mesh);
         buf.close();
+    }
+
+    private static void renderPumpAssembly(EntityPipe tile, PoseStack stack, Direction side,
+                                            double angleRad, ShaderInstance shader, int packedLight,
+                                            boolean renderArm) {
+        // Build base matrix: translate to block centre, then rotate so the
+        // assembly faces outward along `side`.
+        Matrix4f m1 = new Matrix4f(stack.last().pose()).translate(0.5f, 0.5f, 0.5f);
+        float yRot = switch (side) {
+            case WEST  ->   0f;
+            case EAST  -> 180f;
+            case SOUTH ->  90f;
+            case NORTH -> 270f;
+            default    ->   0f; // UP / DOWN
+        };
+        m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, yRot));
+
+        // Downward-facing pumps hang below; tilt them so they extend downward.
+        if (side == Direction.DOWN) {
+            BlockState blockBelow = tile.getLevel().getBlockState(tile.getBlockPos().below());
+            if (blockBelow.getBlock() instanceof BlockCrankShaftBase crankShaftBase) {
+                m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 90f));
+                if (blockBelow.getValue(BlockCrankShaftBase.ROTATION_AXIS) == Direction.Axis.X)
+                    m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 90f));
+            } else {
+                m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 90f));
+            }
+        }
+
+        // Upward-facing pumps extend along +Y: mirror the DOWN tilt with a -90°
+        // rotation about Z (this sends "up" to +Y). An adjacent crankshaft above —
+        // a crank pump on the UP face — is aligned like its DOWN counterpart; the
+        // self-powered auto pump has no such neighbour and takes the plain tilt.
+        if (side == Direction.UP) {
+            BlockState blockAbove = tile.getLevel().getBlockState(tile.getBlockPos().above());
+            if (blockAbove.getBlock() instanceof BlockCrankShaftBase crankShaftBase) {
+                m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -90f));
+                if (blockAbove.getValue(BlockCrankShaftBase.ROTATION_AXIS) == Direction.Axis.X)
+                    m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 90f));
+            } else {
+                m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -90f));
+            }
+        }
+
+        // Crank oscillation geometry.
+        float crankR = 0.075f;
+        double armLength = 0.8;
+        float xRotMul = switch (side) {
+            case SOUTH, WEST -> -1f;
+            default          ->  1f;
+        };
+        xRotMul *= (side.getAxis() == Direction.Axis.Y) ? -1f : 1f;
+
+        float txX = -1f + (float) Math.sin(angleRad) * crankR * xRotMul;
+        float txY = (float) Math.cos(angleRad) * crankR;
+        double armAngle = Math.asin(txY / armLength);
+
+        // Connecting arm (the rotating rod). Only drawn when the pump is actually
+        // linked to a crankshaft; the self-powered auto pump has nothing to reach,
+        // so the arm is skipped to keep it from floating.
+        Matrix4f m2;
+        if (renderArm) {
+            m2 = new Matrix4f(m1)
+                    .translate(txX, txY, 0f)
+                    .rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -(float) (armAngle * 180.0 / Math.PI)))
+                    .rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 180f));
+            applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
+            tile.vertexBufferPumpArm.bind();
+            tile.vertexBufferPumpArm.draw();
+        }
+
+        // Moving inner pump cube.
+        float pumpX = -0.24f + (float) (txX + Math.cos(armAngle) * armLength) * 0.6f;
+        m2 = new Matrix4f(m1).translate(pumpX, 0f, 0f).scale(1f, 0.75f, 0.75f);
+        applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
+        tile.vertexBufferPumpCube.bind();
+        tile.vertexBufferPumpCube.draw();
+
+        // Static outer pump shell.
+        m2 = new Matrix4f(m1).translate(-0.3f, 0f, 0f);
+        applyShader(shader, m2, VertexFormat.Mode.TRIANGLES);
+        tile.vertexBufferPumpCube.bind();
+        tile.vertexBufferPumpCube.draw();
     }
 }

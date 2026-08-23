@@ -7,6 +7,7 @@ import AgeOfSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import AgeOfSteam.Core.AbstractMechanicalBlock;
 import AgeOfSteam.Core.IMechanicalBlockProvider;
 import AgeOfSteam.Static;
+import BetterPipes.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -19,8 +20,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,36 +40,42 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static BetterPipes.Registry.AUTO_PUMP_UPGRADE;
+
 public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider, ICrankShaftConnector {
 
-    public static int STATE_UPDATE_TICKS = 40;
-    public static int FORCE_OUTPUT_AFTER_TICKS = 20;
+    public static int STATE_UPDATE_TICKS = 20;
+    public static int FORCE_OUTPUT_AFTER_TICKS = 10;
 
     public Map<Direction, PipeConnection> connections = new HashMap<>();
     public FluidTank tank;
     public int mainCapacity;
     public int flowRate;
-    FluidRenderData renderData = new FluidRenderData();
-    VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
-    MeshData fluidMesh;
-    VertexBuffer vertexBufferPumpArm;
-    VertexBuffer vertexBufferPumpCube;
-    boolean requiresMeshUpdate = false;
-    boolean requiresMeshUpdate2 = false;
-    int lastLight;
+    public FluidRenderData renderData = new FluidRenderData();
+    public VertexBuffer vertexBuffer; // using vbo for the fluid is faster. trading less mesh building for more render calls
+    public MeshData fluidMesh;
+    public VertexBuffer vertexBufferPumpArm;
+    public VertexBuffer vertexBufferPumpCube;
+    public boolean requiresMeshUpdate = false;
+    public boolean requiresMeshUpdate2 = false;
+    public int lastLight;
 
-    FluidStack last_tankFluid = FluidStack.EMPTY;
-    int lastFill;
-    int ticksWithFluidInTank;
-    boolean tankNorth = false;
-    boolean tankEast = false;
-    boolean tankWest = false;
-    boolean tankSouth = false;
+    public FluidStack last_tankFluid = FluidStack.EMPTY;
+    public int lastFill;
+    public int ticksWithFluidInTank;
+    public boolean tankNorth = false;
+    public boolean tankEast = false;
+    public boolean tankWest = false;
+    public boolean tankSouth = false;
 
-    Direction crankShaftSide = null;
-    boolean hasAnyExtractionConnections = false;
+    public Direction crankShaftSide = null;
+    public boolean hasAnyExtractionConnections = false;
 
-    double mechanicalResistance;
+    public Direction pumpUpgradeSide = null;
+    public boolean autoPumpActive = false;
+
+    public double mechanicalResistance;
+
     public EntityPipe(BlockEntityType type, BlockPos pos, BlockState blockState, int mainCapacity, int flowRate) {
         super(type, pos, blockState);
         this.mainCapacity = mainCapacity;
@@ -93,56 +102,15 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                 VertexBufferCleaner.register(this, vertexBufferPumpCube);
             });
         }
-    }    AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
-        @Override
-        public double getMaxStress() {
-            return 9999;
-        }
-
-        @Override
-        public double getInertia(Direction direction) {
-            return 0.1;
-        }
-
-        @Override
-        public double getTorqueResistance(Direction direction) {
-            return mechanicalResistance;
-        }
-
-        @Override
-        public double getTorqueProduced(Direction direction) {
-            return 0;
-        }
-
-        @Override
-        public double getRotationMultiplierToInside(@Nullable Direction direction) {
-            return 1;
-        }
-
-        @Override
-        public void propagateTickBeforeUpdate() {
-            super.propagateTickBeforeUpdate();
-
-            // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
-            // this is easier than always reset the rotation on connect or unconnect
-            // do not use this in tick, if the pipe ticks before crankshaft the rotation will be out of sync
-            // this is specifically what this method is designed to do, to run when all mechanical blocks are on same state before tick
-            // runs on both server and client side to keep the visuals correct
-            if (crankShaftSide != null && hasAnyExtractionConnections) {
-                if (level.getBlockEntity(getBlockPos().relative(crankShaftSide)) instanceof IMechanicalBlockProvider mechanicalBlockProvider &&
-                        mechanicalBlockProvider.getMechanicalBlock(crankShaftSide.getOpposite()) instanceof AbstractMechanicalBlock mechanicalBlock
-                ) {
-                    myMechanicalBlock.currentRotation = mechanicalBlock.currentRotation;
-                }
-            }
-        }
-    };
+    }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityPipe) t).tick();
     }
 
     public IFluidHandler getFluidHandler(Direction side) {
+        if (side != null && side == pumpUpgradeSide) return null;
+        if (side != null && side == crankShaftSide) return null;
         return connections.get(side);
     }
 
@@ -388,6 +356,54 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         myMechanicalBlock.mechanicalReadClient(compoundTag);
     }
 
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMaxStress() {
+            return 9999;
+        }
+
+        @Override
+        public double getInertia(Direction direction) {
+            return hasAnyPumpUpgrades() ? Config.INSTANCE.autoPumpInertia : 0.1;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction direction) {
+            return mechanicalResistance;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction direction) {
+            if (pumpUpgradeSide != null && autoPumpActive) {
+                return Math.max(0, Config.INSTANCE.autoPumpForce - Config.INSTANCE.autoPumpSpeedConstant * Math.abs(internalVelocity));
+            }
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@Nullable Direction direction) {
+            return 1;
+        }
+
+        @Override
+        public void propagateTickBeforeUpdate() {
+            super.propagateTickBeforeUpdate();
+
+            // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
+            // this is easier than always reset the rotation on connect or unconnect
+            // do not use this in tick, if the pipe ticks before crankshaft the rotation will be out of sync
+            // this is specifically what this method is designed to do, to run when all mechanical blocks are on same state before tick
+            // runs on both server and client side to keep the visuals correct
+            if (crankShaftSide != null && hasAnyExtractionConnections) {
+                if (level.getBlockEntity(getBlockPos().relative(crankShaftSide)) instanceof IMechanicalBlockProvider mechanicalBlockProvider &&
+                        mechanicalBlockProvider.getMechanicalBlock(crankShaftSide.getOpposite()) instanceof AbstractMechanicalBlock mechanicalBlock
+                ) {
+                    myMechanicalBlock.currentRotation = mechanicalBlock.currentRotation;
+                }
+            }
+        }
+    };
+
     public void setRequiresMeshUpdate() {
         requiresMeshUpdate2 = true;
     }
@@ -426,6 +442,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
         if (crankShaftSide != null)
             tag.putInt("crankShaftSide", crankShaftSide.ordinal());
+
+        if (pumpUpgradeSide != null)
+            tag.putInt("pumpUpgradeSide", pumpUpgradeSide.ordinal());
+        tag.putBoolean("autoPumpActive", autoPumpActive);
 
         tag.putBoolean("tankNorth", tankNorth);
         tag.putBoolean("tankEast", tankEast);
@@ -469,6 +489,33 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                 connection.tank.setCapacity(mainCapacity / 2);
             }
         }
+
+        pumpUpgradeSide = null;
+        if (tag.contains("pumpUpgradeSide"))
+            pumpUpgradeSide = Direction.values()[tag.getInt("pumpUpgradeSide")];
+        autoPumpActive = tag.getBoolean("autoPumpActive");
+    }
+
+    public boolean hasAnyPumpUpgrades() {
+        return pumpUpgradeSide != null;
+    }
+
+    public void installAutoPumpUpgrade(Direction face) {
+        if (pumpUpgradeSide != null)
+            Block.popResource(level, getBlockPos(), new ItemStack(AUTO_PUMP_UPGRADE.get()));
+
+        pumpUpgradeSide = face;
+
+        level.setBlock(getBlockPos(), getBlockState().getBlock().updateFromNeighbourShapes(getBlockState(), level, getBlockPos()), 3);
+        setChanged();
+
+        syncTanksToClient(null);
+    }
+
+    public boolean toggleAutoPump() {
+        autoPumpActive = !autoPumpActive;
+        setChanged();
+        return autoPumpActive;
     }
 
     @Override

@@ -6,5 +6,7 @@
   "item.betterpipes.wooden_pipe": "Wooden Pipe",
 
   "block.betterpipes.tank": "Tank",
-  "item.betterpipes.tank": "Tank"
+  "item.betterpipes.tank": "Tank",
+
+  "item.betterpipes.auto_pump_upgrade": "Automatic Pump Upgrade"
 }

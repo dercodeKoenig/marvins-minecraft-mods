@@ -52,6 +52,7 @@ public class BetterPipes {
             e.accept(IRON_PIPE.get());
             e.accept(WOODEN_PIPE.get());
             e.accept(TANK.get());
+            e.accept(AUTO_PUMP_UPGRADE.get());
         }
     }
 

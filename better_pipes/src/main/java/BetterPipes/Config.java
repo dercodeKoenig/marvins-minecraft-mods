@@ -18,6 +18,10 @@ public class Config {
     public int flowRateWoodenPipe = 20;
     public int mainCapacityWoodenPipe = 200;
 
+    public double autoPumpForce = 100.0;
+    public double autoPumpSpeedConstant = 10.0;
+    public double autoPumpInertia = 5.0;
+
     public static Config loadConfig() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
