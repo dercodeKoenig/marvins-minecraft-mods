@@ -97,6 +97,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
         public double liquid;
         // TODO: maybe not freeze / melt the entire composition at once if we are slightly above / below threshold?
         //      maybe make a smoooth transition around +-30K so at 5° below freeze, some but not all will freeze
+        //      this may help for a more smooth transition in the albedo calculation where it currently does a hard border from ice to water
 
         public int worldGenSeaLevel;
 
