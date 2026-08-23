@@ -390,6 +390,10 @@ public class PlanetDimension extends Dimension {
         return set;
     }
 
+    public HashMap<String, Double> getLaserDrillOres() {
+        return properties().laserOres;
+    }
+
     public float getFrozenGasCoverage() {
         float sum = 0;
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
