@@ -1,7 +1,13 @@
 package advRocketry.BlockEntities;
 
 import ARLib.ARLibRegistry;
+import ARLib.blockentities.EntityEnergyInputBlock;
+import ARLib.blockentities.EntityFluidOutputBlock;
+import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
+import ARLib.utils.RecipePartWithProbability;
+import advRocketry.Dimension.DimensionManager;
+import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Registry.BlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -62,26 +68,46 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
 
     static {
         charMapping.put('c', List.of(advRocketry.Registry.Blocks.LASERDRILL.get()));
-        charMapping.put('O', List.of(ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get()));
+        charMapping.put('O', List.of(ARLibRegistry.BLOCK_ITEM_OUTPUT_BLOCK.get(), ARLibRegistry.BLOCK_FLUID_OUTPUT_BLOCK.get()));
         charMapping.put('P', List.of(ARLibRegistry.BLOCK_ENERGY_INPUT_BLOCK.get()));
         charMapping.put('L', List.of(advRocketry.Registry.Blocks.VACUUM_LASER.get()));
         charMapping.put('S', List.of(ARLibRegistry.BLOCK_ADVANCED_STRUCTURE.get()));
         charMapping.put('s', List.of(ARLibRegistry.BLOCK_STRUCTURE.get()));
         charMapping.put('G', List.of(Blocks.GLASS));
-        
+
     }
 
 
     public EntityLaserDrill(BlockPos pos, BlockState state) {
         super(BlockEntities.ENTITY_LASERDRILL.get(), pos, state);
-        super.forwardInteractionToMaster = true;
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityLaserDrill) t).tick();
     }
 
-    public void tick(){
+    public void tick() {
+        if (!(DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet)) {
+            return;
+        }
+        if (!level.isClientSide) {
+            if (level.hasNeighborSignal(getBlockPos())) {
+                List<EntityEnergyInputBlock> energyTiles = super.getEnergyInputTiles();
+                int totalEnergy = super.getTotalEnergyStored(energyTiles);
+                if (totalEnergy > 10) {
+                    List<EntityItemOutputBlock> outTiles = super.getItemOutTiles();
+                    List<EntityFluidOutputBlock> fluidOutTiles = super.getFluidOutTiles();
+                    super.consumeEnergy(10, energyTiles);
+                    HashMap<String, Double> ores = planet.getLaserDrillOres();
+                    for (String key : ores.keySet()) {
+                        double p = ores.get(key);
+                        RecipePartWithProbability part = new RecipePartWithProbability(key, 1, (float) p);
+                        part.computeRandomAmount(); // needs it to fill the actual output
+                        super.produceOutput(List.of(part), fluidOutTiles, outTiles);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -100,11 +126,13 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
         super.readClient(tag);
     }
 
+    @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
 
     }
 
+    @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
 
@@ -123,16 +151,5 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
     @Override
     public boolean shouldHideBlock(int y, int z, int x, BlockState stateInWorld) {
         return true;
-    }
-
-    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!world.isClientSide) {
-            openGui((ServerPlayer) player);
-        }
-        return InteractionResult.SUCCESS;
-    }
-
-    public void openGui(ServerPlayer player) {
-
     }
 }
