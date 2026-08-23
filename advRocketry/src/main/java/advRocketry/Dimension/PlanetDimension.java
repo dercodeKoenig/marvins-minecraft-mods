@@ -286,9 +286,7 @@ public class PlanetDimension extends Dimension {
     // color is linear hdr, needs tone mapping and gamma correction
     public Vector3f computeTerrainFogColor(float partialTick) {
         // fog color calculation should match the sky color calculation in the atm shader
-        // atm shader uses 0.3 / 2 for brightness and  atm * exp(-atm) as modifier
-        // i use 1.5 pow for this to offset that we lose the star halo that the shader applies
-        double brightness = getAccumulatedStarIntensity(partialTick, 0.3f, 1.5f, null);
+        double brightness = getAccumulatedStarIntensity(partialTick, 0.2f, 1f, null);
         double atmDensity = getAtmosphereDensity();
         double extinction = Math.exp(-atmDensity);
         return RenderUtils.gamma_reverse(properties().fogColor)
