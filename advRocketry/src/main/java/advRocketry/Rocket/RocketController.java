@@ -311,6 +311,11 @@ public class RocketController {
         final double MAX_STRUCTURAL_ACCEL = getMaxAcceleration();
         // secondary thruster force
         final double SECONDARY_THRUSTERS_FORCE = rocket.getThrustMax() / 1000;
+        // Max Acceleration the engine can *possibly* deliver. ( including scale for bootup time )
+        final double MAX_PHYSICAL_ACCEL = rocket.getThrustMax() / rocket.getMass() * getBootTimeThrustMultiplier(rocket);
+        // The absolute maximum acceleration we are allowed to use this frame.
+        // This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
+        final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
 
         // --- 1. Calculate Required Acceleration (The PD Controller) ---
 
@@ -365,13 +370,6 @@ public class RocketController {
         }
 
         if (desiredAcceleration.length() > 0.0001 && canUseMainEngines()) {
-            // 1. Max Acceleration the engine can *possibly* deliver. ( including scale for bootup time )
-            final double MAX_PHYSICAL_ACCEL = rocket.getThrustMax() / rocket.getMass() * getBootTimeThrustMultiplier(rocket);
-            // 2. The absolute maximum acceleration we are allowed to use this frame.
-            // This ensures we never break the rocket (MAX_STRUCTURAL_ACCEL) AND never demand more thrust than the engine can provide (MAX_PHYSICAL_ACCEL).
-            final double MAX_ALLOWED_ACCEL = Math.min(MAX_PHYSICAL_ACCEL, MAX_STRUCTURAL_ACCEL);
-            // The heading the rocket *needs* to point towards to achieve the desired acceleration.
-
             double requiredY = 0;
             // --- TILT LIMITING LOGIC (Prioritize Y-axis thrust on planets) ---
             if (isPlanet && MAX_ALLOWED_ACCEL > 0 && rocket.position().y < 2000) {
