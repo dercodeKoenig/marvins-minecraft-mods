@@ -1,7 +1,6 @@
 package advRocketry.Render.starmap;
 
 import ARLib.utils.VertexBufferCleaner;
-import advRocketry.Config;
 import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.*;
 import advRocketry.GlobalTime;
@@ -126,8 +125,8 @@ public class SpaceMapScreen extends Screen {
                     description += "l   " + String.format("%-10s", gas) + String.format("%.5f", prop.liquid) + "\n";
                 if (prop.frozen_surface > 0)
                     description += "s  " + String.format("%-10s", gas) + String.format("%.5f", prop.frozen_surface) + "\n";
-                if (prop.frozen_deep_below_surface > 0)
-                    description += "sg " + String.format("%-10s", gas) + String.format("%.5f", prop.frozen_deep_below_surface) + "\n";
+                if (prop.underground > 0)
+                    description += "u " + String.format("%-10s", gas) + String.format("%.5f", prop.underground) + "\n";
             }
             description += "\n";
         }

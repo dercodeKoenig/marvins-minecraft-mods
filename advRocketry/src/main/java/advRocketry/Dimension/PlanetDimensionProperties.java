@@ -90,19 +90,16 @@ public class PlanetDimensionProperties extends DimensionProperties {
         public static double maxSeaLevel = 120;
         public double in_atm;
         public double frozen_surface;
-        public double frozen_deep_below_surface; // TODO: maybe convert this to a general gas deposit for the laser miner to mine?
+        public double underground;
         public double liquid;
-        // TODO: maybe not freeze / melt the entire composition at once if we are slightly above / below threshold?
-        //      maybe make a smoooth transition around +-30K so at 5° below freeze, some but not all will freeze
-        //      this may help for a more smooth transition in the albedo calculation where it currently does a hard border from ice to water
 
         public int worldGenSeaLevel;
 
-        public GasProperty(double in_atm, double liquid, double frozen_surface, double frozen_deep_below_surface) {
+        public GasProperty(double in_atm, double liquid, double frozen_surface, double underground) {
             this.in_atm = in_atm;
             this.liquid = liquid;
             this.frozen_surface = frozen_surface;
-            this.frozen_deep_below_surface = frozen_deep_below_surface;
+            this.underground = underground;
         }
 
         public double getSeaLevel() {

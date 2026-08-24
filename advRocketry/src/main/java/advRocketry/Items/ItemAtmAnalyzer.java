@@ -1,32 +1,18 @@
 package advRocketry.Items;
 
-import ARLib.utils.RecipePartWithProbability;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Dimension.PlanetDimensionProperties;
-import advRocketry.Main;
 import advRocketry.Registry.GasRegistry;
-import advRocketry.Utils.ItemUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 public class ItemAtmAnalyzer extends Item {
@@ -57,8 +43,8 @@ public class ItemAtmAnalyzer extends Item {
                     description += "l   " + String.format("%-10s", gas) + String.format("%.5f", prop.liquid) + "\n";
                 if (prop.frozen_surface > 0)
                     description += "s  " + String.format("%-10s", gas) + String.format("%.5f", prop.frozen_surface) + "\n";
-                if (prop.frozen_deep_below_surface > 0)
-                    description += "sg " + String.format("%-10s", gas) + String.format("%.5f", prop.frozen_deep_below_surface) + "\n";
+                if (prop.underground > 0)
+                    description += "u " + String.format("%-10s", gas) + String.format("%.5f", prop.underground) + "\n";
             }
             description += "\n";
 
