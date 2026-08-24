@@ -19,6 +19,7 @@ import advRocketry.Dimension.*;
 import advRocketry.ForcedChunkManager;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPlanetIdChip;
+import advRocketry.Registry.Fluids;
 import advRocketry.Registry.Items;
 import advRocketry.Rocket.RocketPrograms.*;
 import advRocketry.Utils.ItemUtils;
@@ -127,12 +128,13 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
         super(entityType, level);
 
         guiHandler = new GuiHandlerEntity(this);
+        fuelTank = new FluidTank(0, (stack) -> stack.getFluid().isSame(Fluids.ROCKET_FUEL.get()));
+        controller = new RocketController(this);
+
+        // fill with dummy values
         blocks = new HashMap<>();
         blockEntities = new HashMap<>();
         size = new Vec3i(1, 1, 1);
-        fuelTank = new FluidTank(0);
-
-        controller = new RocketController(this);
 
         initVertexBuffers();
     }
@@ -150,7 +152,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
                 fuelCapacity += fuelTank.getFuelCapacity();
             }
         }
-        rocket.fuelTank = new FluidTank(fuelCapacity);
+        rocket.fuelTank.setCapacity(fuelCapacity);
         rocket.refreshDimensions();
         rocket.makeGui();
         return rocket;
