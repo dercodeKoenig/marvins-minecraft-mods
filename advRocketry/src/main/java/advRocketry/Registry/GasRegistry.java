@@ -26,8 +26,9 @@ public class GasRegistry {
         gases.put(water, new Gas(water, 273, 373, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.block.Blocks.WATER, 1000));
     }
 
-    public static double getInsulationBonus(String gas, double in_atm) {
-        return Math.log1p(in_atm * GasRegistry.gases.get(gas).greenhouseFactor);
+    public static double getRawGreenhouseValue(String gas, double in_atm) {
+        Gas g = gases.get(gas);
+        return in_atm * g.greenhouseFactor;
     }
 
     public static class Gas {

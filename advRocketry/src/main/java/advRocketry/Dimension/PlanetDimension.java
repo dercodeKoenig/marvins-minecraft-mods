@@ -732,13 +732,14 @@ public class PlanetDimension extends Dimension {
 
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
-        double insulation = 1.0;
+        double totalRawGreenhouse = 0.0;
         for (String id : List.of(GasRegistry.co2, GasRegistry.methane, GasRegistry.water)) {
-            double vapor_atm_estimate = getHumidity(id) / 300;
+            double vapor_atm_estimate = getHumidity(id) / 300.0;
             double total_atm = getGasProperty(id).in_atm + vapor_atm_estimate;
-            double bonus = GasRegistry.getInsulationBonus(id, total_atm);
-            insulation += bonus;
+            totalRawGreenhouse += GasRegistry.getRawGreenhouseValue(id, total_atm);
         }
+
+        double insulation = 1.0 + Math.log1p(totalRawGreenhouse);
 
 
         // 3. CALCULATE OUTGOING ENERGY (Eout)
