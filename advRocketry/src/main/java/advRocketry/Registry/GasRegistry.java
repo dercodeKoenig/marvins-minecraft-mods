@@ -50,13 +50,13 @@ public class GasRegistry {
 
 
         public double getBoilingTemp(double atmDensity) {
-
-            // Clamp density to prevent Math.log10(0) returning -Infinity.
-            // 0.001 atm is basically a vacuum in this context.
             double safeAtm = Math.max(0.0001, atmDensity);
 
-            // At 1 atm, log10(1) = 0. Boiling temp stays normal.
-            return Math.max(boilingTemp + (Math.log10(safeAtm) * 30.0), getFreezeTemp(atmDensity));
+            // Dynamic slope: Ensures every gas reaches its freeze point (triple point boundary)
+            // at roughly ~0.006 to 0.01 atm of pressure.
+            double slope = (boilingTemp - freezingTemp) / 2.2;
+
+            return Math.max(boilingTemp + (Math.log10(safeAtm) * slope), getFreezeTemp(atmDensity));
         }
 
         public double getFreezeTemp(double atmDensity) {
