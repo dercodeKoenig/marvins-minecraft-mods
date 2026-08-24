@@ -149,6 +149,7 @@ public class PlanetEvents {
     }
 
     public static double handleOceanCo2Reduction(PlanetDimension planet, boolean simulate) {
+        // TODO: this should consider temperature
         // water will reduce co2 up to a target based on sea level
         // high temperature will make it hold less co2, but then we would have high humidity with plants
         // and plants would again absorb more co2, so i say temperature cancels out and use sea level only
@@ -175,7 +176,7 @@ public class PlanetEvents {
     }
 
     public static double handlePhotosynthesis(PlanetDimension planet, boolean simulate) {
-
+        // TODO: this needs temperature AND SUNLIGHT to work!!!!
         // if it is very warm, algae will consume co2 and produce oxygen.
         // this process should significantly slow down as it gets cold and cut off long before freezing point
         // to prevent taking all co2 from the atmosphere and causing a freeze
