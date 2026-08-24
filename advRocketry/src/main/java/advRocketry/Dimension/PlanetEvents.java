@@ -7,6 +7,7 @@ import advRocketry.Utils.ChunkUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
 public class PlanetEvents {
@@ -176,28 +178,49 @@ public class PlanetEvents {
     }
 
     public static double handlePhotosynthesis(PlanetDimension planet, boolean simulate) {
-        // TODO: this needs temperature AND SUNLIGHT to work!!!!
-        // if it is very warm, algae will consume co2 and produce oxygen.
-        // this process should significantly slow down as it gets cold and cut off long before freezing point
-        // to prevent taking all co2 from the atmosphere and causing a freeze
-        PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
-        double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
-        if (oceanFractionWater > 0.3 && planet.getGasProperty(GasRegistry.water).liquid > 0 && co2.in_atm > 0.0001001) {
-            double sweetSpotForAlgae = 273.15 + 30;
-            double maxTemperatureDeviationForAlgae = 15;
-            double photosynthesisValue = 1 - Math.abs(sweetSpotForAlgae - planet.getCurrentTemp()) / maxTemperatureDeviationForAlgae;
-            if (photosynthesisValue > 0) {
-                PlanetDimensionProperties.GasProperty o2 = planet.getGasProperty(GasRegistry.oxygen);
-                double toReduce = photosynthesisValue * Config.INSTANCE.planet_Photosynthesis_Factor;
-                toReduce = Math.min(toReduce, co2.in_atm - 0.0001);
-                if (!simulate) {
-                    co2.in_atm -= toReduce;
-                    o2.in_atm += toReduce;
-                    planet.setRequiresSync();
-                }
-                return photosynthesisValue;
-            }
+        // if it is very warm and has sun light, algae will consume co2 and produce oxygen.
+        double totalStarIntensity = 0;
+        Vec3 planetPos = planet.getPosition(0);
+        for (ResourceLocation targetId : planet.getCurrentMainStars()) {
+            Dimension target = planet.dimensionManager.get(targetId);
+            if (target == null) continue;
+            Vec3 targetPosition = target.getPosition(0);
+            double distanceToSqr = targetPosition.distanceToSqr(planetPos);
+            double intensity = target.getRadiationIntensity() / distanceToSqr;
+            totalStarIntensity += intensity;
         }
+        if (totalStarIntensity < 0.5)
+            // too little starlight for algae to work
+            return 0;
+
+
+        PlanetDimensionProperties.GasProperty co2 = planet.getGasProperty(GasRegistry.co2);
+        double minCo2 = 0.0001;
+        if (co2.in_atm < minCo2)
+            // too little co2
+            return 0;
+
+        double oceanFractionWater = planet.getOceanFraction(GasRegistry.water);
+        if (oceanFractionWater < 0.3)
+            // too little oceans (temperature check below ensures we don't generate on frozen oceans)
+            return 0;
+
+        double sweetSpotForAlgae = 273.15 + 30;
+        double maxTemperatureDeviationForAlgae = 15;
+        double temperatureMultiplier = Math.max(0, 1 - Math.abs(sweetSpotForAlgae - planet.getCurrentTemp()) / maxTemperatureDeviationForAlgae);
+        double photosynthesisValue = totalStarIntensity * temperatureMultiplier;
+        if (photosynthesisValue > 0) {
+            PlanetDimensionProperties.GasProperty o2 = planet.getGasProperty(GasRegistry.oxygen);
+            double toReduce = photosynthesisValue * Config.INSTANCE.planet_Photosynthesis_Factor;
+            toReduce = Math.min(toReduce, co2.in_atm - minCo2);
+            if (!simulate) {
+                co2.in_atm -= toReduce;
+                o2.in_atm += toReduce;
+                planet.setRequiresSync();
+            }
+            return photosynthesisValue;
+        }
+
         return 0;
     }
 

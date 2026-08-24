@@ -29,7 +29,6 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public HashMap<String, GasProperty> atmosphereComposition = new HashMap<>();
     public float baseEnergyGain = 0; // the base energy gain, maybe by hot core or gravity force pulling on the planet
     public boolean canVisit = false;
-    public boolean canGasMine = false;
     public boolean isKnown = false; // if false it has to be discovered and unlocked in observatory
     public int dataRequiredForUnlock = 2000; // how much data of any type is required to unlock it on the planet
     public ResourceLocation artifactItem = null; // TODO: artifact allows for discovery in observatory
@@ -133,10 +132,12 @@ public class PlanetDimensionProperties extends DimensionProperties {
             double boilTemp = gas.getBoilingTemp(atmDensity);
 
             // Dynamically scale the transition zone to planetary temperature.
-            // Earth (300K) -> ZONE = 9.0K (18K total gradient)
-            // Titan (90K)  -> ZONE = 2.7K (5.4K total gradient, matching real Titan)
-            // Mercury (700K)-> ZONE = 15.0K (Capped upper limit)
-            final double ZONE = Math.clamp(temp * 0.03, 1.5, 15.0);
+            // x=90: +-2.9
+            // x=200: +-9.5
+            // x=300: +-15.86
+            double x = (temp - 200.0) / 40.0;
+            double scale = 1.0 / (1.0 + Math.exp(-x));
+            double ZONE = 2.0 + 15.0 * scale;
 
             // 1. CALCULATE RAW TARGET FRACTIONS
             double rawTargetSolidFrac = Math.clamp((freezeTemp + ZONE - temp) / (2.0 * ZONE), 0.0, 1.0);

@@ -379,11 +379,8 @@ public class PlanetDimension extends Dimension {
 
     public Set<String> getGasMiningOptions() {
         HashSet<String> set = new HashSet<>();
-        if (!properties().canGasMine)
-            return set;
-
         for (String gas : GasRegistry.gases.keySet()) {
-            if (getGasProperty(gas).in_atm > 0.01)
+            if (getGasProperty(gas).in_atm > 2)
                 set.add(gas);
         }
         return set;
@@ -394,11 +391,15 @@ public class PlanetDimension extends Dimension {
     }
 
     public float getFrozenGasCoverage() {
-        float sum = 0;
+        double sum = 0;
         for (PlanetDimensionProperties.GasProperty gas : properties().atmosphereComposition.values()) {
-            sum += (float) gas.frozen_surface;
+            // when all liquid -> ß
+            // when all frozen -> frozen_surface
+            // in between: ice will initially accumulate at poles with very little coverage
+            // this also works against the albedo snowball effect because initial ice has very little influence on albedo
+            sum += gas.frozen_surface * gas.frozen_surface / (gas.liquid + gas.frozen_surface+0.0001);
         }
-        return Math.min(1, sum);
+        return Math.min(1, (float)sum);
     }
 
     // how much of the planet do we consider ocean?
@@ -419,13 +420,15 @@ public class PlanetDimension extends Dimension {
         relativeSeaLevel = Math.clamp(relativeSeaLevel, 0, 1);
 
         // adjust for custom fluid
-        double heightAboveCustomFluidLevel = maxSeaLevel - properties().customSeaFluidLevel;
-        if (heightAboveCustomFluidLevel >= 0)
-            // if sea level is just slightly above custom fluid level (eg 0.2 blocks), ocean fraction is signifiantly reduced
-            relativeSeaLevel *= Math.min(1, heightAboveCustomFluidLevel);
-        else {
-            // custom fluid is above sea level, no oceans
-            relativeSeaLevel = 0;
+        if(properties().customSeaFluid != null) {
+            double heightAboveCustomFluidLevel = maxSeaLevel - properties().customSeaFluidLevel;
+            if (heightAboveCustomFluidLevel >= 0)
+                // if sea level is just slightly above custom fluid level (eg 0.2 blocks), ocean fraction is signifiantly reduced
+                relativeSeaLevel *= Math.min(1, heightAboveCustomFluidLevel);
+            else {
+                // custom fluid is above sea level, no oceans
+                relativeSeaLevel = 0;
+            }
         }
         return relativeSeaLevel;
     }
@@ -715,18 +718,19 @@ public class PlanetDimension extends Dimension {
             }
         }
 
-        // Albedo (Reflectivity)
-        double oceanFraction = getOceanFraction(null); // any gas
+        // Albedo (Reflectivity, not perfect but close enough)
+        double oceanFraction = getOceanFraction(null); // (uses highest sea level of all gases, includes solid + liquid)
+        double frozenFraction = getFrozenGasCoverage();
         // base albedo
         double albedo = 0.3;
         // ice reflects light
-        albedo += (getFrozenGasCoverage() * 0.5);
-        // oceans are dark ( usually )
-        albedo -= (oceanFraction * 0.1);
+        albedo += (frozenFraction * 0.5);
+        // oceans are dark ( usually, unless frozen, but getFrozenGasCoverage offsets this)
+        albedo -= (oceanFraction * 0.15);
         // clouds reflect light
         albedo += Math.clamp(computeCloudValue(), 0, 1) * 0.5;
         // final value clip
-        albedo = Math.max(0.05, Math.min(albedo, 0.9));
+        albedo = Math.max(0.05, Math.min(albedo, 0.95));
 
         // The actual energy absorbed by the planet
         double energyIn = solarFlux * (1.0 - albedo) + properties().baseEnergyGain;

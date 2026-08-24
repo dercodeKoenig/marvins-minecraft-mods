@@ -94,7 +94,6 @@ public class DefaultGalaxy {
         jupiter.orbitalDistanceToParent = 5.2f;
         jupiter.earthRadiusMultiplier = 10f;
         jupiter.gravitationalMultiplier = 30f;
-        jupiter.canGasMine = true;
         jupiter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0, 0));
         jupiter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5f, 0, 0, 0));
         galaxy.add(jupiter);
@@ -126,7 +125,6 @@ public class DefaultGalaxy {
         saturn.orbitalDistanceToParent = 9.5f;
         saturn.earthRadiusMultiplier = 3f;
         saturn.gravitationalMultiplier = 8f;
-        saturn.canGasMine = true;
         saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0, 0));
         saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0, 0));
         saturn.hasRingSystem = true;
@@ -173,7 +171,6 @@ public class DefaultGalaxy {
         jestefad.orbitalDistanceToParent = 2f;
         jestefad.earthRadiusMultiplier = 10f;
         jestefad.gravitationalMultiplier = 10f;
-        jestefad.canGasMine = true;
         jestefad.skyColor = new Vector3f(0.5f, 0.5f, 0.5f);
         jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2, 0, 0, 0));
         jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5, 0, 0, 0));
@@ -216,7 +213,6 @@ public class DefaultGalaxy {
         lefrani.orbitalDistanceToParent = 3f;
         lefrani.earthRadiusMultiplier = 20f;
         lefrani.gravitationalMultiplier = 20f;
-        lefrani.canGasMine = true;
         lefrani.skyColor = new Vector3f(0.2f, 0.3f, 0.5f);
         lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10, 0, 0, 0));
         lefrani.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(5, 0, 0, 0));
