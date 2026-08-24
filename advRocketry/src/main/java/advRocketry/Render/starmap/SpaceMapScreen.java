@@ -159,8 +159,6 @@ public class SpaceMapScreen extends Screen {
                 description += "Ocean Fraction: " + String.format("%.2f", planet.getOceanFraction(null)) + "\n";
                 description += "Clouds: " + String.format("%.2f", planet.computeCloudValue()) + "\n";
                 description += "Humidity: " + String.format("%.2f", planet.getSumHumidity()) + "\n";
-                GasRegistry.Gas water = GasRegistry.gases.get(GasRegistry.water);
-                description += "Liquid water possible: " + (planet.getCurrentTemp() < water.getBoilingTemp(planet.getAtmosphereDensity()) && planet.getCurrentTemp() > water.getFreezeTemp(planet.getAtmosphereDensity())) + "\n\n";
             }
         }
 
