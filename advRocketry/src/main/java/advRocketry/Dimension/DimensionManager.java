@@ -86,6 +86,7 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
     }
 
     public void saveDimensionProperties(Path saveDir, List<DimensionProperties> properties) {
+        // TODO: autosave maybe?
         // save current properties and if required, delete old properties to support dynamic deletion of dimensions
 
         // the save file name is namespace_path.json
@@ -96,6 +97,8 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         try {
             Files.createDirectories(saveDir);
             for (DimensionProperties i : properties) {
+                if (i.type.equals(DimensionProperties.DimensionType.ROCKET_TRAVEL))
+                    continue; // no save for this one
                 Path saveFile = Path.of(String.valueOf(saveDir), getSaveFile(i.dimensionId));
                 String s = new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(i);
                 Files.writeString(saveFile, s);
@@ -133,12 +136,6 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     public void onServerStop() {
 
-        // unload and remove rocket travel dim before saving the other dimensions
-        // this one does not need to be saved
-        dimensions.remove(RocketTravelDimension.dimId);
-        DynamicDimensionRegistry.from(ServerLifecycleHooks.getCurrentServer()).unloadDynamicDimension(RocketTravelDimension.dimId, (x, y) -> {
-        });
-
         // save dimension properties
         Path saveDir = Path.of(String.valueOf(Main.worldPath), DimensionManager.SAVE_DIR);
         saveDimensionProperties(saveDir, dimensions.values().stream().map(dim -> dim.properties).toList());
@@ -172,34 +169,23 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
 
     private void loadDimensionFromString(String dimensionProperties) {
         DimensionProperties properties = createPropertiesFromString(dimensionProperties);
-        if (properties.type == DimensionProperties.DimensionType.PLANET) {
-            if (dimensions.containsKey(properties.dimensionId)) {
-                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
-            } else {
+        if (dimensions.containsKey(properties.dimensionId)) {
+            dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
+        } else {
+            if (properties.type == DimensionProperties.DimensionType.PLANET) {
                 PlanetDimension dimension = new PlanetDimension(properties, this);
                 dimensions.put(dimension.getDimensionId(), dimension);
                 System.out.println("[DimensionManager] created PlanetDimension for " + dimension.getDimensionId());
-            }
-        } else if (properties.type == DimensionProperties.DimensionType.DUMMY) {
-            if (dimensions.containsKey(properties.dimensionId)) {
-                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
-            } else {
+            } else if (properties.type == DimensionProperties.DimensionType.DUMMY) {
                 DummyDimension dummyDimension = new DummyDimension(properties, this);
                 dimensions.put(dummyDimension.getDimensionId(), dummyDimension);
                 System.out.println("[DimensionManager] created DummyDimension for " + dummyDimension.getDimensionId());
-            }
-        } else if (properties.type == DimensionProperties.DimensionType.SPACE_STATION) {
-            if (dimensions.containsKey(properties.dimensionId)) {
-                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
-            } else {
+            } else if (properties.type == DimensionProperties.DimensionType.SPACE_STATION) {
                 SpaceStationDimension spaceStationDimension = new SpaceStationDimension(properties, this);
                 dimensions.put(spaceStationDimension.getDimensionId(), spaceStationDimension);
                 System.out.println("[DimensionManager] created Space Station for " + spaceStationDimension.getDimensionId() + ":" + spaceStationDimension.getName());
-            }
-        } else if (properties.type == DimensionProperties.DimensionType.ROCKET_TRAVEL) {
-            if (dimensions.containsKey(properties.dimensionId)) {
-                dimensions.get(properties.dimensionId).updateDimensionProperties(properties);
-            } else {
+            } else if (properties.type == DimensionProperties.DimensionType.ROCKET_TRAVEL) {
+                // (client only to load the dimension during sync. has to go somewhere....)
                 RocketTravelDimension rocketTravelDimension = new RocketTravelDimension(properties, this);
                 dimensions.put(rocketTravelDimension.getDimensionId(), rocketTravelDimension);
                 System.out.println("[DimensionManager] created " + rocketTravelDimension.getDimensionId() + ":" + rocketTravelDimension.getName());
