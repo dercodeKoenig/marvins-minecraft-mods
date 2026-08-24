@@ -135,7 +135,11 @@ public class PlanetDimensionProperties extends DimensionProperties {
             double freezeTemp = gas.getFreezeTemp(atmDensity);
             double boilTemp = gas.getBoilingTemp(atmDensity);
 
-            final double ZONE = 15.0;
+            // Dynamically scale the transition zone to planetary temperature.
+            // Earth (300K) -> ZONE = 9.0K (18K total gradient)
+            // Titan (90K)  -> ZONE = 2.7K (5.4K total gradient, matching real Titan)
+            // Mercury (700K)-> ZONE = 15.0K (Capped upper limit)
+            final double ZONE = Math.clamp(temp * 0.03, 1.5, 15.0);
 
             // 1. CALCULATE RAW TARGET FRACTIONS
             double rawTargetSolidFrac = Math.clamp((freezeTemp + ZONE - temp) / (2.0 * ZONE), 0.0, 1.0);

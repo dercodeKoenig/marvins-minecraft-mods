@@ -56,10 +56,7 @@ public class GasRegistry {
             double safeAtm = Math.max(0.0001, atmDensity);
 
             // At 1 atm, log10(1) = 0. Boiling temp stays normal.
-            // At 10 atm, log10(10) = 1. Boiling temp increases by 25 degrees.
-            // At 0.1 atm, log10(0.1) = -1. Boiling temp drops by 25 degrees.
-            return Math.max(boilingTemp + (Math.log10(safeAtm) * 25.0), getFreezeTemp(atmDensity));
-
+            return Math.max(boilingTemp + (Math.log10(safeAtm) * 30.0), getFreezeTemp(atmDensity));
         }
 
         public double getFreezeTemp(double atmDensity) {
