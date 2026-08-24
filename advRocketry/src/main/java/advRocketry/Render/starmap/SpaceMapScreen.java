@@ -35,7 +35,7 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class SpaceMapScreen extends Screen {
-    public final PlanetRenderCache PLANET_CACHE = new SpaceMapPlanetRenderCache();
+    public final PlanetRenderCache PLANET_CACHE = SpaceMapPlanetRenderCache.INSTANCE;
     private final int SIDEBAR_WIDTH = 200;
     public PlanetDimension selectedPlanet = null;
     public float camX = 0;

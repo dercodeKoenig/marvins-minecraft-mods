@@ -6,6 +6,8 @@ import advRocketry.Dimension.PlanetRenderCache;
 import java.util.ArrayList;
 
 public class SpaceMapPlanetRenderCache extends PlanetRenderCache {
+    public static SpaceMapPlanetRenderCache INSTANCE = new SpaceMapPlanetRenderCache();
+
     // always visible
     @Override
     protected boolean updateCullFlags() {
