@@ -128,94 +128,59 @@ public class PlanetDimensionProperties extends DimensionProperties {
             return (Config.INSTANCE.gas_Atm_Transition_Speed / (1 + planetDimension.getGravitationalMultiplier()));
         }
 
-        public boolean maybeRain(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity, boolean simulate) {
-            if (in_atm > 0) {
-                if (temp < gas.getBoilingTemp(atmDensity) - 1 && temp > gas.getFreezeTemp(atmDensity)) {
-                    if (!simulate) {
-                        double toTransfer = getTransferSpeed(planet);
-                        toTransfer = Math.min(in_atm, toTransfer);
-                        in_atm -= toTransfer;
-                        liquid += toTransfer;
-                        planet.setRequiresSync();
-                    }
-                    return true;
-                }
+        public void tick(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity) {
+            double totalMass = in_atm + liquid + frozen_surface;
+            if (totalMass <= 0) return;
+
+            double freezeTemp = gas.getFreezeTemp(atmDensity);
+            double boilTemp = gas.getBoilingTemp(atmDensity);
+
+            final double ZONE = 15.0;
+
+            // 1. CALCULATE RAW TARGET FRACTIONS
+            double rawTargetSolidFrac = Math.clamp((freezeTemp + ZONE - temp) / (2.0 * ZONE), 0.0, 1.0);
+            double rawTargetGasFrac = Math.clamp((temp - (boilTemp - ZONE)) / (2.0 * ZONE), 0.0, 1.0);
+
+            // 2. DISCRETIZE INTO 100 STEPS
+            double targetSolidFrac = Math.round(rawTargetSolidFrac * 100.0) / 100.0;
+            double targetGasFrac = Math.round(rawTargetGasFrac * 100.0) / 100.0;
+            double targetLiquidFrac = Math.max(0.0, 1.0 - targetSolidFrac - targetGasFrac);
+
+            // 3. CONVERT TO TARGET MASSES
+            double targetSolid = totalMass * targetSolidFrac;
+            double targetLiquid = totalMass * targetLiquidFrac;
+            double targetGas = totalMass * targetGasFrac;
+
+            // 4. STEP CURRENT VALUES
+            double speed = getTransferSpeed(planet);
+
+            double solidDelta = stepValue(frozen_surface, targetSolid, speed);
+            double liquidDelta = stepValue(liquid, targetLiquid, speed);
+            double gasDelta = stepValue(in_atm, targetGas, speed);
+
+            if (solidDelta != 0 || liquidDelta != 0 || gasDelta != 0) {
+                // Apply deltas and snap directly to target if within precision threshold
+                frozen_surface = applyAndSnap(frozen_surface, targetSolid, solidDelta);
+                liquid = applyAndSnap(liquid, targetLiquid, liquidDelta);
+                in_atm = applyAndSnap(in_atm, targetGas, gasDelta);
+
+                maybeAdjustWorldgenSeaLevel();
+                planet.setRequiresSync();
             }
-            return false;
         }
 
-        public boolean maybeSnow(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity, boolean simulate) {
-            if (in_atm > 0) {
-                if (temp < gas.getBoilingTemp(atmDensity) - 1 && temp <= gas.getFreezeTemp(atmDensity)) {
-                    if (!simulate) {
-                        double toTransfer = getTransferSpeed(planet);
-                        toTransfer = Math.min(in_atm, toTransfer);
-                        in_atm -= toTransfer;
-                        frozen_surface += toTransfer;
-                        planet.setRequiresSync();
-                    }
-                    return true;
-                }
-            }
-            return false;
+        // Pure clamp for step speed
+        private double stepValue(double current, double target, double maxStep) {
+            return Math.clamp(target - current, -maxStep, maxStep);
         }
 
-        public boolean maybeBoil(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity, boolean simulate) {
-            if (liquid > 0 || frozen_surface > 0 || frozen_deep_below_surface > 0) {
-                if (temp > gas.getBoilingTemp(atmDensity) + 1) {
-                    if (!simulate) {
-                        double toTransfer = getTransferSpeed(planet);
-                        if (liquid > 0) {
-                            double toTransfer2 = Math.min(liquid, toTransfer);
-                            in_atm += toTransfer2;
-                            liquid -= toTransfer2;
-                        }
-                        if (frozen_surface > 0) {
-                            double toTransfer2 = Math.min(frozen_surface, toTransfer);
-                            in_atm += toTransfer2;
-                            frozen_surface -= toTransfer2;
-                        }
-                        if (frozen_deep_below_surface > 0) {
-                            double toTransfer2 = Math.min(frozen_deep_below_surface, toTransfer);
-                            in_atm += toTransfer2;
-                            frozen_deep_below_surface -= toTransfer2;
-                        }
-                        planet.setRequiresSync();
-                    }
-                    return true;
-                }
+        // Applies delta and forces exact equality when close enough
+        private double applyAndSnap(double current, double target, double delta) {
+            double newValue = current + delta;
+            if (Math.abs(target - newValue) < 1e-6) {
+                return target; // Direct assignment forces (target - current = 0.0) on next tick
             }
-            return false;
-        }
-
-        public boolean maybeMeltSurface(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity, boolean simulate) {
-            if (frozen_surface > 0) {
-                if (temp > gas.getFreezeTemp(atmDensity) + 1) {
-                    if (!simulate) {
-                        double toTransfer = getTransferSpeed(planet);
-                        toTransfer = Math.min(frozen_surface, toTransfer);
-                        liquid += toTransfer;
-                        frozen_surface -= toTransfer;
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public boolean maybeFreezeSurface(GasRegistry.Gas gas, PlanetDimension planet, double temp, double atmDensity, boolean simulate) {
-            if (liquid > 0) {
-                if (temp < gas.getFreezeTemp(atmDensity) - 1) {
-                    if (!simulate) {
-                        double toTransfer = getTransferSpeed(planet);
-                        toTransfer = Math.min(liquid, toTransfer);
-                        liquid -= toTransfer;
-                        frozen_surface += toTransfer;
-                    }
-                    return true;
-                }
-            }
-            return false;
+            return newValue;
         }
     }
 }

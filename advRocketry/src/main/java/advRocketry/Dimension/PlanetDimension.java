@@ -34,8 +34,7 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 public class PlanetDimension extends Dimension {
 
     Vec3 currentSpeed = Vec3.ZERO;
-    // do not sync every time the temperature changes a few ticks.
-    int lastSyncedTemperature100 = 0;
+    int lastRoundedTemp;
     boolean requiresSync = true;
 
     public PlanetDimension(DimensionProperties properties, DimensionManager dimensionManager) {
@@ -595,7 +594,6 @@ public class PlanetDimension extends Dimension {
 
             if (GlobalTime.getGlobalTime() % 20 == 0 && requiresSync) {
                 requiresSync = false;
-                lastSyncedTemperature100 = (int) (properties().currentTemp * 100);
                 dimensionManager.syncDimensionProperties(this);
             }
 
@@ -686,8 +684,11 @@ public class PlanetDimension extends Dimension {
 
     public void tickTemperature() {
 
-        if (lastSyncedTemperature100 != (int) (properties().currentTemp * 100)) {
+        int roundedTemp = (int) (properties().currentTemp * 100);
+
+        if (lastRoundedTemp != roundedTemp) {
             setRequiresSync();
+            lastRoundedTemp = roundedTemp;
         }
 
         if (isStar()) {
@@ -721,7 +722,7 @@ public class PlanetDimension extends Dimension {
         // ice reflects light
         albedo += (getFrozenGasCoverage() * 0.5);
         // oceans are dark ( usually )
-        albedo += -(oceanFraction * 0.1);
+        albedo -= (oceanFraction * 0.1);
         // clouds reflect light
         albedo += Math.clamp(computeCloudValue(), 0, 1) * 0.5;
         // final value clip
@@ -731,6 +732,7 @@ public class PlanetDimension extends Dimension {
         double energyIn = solarFlux * (1.0 - albedo) + properties().baseEnergyGain;
 
         // 2. CALCULATE INSULATION (Greenhouse Blanket)
+
         // Base insulation is 1.0 (a vacuum). Higher numbers mean heat struggles to escape.
         double totalRawGreenhouse = 0.0;
         for (String id : List.of(GasRegistry.co2, GasRegistry.methane, GasRegistry.water)) {
@@ -752,7 +754,7 @@ public class PlanetDimension extends Dimension {
         // This stops the temperature from dropping instantly if a player drains an ocean.
         double thermalMass = 1.0 + (oceanFraction * 10) + (getGravitationalMultiplier() * 100);
         thermalMass *= Config.INSTANCE.planet_Heat_Capacity_Multiplier;
-        //thermalMass = 0.1; // TODO: remove after testing
+        thermalMass = 0.1; // TODO: remove after testing
 
         // 5. APPLY DELTA (The simulation step)
         // If Ein > Eout, the planet warms. If Eout > Ein, it cools.
@@ -770,13 +772,7 @@ public class PlanetDimension extends Dimension {
             PlanetDimensionProperties.GasProperty property = getGasProperty(gasId);
             GasRegistry.Gas gas = GasRegistry.gases.get(gasId);
 
-            property.maybeBoil(gas, this, temp, atmDensity, false);
-            property.maybeRain(gas, this, temp, atmDensity, false);
-            property.maybeSnow(gas, this, temp, atmDensity, false);
-            property.maybeFreezeSurface(gas, this, temp, atmDensity, false);
-            property.maybeMeltSurface(gas, this, temp, atmDensity, false);
-
-            property.maybeAdjustWorldgenSeaLevel();
+            property.tick(gas, this, temp, atmDensity);
         }
     }
 }
