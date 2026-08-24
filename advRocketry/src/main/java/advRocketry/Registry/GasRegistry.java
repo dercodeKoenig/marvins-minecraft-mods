@@ -8,6 +8,18 @@ import java.util.LinkedHashMap;
 
 public class GasRegistry {
 
+    // TODO: methane and other fluids should be able to form source blocks,
+    //  needs to be integrated in source create event
+    // TODO: remove canGasMine, all planets should be mineable when atm > 2, fuel consumption based on G, maybe need heat shield upgrade blocks or rocket could die
+    /*
+    Oxygen: farmed in mass with atmosphere compressor / co2 -> oxygen from algae
+    Methane: pump from underground deposits with laser drill or pump from methane oceans on other planets
+    Hydrogen: get it in mass from gas mining
+    co2: you probably dont need it in mass but maybe a volcanic planet can help.
+    water: farm it from other planets or produce with fuel cell hydrogen + oxygen
+    nitrogen: well thats a problem. maybe import from other planets? but is not a consumable so should be fine
+     */
+
     public static final String oxygen = "oxygen";
     public static final String hydrogen = "hydrogen";
     public static final String nitrogen = "nitrogen";
