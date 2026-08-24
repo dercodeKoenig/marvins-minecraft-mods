@@ -820,7 +820,7 @@ public class SkyRenderer {
         adjustRenderTargetSize(AtmosphereTarget, windowWidth, windowHeight, 0.25f);
         adjustRenderTargetSize(PlanetsStarsAndAtmosphereTarget, windowWidth, windowHeight, 1f);
 
-        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
+        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         // render planets
         PlanetsAndStarsTarget.bindWrite(true);

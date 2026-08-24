@@ -138,7 +138,7 @@ public class GuiModulePlanetView extends GuiModuleBase {
                 new Vector3f(0, 1, 0)              // "Up" direction
         );
 
-        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
+        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         SkyRenderer.PlanetsAndStarsTarget.bindWrite(true);
         RenderSystem.clear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, false);

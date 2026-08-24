@@ -542,7 +542,7 @@ public class SpaceMapScreen extends Screen {
         // 3. PROJECTION MATRIX
         Matrix4f projMatrix = projMat();
 
-        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 1f);
+        RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         // atmosphere: no atmosphere
         SkyRenderer.AtmosphereTarget.bindWrite(true);
