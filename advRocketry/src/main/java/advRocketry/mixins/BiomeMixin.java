@@ -84,6 +84,7 @@ public abstract class BiomeMixin {
                     }
                 }
             }
+            // default behaviour should take over
         }
     }
 }
