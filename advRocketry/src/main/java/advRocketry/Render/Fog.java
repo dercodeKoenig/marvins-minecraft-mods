@@ -10,8 +10,6 @@ import org.joml.Vector3f;
 public class Fog {
     // can modify fog distance
     public static void renderFogEvent(ViewportEvent.RenderFog event) {
-// TODO: i do not want to artificially limit render distance by fog. maybe just fade out fog on low atm? or blend it to black?
-
 //        ResourceLocation dimension = Minecraft.getInstance().level.dimension().location();
 //        event.setNearPlaneDistance(event.getNearPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
 //        event.setFarPlaneDistance(event.getFarPlaneDistance() * (float) (1d / (DimensionManager.INSTANCE.dimensions.get(dimension).atmosphereDensity + 0.0001)));
