@@ -132,10 +132,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
             double boilTemp = gas.getBoilingTemp(atmDensity);
 
             // Dynamically scale the transition zone to planetary temperature.
-            // x=90: +-2.9
-            // x=200: +-9.5
-            // x=300: +-15.86
-            double x = (temp - 200.0) / 40.0;
+            double x = (temp - 200.0) / 30.0;
             double scale = 1.0 / (1.0 + Math.exp(-x));
             double ZONE = 2.0 + 15.0 * scale;
 
