@@ -127,6 +127,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
     public EntityRocket(EntityType<?> entityType, Level level) {
         super(entityType, level);
 
+        // TODO: maybe make a fuel fluid interface and custom fluid subclass that defines thrust / fuelrate modifiers
         guiHandler = new GuiHandlerEntity(this);
         fuelTank = new FluidTank(0, (stack) -> stack.getFluid().isSame(Fluids.ROCKET_FUEL.get()));
         controller = new RocketController(this);
