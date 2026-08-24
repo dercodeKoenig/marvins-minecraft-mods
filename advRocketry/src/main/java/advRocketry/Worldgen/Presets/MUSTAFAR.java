@@ -12,9 +12,9 @@ public class MUSTAFAR {
         // Completely dominated by volcanic plains and volcanoes to ensure the planet feels hostile immediately.
         String[][] biomesByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "adv_rocketry:volcano" },
                 { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno" },
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "adv_rocketry:volcano" },
                 { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains" },
                 { "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "adv_rocketry:volcano", "adv_rocketry:volcano" }
         };
@@ -76,7 +76,7 @@ public class MUSTAFAR {
         cragsOverride.peak2 = "adv_rocketry:volcano";
 
         // Shares the same climate as the Steppes, but separated entirely by the erosion parameter.
-        cragsOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.MID, BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
+        cragsOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
         cragsOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.DRY, BiomeConfig.Humidity.VERY_DRY));
         cragsOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
         cragsOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_LOW, BiomeConfig.Erosion.LOW));
