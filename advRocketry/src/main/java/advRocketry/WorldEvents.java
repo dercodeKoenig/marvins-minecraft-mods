@@ -8,7 +8,6 @@ import advRocketry.Missions.MissionManager;
 import advRocketry.Render.Particles.RocketParticleEngine;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
-import advRocketry.Render.starmap.SpaceMapPlanetRenderCache;
 import advRocketry.Rocket.EntityRocket;
 import advRocketry.Satellites.SatelliteManager;
 import advRocketry.SpaceSuit.Boots;
@@ -119,8 +118,6 @@ public class WorldEvents {
 
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         DimensionManager.INSTANCE_CLIENT.dimensions.clear();
-        PlanetRenderCache.INSTANCE.clearCache();
-        SpaceMapPlanetRenderCache.INSTANCE.clearCache();
     }
 
     public static void onRenderStage(RenderLevelStageEvent event) {

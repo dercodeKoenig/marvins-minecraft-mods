@@ -1,6 +1,7 @@
 package advRocketry.Render.starmap;
 
 import ARLib.utils.VertexBufferCleaner;
+import advRocketry.Config;
 import advRocketry.Data.DataTypes;
 import advRocketry.Dimension.*;
 import advRocketry.GlobalTime;
@@ -34,8 +35,8 @@ import static advRocketry.Utils.CelestialUtils.fromEarthMasses;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class SpaceMapScreen extends Screen {
+    public final PlanetRenderCache PLANET_CACHE = new SpaceMapPlanetRenderCache();
     private final int SIDEBAR_WIDTH = 200;
-
     public PlanetDimension selectedPlanet = null;
     public float camX = 0;
     public float camY = 0;
@@ -76,7 +77,7 @@ public class SpaceMapScreen extends Screen {
         }
 
         // depth sort the planets
-        SpaceMapPlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
+        PLANET_CACHE.updatePlanetsToRenderInSky(new Vec3(camX, zoom, camY));
 
     }
 
@@ -435,7 +436,7 @@ public class SpaceMapScreen extends Screen {
     }
 
     public PlanetDimension getHoveredPlanet() {
-        for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky().reversed()) {
+        for (PlanetDimension planet : PLANET_CACHE.getPlanetsToRenderInSky().reversed()) {
 
             // dont test for hidden planets
             if (!shouldRenderPlanet(planet.getDimensionId()))
@@ -579,7 +580,7 @@ public class SpaceMapScreen extends Screen {
 
         LEQUAL_DEPTH_TEST.setupRenderState();
 
-        for (PlanetDimension planet : SpaceMapPlanetRenderCache.INSTANCE.getPlanetsToRenderInSky()) {
+        for (PlanetDimension planet : PLANET_CACHE.getPlanetsToRenderInSky()) {
             if (!shouldRenderPlanet(planet.getDimensionId()))
                 continue;
 
