@@ -173,6 +173,8 @@ public class SeaLevelAdjustment {
                     // only replace source blocks of gases with lower boiling temp
                     // so that when the low boiling temp gases evaporate, they leave behind the other fluids
                     // not perfect but should be good enough....
+                    // best would be to invalidate the current sea level for all fluids when any fluid lowers its sea level
+                    // so that all others can maybe fill the void. but thats a bit too complicated for now... this approximation will do
                     if (scanState.getFluidState().isSource()) {
                         double atmDensity = planet.getAtmosphereDensity();
                         boolean canReplaceSource = true;
