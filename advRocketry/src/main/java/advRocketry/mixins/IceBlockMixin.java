@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -46,9 +47,22 @@ public abstract class IceBlockMixin extends Block {
         }
     }
 
-    @Inject(method = "randomTick",
-            at = @At("HEAD"),
-            cancellable = true)
+    @Inject(method = "melt", at = @At("HEAD"), cancellable = true)
+    protected void melt(BlockState state, Level level, BlockPos pos, CallbackInfo ci) {
+        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+            int seaLevel = planet.getGasProperty(GasRegistry.water).worldGenSeaLevel;
+            if (pos.getY() > seaLevel && state.getValue(water_frozen_by_low_planet_temp)) {
+                // if the sea level adjusts while frozen and it starts to melt, it would create water at the
+                // higher sea level but the sea level adjustment will not work this position again
+                // so above sea level it should melt into air directly
+                // but this is reserved for sea blocks only so if you melt ice by hand it should not evaporate
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                ci.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "randomTick", at = @At("HEAD"), cancellable = true)
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         if (this.getClass().getName().equals(IceBlock.class.getName())) {
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
