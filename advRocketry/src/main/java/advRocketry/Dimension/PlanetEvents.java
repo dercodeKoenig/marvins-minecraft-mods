@@ -19,9 +19,25 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_temp;
 
 public class PlanetEvents {
+
+    // return all gases sorted by the boiling temp on this atm density with highest boiling temp first
+    public static List<GasRegistry.Gas> getGasesSortedByBoilingTemp(double atm){
+        return GasRegistry.gases.values().stream()
+                .sorted(
+                        Comparator.comparingDouble(g -> g.getBoilingTemp(atm))
+                ).toList()
+                .reversed();
+    }
+
 
     // called from server level mixin
     // performs slow terraforming ticks
@@ -54,7 +70,7 @@ public class PlanetEvents {
             // Run the logic on the targeted block
 
             // adjust sea level for all the gases
-            for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
+            for (GasRegistry.Gas gas : getGasesSortedByBoilingTemp(planet.getAtmosphereDensity())) {
                 if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
                     break; // avoid gas mixing if many gases exist
             }
@@ -87,14 +103,14 @@ public class PlanetEvents {
 
         double planetTemp = planet.getCurrentTemp();
         double atmLevel = planet.getAtmosphereDensity();
-        boolean shouldFreezeWater = planetTemp < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel) - 1;
+        boolean shouldFreezeWater = planetTemp + 1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel);
         for (int cx = 0; cx < 16; cx++) {
             for (int cz = 0; cz < 16; cz++) {
                 int x = chunk.getPos().getBlockX(cx);
                 int z = chunk.getPos().getBlockZ(cz);
 
                 // adjust sea level
-                for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
+                for (GasRegistry.Gas gas : getGasesSortedByBoilingTemp(planet.getAtmosphereDensity())) {
                     while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, x, z, 3)) {
                         continue; // nothing to do, all the action happens above
                     }
