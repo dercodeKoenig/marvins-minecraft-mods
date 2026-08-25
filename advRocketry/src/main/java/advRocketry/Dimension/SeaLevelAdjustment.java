@@ -131,33 +131,44 @@ public class SeaLevelAdjustment {
 
             // place blocks up to sea level
             if (seaLevelTarget > seaLevelExisting) {
+
+                BlockState stateToPlace = fluidBlock.defaultBlockState();
+                if (fluidBlock instanceof CompositionFluidLiquidBlock) {
+                    stateToPlace = stateToPlace.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
+                }
+
                 int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
                 BlockPos blockPos = new BlockPos(blockX, y, blockZ);
                 BlockState blockState = level.getBlockState(blockPos);
 
-                while (!blockState.isRedstoneConductor(level, blockPos)) {
+                while (!blockState.isRedstoneConductor(level, blockPos)) {;
                     blockPos = blockPos.below();
                     blockState = level.getBlockState(blockPos);
                     if (blockPos.getY() <= level.getMinBuildHeight())
-                        return false;
+                        break;
                 }
 
                 for (int scanY = blockPos.above().getY(); scanY <= seaLevelTarget; scanY++) {
                     BlockPos scanPos = new BlockPos(blockX, scanY, blockZ);
                     BlockState scanState = level.getBlockState(scanPos);
 
+                    // correct block is already placed at this position
+                    if (scanState.getFluidState().isSource() && scanState.is(fluidBlock))
+                        continue;
+
                     if (scanState.getBlock().equals(Blocks.LAVA) && level.getBlockState(scanPos.above()).isAir()) {
                         // only replace lava with obsidian if it is top block to allow for lava below surface
                         level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
                         planet.setRaining(5);
                         return true;
-                    } else if (scanState.canBeReplaced() && !scanState.getFluidState().isSource()) {
-                        BlockState state = fluidBlock.defaultBlockState();
-                        if (fluidBlock instanceof CompositionFluidLiquidBlock) {
-                            state = state.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_PLACE, true);
+                    } else if (scanState.canBeReplaced()) {
+
+                        // prevent composition change on replacing
+                        if(scanState.hasProperty(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK)){
+                            level.setBlock(scanPos, scanState.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
                         }
 
-                        level.setBlock(scanPos, state, placementFlags);
+                        level.setBlock(scanPos, stateToPlace, placementFlags);
                         planet.setRaining(5);
 
                         if (scanPos.getY() > seaLevelExisting) {
