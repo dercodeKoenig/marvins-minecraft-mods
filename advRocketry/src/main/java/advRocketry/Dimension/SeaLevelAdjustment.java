@@ -4,6 +4,7 @@ import advRocketry.Blocks.CompositionFluidLiquidBlock;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
@@ -84,11 +85,29 @@ public class SeaLevelAdjustment {
 
                     // special case for water
                     if (fluidBlock.equals(Blocks.WATER) && !scanState.getBlock().equals(Blocks.WATER)) {
+                        // remove waterlogged state
                         if (scanState.hasProperty(BlockStateProperties.WATERLOGGED) && scanState.getValue(BlockStateProperties.WATERLOGGED)) {
                             level.setBlock(scanPos, scanState.setValue(BlockStateProperties.WATERLOGGED, false), placementFlags);
+                            return true;
                         }
+                        // remove special sea plants
                         if (scanState.is(Blocks.KELP_PLANT) || scanState.is(Blocks.KELP) || scanState.is(Blocks.SEAGRASS) || scanState.is(Blocks.TALL_SEAGRASS)) {
                             level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
+                            return true;
+                        }
+                        // floating ice / entire floating ice structures on water should move down
+                        BlockState belowState = level.getBlockState(scanPos.below());
+                        if (scanState.is(Blocks.ICE) && (belowState.is(Blocks.WATER) || belowState.is(Blocks.ICE))) {
+                            for (int iceY = 0; iceY < 9999; iceY++) {
+                                BlockPos icePos = scanPos.relative(Direction.UP, iceY);
+                                if (level.getBlockState(icePos).is(Blocks.ICE)) {
+                                    level.setBlock(icePos, Blocks.AIR.defaultBlockState(), 3);
+                                    level.setBlock(icePos.below(), Blocks.ICE.defaultBlockState(), 3);
+                                } else {
+                                    break;
+                                }
+                            }
+                            return true;
                         }
                     }
 
