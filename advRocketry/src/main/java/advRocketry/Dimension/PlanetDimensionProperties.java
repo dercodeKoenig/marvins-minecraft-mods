@@ -162,10 +162,10 @@ public class PlanetDimensionProperties extends DimensionProperties {
                 frozen_surface = applyAndSnap(frozen_surface, targetSolid, solidDelta);
                 liquid = applyAndSnap(liquid, targetLiquid, liquidDelta);
                 in_atm = applyAndSnap(in_atm, targetGas, gasDelta);
-
-                maybeAdjustWorldgenSeaLevel();
                 planet.setRequiresSync();
             }
+
+            maybeAdjustWorldgenSeaLevel();
         }
 
         // Pure clamp for step speed
