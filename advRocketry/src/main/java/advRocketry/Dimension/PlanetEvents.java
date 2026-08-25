@@ -30,7 +30,7 @@ import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_t
 public class PlanetEvents {
 
     // return all gases sorted by the boiling temp on this atm density with highest boiling temp first
-    public static List<GasRegistry.Gas> getGasesSortedByBoilingTemp(double atm){
+    public static List<GasRegistry.Gas> getGasesSortedByBoilingTemp(double atm) {
         return GasRegistry.gases.values().stream()
                 .sorted(
                         Comparator.comparingDouble(g -> g.getBoilingTemp(atm))
