@@ -2,15 +2,24 @@ package advRocketry.Dimension;
 
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
+import advRocketry.mixins.IceBlockMixin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 public class DimensionEvents {
+
+    // ice block property, can not be defined in ice block mixin so it has to go somewhere...
+    // this is used to be able to restore original water / ice based on original world gen in a biome like frozen ocean
+    // every water that was frozen to ice from low temperature gets this flag
+    // when temperature rises, only ice blocks with this flag will melt into water
+    // so player placed ice and original ice generation like ice spikes remains
+    public static final BooleanProperty water_frozen_by_low_planet_temp = BooleanProperty.create("water_frozen_by_low_planet_temp");
 
     // called from server level mixin
     public static void performRandomTickEvents(Dimension dimension, ServerLevel level, LevelChunk chunk) {
@@ -39,12 +48,23 @@ public class DimensionEvents {
             if (LifeSupportSystem.isPressurized(level, randomPos))
                 pressure = Math.max(pressure, 1);
 
-            // boil away water blocks when too hot
+            // boil away water / ice blocks when too hot
             // the other custom liquids / dry ice have random tick, water has not
-            if (randomBlockState.getBlock().equals(Blocks.WATER) && temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
-                level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
-                randomBlockState = level.getBlockState(randomPos);
+            if (randomBlockState.getBlock().equals(Blocks.WATER) || randomBlockState.getBlock().equals(Blocks.ICE)) {
+                if (temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
+                    level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
+                    randomBlockState = level.getBlockState(randomPos);
+                }
             }
+
+            // freeze water to ice with custom blockstate
+            if (randomBlockState.getBlock().equals(Blocks.WATER)) {
+                if (temp + 1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(pressure)) {
+                    level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
+                    randomBlockState = level.getBlockState(randomPos);
+                }
+            }
+
         }
     }
 }

@@ -8,64 +8,78 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_temp;
+
 @Mixin(IceBlock.class)
-public abstract class IceBlockMixin {
+public abstract class IceBlockMixin extends Block {
+
+    public IceBlockMixin(Properties properties) {
+        super(properties);
+    }
 
     @Shadow
     protected abstract void melt(BlockState state, Level level, BlockPos pos);
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        if (this.getClass().getName().equals(IceBlock.class.getName())) {
+            builder.add(water_frozen_by_low_planet_temp);
+        }
+    }
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void setDefaultClimateState(Properties properties, CallbackInfo ci) {
+        // Grab the current default state, change our property to false, and re-register it
+        if (this.getClass().getName().equals(IceBlock.class.getName())) {
+            this.registerDefaultState(this.defaultBlockState().setValue(water_frozen_by_low_planet_temp, false));
+        }
+    }
 
     @Inject(method = "randomTick",
             at = @At("HEAD"),
             cancellable = true)
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
-        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+        if (this.getClass().getName().equals(IceBlock.class.getName())) {
+            if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
 
-            double temp = planet.getCurrentTemp();
-            double pressure = planet.getAtmosphereDensity();
-            if (LifeSupportSystem.isTemperatureRegulated(level, pos))
-                temp = 300;
-            if (LifeSupportSystem.isPressurized(level, pos))
-                pressure = Math.max(pressure, 1);
+                double temp = planet.getCurrentTemp();
+                double pressure = planet.getAtmosphereDensity();
+                if (LifeSupportSystem.isTemperatureRegulated(level, pos))
+                    temp = 300;
+                if (LifeSupportSystem.isPressurized(level, pos))
+                    pressure = Math.max(pressure, 1);
 
 
-            GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
+                GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
 
-            if (temp < waterGas.getFreezeTemp(pressure)) {
-                // force freeze in any conditions, it is too cold
-                ci.cancel();
-                return;
-            }
+                if (temp < waterGas.getFreezeTemp(pressure)) {
+                    // force freeze in any conditions, it is too cold
+                    ci.cancel();
+                    return;
+                }
 
-            if (temp > waterGas.getBoilingTemp(pressure)) {
-                // too hot for any ice
-                if (pos.getY() > planet.getGasProperty(GasRegistry.water).worldGenSeaLevel)
-                    // melt into air because it is above sea level
-                    // if it would melt into water, the position was probably already worked by the sea level adjustment
-                    // and it would not remove the water, so directly melt into air
-                    // this is most important for if there is an ice ocean and temperature increases while sea level drops
-                    // composition tracker ignores setblock composition change when called from ice block (this)
-                    level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-                else
-                    // normal melt into water
-                    // freeze and melt go from ice->water or water->ice so the composition tracker ignores it,
-                    // (this class is also specifically excluded from composition change)
+                if (temp > waterGas.getFreezeTemp(pressure) && state.getValue(water_frozen_by_low_planet_temp)) {
+                    // block was frozen by low temp and can now melt back into original water without
+                    // messing up the original terrain or player placed ice blocks
                     this.melt(state, level, pos);
+                    ci.cancel();
+                    return;
+                }
 
-                ci.cancel();
-                return;
+                // if not boiling and not freezing, let default logic run
+                // composition tracker still ignores melt from ice block class
             }
-
-            // if not boiling and not freezing, let default logic run
-            // composition tracker still ignores melt from ice block class
         }
     }
 }

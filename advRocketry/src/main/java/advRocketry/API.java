@@ -6,6 +6,8 @@ import advRocketry.Dimension.PlanetDimension;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 
 public class API {
 
@@ -65,6 +67,7 @@ public class API {
             planet.setRequiresSync();
 
             System.out.println("API added frozen blocks: " + gasId + ":" + blocks);
+            //System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
         }
     }
 

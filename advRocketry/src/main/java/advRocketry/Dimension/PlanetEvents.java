@@ -19,6 +19,8 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
+import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_temp;
+
 public class PlanetEvents {
 
     // called from server level mixin
@@ -109,8 +111,8 @@ public class PlanetEvents {
                     BlockState state = serverLevel.getBlockState(pos);
 
                     // freeze water if possible, after the sea level is adjusted
-                    if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && state.getFluidState().isSource() && shouldFreezeWater) {
-                        serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState(), 3);
+                    if (state.getBlock().equals(net.minecraft.world.level.block.Blocks.WATER) && shouldFreezeWater) {
+                        serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
                     }
                 }
             }
@@ -141,8 +143,8 @@ public class PlanetEvents {
                 MinecraftServer server = serverLevel.getServer();
                 server.tell(new TickTask(server.getTickCount() + 100, () -> {
                     ChunkPos currentPos = chunk.getPos();
-                    for (int x = -1; x <= 1; x++)
-                        for (int z = -1; z <= 1; z++) {
+                    for (int x = -2; x <= 2; x++)
+                        for (int z = -2; z <= 2; z++) {
                             maybePerformInitialTerraforming(planet, serverLevel, currentPos.x + x, currentPos.z + z);
                         }
                 }));
