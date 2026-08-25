@@ -15,6 +15,8 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public class SeaLevelAdjustment {
     public static String tagKey = "SeaLevelAdjustment";
@@ -76,6 +78,7 @@ public class SeaLevelAdjustment {
 
         if (seaLevelTarget != seaLevelExisting) {
             // sea level has to be possibly adjusted
+            // System.out.println("adjusting sea level for "+fluid.id+":"+seaLevelExisting+":"+seaLevelTarget+":"+blockX+":"+blockZ);
 
             // remove fluid above its sea level
             if (seaLevelTarget < seaLevelExisting) {
@@ -141,7 +144,7 @@ public class SeaLevelAdjustment {
                 BlockPos blockPos = new BlockPos(blockX, y, blockZ);
                 BlockState blockState = level.getBlockState(blockPos);
 
-                while (!blockState.isRedstoneConductor(level, blockPos)) {;
+                while (!blockState.isRedstoneConductor(level, blockPos)) {
                     blockPos = blockPos.below();
                     blockState = level.getBlockState(blockPos);
                     if (blockPos.getY() <= level.getMinBuildHeight())
@@ -161,23 +164,44 @@ public class SeaLevelAdjustment {
                         level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
                         planet.setRaining(5);
                         return true;
-                    } else if (scanState.canBeReplaced()) {
-
-                        // prevent composition change on replacing
-                        if (scanState.hasProperty(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
-                            level.setBlock(scanPos, scanState.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
-                        }
-
-                        level.setBlock(scanPos, stateToPlace, placementFlags);
-                        planet.setRaining(5);
-
-                        if (scanPos.getY() > seaLevelExisting) {
-                            seaLevels[localIndex] = scanPos.getY();
-                            chunkEntry.putIntArray(fluid.id, seaLevels);
-                            ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
-                        }
-                        return true;
                     }
+
+                    if (!scanState.canBeReplaced()) {
+                        continue;
+                    }
+
+                    // only replace source blocks of gases with lower boiling temp
+                    // so that when the low boiling temp gases evaporate, they leave behind the other fluids
+                    // not perfect but should be good enough....
+                    if (scanState.getFluidState().isSource()) {
+                        double atmDensity = planet.getAtmosphereDensity();
+                        boolean canReplaceSource = true;
+                        for (GasRegistry.Gas otherGas : GasRegistry.gases.values()) {
+                            if (scanState.getBlock().equals(otherGas.fluidBlock)) {
+                                if (otherGas.getBoilingTemp(atmDensity) > fluid.getBoilingTemp(atmDensity)) {
+                                    canReplaceSource = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!canReplaceSource)
+                            continue;
+                    }
+
+                    // prevent composition change on replacing
+                    if (scanState.hasProperty(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
+                        level.setBlock(scanPos, scanState.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
+                    }
+
+                    level.setBlock(scanPos, stateToPlace, placementFlags);
+                    planet.setRaining(5);
+
+                    if (scanPos.getY() > seaLevelExisting) {
+                        seaLevels[localIndex] = scanPos.getY();
+                        chunkEntry.putIntArray(fluid.id, seaLevels);
+                        ChunkUtils.setEntry(chunk, tagKey, chunkEntry);
+                    }
+                    return true;
                 }
             }
 

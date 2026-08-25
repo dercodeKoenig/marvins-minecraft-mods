@@ -50,7 +50,7 @@ public class DimensionEvents {
 
             // boil away water / ice blocks when too hot
             // the other custom liquids / dry ice have random tick, water has not
-            if (randomBlockState.getBlock().equals(Blocks.WATER) || randomBlockState.getBlock().equals(Blocks.ICE)) {
+            if (randomBlockState.is(Blocks.WATER) || randomBlockState.is(Blocks.ICE)) {
                 if (temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
                     level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
                     randomBlockState = level.getBlockState(randomPos);
@@ -58,7 +58,7 @@ public class DimensionEvents {
             }
 
             // freeze water to ice with custom blockstate
-            if (randomBlockState.getBlock().equals(Blocks.WATER)) {
+            if (randomBlockState.is(Blocks.WATER)) {
                 if (temp + 1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(pressure)) {
                     boolean hasWaterAllAround = level.isWaterAt(randomPos.west()) && level.isWaterAt(randomPos.east()) && level.isWaterAt(randomPos.north()) && level.isWaterAt(randomPos.south());
                     if (!hasWaterAllAround) { // freeze from edge first

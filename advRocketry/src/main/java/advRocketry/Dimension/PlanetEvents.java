@@ -27,16 +27,6 @@ import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_t
 
 public class PlanetEvents {
 
-    // return all gases sorted by the boiling temp on this atm density with highest boiling temp first
-    public static List<GasRegistry.Gas> getGasesSortedByBoilingTemp(double atm) {
-        return GasRegistry.gases.values().stream()
-                .sorted(
-                        Comparator.comparingDouble(g -> g.getBoilingTemp(atm))
-                ).toList()
-                .reversed();
-    }
-
-
     // called from server level mixin
     // performs slow terraforming ticks
     public static void performTerraformingTicks(PlanetDimension planet, ServerLevel level, LevelChunk chunk) {
@@ -68,7 +58,7 @@ public class PlanetEvents {
             // Run the logic on the targeted block
 
             // adjust sea level for all the gases
-            for (GasRegistry.Gas gas : getGasesSortedByBoilingTemp(planet.getAtmosphereDensity())) {
+            for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                 if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
                     break; // avoid gas mixing if many gases exist
             }
@@ -108,7 +98,7 @@ public class PlanetEvents {
                 int z = chunk.getPos().getBlockZ(cz);
 
                 // adjust sea level
-                for (GasRegistry.Gas gas : getGasesSortedByBoilingTemp(planet.getAtmosphereDensity())) {
+                for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
                     while (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, x, z, 3)) {
                         continue; // nothing to do, all the action happens above
                     }
@@ -135,6 +125,7 @@ public class PlanetEvents {
 
     public static void onChunkLoad(ChunkEvent.Load event, ServerLevel serverLevel, PlanetDimension planet) {
         ChunkAccess chunk = event.getChunk();
+        //System.out.println("chunk load "+ event.getChunk().getPos());
         if (event.isNewChunk()) {
             for (int cx = 0; cx < 16; cx++) {
                 for (int cz = 0; cz < 16; cz++) {
