@@ -7,7 +7,6 @@
     "FallingBlockEntityMixin",
     "ItemEntityMixin",
     "LivingEntityMixin",
-    "ServerLevelMixin",
     "BiomeMixin",
     "IceBlockMixin",
     "LevelMixin"

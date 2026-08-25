@@ -164,7 +164,7 @@ public class SeaLevelAdjustment {
                     } else if (scanState.canBeReplaced()) {
 
                         // prevent composition change on replacing
-                        if(scanState.hasProperty(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK)){
+                        if (scanState.hasProperty(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK)) {
                             level.setBlock(scanPos, scanState.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
                         }
 
@@ -179,12 +179,6 @@ public class SeaLevelAdjustment {
                         return true;
                     }
                 }
-                /*
-                BlockState existingState1 = level.getBlockState(new BlockPos(blockX, seaLevelTarget, blockZ));
-                if(existingState1.getBlock().equals(Blocks.WATER))
-                    System.out.println(planet.getName()+" could not place water at "+blockX+":"+seaLevelTarget+":"+blockZ+":"+existingState1);
-                 */
-
             }
 
             // if no replacement happens, mark completed

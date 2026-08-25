@@ -21,6 +21,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -38,6 +41,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.block.CreateFluidSourceEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -221,6 +225,20 @@ public class WorldEvents {
                         planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(planet.getAtmosphereDensity())) {
                     e.setCanConvert(false);
                 }
+            }
+        }
+    }
+
+    public static void onChunkLoad(ChunkEvent.Load event){
+        ChunkAccess chunk = event.getChunk();
+        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
+
+            // add loaded chunk from server thread
+            MinecraftServer server = serverLevel.getServer();
+            server.tell(new TickTask(0, () -> dimension.loadedChunks.add(chunk.getPos().toLong())));
+
+            if (dimension instanceof PlanetDimension planet){
+                PlanetEvents.onChunkLoad(event, serverLevel, planet);
             }
         }
     }

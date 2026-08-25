@@ -1,12 +1,18 @@
 package advRocketry.Dimension;
 
+import advRocketry.GlobalTime;
 import advRocketry.Main;
 import advRocketry.Utils.AxisDirections;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -16,21 +22,26 @@ public abstract class Dimension {
     protected StarCache starCache; // holds current main stars
 
     boolean isClientSide;
+    public DimensionManager dimensionManager;
 
-    DimensionManager dimensionManager;
+    public HashSet<Long> loadedChunks = new HashSet<>();
 
     public Dimension(DimensionProperties properties, DimensionManager dimensionManager) {
         this.properties = properties;
-        this.dimensionManager =dimensionManager;
+        this.dimensionManager = dimensionManager;
         this.isClientSide = dimensionManager.isClientSide;
 
-        if(!isClientSide) {
+        if (!isClientSide) {
             if (getDimensionId().getNamespace().equals(Main.MODID) && canVisit()) {
                 createDimension();
             }
         }
 
         starCache = new StarCache();
+    }
+
+    public ServerLevel level() {
+        return DimensionManager.getServerLevel(getDimensionId());
     }
 
     public DimensionProperties.DimensionType getType() {
@@ -41,7 +52,7 @@ public abstract class Dimension {
         return properties.dimensionId;
     }
 
-    public String getName(){
+    public String getName() {
         return properties.name;
     }
 
@@ -88,19 +99,48 @@ public abstract class Dimension {
      */
     abstract public AxisDirections getGlobalAxisDirections(float partialTick);
 
-    abstract public void tick();
+    public void tick() {
+        tickStarCache();
+
+        if (!isClientSide) {
+            //int ticked = 0;
+            Iterator<Long> it = loadedChunks.iterator();
+            ServerLevel level = level();
+            while (it.hasNext()) {
+                Long i = it.next();
+                ChunkPos pos = new ChunkPos(i);
+                if (level.hasChunk(pos.x, pos.z)) {
+                    if (level.shouldTickBlocksAt(i)) {
+                        tickChunk(level.getChunk(pos.x, pos.z));
+                        //ticked++;
+                    }
+                } else {
+                    it.remove();
+                }
+            }
+
+            //if (GlobalTime.getGlobalTime() % 20 == 0 && loadedChunks.size() > 0) {
+            //    System.out.println("loaded chunks: " + loadedChunks.size());
+            //    System.out.println("ticked chunks: " + ticked);
+            //}
+        }
+    }
+
+    public void tickChunk(LevelChunk chunk){
+        DimensionEvents.performRandomTickEvents(this, level(), chunk);
+    }
 
     abstract public double getCurrentTemp();
 
-    public Iterable<ResourceLocation> getCurrentMainStars(){
+    public Iterable<ResourceLocation> getCurrentMainStars() {
         return starCache.significantLightSourcesCache.keySet();
     }
 
-    protected void tickStarCache(){
+    protected void tickStarCache() {
         starCache.updateSignificantLightSourcesCache(this);
     }
 
-    public void updateDimensionProperties(DimensionProperties properties){
+    public void updateDimensionProperties(DimensionProperties properties) {
         this.properties = properties;
     }
 
@@ -117,7 +157,7 @@ public abstract class Dimension {
 
         public final String reason;
 
-        SurvivalProblem(String reason){
+        SurvivalProblem(String reason) {
             this.reason = reason;
         }
     }

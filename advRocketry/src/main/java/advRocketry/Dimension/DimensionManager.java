@@ -158,9 +158,6 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
         if (propsBase.type == DimensionProperties.DimensionType.PLANET) {
             return gson.fromJson(dimensionProperties, PlanetDimensionProperties.class);
         }
-        if (propsBase.type == DimensionProperties.DimensionType.DUMMY) {
-            return gson.fromJson(dimensionProperties, DummyDimensionProperties.class);
-        }
         if (propsBase.type == DimensionProperties.DimensionType.SPACE_STATION) {
             return gson.fromJson(dimensionProperties, SpaceStationDimensionProperties.class);
         }
@@ -176,10 +173,6 @@ public class DimensionManager implements SimpleNetworkPacket.SimpleNetworkDataRe
                 PlanetDimension dimension = new PlanetDimension(properties, this);
                 dimensions.put(dimension.getDimensionId(), dimension);
                 System.out.println("[DimensionManager] created PlanetDimension for " + dimension.getDimensionId());
-            } else if (properties.type == DimensionProperties.DimensionType.DUMMY) {
-                DummyDimension dummyDimension = new DummyDimension(properties, this);
-                dimensions.put(dummyDimension.getDimensionId(), dummyDimension);
-                System.out.println("[DimensionManager] created DummyDimension for " + dummyDimension.getDimensionId());
             } else if (properties.type == DimensionProperties.DimensionType.SPACE_STATION) {
                 SpaceStationDimension spaceStationDimension = new SpaceStationDimension(properties, this);
                 dimensions.put(spaceStationDimension.getDimensionId(), spaceStationDimension);

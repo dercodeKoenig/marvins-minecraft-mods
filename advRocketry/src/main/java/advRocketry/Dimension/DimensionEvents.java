@@ -29,7 +29,7 @@ public class DimensionEvents {
         double baseTemp = dimension.getCurrentTemp();
         double basePressure = dimension.getAtmosphereDensity();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
 
             int localX = level.random.nextIntBetweenInclusive(0, 15);
             int localZ = level.random.nextIntBetweenInclusive(0, 15);

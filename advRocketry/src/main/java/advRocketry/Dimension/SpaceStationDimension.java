@@ -328,6 +328,7 @@ public class SpaceStationDimension extends Dimension {
 
     @Override
     public void tick() {
+        super.tick();
 
         // server and client can get out of sync because stations can move and are not fixed in orbit like a planet
         // planets only variably for position is the global time, but here it is more difficult
@@ -341,8 +342,6 @@ public class SpaceStationDimension extends Dimension {
             // there is nothing in here that is required while the player is on a different dimension
             // during level load it should request a dimension sync to get the current state
             return;
-
-        super.tickStarCache();
 
         tickRotation();
         tickPosition();

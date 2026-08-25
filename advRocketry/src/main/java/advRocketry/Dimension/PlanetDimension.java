@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -87,10 +88,6 @@ public class PlanetDimension extends Dimension {
 
     private PlanetDimensionProperties properties() {
         return (PlanetDimensionProperties) properties;
-    }
-
-    public ServerLevel level() {
-        return DimensionManager.getServerLevel(getDimensionId());
     }
 
     public void createDimension() {
@@ -589,7 +586,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public void tick() {
-        super.tickStarCache();
+        super.tick();
 
         tickPosition();
 
@@ -641,6 +638,10 @@ public class PlanetDimension extends Dimension {
         }
     }
 
+    public void tickChunk(LevelChunk chunk) {
+        super.tickChunk(chunk);
+        PlanetEvents.performTerraformingTicks(this, level(), chunk);
+    }
 
     // by ticking the position once and interpolating between last and current position it will
     // reduce computation all the time we require the dimension. the movement will still be smooth, just not a perfect circle

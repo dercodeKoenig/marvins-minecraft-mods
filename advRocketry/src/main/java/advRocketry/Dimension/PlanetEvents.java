@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,10 +20,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_temp;
@@ -135,36 +133,33 @@ public class PlanetEvents {
         }
     }
 
-    public static void onChunkLoad(ChunkEvent.Load event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof PlanetDimension planet) {
-            ChunkAccess chunk = event.getChunk();
+    public static void onChunkLoad(ChunkEvent.Load event, ServerLevel serverLevel, PlanetDimension planet) {
+        ChunkAccess chunk = event.getChunk();
+        if (event.isNewChunk()) {
+            for (int cx = 0; cx < 16; cx++) {
+                for (int cz = 0; cz < 16; cz++) {
+                    int x = chunk.getPos().getBlockX(cx);
+                    int z = chunk.getPos().getBlockZ(cz);
 
-            if (event.isNewChunk()) {
-                for (int cx = 0; cx < 16; cx++) {
-                    for (int cz = 0; cz < 16; cz++) {
-                        int x = chunk.getPos().getBlockX(cx);
-                        int z = chunk.getPos().getBlockZ(cz);
-
-                        if (((PlanetDimensionProperties) planet.properties).customSeaFluid == null) {
-                            // it generated water, save initial water level so that it doesn't rain by default and fill caves
-                            SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, chunk, x, z);
-                        }
-
-                        TerraformingSystem.storeGeneratedBiome(TerraformingSystem.getCurrentSurfaceBiome(serverLevel, x, z), chunk, x, z);
+                    // it generated water, save initial water level so that it doesn't rain by default and fill caves
+                    if (((PlanetDimensionProperties) planet.properties).customSeaFluid == null) {
+                        SeaLevelAdjustment.saveInitialWaterLevelOnChunkGeneration(serverLevel, chunk, x, z);
                     }
-                }
 
-                // trigger neighbor to maybe run initial terraforming
-                // run as tick task to avoid deadlocks
-                MinecraftServer server = serverLevel.getServer();
-                server.tell(new TickTask(server.getTickCount() + 100, () -> {
-                    ChunkPos currentPos = chunk.getPos();
-                    for (int x = -2; x <= 2; x++)
-                        for (int z = -2; z <= 2; z++) {
-                            maybePerformInitialTerraforming(planet, serverLevel, currentPos.x + x, currentPos.z + z);
-                        }
-                }));
+                    TerraformingSystem.storeGeneratedBiome(TerraformingSystem.getCurrentSurfaceBiome(serverLevel, x, z), chunk, x, z);
+                }
             }
+
+            // trigger neighbor to maybe run initial terraforming
+            // run as tick task to avoid deadlocks
+            MinecraftServer server = serverLevel.getServer();
+            server.tell(new TickTask(server.getTickCount(), () -> {
+                ChunkPos currentPos = chunk.getPos();
+                for (int x = -2; x <= 2; x++)
+                    for (int z = -2; z <= 2; z++) {
+                        maybePerformInitialTerraforming(planet, serverLevel, currentPos.x + x, currentPos.z + z);
+                    }
+            }));
         }
     }
 
@@ -246,6 +241,5 @@ public class PlanetEvents {
         handlePhotosynthesis(planet, false);
 
         handleOceanCo2Reduction(planet, false);
-
     }
 }
