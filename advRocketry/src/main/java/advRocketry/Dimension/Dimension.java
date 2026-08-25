@@ -46,6 +46,9 @@ public abstract class Dimension {
     public void registerLoadedChunk(ChunkPos pos){
         loadedChunks.put(pos.toLong(), new ChunkInfo());
     }
+    public void removeLoadedChunk(ChunkPos pos){
+        loadedChunks.remove(pos.toLong());
+    }
 
     public DimensionProperties.DimensionType getType() {
         return properties.type;
@@ -109,17 +112,11 @@ public abstract class Dimension {
             int ticked = 0;
             long t0 =System.nanoTime();
             ServerLevel level = level();
-            Iterator<Long> it = loadedChunks.keySet().iterator();
-            while (it.hasNext()) {
-                Long i = it.next();
+            for (Long i : loadedChunks.keySet()) {
                 ChunkPos pos = new ChunkPos(i);
-                if (level.hasChunk(pos.x, pos.z)) {
-                    if (level.shouldTickBlocksAt(i)) {
-                        tickChunk(pos);
-                        ticked++;
-                    }
-                } else {
-                    it.remove();
+                if (level.shouldTickBlocksAt(i)) {
+                    tickChunk(pos);
+                    ticked++;
                 }
             }
             long t1 =System.nanoTime();

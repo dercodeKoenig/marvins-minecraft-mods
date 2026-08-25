@@ -243,4 +243,11 @@ public class WorldEvents {
             }
         }
     }
+
+    public static void onChunkUnload(ChunkEvent.Unload event) {
+        if (event.getLevel() instanceof ServerLevel serverLevel && DimensionManager.INSTANCE_SERVER.get(serverLevel.dimension().location()) instanceof Dimension dimension) {
+            MinecraftServer server = serverLevel.getServer();
+            server.tell(new TickTask(0, () -> dimension.removeLoadedChunk(event.getChunk().getPos())));
+        }
+    }
 }

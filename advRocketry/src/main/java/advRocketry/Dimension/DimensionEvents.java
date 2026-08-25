@@ -69,6 +69,20 @@ public class DimensionEvents {
                     }
                 }
             }
+
+            // melt any ice placed by the force freeze logic above back into water
+            if (randomBlockState.is(Blocks.ICE)) {
+                if (temp > 1 + GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(pressure)) {
+                    if (randomBlockState.getValue(water_frozen_by_low_planet_temp)) {
+                        if (dimension instanceof PlanetDimension planet && planet.getGasProperty(GasRegistry.water).worldGenSeaLevel < randomPos.getY()) {
+                            // above sea level melt into air and not water or it would look really strange to have water flowing everywhere
+                            level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
+                        } else {
+                            level.setBlock(randomPos, Blocks.WATER.defaultBlockState(), 3);
+                        }
+                    }
+                }
+            }
         }
         return requiresIncreasedTickFrequency;
     }

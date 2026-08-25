@@ -119,6 +119,8 @@ public class SeaLevelAdjustment {
                             level.setBlock(scanPos, scanState.setValue(CompositionFluidLiquidBlock.PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), placementFlags);
                         }
 
+                        // important to instantly save the lowered sea level in case we increase it again
+                        // (it would not increase sea level in future)
                         if (scanPos.getY() < seaLevelExisting) {
                             seaLevels[localIndex] = scanPos.getY();
                             chunkEntry.putIntArray(fluid.id, seaLevels);
@@ -126,7 +128,6 @@ public class SeaLevelAdjustment {
                         }
 
                         level.setBlock(scanPos, Blocks.AIR.defaultBlockState(), placementFlags);
-                        planet.setClearWeather();
                         return true;
                     }
                 }
