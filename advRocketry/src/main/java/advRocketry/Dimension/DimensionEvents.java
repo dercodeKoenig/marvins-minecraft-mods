@@ -60,8 +60,11 @@ public class DimensionEvents {
             // freeze water to ice with custom blockstate
             if (randomBlockState.getBlock().equals(Blocks.WATER)) {
                 if (temp + 1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(pressure)) {
-                    level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
-                    randomBlockState = level.getBlockState(randomPos);
+                    boolean hasWaterAllAround = level.isWaterAt(randomPos.west()) && level.isWaterAt(randomPos.east()) && level.isWaterAt(randomPos.north()) && level.isWaterAt(randomPos.south());
+                    if (!hasWaterAllAround) { // freeze from edge first
+                        level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
+                        randomBlockState = level.getBlockState(randomPos);
+                    }
                 }
             }
 
