@@ -3,18 +3,17 @@ package advRocketry.Dimension;
 import advRocketry.GlobalTime;
 import advRocketry.Main;
 import advRocketry.Utils.AxisDirections;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.level.ChunkDataEvent;
 import org.joml.Vector3f;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Dimension {
     protected DimensionProperties properties;
@@ -24,7 +23,7 @@ public abstract class Dimension {
     boolean isClientSide;
     public DimensionManager dimensionManager;
 
-    public HashSet<Long> loadedChunks = new HashSet<>();
+    public HashMap<Long, ChunkInfo> loadedChunks = new HashMap<>();
 
     public Dimension(DimensionProperties properties, DimensionManager dimensionManager) {
         this.properties = properties;
@@ -42,6 +41,10 @@ public abstract class Dimension {
 
     public ServerLevel level() {
         return DimensionManager.getServerLevel(getDimensionId());
+    }
+
+    public void registerLoadedChunk(ChunkPos pos){
+        loadedChunks.put(pos.toLong(), new ChunkInfo());
     }
 
     public DimensionProperties.DimensionType getType() {
@@ -103,31 +106,45 @@ public abstract class Dimension {
         tickStarCache();
 
         if (!isClientSide) {
-            //int ticked = 0;
-            Iterator<Long> it = loadedChunks.iterator();
+            int ticked = 0;
+            long t0 =System.nanoTime();
             ServerLevel level = level();
+            Iterator<Long> it = loadedChunks.keySet().iterator();
             while (it.hasNext()) {
                 Long i = it.next();
                 ChunkPos pos = new ChunkPos(i);
                 if (level.hasChunk(pos.x, pos.z)) {
                     if (level.shouldTickBlocksAt(i)) {
-                        tickChunk(level.getChunk(pos.x, pos.z));
-                        //ticked++;
+                        tickChunk(pos);
+                        ticked++;
                     }
                 } else {
                     it.remove();
                 }
             }
-
-            //if (GlobalTime.getGlobalTime() % 20 == 0 && loadedChunks.size() > 0) {
-            //    System.out.println("loaded chunks: " + loadedChunks.size());
-            //    System.out.println("ticked chunks: " + ticked);
-            //}
+            long t1 =System.nanoTime();
+            /*
+            if (GlobalTime.getGlobalTime() % 20 == 0 && loadedChunks.size() > 0) {
+                System.out.println("loaded chunks: " + loadedChunks.size());
+                System.out.println("ticked chunks: " + ticked);
+                System.out.println("time: " + (double)(t1-t0) / 1000 / 1000);
+            }
+             */
         }
     }
 
-    public void tickChunk(LevelChunk chunk){
-        DimensionEvents.performRandomTickEvents(this, level(), chunk);
+    public void tickChunk(ChunkPos pos){
+        ChunkInfo info = loadedChunks.get(pos.toLong());
+        double p = 0.1;
+        if(info.isHotTimeout > 0) {
+            info.isHotTimeout--;
+            p = 1;
+        }
+        if(Math.random() < p) {
+            if (DimensionEvents.performRandomTickEvents(this, level(), pos)) {
+                info.isHotTimeout = 200;
+            }
+        }
     }
 
     abstract public double getCurrentTemp();
@@ -160,5 +177,11 @@ public abstract class Dimension {
         SurvivalProblem(String reason) {
             this.reason = reason;
         }
+    }
+
+    public static class ChunkInfo{
+        // timout for running with increased tick frequency when something interesting happens
+        // while > 0: do more updates, while 0: do less updates
+        int isHotTimeout = 0;
     }
 }

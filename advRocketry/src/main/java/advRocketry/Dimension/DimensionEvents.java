@@ -21,15 +21,15 @@ public class DimensionEvents {
     // so player placed ice and original ice generation like ice spikes remains
     public static final BooleanProperty water_frozen_by_low_planet_temp = BooleanProperty.create("water_frozen_by_low_planet_temp");
 
-    // called from server level mixin
-    public static void performRandomTickEvents(Dimension dimension, ServerLevel level, LevelChunk chunk) {
-
-        ChunkPos chunkPos = chunk.getPos();
+    // return true if smth meaningful happened and this chunk should be ticked more often over the next seconds
+    public static boolean performRandomTickEvents(Dimension dimension, ServerLevel level, ChunkPos chunkPos) {
 
         double baseTemp = dimension.getCurrentTemp();
         double basePressure = dimension.getAtmosphereDensity();
 
-        for (int i = 0; i < 3; i++) {
+        boolean requiresIncreasedTickFrequency = false;
+
+        for (int i = 0; i < 6; i++) {
 
             int localX = level.random.nextIntBetweenInclusive(0, 15);
             int localZ = level.random.nextIntBetweenInclusive(0, 15);
@@ -54,6 +54,7 @@ public class DimensionEvents {
                 if (temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
                     level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
                     randomBlockState = level.getBlockState(randomPos);
+                    requiresIncreasedTickFrequency = true;
                 }
             }
 
@@ -64,10 +65,11 @@ public class DimensionEvents {
                     if (!hasWaterAllAround) { // freeze from edge first
                         level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
                         randomBlockState = level.getBlockState(randomPos);
+                        requiresIncreasedTickFrequency = true;
                     }
                 }
             }
-
         }
+        return requiresIncreasedTickFrequency;
     }
 }

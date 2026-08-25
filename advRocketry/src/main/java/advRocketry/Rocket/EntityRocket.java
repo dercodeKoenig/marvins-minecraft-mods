@@ -480,6 +480,7 @@ public class EntityRocket extends Entity implements INetworkTagReceiver {
 
     @Override
     public void tick() {
+        //System.out.println("rocket ticking in "+level().dimension().location()+":"+position());
         super.tick();
 
         if (!level().isClientSide) {

@@ -306,6 +306,14 @@ public class TerraformingSystem {
         level.getChunkSource().chunkMap.getPlayers(chunk.getPos(), false).forEach(player -> {
             player.connection.send(packet);
         });
+
+        // if on planet dimension, boost the terraforming system so it updates more frequently
+        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+            long chunkPosLong = chunk.getPos().toLong();
+            if (planet.loadedChunks.get(chunkPosLong) instanceof PlanetDimension.ChunkInfo chunkInfo) {
+                chunkInfo.boostTerraformingTimeout = 300;
+            }
+        }
     }
 
     // We replace maybePatch entirely with this O(1) mathematical lookup
@@ -356,7 +364,7 @@ public class TerraformingSystem {
         }
     }
 
-    public static void maybeUpdateBlocksForNewBiome(ServerLevel level, int x, int z) {
+    public static boolean maybeUpdateBlocksForNewBiome(ServerLevel level, int x, int z) {
         // biomes are 3d now but we sample the one at the surface for all the math
         BlockPos pos = new BlockPos(x, 0, z);
         ResourceLocation currentBiomeId = getCurrentSurfaceBiome(level, x, z);
@@ -392,7 +400,9 @@ public class TerraformingSystem {
 
             // replace the blocks and save new generated biome id
             storeGeneratedBiome(currentBiomeId, level.getChunkAt(pos), pos.getX(), pos.getZ());
+            return true;
         }
+        return false;
     }
 
     public static ResourceLocation getCurrentSurfaceBiome(ServerLevel level, int blockX, int blockZ) {

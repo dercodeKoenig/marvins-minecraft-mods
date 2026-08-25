@@ -15,6 +15,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -45,6 +46,10 @@ public class PlanetDimension extends Dimension {
             // by wrapping it in another class it will not trigger server crash unless the class is loaded
             SkyRenderer.ensureMipmapTexture(getTexture());
         }
+    }
+
+    public void registerLoadedChunk(ChunkPos pos) {
+        loadedChunks.put(pos.toLong(), new ChunkInfo());
     }
 
     public void setRequiresSync() {
@@ -132,25 +137,6 @@ public class PlanetDimension extends Dimension {
         } else {
             System.out.println("loaded dimension for " + getDimensionId());
         }
-
-        // maybe for terraforming to change biomes:
-        // or try to set from a noise source? using the same biome source and level noise source?
-        // ((PalettedContainer) l.getChunk(0,0).getSection(0).getBiomes()).get;
-
-        // maybe get base height from this to copy top blocks without decoration?
-        //NoiseColumn nc = l.getChunkSource().getGenerator().getBaseColumn(0,0,l,l.getChunkSource().randomState());
-
-
-        // make a table of templates of hot -> cold, high sea level -> low sea level
-        // terraformer will choose a template and create a virtual level to generate the new world and copy it
-
-        // maybe when biome changing, pick flower features from biome?
-
-        // on chunk creation, store used preset and top5 generated blocks for every xz position in chunk data
-        // during terraforming, check if the preset != target preset, and if so, get or create dummy dimension with target preset
-        // fetch top 5 blocks for every xz position in this chunk once and cache it for later use
-        // replace top 5 blocks only when current blockstate matches generated blockstate
-        // update generated blockstate after terraforming
     }
 
     // TODO:
@@ -394,9 +380,9 @@ public class PlanetDimension extends Dimension {
             // when all frozen -> frozen_surface
             // in between: ice will initially accumulate at poles with very little coverage
             // this also works against the albedo snowball effect because initial ice has very little influence on albedo
-            sum += gas.frozen_surface * gas.frozen_surface / (gas.liquid + gas.frozen_surface+0.0001);
+            sum += gas.frozen_surface * gas.frozen_surface / (gas.liquid + gas.frozen_surface + 0.0001);
         }
-        return Math.min(1, (float)sum);
+        return Math.min(1, (float) sum);
     }
 
     // how much of the planet do we consider ocean?
@@ -417,7 +403,7 @@ public class PlanetDimension extends Dimension {
         relativeSeaLevel = Math.clamp(relativeSeaLevel, 0, 1);
 
         // adjust for custom fluid
-        if(properties().customSeaFluid != null) {
+        if (properties().customSeaFluid != null) {
             double heightAboveCustomFluidLevel = maxSeaLevel - properties().customSeaFluidLevel;
             if (heightAboveCustomFluidLevel >= 0)
                 // if sea level is just slightly above custom fluid level (eg 0.2 blocks), ocean fraction is signifiantly reduced
@@ -447,7 +433,7 @@ public class PlanetDimension extends Dimension {
 
     public double getSumHumidity() {
         double sum = 0;
-        for (String gas : properties().atmosphereComposition.keySet()){
+        for (String gas : properties().atmosphereComposition.keySet()) {
             sum += getHumidity(gas);
         }
         return sum;
@@ -638,9 +624,24 @@ public class PlanetDimension extends Dimension {
         }
     }
 
-    public void tickChunk(LevelChunk chunk) {
-        super.tickChunk(chunk);
-        PlanetEvents.performTerraformingTicks(this, level(), chunk);
+    public void tickChunk(ChunkPos pos) {
+        super.tickChunk(pos);
+
+        ChunkInfo info = (ChunkInfo) loadedChunks.get(pos.toLong());
+        if (!info.completedFirstTick) {
+            PlanetEvents.performInitialTerraforming(this, level(), pos.x, pos.z);
+            info.completedFirstTick = true;
+            System.out.println("initial terraforming for  "+pos);
+        }
+        int speed = 100; // 1 / 100 chunks ticks when no work
+        if (info.boostTerraformingTimeout > 0) {
+            speed = 5;
+            info.boostTerraformingTimeout--;
+            //System.out.println(pos+" is boosted for "+info.boostTerraformingTimeout);
+        }
+        if (PlanetEvents.performTerraformingTicks(this, level(), pos, speed)) {
+            info.boostTerraformingTimeout = 200;
+        }
     }
 
     // by ticking the position once and interpolating between last and current position it will
@@ -779,5 +780,10 @@ public class PlanetDimension extends Dimension {
 
             property.tick(gas, this, temp, atmDensity);
         }
+    }
+
+    public static class ChunkInfo extends Dimension.ChunkInfo {
+        boolean completedFirstTick = false;
+        int boostTerraformingTimeout = 0;
     }
 }

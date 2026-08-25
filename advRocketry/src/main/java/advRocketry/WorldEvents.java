@@ -31,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
@@ -235,7 +236,7 @@ public class WorldEvents {
 
             // add loaded chunk from server thread
             MinecraftServer server = serverLevel.getServer();
-            server.tell(new TickTask(0, () -> dimension.loadedChunks.add(chunk.getPos().toLong())));
+            server.tell(new TickTask(0, () -> dimension.registerLoadedChunk(chunk.getPos())));
 
             if (dimension instanceof PlanetDimension planet){
                 PlanetEvents.onChunkLoad(event, serverLevel, planet);

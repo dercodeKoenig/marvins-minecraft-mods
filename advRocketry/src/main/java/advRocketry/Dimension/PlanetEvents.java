@@ -29,11 +29,9 @@ public class PlanetEvents {
 
     // called from server level mixin
     // performs slow terraforming ticks
-    public static void performTerraformingTicks(PlanetDimension planet, ServerLevel level, LevelChunk chunk) {
+    public static boolean performTerraformingTicks(PlanetDimension planet, ServerLevel level, ChunkPos chunkPos, int speed) {
 
-        ChunkPos chunkPos = chunk.getPos();
-
-        int speed = 5;
+        boolean hadWork = false;
 
         if ((level.getGameTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
 
@@ -59,27 +57,27 @@ public class PlanetEvents {
 
             // adjust sea level for all the gases
             for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3))
+                if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3)) {
+                    hadWork = true;
                     break; // avoid gas mixing if many gases exist
+                }
             }
 
             // spawn possible dry ice blocks
-            DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3);
+            if(DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3)){
+                hadWork = true;
+            }
 
 
-            TerraformingSystem.maybeUpdateBlocksForNewBiome(level, blockX, blockZ);
+            if(TerraformingSystem.maybeUpdateBlocksForNewBiome(level, blockX, blockZ)){
+                hadWork = true;
+            }
         }
+        return hadWork;
     }
 
-    // performs initial full terraforming on chunk load
-    // runs for the 3x3 chunk region around any chunk thats created
-    public static void maybePerformInitialTerraforming(PlanetDimension planet, ServerLevel serverLevel, int chunkX, int chunkZ) {
-
-        // check if neighbor chunks are already loaded to prevent infinite chunk loading
-        for (int x = -1; x <= 1; x++)
-            for (int z = -1; z <= 1; z++)
-                if (!serverLevel.hasChunk(chunkX + x, chunkZ + z))
-                    return; // neighbor not loaded
+    // performs initial full terraforming (only call on ticking chunks to avoid infinite chunk loading)
+    public static void performInitialTerraforming(PlanetDimension planet, ServerLevel serverLevel, int chunkX, int chunkZ) {
 
         ChunkAccess chunk = serverLevel.getChunk(chunkX, chunkZ);
         String key = "had_initial_terraforming_tick";
@@ -140,17 +138,6 @@ public class PlanetEvents {
                     TerraformingSystem.storeGeneratedBiome(TerraformingSystem.getCurrentSurfaceBiome(serverLevel, x, z), chunk, x, z);
                 }
             }
-
-            // trigger neighbor to maybe run initial terraforming
-            // run as tick task to avoid deadlocks
-            MinecraftServer server = serverLevel.getServer();
-            server.tell(new TickTask(server.getTickCount(), () -> {
-                ChunkPos currentPos = chunk.getPos();
-                for (int x = -2; x <= 2; x++)
-                    for (int z = -2; z <= 2; z++) {
-                        maybePerformInitialTerraforming(planet, serverLevel, currentPos.x + x, currentPos.z + z);
-                    }
-            }));
         }
     }
 
