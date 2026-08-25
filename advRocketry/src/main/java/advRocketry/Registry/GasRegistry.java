@@ -3,8 +3,7 @@ package advRocketry.Registry;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 public class GasRegistry {
 
