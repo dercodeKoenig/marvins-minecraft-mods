@@ -28,10 +28,7 @@ public class ItemAtmAnalyzer extends Item {
 
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
 
-            String description = String.format("\n\nTemperature: " + planet.getCurrentTemp() + "\n\n");
-
-            description += String.format("Water level: " + planet.getGasProperty(GasRegistry.water).getSeaLevel() + "\n\n");
-
+            String description = String.format("\n\n");
 
             description += String.format("Composition:\n");
 
@@ -47,6 +44,9 @@ public class ItemAtmAnalyzer extends Item {
                     description += "u " + String.format("%-10s", gas) + String.format("%.5f", prop.underground) + "\n";
             }
             description += "\n";
+
+            description += String.format("Temperature: " + planet.getCurrentTemp() + "\n\n");
+            description += String.format("Water level: " + planet.getGasProperty(GasRegistry.water).getSeaLevel() + "\n\n");
 
             Set<Dimension.SurvivalProblem> problems = planet.getSurvivalProblems();
             if (problems.isEmpty()) {
