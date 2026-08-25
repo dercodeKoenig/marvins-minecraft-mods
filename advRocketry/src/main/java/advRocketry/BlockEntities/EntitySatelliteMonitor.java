@@ -258,19 +258,21 @@ public class EntitySatelliteMonitor extends BlockEntity implements INetworkTagRe
 
                 String newStatusText = "";
                 if (connectedSatellite == null) {
-                    newStatusText = "satellite not found";
-                } else if (!isInRange) {
-                    newStatusText = connectedSatellite.getName() + "\n";
-                    newStatusText += "out of range";
-                } else {
-                    newStatusText = connectedSatellite.getName() + "\n";
+                    newStatusText += "satellite not found";
+                }else {
+                    newStatusText += connectedSatellite.getName() + "\n";
                     if (orbitedDim != null)
                         newStatusText += "orbit: " + orbitedDim.getName() + "\n";
-                    newStatusText += "rf: " + String.format("%.2f", connectedSatellite.getEnergyStored())  + "\n";
-                    if (connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
-                        newStatusText += "data: " + dataCollector.getDataStored() + " / " + dataCollector.getDataCapacity();
+                    if (!isInRange) {
+                        newStatusText += "out of range\n";
+                    } else {
+                        newStatusText += "rf: " + String.format("%.2f", connectedSatellite.getEnergyStored()) + "\n";
+                        if (connectedSatellite instanceof SatelliteDataCollectorBase dataCollector) {
+                            newStatusText += "data: " + dataCollector.getDataStored() + " / " + dataCollector.getDataCapacity();
+                        }
                     }
                 }
+
                 statusText.setTextAndSync(newStatusText);
 
                 if (shouldCollectData)
