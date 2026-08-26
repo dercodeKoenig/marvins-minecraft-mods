@@ -75,6 +75,7 @@ public class DimensionEvents {
                         } else {
                             level.setBlock(randomPos, Blocks.WATER.defaultBlockState(), 3);
                         }
+                        randomBlockState = level.getBlockState(randomPos);
                         requiresIncreasedTickFrequency = true;
                     }
                 }
