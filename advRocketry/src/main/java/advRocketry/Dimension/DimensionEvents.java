@@ -57,7 +57,7 @@ public class DimensionEvents {
             if (randomBlockState.is(Blocks.WATER)) {
                 if(dimension.shouldFreezeBlocks(GasRegistry.water, randomPos)){
                     boolean hasWaterAllAround = level.isWaterAt(randomPos.west()) && level.isWaterAt(randomPos.east()) && level.isWaterAt(randomPos.north()) && level.isWaterAt(randomPos.south());
-                    if (!hasWaterAllAround) { // freeze from edge first
+                    if (!hasWaterAllAround || Math.random() < 0.0002) { // freeze from edge first
                         level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
                         randomBlockState = level.getBlockState(randomPos);
                         requiresIncreasedTickFrequency = true;
@@ -75,6 +75,7 @@ public class DimensionEvents {
                         } else {
                             level.setBlock(randomPos, Blocks.WATER.defaultBlockState(), 3);
                         }
+                        requiresIncreasedTickFrequency = true;
                     }
                 }
             }
