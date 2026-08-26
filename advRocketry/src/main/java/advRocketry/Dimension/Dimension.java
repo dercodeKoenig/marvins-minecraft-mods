@@ -165,7 +165,7 @@ public abstract class Dimension {
                 if(!shouldTickChunk(pos))
                     return;
                 if (DimensionEvents.performRandomTickEvents(this, level(), pos)) {
-                    info.isHotTimeout = 200;
+                    info.isHotTimeout = 400;
                 }
             });
         }
