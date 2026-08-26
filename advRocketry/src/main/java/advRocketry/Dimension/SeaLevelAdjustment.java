@@ -103,9 +103,11 @@ public class SeaLevelAdjustment {
                         if (scanState.is(Blocks.ICE) && (belowState.is(Blocks.WATER) || belowState.is(Blocks.ICE))) {
                             for (int iceY = 0; iceY < 9999; iceY++) {
                                 BlockPos icePos = scanPos.relative(Direction.UP, iceY);
-                                if (level.getBlockState(icePos).is(Blocks.ICE)) {
+                                BlockState iceState = level.getBlockState(icePos);
+                                if (iceState.is(Blocks.ICE)) {
+                                    // preserve mixin BlockState
                                     level.setBlock(icePos, Blocks.AIR.defaultBlockState(), 3);
-                                    level.setBlock(icePos.below(), Blocks.ICE.defaultBlockState(), 3);
+                                    level.setBlock(icePos.below(), iceState, 3);
                                 } else {
                                     break;
                                 }
