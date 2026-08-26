@@ -36,7 +36,12 @@ public class DimensionEvents {
 
             int blockX = chunkPos.getBlockX(localX);
             int blockZ = chunkPos.getBlockZ(localZ);
-            int blockY = level.random.nextIntBetweenInclusive(level.getMinBuildHeight(), level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ));
+            int worldHeight = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
+            int blockY = level.random.nextIntBetweenInclusive(
+                    // tick only randomly in the top 64 blocks to save on ticks
+                    Math.max(level.getMinBuildHeight(), worldHeight - 64),
+                    worldHeight
+            );
 
             BlockPos randomPos = new BlockPos(blockX, blockY, blockZ);
             BlockState randomBlockState = level.getBlockState(randomPos);
