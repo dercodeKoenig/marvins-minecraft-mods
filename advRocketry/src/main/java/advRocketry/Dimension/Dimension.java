@@ -10,14 +10,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class Dimension {
     public DimensionManager dimensionManager;
     public HashMap<Long, ChunkInfo> loadedChunks = new HashMap<>();
+    public Queue<Runnable> tasks = new ArrayDeque<>();
     protected DimensionProperties properties;
     protected StarCache starCache; // holds current main stars
     boolean isClientSide;
@@ -42,6 +45,12 @@ public abstract class Dimension {
 
     public void registerLoadedChunk(ChunkPos pos) {
         loadedChunks.put(pos.toLong(), new ChunkInfo());
+    }
+
+    public boolean shouldTickChunk(ChunkPos pos){
+        ChunkInfo info = loadedChunks.get(pos.toLong());
+        if(info == null) return false;
+        return info.shouldTick;
     }
 
     public void removeLoadedChunk(ChunkPos pos) {
@@ -105,26 +114,42 @@ public abstract class Dimension {
 
     public void tick() {
         tickStarCache();
+        runTasks();
 
         if (!isClientSide) {
-            int ticked = 0;
-            long t0 = System.nanoTime();
             ServerLevel level = level();
             for (Long i : loadedChunks.keySet()) {
                 ChunkPos pos = new ChunkPos(i);
                 if (level.shouldTickBlocksAt(i)) {
+                    loadedChunks.get(i).shouldTick = true;
                     tickChunk(pos);
-                    ticked++;
+                } else {
+                    loadedChunks.get(i).shouldTick = false;
                 }
             }
-            long t1 = System.nanoTime();
-            ///*
-            if (GlobalTime.getGlobalTime() % 20 == 0 && loadedChunks.size() > 0) {
-                System.out.println("loaded chunks: " + loadedChunks.size());
-                System.out.println("ticked chunks: " + ticked);
-                System.out.println("time: " + (double) (t1 - t0) / 1000 / 1000);
+        }
+    }
+
+    public void runTasks(){
+        long start = System.nanoTime();
+        float avgmspt=(float)ServerLifecycleHooks.getCurrentServer().getAverageTickTimeNanos() / 1000000;
+        float targetmspt = 50;
+        float maxMs = (targetmspt - avgmspt) / 3; // don't use all the budget
+        int ticked = 0;
+        while (!tasks.isEmpty()){
+            if(System.nanoTime() - start > maxMs * 1000 * 1000){
+                break;
             }
-            //*/
+            Runnable task = tasks.poll();
+            task.run();
+            ticked++;
+        }
+        double elapsed = (System.nanoTime() - start);
+        if (GlobalTime.getGlobalTime() % 50 == 0 && (!tasks.isEmpty() || ticked > 0)) {
+            System.out.println("loaded tasks: " + tasks.size());
+            System.out.println("ticked tasks: " + ticked);
+            System.out.println("time: " + elapsed/1000000);
+            System.out.println(" ");
         }
     }
 
@@ -135,10 +160,14 @@ public abstract class Dimension {
             info.isHotTimeout--;
             p = 1;
         }
-        if (Math.random() < p) {
-            if (DimensionEvents.performRandomTickEvents(this, level(), pos)) {
-                info.isHotTimeout = 200;
-            }
+        if (Math.random() < p && tasks.size() < 10_000) {
+            tasks.add(() -> {
+                if(!shouldTickChunk(pos))
+                    return;
+                if (DimensionEvents.performRandomTickEvents(this, level(), pos)) {
+                    info.isHotTimeout = 200;
+                }
+            });
         }
     }
 
@@ -196,5 +225,7 @@ public abstract class Dimension {
         // timout for running with increased tick frequency when something interesting happens
         // while > 0: do more updates, while 0: do less updates
         int isHotTimeout = 0;
+
+        boolean shouldTick = false;
     }
 }
