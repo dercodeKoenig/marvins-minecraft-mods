@@ -4,24 +4,16 @@ import advRocketry.Blocks.DryIceBlock;
 import advRocketry.Config;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Utils.ChunkUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
-import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.level.ChunkEvent;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_temp;
 
@@ -29,7 +21,7 @@ public class PlanetEvents {
 
     // called from server level mixin
     // performs slow terraforming ticks
-    public static boolean performTerraformingTicks(PlanetDimension planet, ServerLevel level, ChunkPos chunkPos, int speed) {
+    public static boolean maybePerformTerraformingTicks(PlanetDimension planet, ServerLevel level, ChunkPos chunkPos, int speed) {
 
         boolean hadWork = false;
 
@@ -87,9 +79,7 @@ public class PlanetEvents {
         ChunkUtils.setEntry(chunk, key, info);
         //System.out.println("initial terraforming at " + chunkX + ":" + chunkZ+":"+serverLevel);
 
-        double planetTemp = planet.getCurrentTemp();
-        double atmLevel = planet.getAtmosphereDensity();
-        boolean shouldFreezeWater = planetTemp + 1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(atmLevel);
+        boolean shouldFreezeWater = planet.shouldFreezeBlocks(GasRegistry.water, null);
         for (int cx = 0; cx < 16; cx++) {
             for (int cz = 0; cz < 16; cz++) {
                 int x = chunk.getPos().getBlockX(cx);
