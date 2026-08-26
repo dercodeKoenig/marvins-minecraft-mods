@@ -199,7 +199,7 @@ public class SeaLevelAdjustment {
                     }
 
                     level.setBlock(scanPos, stateToPlace, placementFlags);
-                    planet.setRaining(5);
+                    //planet.setRaining(5);
 
                     if (scanPos.getY() > seaLevelExisting) {
                         seaLevels[localIndex] = scanPos.getY();
