@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -626,35 +627,59 @@ public class PlanetDimension extends Dimension {
 
     public void tickChunk(ChunkPos pos) {
         super.tickChunk(pos);
+        int ticksToRun = 0;
+
         ChunkInfo info = (ChunkInfo) loadedChunks.get(pos.toLong());
-
-        // maybe transform new chunks
-        // use tick task so it doesnt block the tick loop too much
-        // TODO: (maybe) better distribute this over many ticks. server just polls all at once
-        if (info.completedFirstTick == 0) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            server.tell(new TickTask(server.getTickCount() + 20*1000, () -> {
-                long t0 = System.nanoTime();
-                PlanetEvents.performInitialTerraforming(this, level(), pos.x, pos.z);
-                long t1 = System.nanoTime();
-                info.completedFirstTick = 1;
-            }));
-            info.completedFirstTick = -1;
-            return;
+        if (!info.completedFirstTick) {
+            // maybe transform new chunks
+            // all neighbors need to be generated or it causes LAAAAAG
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (!level().hasChunk(pos.x + x, pos.z + z)) {
+                        return;
+                    }
+                }
+            }
+            info.completedFirstTick = true;
+            tasks.add(() -> {
+                if (!shouldTickChunk(pos))
+                    return;
+                PlanetEvents.runInitialTerraformingTasks(this, level(), pos.x, pos.z);
+            });
+            ticksToRun = 16 * 16; // on first tick, queue entire chunk for scanning
         }
 
-        // only continue with normal terraforming ticks after initial transformation is complete
-        if(info.completedFirstTick != 1) {
-            return;
+        // terraforming is rare and rarely needs checking
+        // if only 1 chunk finds work it will notify neighbors and itself to queue more updates
+        // it should be more efficient to process multiple positions in the same chunk over randomly in random chunks
+        if (info.openTasks != 0)
+            return; // do not queue more tasks while the chunk has still uncompleted tasks in queue
+        if (Math.random() < 0.005)
+            ticksToRun = Math.max(1, ticksToRun);     // sometimes check for work
+        if (info.hasWorkCurrently) {
+            ticksToRun = Math.max(16 * 16, ticksToRun); // queue the entire chunk
         }
+        info.hasWorkCurrently = false; // reset it and wait for tick to switch it on again
 
-        int speed = 100; // 1 / 100 chunks ticks when no work
-        if (info.boostTerraformingTimeout > 0) {
-            speed = 5;
-            info.boostTerraformingTimeout--;
-        }
-        if (PlanetEvents.maybePerformTerraformingTicks(this, level(), pos, speed)) {
-            info.boostTerraformingTimeout = 5 * 16 * 16 + 100; // 1 full cycle over all the chunk
+        for (int i = 0; i < ticksToRun; i++) {
+            info.openTasks++;
+            tasks.add(() -> {
+                info.tickIndex++;
+                info.openTasks--;
+                if(!shouldTickChunk(pos))
+                    return;
+                if (PlanetEvents.maybePerformTerraformingTicks(this, level(), pos, info.tickIndex)) {
+                    // if this tick had work, notify this chunk and the neighbors that there is work to do
+                    for (int x = -1; x <= 1; x++) {
+                        for (int z = -1; z <= 1; z++) {
+                            long neighborPos = new ChunkPos(pos.x + x, pos.z + z).toLong();
+                            if (loadedChunks.containsKey(neighborPos)) {
+                                ((ChunkInfo) loadedChunks.get(neighborPos)).hasWorkCurrently = true;
+                            }
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -797,7 +822,9 @@ public class PlanetDimension extends Dimension {
     }
 
     public static class ChunkInfo extends Dimension.ChunkInfo {
-        int completedFirstTick = 0;
-        int boostTerraformingTimeout = 0;
+        boolean completedFirstTick = false;
+        boolean hasWorkCurrently = false;
+        int openTasks = 0;
+        long tickIndex = 0;
     }
 }
