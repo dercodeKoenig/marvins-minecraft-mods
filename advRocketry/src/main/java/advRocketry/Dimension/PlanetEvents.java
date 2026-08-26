@@ -40,7 +40,6 @@ public class PlanetEvents {
         // adjust sea level for all the gases
         for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
             if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3)) {
-                long t1 = System.nanoTime();
                 return true;
             }
         }
