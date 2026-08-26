@@ -103,9 +103,8 @@ public class PlanetDimensionProperties extends DimensionProperties {
 
         public double getSeaLevel() {
             double surfaceValue = liquid + frozen_surface;
-            if (surfaceValue == 0)
+            if (surfaceValue <= 0)
                 return -100;
-
 
             // 62 around 0.5, grows slower when high water composition and drops quickly on low comosition
             double seaLevel = Math.sqrt(surfaceValue) * 87.7;
@@ -113,8 +112,13 @@ public class PlanetDimensionProperties extends DimensionProperties {
             return seaLevel;
         }
 
-        public void maybeAdjustWorldgenSeaLevel() {
+        public void maybeAdjustWorldgenSeaLevel(String gasId, PlanetDimension planet) {
             double seaLevel = getSeaLevel();
+            if (seaLevel < worldGenSeaLevel && planet.shouldFreezeBlocks(gasId, null)){
+                // dont lower sea level when the fluid is frozen.
+                // frozen fluid doesnt flow anywhere
+                return;
+            }
             if (Math.abs(worldGenSeaLevel - seaLevel) > 0.6) {
                 worldGenSeaLevel = (int) Math.round(seaLevel);
             }
@@ -165,7 +169,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
                 planet.setRequiresSync();
             }
 
-            maybeAdjustWorldgenSeaLevel();
+            maybeAdjustWorldgenSeaLevel(gas.id, planet);
         }
 
         // Pure clamp for step speed
