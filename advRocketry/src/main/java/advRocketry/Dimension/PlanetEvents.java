@@ -19,64 +19,52 @@ import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_t
 
 public class PlanetEvents {
 
-    // called from server level mixin
-    // performs slow terraforming ticks
-    public static boolean maybePerformTerraformingTicks(PlanetDimension planet, ServerLevel level, ChunkPos chunkPos, int speed) {
+    // performs terraforming ticks
+    public static boolean maybePerformTerraformingTicks(PlanetDimension planet, ServerLevel level, ChunkPos chunkPos, long index) {
 
-        boolean hadWork = false;
+        // Create a deterministic offset for this specific chunk.
+        // Multiplying by prime numbers spreads out the starting positions wildly across the world.
+        long chunkOffset = Math.abs((long) chunkPos.x * 31337L + (long) chunkPos.z * 31L);
 
-        if ((level.getGameTime() + Math.abs(chunkPos.hashCode())) % speed == 0) {
+        // Calculate the index within the 0-255 range (16x16 blocks = 256 total)
+        int blockIndex = (int) ((index + chunkOffset) % 256);
 
-            // 1. Get the current time in seconds
-            long currentIndex = level.getGameTime() / speed;
+        // Convert the 1D index back into 2D local chunk coordinates (0-15)
+        int localX = blockIndex % 16;
+        int localZ = blockIndex / 16;
 
-            // 2. Create a deterministic offset for this specific chunk.
-            // Multiplying by prime numbers spreads out the starting positions wildly across the world.
-            long chunkOffset = Math.abs((long) chunkPos.x * 31337L + (long) chunkPos.z * 31L);
+        // Get the actual world coordinates
+        int blockX = chunkPos.getBlockX(localX);
+        int blockZ = chunkPos.getBlockZ(localZ);
 
-            // 3. Calculate the index within the 0-255 range (16x16 blocks = 256 total)
-            int blockIndex = (int) ((currentIndex + chunkOffset) % 256);
-
-            // 4. Convert the 1D index back into 2D local chunk coordinates (0-15)
-            int localX = blockIndex % 16;
-            int localZ = blockIndex / 16;
-
-            // 5. Get the actual world coordinates
-            int blockX = chunkPos.getBlockX(localX);
-            int blockZ = chunkPos.getBlockZ(localZ);
-
-            // Run the logic on the targeted block
-
-            // adjust sea level for all the gases
-            for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
-                if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3)) {
-                    hadWork = true;
-                    break; // avoid gas mixing if many gases exist
-                }
-            }
-
-            // spawn possible dry ice blocks
-            if(DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3)){
-                hadWork = true;
-            }
-
-
-            if(TerraformingSystem.maybeUpdateBlocksForNewBiome(level, blockX, blockZ)){
-                hadWork = true;
+        // adjust sea level for all the gases
+        for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
+            if (SeaLevelAdjustment.adjustSeaLevelIfRequired(planet, gas, blockX, blockZ, 3)) {
+                long t1 = System.nanoTime();
+                return true;
             }
         }
-        return hadWork;
+
+        // spawn possible dry ice blocks
+        if (DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3)) {
+            return true;
+        }
+
+
+        if (TerraformingSystem.maybeUpdateBlocksForNewBiome(level, blockX, blockZ)) {
+            return true;
+        }
+
+        return false;
     }
 
     // performs initial full terraforming (only call on ticking chunks to avoid infinite chunk loading)
-    public static void performInitialTerraforming(PlanetDimension planet, ServerLevel serverLevel, int chunkX, int chunkZ) {
+    public static void runInitialTerraformingTasks(PlanetDimension planet, ServerLevel serverLevel, int chunkX, int chunkZ) {
 
         ChunkAccess chunk = serverLevel.getChunk(chunkX, chunkZ);
         String key = "had_initial_terraforming_tick";
         CompoundTag info = ChunkUtils.getEntryOrNew(chunk, key);
         if (info.contains("true")) return; // already handled
-        info.put("true", new CompoundTag());
-        ChunkUtils.setEntry(chunk, key, info);
         //System.out.println("initial terraforming at " + chunkX + ":" + chunkZ+":"+serverLevel);
 
         boolean shouldFreezeWater = planet.shouldFreezeBlocks(GasRegistry.water, null);
@@ -109,11 +97,12 @@ public class PlanetEvents {
                 }
             }
         }
+        info.put("true", new CompoundTag());
+        ChunkUtils.setEntry(chunk, key, info);
     }
 
     public static void onChunkLoad(ChunkEvent.Load event, ServerLevel serverLevel, PlanetDimension planet) {
         ChunkAccess chunk = event.getChunk();
-        //System.out.println("chunk load "+ event.getChunk().getPos());
         if (event.isNewChunk()) {
             for (int cx = 0; cx < 16; cx++) {
                 for (int cz = 0; cz < 16; cz++) {
