@@ -237,12 +237,23 @@ public class PlanetDimension extends Dimension {
         if (atmosphereFactor < 0.01) return 0;
 
         for (String gas : GasRegistry.gases.keySet()) {
-            double maxCapacity = calculateVaporCapacity(getCurrentTemp(), gas);
-            double overSaturation = getHumidity(gas) - maxCapacity * 0.7;
+            // clouds formed from evaporation of surface liquid/ice
+            // idk how correct this is but i just scale clouds by humidity
+            double humidityThreshold = 0.25;
+            double aboveThreshold = getHumidity(gas) - humidityThreshold;
+            if (aboveThreshold > 0) {
+                // Scale the clouds by how much atmosphere there is to hold them
+                totalCloud += (float) (aboveThreshold * 3 * atmosphereFactor);
+            }
 
-            if (overSaturation > 0) {
-                // 3. Scale the clouds by how much atmosphere there is to hold them
-                totalCloud += (float) (overSaturation * 3 * atmosphereFactor);
+            // Atmospheric Condensation Clouds
+            // If the gas is a huge part of the atmosphere, it condenses at altitude
+            // as temp -> boiling temp, cloud -> 1
+            double boilingTemp = GasRegistry.gases.get(gas).getBoilingTemp(atmosphereFactor);
+            double tempDifference = getCurrentTemp() - boilingTemp;
+            if (tempDifference >= 0 && tempDifference < 100) {
+                double condensationFactor = 1.0 - (tempDifference / 100.0);
+                totalCloud += (float) (condensationFactor * getGasProperty(gas).in_atm);
             }
         }
 
@@ -418,18 +429,13 @@ public class PlanetDimension extends Dimension {
     }
 
     public double calculateVaporCapacity(double currentTemp, String gas) {
-        // You'll need to make sure your Gas properties include a boiling point!
         double boilingTemp = GasRegistry.gases.get(gas).getBoilingTemp(getAtmosphereDensity());
-
-        // Calculate the difference between current temp and boiling temp
         double tempDifference = currentTemp - boilingTemp;
 
         // Exponential curve: capacity drops drastically in the cold,
         // but grows massively as you approach/exceed boiling temp.
         double baseCapacity = Math.exp(tempDifference / 100.0);
-
-        // Cap it so we don't get infinite capacity at crazy high temperatures
-        return Math.min(baseCapacity, 1);
+        return baseCapacity;
     }
 
     public double getSumHumidity() {
@@ -450,7 +456,7 @@ public class PlanetDimension extends Dimension {
         double surfaceExposure = getOceanFraction(gas);
 
         // 3. The actual amount of vapor in the air
-        // *2 to have over-saturation in the air on high sea level so we can form clouds
+        // earth should have about 0.5 ocean fraction. at 280k this works out to ~ 0.41 humidity
         double actualHumidity = maxCapacity * surfaceExposure * 2;
 
         return actualHumidity;
@@ -654,7 +660,7 @@ public class PlanetDimension extends Dimension {
         // it should be more efficient to process multiple positions in the same chunk over randomly in random chunks
         if (info.openTasks != 0)
             return; // do not queue more tasks while the chunk has still uncompleted tasks in queue
-        if (Math.random() < 0.005)
+        if (Math.random() < 0.001)
             ticksToRun = Math.max(1, ticksToRun);     // sometimes check for work
         if (info.hasWorkCurrently) {
             ticksToRun = Math.max(16 * 16, ticksToRun); // queue the entire chunk
