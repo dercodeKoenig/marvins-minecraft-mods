@@ -24,9 +24,6 @@ public class DimensionEvents {
     // return true if smth meaningful happened and this chunk should be ticked more often over the next seconds
     public static boolean performRandomTickEvents(Dimension dimension, ServerLevel level, ChunkPos chunkPos) {
 
-        double baseTemp = dimension.getCurrentTemp();
-        double basePressure = dimension.getAtmosphereDensity();
-
         boolean requiresIncreasedTickFrequency = false;
 
         for (int i = 0; i < 6; i++) {
@@ -46,17 +43,10 @@ public class DimensionEvents {
             BlockPos randomPos = new BlockPos(blockX, blockY, blockZ);
             BlockState randomBlockState = level.getBlockState(randomPos);
 
-            double temp = baseTemp;
-            double pressure = basePressure;
-            if (LifeSupportSystem.isTemperatureRegulated(level, randomPos))
-                temp = 300;
-            if (LifeSupportSystem.isPressurized(level, randomPos))
-                pressure = Math.max(pressure, 1);
-
             // boil away water / ice blocks when too hot
             // the other custom liquids / dry ice have random tick, water has not
             if (randomBlockState.is(Blocks.WATER) || randomBlockState.is(Blocks.ICE)) {
-                if (temp > 1 + GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(pressure)) {
+                if(dimension.shouldBoilBlocks(GasRegistry.water, randomPos)){
                     level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
                     randomBlockState = level.getBlockState(randomPos);
                     requiresIncreasedTickFrequency = true;
@@ -65,7 +55,7 @@ public class DimensionEvents {
 
             // freeze water to ice with custom blockstate
             if (randomBlockState.is(Blocks.WATER)) {
-                if (temp + 1 < GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(pressure)) {
+                if(dimension.shouldFreezeBlocks(GasRegistry.water, randomPos)){
                     boolean hasWaterAllAround = level.isWaterAt(randomPos.west()) && level.isWaterAt(randomPos.east()) && level.isWaterAt(randomPos.north()) && level.isWaterAt(randomPos.south());
                     if (!hasWaterAllAround) { // freeze from edge first
                         level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
@@ -77,7 +67,7 @@ public class DimensionEvents {
 
             // melt any ice placed by the force freeze logic above back into water
             if (randomBlockState.is(Blocks.ICE)) {
-                if (temp > 1 + GasRegistry.gases.get(GasRegistry.water).getFreezeTemp(pressure)) {
+                if (!dimension.shouldFreezeBlocks(GasRegistry.water, randomPos)) {
                     if (randomBlockState.getValue(water_frozen_by_low_planet_temp)) {
                         if (dimension instanceof PlanetDimension planet && planet.getGasProperty(GasRegistry.water).worldGenSeaLevel < randomPos.getY()) {
                             // above sea level melt into air and not water or it would look really strange to have water flowing everywhere
