@@ -14,13 +14,13 @@ import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -107,7 +107,7 @@ public class PlanetDimension extends Dimension {
 
         BlockState seaFluid = Blocks.WATER.defaultBlockState();
         PlanetDimensionProperties.GasProperty water = getGasProperty(GasRegistry.water);
-        water.maybeAdjustWorldgenSeaLevel(); // make it calculate initial sea level
+        water.maybeAdjustWorldgenSeaLevel(GasRegistry.water, this); // make it calculate initial sea level
         int seaLevel = water.worldGenSeaLevel;
 
         if (properties().customSeaFluid != null) {
@@ -626,21 +626,35 @@ public class PlanetDimension extends Dimension {
 
     public void tickChunk(ChunkPos pos) {
         super.tickChunk(pos);
-
         ChunkInfo info = (ChunkInfo) loadedChunks.get(pos.toLong());
-        if (!info.completedFirstTick) {
-            PlanetEvents.performInitialTerraforming(this, level(), pos.x, pos.z);
-            info.completedFirstTick = true;
-            System.out.println("initial terraforming for  "+pos);
+
+        // maybe transform new chunks
+        // use tick task so it doesnt block the tick loop too much
+        // TODO: (maybe) better distribute this over many ticks. server just polls all at once
+        if (info.completedFirstTick == 0) {
+            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            server.tell(new TickTask(server.getTickCount() + 20*1000, () -> {
+                long t0 = System.nanoTime();
+                PlanetEvents.performInitialTerraforming(this, level(), pos.x, pos.z);
+                long t1 = System.nanoTime();
+                info.completedFirstTick = 1;
+            }));
+            info.completedFirstTick = -1;
+            return;
         }
+
+        // only continue with normal terraforming ticks after initial transformation is complete
+        if(info.completedFirstTick != 1) {
+            return;
+        }
+
         int speed = 100; // 1 / 100 chunks ticks when no work
         if (info.boostTerraformingTimeout > 0) {
             speed = 5;
             info.boostTerraformingTimeout--;
-            //System.out.println(pos+" is boosted for "+info.boostTerraformingTimeout);
         }
-        if (PlanetEvents.performTerraformingTicks(this, level(), pos, speed)) {
-            info.boostTerraformingTimeout = 200;
+        if (PlanetEvents.maybePerformTerraformingTicks(this, level(), pos, speed)) {
+            info.boostTerraformingTimeout = 5 * 16 * 16 + 100; // 1 full cycle over all the chunk
         }
     }
 
@@ -783,7 +797,7 @@ public class PlanetDimension extends Dimension {
     }
 
     public static class ChunkInfo extends Dimension.ChunkInfo {
-        boolean completedFirstTick = false;
+        int completedFirstTick = 0;
         int boostTerraformingTimeout = 0;
     }
 }
