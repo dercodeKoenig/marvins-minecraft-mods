@@ -311,7 +311,7 @@ public class TerraformingSystem {
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
             long chunkPosLong = chunk.getPos().toLong();
             if (planet.loadedChunks.get(chunkPosLong) instanceof PlanetDimension.ChunkInfo chunkInfo) {
-                chunkInfo.boostTerraformingTimeout = 300;
+                chunkInfo.hasWorkCurrently = true;
             }
         }
     }
