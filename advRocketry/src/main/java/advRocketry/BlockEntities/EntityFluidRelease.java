@@ -149,7 +149,7 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
 
                 Dimension dim = DimensionManager.INSTANCE_SERVER.get(level.dimension().location());
                 boolean isLiquidWater = false;
-                if (fluidStack.getFluid().equals(Fluids.WATER) && dim != null && dim.getCurrentTemp() < GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(dim.getAtmosphereDensity()))
+                if (fluidStack.getFluid().equals(Fluids.WATER) && dim != null && !dim.shouldBoilBlocks(GasRegistry.water, getBlockPos()))
                     isLiquidWater = true;
 
 
