@@ -41,6 +41,8 @@ public class PlanetDimensionProperties extends DimensionProperties {
     public boolean generateStructures = false;
     public String biomePreset = null;
 
+    // TODO: flag: shouldTintWhenFrozen: tint texture white when covered in ice, starting wih poles maybe
+
     // TODO (maybe)
     // when terraforming picks a new preset, it iterates every climate point and when original preset has a frozen biome at this point,
     // it should be injected into the new preset so you can pin biomes to never terraform.
