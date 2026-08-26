@@ -26,7 +26,7 @@ public class DimensionEvents {
 
         boolean requiresIncreasedTickFrequency = false;
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 12; i++) {
 
             int localX = level.random.nextIntBetweenInclusive(0, 15);
             int localZ = level.random.nextIntBetweenInclusive(0, 15);
@@ -35,8 +35,9 @@ public class DimensionEvents {
             int blockZ = chunkPos.getBlockZ(localZ);
             int worldHeight = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
             int blockY = level.random.nextIntBetweenInclusive(
-                    // tick only randomly in the top 64 blocks to save on ticks
-                    Math.max(level.getMinBuildHeight(), worldHeight - 64),
+                    // maybe tick only randomly in the top 64 blocks to save on ticks ?
+                    // Math.max(level.getMinBuildHeight(), worldHeight - 64),
+                    level.getMinBuildHeight(),
                     worldHeight
             );
 
