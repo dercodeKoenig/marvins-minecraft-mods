@@ -39,7 +39,7 @@ public class CompositionFluidLiquidBlock extends LiquidBlock {
 
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-            if (planet.getCurrentTemp() > 1 + GasRegistry.gases.get(gasId).getBoilingTemp(planet.getAtmosphereDensity())) {
+            if(planet.shouldBoilBlocks(gasId, pos)) {
                 // too hot, boils away
                 level.setBlock(pos, state.setValue(PREVENT_COMPOSITION_CHANGE_ON_BREAK, true), 3);
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
