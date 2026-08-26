@@ -34,12 +34,20 @@ public class DimensionEvents {
             int blockX = chunkPos.getBlockX(localX);
             int blockZ = chunkPos.getBlockZ(localZ);
             int worldHeight = level.getHeight(Heightmap.Types.WORLD_SURFACE, blockX, blockZ);
-            int blockY = level.random.nextIntBetweenInclusive(
-                    // maybe tick only randomly in the top 64 blocks to save on ticks ?
-                    // Math.max(level.getMinBuildHeight(), worldHeight - 64),
-                    level.getMinBuildHeight(),
-                    worldHeight
-            );
+            int blockY;
+            if (i < 8) {
+                blockY = level.random.nextIntBetweenInclusive(
+                        // prioritize ticking the upper blocks
+                        Math.max(level.getMinBuildHeight(), worldHeight - 64),
+                        worldHeight
+                );
+            } else {
+                // sometimes pick from all blocks
+                blockY = level.random.nextIntBetweenInclusive(
+                        level.getMinBuildHeight(),
+                        worldHeight
+                );
+            }
 
             BlockPos randomPos = new BlockPos(blockX, blockY, blockZ);
             BlockState randomBlockState = level.getBlockState(randomPos);
@@ -47,7 +55,7 @@ public class DimensionEvents {
             // boil away water / ice blocks when too hot
             // the other custom liquids / dry ice have random tick, water has not
             if (randomBlockState.is(Blocks.WATER) || randomBlockState.is(Blocks.ICE)) {
-                if(dimension.shouldBoilBlocks(GasRegistry.water, randomPos)){
+                if (dimension.shouldBoilBlocks(GasRegistry.water, randomPos)) {
                     level.setBlock(randomPos, Blocks.AIR.defaultBlockState(), 3);
                     randomBlockState = level.getBlockState(randomPos);
                     requiresIncreasedTickFrequency = true;
@@ -56,7 +64,7 @@ public class DimensionEvents {
 
             // freeze water to ice with custom blockstate
             if (randomBlockState.is(Blocks.WATER) && randomBlockState.getFluidState().isSource()) {
-                if(dimension.shouldFreezeBlocks(GasRegistry.water, randomPos)){
+                if (dimension.shouldFreezeBlocks(GasRegistry.water, randomPos)) {
                     boolean hasWaterAllAround = level.isWaterAt(randomPos.west()) && level.isWaterAt(randomPos.east()) && level.isWaterAt(randomPos.north()) && level.isWaterAt(randomPos.south());
                     if (!hasWaterAllAround || Math.random() < 0.0002) { // freeze from edge first
                         level.setBlock(randomPos, Blocks.ICE.defaultBlockState().setValue(water_frozen_by_low_planet_temp, true), 3);
