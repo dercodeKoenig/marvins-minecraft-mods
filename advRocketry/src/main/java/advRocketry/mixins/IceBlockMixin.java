@@ -51,16 +51,7 @@ public abstract class IceBlockMixin extends Block {
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         if (this.getClass().getName().equals(IceBlock.class.getName())) {
             if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-
-                double temp = planet.getCurrentTemp();
-                double pressure = planet.getAtmosphereDensity();
-                if (LifeSupportSystem.isTemperatureRegulated(level, pos))
-                    temp = 300;
-                if (LifeSupportSystem.isPressurized(level, pos))
-                    pressure = Math.max(pressure, 1);
-
-                GasRegistry.Gas waterGas = GasRegistry.gases.get(GasRegistry.water);
-                if (temp < waterGas.getFreezeTemp(pressure)) {
+                if(planet.shouldFreezeBlocks(GasRegistry.water, pos)){
                     // force freeze in any conditions, it is too cold
                     ci.cancel();
                     return;
