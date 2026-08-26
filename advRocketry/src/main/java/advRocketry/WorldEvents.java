@@ -222,8 +222,12 @@ public class WorldEvents {
 
 
                 // can only convert if below sea level
-                if (e.getPos().getY() > maxSeaLevel ||
-                        planet.getCurrentTemp() > GasRegistry.gases.get(GasRegistry.water).getBoilingTemp(planet.getAtmosphereDensity())) {
+                if (e.getPos().getY() > maxSeaLevel) {
+                    e.setCanConvert(false);
+                }
+
+                // can only convert if not boiling
+                if(planet.shouldBoilBlocks(GasRegistry.water, e.getPos())) {
                     e.setCanConvert(false);
                 }
             }
