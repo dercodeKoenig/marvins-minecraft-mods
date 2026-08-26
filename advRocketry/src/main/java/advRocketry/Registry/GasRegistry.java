@@ -60,7 +60,6 @@ public class GasRegistry {
             this.greenhouseFactor = greenhouseFactor;
         }
 
-
         public double getBoilingTemp(double atmDensity) {
             double safeAtm = Math.max(0.0001, atmDensity);
 
