@@ -54,7 +54,7 @@ public class DimensionEvents {
             }
 
             // freeze water to ice with custom blockstate
-            if (randomBlockState.is(Blocks.WATER)) {
+            if (randomBlockState.is(Blocks.WATER) && randomBlockState.getFluidState().isSource()) {
                 if(dimension.shouldFreezeBlocks(GasRegistry.water, randomPos)){
                     boolean hasWaterAllAround = level.isWaterAt(randomPos.west()) && level.isWaterAt(randomPos.east()) && level.isWaterAt(randomPos.north()) && level.isWaterAt(randomPos.south());
                     if (!hasWaterAllAround || Math.random() < 0.0002) { // freeze from edge first
