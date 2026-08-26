@@ -162,7 +162,7 @@ public class SpaceMapScreen extends Screen {
         }
 
         if (planet.getDescription() instanceof String d && !d.isEmpty())
-            description += d + "\n\n";
+            description += "\n" + d + "\n\n";
 
         if (planet.isStar()) {
             // list planets orbiting the star
