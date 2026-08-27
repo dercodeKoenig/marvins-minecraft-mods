@@ -12,10 +12,10 @@ public class MUSTAFAR {
         // Completely dominated by volcanic plains and volcanoes to ensure the planet feels hostile immediately.
         String[][] biomesByTemperatureAndHumidity = new String[][]{
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "adv_rocketry:volcano" },
-                { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno" },
-                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "adv_rocketry:volcano" },
-                { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains" },
+                { "biomesoplenty:old_growth_dead_forest", "biomesoplenty:old_growth_dead_forest", "biomesoplenty:volcanic_plains", "biomesoplenty:erupting_inferno", "adv_rocketry:volcanic_plains" },
+                { "biomesoplenty:old_growth_dead_forest", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "adv_rocketry:volcanic_plains", "biomesoplenty:erupting_inferno" },
+                { "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "adv_rocketry:volcanic_plains", "adv_rocketry:volcanic_plains" },
+                { "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "adv_rocketry:volcano" },
                 { "biomesoplenty:volcano", "biomesoplenty:erupting_inferno", "biomesoplenty:volcanic_plains", "adv_rocketry:volcano", "adv_rocketry:volcano" }
         };
 
@@ -25,8 +25,8 @@ public class MUSTAFAR {
                 // Columns: VERY_WET, WET, MID, DRY, VERY_DRY
                 { "minecraft:basalt_deltas", "minecraft:basalt_deltas", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
                 { "minecraft:basalt_deltas", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano" },
-                { "biomesoplenty:volcano", "biomesoplenty:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano" },
+                { "biomesoplenty:volcano", "biomesoplenty:volcano", "biomesoplenty:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano" },
+                { "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano" },
                 { "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano", "adv_rocketry:volcano" }
         };
 
@@ -44,60 +44,45 @@ public class MUSTAFAR {
         );
 
 
-        // ==========================================
-        // --- TOPOGRAPHICAL OVERRIDES ---
-        // ==========================================
+        BiomeConfig.BiomeDefinition mountains = new BiomeConfig.BiomeDefinition();
+        mountains.biome1 = "adv_rocketry:volcanic_plains";
+        mountains.biome2 = "biomesoplenty:volcanic_plains";
+        mountains.river1 = "minecraft:basalt_deltas";
+        mountains.peak1 = "biomesoplenty:volcano";
+        mountains.peak2 = "adv_rocketry:volcano";
 
-        // add some alternative biomes far away from the lava oceans
-
-        // 1. The Ash Steppes (Flatlands)
-        // High erosion means flatter, smoothed-out terrain. Placed in hot, dry regions.
-        BiomeConfig.BiomeDefinition steppesOverride = new BiomeConfig.BiomeDefinition();
-        steppesOverride.biome1 = "biomesoplenty:wasteland_steppe";
-        steppesOverride.biome2 = "biomesoplenty:wasteland";
-        steppesOverride.river1 = "minecraft:basalt_deltas";
-        steppesOverride.peak1 = "biomesoplenty:volcano";
-        steppesOverride.peak2 = "adv_rocketry:volcano";
-
-        steppesOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
-        steppesOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.DRY, BiomeConfig.Humidity.VERY_DRY));
-        steppesOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
-        steppesOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.HIGH, BiomeConfig.Erosion.VERY_HIGH));
-        config.biomes.add(steppesOverride);
+        mountains.temperaturesList.addAll(List.of(BiomeConfig.Temperature.LOW, BiomeConfig.Temperature.MID));
+        mountains.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
+        mountains.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.NEAR_INLAND, BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
+        mountains.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_LOW, BiomeConfig.Erosion.LOW));
+        config.biomes.add(mountains);
 
 
-        // 2. The Jagged Crags (Mountains)
-        // Low erosion means highly mountainous, jagged terrain.
-        BiomeConfig.BiomeDefinition cragsOverride = new BiomeConfig.BiomeDefinition();
-        cragsOverride.biome1 = "biomesoplenty:crag";
-        cragsOverride.biome2 = "biomesoplenty:volcanic_plains";
-        cragsOverride.river1 = "minecraft:basalt_deltas";
-        cragsOverride.peak1 = "biomesoplenty:volcano";
-        cragsOverride.peak2 = "adv_rocketry:volcano";
+        BiomeConfig.BiomeDefinition mountains2 = new BiomeConfig.BiomeDefinition();
+        mountains2.biome1 = "minecraft:stony_peaks";
+        mountains2.biome2 = "minecraft:jagged_peaks";
+        mountains2.river1 = "minecraft:basalt_deltas";
+        mountains2.peak1 = "biomesoplenty:volcano";
+        mountains2.peak2 = "adv_rocketry:volcano";
 
-        // Shares the same climate as the Steppes, but separated entirely by the erosion parameter.
-        cragsOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
-        cragsOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.MID, BiomeConfig.Humidity.DRY, BiomeConfig.Humidity.VERY_DRY));
-        cragsOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
-        cragsOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_LOW, BiomeConfig.Erosion.LOW));
-        config.biomes.add(cragsOverride);
+        mountains2.temperaturesList.addAll(List.of(BiomeConfig.Temperature.WARM, BiomeConfig.Temperature.HOT));
+        mountains2.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
+        mountains2.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.NEAR_INLAND, BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
+        mountains2.erosionList.addAll(List.of(BiomeConfig.Erosion.VERY_LOW, BiomeConfig.Erosion.LOW));
+        config.biomes.add(mountains2);
 
 
-        // 3. The Charred Forests (Versatile)
-        // Can appear on both flatlands or mountains (all erosions).
-        // Protected from overwriting Steppes/Crags by requiring wetter, cooler climates.
-        BiomeConfig.BiomeDefinition deadForestOverride = new BiomeConfig.BiomeDefinition();
-        deadForestOverride.biome1 = "biomesoplenty:dead_forest";
-        deadForestOverride.biome2 = "biomesoplenty:old_growth_dead_forest";
-        deadForestOverride.river1 = "minecraft:basalt_deltas";
-        deadForestOverride.peak1 = "biomesoplenty:volcano";
-        deadForestOverride.peak2 = "adv_rocketry:volcano";
+        BiomeConfig.BiomeDefinition mountains3 = new BiomeConfig.BiomeDefinition();
+        mountains3.biome1 = "minecraft:frozen_peaks";
+        mountains3.river1 = "minecraft:basalt_deltas";
+        mountains3.peak1 = "biomesoplenty:volcano";
+        mountains3.peak2 = "adv_rocketry:volcano";
 
-        deadForestOverride.temperaturesList.addAll(List.of(BiomeConfig.Temperature.LOW, BiomeConfig.Temperature.MID));
-        deadForestOverride.humidityList.addAll(List.of(BiomeConfig.Humidity.VERY_WET, BiomeConfig.Humidity.WET));
-        deadForestOverride.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
-        deadForestOverride.erosionList.addAll(List.of(BiomeConfig.Erosion.values())); // Any erosion
-        config.biomes.add(deadForestOverride);
+        mountains3.temperaturesList.add(BiomeConfig.Temperature.FROZEN);
+        mountains3.humidityList.addAll(List.of(BiomeConfig.Humidity.values()));
+        mountains3.continentalnessList.addAll(List.of(BiomeConfig.Continentalness.MID_INLAND, BiomeConfig.Continentalness.FAR_INLAND));
+        mountains3.erosionList.add(BiomeConfig.Erosion.VERY_LOW);
+        config.biomes.add(mountains3);
 
         return config;
     }
