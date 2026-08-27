@@ -112,7 +112,7 @@ public class BiomeConfig {
         if(definition.peak1 == null)
             definition.peak1 = definition.biome1;
         if(definition.peak2 == null)
-            definition.peak2 = definition.biome1;
+            definition.peak2 = definition.peak1;
 
         List<Pair<Climate.ParameterPoint, Holder<Biome>>> biomes = new ArrayList<>();
 
