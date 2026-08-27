@@ -127,6 +127,9 @@ abstract public class BlockPipe extends Block implements EntityBlock {
         }
         pipe.setChanged();
     }
+    // TODO when bth sides extraction, do not connect!
+    //      increase resistancewhen pump upgrade idle
+    //      make update rotate toward 0 when idle
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
