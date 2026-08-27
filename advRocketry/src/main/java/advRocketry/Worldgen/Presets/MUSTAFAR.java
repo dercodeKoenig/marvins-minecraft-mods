@@ -60,7 +60,6 @@ public class MUSTAFAR {
 
         BiomeConfig.BiomeDefinition mountains2 = new BiomeConfig.BiomeDefinition();
         mountains2.biome1 = "minecraft:stony_peaks";
-        mountains2.biome2 = "minecraft:jagged_peaks";
         mountains2.river1 = "minecraft:basalt_deltas";
         mountains2.peak1 = "biomesoplenty:volcano";
         mountains2.peak2 = "adv_rocketry:volcano";
