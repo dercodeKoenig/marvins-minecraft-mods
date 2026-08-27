@@ -112,7 +112,9 @@ public class SpaceStationDimension extends Dimension {
     }
 
     @Override
-    public float getSkyDarken(){ return 0;}
+    public float getSkyDarken() {
+        return 0;
+    }
 
     @Override
     public Vector3f getSunRiseColor() {
@@ -291,11 +293,11 @@ public class SpaceStationDimension extends Dimension {
     }
 
     public Vec3 getFront(float partialTick) {
-        return lazyFront.subtract(movementFrontRot.scale(1-partialTick));
+        return lazyFront.subtract(movementFrontRot.scale(1 - partialTick));
     }
 
     public Vec3 getUp(float partialTick) {
-        return lazyUp.subtract(movementUpRot.scale(1-partialTick));
+        return lazyUp.subtract(movementUpRot.scale(1 - partialTick));
     }
 
     public void setRotationSettings(double yaw, double roll, double pitch, SpaceStationDimensionProperties.RotationMode mode) {
@@ -412,7 +414,7 @@ public class SpaceStationDimension extends Dimension {
                 Vec3 nextTargetPositionRelative = travelTarget.subtract(position);
 
                 double maxSpeed = Config.INSTANCE.station_SpaceTravel_AU_Per_Second / 20;
-                double distanceForMaxSpeed = Config.INSTANCE.station_SpaceTravel_AU_Per_Second*10;
+                double distanceForMaxSpeed = Config.INSTANCE.station_SpaceTravel_AU_Per_Second * 10;
                 double e = Config.INSTANCE.station_SpaceTravel_Min_Speed;
 
                 // slow down when near target
@@ -424,7 +426,7 @@ public class SpaceStationDimension extends Dimension {
                 Dimension lastParent = dimensionManager.get(properties().lastParentDimensionId);
                 if (lastParent instanceof PlanetDimension lastParentPlanet) {
                     double distanceToOrigin = position.distanceTo(lastParentPlanet.getPosition(0));
-                    nearOriginMultiplier = Math.pow(Math.clamp( distanceToOrigin / distanceForMaxSpeed, 0, 1), 0.98);
+                    nearOriginMultiplier = Math.pow(Math.clamp(distanceToOrigin / distanceForMaxSpeed, 0, 1), 0.98);
                 }
 
                 maxSpeed *= Math.min(nearTargetMultiplier, nearOriginMultiplier);
@@ -444,7 +446,7 @@ public class SpaceStationDimension extends Dimension {
 
                 double vel = Math.max(0, getMovement().length() * getMovement().scale(1000).normalize().dot(getFront(1)));
                 double aM = 0.2;
-                if(vel > e * 1000)
+                if (vel > e * 1000)
                     aM = 1;
                 double maxAcc = Math.max(0, (vel - 10 * e) * aM) + e / 2;
 
@@ -508,13 +510,12 @@ public class SpaceStationDimension extends Dimension {
         Vec3 rotationCorrection;
         if (properties().targetFront.dot(properties().front) > -0.99) {
             Vec3 error = properties().targetFront.subtract(properties().front);
-            if(error.length() > rotationRate){
-                rotationCorrection = error.normalize().scale(rotationRate * (1 + error.length()*1));
-            }else{
+            if (error.length() > rotationRate) {
+                rotationCorrection = error.normalize().scale(rotationRate * (1 + error.length() * 1));
+            } else {
                 rotationCorrection = error;
             }
-        }
-        else
+        } else
             rotationCorrection = properties().up.cross(properties().front).scale(rotationRate / 10);
 
         properties().front = properties().front.add(rotationCorrection).normalize();
