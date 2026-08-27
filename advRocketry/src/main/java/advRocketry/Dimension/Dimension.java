@@ -15,7 +15,6 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class Dimension {
     public DimensionManager dimensionManager;
@@ -47,9 +46,9 @@ public abstract class Dimension {
         loadedChunks.put(pos.toLong(), new ChunkInfo());
     }
 
-    public boolean shouldTickChunk(ChunkPos pos){
+    public boolean shouldTickChunk(ChunkPos pos) {
         ChunkInfo info = loadedChunks.get(pos.toLong());
-        if(info == null) return false;
+        if (info == null) return false;
         return info.shouldTick;
     }
 
@@ -130,14 +129,15 @@ public abstract class Dimension {
         }
     }
 
-    public void runTasks(){
+    public void runTasks() {
+        if(tasks.isEmpty()) return;
         long start = System.nanoTime();
-        float avgmspt=(float)ServerLifecycleHooks.getCurrentServer().getAverageTickTimeNanos() / 1000000;
+        float avgmspt = (float) ServerLifecycleHooks.getCurrentServer().getAverageTickTimeNanos() / 1000000;
         float targetmspt = 50;
         float maxMs = (targetmspt - avgmspt) / 3; // don't use all the budget
         int ticked = 0;
-        while (!tasks.isEmpty()){
-            if(System.nanoTime() - start > maxMs * 1000 * 1000){
+        while (!tasks.isEmpty()) {
+            if (System.nanoTime() - start > maxMs * 1000 * 1000) {
                 break;
             }
             Runnable task = tasks.poll();
@@ -148,26 +148,15 @@ public abstract class Dimension {
         if (GlobalTime.getGlobalTime() % 50 == 0 && (!tasks.isEmpty() || ticked > 0)) {
             System.out.println("loaded tasks: " + tasks.size());
             System.out.println("ticked tasks: " + ticked);
-            System.out.println("time: " + elapsed/1000000);
+            System.out.println("time: " + elapsed / 1000000);
             System.out.println(" ");
         }
     }
 
     public void tickChunk(ChunkPos pos) {
-        ChunkInfo info = loadedChunks.get(pos.toLong());
         double p = 0.1;
-        if (info.isHotTimeout > 0) {
-            info.isHotTimeout--;
-            p = 1;
-        }
-        if (Math.random() < p && tasks.size() < 10_000) {
-            tasks.add(() -> {
-                if(!shouldTickChunk(pos))
-                    return;
-                if (DimensionEvents.performRandomTickEvents(this, level(), pos)) {
-                    info.isHotTimeout = 400;
-                }
-            });
+        if (Math.random() < p) {
+            DimensionEvents.performRandomTickEvents(this, level(), pos);
         }
     }
 
@@ -222,10 +211,6 @@ public abstract class Dimension {
     }
 
     public static class ChunkInfo {
-        // timout for running with increased tick frequency when something interesting happens
-        // while > 0: do more updates, while 0: do less updates
-        int isHotTimeout = 0;
-
         boolean shouldTick = false;
     }
 }
