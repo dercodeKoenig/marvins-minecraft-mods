@@ -71,6 +71,15 @@ public class CustomSurfaceRules {
                             SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState())),
                             SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.STONE.defaultBlockState()))
                     )
+            ),
+
+
+            SurfaceRules.ifTrue(
+                    SurfaceRules.isBiome(ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(Main.MODID, "volcanic_plains"))),
+                    SurfaceRules.sequence(
+                            SurfaceRules.ifTrue(SurfaceRules.ON_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState())),
+                            SurfaceRules.ifTrue(SurfaceRules.UNDER_FLOOR, SurfaceRules.state(net.minecraft.world.level.block.Blocks.STONE.defaultBlockState()))
+                    )
             )
 
 
