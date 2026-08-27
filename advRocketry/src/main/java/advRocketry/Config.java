@@ -22,13 +22,13 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
     public double planet_Sky_Height = 5000;
 
     // how much adding / removing 1000mb(1 bucket) of liquid should impact atmosphere composition
-    // default: 20000 buckets of fluid modify the composition by 1% of earth atmosphere
-    //          so you would require to remove 100 * 20k buckets to fully drain a gas
+    // default: 50000 buckets of fluid modify the composition by 1% of earth atmosphere
+    //          so you would require to remove 100 * 50k buckets to fully drain a gas
     //          if it has a presence of 1 in atmosphere
-    public double fluid_Contribution_To_Composition_Per_1000MB = 0.01 / 20000;
+    public double fluid_Contribution_To_Composition_Per_1000MB = 0.01 / 50000;
 
     // same as fluid contribution, but i give blocks more weight
-    public double solid_Contribution_To_Composition_Per_Block = 0.01 / 2000;
+    public double solid_Contribution_To_Composition_Per_Block = 0.01 / 10000;
 
     // how much gas should evaporate or freeze per tick when temperature falls / rises above the threshold
     // default: 100 seconds for a difference of 0.01
@@ -44,7 +44,7 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
 
     // how fast co2 is consumed and turned into o2 during photosynthesis
     // in ideal conditions, it will transfer a total of 1 * planet_Photosynthesis_Factor every tick
-    public double planet_Photosynthesis_Factor = (double) 1 / 10000000;
+    public double planet_Photosynthesis_Factor = (double) 1 / 100_000_000;
 
     // ---- rocket space travel ----
     public double rocket_SpaceTravel_AU_Per_Second = 0.01;
