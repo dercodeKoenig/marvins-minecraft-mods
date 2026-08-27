@@ -15,13 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.function.Predicate;
 
-/**
- * Generates a volcanic crater: an elevated basalt rim around a lava-filled
- * shaft plunging to near min build height, with a
- * {@link advRocketry.Blocks.VolcanicDepositBlock} at the bottom that later
- * carves out a magma chamber. ~1 volcano per {@link #DENSITY_DENOMINATOR}
- * chunks. Intended for peak biomes.
- */
 public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
 
     private static final int MIN_RADIUS = 20;
@@ -37,7 +30,6 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
     private static final int MIN_ABOVE_MIN_BUILD = 5;
     private static final int TARGET_DEPTH = 60;
     private static final int DEPTH_JITTER = 12;
-    private static final int DENSITY_DENOMINATOR = 16;
 
     public static final BlockState FILL_FLUID = Blocks.LAVA.defaultBlockState();
     public static final BlockState HULL_MATERIAL = Blocks.BASALT.defaultBlockState();
@@ -66,10 +58,6 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
         int z = Math.floorDiv(origin.getZ(), 16) * 16 + 8;
         int minY = level.getMinBuildHeight();
         int maxY = level.getMaxBuildHeight();
-
-        if (rnd.nextInt(DENSITY_DENOMINATOR) != 0) {
-            return false;
-        }
 
         int totalRadius = MIN_RADIUS + rnd.nextInt(MAX_RADIUS - MIN_RADIUS + 1);
         int rimWidth = MIN_RIM_WIDTH + rnd.nextInt(MAX_RIM_WIDTH - MIN_RIM_WIDTH + 1);
