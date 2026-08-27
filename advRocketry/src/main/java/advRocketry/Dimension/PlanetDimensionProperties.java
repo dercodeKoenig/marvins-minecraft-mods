@@ -101,6 +101,7 @@ public class PlanetDimensionProperties extends DimensionProperties {
             this.liquid = liquid;
             this.frozen_surface = frozen_surface;
             this.underground = underground;
+            this.worldGenSeaLevel = -1000;
         }
 
         public double getSeaLevel() {
