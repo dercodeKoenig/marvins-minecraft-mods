@@ -10,11 +10,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import advRocketry.Worldgen.Features.VolcanoFeature;
 
 /**
- * Placed at the bottom of a volcano shaft by {@link VolcanoFeature}. On its
+ * Placed at the bottom of a volcano shaft by VolcanoFeature. On its
  * first scheduled tick, seals a random sphere with a basalt hull and fills
  * the interior with lava, forming the magma chamber.
  */
-public class VolcanicDepositBlock extends Block {
+public class VolcanicDepositHelperBlock extends Block {
 
     public static final int MIN_RADIUS = 20;
     public static final int MAX_RADIUS = 35;
@@ -24,7 +24,7 @@ public class VolcanicDepositBlock extends Block {
     private static final BlockState FILL_FLUID = VolcanoFeature.FILL_FLUID;
     private static final BlockState HULL_MATERIAL = VolcanoFeature.HULL_MATERIAL;
 
-    public VolcanicDepositBlock() {
+    public VolcanicDepositHelperBlock() {
         super(Properties.of()
                 .strength(2.0f, 6.0f)
                 .sound(SoundType.BASALT)
@@ -76,8 +76,7 @@ public class VolcanicDepositBlock extends Block {
         double lavaR2 = (double) (lavaRadius * lavaRadius);
         double radiusR2 = (double) (radius * radius);
 
-        // Phase 1: hull shell (lavaR2 < distSq <= radiusR2). The two phases'
-        // zones are disjoint, so which one runs first doesn't actually matter.
+        // Phase 1: hull shell (lavaR2 < distSq <= radiusR2).
         for (int y = sphereBottom; y <= sphereTop; y++) {
             double dy = y - centerY;
             double rSq = radiusR2 - dy * dy;
@@ -121,5 +120,8 @@ public class VolcanicDepositBlock extends Block {
                 }
             }
         }
+
+        // replace self
+        level.setBlock(center, FILL_FLUID, Block.UPDATE_ALL);
     }
 }
