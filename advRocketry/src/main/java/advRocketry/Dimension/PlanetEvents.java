@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -20,22 +19,7 @@ import static advRocketry.Dimension.DimensionEvents.water_frozen_by_low_planet_t
 public class PlanetEvents {
 
     // performs terraforming ticks
-    public static boolean maybePerformTerraformingTicks(PlanetDimension planet, ServerLevel level, ChunkPos chunkPos, long index) {
-
-        // Create a deterministic offset for this specific chunk.
-        // Multiplying by prime numbers spreads out the starting positions wildly across the world.
-        long chunkOffset = Math.abs((long) chunkPos.x * 31337L + (long) chunkPos.z * 31L);
-
-        // Calculate the index within the 0-255 range (16x16 blocks = 256 total)
-        int blockIndex = (int) ((index + chunkOffset) % 256);
-
-        // Convert the 1D index back into 2D local chunk coordinates (0-15)
-        int localX = blockIndex % 16;
-        int localZ = blockIndex / 16;
-
-        // Get the actual world coordinates
-        int blockX = chunkPos.getBlockX(localX);
-        int blockZ = chunkPos.getBlockZ(localZ);
+    public static boolean performTerraformingTicks(PlanetDimension planet, ServerLevel level, int blockX, int blockZ) {
 
         // adjust sea level for all the gases
         for (GasRegistry.Gas gas : GasRegistry.gases.values()) {
@@ -48,7 +32,6 @@ public class PlanetEvents {
         if (DryIceBlock.placeDryIceIfPossible(planet, blockX, blockZ, 3)) {
             return true;
         }
-
 
         if (TerraformingSystem.maybeUpdateBlocksForNewBiome(level, blockX, blockZ)) {
             return true;
