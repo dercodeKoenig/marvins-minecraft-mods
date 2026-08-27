@@ -144,6 +144,7 @@ public abstract class Dimension {
             task.run();
             ticked++;
         }
+        /*
         double elapsed = (System.nanoTime() - start);
         if (GlobalTime.getGlobalTime() % 50 == 0 && (!tasks.isEmpty() || ticked > 0)) {
             System.out.println("loaded tasks: " + tasks.size());
@@ -151,6 +152,7 @@ public abstract class Dimension {
             System.out.println("time: " + elapsed / 1000000);
             System.out.println(" ");
         }
+         */
     }
 
     public void tickChunk(ChunkPos pos) {
