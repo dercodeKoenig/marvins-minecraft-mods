@@ -119,7 +119,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
 
         for (int id : buttonIdToMachineName.keySet()) {
             String name = buttonIdToMachineName.get(id);
-            guiModuleButton button = new guiModuleButton(id, name, guiHandler, 5, 25 * id + 15, 80, 20, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_red.png"), 64, 20) {
+            guiModuleButton button = new guiModuleButton(id, name, guiHandler, 5, 25 * id + 15, 230, 20, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_red.png"), 64, 20) {
                 public void onButtonClicked() {
                     super.onButtonClicked();
                     Minecraft.getInstance().popGuiLayer();
@@ -128,7 +128,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
             button.color = 0xffffffff;
             containerModules.add(button);
         }
-        guiModuleScrollContainer container = new guiModuleScrollContainer(containerModules, 0xFFA0A0A0, guiHandler, 5, 5, 90, 90);
+        guiModuleScrollContainer container = new guiModuleScrollContainer(containerModules, 0xFFA0A0A0, guiHandler, 5, 5, 240, 90);
         guiHandler.getModules().add(container);
     }
 
@@ -231,7 +231,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
         if (player.isShiftKeyDown()) {
             if (level.isClientSide) {
                 initGui();
-                guiHandler.openGui(100, 100, true);
+                guiHandler.openGui(250, 200, true);
             }
             return InteractionResultHolder.success(itemstack);
         }
