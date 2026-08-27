@@ -1442,19 +1442,9 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
             }
         }
 
-        // Upward-facing pumps extend along +Y: mirror the DOWN tilt with a -90°
-        // rotation about Z (this sends "up" to +Y). An adjacent crankshaft above —
-        // a crank pump on the UP face — is aligned like its DOWN counterpart; the
-        // self-powered auto pump has no such neighbour and takes the plain tilt.
+        // Upward-facing pumps (crankshaft can not connect from above)
         if (side == Direction.UP) {
-            BlockState blockAbove = tile.getLevel().getBlockState(tile.getBlockPos().above());
-            if (blockAbove.getBlock() instanceof BlockCrankShaftBase crankShaftBase) {
-                m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -90f));
-                if (blockAbove.getValue(BlockCrankShaftBase.ROTATION_AXIS) == Direction.Axis.X)
-                    m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, 90f));
-            } else {
-                m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -90f));
-            }
+            m1.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, -90f));
         }
 
         // Crank oscillation geometry.

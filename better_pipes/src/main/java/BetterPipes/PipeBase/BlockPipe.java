@@ -72,13 +72,28 @@ abstract public class BlockPipe extends Block implements EntityBlock {
             BlockEntity tile = level.getBlockEntity(pos);
             if (tile instanceof EntityPipe pipe) {
                 if (player.isShiftKeyDown()) {
-                    if (pipe.pumpUpgradeSide == hitResult.getDirection()) {
+                    Direction hitFace = hitResult.getDirection();
+                    if (pipe.pumpUpgradeSide == hitFace) {
+                        // remove pump upgrade
                         pipe.installAutoPumpUpgrade(null);
-                    } else {
-                        pipe.toggleExtractionMode(hitResult.getDirection());
+                    } else if (state.getValue(BlockPipe.connections.get(hitFace)) == ConnectionState.CONNECTED) {
+                        // set to extract mode
+                        level.setBlock(pos, state.setValue(BlockPipe.connections.get(hitFace), ConnectionState.EXTRACTION), 3);
+                    } else if (state.getValue(BlockPipe.connections.get(hitFace)) == ConnectionState.EXTRACTION) {
+                        // set to blocked mode
+                        pipe.blockedSides.put(hitFace, true);
+                        level.setBlock(pos, state.setValue(BlockPipe.connections.get(hitFace), ConnectionState.NONE), 3);
+                    } else if (pipe.blockedSides.get(hitFace) == true) {
+                        // disable blocked mode
+                        pipe.blockedSides.put(hitFace, false);
+                        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
+                    } else if (level.getBlockEntity(pos.relative(hitFace)) instanceof EntityPipe otherPipe && otherPipe.blockedSides.get(hitFace.getOpposite()) == true) {
+                        // disable blocked mode of neighbor
+                        otherPipe.blockedSides.put(hitFace.getOpposite(), false);
+                        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
                     }
-                }
-                else {
+                    pipe.setChanged();
+                } else {
                     if (pipe.hasAnyPumpUpgrades()) {
                         boolean active = pipe.toggleAutoPump();
                         player.displayClientMessage(net.minecraft.network.chat.Component.literal("Automatic Pump: " + (active ? "ACTIVE" : "INACTIVE")), true);
@@ -127,9 +142,6 @@ abstract public class BlockPipe extends Block implements EntityBlock {
         }
         pipe.setChanged();
     }
-    // TODO when bth sides extraction, do not connect!
-    //      increase resistancewhen pump upgrade idle
-    //      make update rotate toward 0 when idle
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
@@ -141,9 +153,9 @@ abstract public class BlockPipe extends Block implements EntityBlock {
         // because its not a real blockstate change but its not a critical bug
         updateTankCons(pipe, neighborState, direction);
 
-        if (pipe.pumpUpgradeSide == direction) {
-            pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
+        if (pipe.pumpUpgradeSide == direction || pipe.blockedSides.get(direction)) {
             state = state.setValue(connections.get(direction), ConnectionState.NONE);
+            pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
         } else if (pipe.connections.get(direction).neighborFluidHandler() != null) {
             ConnectionState current = state.getValue(connections.get(direction));
             if (current != ConnectionState.CONNECTED && current != ConnectionState.EXTRACTION)
@@ -155,8 +167,9 @@ abstract public class BlockPipe extends Block implements EntityBlock {
                 state = state.setValue(connections.get(direction), ConnectionState.NONE);
             }
             pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
+            pipe.blockedSides.put(direction, false);
+            pipe.setChanged();
         }
-
 
         BlockEntity other = level.getBlockEntity(neighborPos);
         if (other instanceof EntityCrankShaftBase cs &&

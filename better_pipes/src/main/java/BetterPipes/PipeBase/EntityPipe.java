@@ -74,6 +74,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     public Direction pumpUpgradeSide = null;
     public boolean autoPumpActive = false;
 
+    public Map<Direction, Boolean> blockedSides = new HashMap<>();
+
     public double mechanicalResistance;
 
     public EntityPipe(BlockEntityType type, BlockPos pos, BlockState blockState, int mainCapacity, int flowRate) {
@@ -90,6 +92,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
         for (Direction i : Direction.values()) {
             connections.put(i, new PipeConnection(this, i, mainCapacity / 2));
+            blockedSides.put(i, false);
         }
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
@@ -109,8 +112,10 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     }
 
     public IFluidHandler getFluidHandler(Direction side) {
-        if (side != null && side == pumpUpgradeSide) return null;
-        if (side != null && side == crankShaftSide) return null;
+        if (side == null) return null;
+        if (side == pumpUpgradeSide) return null;
+        if (side == crankShaftSide) return null;
+        if (blockedSides.get(side)) return null;
         return connections.get(side);
     }
 
@@ -182,7 +187,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                 }
 
                 if (requiresUpdate) {
-                    syncTanksToClient(null);
+                    syncToClient(null);
                 }
             }
             mechanicalResistance = 5;
@@ -251,7 +256,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
                     IFluidHandler neighbor = conn.neighborFluidHandler();
                     if (neighbor != null && !(neighbor instanceof PipeConnection)) {
-                        if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION) {
+                        if (state.getValue(BlockPipe.connections.get(direction)) == BlockPipe.ConnectionState.EXTRACTION && (!hasAnyPumpUpgrades() || autoPumpActive)) {
                             // extract from a neighbor fluid handler
                             // this runs every tick
                             double toDrainDouble = Math.min(flowRate, flowRate * Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f);
@@ -311,24 +316,14 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         }
     }
 
-    public void toggleExtractionMode(Direction hitFace) {
-        BlockState state = getBlockState();
-        if (state.getValue(BlockPipe.connections.get(hitFace)) == BlockPipe.ConnectionState.CONNECTED) {
-            state = state.setValue(BlockPipe.connections.get(hitFace), BlockPipe.ConnectionState.EXTRACTION);
-        } else if (state.getValue(BlockPipe.connections.get(hitFace)) == BlockPipe.ConnectionState.EXTRACTION) {
-            state = state.setValue(BlockPipe.connections.get(hitFace), BlockPipe.ConnectionState.CONNECTED);
-        }
-        level.setBlock(getBlockPos(), state, 3);
-    }
-
-    public void syncTanksToClient(ServerPlayer p) {
+    public void syncToClient(ServerPlayer p) {
         CompoundTag updateTag = new CompoundTag();
         for (Direction direction : Direction.values()) {
             PipeConnection conn = connections.get(direction);
             CompoundTag tag = conn.getUpdateTag(level.registryAccess());
             updateTag.put(direction.getName(), tag);
         }
-        updateTag.put("mainTank", getUpdateTag(level.registryAccess()));
+        updateTag.put("main", getUpdateTag(level.registryAccess()));
         if (p != null)
             PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
         else
@@ -338,7 +333,7 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer player) {
         if (compoundTag.contains("client_onload")) {
-            syncTanksToClient(player);
+            syncToClient(player);
         }
         myMechanicalBlock.mechanicalReadServer(compoundTag, player);
     }
@@ -350,59 +345,11 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
                 connections.get(direction).handleUpdateTag(compoundTag.getCompound(direction.getName()), level.registryAccess());
             }
         }
-        if (compoundTag.contains("mainTank")) {
-            handleUpdateTag(compoundTag.getCompound("mainTank"), level.registryAccess());
+        if (compoundTag.contains("main")) {
+            handleUpdateTag(compoundTag.getCompound("main"), level.registryAccess());
         }
         myMechanicalBlock.mechanicalReadClient(compoundTag);
     }
-
-    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
-        @Override
-        public double getMaxStress() {
-            return 9999;
-        }
-
-        @Override
-        public double getInertia(Direction direction) {
-            return hasAnyPumpUpgrades() ? Config.INSTANCE.autoPumpInertia : 0.1;
-        }
-
-        @Override
-        public double getTorqueResistance(Direction direction) {
-            return mechanicalResistance;
-        }
-
-        @Override
-        public double getTorqueProduced(Direction direction) {
-            if (pumpUpgradeSide != null && autoPumpActive) {
-                return Math.max(0, Config.INSTANCE.autoPumpForce - Config.INSTANCE.autoPumpSpeedConstant * Math.abs(internalVelocity));
-            }
-            return 0;
-        }
-
-        @Override
-        public double getRotationMultiplierToInside(@Nullable Direction direction) {
-            return 1;
-        }
-
-        @Override
-        public void propagateTickBeforeUpdate() {
-            super.propagateTickBeforeUpdate();
-
-            // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
-            // this is easier than always reset the rotation on connect or unconnect
-            // do not use this in tick, if the pipe ticks before crankshaft the rotation will be out of sync
-            // this is specifically what this method is designed to do, to run when all mechanical blocks are on same state before tick
-            // runs on both server and client side to keep the visuals correct
-            if (crankShaftSide != null && hasAnyExtractionConnections) {
-                if (level.getBlockEntity(getBlockPos().relative(crankShaftSide)) instanceof IMechanicalBlockProvider mechanicalBlockProvider &&
-                        mechanicalBlockProvider.getMechanicalBlock(crankShaftSide.getOpposite()) instanceof AbstractMechanicalBlock mechanicalBlock
-                ) {
-                    myMechanicalBlock.currentRotation = mechanicalBlock.currentRotation;
-                }
-            }
-        }
-    };
 
     public void setRequiresMeshUpdate() {
         requiresMeshUpdate2 = true;
@@ -414,10 +361,16 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
         handleUpdateTag(tag.getCompound("main"), registries);
 
+        CompoundTag blockedSidesTag = tag.getCompound("blockedSides");
+        for (Direction direction : Direction.values()) {
+            blockedSides.put(direction, blockedSidesTag.getBoolean(direction.toString()));
+        }
+
         for (Direction direction : Direction.values()) {
             PipeConnection conn = connections.get(direction);
             conn.loadAdditional(registries, tag);
         }
+
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
     }
 
@@ -427,10 +380,17 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
 
         tag.put("main", getUpdateTag(registries));
 
+        CompoundTag blockedSidesTag = new CompoundTag();
+        for (Direction direction : Direction.values()) {
+            blockedSidesTag.putBoolean(direction.toString(), blockedSides.get(direction));
+        }
+        tag.put("blockedSides", blockedSidesTag);
+
         for (Direction direction : Direction.values()) {
             PipeConnection conn = connections.get(direction);
             conn.saveAdditional(registries, tag);
         }
+
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
     }
 
@@ -509,12 +469,13 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
         level.setBlock(getBlockPos(), getBlockState().getBlock().updateFromNeighbourShapes(getBlockState(), level, getBlockPos()), 3);
         setChanged();
 
-        syncTanksToClient(null);
+        syncToClient(null);
     }
 
     public boolean toggleAutoPump() {
         autoPumpActive = !autoPumpActive;
         setChanged();
+        syncToClient(null);
         return autoPumpActive;
     }
 
@@ -536,7 +497,63 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
     @Override
     public BlockEntity getBlockEntity() {
         return this;
-    }
+    }    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMaxStress() {
+            return 9999;
+        }
+
+        @Override
+        public double getInertia(Direction direction) {
+            return hasAnyPumpUpgrades() ? Config.INSTANCE.autoPumpInertia : 0.1;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction direction) {
+            return mechanicalResistance;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction direction) {
+            if (hasAnyPumpUpgrades() && autoPumpActive) {
+                return Math.max(0, Config.INSTANCE.autoPumpForce - Config.INSTANCE.autoPumpSpeedConstant * Math.abs(internalVelocity));
+            }
+            if (hasAnyPumpUpgrades() && !autoPumpActive) {
+                // rotate it to resting position
+                double target = -90;
+                if (pumpUpgradeSide == Direction.NORTH || pumpUpgradeSide == Direction.EAST)
+                    target = 90;
+                double diff = (target - currentRotation) % 360f;
+                if (diff > 180f) diff -= 360f;
+                if (diff < -180f) diff += 360f;
+                return Math.tanh(diff) * getTorqueResistance(null) * 2 - internalVelocity;
+            }
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@Nullable Direction direction) {
+            return 1;
+        }
+
+        @Override
+        public void propagateTickBeforeUpdate() {
+            super.propagateTickBeforeUpdate();
+
+            // because the crankshaft can dynamically connect and unconnect, make sure the arm is in sync with the crankshaft
+            // this is easier than always reset the rotation on connect or unconnect
+            // do not use this in tick, if the pipe ticks before crankshaft the rotation will be out of sync
+            // this is specifically what this method is designed to do, to run when all mechanical blocks are on same state before tick
+            // runs on both server and client side to keep the visuals correct
+            if (crankShaftSide != null && hasAnyExtractionConnections) {
+                if (level.getBlockEntity(getBlockPos().relative(crankShaftSide)) instanceof IMechanicalBlockProvider mechanicalBlockProvider &&
+                        mechanicalBlockProvider.getMechanicalBlock(crankShaftSide.getOpposite()) instanceof AbstractMechanicalBlock mechanicalBlock
+                ) {
+                    myMechanicalBlock.currentRotation = mechanicalBlock.currentRotation;
+                }
+            }
+        }
+    };
 
     public static class FluidRenderData {
 
@@ -560,6 +577,8 @@ public class EntityPipe extends BlockEntity implements INetworkTagReceiver, IMec
             spriteFLowing = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidtextureFlowing);
         }
     }
+
+
 
 
 }
