@@ -737,7 +737,7 @@ public class SkyRenderer {
 
         // render atmosphere on top
         TRANSLUCENT_TRANSPARENCY.setupRenderState();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE,GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         shader.setSampler("Frame", AtmosphereTarget.getColorTextureId());
         shader.apply();
         vertexBufferSquare.draw();
