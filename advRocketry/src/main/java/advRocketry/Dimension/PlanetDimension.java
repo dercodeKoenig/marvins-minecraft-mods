@@ -14,14 +14,12 @@ import dev.galacticraft.dynamicdimensions.api.DynamicDimensionRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -674,7 +672,13 @@ public class PlanetDimension extends Dimension {
                 info.openTasks--;
                 if(!shouldTickChunk(pos))
                     return;
-                if (PlanetEvents.maybePerformTerraformingTicks(this, level(), pos, info.tickIndex)) {
+
+                int blockIndex = (int) (info.tickIndex % 256);
+                int localX = blockIndex % 16;
+                int localZ = blockIndex / 16;
+                int blockX = pos.getBlockX(localX);
+                int blockZ = pos.getBlockZ(localZ);
+                if (PlanetEvents.performTerraformingTicks(this, level(), blockX, blockZ)) {
                     // if this tick had work, notify this chunk and the neighbors that there is work to do
                     for (int x = -1; x <= 1; x++) {
                         for (int z = -1; z <= 1; z++) {
