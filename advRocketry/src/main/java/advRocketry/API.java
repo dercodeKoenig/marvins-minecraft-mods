@@ -30,7 +30,7 @@ public class API {
             planet.getGasProperty(gasId).in_atm = Math.max(0, planet.getGasProperty(gasId).in_atm);
             planet.setRequiresSync();
 
-            System.out.println("API added gas buckets: " + gasId + ":" + buckets);
+            //System.out.println("API added gas buckets: " + gasId + ":" + buckets);
         }
     }
 
@@ -48,7 +48,7 @@ public class API {
             planet.getGasProperty(gasId).liquid = Math.max(0, planet.getGasProperty(gasId).liquid);
             planet.setRequiresSync();
 
-            System.out.println("API added liquid buckets: " + gasId + ":" + buckets);
+            //System.out.println("API added liquid buckets: " + gasId + ":" + buckets);
         }
     }
 
@@ -66,7 +66,7 @@ public class API {
             planet.getGasProperty(gasId).frozen_surface = Math.max(0, planet.getGasProperty(gasId).frozen_surface);
             planet.setRequiresSync();
 
-            System.out.println("API added frozen blocks: " + gasId + ":" + blocks);
+            //System.out.println("API added frozen blocks: " + gasId + ":" + blocks);
             //System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
         }
     }
