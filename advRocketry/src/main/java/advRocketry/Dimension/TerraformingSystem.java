@@ -7,6 +7,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundChunksBiomesPacket;
@@ -45,6 +47,7 @@ public class TerraformingSystem {
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "moon_dark"), advRocketry.Registry.Blocks.MOON_TURF_DARK.get());
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "ice_crystals"), Blocks.SNOW_BLOCK);
         topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "volcano"), Blocks.COBBLESTONE);
+        topBlocks.put(ResourceLocation.fromNamespaceAndPath(Main.MODID, "volcanic_plains"), Blocks.COBBLESTONE);
 
 
         // --- Forests & Woods ---
@@ -290,28 +293,30 @@ public class TerraformingSystem {
         int lx = QuartPos.quartLocal(qx);
         int qz = QuartPos.fromBlock(pos.getZ());
         int lz = QuartPos.quartLocal(qz);
-
+        boolean hadChange = false;
         // work the entire column for every section, every y quart
         for (int k = chunk.getMinSection(); k < chunk.getMaxSection(); ++k) {
             LevelChunkSection levelchunksection = chunk.getSection(chunk.getSectionIndexFromSectionY(k));
             for (int ly = 0; ly < 4; ly++) {
                 // minecraft wraps this in a read only interface but the reference should still be the normal container
                 PalettedContainer<Holder<Biome>> container = (PalettedContainer<Holder<Biome>>) levelchunksection.getBiomes();
-                container.set(lx, ly, lz, target);
+                if (!container.get(lx, ly, lz).equals(target)) {
+                    container.set(lx, ly, lz, target);
+                    hadChange = true;
+                }
             }
         }
-        chunk.setUnsaved(true);
-
-        ClientboundChunksBiomesPacket packet = new ClientboundChunksBiomesPacket(List.of(new ClientboundChunksBiomesPacket.ChunkBiomeData(chunk)));
-        level.getChunkSource().chunkMap.getPlayers(chunk.getPos(), false).forEach(player -> {
-            player.connection.send(packet);
-        });
-
-        // if on planet dimension, boost the terraforming system so it updates more frequently
-        if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
-            long chunkPosLong = chunk.getPos().toLong();
-            if (planet.loadedChunks.get(chunkPosLong) instanceof PlanetDimension.ChunkInfo chunkInfo) {
-                chunkInfo.hasWorkCurrently = true;
+        if (hadChange) {
+            chunk.setUnsaved(true);
+            ClientboundChunksBiomesPacket packet = new ClientboundChunksBiomesPacket(List.of(new ClientboundChunksBiomesPacket.ChunkBiomeData(chunk)));
+            level.getChunkSource().chunkMap.getPlayers(chunk.getPos(), false).forEach(player -> {
+                player.connection.send(packet);
+            });
+            if (DimensionManager.INSTANCE_SERVER.get(level.dimension().location()) instanceof PlanetDimension planet) {
+                long chunkPosLong = chunk.getPos().toLong();
+                if (planet.loadedChunks.get(chunkPosLong) instanceof PlanetDimension.ChunkInfo chunkInfo) {
+                    chunkInfo.hasWorkCurrently = true;
+                }
             }
         }
     }
@@ -371,7 +376,7 @@ public class TerraformingSystem {
         ResourceLocation previousBiomeId = getGeneratedBiome(level.getChunkAt(pos), pos.getX(), pos.getZ());
 
         if (!Objects.equal(currentBiomeId, previousBiomeId)) {
-            // the blocks not always perfectly align with biome borders so aso consider top blocks from next biomes for replacement
+            // the blocks not always perfectly align with biome borders so also consider top blocks from next biomes for replacement
             Set<ResourceLocation> nearbyBiomes = new HashSet<>();
             nearbyBiomes.add(previousBiomeId);
             for (Direction i : new Direction[]{Direction.WEST, Direction.EAST, Direction.SOUTH, Direction.NORTH}) {
@@ -380,7 +385,8 @@ public class TerraformingSystem {
             }
 
             for (int y = level.getMaxBuildHeight(); y > level.getMinBuildHeight(); y--) {
-                BlockState current = level.getBlockState(pos.atY(y));
+                BlockPos currentPos = pos.atY(y);
+                BlockState current = level.getBlockState(currentPos);
                 boolean isValidTopBlock = false;
                 for (ResourceLocation biomeId : nearbyBiomes) {
                     if (isValidTopBlock(biomeId, current.getBlock())) {
@@ -389,10 +395,10 @@ public class TerraformingSystem {
                 }
                 if (isValidTopBlock) {
                     Block toPlace = getPatchedTopBlock(currentBiomeId, x, z, getTopBlock(currentBiomeId));
-                    level.setBlock(pos.atY(y), toPlace.defaultBlockState(), 3);
+                    level.setBlock(currentPos, toPlace.defaultBlockState(), 3);
 
                     // maye add decorations above this block
-                    maybeDecorate(currentBiomeId, level, pos.atY(y));
+                    maybeDecorate(currentBiomeId, level, currentPos);
 
                     break;
                 }
