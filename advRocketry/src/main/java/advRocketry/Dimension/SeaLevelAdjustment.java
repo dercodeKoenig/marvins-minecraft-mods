@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -164,7 +165,7 @@ public class SeaLevelAdjustment {
                         continue;
 
                     // only replace lava with obsidian if it is top block to allow for lava below surface
-                    if ((scanState.getFluidState().is(FluidTags.LAVA)) && level.getBlockState(scanPos.above()).isAir()) {
+                    if ((scanState.getFluidState().is(Tags.Fluids.LAVA)) && level.getBlockState(scanPos.above()).isAir()) {
                         level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
                         return true;
                     }
