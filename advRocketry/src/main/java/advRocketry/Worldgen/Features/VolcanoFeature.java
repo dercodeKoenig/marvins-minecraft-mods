@@ -30,7 +30,7 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
     private static final int MIN_ABOVE_MIN_BUILD = 5;
     private static final int TARGET_DEPTH = 60;
     private static final int DEPTH_JITTER = 12;
-    
+
     public static BlockState getFillFluidState() {
         return advRocketry.Registry.Blocks.ENRICHED_LAVA_BLOCK.get().defaultBlockState();
     }
