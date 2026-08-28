@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -162,10 +163,9 @@ public class SeaLevelAdjustment {
                     if (scanState.getFluidState().isSource() && scanState.is(fluidBlock))
                         continue;
 
-                    if (scanState.getBlock().equals(Blocks.LAVA) && level.getBlockState(scanPos.above()).isAir()) {
-                        // only replace lava with obsidian if it is top block to allow for lava below surface
+                    // only replace lava with obsidian if it is top block to allow for lava below surface
+                    if ((scanState.getFluidState().is(FluidTags.LAVA)) && level.getBlockState(scanPos.above()).isAir()) {
                         level.setBlock(scanPos, Blocks.OBSIDIAN.defaultBlockState(), placementFlags);
-                        planet.setRaining(5);
                         return true;
                     }
 
@@ -180,11 +180,11 @@ public class SeaLevelAdjustment {
                     // so that all others can maybe fill the void. but thats a bit too complicated for now... this approximation will do
                     if (scanState.getFluidState().isSource()) {
                         double atmDensity = planet.getAtmosphereDensity();
-                        boolean canReplaceSource = true;
+                        boolean canReplaceSource = false;
                         for (GasRegistry.Gas otherGas : GasRegistry.gases.values()) {
                             if (scanState.getBlock().equals(otherGas.fluidBlock)) {
-                                if (otherGas.getBoilingTemp(atmDensity) > fluid.getBoilingTemp(atmDensity)) {
-                                    canReplaceSource = false;
+                                if (otherGas.getBoilingTemp(atmDensity) < fluid.getBoilingTemp(atmDensity)) {
+                                    canReplaceSource = true;
                                     break;
                                 }
                             }
