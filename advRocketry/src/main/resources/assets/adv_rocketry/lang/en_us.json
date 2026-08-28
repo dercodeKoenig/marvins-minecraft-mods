@@ -78,6 +78,13 @@
   "fluid_type.adv_rocketry.co2_type": "CO2",
   "item.adv_rocketry.rocket_fuel_bucket": "Rocket Fuel",
   "fluid_type.adv_rocketry.rocket_fuel_type": "Rocket Fuel",
+
+  "item.adv_rocketry.enriched_lava_bucket": "Enriched Lava Bucket",
+  "fluid_type.adv_rocketry.enriched_lava_type": "Enriched Lava",
+  "block.adv_rocketry.enriched_lava_block": "Enriched Lava",
+
+  "block.adv_rocketry.dilithium_ore": "Dilithium Ore",
+  "item.adv_rocketry.dilithium_ore": "Dilithium Ore",
   "block.adv_rocketry.crystal_red": "Red Crystal",
   "block.adv_rocketry.crystal_orange": "Orange Crystal",
   "block.adv_rocketry.crystal_yellow": "Yellow Crystal",

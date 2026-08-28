@@ -119,6 +119,8 @@ public class ClientSetup {
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.NITROGEN_FLOWING.get(), RenderType.translucent());
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.METHANE_FLOWING.get(), RenderType.translucent());
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.CO2_FLOWING.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.ENRICHED_LAVA.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Fluids.ENRICHED_LAVA_FLOWING.get(), RenderType.translucent());
 
         // Crystal blocks use translucent render for colored glass effect
         ItemBlockRenderTypes.setRenderLayer(advRocketry.Registry.Blocks.CRYSTAL_RED.get(), RenderType.translucent());

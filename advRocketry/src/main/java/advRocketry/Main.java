@@ -259,6 +259,7 @@ public class Main {
             e.accept(Blocks.MOON_TURF.get());
             e.accept(Blocks.MOON_TURF_DARK.get());
             e.accept(Blocks.DRY_ICE.get());
+            e.accept(Blocks.DILITHIUM_ORE.get());
 
             e.accept(Blocks.CRYSTAL_RED.get());
             e.accept(Blocks.CRYSTAL_ORANGE.get());
@@ -298,6 +299,7 @@ public class Main {
             e.accept(Items.ITEM_NITROGEN_BUCKET.get());
             e.accept(Items.ITEM_CO2_BUCKET.get());
             e.accept(Items.ITEM_METHANE_BUCKET.get());
+            e.accept(Items.ITEM_ENRICHED_LAVA_BUCKET.get());
 
             e.accept(Items.ITEM_SPACE_SUIT_HELMET.get());
             e.accept(Items.ITEM_SPACE_SUIT_CHESTPLATE.get());

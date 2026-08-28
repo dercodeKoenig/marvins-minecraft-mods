@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
@@ -30,6 +31,8 @@ public class Fluids {
     public static final Supplier<FluidType> NITROGEN_TYPE = FLUID_TYPES.register("nitrogen_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
     public static final Supplier<FluidType> METHANE_TYPE = FLUID_TYPES.register("methane_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
     public static final Supplier<FluidType> CO2_TYPE = FLUID_TYPES.register("co2_type", () -> new FluidType(FluidType.Properties.create().density(-100)));
+
+    public static final Supplier<FluidType> ENRICHED_LAVA_TYPE = FLUID_TYPES.register("enriched_lava_type", () -> new FluidType(FluidType.Properties.create().density(3000).temperature(1300).viscosity(6000).lightLevel(15).pathType(PathType.LAVA).canSwim(false).canDrown(false)));
 
     public static void registerFluidTypes(RegisterClientExtensionsEvent event) {
         event.registerFluidType(
@@ -122,6 +125,21 @@ public class Fluids {
                         return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fluid/co2_flow");
                     }
                 }, Fluids.CO2_TYPE.get()
+        );
+        event.registerFluidType(
+                new IClientFluidTypeExtensions() {
+                    public int getTintColor() {
+                        return 0xffffffff;
+                    }
+
+                    public ResourceLocation getStillTexture() {
+                        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fluid/lava_still");
+                    }
+
+                    public ResourceLocation getFlowingTexture() {
+                        return ResourceLocation.fromNamespaceAndPath(Main.MODID, "block/fluid/lava_flow");
+                    }
+                }, Fluids.ENRICHED_LAVA_TYPE.get()
         );
     }
 
@@ -220,6 +238,24 @@ public class Fluids {
             Fluids.NITROGEN_TYPE, NITROGEN, NITROGEN_FLOWING)
             .bucket(Items.ITEM_NITROGEN_BUCKET)
             .block(Blocks.NITROGEN_BLOCK);
+
+    // --- ENRICHED LAVA ---
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> ENRICHED_LAVA = FLUIDS.register("enriched_lava",
+            () -> new BaseFlowingFluid.Source(Fluids.ENRICHED_LAVA_PROPERTIES) {
+                protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluidIn, Direction direction) {
+                    return false;
+                }
+            });
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> ENRICHED_LAVA_FLOWING = FLUIDS.register("enriched_lava_flowing",
+            () -> new BaseFlowingFluid.Flowing(Fluids.ENRICHED_LAVA_PROPERTIES));
+    public static final BaseFlowingFluid.Properties ENRICHED_LAVA_PROPERTIES = new BaseFlowingFluid.Properties(
+            Fluids.ENRICHED_LAVA_TYPE,
+            ENRICHED_LAVA,
+            ENRICHED_LAVA_FLOWING
+    )
+            .bucket(Items.ITEM_ENRICHED_LAVA_BUCKET)
+            .block(Blocks.ENRICHED_LAVA_BLOCK)
+            .tickRate(30);
 
 
 }

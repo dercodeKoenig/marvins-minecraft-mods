@@ -24,6 +24,7 @@
     ],
     [],
     [
+      "adv_rocketry:ore_dilithium",
       "minecraft:ore_coal_upper",
       "minecraft:ore_coal_lower",
       "minecraft:ore_diamond",

@@ -21,6 +21,7 @@ public class Items {
     public static final Supplier<Item> ITEM_GALAXY_DATABASE = ITEMS.register("galaxy_database", () -> new ItemGalaxyDatabase());
     public static final Supplier<Item> ITEM_LINKER = ITEMS.register("linker", () -> new ItemLinker());
     public static final Supplier<Item> ITEM_ROCKET_FUEL_BUCKET = ITEMS.register("rocket_fuel_bucket", () -> new BucketItem(Fluids.ROCKET_FUEL.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
+    public static final Supplier<Item> ITEM_ENRICHED_LAVA_BUCKET = ITEMS.register("enriched_lava_bucket", () -> new BucketItem(Fluids.ENRICHED_LAVA.get(), new Item.Properties().stacksTo(16).craftRemainder(net.minecraft.world.item.Items.BUCKET)));
     public static final Supplier<Item> ITEM_ASTEROID_ID_CHIP = ITEMS.register("asteroid_id_chip", () -> new ItemAsteroidIdChip());
     public static final Supplier<Item> ITEM_ATM_ANALYZER = ITEMS.register("atm_analyzer", () -> new ItemAtmAnalyzer());
     public static final Supplier<ItemPortablePressureTank> ITEM_PORTABLE_PRESSURE_TANK_ALUMINUM = ITEMS.register("portable_pressure_tank_aluminum", () -> new ItemPortablePressureTank(4000));
@@ -85,6 +86,7 @@ public class Items {
     public static final Supplier<Item> ITEM_MOON_TURF = registerBlockItem("moon_turf", Blocks.MOON_TURF);
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);
     public static final Supplier<Item> ITEM_DRY_ICE = registerBlockItem("dry_ice", Blocks.DRY_ICE);
+    public static final Supplier<Item> ITEM_DILITHIUM_ORE = registerBlockItem("dilithium_ore", Blocks.DILITHIUM_ORE);
 
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_HELMET = ITEMS.register("space_helmet", () -> new Helmet());
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_CHESTPLATE = ITEMS.register("space_chestplate", () -> new ChestPlate());

@@ -59,6 +59,9 @@ public class Blocks {
     public static final Supplier<Block> MOON_TURF = BLOCKS.register("moon_turf", () -> new Block(BlockBehaviour.Properties.of().strength(0.5f).requiresCorrectToolForDrops()));
     public static final Supplier<Block> DRY_ICE = BLOCKS.register("dry_ice", () -> new DryIceBlock(BlockBehaviour.Properties.of().strength(0.1f).requiresCorrectToolForDrops()));
 
+    // resources
+    public static final Supplier<Block> DILITHIUM_ORE = BLOCKS.register("dilithium_ore", () -> new DilithiumOre());
+
     // satellite / missions
     public static final Supplier<Block> SATELLITE_ASSEMBLER = BLOCKS.register("satellite_assembler", () -> new SatelliteAssembler());
     public static final Supplier<Block> SATELLITE_MONITOR = BLOCKS.register("satellite_monitor", () -> new SatelliteMonitor());
@@ -96,6 +99,10 @@ public class Blocks {
     public static final DeferredHolder<Block, LiquidBlock> ROCKET_FUEL_BLOCK = BLOCKS.register("rocket_fuel_block", () -> new LiquidBlock(
             Fluids.ROCKET_FUEL.get(),
             BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.WATER).noLootTable()
+    ));
+    public static final DeferredHolder<Block, LiquidBlock> ENRICHED_LAVA_BLOCK = BLOCKS.register("enriched_lava_block", () -> new LiquidBlock(
+            Fluids.ENRICHED_LAVA.get(),
+            BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.LAVA).noLootTable()
     ));
 
     // ice crystal blocks — each is a separate block with its own colored texture
