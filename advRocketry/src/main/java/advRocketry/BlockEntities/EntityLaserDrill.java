@@ -6,6 +6,7 @@ import ARLib.blockentities.EntityFluidOutputBlock;
 import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.utils.RecipePartWithProbability;
+import advRocketry.Config;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.Registry.BlockEntities;
@@ -94,10 +95,11 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
             if (level.hasNeighborSignal(getBlockPos())) {
                 List<EntityEnergyInputBlock> energyTiles = super.getEnergyInputTiles();
                 int totalEnergy = super.getTotalEnergyStored(energyTiles);
-                if (totalEnergy > 10) {
+                int energyCost = Config.INSTANCE.laserDrill_Energy_Per_Tick;
+                if (totalEnergy > energyCost) {
                     List<EntityItemOutputBlock> outTiles = super.getItemOutTiles();
                     List<EntityFluidOutputBlock> fluidOutTiles = super.getFluidOutTiles();
-                    super.consumeEnergy(10, energyTiles);
+                    super.consumeEnergy(energyCost, energyTiles);
                     HashMap<String, Double> ores = planet.getLaserDrillOres();
                     for (String key : ores.keySet()) {
                         double p = ores.get(key);
