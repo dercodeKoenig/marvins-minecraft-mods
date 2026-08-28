@@ -367,6 +367,12 @@ public class TerraformingSystem {
                 }
             }
         }
+        Holder<Biome> target = ServerLifecycleHooks.getCurrentServer().registryAccess().registryOrThrow(Registries.BIOME).getHolder(biomeId).get();
+        if (target.value().shouldSnow(level, surfacePos.above())) {
+            level.setBlock(surfacePos.above(), Blocks.SNOW.defaultBlockState(), 3);
+        } else if (level.getBlockState(surfacePos.above()).is(Blocks.SNOW)) {
+            level.setBlock(surfacePos.above(), Blocks.AIR.defaultBlockState(), 3);
+        }
     }
 
     public static boolean maybeUpdateBlocksForNewBiome(ServerLevel level, int x, int z) {
