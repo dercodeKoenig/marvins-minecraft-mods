@@ -107,7 +107,7 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
     // ---- laser drill ----
     // how much energy the laser drill consumes per tick while actively drilling
     // the drill will only run while it has a redstone signal and at least this much energy stored
-    public int laserDrill_Energy_Per_Tick = 10;
+    public int laserDrill_Energy_Per_Tick = 12000;
 
     // ---- render scale ----
     // used both for rendering and by navigation calculations (e.g. entry distance), so it ships in
