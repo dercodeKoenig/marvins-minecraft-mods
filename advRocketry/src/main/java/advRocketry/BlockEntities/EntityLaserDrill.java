@@ -5,23 +5,34 @@ import ARLib.blockentities.EntityEnergyInputBlock;
 import ARLib.blockentities.EntityFluidOutputBlock;
 import ARLib.blockentities.EntityItemOutputBlock;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
+import ARLib.network.PacketBlockEntity;
 import ARLib.utils.RecipePartWithProbability;
 import advRocketry.Config;
 import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
+import advRocketry.GlobalTime;
 import advRocketry.Registry.BlockEntities;
+import advRocketry.Render.Particles.RocketParticle;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -78,6 +89,7 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
 
     }
 
+    int particleTimeout = 0;
 
     public EntityLaserDrill(BlockPos pos, BlockState state) {
         super(BlockEntities.ENTITY_LASERDRILL.get(), pos, state);
@@ -97,6 +109,11 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
                 int totalEnergy = super.getTotalEnergyStored(energyTiles);
                 int energyCost = Config.INSTANCE.laserDrill_Energy_Per_Tick;
                 if (totalEnergy > energyCost) {
+                    if (GlobalTime.getGlobalTime() % 20 == 0) {
+                        CompoundTag info = new CompoundTag();
+                        info.put("send_particles", new CompoundTag());
+                        PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
+                    }
                     List<EntityItemOutputBlock> outTiles = super.getItemOutTiles();
                     List<EntityFluidOutputBlock> fluidOutTiles = super.getFluidOutTiles();
                     super.consumeEnergy(energyCost, energyTiles);
@@ -108,6 +125,43 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
                         super.produceOutput(List.of(part), fluidOutTiles, outTiles);
                     }
                 }
+            }
+        }
+
+        if (level.isClientSide && particleTimeout > 0) {
+            particleTimeout--;
+            if (GlobalTime.getGlobalTime() % 2 == 0) {
+                Vec3 pos = getBlockPos()
+                        .relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite(), 2)
+                        .getCenter().add(0, -0.5, 0);
+
+                Vec3 vel = new Vec3(
+                        (Math.random() - 0.5) / 20,
+                        0.2 + Math.random() / 10,
+                        (Math.random() - 0.5) / 20
+                );
+
+                pos = pos.add(
+                        (Math.random() - 0.5) * 3,
+                        0,
+                        (Math.random() - 0.5) * 3
+                );
+
+                new RocketParticle(
+                        (ClientLevel) level,
+                        pos.x + (Math.random() - 0.5) * 0.05,
+                        pos.y,
+                        pos.z + (Math.random() - 0.5) * 0.05,
+                        vel.x,
+                        vel.y,
+                        vel.z,
+                        new Vector3f(0.6f, 0.6f, 0.6f),
+                        0.35f,
+                        1.2f,
+                        200,
+                        false, // particles spawn inside blocks
+                        false
+                );
             }
         }
     }
@@ -126,6 +180,9 @@ public class EntityLaserDrill extends EntityMultiblockMachineMaster {
     @Override
     public void readClient(CompoundTag tag) {
         super.readClient(tag);
+        if(tag.contains("send_particles")){
+            particleTimeout = 30;
+        }
     }
 
     @Override

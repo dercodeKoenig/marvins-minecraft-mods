@@ -239,6 +239,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                     0.6f,
                     0.3f,
                     100,
+                    true,
                     false
             );
             // Fire (Core Flame)
@@ -266,6 +267,7 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
                     0.6f,
                     0.3f,
                     100,
+                    true,
                     false
             );
             // Fire (Core Flame)

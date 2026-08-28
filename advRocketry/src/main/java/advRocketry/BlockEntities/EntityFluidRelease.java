@@ -120,6 +120,7 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
                             0.2f,
                             1,
                             100,
+                            true,
                             false
                     );
                 }

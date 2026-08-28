@@ -326,6 +326,7 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
                 0.35f,
                 0.1f,
                 80,
+                true,
                 false
         );
     }

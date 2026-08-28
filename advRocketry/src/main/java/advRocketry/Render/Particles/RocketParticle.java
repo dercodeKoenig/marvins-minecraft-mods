@@ -15,7 +15,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
 
     public RocketParticle(ClientLevel level, double x, double y, double z,
                           double dx, double dy, double dz) {
-        this (level,x,y,z,dx,dy,dz,new Vector3f(0.5f,0.5f,0.5f),0.2f, 1f, 200, false);
+        this (level,x,y,z,dx,dy,dz,new Vector3f(0.5f,0.5f,0.5f),0.2f, 1f, 200, true, false);
     }
 
     float alphaMultiplier = 1f;
@@ -23,7 +23,9 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
     boolean isGlowing = false;
 
     public RocketParticle(ClientLevel level, double x, double y, double z,
-                          double dx, double dy, double dz, Vector3f color, float alphaMultiplier, float size, int lifetime, boolean isGlowing) {
+                          double dx, double dy, double dz,
+                          Vector3f color, float alphaMultiplier, float size, int lifetime,
+                          boolean hasPhysics, boolean isGlowing) {
         super(level, x, y, z, dx, dy, dz);
         
         this.friction = 0.99F;
@@ -49,6 +51,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
             this.setSpriteFromAge(RocketParticleProvider.spriteDust);
             Minecraft.getInstance().particleEngine.add(this);
         }
+        this.hasPhysics = hasPhysics;
     }
 
     public boolean isGlowing(){
@@ -74,7 +77,7 @@ public class RocketParticle extends TextureSheetParticle implements RocketPartic
 
         if (super.onGround) {
             float f = (float) (Math.random() * 0.5F);
-            yd = -yd * f;
+            yd = Math.abs(-yd * f);
             xd = (Math.random() - 0.5) * 0.5F;
             zd = (Math.random() - 0.5) * 0.5F;
         }

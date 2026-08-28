@@ -565,6 +565,7 @@ public class RocketController {
                                     0.2f,
                                     sizeMultiplier * 2,
                                     500,
+                                    true,
                                     false
                             );
                         }
@@ -585,6 +586,7 @@ public class RocketController {
                                     (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
                                     sizeMultiplier * 0.5f,
                                     20,
+                                    true,
                                     true
                             );
                         }
