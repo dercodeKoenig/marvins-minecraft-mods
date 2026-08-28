@@ -30,8 +30,11 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
     private static final int MIN_ABOVE_MIN_BUILD = 5;
     private static final int TARGET_DEPTH = 60;
     private static final int DEPTH_JITTER = 12;
+    
+    public static BlockState getFillFluidState() {
+        return advRocketry.Registry.Blocks.ENRICHED_LAVA_BLOCK.get().defaultBlockState();
+    }
 
-    public static final BlockState FILL_FLUID = Blocks.LAVA.defaultBlockState();
     public static final BlockState HULL_MATERIAL = Blocks.BASALT.defaultBlockState();
 
     private static final Predicate<BlockState> PLACEABLE_ON_AIR = BlockState::isAir;
@@ -39,10 +42,10 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
     private static final Predicate<BlockState> REPLACEABLE =
             state -> !state.is(advRocketry.Registry.Blocks.VOLCANIC_DEPOSIT.get());
     private static final Predicate<BlockState> EXCAVATE =
-            state -> !state.isAir() && !state.is(FILL_FLUID.getBlock())
+            state -> !state.isAir() && !state.is(getFillFluidState().getBlock())
                     && !state.is(advRocketry.Registry.Blocks.VOLCANIC_DEPOSIT.get());
     private static final Predicate<BlockState> PLACE_HULL_EXCEPT_FLUID =
-            state -> !state.is(FILL_FLUID.getBlock())
+            state -> !state.is(getFillFluidState().getBlock())
                     && !state.is(advRocketry.Registry.Blocks.VOLCANIC_DEPOSIT.get());
 
     public VolcanoFeature() {
@@ -58,6 +61,7 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
         int z = Math.floorDiv(origin.getZ(), 16) * 16 + 8;
         int minY = level.getMinBuildHeight();
         int maxY = level.getMaxBuildHeight();
+        BlockState fillFluid = getFillFluidState();
 
         int totalRadius = MIN_RADIUS + rnd.nextInt(MAX_RADIUS - MIN_RADIUS + 1);
         int rimWidth = MIN_RIM_WIDTH + rnd.nextInt(MAX_RIM_WIDTH - MIN_RIM_WIDTH + 1);
@@ -85,7 +89,7 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
                 int d2 = dx * dx + dz * dz;
                 if (d2 < craterR2 || d2 > totalR2) continue;
                 int gy = colGroundCache[dx + totalRadius][dz + totalRadius];
-                if (level.getBlockState(new BlockPos(x + dx, gy, z + dz)).is(FILL_FLUID.getBlock())) continue;
+                if (level.getBlockState(new BlockPos(x + dx, gy, z + dz)).is(fillFluid.getBlock())) continue;
                 groundHeights.add(gy + 1);
             }
         }
@@ -147,7 +151,7 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
                 for (int dz = -craterRadius; dz <= craterRadius; dz++) {
                     if ((double) (dx * dx + dz * dz) > craterR2) continue;
                     int groundY = colGroundCache[dx + totalRadius][dz + totalRadius];
-                    if (level.getBlockState(new BlockPos(x + dx, groundY, z + dz)).is(FILL_FLUID.getBlock())) continue;
+                    if (level.getBlockState(new BlockPos(x + dx, groundY, z + dz)).is(fillFluid.getBlock())) continue;
                     totalColGround += groundY;
                     colCount++;
                 }
@@ -186,7 +190,7 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
                 // Merge with a neighboring volcano
                 BlockPos groundSurface = new BlockPos(x + dx, colSurface - 1, z + dz);
                 BlockState groundState = level.getBlockState(groundSurface);
-                if (groundState.is(FILL_FLUID.getBlock())) {
+                if (groundState.is(fillFluid.getBlock())) {
                     continue;
                 }
 
@@ -204,12 +208,12 @@ public class VolcanoFeature extends Feature<NoneFeatureConfiguration> {
             for (int dz = -craterRadius; dz <= craterRadius; dz++) {
                 if ((double) (dx * dx + dz * dz) > craterR2) continue;
                 for (int y = Math.max(targetY, minY); y <= flatLavaLevel && y < maxY; y++) {
-                    safeSetBlock(level, new BlockPos(x + dx, y, z + dz), FILL_FLUID, REPLACEABLE);
+                    safeSetBlock(level, new BlockPos(x + dx, y, z + dz), fillFluid, REPLACEABLE);
                 }
                 // safeSetBlock doesn't notify neighbors, so schedule a fluid tick
                 // on the surface explicitly to get the lake flowing once loaded.
                 BlockPos topLava = new BlockPos(x + dx, flatLavaLevel, z + dz);
-                if (level.getBlockState(topLava).is(FILL_FLUID.getBlock())) {
+                if (level.getBlockState(topLava).is(fillFluid.getBlock())) {
                     level.scheduleTick(topLava, level.getFluidState(topLava).getType(), 1);
                 }
             }
