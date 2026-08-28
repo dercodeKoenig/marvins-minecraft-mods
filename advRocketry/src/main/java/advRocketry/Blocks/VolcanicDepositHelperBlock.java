@@ -21,9 +21,6 @@ public class VolcanicDepositHelperBlock extends Block {
     private static final int MIN_HULL = 3;
     private static final int MAX_HULL = 5;
 
-    private static final BlockState FILL_FLUID = VolcanoFeature.FILL_FLUID;
-    private static final BlockState HULL_MATERIAL = VolcanoFeature.HULL_MATERIAL;
-
     public VolcanicDepositHelperBlock() {
         super(Properties.of()
                 .strength(2.0f, 6.0f)
@@ -64,6 +61,8 @@ public class VolcanicDepositHelperBlock extends Block {
         }
 
         int hullThickness = MIN_HULL + random.nextInt(MAX_HULL - MIN_HULL + 1);
+        BlockState fillFluid = VolcanoFeature.getFillFluidState();
+        BlockState hullMaterial = VolcanoFeature.HULL_MATERIAL;
         int lavaRadius = radius - hullThickness; // always > 0: MIN_RADIUS > MAX_HULL, so the
         // hull zone below can never contain the centre
 
@@ -91,9 +90,9 @@ public class VolcanicDepositHelperBlock extends Block {
 
                     BlockPos p = center.offset(dx, y - centerY, dz);
                     BlockState current = level.getBlockState(p);
-                    if (current.is(FILL_FLUID.getBlock())) continue; // keep the shaft's own lava
+                    if (current.is(fillFluid.getBlock())) continue; // keep the shaft's own lava
                     if (current.is(this)) continue; // don't bury a neighboring unfired deposit
-                    level.setBlock(p, HULL_MATERIAL, Block.UPDATE_CLIENTS);
+                    level.setBlock(p, hullMaterial, Block.UPDATE_CLIENTS);
                 }
             }
         }
@@ -114,14 +113,14 @@ public class VolcanicDepositHelperBlock extends Block {
 
                     BlockPos p = center.offset(dx, y - centerY, dz);
                     BlockState current = level.getBlockState(p);
-                    if (current.isAir() || current.is(FILL_FLUID.getBlock())) continue;
+                    if (current.isAir() || current.is(fillFluid.getBlock())) continue;
                     if (current.is(this)) continue; // preserve a neighboring unfired deposit
-                    level.setBlock(p, FILL_FLUID, Block.UPDATE_ALL);
+                    level.setBlock(p, fillFluid, Block.UPDATE_ALL);
                 }
             }
         }
 
         // replace self
-        level.setBlock(center, FILL_FLUID, Block.UPDATE_ALL);
+        level.setBlock(center, fillFluid, Block.UPDATE_ALL);
     }
 }
