@@ -96,6 +96,7 @@ public class DefaultGalaxy {
         jupiter.gravitationalMultiplier = 30f;
         jupiter.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0, 0));
         jupiter.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.5f, 0, 0, 0));
+        jupiter.cloudValueOverwrite = 0;
         galaxy.add(jupiter);
 
         PlanetDimensionProperties europa = new PlanetDimensionProperties();
@@ -127,6 +128,7 @@ public class DefaultGalaxy {
         saturn.gravitationalMultiplier = 8f;
         saturn.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(3, 0, 0, 0));
         saturn.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(0.1f, 0, 0, 0));
+        saturn.cloudValueOverwrite = 0;
         saturn.hasRingSystem = true;
         galaxy.add(saturn);
 
@@ -174,6 +176,7 @@ public class DefaultGalaxy {
         jestefad.skyColor = new Vector3f(0.5f, 0.5f, 0.5f);
         jestefad.atmosphereComposition.put(GasRegistry.methane, new PlanetDimensionProperties.GasProperty(2, 0, 0, 0));
         jestefad.atmosphereComposition.put(GasRegistry.hydrogen, new PlanetDimensionProperties.GasProperty(5, 0, 0, 0));
+        jestefad.cloudValueOverwrite = 0;
         galaxy.add(jestefad);
 
         PlanetDimensionProperties mustafar = new PlanetDimensionProperties();
@@ -216,6 +219,7 @@ public class DefaultGalaxy {
         lefrani.skyColor = new Vector3f(0.2f, 0.3f, 0.5f);
         lefrani.atmosphereComposition.put(GasRegistry.oxygen, new PlanetDimensionProperties.GasProperty(10, 0, 0, 0));
         lefrani.atmosphereComposition.put(GasRegistry.nitrogen, new PlanetDimensionProperties.GasProperty(5, 0, 0, 0));
+        lefrani.cloudValueOverwrite = 0;
         galaxy.add(lefrani);
 
 
