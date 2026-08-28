@@ -128,7 +128,7 @@ public class itemHoloProjector extends Item implements INetworkTagReceiver {
             button.color = 0xffffffff;
             containerModules.add(button);
         }
-        guiModuleScrollContainer container = new guiModuleScrollContainer(containerModules, 0xFFA0A0A0, guiHandler, 5, 5, 240, 90);
+        guiModuleScrollContainer container = new guiModuleScrollContainer(containerModules, 0xFFA0A0A0, guiHandler, 5, 5, 240, 190);
         guiHandler.getModules().add(container);
     }
 
