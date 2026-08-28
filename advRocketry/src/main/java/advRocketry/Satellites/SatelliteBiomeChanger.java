@@ -66,7 +66,6 @@ public class SatelliteBiomeChanger extends Satellite {
                         extractEnergy(energyPerAction());
                         lastActionTime = GlobalTime.getGlobalTime();
                         TerraformingSystem.changeBiome(target, w.blockX, w.blockZ, w.biomeId);
-                        System.out.println("satellite change biome at " + w.blockX + ":" + w.blockZ);
                         break;
                     }
                 }
