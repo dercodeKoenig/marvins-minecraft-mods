@@ -6,7 +6,6 @@ import advRocketry.Items.ItemPortablePressureTank;
 import advRocketry.Main;
 import advRocketry.Registry.Fluids;
 import advRocketry.Registry.GeneralRegistry;
-import advRocketry.Render.Particles.RocketParticle;
 import advRocketry.Utils.ClientUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.HolderLookup;
@@ -28,7 +27,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
@@ -227,24 +225,20 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
 
             // --- LEFT THRUSTER ---
             // Smoke
-            new RocketParticle(
-                    level,
+            level.addParticle(
+                    ParticleTypes.SMOKE,
+                    true,
                     leftStartX + (random.nextDouble() - 0.5) * 0.1,
                     baseY + (random.nextDouble() - 0.5) * 0.1,
                     leftStartZ + (random.nextDouble() - 0.5) * 0.1,
                     (random.nextDouble() - 0.5) * 0.05,
                     -0.3 - (random.nextDouble() * 0.15),
-                    (random.nextDouble() - 0.5) * 0.05,
-                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1.2f),
-                    0.6f,
-                    0.3f,
-                    100,
-                    true,
-                    false
+                    (random.nextDouble() - 0.5) * 0.05
             );
             // Fire (Core Flame)
             level.addParticle(
                     ParticleTypes.FLAME,
+                    true,
                     leftStartX + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
                     baseY,                                           // Spawn exactly at nozzle height
                     leftStartZ + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
@@ -255,24 +249,20 @@ public abstract class SpaceSuit extends ArmorItem implements ISpaceSuitInventory
 
             // --- RIGHT THRUSTER ---
             // Smoke
-            new RocketParticle(
-                    level,
+            level.addParticle(
+                    ParticleTypes.SMOKE,
+                    true,
                     rightStartX + (random.nextDouble() - 0.5) * 0.1,
                     baseY + (random.nextDouble() - 0.5) * 0.1,
                     rightStartZ + (random.nextDouble() - 0.5) * 0.1,
                     (random.nextDouble() - 0.5) * 0.05,
                     -0.3 - (random.nextDouble() * 0.15),
-                    (random.nextDouble() - 0.5) * 0.05,
-                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1.2f),
-                    0.6f,
-                    0.3f,
-                    100,
-                    true,
-                    false
+                    (random.nextDouble() - 0.5) * 0.05
             );
             // Fire (Core Flame)
             level.addParticle(
                     ParticleTypes.FLAME,
+                    true,
                     rightStartX + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter
                     baseY,                                            // Spawn exactly at nozzle height
                     rightStartZ + (random.nextDouble() - 0.5) * 0.05, // Tighter position scatter

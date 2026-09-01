@@ -5,7 +5,6 @@ import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.LifeSupport.SurvivalSystem;
 import advRocketry.Missions.AsteroidManager;
 import advRocketry.Missions.MissionManager;
-import advRocketry.Render.Particles.RocketParticleEngine;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Rocket.EntityRocket;
@@ -14,7 +13,6 @@ import advRocketry.SpaceSuit.Boots;
 import advRocketry.SpaceSuit.SpaceSuit;
 import advRocketry.Utils.ChunkUtils;
 import advRocketry.Utils.ClientUtils;
-import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.core.BlockPos;
@@ -95,8 +93,6 @@ public class WorldEvents {
             PlanetRenderCache.INSTANCE.updatePlanetsToRenderInSky(myPos);
         }
 
-        RocketParticleEngine.tick();
-
         SpaceSuit.clientTick();
     }
 
@@ -127,7 +123,6 @@ public class WorldEvents {
 
     public static void onRenderStage(RenderLevelStageEvent event) {
         float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
-        boolean is_fabulous = Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS;
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
             //if(true)return;
@@ -138,16 +133,7 @@ public class WorldEvents {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             // clouds will render next, disable stupid fog
             FogRenderer.setupFog(Minecraft.getInstance().gameRenderer.getMainCamera(), FogRenderer.FogMode.FOG_SKY, 999990, false, 0);
-
-            if (is_fabulous)
-                RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
         }
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
-            // make it render after clouds then
-            if (!is_fabulous)
-                RocketParticleEngine.renderAll(event.getFrustum(), event.getCamera(), partialTick);
-        }
-
     }
 
     public static void CalculateDetachedCameraDistance(CalculateDetachedCameraDistanceEvent event) {

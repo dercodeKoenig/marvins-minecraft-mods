@@ -38,7 +38,7 @@ public class RenderPipe implements BlockEntityRenderer<EntityPipe> {
                     .build();
 
     // Small epsilon for geometry comparisons and offsets.
-    static final float EPS   = 0.001f;
+    static final float EPS   = 0.01f;
     // Minimum / maximum pipe half-width based on fill level.
     static final float W_MIN = 0.02f;
     static final float W_MAX = 0.25f - EPS;

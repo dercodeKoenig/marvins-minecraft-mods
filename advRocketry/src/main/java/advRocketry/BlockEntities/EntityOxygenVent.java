@@ -10,11 +10,10 @@ import advRocketry.GlobalTime;
 import advRocketry.LifeSupport.LifeSupportSupplier;
 import advRocketry.LifeSupport.LifeSupportSystem;
 import advRocketry.Registry.GasRegistry;
-import advRocketry.Render.Particles.RocketParticle;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,7 +28,6 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import static advRocketry.Registry.BlockEntities.ENTITY_OXYGEN_VENT;
 
@@ -314,20 +312,15 @@ public class EntityOxygenVent extends BlockEntity implements INetworkTagReceiver
             }
         }
 
-        new RocketParticle(
-                (ClientLevel) level,
+        level.addParticle(
+                ParticleTypes.CLOUD,
+                true,
                 pos.x + (Math.random() - 0.5) * 0.05,
                 pos.y,
                 pos.z + (Math.random() - 0.5) * 0.05,
                 vel.x,
                 vel.y,
-                vel.z,
-                new Vector3f(0.6f, 0.6f, 0.6f),
-                0.35f,
-                0.1f,
-                80,
-                true,
-                false
+                vel.z
         );
     }
 }

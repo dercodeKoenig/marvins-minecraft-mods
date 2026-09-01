@@ -2,11 +2,8 @@ package advRocketry.Rocket;
 
 import advRocketry.Config;
 import advRocketry.Dimension.*;
-import advRocketry.Render.Particles.RocketParticle;
+import advRocketry.Registry.GeneralRegistry;
 import advRocketry.Utils.Utils;
-import net.minecraft.client.GraphicsStatus;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -14,7 +11,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -477,7 +473,7 @@ public class RocketController {
             double h = rocket.position().y - y;
             double minH = 100;
             double minA = Math.min(MAX_STRUCTURAL_ACC, rocket.getGravity() * 1.03);
-            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.clamp((h - 10) / minH, 0, 1);
+            double currentMaxA = minA + (MAX_STRUCTURAL_ACC - minA) * Math.pow(Math.clamp((h - 10) / minH, 0, 1), 2);
 
             // next: limit by velocity, too fast = too much stress by atmosphere
             // if we go faster than target velocity, reduce acceleration
@@ -513,7 +509,7 @@ public class RocketController {
                 float relativeBootTimeLin = (float) getMainEnginesBootUp() / Config.INSTANCE.rocket_Engine_Boot_Ticks;
                 float bootupParticleProb = (float) Math.sqrt(relativeBootTimeLin);
                 int maxParticlesPerTick = 5;
-                int maxParticlePerEngine = 2;
+                int maxParticlePerEngine = 3;
 
                 double particleSpawnProb = (double) maxParticlesPerTick / (rocket.getEnginePositions().size() * maxParticlePerEngine);
                 if (particleSpawnProb > 1)
@@ -541,56 +537,54 @@ public class RocketController {
                         }
 
 
-                        double speedMultiplier;
-                        float sizeMultiplier;
-
-                        speedMultiplier = -1 * thrustMultiplier * relativeBootTimeLin * Math.pow(tooManyEnginesMultiplier, 0.4) * (1 + j * 0.1f);
-
-                        sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.3) * relativeBootTimeLin);
+                        double speedMultiplier = -0.5 * thrustMultiplier * relativeBootTimeLin * Math.pow(tooManyEnginesMultiplier, 0.4) * (1 + j * 0.1f);
 
                         double reverseThrustMultiplier = isReverseThrust ? -1 : 1;
                         double reverseThrustInducedParticleSpread = isReverseThrust ? 2 : 1;
 
                         if (!rocket.level().dimension().location().equals(RocketTravelDimension.dimId)) {
                             // no smoke in space travel, looks very bad...
-                            new RocketParticle(
-                                    (ClientLevel) rocket.level(),
+                            // spawn the main billowy smoke
+                            rocket.level().addParticle(
+                                    GeneralRegistry.ROCKET_SMOKE.get(),
+                                    true,
                                     worldPos.x + (Math.random() - 0.5) * 0.5,
                                     worldPos.y + (Math.random() - 0.5) * 0.5,
                                     worldPos.z + (Math.random() - 0.5) * 0.5,
                                     getHeading().x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
                                     getHeading().y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    new Vector3f(0.5f, 0.5f, 0.5f).mul(1f),
-                                    0.2f,
-                                    sizeMultiplier * 2,
-                                    500,
-                                    true,
-                                    false
+                                    getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.2 * speedMultiplier * reverseThrustInducedParticleSpread
                             );
+                            // linger cloud puffs alongside the smoke for a longer trail
+                            if (Math.random() < thrustMultiplier / 2) {
+                                rocket.level().addParticle(
+                                        GeneralRegistry.ROCKET_CLOUD.get(),
+                                        true,
+                                        worldPos.x + (Math.random() - 0.5) * 0.7,
+                                        worldPos.y + (Math.random() - 0.5) * 0.7,
+                                        worldPos.z + (Math.random() - 0.5) * 0.7,
+                                        getHeading().x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.15 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                        getHeading().y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.15 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                        getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.15 * speedMultiplier * reverseThrustInducedParticleSpread
+                                );
+                            }
                         }
 
-                        sizeMultiplier = (float) (thrustMultiplier * Math.pow(tooManyEnginesMultiplier, 0.8) * relativeBootTimeLin);
-
-                        for (int p = 0; p < 2; p++) {
-                            new RocketParticle(
-                                    (ClientLevel) rocket.level(),
-                                    worldPos.x + (Math.random() - 0.5) * 0.5,
-                                    worldPos.y + (Math.random() - 0.5) * 0.5,
-                                    worldPos.z + (Math.random() - 0.5) * 0.5,
-                                    getHeading().x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    getHeading().y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
-                                    new Vector3f(0.5f, 0.8f, 1.0f).mul(1f),
-                                    // we not use additive blending in fabulous because it doesnt work so make it more bright
-                                    (Minecraft.getInstance().options.graphicsMode().get() == GraphicsStatus.FABULOUS) ? 1 : 0.1f,
-                                    sizeMultiplier * 0.5f,
-                                    20,
-                                    true,
-                                    true
-                            );
+                        // core flame particles
+                        for (int p = 0; p < 4; p++) {
+                            if (Math.random() < thrustMultiplier) {
+                                rocket.level().addParticle(
+                                        GeneralRegistry.ROCKET_FLAME.get(),
+                                        true,
+                                        worldPos.x + (Math.random() - 0.5) * 0.5,
+                                        worldPos.y + (Math.random() - 0.5) * 0.5,
+                                        worldPos.z + (Math.random() - 0.5) * 0.5,
+                                        getHeading().x * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                        getHeading().y * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread,
+                                        getHeading().z * speedMultiplier * reverseThrustMultiplier + (Math.random() - 0.5) * 0.1 * speedMultiplier * reverseThrustInducedParticleSpread
+                                );
+                            }
                         }
-
                     }
                 }
                 //System.out.println(particles);

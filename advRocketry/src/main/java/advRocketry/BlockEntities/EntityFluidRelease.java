@@ -10,11 +10,10 @@ import advRocketry.Dimension.DimensionManager;
 import advRocketry.Dimension.PlanetDimension;
 import advRocketry.GlobalTime;
 import advRocketry.Registry.GasRegistry;
-import advRocketry.Render.Particles.RocketParticle;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +32,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Vector3f;
 
 import static advRocketry.Registry.BlockEntities.ENTITY_CARGO_HOLD;
 import static advRocketry.Registry.BlockEntities.ENTITY_FLUID_RELEASE;
@@ -108,20 +106,15 @@ public class EntityFluidRelease extends BlockEntity implements ARLib.network.INe
                     Vec3 worldPos = getBlockPos().getCenter();
                     Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
                     worldPos = worldPos.add(facing.getStepX() * 0.7, 0, facing.getStepZ() * 0.7);
-                    new RocketParticle(
-                            (ClientLevel) level,
+                    level.addParticle(
+                            ParticleTypes.CLOUD,
+                            true,
                             worldPos.x + (Math.random() - 0.5) * 0.5,
                             worldPos.y + (Math.random() - 0.5) * 0.5,
                             worldPos.z + (Math.random() - 0.5) * 0.5,
                             facing.getStepX() * 0.1,
                             Math.random() * 0.1,
-                            facing.getStepZ() * 0.1,
-                            new Vector3f(0.5f, 0.5f, 0.5f).mul(1.5f),
-                            0.2f,
-                            1,
-                            100,
-                            true,
-                            false
+                            facing.getStepZ() * 0.1
                     );
                 }
             }

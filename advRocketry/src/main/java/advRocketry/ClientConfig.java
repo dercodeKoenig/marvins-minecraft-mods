@@ -15,11 +15,6 @@ public class ClientConfig {
 
     public static ClientConfig INSTANCE = loadConfig();
 
-    // choose the particle render mode
-    // true: render particles delayed with custom renderer, not compatible with iris shaders
-    // false: have minecraft builtin particle engine render, use simple dust particles
-    public boolean use_Transparent_Particle_Engine = true;
-
     // noise rendering is extremely expensive, so make it configurable
     public int planet_Cloud_Noise_Samples = 5; // can be 0 for no clouds
     public boolean planet_Cloud_Noise_Warp = true;

@@ -11,8 +11,10 @@ import advRocketry.Missions.MissionManager;
 import advRocketry.Registry.BlockEntities;
 import advRocketry.Registry.GasRegistry;
 import advRocketry.Registry.GeneralRegistry;
-import advRocketry.Render.Particles.RocketParticleEngine;
-import advRocketry.Render.Particles.RocketParticleProvider;
+import advRocketry.Render.Particles.RocketCloudParticle;
+import advRocketry.Render.Particles.RocketFlameParticle;
+import advRocketry.Render.Particles.RocketSmokeNoPhysicsParticle;
+import advRocketry.Render.Particles.RocketSmokeParticle;
 import advRocketry.Render.SkyRenderer;
 import advRocketry.Render.shaderUtils;
 import advRocketry.Rocket.EntityRocket;
@@ -132,8 +134,10 @@ public class ClientSetup {
     }
 
     public static void registerParticles(RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(GeneralRegistry.SOFT_PARTICLE.get(), RocketParticleProvider.SoftParticleProvider::new);
-        event.registerSpriteSet(GeneralRegistry.DUST_PARTICLE.get(), RocketParticleProvider.DustParticleProvider::new);
+        event.registerSpriteSet(GeneralRegistry.ROCKET_SMOKE.get(), RocketSmokeParticle.Provider::new);
+        event.registerSpriteSet(GeneralRegistry.ROCKET_CLOUD.get(), RocketCloudParticle.Provider::new);
+        event.registerSpriteSet(GeneralRegistry.ROCKET_FLAME.get(), RocketFlameParticle.Provider::new);
+        event.registerSpriteSet(GeneralRegistry.ROCKET_SMOKE_NO_PHYSICS.get(), RocketSmokeNoPhysicsParticle.Provider::new);
     }
 
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {

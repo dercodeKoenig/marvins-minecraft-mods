@@ -41,11 +41,6 @@ public class GeneralRegistry {
                     .build()
     );
 
-    public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, Main.MODID);
-    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> DUST_PARTICLE = PARTICLES.register("dust_particle", () -> new SimpleParticleType(false));
-    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SOFT_PARTICLE = PARTICLES.register("soft_particle", () -> new SimpleParticleType(false));
-
-
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Main.MODID);
 
@@ -66,6 +61,16 @@ public class GeneralRegistry {
             );
 
     public static final DeferredRegister<ArmorMaterial>ARMOR_MATERIALS = DeferredRegister.create(BuiltInRegistries.ARMOR_MATERIAL, Main.MODID);
+
+    public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, Main.MODID);
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_SMOKE =
+            PARTICLES.register("rocket_smoke", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_CLOUD =
+            PARTICLES.register("rocket_cloud", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_FLAME =
+            PARTICLES.register("rocket_flame", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_SMOKE_NO_PHYSICS =
+            PARTICLES.register("rocket_smoke_no_physics", () -> new SimpleParticleType(false));
 
     public static final Holder<ArmorMaterial> SPACE_SUIT_MATERIAL = ARMOR_MATERIALS.register(
             "space_suit",
