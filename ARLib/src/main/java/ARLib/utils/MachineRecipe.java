@@ -8,6 +8,7 @@ public class MachineRecipe {
     public List<RecipePartWithProbability> inputs = new ArrayList<>();
     public int energyPerTick = 0;
     public List<RecipePartWithProbability> outputs = new ArrayList<>();
+    public int outputEnergy = 0;
     public int ticksRequired = 1;
 
     public MachineRecipe copy(){
@@ -18,10 +19,11 @@ public class MachineRecipe {
             r.outputs.add(new RecipePartWithProbability(p.id,p.amount,p.p));
         r.ticksRequired = ticksRequired;
         r.energyPerTick = energyPerTick;
+        r.outputEnergy = outputEnergy;
         return r;
     }
 
-    public void compute_actual_output_nums(){
+    public void computeRandomAmounts(){
         for (RecipePartWithProbability p : inputs)
             p.computeRandomAmount();
         for (RecipePartWithProbability p : outputs)

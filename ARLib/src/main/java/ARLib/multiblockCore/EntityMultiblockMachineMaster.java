@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMaster {
@@ -126,11 +127,18 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
         }
     }
 
-    public ItemFluidStacks consumeInput(List<RecipePartWithProbability> inputs, boolean simulate, List<EntityFluidInputBlock> fluidInTiles, List<EntityItemInputBlock> itemInTiles) {
+    public <R extends RecipePart> ItemFluidStacks consumeInput(List<R> inputs, boolean simulate, List<EntityFluidInputBlock> fluidInTiles, List<EntityItemInputBlock> itemInTiles) {
+        List<RecipePart> inputsNormal = new LinkedList<>();
+        for (RecipePart i : inputs){
+            if (i instanceof RecipePartWithProbability ip)
+                inputsNormal.add(new RecipePart(ip.id, ip.getRandomAmount()));
+            else
+                inputsNormal.add(i);
+        }
         ItemFluidStacks consumedElements = new ItemFluidStacks();
-        for (RecipePartWithProbability input : inputs) {
+        for (RecipePart input : inputsNormal) {
             String identifier = input.id;
-            int totalToConsume = input.getRandomAmount();
+            int totalToConsume = input.amount;
             if (totalToConsume > 0) {
                 ItemFluidStacks ret = InventoryUtils.consumeElements(fluidInTiles.stream().map(x -> x.myTank).toList(), itemInTiles.stream().map(x -> x.inventory).toList(), identifier, totalToConsume, simulate);
                 consumedElements.fluidStacks.addAll(ret.fluidStacks);
@@ -141,10 +149,17 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
     }
 
 
-    public void produceOutput(List<RecipePartWithProbability> outputs, List<EntityFluidOutputBlock> fluidOutTiles, List<EntityItemOutputBlock> itemOutTiles) {
-        for (RecipePartWithProbability output : outputs) {
+    public <R extends RecipePart>void  produceOutput(List<R> outputs, List<EntityFluidOutputBlock> fluidOutTiles, List<EntityItemOutputBlock> itemOutTiles) {
+        List<RecipePart> outputsNormal = new LinkedList<>();
+        for (RecipePart i : outputs){
+            if (i instanceof RecipePartWithProbability ip)
+                outputsNormal.add(new RecipePart(ip.id, ip.getRandomAmount()));
+            else
+                outputsNormal.add(i);
+        }
+        for (RecipePart output : outputsNormal) {
             String identifier = output.id;
-            int totalToProduce = output.getRandomAmount();
+            int totalToProduce = output.amount;
             if (totalToProduce > 0) {
                 InventoryUtils.createElements(fluidOutTiles.stream().map(x -> x.myTank).toList(), itemOutTiles.stream().map(x -> x.inventory).toList(), identifier, totalToProduce, level.registryAccess());
             }

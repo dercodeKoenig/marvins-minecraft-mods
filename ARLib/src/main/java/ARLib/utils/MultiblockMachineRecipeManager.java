@@ -52,7 +52,7 @@ public class MultiblockMachineRecipeManager<T extends EntityMultiblockMachineMas
         for (MachineRecipe r : recipes) {
             if (master.hasinputs(new ArrayList<>(r.inputs), fluidInTiles, itemInTiles) && master.canFitOutputs(new ArrayList<>(r.outputs), fluidOutTiles, itemOutTiles)) {
                 currentRecipe = r.copy(); // make a copy because they can have different actual_num values for every new recipe
-                currentRecipe.compute_actual_output_nums(); // roll the dice to compute input / output to consume for given probability
+                currentRecipe.computeRandomAmounts(); // roll the dice to compute input / output to consume for given probability
                 break;
             }
         }
@@ -77,6 +77,7 @@ public class MultiblockMachineRecipeManager<T extends EntityMultiblockMachineMas
                 if (progress >= currentRecipe.ticksRequired) {
                     master.consumeInput(currentRecipe.inputs, false, fluidInTiles, itemInTiles);
                     master.produceOutput(currentRecipe.outputs, fluidOutTiles, itemOutTiles);
+                    master.produceEnergy(currentRecipe.outputEnergy, new ArrayList<>(master.getEnergyOutputTiles()));
                     reset();
                 }
                 return true;
