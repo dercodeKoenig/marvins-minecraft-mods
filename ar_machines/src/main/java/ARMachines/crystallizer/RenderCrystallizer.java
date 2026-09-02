@@ -2,25 +2,14 @@ package ARMachines.crystallizer;
 
 
 import ARLib.multiblockCore.BlockMultiblockMaster;
-import ARLib.obj.GroupObject;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
-import ARMachines.lathe.EntityLathe;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -29,14 +18,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-
-import static ARLib.obj.GroupObject.POSITION_COLOR_OVERLAY_LIGHT_NORMAL;
-import static ARLib.obj.GroupObject.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-import static net.minecraft.client.renderer.RenderStateShard.*;
 
 
 public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallizer> {
@@ -52,17 +38,6 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
             throw new RuntimeException(e);
         }
     }
-
-    static VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-
-    static RenderType.CompositeState  compositeStateTank = RenderType.CompositeState.builder()
-            .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-            .setLightmapState(LIGHTMAP)
-            .setOverlayState(OVERLAY)
-            .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-            .setTextureState(new TextureStateShard(InventoryMenu.BLOCK_ATLAS,false,true))
-            .setOutputState(ITEM_ENTITY_TARGET)
-            .createCompositeState(true);
 
 
     public int getViewDistance() {
@@ -115,6 +90,11 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
 
             double maxtranslate = 0.7;
 
+            // A single translucent vertex buffer bound to the block atlas is used for all the fluid
+            // parts of the crystallizer. The fluid sprite UVs are set on the model via scaleUV(...)
+            // using the per-fluid TextureAtlasSprite coordinates.
+            VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(InventoryMenu.BLOCK_ATLAS));
+
 
             if (tile.tank1.client_hasRecipe) {
                 int progress = tile.tank1.client_recipeProgress;
@@ -143,13 +123,13 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                             .apply(fluidtexture);
 
                     model.scaleUV("Liquid",sprite.getU0(),sprite.getV0(),sprite.getU1(),sprite.getV1());
-                    model.resetTransformations("Liquid");
-                    model.translateWorldSpace("Liquid", new Vector3f(0.5f, 0, 0.5f));
-                    model.rotateWorldSpace("Liquid", Yaxis, angle);
-                    model.translateWorldSpace("Liquid", new Vector3f(-0.5f, 0, -0.5f));
-                    model.translateWorldSpace("Liquid", new Vector3f(0f, fluidTranslation * (float) maxtranslate, -1f));
-                    model.applyTransformations("Liquid");
-                    model.renderPart("Liquid", stack, bufferSource, vertexFormat, compositeStateTank, packedLight, packedOverlay, color);
+                    stack.pushPose();
+                    stack.translate(0.5f, 0, 0.5f);
+                    stack.mulPose(new Quaternionf().fromAxisAngleDeg(Yaxis, angle));
+                    stack.translate(-0.5f, 0, -0.5f);
+                    stack.translate(0f, fluidTranslation * (float) maxtranslate, -1f);
+                    model.renderPart("Liquid", stack, vc, packedLight, packedOverlay, color);
+                    stack.popPose();
                 }
 
                 stack.pushPose();
@@ -201,13 +181,13 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                             .apply(fluidtexture);
 
                     model.scaleUV("Liquid.002",sprite.getU0(),sprite.getV0(),sprite.getU1(),sprite.getV1());
-                    model.resetTransformations("Liquid.002");
-                    model.translateWorldSpace("Liquid.002", new Vector3f(0.5f, 0, 0.5f));
-                    model.rotateWorldSpace("Liquid.002", Yaxis, angle);
-                    model.translateWorldSpace("Liquid.002", new Vector3f(-0.5f, 0, -0.5f));
-                    model.translateWorldSpace("Liquid.002", new Vector3f(0f, fluidTranslation*(float)maxtranslate, -1f));
-                    model.applyTransformations("Liquid.002");
-                    model.renderPart("Liquid.002", stack, bufferSource, vertexFormat, compositeStateTank, packedLight, packedOverlay,color);
+                    stack.pushPose();
+                    stack.translate(0.5f, 0, 0.5f);
+                    stack.mulPose(new Quaternionf().fromAxisAngleDeg(Yaxis, angle));
+                    stack.translate(-0.5f, 0, -0.5f);
+                    stack.translate(0f, fluidTranslation*(float)maxtranslate, -1f);
+                    model.renderPart("Liquid.002", stack, vc, packedLight, packedOverlay,color);
+                    stack.popPose();
                 }
 
                 stack.pushPose();
@@ -223,7 +203,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                 int n = 0;
                 for (ItemStack i : tile.tank2.client_nextProducedStacks.itemStacks){
                     stack.translate(0.05*n,0.05*n,0.05*n);
-                    Minecraft.getInstance().getItemRenderer().render(i, ItemDisplayContext.NONE,false,stack,  bufferSource, packedLight, packedOverlay, Minecraft.getInstance().getItemRenderer().getModel(i,null,null,0));
+                    Minecraft.getInstance().getItemRenderer().render(i, ItemDisplayContext.NONE,false,stack,  bufferSource, packedLight, packedOverlay, Minecraft.getInstance().getItemRenderer().getModel(i, null, null, 0));
                     n+=1;
                 }
 
@@ -262,13 +242,13 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                             .apply(fluidtexture);
 
                     model.scaleUV("Liquid.001",sprite.getU0(),sprite.getV0(),sprite.getU1(),sprite.getV1());
-                    model.resetTransformations("Liquid.001");
-                    model.translateWorldSpace("Liquid.001", new Vector3f(0.5f, 0, 0.5f));
-                    model.rotateWorldSpace("Liquid.001", Yaxis, angle);
-                    model.translateWorldSpace("Liquid.001", new Vector3f(-0.5f, 0, -0.5f));
-                    model.translateWorldSpace("Liquid.001", new Vector3f(0f, fluidTranslation*(float)maxtranslate, -1f));
-                    model.applyTransformations("Liquid.001");
-                    model.renderPart("Liquid.001", stack, bufferSource, vertexFormat, compositeStateTank, packedLight, packedOverlay,color);
+                    stack.pushPose();
+                    stack.translate(0.5f, 0, 0.5f);
+                    stack.mulPose(new Quaternionf().fromAxisAngleDeg(Yaxis, angle));
+                    stack.translate(-0.5f, 0, -0.5f);
+                    stack.translate(0f, fluidTranslation*(float)maxtranslate, -1f);
+                    model.renderPart("Liquid.001", stack, vc, packedLight, packedOverlay,color);
+                    stack.popPose();
                 }
 
                 stack.pushPose();
@@ -284,7 +264,7 @@ public class RenderCrystallizer implements BlockEntityRenderer<EntityCrystallize
                 int n = 0;
                 for (ItemStack i : tile.tank2.client_nextProducedStacks.itemStacks){
                     stack.translate(0.05*n,0.05*n,0.05*n);
-                    Minecraft.getInstance().getItemRenderer().render(i, ItemDisplayContext.NONE,false,stack,  bufferSource, packedLight, packedOverlay, Minecraft.getInstance().getItemRenderer().getModel(i,null,null,0));
+                    Minecraft.getInstance().getItemRenderer().render(i, ItemDisplayContext.NONE,false,stack,  bufferSource, packedLight, packedOverlay, Minecraft.getInstance().getItemRenderer().getModel(i, null, null, 0));
                     n+=1;
                 }
 

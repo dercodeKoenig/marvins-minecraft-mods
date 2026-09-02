@@ -129,26 +129,26 @@ public class EntityLathe extends EntityMultiblockMachineMaster {
 
         // 4 slots for the input block
         // every sot has a groupId and a instantTransferId - this way you can specify what slots will be targeted on instant-item-transfer during shift click
-        guiModuleItemHandlerSlot slotI1 = new guiModuleItemHandlerSlot(1, level.isClientSide ? null : this.itemInTiles.get(0), 0, 1, 0, guiHandler, 50, 10);
-        guiModuleItemHandlerSlot slotI2 = new guiModuleItemHandlerSlot(2, level.isClientSide ? null : this.itemInTiles.get(0), 1, 1, 0, guiHandler, 50, 30);
-        guiModuleItemHandlerSlot slotI3 = new guiModuleItemHandlerSlot(3, level.isClientSide ? null : this.itemInTiles.get(0), 2, 1, 0, guiHandler, 70, 10);
-        guiModuleItemHandlerSlot slotI4 = new guiModuleItemHandlerSlot(4, level.isClientSide ? null : this.itemInTiles.get(0), 3, 1, 0, guiHandler, 70, 30);
+        guiModuleItemHandlerSlot slotI1 = new guiModuleItemHandlerSlot(1, level.isClientSide ? null : getItemInTiles().get(0).inventory, 0, 1, 0, guiHandler, 50, 10);
+        guiModuleItemHandlerSlot slotI2 = new guiModuleItemHandlerSlot(2, level.isClientSide ? null : getItemInTiles().get(0).inventory, 1, 1, 0, guiHandler, 50, 30);
+        guiModuleItemHandlerSlot slotI3 = new guiModuleItemHandlerSlot(3, level.isClientSide ? null : getItemInTiles().get(0).inventory, 2, 1, 0, guiHandler, 70, 10);
+        guiModuleItemHandlerSlot slotI4 = new guiModuleItemHandlerSlot(4, level.isClientSide ? null : getItemInTiles().get(0).inventory, 3, 1, 0, guiHandler, 70, 30);
         guiHandler.getModules().add(slotI1);
         guiHandler.getModules().add(slotI2);
         guiHandler.getModules().add(slotI3);
         guiHandler.getModules().add(slotI4);
 
         // 4 slots for the output block
-        guiModuleItemHandlerSlot slotO1 = new guiModuleItemHandlerSlot(5, level.isClientSide ? null : this.itemOutTiles.get(0), 0, 2, 0, guiHandler, 130, 10);
-        guiModuleItemHandlerSlot slotO2 = new guiModuleItemHandlerSlot(6, level.isClientSide ? null : this.itemOutTiles.get(0), 1, 2, 0, guiHandler, 130, 30);
-        guiModuleItemHandlerSlot slotO3 = new guiModuleItemHandlerSlot(7, level.isClientSide ? null : this.itemOutTiles.get(0), 2, 2, 0, guiHandler, 110, 10);
-        guiModuleItemHandlerSlot slotO4 = new guiModuleItemHandlerSlot(8, level.isClientSide ? null : this.itemOutTiles.get(0), 3, 2, 0, guiHandler, 110, 30);
+        guiModuleItemHandlerSlot slotO1 = new guiModuleItemHandlerSlot(5, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 0, 2, 0, guiHandler, 130, 10);
+        guiModuleItemHandlerSlot slotO2 = new guiModuleItemHandlerSlot(6, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 1, 2, 0, guiHandler, 130, 30);
+        guiModuleItemHandlerSlot slotO3 = new guiModuleItemHandlerSlot(7, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 2, 2, 0, guiHandler, 110, 10);
+        guiModuleItemHandlerSlot slotO4 = new guiModuleItemHandlerSlot(8, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 3, 2, 0, guiHandler, 110, 30);
         guiHandler.getModules().add(slotO1);
         guiHandler.getModules().add(slotO2);
         guiHandler.getModules().add(slotO3);
         guiHandler.getModules().add(slotO4);
 
-        guiModuleEnergy energyBar = new guiModuleEnergy(9, level.isClientSide ? null : this.energyInTiles.get(0), guiHandler, 10, 10);
+        guiModuleEnergy energyBar = new guiModuleEnergy(9, level.isClientSide ? null : getEnergyInputTiles().get(0).energyStorage, guiHandler, 10, 10);
         guiHandler.getModules().add(energyBar);
 
         // create the hotbar slots first, inventory-instant-item-transfer will try slots by the order they were registered

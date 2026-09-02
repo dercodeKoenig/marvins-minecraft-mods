@@ -15,7 +15,9 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import static ARLib.obj.GroupObject.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
+// RenderElectrolyzer is currently disabled (class body is commented out below).
+// The old GroupObject.POSITION_COLOR_* constants no longer exist in the new ARLib,
+// so the static import that lived outside the /* */ block is removed to keep this file compiling.
 import static net.minecraft.client.renderer.RenderStateShard.*;
 /*
 public class RenderElectrolyzer implements BlockEntityRenderer<EntityElectrolyzer> {

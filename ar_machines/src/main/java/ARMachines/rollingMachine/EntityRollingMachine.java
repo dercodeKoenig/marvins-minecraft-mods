@@ -60,11 +60,12 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
     };
 
     @Override
-    public boolean[][][] hideBlocks() {
-        boolean hideBlocks[][][] = super.hideBlocks();
-        hideBlocks[1][2][0] = false;
-        hideBlocks[1][1][0] = false;
-        return hideBlocks;
+    public boolean shouldHideBlock(int y, int z, int x, BlockState stateInWorld) {
+        // The new ARLib hides every structure block by default; select positions are kept visible by
+        // returning false, preserving the old hideBlocks() logic (the two coil 'C' blocks at layer 1).
+        if (y == 1 && z == 2 && x == 0) return false;
+        if (y == 1 && z == 1 && x == 0) return false;
+        return true;
     }
     // setup all the blocks that can be used for a char in the structure
     // I is item input, O is item output, P is power input
@@ -151,50 +152,50 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
 
         guiHandler = new GuiHandlerBlockEntity(this);
 
-        guiModuleEnergy energyBar = new guiModuleEnergy(17, level.isClientSide ? null : this.energyInTiles.get(0), guiHandler, 10, 10);
+        guiModuleEnergy energyBar = new guiModuleEnergy(17, level.isClientSide ? null : getEnergyInputTiles().get(0).energyStorage, guiHandler, 10, 10);
         guiHandler.getModules().add(energyBar);
 
-        guiModuleFluidTankDisplay fluidInput = new guiModuleFluidTankDisplay(18,level.isClientSide ? null :fluidInTiles.get(0),0,guiHandler,34,10);
+        guiModuleFluidTankDisplay fluidInput = new guiModuleFluidTankDisplay(18,level.isClientSide ? null :getFluidInTiles().get(0).myTank,0,guiHandler,34,10);
         guiHandler.getModules().add(fluidInput);
-        guiModuleItemHandlerSlot fluidInSlot = new guiModuleItemHandlerSlot(19, level.isClientSide ? null : this.fluidInTiles.get(0), 0, 1, 0, guiHandler, 50, 10);
+        guiModuleItemHandlerSlot fluidInSlot = new guiModuleItemHandlerSlot(19, level.isClientSide ? null : getFluidInTiles().get(0).inventory, 0, 1, 0, guiHandler, 50, 10);
         fluidInSlot.setSlotBackground(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background_bucket.png"), 18,18);
-        guiModuleItemHandlerSlot fluidOutSlot = new guiModuleItemHandlerSlot(20, level.isClientSide ? null : this.fluidInTiles.get(0), 1, 1, 0, guiHandler, 50, 45);
+        guiModuleItemHandlerSlot fluidOutSlot = new guiModuleItemHandlerSlot(20, level.isClientSide ? null : getFluidInTiles().get(0).inventory, 1, 1, 0, guiHandler, 50, 45);
         guiHandler.getModules().add(fluidInSlot);
         guiHandler.getModules().add(fluidOutSlot);
         guiHandler.getModules().add(new guiModuleImage(guiHandler, 50, 30, 16, 12, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png"), 16, 12));
 
         // 8 slots for the input block
         // every sot has a groupId and a instantTransferId - this way you can specify what slots will be targeted on instant-item-transfer during shift click
-        guiModuleItemHandlerSlot slotI1 = new guiModuleItemHandlerSlot(1, level.isClientSide ? null : this.itemInTiles.get(0), 0, 1, 0, guiHandler, 90, 50);
-        guiModuleItemHandlerSlot slotI2 = new guiModuleItemHandlerSlot(2, level.isClientSide ? null : this.itemInTiles.get(0), 1, 1, 0, guiHandler, 90, 70);
-        guiModuleItemHandlerSlot slotI3 = new guiModuleItemHandlerSlot(3, level.isClientSide ? null : this.itemInTiles.get(0), 2, 1, 0, guiHandler, 110, 50);
-        guiModuleItemHandlerSlot slotI4 = new guiModuleItemHandlerSlot(4, level.isClientSide ? null : this.itemInTiles.get(0), 3, 1, 0, guiHandler, 110, 70);
+        guiModuleItemHandlerSlot slotI1 = new guiModuleItemHandlerSlot(1, level.isClientSide ? null : getItemInTiles().get(0).inventory, 0, 1, 0, guiHandler, 90, 50);
+        guiModuleItemHandlerSlot slotI2 = new guiModuleItemHandlerSlot(2, level.isClientSide ? null : getItemInTiles().get(0).inventory, 1, 1, 0, guiHandler, 90, 70);
+        guiModuleItemHandlerSlot slotI3 = new guiModuleItemHandlerSlot(3, level.isClientSide ? null : getItemInTiles().get(0).inventory, 2, 1, 0, guiHandler, 110, 50);
+        guiModuleItemHandlerSlot slotI4 = new guiModuleItemHandlerSlot(4, level.isClientSide ? null : getItemInTiles().get(0).inventory, 3, 1, 0, guiHandler, 110, 70);
         guiHandler.getModules().add(slotI1);
         guiHandler.getModules().add(slotI2);
         guiHandler.getModules().add(slotI3);
         guiHandler.getModules().add(slotI4);
-        guiModuleItemHandlerSlot slotI5 = new guiModuleItemHandlerSlot(5, level.isClientSide ? null : this.itemInTiles.get(1), 0, 1, 0, guiHandler, 90, 10);
-        guiModuleItemHandlerSlot slotI6 = new guiModuleItemHandlerSlot(6, level.isClientSide ? null : this.itemInTiles.get(1), 1, 1, 0, guiHandler, 90, 30);
-        guiModuleItemHandlerSlot slotI7 = new guiModuleItemHandlerSlot(7, level.isClientSide ? null : this.itemInTiles.get(1), 2, 1, 0, guiHandler, 110, 10);
-        guiModuleItemHandlerSlot slotI8 = new guiModuleItemHandlerSlot(8, level.isClientSide ? null : this.itemInTiles.get(1), 3, 1, 0, guiHandler, 110, 30);
+        guiModuleItemHandlerSlot slotI5 = new guiModuleItemHandlerSlot(5, level.isClientSide ? null : getItemInTiles().get(1).inventory, 0, 1, 0, guiHandler, 90, 10);
+        guiModuleItemHandlerSlot slotI6 = new guiModuleItemHandlerSlot(6, level.isClientSide ? null : getItemInTiles().get(1).inventory, 1, 1, 0, guiHandler, 90, 30);
+        guiModuleItemHandlerSlot slotI7 = new guiModuleItemHandlerSlot(7, level.isClientSide ? null : getItemInTiles().get(1).inventory, 2, 1, 0, guiHandler, 110, 10);
+        guiModuleItemHandlerSlot slotI8 = new guiModuleItemHandlerSlot(8, level.isClientSide ? null : getItemInTiles().get(1).inventory, 3, 1, 0, guiHandler, 110, 30);
         guiHandler.getModules().add(slotI5);
         guiHandler.getModules().add(slotI6);
         guiHandler.getModules().add(slotI7);
         guiHandler.getModules().add(slotI8);
 
         // 8 slots for the output block
-        guiModuleItemHandlerSlot slotO1 = new guiModuleItemHandlerSlot(9, level.isClientSide ? null : this.itemOutTiles.get(0), 0, 2, 0, guiHandler, 150, 50);
-        guiModuleItemHandlerSlot slotO2 = new guiModuleItemHandlerSlot(10, level.isClientSide ? null : this.itemOutTiles.get(0), 1, 2, 0, guiHandler, 150, 70);
-        guiModuleItemHandlerSlot slotO3 = new guiModuleItemHandlerSlot(11, level.isClientSide ? null : this.itemOutTiles.get(0), 2, 2, 0, guiHandler, 170, 50);
-        guiModuleItemHandlerSlot slotO4 = new guiModuleItemHandlerSlot(12, level.isClientSide ? null : this.itemOutTiles.get(0), 3, 2, 0, guiHandler, 170, 70);
+        guiModuleItemHandlerSlot slotO1 = new guiModuleItemHandlerSlot(9, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 0, 2, 0, guiHandler, 150, 50);
+        guiModuleItemHandlerSlot slotO2 = new guiModuleItemHandlerSlot(10, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 1, 2, 0, guiHandler, 150, 70);
+        guiModuleItemHandlerSlot slotO3 = new guiModuleItemHandlerSlot(11, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 2, 2, 0, guiHandler, 170, 50);
+        guiModuleItemHandlerSlot slotO4 = new guiModuleItemHandlerSlot(12, level.isClientSide ? null : getItemOutTiles().get(0).inventory, 3, 2, 0, guiHandler, 170, 70);
         guiHandler.getModules().add(slotO1);
         guiHandler.getModules().add(slotO2);
         guiHandler.getModules().add(slotO3);
         guiHandler.getModules().add(slotO4);
-        guiModuleItemHandlerSlot slotO5 = new guiModuleItemHandlerSlot(13, level.isClientSide ? null : this.itemOutTiles.get(1), 0, 2, 0, guiHandler, 150, 10);
-        guiModuleItemHandlerSlot slotO6 = new guiModuleItemHandlerSlot(14, level.isClientSide ? null : this.itemOutTiles.get(1), 1, 2, 0, guiHandler, 150, 30);
-        guiModuleItemHandlerSlot slotO7 = new guiModuleItemHandlerSlot(15, level.isClientSide ? null : this.itemOutTiles.get(1), 2, 2, 0, guiHandler, 170, 10);
-        guiModuleItemHandlerSlot slotO8 = new guiModuleItemHandlerSlot(16, level.isClientSide ? null : this.itemOutTiles.get(1), 3, 2, 0, guiHandler, 170, 30);
+        guiModuleItemHandlerSlot slotO5 = new guiModuleItemHandlerSlot(13, level.isClientSide ? null : getItemOutTiles().get(1).inventory, 0, 2, 0, guiHandler, 150, 10);
+        guiModuleItemHandlerSlot slotO6 = new guiModuleItemHandlerSlot(14, level.isClientSide ? null : getItemOutTiles().get(1).inventory, 1, 2, 0, guiHandler, 150, 30);
+        guiModuleItemHandlerSlot slotO7 = new guiModuleItemHandlerSlot(15, level.isClientSide ? null : getItemOutTiles().get(1).inventory, 2, 2, 0, guiHandler, 170, 10);
+        guiModuleItemHandlerSlot slotO8 = new guiModuleItemHandlerSlot(16, level.isClientSide ? null : getItemOutTiles().get(1).inventory, 3, 2, 0, guiHandler, 170, 30);
         guiHandler.getModules().add(slotO5);
         guiHandler.getModules().add(slotO6);
         guiHandler.getModules().add(slotO7);
@@ -244,7 +245,7 @@ public class EntityRollingMachine extends EntityMultiblockMachineMaster {
         info.putBoolean("hasRecipe", recipeManager.currentRecipe != null);
         if (recipeManager.currentRecipe != null) {
             info.putInt("recipeTime", recipeManager.currentRecipe.ticksRequired);
-            ItemFluidStacks usedStacks = consumeInput(recipeManager.currentRecipe.inputs, true);
+            ItemFluidStacks usedStacks = consumeInput(recipeManager.currentRecipe.inputs, true, getFluidInTiles(), getItemInTiles());
             CompoundTag usedStacksNBT = new CompoundTag();
             usedStacks.toNBT(usedStacksNBT, level.registryAccess());
             info.put("nextConsumedStacks", usedStacksNBT);

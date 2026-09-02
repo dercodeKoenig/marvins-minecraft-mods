@@ -2,11 +2,11 @@ package ARMachines.lathe;
 
 
 import ARLib.multiblockCore.BlockMultiblockMaster;
-import ARLib.obj.GroupObject;
 import ARLib.obj.ModelFormatException;
+import ARLib.obj.Static;
 import ARLib.obj.WavefrontObject;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -18,9 +18,6 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-
-import static ARLib.obj.GroupObject.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderLathe implements BlockEntityRenderer<EntityLathe> {
 
@@ -34,15 +31,6 @@ public class RenderLathe implements BlockEntityRenderer<EntityLathe> {
             throw new RuntimeException(e);
         }
     }
-
-    static VertexFormat vertexFormat = POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL;
-    static RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
-            .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
-            .setOverlayState(OVERLAY)
-            .setLightmapState(LIGHTMAP)
-            .setTransparencyState(NO_TRANSPARENCY)
-            .setTextureState(new TextureStateShard(tex, false, false))
-            .createCompositeState(false);
 
     public int getViewDistance() {
         return 256;
@@ -94,12 +82,14 @@ public class RenderLathe implements BlockEntityRenderer<EntityLathe> {
 
             Vector3f Yaxis = new Vector3f(0, 1, 0);
 /*
-            model.resetTransformations("Hull");
-            model.translateWorldSpace("Hull", new Vector3f(0.5f, 0, 0.5f));
-            model.rotateWorldSpace("Hull", Yaxis, angle);
-            model.translateWorldSpace("Hull", new Vector3f(-0.5f, 0, -0.5f));
-            model.applyTransformations("Hull");
-            model.renderPart("Hull", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
+            // Hull is not rendered. Kept for reference using the modern PoseStack API:
+            stack.pushPose();
+            stack.translate(0.5f, 0, 0.5f);
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(Yaxis, angle));
+            stack.translate(-0.5f, 0, -0.5f);
+            VertexConsumer vc = bufferSource.getBuffer(RenderType.entitySolid(tex));
+            model.renderPart("Hull", stack, vc, packedLight, packedOverlay);
+            stack.popPose();
 */
 
             double maxTranslate = -1.12;
@@ -107,27 +97,27 @@ public class RenderLathe implements BlockEntityRenderer<EntityLathe> {
             if (translation > 0.5) translation = 1 - translation;
 
 
-            model.resetTransformations("Tool");
-            model.translateWorldSpace("Tool", new Vector3f(0.5f, 0, 0.5f));
-            model.rotateWorldSpace("Tool", Yaxis, angle);
-            model.translateWorldSpace("Tool", new Vector3f(-0.5f, 0, -0.5f));
-            model.translateWorldSpace("Tool", new Vector3f(0.935f, -0.319f, 1.51f - (float) maxTranslate * (float) translation * 2f));
-            model.applyTransformations("Tool");
-            model.renderPart("Tool", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
+            VertexConsumer vc = bufferSource.getBuffer(Static.ENTITY_SOLID_TRIANGLES.apply(tex));
+
+            stack.pushPose();
+            stack.translate(0.5f, 0, 0.5f);
+            stack.mulPose(new Quaternionf().fromAxisAngleDeg(Yaxis, angle));
+            stack.translate(-0.5f, 0, -0.5f);
+            stack.translate(0.935f, -0.319f, 1.51f - (float) maxTranslate * (float) translation * 2f);
+            model.renderPart("Tool", stack, vc, packedLight, packedOverlay);
+            stack.popPose();
 
 
             if (tile.client_hasRecipe) {
-                model.resetTransformations("Shaft");
-                model.translateWorldSpace("Shaft", new Vector3f(0.5f, 0, 0.5f));
-                model.rotateWorldSpace("Shaft", Yaxis, angle);
-                model.translateWorldSpace("Shaft", new Vector3f(-0.5f, 0, -0.5f));
-                model.translateWorldSpace("Shaft", new Vector3f(0.62f, 0.18f, 1.50471f));
-                model.rotateWorldSpace("Shaft", new Vector3f(0, 0, 1), (float) relativeProgress * 360f * 10);
-                model.applyTransformations("Shaft");
-                model.renderPart("Shaft", stack, bufferSource, vertexFormat, compositeState, packedLight, packedOverlay);
-
+                stack.pushPose();
+                stack.translate(0.5f, 0, 0.5f);
+                stack.mulPose(new Quaternionf().fromAxisAngleDeg(Yaxis, angle));
+                stack.translate(-0.5f, 0, -0.5f);
+                stack.translate(0.62f, 0.18f, 1.50471f);
+                stack.mulPose(new Quaternionf().fromAxisAngleDeg(new Vector3f(0, 0, 1), (float) relativeProgress * 360f * 10));
+                model.renderPart("Shaft", stack, vc, packedLight, packedOverlay);
+                stack.popPose();
             }
         }
     }
 }
-

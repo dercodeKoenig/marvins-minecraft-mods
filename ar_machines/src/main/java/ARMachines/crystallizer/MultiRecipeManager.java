@@ -3,6 +3,7 @@ package ARMachines.crystallizer;
 import ARLib.multiblockCore.EntityMultiblockMachineMaster;
 import ARLib.utils.MachineRecipe;
 import ARLib.utils.MultiblockMachineRecipeManager;
+import ARLib.utils.RecipePart;
 import ARLib.utils.RecipePartWithProbability;
 
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public    class MultiRecipeManager<T extends EntityMultiblockMachineMaster> {
+public class MultiRecipeManager<T extends EntityMultiblockMachineMaster> {
 
     public List<MultiblockMachineRecipeManager<T>> recipeManagers;
 
@@ -39,20 +40,19 @@ public    class MultiRecipeManager<T extends EntityMultiblockMachineMaster> {
         return reservedOutputs;
     }
 
-    public List<RecipePartWithProbability> addedIdsAndNumsIgnoreP(List<RecipePartWithProbability> list){
-        Map <String, Integer> ids_nums = new HashMap<>();
-        for (RecipePartWithProbability i : list){
-            if(ids_nums.containsKey(i.id)){
-                ids_nums.put(i.id, ids_nums.get(i.id)+i.amount);
-            }
-            else{
+    public List<RecipePartWithProbability> addedIdsAndNumsIgnoreP(List<RecipePartWithProbability> list) {
+        Map<String, Integer> ids_nums = new HashMap<>();
+        for (RecipePartWithProbability i : list) {
+            if (ids_nums.containsKey(i.id)) {
+                ids_nums.put(i.id, ids_nums.get(i.id) + i.amount);
+            } else {
                 ids_nums.put(i.id, i.amount);
             }
         }
         List<RecipePartWithProbability> list2 = new ArrayList<>();
-        for (String i : ids_nums.keySet()){
+        for (String i : ids_nums.keySet()) {
             int num = ids_nums.get(i);
-            RecipePartWithProbability newPart = new RecipePartWithProbability(i,num,0);
+            RecipePartWithProbability newPart = new RecipePartWithProbability(i, num, 0);
             list2.add(newPart);
         }
         return list2;
@@ -64,19 +64,16 @@ public    class MultiRecipeManager<T extends EntityMultiblockMachineMaster> {
 
         for (int i = 0; i < m.recipes.size(); i++) {
             MachineRecipe r = m.recipes.get(i);
-            List<RecipePartWithProbability> totalRequiredInputs = new ArrayList<>();
-            totalRequiredInputs.addAll(reservedInputs);
+            List<RecipePartWithProbability> totalRequiredInputs = new ArrayList<>(reservedInputs);
             List<RecipePartWithProbability> totalRequiredOutputs = new ArrayList<>(reservedOutputs);
             totalRequiredInputs.addAll(r.inputs);
             totalRequiredOutputs.addAll(r.outputs);
-            totalRequiredOutputs = addedIdsAndNumsIgnoreP(totalRequiredInputs);
+            totalRequiredOutputs = addedIdsAndNumsIgnoreP(totalRequiredOutputs);
             totalRequiredInputs = addedIdsAndNumsIgnoreP(totalRequiredInputs);
 
-
-            if (m.master.hasinputs(new ArrayList<>(totalRequiredInputs)) && m.master.canFitOutputs(new ArrayList<>(totalRequiredOutputs))) {
+            if (m.master.hasinputs(new ArrayList<RecipePart>(totalRequiredInputs), m.master.getFluidInTiles(), m.master.getItemInTiles()) && m.master.canFitOutputs(new ArrayList<RecipePart>(totalRequiredOutputs), m.master.getFluidOutTiles(), m.master.getItemOutTiles())) {
                 m.currentRecipe = r.copy();
-                m.currentRecipe.compute_actual_output_nums();
-                //System.out.println("set recipe");
+                m.currentRecipe.computeRandomAmounts();
                 break;
             }
         }
@@ -94,18 +91,17 @@ public    class MultiRecipeManager<T extends EntityMultiblockMachineMaster> {
                 List<RecipePartWithProbability> reservedOutputs = getReservedOutputs();
                 List<RecipePartWithProbability> reservedInputs = getReservedInputs();
 
-                if (i.master.hasinputs(new ArrayList<>(reservedInputs)) && i.master.canFitOutputs(new ArrayList<>(reservedOutputs))) {
-                    if (i.master.getTotalEnergyStored() >= i.currentRecipe.energyPerTick) {
+                if (i.master.hasinputs(new ArrayList<>(reservedInputs), i.master.getFluidInTiles(), i.master.getItemInTiles()) && i.master.canFitOutputs(new ArrayList<>(reservedOutputs), i.master.getFluidOutTiles(), i.master.getItemOutTiles())) {
+                    if (i.master.getTotalEnergyStored(i.master.getEnergyInputTiles()) >= i.currentRecipe.energyPerTick) {
                         ++i.progress;
-                        //System.out.println(i.progress);
-                        i.master.consumeEnergy(i.currentRecipe.energyPerTick);
+                        i.master.consumeEnergy(i.currentRecipe.energyPerTick, i.master.getEnergyInputTiles());
                         if (i.progress == i.currentRecipe.ticksRequired) {
-                            i.master.consumeInput(i.currentRecipe.inputs, false);
-                            i.master.produceOutput(i.currentRecipe.outputs);
+                            i.master.consumeInput(i.currentRecipe.inputs, false, i.master.getFluidInTiles(), i.master.getItemInTiles());
+                            i.master.produceOutput(i.currentRecipe.outputs, i.master.getFluidOutTiles(), i.master.getItemOutTiles());
                             i.reset();
                         }
                         rets.add(true);
-                    }else {
+                    } else {
                         rets.add(false);
                     }
                 } else {
