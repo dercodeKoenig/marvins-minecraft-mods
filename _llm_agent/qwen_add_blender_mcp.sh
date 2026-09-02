@@ -1,1 +1,0 @@
-qwen mcp add --transport http blender http://host.docker.internal:8000
