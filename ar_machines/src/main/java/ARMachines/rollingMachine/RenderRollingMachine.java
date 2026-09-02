@@ -27,7 +27,7 @@ public class RenderRollingMachine implements BlockEntityRenderer<EntityRollingMa
 
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("armachines", "textures/block/rollingmachine.png");
     static WavefrontObject model;
-    static ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/rollingmachine_new.obj");
+    static ResourceLocation modelsrc = ResourceLocation.fromNamespaceAndPath("armachines", "multiblock/rollingmachine.obj");
     static{
         try {
             model = new WavefrontObject(modelsrc);
