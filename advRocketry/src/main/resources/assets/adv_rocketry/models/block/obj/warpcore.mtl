@@ -1,0 +1,12 @@
+# Blender 5.2.1 LTS MTL File: 'warpcore.blend'
+# www.blender.org
+
+newmtl Material
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd adv_rocketry:block/warpcore_multiblock
+map_d adv_rocketry:block/warpcore_multiblock

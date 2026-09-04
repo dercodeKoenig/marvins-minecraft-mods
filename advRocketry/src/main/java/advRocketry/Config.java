@@ -63,6 +63,8 @@ public class Config implements SimpleNetworkPacket.SimpleNetworkDataReceiver {
     public double station_SpaceTravel_Min_Speed = 0.000001;
     public double station_SpaceTravel_Rotation_Rate = 0.01;
     public double station_Max_Orbit_R_Factor = 10;
+    public double station_Warp_Fuel_Multiplier = 10;
+    public double station_Max_Fuel = 512;
 
     // ---- survival / equipment consumption ----
     public int jetpack_hydrogen_per_tick = 10;

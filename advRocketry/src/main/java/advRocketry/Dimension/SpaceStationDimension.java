@@ -1,5 +1,6 @@
 package advRocketry.Dimension;
 
+import advRocketry.BlockEntities.EntityWarpCore;
 import advRocketry.Config;
 import advRocketry.GlobalTime;
 import advRocketry.Utils.AxisDirections;
@@ -18,6 +19,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector3f;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,6 +48,9 @@ public class SpaceStationDimension extends Dimension {
 
     private boolean isInOrbit;
     private boolean isInSpaceTravel;
+
+    // warp cores register onload and unregister on setremoved
+    public final Set<EntityWarpCore> warpCores = new HashSet<>();
 
     public SpaceStationDimension(DimensionProperties properties, DimensionManager dimensionManager) {
         super(properties, dimensionManager);
@@ -212,6 +218,64 @@ public class SpaceStationDimension extends Dimension {
 
     public boolean isInSpaceTravel() {
         return isInSpaceTravel;
+    }
+
+    public int getFuelAvailable() {
+        int fuel = 0;
+        Iterator<EntityWarpCore> it = warpCores.iterator();
+        while (it.hasNext()) {
+            EntityWarpCore core = it.next();
+            if (core == null || core.isRemoved()) {
+                // core is gone (unloaded / block broken) - drop it from the set
+                it.remove();
+                continue;
+            }
+            if (core.isComplete()) {
+                fuel += core.getFuel();
+            }
+        }
+        return fuel;
+    }
+
+    public int consumeFuel(int requested) {
+        int consumed = 0;
+        Iterator<EntityWarpCore> it = warpCores.iterator();
+        while (it.hasNext()) {
+            if (consumed >= requested) break;
+            EntityWarpCore core = it.next();
+            if (core == null || core.isRemoved()) {
+                it.remove();
+                continue;
+            }
+            if (core.isComplete()) {
+                consumed += core.consumeFuel(requested - consumed);
+            }
+        }
+        return consumed;
+    }
+
+    public int getRequiredFuelForWarp(ResourceLocation targetDim){
+        Dimension otherDim = dimensionManager.get(targetDim);
+        if(otherDim == null)
+            return 0;
+        if(targetDim.equals(getDimensionId()))
+            return 0;
+        // distance is in AU
+        double distance = otherDim.getPosition(0).distanceTo(getPosition(0));
+        double multiplier = Config.INSTANCE.station_Warp_Fuel_Multiplier;
+        double maxFuel = Config.INSTANCE.station_Max_Fuel;
+        double raw = multiplier * Math.pow(distance, 0.5);
+        return (int) (1 + (maxFuel - 1) * raw / (maxFuel - 1 + raw));
+    }
+
+    public boolean warpTo(ResourceLocation targetDim){
+        int requiredFuel = getRequiredFuelForWarp(targetDim);
+        if (getFuelAvailable() >= requiredFuel){
+            consumeFuel(requiredFuel);
+            setTargetPlanet(targetDim);
+            return true;
+        }
+        return false;
     }
 
     public boolean initialBlocksPlaced() {

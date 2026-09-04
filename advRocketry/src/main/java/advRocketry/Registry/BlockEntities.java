@@ -35,6 +35,7 @@ public class BlockEntities {
     public static final Supplier<BlockEntityType<EntityOrientationController>> ENTITY_ORIENTATION_CONTROLLER = BLOCK_ENTITIES.register("orientation_controller", () -> BlockEntityType.Builder.of(EntityOrientationController::new, Blocks.ORIENTATION_CONTROLLER.get()).build(null));
     public static final Supplier<BlockEntityType<EntityStationController>> ENTITY_STATION_CONTROLLER = BLOCK_ENTITIES.register("station_controller", () -> BlockEntityType.Builder.of(EntityStationController::new, Blocks.STATION_CONTROLLER.get()).build(null));
     public static final Supplier<BlockEntityType<EntityWarpController>> ENTITY_WARP_CONTROLLER = BLOCK_ENTITIES.register("warp_controller", () -> BlockEntityType.Builder.of(EntityWarpController::new, Blocks.WARP_CONTROLLER.get()).build(null));
+    public static final Supplier<BlockEntityType<EntityWarpCore>> ENTITY_WARP_CORE = BLOCK_ENTITIES.register("warp_core", () -> BlockEntityType.Builder.of(EntityWarpCore::new, Blocks.WARP_CORE.get()).build(null));
 
     public static final Supplier<BlockEntityType<EntitySatelliteAssembler>> ENTITY_SATELLITE_ASSEMBLER = BLOCK_ENTITIES.register("satellite_assembler", () -> BlockEntityType.Builder.of(EntitySatelliteAssembler::new, Blocks.SATELLITE_ASSEMBLER.get()).build(null));
     public static final Supplier<BlockEntityType<EntitySatelliteMonitor>> ENTITY_SATELLITE_MONITOR = BLOCK_ENTITIES.register("satellite_monitor", () -> BlockEntityType.Builder.of(EntitySatelliteMonitor::new, Blocks.SATELLITE_MONITOR.get()).build(null));

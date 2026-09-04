@@ -1,9 +1,7 @@
 package advRocketry.BlockEntities;
 
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleButton;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModuleText;
+import ARLib.gui.modules.*;
 import ARLib.network.PacketBlockEntity;
 import advRocketry.Dimension.Dimension;
 import advRocketry.Dimension.DimensionManager;
@@ -46,6 +44,8 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
     public guiModuleText inOrbitText;
     public guiModuleText targetText;
     public guiModuleText statusText;
+    public guiModuleItemStackRender warpCoreStack;
+    public guiModuleItemStackRender dilithiumStack;
 
     public EntityWarpController(BlockPos pos, BlockState blockState) {
         super(ENTITY_WARP_CONTROLLER.get(), pos, blockState);
@@ -178,7 +178,12 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
         statusText = new guiModuleText(87, "status", guiHandler, 10, 165, 0xff000000, false);
         guiHandler.modules.add(statusText);
 
-        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 195, 10000, 1, 0, guiHandler));
+        dilithiumStack = new guiModuleItemStackRender(999866, ItemStack.EMPTY, 1, guiHandler, 220, 198);
+        warpCoreStack = new guiModuleItemStackRender(999867, ItemStack.EMPTY, 1, guiHandler, 190, 198);
+        guiHandler.modules.add(dilithiumStack);
+        guiHandler.modules.add(warpCoreStack);
+
+        guiHandler.modules.addAll(ARLib.gui.modules.guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 200, 10000, 1, 0, guiHandler));
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -219,8 +224,7 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
             if (myDim instanceof SpaceStationDimension spaceStationDimension) {
                 if (btn == 339) {
                     // warp!
-                    spaceStationDimension.setTargetPlanet(targetView.dimensionId);
-                    //guiHandler.signalCloseGui(serverPlayer);
+                    spaceStationDimension.warpTo(targetView.dimensionId);
                 }
             }
             if (btn == 340) {
@@ -288,10 +292,14 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
                         double distance = spaceStation.getPosition(0).distanceTo(targetPlanet.getPosition(0));
                         distance = (double) Math.round(distance * 100) / 100;
                         String text = "Distance to target:\n" + distance + " AU";
+                        text += "\nRequired Fuel: " + spaceStation.getRequiredFuelForWarp(targetPlanet.getDimensionId());
                         statusText.setTextAndSync(text);
                     } else {
                         statusText.setTextAndSync("");
                     }
+
+                    warpCoreStack.setStackAndSync(new ItemStack(Items.ITEM_WARP_CORE.get(), spaceStation.warpCores.size()));
+                    dilithiumStack.setStackAndSync(new ItemStack(Items.ITEM_DILITHIUM_CRYSTAL.get(), spaceStation.getFuelAvailable()));
                 }
             }
         }
@@ -299,6 +307,6 @@ public class EntityWarpController extends BlockEntity implements ARLib.network.I
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(250, 220, true);
+            guiHandler.openGui(250, 225, true);
     }
 }

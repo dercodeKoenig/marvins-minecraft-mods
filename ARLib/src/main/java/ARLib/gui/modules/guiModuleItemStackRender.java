@@ -40,7 +40,8 @@ public class guiModuleItemStackRender extends GuiModuleBase {
                 myTag.putBoolean("isEmpty", true);
             } else {
                 CompoundTag stackTag = new CompoundTag();
-                myTag.put("stack", stack.save(server.registryAccess(), stackTag));
+                myTag.put("stack", new ItemStack(stack.getItem(), 1).save(server.registryAccess(), stackTag));
+                myTag.putInt("count", stack.getCount());
             }
             tag.put(getMyTagKey(), myTag);
         }
@@ -54,8 +55,9 @@ public class guiModuleItemStackRender extends GuiModuleBase {
             if (myTag.contains("isEmpty")) {
                 this.stack = ItemStack.EMPTY;
             }
-            if (myTag.contains("stack")) {
+            if (myTag.contains("stack") && myTag.contains("count")) {
                 this.stack = ItemStack.parse(Minecraft.getInstance().level.registryAccess(), myTag.getCompound("stack")).orElse(ItemStack.EMPTY);
+                stack.setCount(myTag.getInt("count"));
             }
         }
         super.client_handleDataSyncedToClient(tag);

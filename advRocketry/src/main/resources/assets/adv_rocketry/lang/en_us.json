@@ -60,6 +60,7 @@
   "block.adv_rocketry.station_controller": "Station Controller",
   "block.adv_rocketry.orientation_controller": "Orientation Controller",
   "block.adv_rocketry.warp_controller": "Warp Controller",
+  "block.adv_rocketry.warp_core": "Warp Core",
   "block.adv_rocketry.moon_turf": "Moon Turf",
   "block.adv_rocketry.moon_turf_dark": "Dark Moon Turf",
   "block.adv_rocketry.dry_ice": "Dry Ice",
@@ -85,6 +86,7 @@
 
   "block.adv_rocketry.dilithium_ore": "Dilithium Ore",
   "item.adv_rocketry.dilithium_ore": "Dilithium Ore",
+  "item.adv_rocketry.dilithium_crystal": "Dilithium Crystal",
   "block.adv_rocketry.crystal_red": "Red Crystal",
   "block.adv_rocketry.crystal_orange": "Orange Crystal",
   "block.adv_rocketry.crystal_yellow": "Yellow Crystal",

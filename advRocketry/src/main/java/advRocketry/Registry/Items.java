@@ -65,6 +65,7 @@ public class Items {
     public static final Supplier<Item> ITEM_ORIENTATION_CONTROLLER = registerBlockItem("orientation_controller", Blocks.ORIENTATION_CONTROLLER);
     public static final Supplier<Item> ITEM_STATION_CONTROLLER = registerBlockItem("station_controller", Blocks.STATION_CONTROLLER);
     public static final Supplier<Item> ITEM_WARP_CONTROLLER = registerBlockItem("warp_controller", Blocks.WARP_CONTROLLER);
+    public static final Supplier<Item> ITEM_WARP_CORE = registerBlockItem("warp_core", Blocks.WARP_CORE);
 
     public static final Supplier<Item> ITEM_SATELLITE_ASSEMBLER = registerBlockItem("satellite_assembler", Blocks.SATELLITE_ASSEMBLER);
     public static final Supplier<Item> ITEM_SATELLITE_MONITOR = registerBlockItem("satellite_monitor", Blocks.SATELLITE_MONITOR);
@@ -87,6 +88,7 @@ public class Items {
     public static final Supplier<Item> ITEM_MOON_TURF_DARK = registerBlockItem("moon_turf_dark", Blocks.MOON_TURF_DARK);
     public static final Supplier<Item> ITEM_DRY_ICE = registerBlockItem("dry_ice", Blocks.DRY_ICE);
     public static final Supplier<Item> ITEM_DILITHIUM_ORE = registerBlockItem("dilithium_ore", Blocks.DILITHIUM_ORE);
+    public static final Supplier<Item> ITEM_DILITHIUM_CRYSTAL = ITEMS.register("dilithium_crystal", () -> new ItemDilithiumCrystal());
 
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_HELMET = ITEMS.register("space_helmet", () -> new Helmet());
     public static final Supplier<SpaceSuit> ITEM_SPACE_SUIT_CHESTPLATE = ITEMS.register("space_chestplate", () -> new ChestPlate());

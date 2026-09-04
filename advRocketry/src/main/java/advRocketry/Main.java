@@ -4,6 +4,7 @@ import ARLib.network.SimpleNetworkPacket;
 import advRocketry.BlockEntities.EntityAstrobodyDataProcessor;
 import advRocketry.BlockEntities.EntityLaserDrill;
 import advRocketry.BlockEntities.EntityObservatory;
+import advRocketry.BlockEntities.EntityWarpCore;
 import advRocketry.Dimension.*;
 import advRocketry.Items.ItemLinker;
 import advRocketry.Items.ItemPortablePressureTank;
@@ -177,6 +178,7 @@ public class Main {
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Observatory", EntityObservatory.structure, EntityObservatory.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Asrobody Data Processor", EntityAstrobodyDataProcessor.structure, EntityAstrobodyDataProcessor.charMapping);
         ARLib.holoProjector.itemHoloProjector.registerMultiblock("Laser Drill", EntityLaserDrill.structure, EntityLaserDrill.charMapping);
+        ARLib.holoProjector.itemHoloProjector.registerMultiblock("Warp Core", EntityWarpCore.structure, EntityWarpCore.charMapping);
         TerraformingSystem.setup();
     }
 
@@ -242,6 +244,7 @@ public class Main {
             e.accept(Blocks.STATION_CONTROLLER.get());
             e.accept(Blocks.ORIENTATION_CONTROLLER.get());
             e.accept(Blocks.WARP_CONTROLLER.get());
+            e.accept(Blocks.WARP_CORE.get());
 
             e.accept(Blocks.DATA_STORAGE_BLOCK.get());
             e.accept(Blocks.SOLAR_PANEL.get());
@@ -269,6 +272,7 @@ public class Main {
             e.accept(Blocks.CRYSTAL_PURPLE.get());
 
             e.accept(Items.ITEM_LINKER.get());
+            e.accept(Items.ITEM_DILITHIUM_CRYSTAL.get());
             e.accept(Items.ITEM_GALAXY_DATABASE.get());
             e.accept(Items.ITEM_PLANET_ID_CHIP.get());
             e.accept(Items.ITEM_ASTEROID_ID_CHIP.get());
