@@ -68,7 +68,7 @@ public class EntityWarpCore extends EntityMultiblockMachineMaster {
         if (DimensionManager.INSTANCE_CLIENT.get(level.dimension().location()) instanceof SpaceStationDimension spaceStation) {
             double movementRelative = spaceStation.getMovement().length() / Config.INSTANCE.station_SpaceTravel_AU_Per_Second;
             isInWarp = spaceStation.isInSpaceTravel();
-            double b = 0.005;
+            double b = 0.01;
             intensity = (float) (b + (1 - b) * Math.pow(movementRelative, 0.2));
         }
 
