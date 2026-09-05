@@ -420,6 +420,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
             // if nothing there to analyze, go idle
             toggleTask(Task.IDLE, null);
             setStatusText("unable to find any new planets");
+            sendToNearbyPlayers("A nearby observatory was unable to find any new planets");
         }
     }
 
@@ -451,7 +452,7 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         // 3. Return the most visible planet
         //    check visibility again, for example in nether we might not be able to see into the galaxy when the current dim is not in dimension manager
         PlanetDimension toDiscover = discoverablePlanets.get(0);
-        if(calculateVisibility(toDiscover) > 0)
+        if (calculateVisibility(toDiscover) > 0)
             return toDiscover;
         return null;
     }
@@ -467,6 +468,14 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         double radiation = planet.getRadiationIntensity();
 
         return (size / (distance + 0.0001)) * (1.0 + radiation * 50);
+    }
+
+    void sendToNearbyPlayers(String msg){
+        for (Player player : level.players()) {
+            if (player.position().distanceTo(getBlockPos().getCenter()) < 32) {
+                player.sendSystemMessage(Component.literal(msg));
+            }
+        }
     }
 
     public void tick() {
@@ -677,17 +686,12 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
                                 if (nextToDiscover != null) {
                                     // add the planet to the list
                                     ItemGalaxyDatabase.discoverPlanet(storageDisk, nextToDiscover);
-                                    // send a message to nearby players
-                                    for (Player player : level.players()) {
-                                        if (player.position().distanceTo(getBlockPos().getCenter()) < 32) {
-                                            String n = nextToDiscover.isStar() ? "star" : "planet";
-                                            String parentNameString = "";
-                                            if (DimensionManager.INSTANCE_SERVER.get(nextToDiscover.getParentDimensionId()) instanceof PlanetDimension parentPlanet) {
-                                                parentNameString = " in orbit around " + parentPlanet.getName();
-                                            }
-                                            player.sendSystemMessage(Component.literal("A nearby Observatory discovered a new " + n + parentNameString + ": " + nextToDiscover.getName()));
-                                        }
+                                    String msg = "A nearby Observatory discovered a new " + (nextToDiscover.isStar() ? "star" : "planet");
+                                    if (DimensionManager.INSTANCE_SERVER.get(nextToDiscover.getParentDimensionId()) instanceof PlanetDimension parentPlanet) {
+                                        msg += " in orbit around " + parentPlanet.getName();
                                     }
+                                    msg += ": " + nextToDiscover.getName();
+                                    sendToNearbyPlayers(msg);
                                 }
                                 // check if there are still any planets left that can be discovered
                                 if (getNextPlanetToDiscover(storageDisk) != null) {
@@ -836,14 +840,19 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
 
     public void toggleTask(Task task, ResourceLocation taskTarget) {
         customStatusTimeout = 0; // reset when the task was changed
+        // toggle on / off for these tasks:
         if (this.task.equals(task)) {
-            // toggle on / off for these tasks:
             if (task.equals(Task.SCANNING_FOR_PLANETS) ||
                     task.equals(Task.SCANNING_FOR_ASTEROIDS) ||
                     task.equals(Task.SYNC_STORAGE_DISKS)) {
-                task = Task.IDLE;
-                taskTarget = null;
+                toggleTask(Task.IDLE, null);
+                return;
             }
+        }
+        // special case for analyze after all discovered: use the scan planet as toggle btn
+        if(this.task.equals(Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED) && task.equals(Task.SCANNING_FOR_PLANETS)){
+            toggleTask(Task.IDLE, null);
+            return;
         }
 
         this.lastTask = this.task;
@@ -851,18 +860,6 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
         this.task = task;
         this.taskTarget = taskTarget;
         this.taskProgress = 0;
-
-        if (task == Task.SCANNING_FOR_PLANETS) {
-            ItemStack storageDisk = getMainDatabase();
-            if (getNextPlanetToDiscover(storageDisk) == null) {
-                // there is nothing to discover!
-                // start analyzing random planets.
-                // after the planet is analyzed it will toggle the last task (scan for planets) and it will check again if anything changed maybe
-                analyzeRandomPlanetOrTurnOff(storageDisk);
-                return;
-                // code above will run toggleTask again
-            }
-        }
 
         setChanged();
         sendUpdatePacket(null);
@@ -922,13 +919,8 @@ public class EntityObservatory extends EntityMultiblockMachineMasterWithData {
             String taskStr = tag.getString("setTask");
             if (taskStr.equals("syncStorageDisks"))
                 toggleTask(Task.SYNC_STORAGE_DISKS, null);
-            if (taskStr.equals("ScanPlanet")) {
-                if (this.task.equals(Task.ANALYZE_PLANETS_AFTER_ALL_DISCOVERED)) {
-                    toggleTask(Task.IDLE, null);
-                } else {
-                    toggleTask(Task.SCANNING_FOR_PLANETS, null);
-                }
-            }
+            if (taskStr.equals("ScanPlanet"))
+                toggleTask(Task.SCANNING_FOR_PLANETS, null);
             if (taskStr.equals("ScanAsteroid"))
                 toggleTask(Task.SCANNING_FOR_ASTEROIDS, null);
         }
