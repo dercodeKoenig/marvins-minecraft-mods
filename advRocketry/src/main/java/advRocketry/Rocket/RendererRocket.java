@@ -125,7 +125,7 @@ public class RendererRocket extends EntityRenderer<EntityRocket> {
                 normalMat.invert().transpose(); // compute normal matrix
                 NormalMat.set(normalMat);
             }else{
-                throw new RuntimeException(type.name + " has no normal matrix! You might be using a shader that is not compatible with Advanced Rocketry. If you do not use shaders, report this issue at github or discord");
+                //throw new RuntimeException(type.name + " has no normal matrix! You might be using a shader that is not compatible with Advanced Rocketry. If you do not use shaders, report this issue at github or discord");
             }
             shader.apply();
             renderData.vertexBuffer.draw();
