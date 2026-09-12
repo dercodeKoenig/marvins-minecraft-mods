@@ -65,11 +65,11 @@ void main() {
 
         // a fancy curve based on the height of the star above the horizon (dot product to up vector)
         // it is not about beeing physically correct, it just has to look good enough
-        float perStarBrightnessMultiplier = max(0, (sunUp+0.2)/1.2);
+        float perStarBrightnessDotMultiplier = max(0, (sunUp+0.2)/1.2);
         // apply intensity + distance modifier
-        perStarBrightnessMultiplier *= starColor.a / (starDistance * starDistance);
+        float perStarBrightnessMultiplier = starColor.a / (starDistance * starDistance);
         // if a fragment is closely aligned with the sun, make it more bright so that the area around the sun is brighter
-        perStarBrightnessMultiplier *= 1 + pow(max(0,sunDot), 2) * AtmDensity;
+        perStarBrightnessMultiplier *= 1 + pow(max(0,sunDot), 2) * atmThickness;
 
         // glow stronger where the sun is
         float sunriseGlowMultiplier =
@@ -85,8 +85,8 @@ void main() {
         ;
 
         // add
-        cumulativeSkyColor += SkyColorBase * (1-sunriseGlowMultiplier) * pow(perStarBrightnessMultiplier, 0.5);
-        cumulativeSunriseGlow += sunriseGlow * sunriseGlowMultiplier * pow(perStarBrightnessMultiplier, 2);
+        cumulativeSkyColor += SkyColorBase * (1-sunriseGlowMultiplier) * perStarBrightnessMultiplier * pow(perStarBrightnessDotMultiplier, 0.5);
+        cumulativeSunriseGlow += sunriseGlow * sunriseGlowMultiplier * perStarBrightnessMultiplier * pow(perStarBrightnessDotMultiplier, 2);
     }
 
     // Apply global extinction once after all lights are added
@@ -98,8 +98,10 @@ void main() {
     // Add Fog
     // i want fog to blend in at the horizon and below
     // i also want it to be lower when the player is high up
+    // it should blend out as we go higher up
     float fogFactor = clamp((-verticalDot+0.15) * 4 - 0.5 * (1 - playerHeight), 0, 1);
     fogFactor = pow(smoothStep(fogFactor), 4);
+    fogFactor *= playerHeight; // player -> sky height, playerHeight -> 0, yes its confusing because its inverse
 
     // blend skycolor and fog color and add sunrise glow
     cumulativeSkyColor =
