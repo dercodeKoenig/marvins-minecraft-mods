@@ -109,5 +109,5 @@ void main() {
         + FogColor * fogFactor
         + cumulativeSunriseGlow * (1 - fogFactor*0.9);
 
-    fragColor = vec4(cumulativeSkyColor, max(fogFactor, atmThickness*0.1));
+    fragColor = vec4(cumulativeSkyColor, min(1, max(fogFactor, atmThickness*0.1)));
 }
