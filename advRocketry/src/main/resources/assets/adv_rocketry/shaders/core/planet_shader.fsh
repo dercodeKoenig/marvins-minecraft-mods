@@ -139,6 +139,7 @@ void main() {
 
     if(totalBrightness < 1 && totalBrightness > 0.0001){
         // restore some brightness to keep planets visible, or saturn would have only 1% of earth light
+        // your eyes would adapt to the darknes so this is somewhat realistic
         totalReflectedLight *= 1 / pow(totalBrightness, 0.5);
     }
 
