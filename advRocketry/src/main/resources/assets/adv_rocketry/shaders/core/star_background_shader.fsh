@@ -5,7 +5,7 @@ uniform float planetSkyHeight;      // how high is considered out of atmosphere
 uniform float LocalAtmDensity;      // atm density of current planet
 uniform float BrightnessModifier;
 
-#moj_import "adv_rocketry:atm_filter.glsl"
+#moj_import "atm_filter.glsl"
 
 in vec4 vColor;
 in vec3 localUpUniverseSpace;

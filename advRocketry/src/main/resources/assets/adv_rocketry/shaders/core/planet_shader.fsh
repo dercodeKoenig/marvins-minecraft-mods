@@ -1,8 +1,8 @@
 #version 150
 
-#moj_import "adv_rocketry:noise.glsl"
-#moj_import "adv_rocketry:utils.glsl"
-#moj_import "adv_rocketry:atm_filter.glsl"
+#moj_import "noise.glsl"
+#moj_import "utils.glsl"
+#moj_import "atm_filter.glsl"
 
 uniform sampler2D Sampler0; // surface texture
 uniform sampler2D AtmTexture; // atmosphere frame ( currently not used )
