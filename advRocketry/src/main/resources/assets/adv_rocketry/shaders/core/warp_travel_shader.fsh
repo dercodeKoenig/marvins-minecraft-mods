@@ -8,7 +8,7 @@ uniform float intensity;
 
 out vec4 fragColor;
 
-#moj_import "adv_rocketry:noise.glsl"
+#moj_import "noise.glsl"
 
 float getWarpNoise(vec3 p, float frequency, float time) {
 // 1. Create two continuous flowing directions.

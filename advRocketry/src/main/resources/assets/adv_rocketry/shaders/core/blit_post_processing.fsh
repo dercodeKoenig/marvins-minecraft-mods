@@ -4,7 +4,7 @@ uniform sampler2D Frame;
 uniform sampler2D Bloom;
 uniform float bloomIntensity;
 
-#moj_import "adv_rocketry:utils.glsl"
+#moj_import "utils.glsl"
 
 in vec2 texCoord;
 

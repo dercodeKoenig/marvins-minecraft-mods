@@ -3,7 +3,7 @@
 in vec2 texCoord;
 out vec4 fragColor;
 
-#moj_import "adv_rocketry:utils.glsl"
+#moj_import "utils.glsl"
 
 uniform sampler2D frame;
 uniform float threshold;

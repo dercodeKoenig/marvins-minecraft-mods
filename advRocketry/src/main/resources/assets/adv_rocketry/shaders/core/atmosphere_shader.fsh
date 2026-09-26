@@ -1,7 +1,7 @@
 #version 150
 
-#moj_import "adv_rocketry:atm_filter.glsl"
-#moj_import "adv_rocketry:utils.glsl"
+#moj_import "atm_filter.glsl"
+#moj_import "utils.glsl"
 
 uniform vec3 SkyColor;
 uniform vec3 SunriseColor;
