@@ -55,7 +55,7 @@ public class SurvivalSystem {
                         ItemStack chestPlate = player.getItemBySlot(EquipmentSlot.CHEST);
                         CompoundTag cached = ((ISpaceSuitInventory)chestPlate.getItem()).getCachedDataUnsafe(chestPlate);
                         int oxygenAvailable = cached.getInt("oxygen");
-                        int oxygenRequired = 20;
+                        int oxygenRequired = 3;
                         if (oxygenAvailable >= oxygenRequired) {
                             problems.remove(Dimension.SurvivalProblem.TOO_LITTLE_O2);
                             // remove oxyhen from tanks and save back to the space suit
