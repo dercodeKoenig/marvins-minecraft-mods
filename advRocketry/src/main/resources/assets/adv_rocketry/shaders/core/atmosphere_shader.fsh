@@ -77,6 +77,7 @@ void main() {
         pow(sunAtHorizon, 10) * // glow more when sun is at horizon
         horizonFactor // glow more when the fragment is at horizon (you dont want glow high above you)
         ;
+        sunriseGlowMultiplier = clamp(sunriseGlowMultiplier, 0, 1);
 
         // glowing sunrise color to be added to the base color
         vec3 sunriseGlow =
