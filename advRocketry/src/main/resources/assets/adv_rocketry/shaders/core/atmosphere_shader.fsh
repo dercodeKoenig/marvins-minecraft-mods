@@ -92,7 +92,7 @@ void main() {
 
     // Apply global extinction once after all lights are added
     // Lots of atmosphere makes it dark
-    float extinction = exp(-atmThickness);
+    float extinction = exp(-atmThickness * 0.5);
     cumulativeSkyColor *= extinction;
     cumulativeSunriseGlow *= extinction;
 
@@ -110,5 +110,5 @@ void main() {
         + FogColor * fogFactor
         + cumulativeSunriseGlow * (1 - fogFactor*0.9);
 
-    fragColor = vec4(cumulativeSkyColor, min(1, max(fogFactor, atmThickness*0.1)));
+    fragColor = vec4(cumulativeSkyColor, min(1, max(fogFactor, atmThickness*0.2)));
 }

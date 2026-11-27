@@ -1,6 +1,6 @@
 float getAtmThickness(float relativeHeight, vec3 U, vec3 V, float baseValue){
     float atmThickness = baseValue;
-    atmThickness *= pow(1.0 - max(0.0, dot(U, V)), 4.0) * 0.8 + 0.2;
+    atmThickness *= pow(1.0 - max(0.0, dot(U, V)), 3.0) * 0.9 + 0.1;
     atmThickness *= relativeHeight;
     return atmThickness;
 }
