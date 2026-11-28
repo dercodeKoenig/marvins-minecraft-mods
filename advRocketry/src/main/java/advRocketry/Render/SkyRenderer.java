@@ -569,6 +569,7 @@ public class SkyRenderer {
         float BrightnessModifier = 2;
         BrightnessModifier += (float) (2 * overGamma);
         BrightnessModifier *= (float) Math.max(0, (1 - Math.pow(myCurrentSpaceObject.getSkyDarken(), 0.1))); // stars will darken very fast even on low values while sky darkens normally
+        BrightnessModifier *= Math.clamp(1 - myCurrentSpaceObject.computeTerrainBrightness(partialtick) * myCurrentSpaceObject.getAtmosphereDensity(), 0, 1); // when bright terrain, stars go dark cause you dont see stars at daytime on planets with atm (atm is too bright)
         shader.getUniform("BrightnessModifier").set(BrightnessModifier);
 
         shader.apply();

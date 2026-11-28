@@ -86,7 +86,7 @@ void main() {
         ;
 
         // add
-        cumulativeSkyColor += SkyColorBase * (1-sunriseGlowMultiplier) * perStarBrightnessMultiplier * pow(perStarBrightnessDotMultiplier, 0.5);
+        cumulativeSkyColor += SkyColorBase * (1-sunriseGlowMultiplier) * perStarBrightnessMultiplier * perStarBrightnessDotMultiplier;
         cumulativeSunriseGlow += sunriseGlow * sunriseGlowMultiplier * perStarBrightnessMultiplier * pow(perStarBrightnessDotMultiplier, 2);
     }
 
